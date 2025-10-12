@@ -10,7 +10,7 @@ from models.patient import Patient
 from models.visit import Visit
 from models.appointment import Appointment
 from models.lab_request import LabRequest
-from models.radiology_test import RadiologyTest
+from models.radiology_request import RadiologyRequest
 from models.payment import Payment
 from models.invoice import Invoice
 from models.user import User
