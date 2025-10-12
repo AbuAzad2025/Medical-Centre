@@ -19,6 +19,12 @@ import logging
 
 reception_bp = Blueprint('reception', __name__)
 
+@reception_bp.route('/')
+@login_required
+def index():
+    """توجيه تلقائي إلى لوحة التحكم"""
+    return redirect(url_for('reception.dashboard'))
+
 @reception_bp.route('/dashboard')
 @login_required
 def dashboard():
