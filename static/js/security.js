@@ -446,7 +446,7 @@ class AuditLogger {
     }
 
     sendLog(logEntry) {
-        fetch('/api/audit-log', {
+        fetch('/super-admin/api/audit-log', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

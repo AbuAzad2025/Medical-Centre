@@ -199,12 +199,12 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-primary">
-                                            {{ department.doctors|length if department.doctors else 0 }}
+                                            {{ department.users|selectattr('role', 'equalto', 'doctor')|list|length if department.users else 0 }}
                                         </span>
                                     </td>
                                     <td>
                                         <span class="badge bg-secondary">
-                                            {{ department.staff|length if department.staff else 0 }}
+                                            {{ department.users|length if department.users else 0 }}
                                         </span>
                                     </td>
                                     <td>
