@@ -57,7 +57,9 @@ def dashboard():
         ).count()
         
         # المبالغ المستحقة
-        pending_amount = db.session.query(db.func.sum(Invoice.remaining_amount)).filter(
+        pending_amount = db.session.query(
+            db.func.sum(Invoice.total_amount - Invoice.paid_amount)
+        ).filter(
             Invoice.status.in_(['DRAFT', 'ISSUED'])
         ).scalar() or 0
         
