@@ -276,3 +276,5 @@ jinja2.exceptions.TemplateNotFound: super_admin/system_monitor.html
 2025-10-12 23:15:29 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
 2025-10-12 23:19:14 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
 2025-10-12 23:29:30 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-12 23:33:19 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-12 23:36:34 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
