@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+
+{% block title %}إضافة مريض للطابور - الاستقبال{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-plus"></i>
+                        إضافة مريض للطابور
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{{ url_for('reception.queue_management') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i>
+                            العودة للطابور
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="addPatientForm">
+                        <div class="row">
+                            <!-- معلومات المريض -->
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>معلومات المريض</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label for="patient_id">اختيار المريض *</label>
+                                            <select class="form-control" name="patient_id" id="patient_id" required>
+                                                <option value="">اختر المريض</option>
+                                                {% for patient in patients %}
+                                                <option value="{{ patient.id }}">
+                                                    {{ patient.first_name }} {{ patient.last_name }} - {{ patient.phone }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="visit_id">الزيارة (اختياري)</label>
+                                            <select class="form-control" name="visit_id" id="visit_id">
+                                                <option value="">اختر الزيارة</option>
+                                                {% for visit in visits %}
+                                                <option value="{{ visit.id }}">
+                                                    زيارة #{{ visit.visit_number or visit.id }} - {{ visit.patient.first_name }} {{ visit.patient.last_name }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="appointment_id">الموعد (اختياري)</label>
+                                            <select class="form-control" name="appointment_id" id="appointment_id">
+                                                <option value="">اختر الموعد</option>
+                                                {% for appointment in appointments %}
+                                                <option value="{{ appointment.id }}">
+                                                    {{ appointment.patient.first_name }} {{ appointment.patient.last_name }} - {{ appointment.appointment_date }} {{ appointment.appointment_time }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- معلومات الطابور -->
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>معلومات الطابور</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label for="department_id">القسم *</label>
+                                            <select class="form-control" name="department_id" id="department_id" required>
+                                                <option value="">اختر القسم</option>
+                                                {% for department in departments %}
+                                                <option value="{{ department.id }}">{{ department.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="doctor_id">الطبيب (اختياري)</label>
+                                            <select class="form-control" name="doctor_id" id="doctor_id">
+                                                <option value="">اختر الطبيب</option>
+                                                {% for doctor in doctors %}
+                                                <option value="{{ doctor.id }}">{{ doctor.full_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="queue_type">نوع الطابور</label>
+                                            <select class="form-control" name="queue_type" id="queue_type">
+                                                <option value="normal">عادي</option>
+                                                <option value="priority">أولوية</option>
+                                                <option value="vip">VIP</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- خيارات خاصة -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>خيارات خاصة</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <!-- الطوارئ -->
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <div class="custom-control custom-checkbox">
+                                                        <input type="checkbox" class="custom-control-input" name="is_emergency" id="is_emergency">
+                                                        <label class="custom-control-label" for="is_emergency">
+                                                            <i class="fas fa-exclamation-triangle text-danger"></i>
+                                                            حالة طوارئ
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="form-group" id="emergency_reason_group" style="display: none;">
+                                                    <label for="emergency_reason">سبب الطوارئ</label>
+                                                    <textarea class="form-control" name="emergency_reason" id="emergency_reason" rows="3" placeholder="أدخل سبب الطوارئ..."></textarea>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- الدخول القوي -->
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <div class="custom-control custom-checkbox">
+                                                        <input type="checkbox" class="custom-control-input" name="force_entry" id="force_entry">
+                                                        <label class="custom-control-label" for="force_entry">
+                                                            <i class="fas fa-key text-warning"></i>
+                                                            دخول قوي
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="form-group" id="force_entry_reason_group" style="display: none;">
+                                                    <label for="force_entry_reason">سبب الدخول القوي</label>
+                                                    <textarea class="form-control" name="force_entry_reason" id="force_entry_reason" rows="3" placeholder="أدخل سبب الدخول القوي..."></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- حالة الدفع -->
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="payment_status">حالة الدفع</label>
+                                                    <select class="form-control" name="payment_status" id="payment_status">
+                                                        <option value="PENDING">في الانتظار</option>
+                                                        <option value="PAID">مدفوع</option>
+                                                        <option value="DEBT">دين</option>
+                                                        <option value="EMERGENCY_DEBT">دين طوارئ</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="notes">ملاحظات إضافية</label>
+                                                    <textarea class="form-control" name="notes" id="notes" rows="3" placeholder="أدخل أي ملاحظات إضافية..."></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- أزرار التحكم -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-plus"></i>
+                                            إضافة للطابور
+                                        </button>
+                                        <a href="{{ url_for('reception.queue_management') }}" class="btn btn-secondary btn-lg">
+                                            <i class="fas fa-times"></i>
+                                            إلغاء
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تأكيد الإضافة -->
+<div class="modal fade" id="confirmAddModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تأكيد الإضافة للطابور</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="confirmInfo">
+                    <!-- معلومات التأكيد -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" onclick="submitForm()">
+                    <i class="fas fa-check"></i>
+                    تأكيد الإضافة
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// إظهار/إخفاء حقول الطوارئ
+document.getElementById('is_emergency').addEventListener('change', function() {
+    const reasonGroup = document.getElementById('emergency_reason_group');
+    if (this.checked) {
+        reasonGroup.style.display = 'block';
+        document.getElementById('emergency_reason').required = true;
+    } else {
+        reasonGroup.style.display = 'none';
+        document.getElementById('emergency_reason').required = false;
+        document.getElementById('emergency_reason').value = '';
+    }
+});
+
+// إظهار/إخفاء حقول الدخول القوي
+document.getElementById('force_entry').addEventListener('change', function() {
+    const reasonGroup = document.getElementById('force_entry_reason_group');
+    if (this.checked) {
+        reasonGroup.style.display = 'block';
+        document.getElementById('force_entry_reason').required = true;
+    } else {
+        reasonGroup.style.display = 'none';
+        document.getElementById('force_entry_reason').required = false;
+        document.getElementById('force_entry_reason').value = '';
+    }
+});
+
+// تحديث الأطباء عند تغيير القسم
+document.getElementById('department_id').addEventListener('change', function() {
+    const departmentId = this.value;
+    const doctorSelect = document.getElementById('doctor_id');
+    
+    if (departmentId) {
+        // جلب الأطباء للقسم المحدد
+        fetch(`/reception/api/doctors?department_id=${departmentId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
+                    data.doctors.forEach(doctor => {
+                        const option = document.createElement('option');
+                        option.value = doctor.id;
+                        option.textContent = doctor.full_name;
+                        doctorSelect.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    } else {
+        doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
+    }
+});
+
+// معالجة النموذج
+document.getElementById('addPatientForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // جمع البيانات
+    const formData = new FormData(this);
+    const patientId = formData.get('patient_id');
+    const departmentId = formData.get('department_id');
+    const isEmergency = formData.get('is_emergency') === 'on';
+    const forceEntry = formData.get('force_entry') === 'on';
+    
+    // التحقق من البيانات المطلوبة
+    if (!patientId || !departmentId) {
+        alert('يرجى ملء جميع الحقول المطلوبة');
+        return;
+    }
+    
+    // التحقق من الطوارئ
+    if (isEmergency && !formData.get('emergency_reason')) {
+        alert('يرجى إدخال سبب الطوارئ');
+        return;
+    }
+    
+    // التحقق من الدخول القوي
+    if (forceEntry && !formData.get('force_entry_reason')) {
+        alert('يرجى إدخال سبب الدخول القوي');
+        return;
+    }
+    
+    // عرض نافذة التأكيد
+    showConfirmModal(formData);
+});
+
+// عرض نافذة التأكيد
+function showConfirmModal(formData) {
+    const patientSelect = document.getElementById('patient_id');
+    const departmentSelect = document.getElementById('department_id');
+    const doctorSelect = document.getElementById('doctor_id');
+    const queueTypeSelect = document.getElementById('queue_type');
+    const paymentStatusSelect = document.getElementById('payment_status');
+    
+    const patientText = patientSelect.options[patientSelect.selectedIndex].text;
+    const departmentText = departmentSelect.options[departmentSelect.selectedIndex].text;
+    const doctorText = doctorSelect.value ? doctorSelect.options[doctorSelect.selectedIndex].text : 'غير محدد';
+    const queueTypeText = queueTypeSelect.options[queueTypeSelect.selectedIndex].text;
+    const paymentStatusText = paymentStatusSelect.options[paymentStatusSelect.selectedIndex].text;
+    
+    let confirmInfo = `
+        <div class="alert alert-info">
+            <h6>تأكيد إضافة المريض للطابور</h6>
+            <p><strong>المريض:</strong> ${patientText}</p>
+            <p><strong>القسم:</strong> ${departmentText}</p>
+            <p><strong>الطبيب:</strong> ${doctorText}</p>
+            <p><strong>نوع الطابور:</strong> ${queueTypeText}</p>
+            <p><strong>حالة الدفع:</strong> ${paymentStatusText}</p>
+    `;
+    
+    if (formData.get('is_emergency') === 'on') {
+        confirmInfo += `<p><strong>حالة الطوارئ:</strong> نعم - ${formData.get('emergency_reason')}</p>`;
+    }
+    
+    if (formData.get('force_entry') === 'on') {
+        confirmInfo += `<p><strong>الدخول القوي:</strong> نعم - ${formData.get('force_entry_reason')}</p>`;
+    }
+    
+    if (formData.get('notes')) {
+        confirmInfo += `<p><strong>ملاحظات:</strong> ${formData.get('notes')}</p>`;
+    }
+    
+    confirmInfo += '</div>';
+    
+    document.getElementById('confirmInfo').innerHTML = confirmInfo;
+    $('#confirmAddModal').modal('show');
+}
+
+// إرسال النموذج
+function submitForm() {
+    const form = document.getElementById('addPatientForm');
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.href = '/reception/queue';
+        } else {
+            throw new Error('Network response was not ok');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في إضافة المريض للطابور');
+    });
+}
+
+// تحميل أولي
+$(document).ready(function() {
+    // إضافة التحقق من صحة النموذج
+    const form = document.getElementById('addPatientForm');
+    const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+    
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (!this.value) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

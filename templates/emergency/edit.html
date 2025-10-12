@@ -1,0 +1,537 @@
+{% extends "base.html" %}
+
+{% block title %}تعديل حالة الطوارئ - النظام الصحي المتكامل{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-section h5 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e74c3c;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #e74c3c;
+        box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
+    }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+    }
+    
+    .required {
+        color: #e74c3c;
+    }
+    
+    .help-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .emergency-info {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .emergency-info h6 {
+        color: #721c24;
+        margin-bottom: 0.5rem;
+    }
+    
+    .emergency-info p {
+        color: #721c24;
+        margin-bottom: 0;
+        font-size: 0.875rem;
+    }
+    
+    .change-log {
+        background: #fff3e0;
+        border: 1px solid #ffcc02;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .change-log h6 {
+        color: #f57c00;
+        margin-bottom: 0.5rem;
+    }
+    
+    .change-log p {
+        color: #f57c00;
+        margin-bottom: 0;
+        font-size: 0.875rem;
+    }
+    
+    .priority-critical {
+        background: #f8d7da;
+        border: 2px solid #dc3545;
+        color: #721c24;
+    }
+    
+    .priority-high {
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+        color: #856404;
+    }
+    
+    .priority-medium {
+        background: #d1ecf1;
+        border: 2px solid #17a2b8;
+        color: #0c5460;
+    }
+    
+    .priority-low {
+        background: #d4edda;
+        border: 2px solid #28a745;
+        color: #155724;
+    }
+    
+    .vital-signs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .vital-sign-item {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid #e9ecef;
+    }
+    
+    .vital-sign-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #e74c3c;
+        margin-bottom: 0.25rem;
+    }
+    
+    .vital-sign-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="form-header">
+                <h2><i class="fas fa-ambulance"></i> تعديل حالة الطوارئ</h2>
+                <p class="mb-0">{{ emergency.patient.name if emergency.patient else 'غير محدد' }} - {{ emergency.emergency_date.strftime('%Y-%m-%d %H:%M') if emergency.emergency_date else 'غير محدد' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('emergency.edit_emergency_case', id=emergency.id) }}" id="emergencyForm">
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Emergency Info -->
+                <div class="emergency-info">
+                    <h6><i class="fas fa-info-circle"></i> معلومات حالة الطوارئ</h6>
+                    <p>تاريخ الحالة: {{ emergency.emergency_date.strftime('%Y-%m-%d %H:%M') if emergency.emergency_date else 'غير محدد' }}</p>
+                    <p>الطبيب: {{ emergency.doctor.name if emergency.doctor else 'غير محدد' }}</p>
+                    <p>الأولوية: {{ emergency.priority or 'غير محدد' }}</p>
+                </div>
+
+                <!-- Change Log -->
+                <div class="change-log">
+                    <h6><i class="fas fa-history"></i> سجل التغييرات</h6>
+                    <p>سيتم تسجيل جميع التغييرات في سجل النظام مع الوقت والتاريخ</p>
+                </div>
+
+                <!-- Basic Information -->
+                <div class="form-container">
+                    <div class="form-section">
+                        <h5><i class="fas fa-ambulance"></i> المعلومات الأساسية</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">المريض <span class="required">*</span></label>
+                                    <select name="patient_id" class="form-control" required>
+                                        <option value="">اختر المريض</option>
+                                        {% for patient in patients %}
+                                        <option value="{{ patient.id }}" {% if emergency.patient_id == patient.id %}selected{% endif %}>
+                                            {{ patient.name }} - {{ patient.phone }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">الطبيب <span class="required">*</span></label>
+                                    <select name="doctor_id" class="form-control" required>
+                                        <option value="">اختر الطبيب</option>
+                                        {% for doctor in doctors %}
+                                        <option value="{{ doctor.id }}" {% if emergency.doctor_id == doctor.id %}selected{% endif %}>
+                                            د. {{ doctor.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">تاريخ الطوارئ <span class="required">*</span></label>
+                                    <input type="date" name="emergency_date" class="form-control" value="{{ emergency.emergency_date.strftime('%Y-%m-%d') if emergency.emergency_date else '' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">وقت الطوارئ <span class="required">*</span></label>
+                                    <input type="time" name="emergency_time" class="form-control" value="{{ emergency.emergency_time.strftime('%H:%M') if emergency.emergency_time else '' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">الأولوية <span class="required">*</span></label>
+                                    <select name="priority" class="form-control" required>
+                                        <option value="low" {% if emergency.priority == 'low' %}selected{% endif %}>منخفضة</option>
+                                        <option value="medium" {% if emergency.priority == 'medium' %}selected{% endif %}>متوسطة</option>
+                                        <option value="high" {% if emergency.priority == 'high' %}selected{% endif %}>عالية</option>
+                                        <option value="critical" {% if emergency.priority == 'critical' %}selected{% endif %}>حرجة</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">الحالة</label>
+                                    <select name="status" class="form-control">
+                                        <option value="active" {% if emergency.status == 'active' %}selected{% endif %}>نشطة</option>
+                                        <option value="resolved" {% if emergency.status == 'resolved' %}selected{% endif %}>محلولة</option>
+                                        <option value="transferred" {% if emergency.status == 'transferred' %}selected{% endif %}>منقولة</option>
+                                        <option value="cancelled" {% if emergency.status == 'cancelled' %}selected{% endif %}>ملغية</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chief Complaint -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-comment-medical"></i> الشكوى الرئيسية</h5>
+                        <div class="form-group">
+                            <label class="form-label">الشكوى الرئيسية <span class="required">*</span></label>
+                            <textarea name="chief_complaint" class="form-control" rows="3" placeholder="وصف الشكوى الرئيسية للمريض" required>{{ emergency.chief_complaint or '' }}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">الأعراض</label>
+                            <textarea name="symptoms" class="form-control" rows="4" placeholder="وصف الأعراض الحالية">{{ emergency.symptoms or '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Vital Signs -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-heartbeat"></i> العلامات الحيوية</h5>
+                        <div class="vital-signs">
+                            <div class="vital-sign-item">
+                                <div class="vital-sign-value">{{ emergency.vital_signs.get('bp_systolic', '') if emergency.vital_signs else '' }}</div>
+                                <div class="vital-sign-label">ضغط الدم (الانقباضي)</div>
+                                <input type="number" name="vital_signs_bp_systolic" class="form-control mt-2" value="{{ emergency.vital_signs.get('bp_systolic', '') if emergency.vital_signs else '' }}" placeholder="مم زئبق">
+                            </div>
+                            <div class="vital-sign-item">
+                                <div class="vital-sign-value">{{ emergency.vital_signs.get('bp_diastolic', '') if emergency.vital_signs else '' }}</div>
+                                <div class="vital-sign-label">ضغط الدم (الانبساطي)</div>
+                                <input type="number" name="vital_signs_bp_diastolic" class="form-control mt-2" value="{{ emergency.vital_signs.get('bp_diastolic', '') if emergency.vital_signs else '' }}" placeholder="مم زئبق">
+                            </div>
+                            <div class="vital-sign-item">
+                                <div class="vital-sign-value">{{ emergency.vital_signs.get('heart_rate', '') if emergency.vital_signs else '' }}</div>
+                                <div class="vital-sign-label">معدل النبض</div>
+                                <input type="number" name="vital_signs_heart_rate" class="form-control mt-2" value="{{ emergency.vital_signs.get('heart_rate', '') if emergency.vital_signs else '' }}" placeholder="نبضة/دقيقة">
+                            </div>
+                            <div class="vital-sign-item">
+                                <div class="vital-sign-value">{{ emergency.vital_signs.get('temperature', '') if emergency.vital_signs else '' }}</div>
+                                <div class="vital-sign-label">درجة الحرارة</div>
+                                <input type="number" name="vital_signs_temperature" class="form-control mt-2" value="{{ emergency.vital_signs.get('temperature', '') if emergency.vital_signs else '' }}" placeholder="°C">
+                            </div>
+                            <div class="vital-sign-item">
+                                <div class="vital-sign-value">{{ emergency.vital_signs.get('oxygen_saturation', '') if emergency.vital_signs else '' }}</div>
+                                <div class="vital-sign-label">تشبع الأكسجين</div>
+                                <input type="number" name="vital_signs_oxygen_saturation" class="form-control mt-2" value="{{ emergency.vital_signs.get('oxygen_saturation', '') if emergency.vital_signs else '' }}" placeholder="%">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Assessment and Treatment -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-stethoscope"></i> التقييم والعلاج</h5>
+                        <div class="form-group">
+                            <label class="form-label">التقييم الأولي</label>
+                            <textarea name="initial_assessment" class="form-control" rows="4" placeholder="التقييم الأولي للحالة">{{ emergency.initial_assessment or '' }}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">العلاج المقدم</label>
+                            <textarea name="treatment_given" class="form-control" rows="4" placeholder="العلاج الذي تم تقديمه">{{ emergency.treatment_given or '' }}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">الأدوية المعطاة</label>
+                            <textarea name="medications_given" class="form-control" rows="3" placeholder="الأدوية التي تم إعطاؤها">{{ emergency.medications_given or '' }}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">الإجراءات المنجزة</label>
+                            <textarea name="procedures_performed" class="form-control" rows="3" placeholder="الإجراءات الطبية التي تم إنجازها">{{ emergency.procedures_performed or '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Response and Final Assessment -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-check-circle"></i> الاستجابة والتقييم النهائي</h5>
+                        <div class="form-group">
+                            <label class="form-label">الاستجابة للعلاج</label>
+                            <textarea name="response_to_treatment" class="form-control" rows="3" placeholder="استجابة المريض للعلاج">{{ emergency.response_to_treatment or '' }}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">التقييم النهائي</label>
+                            <textarea name="final_assessment" class="form-control" rows="4" placeholder="التقييم النهائي للحالة">{{ emergency.final_assessment or '' }}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">تعليمات الخروج</label>
+                            <textarea name="discharge_instructions" class="form-control" rows="4" placeholder="تعليمات للمريض عند الخروج">{{ emergency.discharge_instructions or '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Follow-up -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-calendar-check"></i> المتابعة</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">متابعة مطلوبة</label>
+                                    <div class="form-check">
+                                        <input type="checkbox" name="follow_up_required" class="form-check-input" {% if emergency.follow_up_required %}checked{% endif %}>
+                                        <label class="form-check-label">يحتاج متابعة</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">تاريخ المتابعة</label>
+                                    <input type="date" name="follow_up_date" class="form-control" value="{{ emergency.follow_up_date.strftime('%Y-%m-%d') if emergency.follow_up_date else '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-sticky-note"></i> ملاحظات إضافية</h5>
+                        <div class="form-group">
+                            <label class="form-label">ملاحظات</label>
+                            <textarea name="notes" class="form-control" rows="4" placeholder="أي ملاحظات إضافية">{{ emergency.notes or '' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <!-- Quick Actions -->
+                <div class="form-container">
+                    <h5><i class="fas fa-bolt"></i> إجراءات سريعة</h5>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('emergency.view_emergency_case', id=emergency.id) }}" class="btn btn-outline-info">
+                            <i class="fas fa-eye"></i> عرض الحالة
+                        </a>
+                        <a href="{{ url_for('patient.view_patient', id=emergency.patient.id) if emergency.patient else '#' }}" class="btn btn-outline-primary">
+                            <i class="fas fa-user"></i> بيانات المريض
+                        </a>
+                        <button type="button" class="btn btn-outline-success" onclick="resolveEmergency()">
+                            <i class="fas fa-check"></i> حل الحالة
+                        </button>
+                        <button type="button" class="btn btn-outline-warning" onclick="transferEmergency()">
+                            <i class="fas fa-ambulance"></i> نقل الحالة
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Emergency Statistics -->
+                <div class="form-container">
+                    <h5><i class="fas fa-chart-bar"></i> إحصائيات الحالة</h5>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-primary">{{ emergency.priority|title }}</h4>
+                                <small class="text-muted">الأولوية</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">{{ emergency.status|title }}</h4>
+                            <small class="text-muted">الحالة</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Buttons -->
+                <div class="form-container">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-save">
+                            <i class="fas fa-save"></i> حفظ التغييرات
+                        </button>
+                        <a href="{{ url_for('emergency.view_emergency_case', id=emergency.id) }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> إلغاء
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // حل حالة الطوارئ
+    function resolveEmergency() {
+        if (confirm('هل أنت متأكد من حل هذه الحالة؟')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ url_for("emergency.resolve_emergency_case", id=emergency.id) }}';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+    
+    // نقل حالة الطوارئ
+    function transferEmergency() {
+        const transferNotes = prompt('أدخل ملاحظات النقل:');
+        if (transferNotes !== null) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ url_for("emergency.transfer_emergency_case", id=emergency.id) }}';
+            
+            const notesInput = document.createElement('input');
+            notesInput.type = 'hidden';
+            notesInput.name = 'transfer_notes';
+            notesInput.value = transferNotes;
+            form.appendChild(notesInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+    
+    // التحقق من صحة البيانات
+    document.getElementById('emergencyForm').addEventListener('submit', function(e) {
+        const requiredFields = ['patient_id', 'doctor_id', 'emergency_date', 'emergency_time', 'chief_complaint'];
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            const input = document.querySelector(`[name="${field}"]`);
+            if (!input.value.trim()) {
+                input.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                input.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('يرجى ملء جميع الحقول المطلوبة');
+        }
+    });
+    
+    // تتبع التغييرات
+    let originalData = {};
+    const form = document.getElementById('emergencyForm');
+    
+    // حفظ البيانات الأصلية
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            originalData[input.name] = input.value;
+        });
+    });
+    
+    // التحقق من التغييرات
+    form.addEventListener('submit', function(e) {
+        let hasChanges = false;
+        const inputs = form.querySelectorAll('input, select, textarea');
+        
+        inputs.forEach(input => {
+            if (originalData[input.name] !== input.value) {
+                hasChanges = true;
+            }
+        });
+        
+        if (!hasChanges) {
+            e.preventDefault();
+            alert('لم يتم إجراء أي تغييرات');
+            return false;
+        }
+    });
+</script>
+{% endblock %}

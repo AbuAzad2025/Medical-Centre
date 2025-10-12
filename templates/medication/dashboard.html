@@ -1,0 +1,580 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة الصيدلية الاحترافية{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4" data-aos="fade-down">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg glass-effect">
+                <div class="card-body" style="background: var(--warning-gradient); color: white;">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="mb-2 text-white floating-animation">
+                                <i class="fas fa-pills me-3"></i>
+                                لوحة الصيدلية الاحترافية
+                            </h1>
+                            <p class="mb-0 text-white-50 fs-5">مرحباً {{ current_user.full_name }} - إدارة أدوية متقدمة ومتطورة</p>
+                            <div class="mt-2">
+                                <small class="text-white-50">
+                                    <i class="fas fa-clock me-1"></i>
+                                    <span class="live-clock"></span>
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('medication.add_medication') }}" class="btn btn-light btn-lg btn-modern pulse-animation">
+                                    <i class="fas fa-plus me-2"></i>
+                                    إضافة دواء جديد
+                                </a>
+                                <a href="{{ url_for('medication.list_medications') }}" class="btn btn-warning btn-lg btn-modern">
+                                    <i class="fas fa-list me-2"></i>
+                                    قائمة الأدوية
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-lg glass-effect" style="background: var(--primary-gradient); color: white;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title gradient-text">{{ stats.total_medications }}</h4>
+                            <p class="card-text mb-0">إجمالي الأدوية</p>
+                            <small class="text-white-50">+10% من الشهر الماضي</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-pills fa-3x floating-animation"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ stats.active_medications }}</h4>
+                            <p class="card-text">أدوية نشطة</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ stats.low_stock_medications }}</h4>
+                            <p class="card-text">مخزون منخفض</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ stats.pending_tasks }}</h4>
+                            <p class="card-text">مهام معلقة</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-tasks fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="row">
+        <!-- Low Stock Alert -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        تنبيهات المخزون المنخفض
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if stats.low_stock %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>الدواء</th>
+                                        <th>المخزون</th>
+                                        <th>الحد الأدنى</th>
+                                        <th>الحالة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for medication in stats.low_stock %}
+                                    <tr>
+                                        <td>{{ medication.name }}</td>
+                                        <td>{{ medication.stock_quantity }}</td>
+                                        <td>{{ medication.min_stock_level }}</td>
+                                        <td>
+                                            <span class="badge bg-warning">منخفض</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">لا توجد تنبيهات مخزون</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Most Used Medications -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-chart-bar text-primary me-2"></i>
+                        الأدوية الأكثر استخداماً
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if stats.most_used %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>الدواء</th>
+                                        <th>عدد الاستخدامات</th>
+                                        <th>المخزون</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for medication in stats.most_used %}
+                                    <tr>
+                                        <td>{{ medication.name }}</td>
+                                        <td>{{ medication.usage_count }}</td>
+                                        <td>{{ medication.stock_quantity }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">لا توجد بيانات استخدام</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Smart Analytics Section -->
+    {% if stats.smart_analytics %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        التحليلات الذكية للصيدلية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ stats.smart_analytics.total_medications or 0 }}</h4>
+                                <p class="text-muted mb-0">إجمالي الأدوية</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-success">{{ stats.smart_analytics.active_medications or 0 }}</h4>
+                                <p class="text-muted mb-0">أدوية نشطة</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">{{ stats.smart_analytics.low_stock_medications or 0 }}</h4>
+                                <p class="text-muted mb-0">مخزون منخفض</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ stats.smart_analytics.efficiency_score or 0 }}%</h4>
+                                <p class="text-muted mb-0">كفاءة الصيدلية</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Inventory Optimization Section -->
+    {% if stats.inventory_optimization %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-gradient-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-warehouse me-2"></i>
+                        تحسين المخزون
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ stats.inventory_optimization.total_medications or 0 }}</h4>
+                                <p class="text-muted mb-0">إجمالي الأدوية</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">{{ stats.inventory_optimization.low_stock_count or 0 }}</h4>
+                                <p class="text-muted mb-0">مخزون منخفض</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-danger">{{ stats.inventory_optimization.expiring_soon or 0 }}</h4>
+                                <p class="text-muted mb-0">ينتهي قريباً</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ stats.inventory_optimization.efficiency_score or 0 }}%</h4>
+                                <p class="text-muted mb-0">كفاءة المخزون</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Safety Monitoring Section -->
+    {% if stats.safety_monitoring %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-gradient-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        مراقبة سلامة الأدوية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-danger">{{ stats.safety_monitoring.expired_medications or 0 }}</h4>
+                                <p class="text-muted mb-0">منتهي الصلاحية</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">{{ stats.safety_monitoring.expiring_soon or 0 }}</h4>
+                                <p class="text-muted mb-0">ينتهي قريباً</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ stats.safety_monitoring.medications_with_interactions or 0 }}</h4>
+                                <p class="text-muted mb-0">تفاعلات دوائية</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-success">{{ stats.safety_monitoring.safety_score or 0 }}%</h4>
+                                <p class="text-muted mb-0">درجة السلامة</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Prescription Analytics Section -->
+    {% if stats.prescription_analytics %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-gradient-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-prescription-bottle-alt me-2"></i>
+                        تحليلات الوصفات الطبية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ stats.prescription_analytics.total_prescriptions or 0 }}</h4>
+                                <p class="text-muted mb-0">إجمالي الوصفات</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-success">{{ stats.prescription_analytics.dispensed_prescriptions or 0 }}</h4>
+                                <p class="text-muted mb-0">مصروفة</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ "%.2f"|format(stats.prescription_analytics.avg_cost or 0) }}</h4>
+                                <p class="text-muted mb-0">متوسط التكلفة</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">{{ stats.prescription_analytics.dispensing_rate or 0 }}%</h4>
+                                <p class="text-muted mb-0">معدل الصرف</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Drug Interaction Checker Section -->
+    {% if stats.drug_interaction_checker %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-gradient-warning text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        فحص التفاعلات الدوائية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ stats.drug_interaction_checker.medications_with_interactions or 0 }}</h4>
+                                <p class="text-muted mb-0">أدوية مع تفاعلات</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-danger">{{ stats.drug_interaction_checker.severe_interactions or 0 }}</h4>
+                                <p class="text-muted mb-0">تفاعلات شديدة</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">{{ stats.drug_interaction_checker.moderate_interactions or 0 }}</h4>
+                                <p class="text-muted mb-0">تفاعلات متوسطة</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ stats.drug_interaction_checker.interaction_risk_score or 0 }}%</h4>
+                                <p class="text-muted mb-0">درجة المخاطر</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Workflow Automation Section -->
+    {% if stats.workflow_automation %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-gradient-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-robot me-2"></i>
+                        أتمتة سير العمل
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ stats.workflow_automation.automated_tasks or 0 }}</h4>
+                                <p class="text-muted mb-0">مهام مؤتمتة</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-success">{{ stats.workflow_automation.manual_tasks or 0 }}</h4>
+                                <p class="text-muted mb-0">مهام يدوية</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ stats.workflow_automation.avg_processing_time or 0 }} دقيقة</h4>
+                                <p class="text-muted mb-0">متوسط وقت المعالجة</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">{{ stats.workflow_automation.automation_score or 0 }}%</h4>
+                                <p class="text-muted mb-0">درجة الأتمتة</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Predictive Insights Section -->
+    {% if stats.predictive_insights %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-gradient-light text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-crystal-ball me-2"></i>
+                        الرؤى التنبؤية للصيدلية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ stats.predictive_insights.weekly_demand or 0 }}</h4>
+                                <p class="text-muted mb-0">الطلب الأسبوعي</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-success">{{ stats.predictive_insights.monthly_demand or 0 }}</h4>
+                                <p class="text-muted mb-0">الطلب الشهري</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ stats.predictive_insights.growth_rate or 0 }}%</h4>
+                                <p class="text-muted mb-0">معدل النمو</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">{{ stats.predictive_insights.demand_forecast_accuracy or 0 }}%</h4>
+                                <p class="text-muted mb-0">دقة التنبؤ</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Smart Recommendations Section -->
+    {% if stats.smart_recommendations %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        التوصيات الذكية للصيدلية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if stats.smart_recommendations.recommendations %}
+                    <div class="row">
+                        {% for recommendation in stats.smart_recommendations.recommendations %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-left-{{ 'danger' if recommendation.priority == 'high' else 'warning' if recommendation.priority == 'medium' else 'info' }}">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ recommendation.title }}</h6>
+                                    <p class="card-text">{{ recommendation.description }}</p>
+                                    <small class="text-muted">الأولوية: {{ recommendation.priority }} | الفئة: {{ recommendation.category }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-info-circle fa-2x mb-2"></i>
+                        <p>لا توجد توصيات حالياً</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-bolt text-success me-2"></i>
+                        إجراءات سريعة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('medication.list_medications') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-list me-2"></i>
+                                قائمة الأدوية
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('medication.stock_alerts') }}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-bell me-2"></i>
+                                تنبيهات المخزون
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('medication.add_medication') }}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-plus me-2"></i>
+                                إضافة دواء
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('medication.medication_administration') }}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-capsules me-2"></i>
+                                إدارة الأدوية
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

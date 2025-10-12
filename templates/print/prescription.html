@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>روشتة طبية - {{ prescription.patient.full_name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #dc3545;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .header h1 {
+            color: #dc3545;
+            margin: 0;
+            font-size: 28px;
+        }
+        
+        .header h2 {
+            color: #666;
+            margin: 8px 0;
+            font-size: 20px;
+        }
+        
+        .prescription-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .prescription-info .info-section {
+            flex: 1;
+            margin: 0 15px;
+        }
+        
+        .prescription-info h3 {
+            color: #dc3545;
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            border-bottom: 2px solid #dc3545;
+            padding-bottom: 8px;
+        }
+        
+        .prescription-info p {
+            margin: 6px 0;
+            font-size: 12px;
+        }
+        
+        .patient-info {
+            background: #f8d7da;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        
+        .patient-info h3 {
+            color: #721c24;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+        }
+        
+        .patient-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .patient-details .detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dotted #dc3545;
+        }
+        
+        .doctor-info {
+            background: #d1ecf1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        
+        .doctor-info h3 {
+            color: #0c5460;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+        }
+        
+        .medications-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .medications-table th {
+            background: #dc3545;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .medications-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: top;
+        }
+        
+        .medications-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .medications-table tr:hover {
+            background: #f8d7da;
+        }
+        
+        .medication-name {
+            font-weight: bold;
+            color: #dc3545;
+        }
+        
+        .medication-dosage {
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .medication-instructions {
+            text-align: right;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        
+        .diagnosis-section {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        
+        .diagnosis-section h3 {
+            color: #856404;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+        }
+        
+        .diagnosis-content {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ffeaa7;
+            min-height: 80px;
+        }
+        
+        .instructions-section {
+            background: #d4edda;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        
+        .instructions-section h3 {
+            color: #155724;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+        }
+        
+        .instructions-content {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #c3e6cb;
+            min-height: 80px;
+        }
+        
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #dc3545;
+        }
+        
+        .signature-box {
+            text-align: center;
+            width: 200px;
+        }
+        
+        .signature-line {
+            border-bottom: 1px solid #333;
+            height: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .signature-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #dc3545;
+            color: #666;
+            font-size: 11px;
+        }
+        
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .print-button:hover {
+            background: #c82333;
+        }
+        
+        @media print {
+            .print-button {
+                display: none;
+            }
+            
+            body {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">طباعة الروشتة</button>
+    
+    <div class="header">
+        <h1>المركز الصحي المتخصص</h1>
+        <h2>روشتة طبية</h2>
+    </div>
+    
+    <div class="prescription-info">
+        <div class="info-section">
+            <h3>معلومات الروشتة</h3>
+            <p><strong>رقم الروشتة:</strong> {{ prescription.prescription_number or 'غير محدد' }}</p>
+            <p><strong>تاريخ الإصدار:</strong> {{ prescription.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            <p><strong>حالة الروشتة:</strong> 
+                {% if prescription.status == 'ACTIVE' %}
+                    <span style="color: green;">نشطة</span>
+                {% elif prescription.status == 'COMPLETED' %}
+                    <span style="color: blue;">مكتملة</span>
+                {% else %}
+                    <span style="color: orange;">معلقة</span>
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="info-section">
+            <h3>معلومات المركز</h3>
+            <p><strong>المركز:</strong> المركز الصحي المتخصص</p>
+            <p><strong>العنوان:</strong> العنوان الكامل للمركز</p>
+            <p><strong>الهاتف:</strong> +970-XX-XXXXXXX</p>
+        </div>
+    </div>
+    
+    <div class="patient-info">
+        <h3>معلومات المريض</h3>
+        <div class="patient-details">
+            <div class="detail">
+                <span><strong>الاسم:</strong></span>
+                <span>{{ prescription.patient.full_name }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>رقم الهوية:</strong></span>
+                <span>{{ prescription.patient.national_id or 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>تاريخ الميلاد:</strong></span>
+                <span>{{ prescription.patient.birth_date.strftime('%Y-%m-%d') if prescription.patient.birth_date else 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>العمر:</strong></span>
+                <span>
+                    {% if prescription.patient.birth_date %}
+                        {{ moment().diff(moment(prescription.patient.birth_date), 'years') }} سنة
+                    {% else %}
+                        غير محدد
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail">
+                <span><strong>الجنس:</strong></span>
+                <span>{{ prescription.patient.gender or 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>الهاتف:</strong></span>
+                <span>{{ prescription.patient.phone or 'غير محدد' }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="doctor-info">
+        <h3>معلومات الطبيب</h3>
+        <div class="patient-details">
+            <div class="detail">
+                <span><strong>اسم الطبيب:</strong></span>
+                <span>{{ prescription.doctor.full_name if prescription.doctor else 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>التخصص:</strong></span>
+                <span>{{ prescription.doctor.specialization if prescription.doctor else 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>رقم الترخيص:</strong></span>
+                <span>{{ prescription.doctor.license_number if prescription.doctor else 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>القسم:</strong></span>
+                <span>{{ prescription.doctor.department.name_ar if prescription.doctor and prescription.doctor.department else 'غير محدد' }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="diagnosis-section">
+        <h3>التشخيص</h3>
+        <div class="diagnosis-content">
+            {{ prescription.diagnosis or 'لم يتم تحديد التشخيص' }}
+        </div>
+    </div>
+    
+    <table class="medications-table">
+        <thead>
+            <tr>
+                <th>الدواء</th>
+                <th>الجرعة</th>
+                <th>التكرار</th>
+                <th>المدة</th>
+                <th>التعليمات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for medication in prescription.medications %}
+            <tr>
+                <td>
+                    <div class="medication-name">{{ medication.medication_name }}</div>
+                    <div class="medication-dosage">{{ medication.dosage_form or 'أقراص' }}</div>
+                </td>
+                <td>{{ medication.dosage }}</td>
+                <td>{{ medication.frequency }}</td>
+                <td>{{ medication.duration }}</td>
+                <td class="medication-instructions">{{ medication.instructions or 'اتبع تعليمات الطبيب' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="instructions-section">
+        <h3>تعليمات إضافية</h3>
+        <div class="instructions-content">
+            {{ prescription.additional_instructions or 'لا توجد تعليمات إضافية' }}
+        </div>
+    </div>
+    
+    <div class="signature-section">
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="signature-label">توقيع الطبيب</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="signature-label">ختم المركز</div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p><strong>هذه الروشتة صالحة لمدة 30 يوماً من تاريخ الإصدار</strong></p>
+        <p>تاريخ الطباعة: {{ moment().format('YYYY-MM-DD HH:mm') }}</p>
+        <p>للاستفسارات: info@medical-center.com | +970-XX-XXXXXXX</p>
+        <hr style="margin: 10px 0; border: 1px solid #ddd;">
+        <p style="font-size: 10px; color: #666; margin: 5px 0;">
+            <strong>تطوير:</strong> شركة ازاد للأنظمة الذكية | 
+            <strong>جوال:</strong> 0598953362 | 
+            <strong>وطنية:</strong> 0562150193 | 
+            <strong>واتساب:</strong> +972562150193 | 
+            <strong>رام الله - فلسطين</strong>
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}تفاصيل الخدمة - {{ service.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg glass-effect">
+                <div class="card-body" style="background: var(--primary-gradient); color: white;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-2">
+                                <i class="fas fa-concierge-bell me-2"></i>
+                                {{ service.name }}
+                            </h2>
+                            <p class="mb-0 text-white-50">{{ service.name_en or '' }}</p>
+                        </div>
+                        <div>
+                            <a href="{{ url_for('super_admin.edit_service', service_id=service.id) }}" class="btn btn-warning btn-lg me-2">
+                                <i class="fas fa-edit me-2"></i>
+                                تعديل
+                            </a>
+                            <a href="{{ url_for('super_admin.services') }}" class="btn btn-light btn-lg">
+                                <i class="fas fa-arrow-right me-2"></i>
+                                رجوع
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Details -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg glass-effect mb-4">
+                <div class="card-header" style="background: var(--success-gradient); color: white;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        معلومات الخدمة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong><i class="fas fa-hashtag text-primary me-2"></i>رقم الخدمة:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            <span class="badge bg-primary">{{ service.id }}</span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong><i class="fas fa-tag text-info me-2"></i>الاسم:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ service.name }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong><i class="fas fa-globe text-success me-2"></i>الاسم بالإنجليزية:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ service.name_en or 'غير محدد' }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong><i class="fas fa-align-right text-warning me-2"></i>الوصف:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ service.description or 'لا يوجد وصف' }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong><i class="fas fa-dollar-sign text-success me-2"></i>السعر الأساسي:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            <span class="badge bg-success fs-6">{{ service.base_price or 0 }} ل.س</span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong><i class="fas fa-toggle-on text-info me-2"></i>الحالة:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {% if service.is_active %}
+                            <span class="badge bg-success">نشط</span>
+                            {% else %}
+                            <span class="badge bg-danger">غير نشط</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong><i class="fas fa-calendar text-secondary me-2"></i>تاريخ الإنشاء:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ service.created_at.strftime('%Y-%m-%d %H:%M') if service.created_at else 'غير محدد' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-lg glass-effect">
+                <div class="card-header" style="background: var(--warning-gradient); color: white;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>
+                        إجراءات سريعة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('super_admin.edit_service', service_id=service.id) }}" class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>
+                            تعديل الخدمة
+                        </a>
+                        <a href="{{ url_for('super_admin.service_pricing', service_id=service.id) }}" class="btn btn-info">
+                            <i class="fas fa-dollar-sign me-2"></i>
+                            إدارة التسعير
+                        </a>
+                        {% if service.is_active %}
+                        <button onclick="deactivateService({{ service.id }})" class="btn btn-danger">
+                            <i class="fas fa-times-circle me-2"></i>
+                            إلغاء التفعيل
+                        </button>
+                        {% else %}
+                        <button onclick="activateService({{ service.id }})" class="btn btn-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            تفعيل الخدمة
+                        </button>
+                        {% endif %}
+                        <a href="{{ url_for('super_admin.services') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-right me-2"></i>
+                            العودة للقائمة
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function activateService(serviceId) {
+    if (confirm('هل أنت متأكد من تفعيل هذه الخدمة؟')) {
+        fetch(`/super-admin/activate-service/${serviceId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ في تفعيل الخدمة');
+            }
+        });
+    }
+}
+
+function deactivateService(serviceId) {
+    if (confirm('هل أنت متأكد من إلغاء تفعيل هذه الخدمة؟')) {
+        fetch(`/super-admin/deactivate-service/${serviceId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ في إلغاء تفعيل الخدمة');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}
+

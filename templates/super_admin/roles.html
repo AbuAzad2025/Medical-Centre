@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>إدارة الأدوار - السوبر أدمن</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- Bootstrap 5.3 RTL -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #2d3748;
+        }
+        
+        .super-admin-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            margin: 2rem;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            color: white;
+        }
+        
+        .header-section h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .role-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .role-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .role-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .role-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+            margin-left: 1rem;
+        }
+        
+        .role-icon.super-admin { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .role-icon.admin { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .role-icon.manager { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .role-icon.doctor { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .role-icon.reception { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .role-icon.lab { background: linear-gradient(135deg, #a8edea, #fed6e3); }
+        .role-icon.radiology { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+        .role-icon.emergency { background: linear-gradient(135deg, #ff9a9e, #fecfef); }
+        .role-icon.nurse { background: linear-gradient(135deg, #a1c4fd, #c2e9fb); }
+        .role-icon.accountant { background: linear-gradient(135deg, #d299c2, #fef9d7); }
+        
+        .role-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .role-description {
+            color: #718096;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .permissions-list {
+            margin-bottom: 1.5rem;
+        }
+        
+        .permission-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .permission-item:last-child {
+            border-bottom: none;
+        }
+        
+        .permission-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 0.5rem;
+            font-size: 0.8rem;
+            color: #667eea;
+        }
+        
+        .permission-text {
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+        
+        .role-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn-role {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn-edit {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+            color: white;
+        }
+        
+        .btn-permissions {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-permissions:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="super-admin-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1><i class="fas fa-user-tag"></i> إدارة الأدوار</h1>
+            <p>إدارة الأدوار والصلاحيات في النظام</p>
+        </div>
+
+        <!-- Roles Grid -->
+        <div class="roles-grid">
+            {% for role in roles %}
+            <div class="role-card">
+                <div class="role-header">
+                    <div class="role-icon {{ role.name }}">
+                        <i class="fas fa-{{ 'crown' if role.name == 'super_admin' else 'user-shield' if role.name == 'admin' else 'user-tie' if role.name == 'manager' else 'user-md' if role.name == 'doctor' else 'user-nurse' if role.name == 'nurse' else 'user' }}"></i>
+                    </div>
+                    <div class="role-title">{{ role.display_name or role.name }}</div>
+                </div>
+                
+                <div class="role-description">
+                    {{ role.description or 'وصف الدور غير محدد' }}
+                </div>
+                
+                <div class="permissions-list">
+                    <h6><i class="fas fa-key"></i> الصلاحيات:</h6>
+                    {% if role.permissions %}
+                        {% set perms = role.get_permissions_dict() %}
+                        {% for category, actions in perms.items() %}
+                        <div class="permission-item">
+                            <div class="permission-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="permission-text">{{ category }}: {{ actions|length }} صلاحية</div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="permission-item">
+                        <div class="permission-text text-muted">لا توجد صلاحيات محددة</div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="role-actions d-flex gap-2">
+                    <button class="btn btn-primary flex-fill shadow-sm" onclick="editRole({{ role.id }})" title="تعديل الدور">
+                        <i class="fas fa-edit me-1"></i>
+                        تعديل
+                    </button>
+                    <button class="btn btn-success flex-fill shadow-sm" onclick="managePermissions({{ role.id }})" title="إدارة الصلاحيات">
+                        <i class="fas fa-key me-1"></i>
+                        الصلاحيات
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Edit/Create Role Modal -->
+    {% if mode == 'edit' and role %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-tag me-2"></i>
+                        تعديل الدور: {{ role.name }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('super_admin.edit_role', role_id=role.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">اسم الدور</label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="{{ role.name }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">وصف الدور</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3">{{ role.description }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">الصلاحيات</label>
+                                    <div class="row">
+                                        {% for permission in all_permissions %}
+                                        <div class="col-md-4 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="permission_{{ permission.id }}" 
+                                                       name="permissions" 
+                                                       value="{{ permission.id }}"
+                                                       {% if permission in role_permissions %}checked{% endif %}>
+                                                <label class="form-check-label" for="permission_{{ permission.id }}">
+                                                    {{ permission.name_ar or permission.name }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save me-2"></i>
+                                حفظ التغييرات
+                            </button>
+                            <a href="{{ url_for('super_admin.roles') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                إلغاء
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% elif mode == 'create' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-plus me-2"></i>
+                        إنشاء دور جديد
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('super_admin.create_role') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">اسم الدور</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">وصف الدور</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">الصلاحيات</label>
+                                    <div class="row">
+                                        {% for permission in permissions %}
+                                        <div class="col-md-4 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="permission_{{ permission.id }}" 
+                                                       name="permissions" 
+                                                       value="{{ permission.id }}">
+                                                <label class="form-check-label" for="permission_{{ permission.id }}">
+                                                    {{ permission.name_ar or permission.name }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>
+                                إنشاء الدور
+                            </button>
+                            <a href="{{ url_for('super_admin.roles') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                إلغاء
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function editRole(roleId) {
+            window.location.href = `/super-admin/roles/${roleId}/edit`;
+        }
+        
+        function managePermissions(roleId) {
+            window.location.href = `/super-admin/roles/${roleId}/permissions`;
+        }
+    </script>
+</body>
+</html>

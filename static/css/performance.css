@@ -1,0 +1,484 @@
+/* Performance Optimization CSS */
+/* Medical System - Advanced Performance Styles */
+
+/* Critical CSS for above-the-fold content */
+.critical-load {
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+/* Lazy loading styles */
+.lazy-load {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lazy-load.loaded {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Optimized animations */
+.optimized-animation {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* GPU acceleration for smooth scrolling */
+.smooth-scroll {
+    transform: translateZ(0);
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Optimized card hover effects */
+.card-optimized {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, box-shadow;
+}
+
+.card-optimized:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Optimized button animations */
+.btn-optimized {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, background-color;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-optimized::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+}
+
+.btn-optimized:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Optimized table performance */
+.table-optimized {
+    contain: layout style paint;
+}
+
+.table-optimized tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.table-optimized tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Optimized form inputs */
+.form-control-optimized {
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    will-change: border-color, box-shadow;
+}
+
+.form-control-optimized:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Optimized loading states */
+.loading-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Optimized modal animations */
+.modal-optimized {
+    transition: opacity 0.2s ease;
+    will-change: opacity;
+}
+
+.modal-optimized.show {
+    opacity: 1;
+}
+
+/* Optimized dropdown animations */
+.dropdown-optimized {
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    will-change: opacity, transform;
+}
+
+.dropdown-optimized.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Optimized tooltip performance */
+.tooltip-optimized {
+    transition: opacity 0.15s ease;
+    will-change: opacity;
+}
+
+/* Optimized progress bars */
+.progress-optimized {
+    transition: width 0.6s ease;
+    will-change: width;
+}
+
+/* Optimized charts */
+.chart-optimized {
+    contain: layout style paint;
+    will-change: transform;
+}
+
+/* Optimized image loading */
+.img-optimized {
+    transition: opacity 0.3s ease;
+    will-change: opacity;
+}
+
+.img-optimized.loading {
+    opacity: 0.7;
+}
+
+.img-optimized.loaded {
+    opacity: 1;
+}
+
+/* Optimized navigation */
+.nav-optimized {
+    contain: layout style;
+}
+
+.nav-optimized .nav-link {
+    transition: color 0.15s ease, background-color 0.15s ease;
+    will-change: color, background-color;
+}
+
+/* Optimized sidebar */
+.sidebar-optimized {
+    contain: layout style paint;
+    will-change: transform;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Optimized search */
+.search-optimized {
+    transition: all 0.2s ease;
+    will-change: transform, opacity;
+}
+
+.search-optimized:focus {
+    transform: scale(1.02);
+}
+
+/* Optimized notifications */
+.notification-optimized {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
+}
+
+.notification-optimized.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* Optimized pagination */
+.pagination-optimized {
+    contain: layout style;
+}
+
+.pagination-optimized .page-link {
+    transition: all 0.15s ease;
+    will-change: background-color, color;
+}
+
+/* Optimized filters */
+.filter-optimized {
+    transition: all 0.2s ease;
+    will-change: transform, opacity;
+}
+
+.filter-optimized.active {
+    transform: scale(1.05);
+}
+
+/* Optimized tabs */
+.tab-optimized {
+    transition: all 0.2s ease;
+    will-change: background-color, color;
+}
+
+.tab-optimized.active {
+    background-color: #667eea;
+    color: white;
+}
+
+/* Optimized accordion */
+.accordion-optimized {
+    transition: all 0.3s ease;
+    will-change: height, opacity;
+}
+
+/* Optimized carousel */
+.carousel-optimized {
+    contain: layout style paint;
+    will-change: transform;
+}
+
+.carousel-optimized .carousel-item {
+    transition: transform 0.6s ease-in-out;
+    will-change: transform;
+}
+
+/* Optimized datepicker */
+.datepicker-optimized {
+    transition: all 0.2s ease;
+    will-change: opacity, transform;
+}
+
+/* Optimized select */
+.select-optimized {
+    transition: all 0.15s ease;
+    will-change: border-color, box-shadow;
+}
+
+/* Optimized checkbox/radio */
+.checkbox-optimized,
+.radio-optimized {
+    transition: all 0.15s ease;
+    will-change: background-color, border-color;
+}
+
+/* Optimized switch */
+.switch-optimized {
+    transition: all 0.2s ease;
+    will-change: background-color, transform;
+}
+
+/* Optimized range slider */
+.range-optimized {
+    transition: all 0.15s ease;
+    will-change: background-color;
+}
+
+/* Optimized file upload */
+.upload-optimized {
+    transition: all 0.2s ease;
+    will-change: border-color, background-color;
+}
+
+/* Optimized drag and drop */
+.drag-optimized {
+    transition: all 0.2s ease;
+    will-change: transform, opacity;
+}
+
+.drag-optimized.dragging {
+    transform: scale(1.05);
+    opacity: 0.8;
+}
+
+/* Optimized resize */
+.resize-optimized {
+    transition: all 0.2s ease;
+    will-change: width, height;
+}
+
+/* Optimized scrollbar */
+.scrollbar-optimized {
+    scrollbar-width: thin;
+    scrollbar-color: #667eea #f1f1f1;
+}
+
+.scrollbar-optimized::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scrollbar-optimized::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.scrollbar-optimized::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 4px;
+}
+
+.scrollbar-optimized::-webkit-scrollbar-thumb:hover {
+    background: #5a6fd8;
+}
+
+/* Optimized print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .print-optimized {
+        break-inside: avoid;
+    }
+}
+
+/* Optimized dark mode */
+@media (prefers-color-scheme: dark) {
+    .dark-mode-optimized {
+        background-color: #1a1a1a;
+        color: #ffffff;
+    }
+}
+
+/* Optimized reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .motion-optimized {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* Optimized high contrast */
+@media (prefers-contrast: high) {
+    .contrast-optimized {
+        border: 2px solid currentColor;
+    }
+}
+
+/* Optimized focus styles */
+.focus-optimized:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Optimized error states */
+.error-optimized {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Optimized success states */
+.success-optimized {
+    animation: pulse 0.6s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Performance monitoring */
+.performance-monitor {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    z-index: 9999;
+    display: none;
+}
+
+.performance-monitor.show {
+    display: block;
+}
+
+/* Optimized loading spinner */
+.spinner-optimized {
+    animation: spin 1s linear infinite;
+    will-change: transform;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Optimized progress indicator */
+.progress-indicator-optimized {
+    transition: width 0.3s ease;
+    will-change: width;
+}
+
+/* Optimized status indicators */
+.status-optimized {
+    transition: all 0.2s ease;
+    will-change: background-color, color;
+}
+
+.status-optimized.online {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-optimized.offline {
+    background-color: #dc3545;
+    color: white;
+}
+
+.status-optimized.busy {
+    background-color: #ffc107;
+    color: black;
+}
+
+/* Optimized time indicators */
+.time-optimized {
+    transition: all 0.2s ease;
+    will-change: color;
+}
+
+.time-optimized.urgent {
+    color: #dc3545;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.5; }
+}
+
+/* Optimized priority indicators */
+.priority-optimized {
+    transition: all 0.2s ease;
+    will-change: background-color, color;
+}
+
+.priority-optimized.high {
+    background-color: #dc3545;
+    color: white;
+}
+
+.priority-optimized.medium {
+    background-color: #ffc107;
+    color: black;
+}
+
+.priority-optimized.low {
+    background-color: #28a745;
+    color: white;
+}

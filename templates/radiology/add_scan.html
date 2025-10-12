@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}إضافة فحص أشعة جديد{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-plus me-2"></i>
+                                إضافة فحص أشعة جديد
+                            </h2>
+                            <p class="text-muted mb-0">إضافة طلب فحص أشعة جديد للمريض</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('radiology.requests') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                العودة للقائمة
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">بيانات الفحص</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('radiology.add_scan_post') }}">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">المريض <span class="text-danger">*</span></label>
+                                <select name="patient_id" class="form-select" required>
+                                    <option value="">اختر المريض</option>
+                                    <!-- سيتم ملء هذا من قاعدة البيانات -->
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الطبيب <span class="text-danger">*</span></label>
+                                <select name="doctor_id" class="form-select" required>
+                                    <option value="">اختر الطبيب</option>
+                                    <!-- سيتم ملء هذا من قاعدة البيانات -->
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">نوع الفحص <span class="text-danger">*</span></label>
+                                <select name="scan_type" class="form-select" required>
+                                    <option value="">اختر نوع الفحص</option>
+                                    <option value="xray">أشعة سينية</option>
+                                    <option value="ct">أشعة مقطعية</option>
+                                    <option value="mri">رنين مغناطيسي</option>
+                                    <option value="ultrasound">موجات صوتية</option>
+                                    <option value="other">أخرى</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">تاريخ الفحص <span class="text-danger">*</span></label>
+                                <input type="date" name="scan_date" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">وقت الفحص</label>
+                                <input type="time" name="scan_time" class="form-control">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">الفني المسؤول</label>
+                                <input type="text" name="technician" class="form-control" placeholder="اسم الفني">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">ملاحظات إضافية</label>
+                                <textarea name="notes" class="form-control" rows="3" placeholder="أي ملاحظات إضافية..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                حفظ الفحص
+                            </button>
+                            <a href="{{ url_for('radiology.requests') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>
+                                إلغاء
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">معلومات مهمة</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>تعليمات</h6>
+                        <ul class="mb-0">
+                            <li>تأكد من صحة بيانات المريض</li>
+                            <li>اختر نوع الفحص المناسب</li>
+                            <li>حدد الوقت المناسب للفحص</li>
+                            <li>أضف أي ملاحظات مهمة</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// تعيين التاريخ الحالي كقيمة افتراضية
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.querySelector('input[name="scan_date"]').value = today;
+});
+</script>
+{% endblock %}

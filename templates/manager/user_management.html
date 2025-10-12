@@ -1,0 +1,558 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة المستخدمين - المدير{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-users me-2"></i>
+                                إدارة المستخدمين
+                            </h2>
+                            <p class="text-muted mb-0">إدارة شاملة لمستخدمي النظام</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="addNewUser()">
+                                    <i class="fas fa-user-plus me-1"></i>
+                                    إضافة مستخدم
+                                </button>
+                                <button class="btn btn-success" onclick="exportUsers()">
+                                    <i class="fas fa-file-excel me-1"></i>
+                                    تصدير المستخدمين
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Statistics -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                إجمالي المستخدمين
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ users|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                المستخدمين النشطين
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ users|selectattr('is_active', 'equalto', True)|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                المستخدمين المعطلين
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ users|selectattr('is_active', 'equalto', False)|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-times fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                المديرين
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ users|selectattr('is_admin', 'equalto', True)|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-shield fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Management -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">قائمة المستخدمين</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="filterUsers('all')">الكل</button>
+                        <button class="btn btn-sm btn-outline-success" onclick="filterUsers('active')">النشطين</button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="filterUsers('inactive')">المعطلين</button>
+                        <button class="btn btn-sm btn-outline-info" onclick="filterUsers('admin')">المديرين</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>اسم المستخدم</th>
+                                    <th>البريد الإلكتروني</th>
+                                    <th>الدور</th>
+                                    <th>القسم</th>
+                                    <th>الحالة</th>
+                                    <th>آخر دخول</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr data-status="{{ 'active' if user.is_active else 'inactive' }}" 
+                                    data-role="{{ user.role }}" 
+                                    data-admin="{{ 'admin' if user.is_admin else 'user' }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                {{ user.full_name[0] if user.full_name else 'U' }}
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold">{{ user.full_name or 'غير محدد' }}</div>
+                                                <small class="text-muted">{{ user.phone or 'لا يوجد رقم' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.email or 'غير محدد' }}</td>
+                                    <td>
+                                        {% if user.role == 'manager' %}
+                                            <span class="badge bg-warning">مدير</span>
+                                        {% elif user.role == 'doctor' %}
+                                            <span class="badge bg-info">طبيب</span>
+                                        {% elif user.role == 'reception' %}
+                                            <span class="badge bg-success">استقبال</span>
+                                        {% elif user.role == 'lab' %}
+                                            <span class="badge bg-primary">مختبر</span>
+                                        {% elif user.role == 'radiology' %}
+                                            <span class="badge bg-secondary">أشعة</span>
+                                        {% elif user.role == 'emergency' %}
+                                            <span class="badge bg-danger">طوارئ</span>
+                                        {% elif user.role == 'accountant' %}
+                                            <span class="badge bg-dark">محاسب</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">{{ user.role }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.department.name if user.department else 'غير محدد' }}</td>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="badge bg-success">نشط</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">معطل</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'لم يسجل دخول' }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewUser({{ user.id }})" title="عرض">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info" onclick="editUser({{ user.id }})" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-{{ 'warning' if user.is_active else 'success' }}" 
+                                                    onclick="toggleUser({{ user.id }})" title="{{ 'تعطيل' if user.is_active else 'تفعيل' }}">
+                                                <i class="fas fa-toggle-{{ 'on' if user.is_active else 'off' }}"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="resetPassword({{ user.id }})" title="إعادة تعيين كلمة المرور">
+                                                <i class="fas fa-key"></i>
+                                            </button>
+                                            {% if not user.is_admin %}
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteUser({{ user.id }})" title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Distribution -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">توزيع الأدوار</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% set role_counts = {} %}
+                        {% for user in users %}
+                            {% set role = user.role %}
+                            {% if role_counts[role] %}
+                                {% set _ = role_counts.update({role: role_counts[role] + 1}) %}
+                            {% else %}
+                                {% set _ = role_counts.update({role: 1}) %}
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% for role, count in role_counts.items() %}
+                        <div class="col-md-6 mb-3">
+                            <div class="role-stat-item">
+                                <div class="role-icon">
+                                    {% if role == 'manager' %}
+                                        <i class="fas fa-user-tie text-warning"></i>
+                                    {% elif role == 'doctor' %}
+                                        <i class="fas fa-user-md text-info"></i>
+                                    {% elif role == 'reception' %}
+                                        <i class="fas fa-hospital text-success"></i>
+                                    {% elif role == 'lab' %}
+                                        <i class="fas fa-flask text-primary"></i>
+                                    {% elif role == 'radiology' %}
+                                        <i class="fas fa-x-ray text-secondary"></i>
+                                    {% elif role == 'emergency' %}
+                                        <i class="fas fa-ambulance text-danger"></i>
+                                    {% elif role == 'accountant' %}
+                                        <i class="fas fa-calculator text-dark"></i>
+                                    {% else %}
+                                        <i class="fas fa-user text-muted"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="role-info">
+                                    <h6>{{ role }}</h6>
+                                    <span class="role-count">{{ count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">إحصائيات سريعة</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>المستخدمين الجدد اليوم</span>
+                            <span class="font-weight-bold text-success">3</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>آخر تسجيل دخول</span>
+                            <span class="font-weight-bold text-info">منذ 5 دقائق</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>معدل النشاط</span>
+                            <span class="font-weight-bold text-warning">85%</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>حالة النظام</span>
+                            <span class="badge bg-success">مستقر</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">إجراءات جماعية</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-primary btn-block" onclick="bulkActivate()">
+                                <i class="fas fa-check me-2"></i>
+                                تفعيل المستخدمين
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-warning btn-block" onclick="bulkDeactivate()">
+                                <i class="fas fa-pause me-2"></i>
+                                تعطيل المستخدمين
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-info btn-block" onclick="bulkResetPassword()">
+                                <i class="fas fa-key me-2"></i>
+                                إعادة تعيين كلمات المرور
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-success btn-block" onclick="bulkExport()">
+                                <i class="fas fa-download me-2"></i>
+                                تصدير المستخدمين
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+}
+
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.role-stat-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    background: #fff;
+    transition: all 0.3s ease;
+}
+
+.role-stat-item:hover {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transform: translateY(-2px);
+}
+
+.role-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f8f9fc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+    font-size: 1.2rem;
+}
+
+.role-info h6 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #5a5c69;
+}
+
+.role-count {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #5a5c69;
+}
+
+.btn-block {
+    width: 100%;
+    padding: 0.75rem;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+}
+
+.btn-block:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+#usersTable {
+    font-size: 0.9rem;
+}
+
+.btn-group .btn {
+    margin: 0 1px;
+}
+</style>
+
+<script>
+function addNewUser() {
+    // إضافة مستخدم جديد
+    alert('إضافة مستخدم جديد');
+}
+
+function exportUsers() {
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + "الاسم,اسم المستخدم,البريد الإلكتروني,الدور,القسم,الحالة,آخر دخول\n"
+        {% for user in users %}
+        + "{{ user.full_name or 'غير محدد' }},{{ user.username }},{{ user.email or 'غير محدد' }},{{ user.role }},{{ user.department.name if user.department else 'غير محدد' }},{{ 'نشط' if user.is_active else 'معطل' }},{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'لم يسجل دخول' }}\n"
+        {% endfor %};
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "users_" + new Date().toISOString().split('T')[0] + ".csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function viewUser(userId) {
+    // عرض تفاصيل المستخدم
+    alert('عرض تفاصيل المستخدم: ' + userId);
+}
+
+function editUser(userId) {
+    // تعديل المستخدم
+    alert('تعديل المستخدم: ' + userId);
+}
+
+function toggleUser(userId) {
+    // تبديل حالة المستخدم
+    if (confirm('هل تريد تغيير حالة هذا المستخدم؟')) {
+        alert('تم تغيير حالة المستخدم: ' + userId);
+        location.reload();
+    }
+}
+
+function resetPassword(userId) {
+    // إعادة تعيين كلمة المرور
+    if (confirm('هل تريد إعادة تعيين كلمة مرور هذا المستخدم؟')) {
+        alert('تم إعادة تعيين كلمة المرور للمستخدم: ' + userId);
+    }
+}
+
+function deleteUser(userId) {
+    // حذف المستخدم
+    if (confirm('هل تريد حذف هذا المستخدم نهائياً؟')) {
+        alert('تم حذف المستخدم: ' + userId);
+        location.reload();
+    }
+}
+
+function filterUsers(filter) {
+    const rows = document.querySelectorAll('#usersTable tbody tr');
+    
+    rows.forEach(row => {
+        if (filter === 'all') {
+            row.style.display = '';
+        } else if (filter === 'active') {
+            row.style.display = row.dataset.status === 'active' ? '' : 'none';
+        } else if (filter === 'inactive') {
+            row.style.display = row.dataset.status === 'inactive' ? '' : 'none';
+        } else if (filter === 'admin') {
+            row.style.display = row.dataset.admin === 'admin' ? '' : 'none';
+        }
+    });
+    
+    // تحديث أزرار التصفية
+    document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-info').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    event.target.classList.add('active');
+}
+
+function bulkActivate() {
+    // تفعيل المستخدمين
+    if (confirm('هل تريد تفعيل المستخدمين المحددين؟')) {
+        alert('تم تفعيل المستخدمين');
+        location.reload();
+    }
+}
+
+function bulkDeactivate() {
+    // تعطيل المستخدمين
+    if (confirm('هل تريد تعطيل المستخدمين المحددين؟')) {
+        alert('تم تعطيل المستخدمين');
+        location.reload();
+    }
+}
+
+function bulkResetPassword() {
+    // إعادة تعيين كلمات المرور
+    if (confirm('هل تريد إعادة تعيين كلمات مرور المستخدمين المحددين؟')) {
+        alert('تم إعادة تعيين كلمات المرور');
+    }
+}
+
+function bulkExport() {
+    // تصدير المستخدمين
+    exportUsers();
+}
+
+// إضافة تأثيرات تفاعلية
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة تأثير hover للصفوف
+    const rows = document.querySelectorAll('#usersTable tbody tr');
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+</script>
+{% endblock %}

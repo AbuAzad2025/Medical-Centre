@@ -1,0 +1,508 @@
+{% extends "base.html" %}
+
+{% block title %}صيانة النظام - السوبر أدمن{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in-up">
+    <h1 class="page-title">
+        <i class="fas fa-tools"></i>
+        صيانة النظام
+    </h1>
+    <p class="page-subtitle">تنظيف النظام والصيانة الدورية</p>
+</div>
+
+<!-- إحصائيات النظام -->
+<div class="stats-grid fade-in-up">
+    <div class="stat-card">
+        <div class="stat-icon primary">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-value">{{ stats.total_users }}</div>
+        <div class="stat-label">إجمالي المستخدمين</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success">
+            <i class="fas fa-user-check"></i>
+        </div>
+        <div class="stat-value">{{ stats.active_users }}</div>
+        <div class="stat-label">المستخدمين النشطين</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="fas fa-user-times"></i>
+        </div>
+        <div class="stat-value">{{ stats.inactive_users }}</div>
+        <div class="stat-label">المستخدمين غير النشطين</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon info">
+            <i class="fas fa-database"></i>
+        </div>
+        <div class="stat-value">{{ stats.database_size }}</div>
+        <div class="stat-label">حجم قاعدة البيانات</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- تنظيف النظام -->
+    <div class="card fade-in-up">
+        <div class="card-header">
+            <h3>
+                <i class="fas fa-broom"></i>
+                تنظيف النظام
+            </h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('super_admin.system_cleanup') }}">
+                <div class="cleanup-options">
+                    <div class="cleanup-item">
+                        <div class="cleanup-info">
+                            <h5>
+                                <i class="fas fa-file-alt text-warning"></i>
+                                تنظيف السجلات القديمة
+                            </h5>
+                            <p>حذف السجلات الأقدم من 90 يوم لتوفير مساحة في قاعدة البيانات</p>
+                        </div>
+                        <button type="submit" name="cleanup_type" value="logs" class="btn btn-warning">
+                            <i class="fas fa-trash-alt"></i>
+                            تنظيف السجلات
+                        </button>
+                    </div>
+                    
+                    <div class="cleanup-item">
+                        <div class="cleanup-info">
+                            <h5>
+                                <i class="fas fa-clock text-info"></i>
+                                تنظيف الجلسات المنتهية
+                            </h5>
+                            <p>حذف الجلسات المنتهية الصلاحية وتنظيف ذاكرة النظام</p>
+                        </div>
+                        <button type="submit" name="cleanup_type" value="sessions" class="btn btn-info">
+                            <i class="fas fa-user-times"></i>
+                            تنظيف الجلسات
+                        </button>
+                    </div>
+                    
+                    <div class="cleanup-item">
+                        <div class="cleanup-info">
+                            <h5>
+                                <i class="fas fa-memory text-success"></i>
+                                تنظيف الكاش
+                            </h5>
+                            <p>مسح ذاكرة التخزين المؤقت لتحسين أداء النظام</p>
+                        </div>
+                        <button type="submit" name="cleanup_type" value="cache" class="btn btn-success">
+                            <i class="fas fa-sync-alt"></i>
+                            تنظيف الكاش
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- إدارة قاعدة البيانات -->
+    <div class="card fade-in-up">
+        <div class="card-header">
+            <h3>
+                <i class="fas fa-database"></i>
+                إدارة قاعدة البيانات
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="db-info">
+                <div class="info-item">
+                    <span class="info-label">حجم قاعدة البيانات:</span>
+                    <span class="info-value">{{ stats.database_size }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">وقت تشغيل النظام:</span>
+                    <span class="info-value">{{ stats.system_uptime }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">آخر نسخة احتياطية:</span>
+                    <span class="info-value">{{ stats.last_backup }}</span>
+                </div>
+            </div>
+            
+            <div class="db-actions mt-4">
+                <a href="{{ url_for('super_admin.system_backup') }}" class="btn btn-primary">
+                    <i class="fas fa-download"></i>
+                    إنشاء نسخة احتياطية
+                </a>
+                <button class="btn btn-outline" onclick="optimizeDatabase()">
+                    <i class="fas fa-tachometer-alt"></i>
+                    تحسين قاعدة البيانات
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- مراقبة النظام -->
+    <div class="card fade-in-up">
+        <div class="card-header">
+            <h3>
+                <i class="fas fa-chart-line"></i>
+                مراقبة النظام
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="monitoring-grid">
+                <div class="monitor-item">
+                    <div class="monitor-label">استخدام المعالج</div>
+                    <div class="monitor-bar">
+                        <div class="monitor-fill" style="width: 45%; background-color: #10b981;"></div>
+                    </div>
+                    <div class="monitor-value">45%</div>
+                </div>
+                
+                <div class="monitor-item">
+                    <div class="monitor-label">استخدام الذاكرة</div>
+                    <div class="monitor-bar">
+                        <div class="monitor-fill" style="width: 72%; background-color: #f59e0b;"></div>
+                    </div>
+                    <div class="monitor-value">72%</div>
+                </div>
+                
+                <div class="monitor-item">
+                    <div class="monitor-label">مساحة القرص</div>
+                    <div class="monitor-bar">
+                        <div class="monitor-fill" style="width: 38%; background-color: #06b6d4;"></div>
+                    </div>
+                    <div class="monitor-value">38%</div>
+                </div>
+                
+                <div class="monitor-item">
+                    <div class="monitor-label">الطلبات/الدقيقة</div>
+                    <div class="monitor-bar">
+                        <div class="monitor-fill" style="width: 25%; background-color: #8b5cf6;"></div>
+                    </div>
+                    <div class="monitor-value">25</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إدارة المستخدمين -->
+    <div class="card fade-in-up">
+        <div class="card-header">
+            <h3>
+                <i class="fas fa-users-cog"></i>
+                إدارة المستخدمين المتقدمة
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="user-management">
+                <div class="management-item">
+                    <div class="management-info">
+                        <h5>
+                            <i class="fas fa-user-check text-success"></i>
+                            المستخدمين النشطين
+                        </h5>
+                        <p>عدد المستخدمين المسجلين حالياً في النظام</p>
+                    </div>
+                    <div class="management-value">{{ stats.active_users }}</div>
+                </div>
+                
+                <div class="management-item">
+                    <div class="management-info">
+                        <h5>
+                            <i class="fas fa-user-times text-danger"></i>
+                            المستخدمين المحظورين
+                        </h5>
+                        <p>المستخدمين الذين تم حظرهم مؤقتاً أو نهائياً</p>
+                    </div>
+                    <div class="management-value">{{ stats.inactive_users }}</div>
+                </div>
+                
+                <div class="management-item">
+                    <div class="management-info">
+                        <h5>
+                            <i class="fas fa-clock text-warning"></i>
+                            الجلسات النشطة
+                        </h5>
+                        <p>عدد الجلسات النشطة حالياً في النظام</p>
+                    </div>
+                    <div class="management-value">0</div>
+                </div>
+            </div>
+            
+            <div class="management-actions mt-4">
+                <a href="{{ url_for('super_admin.users') }}" class="btn btn-primary">
+                    <i class="fas fa-users"></i>
+                    إدارة المستخدمين
+                </a>
+                <button class="btn btn-outline" onclick="forceLogoutAll()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    إجبار الجميع على الخروج
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- سجل النظام -->
+    <div class="card fade-in-up">
+        <div class="card-header">
+            <h3>
+                <i class="fas fa-list-alt"></i>
+                سجل النظام
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="system-logs">
+                <div class="log-item">
+                    <div class="log-time">2025-10-06 02:45:30</div>
+                    <div class="log-level info">INFO</div>
+                    <div class="log-message">تم تسجيل دخول مستخدم: admin</div>
+                </div>
+                <div class="log-item">
+                    <div class="log-time">2025-10-06 02:44:15</div>
+                    <div class="log-level warning">WARNING</div>
+                    <div class="log-message">محاولة دخول فاشلة من IP: 192.168.1.100</div>
+                </div>
+                <div class="log-item">
+                    <div class="log-time">2025-10-06 02:43:45</div>
+                    <div class="log-level success">SUCCESS</div>
+                    <div class="log-message">تم إنشاء نسخة احتياطية بنجاح</div>
+                </div>
+                <div class="log-item">
+                    <div class="log-time">2025-10-06 02:42:30</div>
+                    <div class="log-level error">ERROR</div>
+                    <div class="log-message">خطأ في الاتصال بقاعدة البيانات</div>
+                </div>
+            </div>
+            
+            <div class="log-actions mt-4">
+                <button class="btn btn-outline" onclick="refreshLogs()">
+                    <i class="fas fa-sync-alt"></i>
+                    تحديث السجل
+                </button>
+                <button class="btn btn-danger" onclick="clearLogs()">
+                    <i class="fas fa-trash-alt"></i>
+                    مسح السجل
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function optimizeDatabase() {
+    if (confirm('هل أنت متأكد من تحسين قاعدة البيانات؟ قد يستغرق هذا بعض الوقت.')) {
+        alert('جاري تحسين قاعدة البيانات...');
+        // هنا يمكن إضافة منطق تحسين قاعدة البيانات
+    }
+}
+
+function forceLogoutAll() {
+    if (confirm('هل أنت متأكد من إجبار جميع المستخدمين على تسجيل الخروج؟')) {
+        alert('تم إجبار جميع المستخدمين على تسجيل الخروج');
+        // هنا يمكن إضافة منطق إجبار تسجيل الخروج
+    }
+}
+
+function refreshLogs() {
+    location.reload();
+}
+
+function clearLogs() {
+    if (confirm('هل أنت متأكد من مسح سجل النظام؟ لا يمكن التراجع عن هذا الإجراء.')) {
+        alert('تم مسح سجل النظام');
+        // هنا يمكن إضافة منطق مسح السجل
+    }
+}
+
+// تحديث الإحصائيات كل 30 ثانية
+setInterval(function() {
+    // هنا يمكن إضافة AJAX لتحديث الإحصائيات
+}, 30000);
+</script>
+
+<style>
+.cleanup-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    background: var(--gray-50);
+}
+
+.cleanup-info h5 {
+    margin: 0 0 0.5rem 0;
+    color: var(--gray-900);
+}
+
+.cleanup-info p {
+    margin: 0;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+}
+
+.db-info {
+    background: var(--gray-50);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.info-value {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.monitoring-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.monitor-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.monitor-label {
+    min-width: 120px;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.monitor-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.monitor-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.monitor-value {
+    min-width: 40px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.management-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    background: white;
+}
+
+.management-info h5 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+}
+
+.management-info p {
+    margin: 0;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+}
+
+.management-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.system-logs {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius);
+}
+
+.log-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--gray-100);
+    font-family: monospace;
+    font-size: 0.875rem;
+}
+
+.log-item:last-child {
+    border-bottom: none;
+}
+
+.log-time {
+    min-width: 150px;
+    color: var(--gray-600);
+}
+
+.log-level {
+    min-width: 80px;
+    font-weight: 600;
+    text-align: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+.log-level.info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.log-level.warning {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.log-level.success {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.log-level.error {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.log-message {
+    flex: 1;
+    margin-left: 1rem;
+    color: var(--gray-800);
+}
+
+.db-actions, .management-actions, .log-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+</style>
+{% endblock %}

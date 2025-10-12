@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سند قبض - {{ visit.patient.full_name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .header h2 {
+            color: #666;
+            margin: 5px 0;
+            font-size: 18px;
+        }
+        
+        .receipt-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .receipt-info .info-section {
+            flex: 1;
+            margin: 0 10px;
+        }
+        
+        .receipt-info h3 {
+            color: #007bff;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .receipt-info p {
+            margin: 5px 0;
+            font-size: 11px;
+        }
+        
+        .patient-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .patient-info h3 {
+            color: #1976d2;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        
+        .patient-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .patient-details .detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .visit-details {
+            background: #f1f8e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .visit-details h3 {
+            color: #388e3c;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        
+        .payment-details {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .payment-details h3 {
+            color: #f57c00;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        
+        .cost-breakdown {
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .cost-breakdown h3 {
+            color: #424242;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .cost-item.total {
+            font-weight: bold;
+            font-size: 14px;
+            color: #007bff;
+            border-top: 2px solid #007bff;
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #007bff;
+            color: #666;
+            font-size: 10px;
+        }
+        
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .print-button:hover {
+            background: #0056b3;
+        }
+        
+        @media print {
+            .print-button {
+                display: none;
+            }
+            
+            body {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">طباعة</button>
+    
+    <div class="header">
+        <h1>المركز الصحي المتخصص</h1>
+        <h2>سند قبض</h2>
+    </div>
+    
+    <div class="receipt-info">
+        <div class="info-section">
+            <h3>معلومات السند</h3>
+            <p><strong>رقم السند:</strong> {{ visit.receipt_number or 'غير محدد' }}</p>
+            <p><strong>تاريخ الإصدار:</strong> {{ visit.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            <p><strong>حالة الدفع:</strong> 
+                {% if visit.payment_status == 'PAID' %}
+                    <span style="color: green;">مدفوع</span>
+                {% elif visit.payment_status == 'PENDING' %}
+                    <span style="color: orange;">معلق</span>
+                {% else %}
+                    <span style="color: red;">غير مدفوع</span>
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="info-section">
+            <h3>معلومات المركز</h3>
+            <p><strong>المركز:</strong> المركز الصحي المتخصص</p>
+            <p><strong>العنوان:</strong> العنوان الكامل للمركز</p>
+            <p><strong>الهاتف:</strong> +970-XX-XXXXXXX</p>
+        </div>
+    </div>
+    
+    <div class="patient-info">
+        <h3>معلومات المريض</h3>
+        <div class="patient-details">
+            <div class="detail">
+                <span><strong>الاسم:</strong></span>
+                <span>{{ visit.patient.full_name }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>رقم الهوية:</strong></span>
+                <span>{{ visit.patient.national_id or 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>تاريخ الميلاد:</strong></span>
+                <span>{{ visit.patient.birth_date.strftime('%Y-%m-%d') if visit.patient.birth_date else 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>الجنس:</strong></span>
+                <span>{{ visit.patient.gender or 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>الهاتف:</strong></span>
+                <span>{{ visit.patient.phone or 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>العنوان:</strong></span>
+                <span>{{ visit.patient.address or 'غير محدد' }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="visit-details">
+        <h3>تفاصيل الزيارة</h3>
+        <div class="patient-details">
+            <div class="detail">
+                <span><strong>نوع الزيارة:</strong></span>
+                <span>
+                    {% if visit.visit_type == 'FIRST' %}
+                        زيارة أولى
+                    {% elif visit.visit_type == 'FOLLOW_UP' %}
+                        مراجعة
+                    {% else %}
+                        {{ visit.visit_type }}
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail">
+                <span><strong>القسم:</strong></span>
+                <span>{{ visit.department.name_ar if visit.department else 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>الطبيب:</strong></span>
+                <span>{{ visit.doctor.full_name if visit.doctor else 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>حالة الطوارئ:</strong></span>
+                <span>
+                    {% if visit.is_emergency %}
+                        <span style="color: red;">طوارئ</span>
+                    {% else %}
+                        عادي
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail">
+                <span><strong>التشخيص:</strong></span>
+                <span>{{ visit.diagnosis or 'لم يتم التشخيص بعد' }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="payment-details">
+        <h3>تفاصيل الدفع</h3>
+        <div class="patient-details">
+            <div class="detail">
+                <span><strong>طريقة الدفع:</strong></span>
+                <span>
+                    {% if visit.payment_method == 'cash' %}
+                        نقد
+                    {% elif visit.payment_method == 'visa' %}
+                        فيزا
+                    {% elif visit.payment_method == 'insurance' %}
+                        تأمين
+                    {% elif visit.payment_method == 'force_payment' %}
+                        دفع قوي
+                    {% else %}
+                        {{ visit.payment_method or 'غير محدد' }}
+                    {% endif %}
+                </span>
+            </div>
+            {% if visit.payment_method == 'visa' %}
+            <div class="detail">
+                <span><strong>آخر 4 أرقام:</strong></span>
+                <span>{{ visit.card_number_last_digits or 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>اسم حامل البطاقة:</strong></span>
+                <span>{{ visit.card_holder_name or 'غير محدد' }}</span>
+            </div>
+            {% endif %}
+            {% if visit.payment_method == 'insurance' %}
+            <div class="detail">
+                <span><strong>شركة التأمين:</strong></span>
+                <span>{{ visit.insurance_provider.name if visit.insurance_provider else 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>رقم البوليصة:</strong></span>
+                <span>{{ visit.insurance_policy_number or 'غير محدد' }}</span>
+            </div>
+            {% endif %}
+            {% if visit.payment_method == 'force_payment' %}
+            <div class="detail">
+                <span><strong>سبب الدفع القوي:</strong></span>
+                <span>{{ visit.force_payment_reason or 'غير محدد' }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>معتمد من:</strong></span>
+                <span>{{ visit.approved_by_user.full_name if visit.approved_by_user else 'غير محدد' }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="cost-breakdown">
+        <h3>تفصيل التكلفة</h3>
+        <div class="cost-item">
+            <span>تكلفة الخدمة:</span>
+            <span>{{ "%.2f"|format(visit.total_amount * 0.7) }} {{ visit.currency }}</span>
+        </div>
+        <div class="cost-item">
+            <span>رسوم الطبيب:</span>
+            <span>{{ "%.2f"|format(visit.total_amount * 0.3) }} {{ visit.currency }}</span>
+        </div>
+        {% if visit.visit_type == 'FOLLOW_UP' %}
+        <div class="cost-item">
+            <span>خصم المراجعة (30%):</span>
+            <span style="color: green;">-{{ "%.2f"|format(visit.total_amount * 0.3) }} {{ visit.currency }}</span>
+        </div>
+        {% endif %}
+        <div class="cost-item total">
+            <span>المجموع الكلي:</span>
+            <span>{{ "%.2f"|format(visit.total_amount) }} {{ visit.currency }}</span>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>شكراً لثقتكم في المركز الصحي المتخصص</p>
+        <p>هذا السند صالح للاستخدام القانوني</p>
+        <p>تاريخ الطباعة: {{ moment().format('YYYY-MM-DD HH:mm') }}</p>
+        <hr style="margin: 10px 0; border: 1px solid #ddd;">
+        <p style="font-size: 10px; color: #666; margin: 5px 0;">
+            <strong>تطوير:</strong> شركة ازاد للأنظمة الذكية | 
+            <strong>جوال:</strong> 0598953362 | 
+            <strong>وطنية:</strong> 0562150193 | 
+            <strong>واتساب:</strong> +972562150193 | 
+            <strong>رام الله - فلسطين</strong>
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}إضافة مستخدم جديد - السوبر أدمن{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-user-plus me-2"></i>
+                                إضافة مستخدم جديد
+                            </h2>
+                            <p class="text-muted mb-0">إنشاء حساب مستخدم جديد في النظام</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('super_admin.users') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-right me-1"></i>
+                                العودة للمستخدمين
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create User Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">بيانات المستخدم</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="createUserForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">المعلومات الأساسية</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="username" class="form-label">اسم المستخدم <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="username" name="username" required
+                                       placeholder="أدخل اسم المستخدم">
+                                <div class="form-text">يجب أن يكون فريداً في النظام</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">البريد الإلكتروني <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email" required
+                                       placeholder="أدخل البريد الإلكتروني">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="full_name" class="form-label">الاسم الكامل <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="full_name" name="full_name" required
+                                       placeholder="أدخل الاسم الكامل">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">رقم الهاتف</label>
+                                <input type="tel" class="form-control" id="phone" name="phone"
+                                       placeholder="أدخل رقم الهاتف">
+                            </div>
+                        </div>
+
+                        <!-- Role and Department -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">الدور والصلاحيات</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="role" class="form-label">الدور <span class="text-danger">*</span></label>
+                                <select class="form-control" id="role" name="role" required>
+                                    <option value="">اختر الدور</option>
+                                    {% for role_code, role_name in roles %}
+                                    <option value="{{ role_code }}">{{ role_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="department_id" class="form-label">القسم</label>
+                                <select class="form-control" id="department_id" name="department_id">
+                                    <option value="">اختر القسم</option>
+                                    {% for department in departments %}
+                                    <option value="{{ department.id }}">{{ department.name_ar or department.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Security -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">الأمان</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">كلمة المرور <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" name="password" required
+                                           placeholder="أدخل كلمة المرور" minlength="8">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">يجب أن تكون 8 أحرف على الأقل</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="confirm_password" class="form-label">تأكيد كلمة المرور <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required
+                                           placeholder="أعد إدخال كلمة المرور">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirm_password')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">حالة الحساب</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                    <label class="form-check-label" for="is_active">
+                                        حساب نشط
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_admin" name="is_admin">
+                                    <label class="form-check-label" for="is_admin">
+                                        صلاحيات إدارية
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i>
+                                        إنشاء المستخدم
+                                    </button>
+                                    <a href="{{ url_for('super_admin.users') }}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-1"></i>
+                                        إلغاء
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Panel -->
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">نصائح مهمة</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>الأدوار المتاحة:</h6>
+                        <ul class="mb-0">
+                            <li><strong>سوبر أدمن:</strong> صلاحيات كاملة</li>
+                            <li><strong>مدير:</strong> إدارة شاملة</li>
+                            <li><strong>طبيب:</strong> إدارة المرضى والزيارات</li>
+                            <li><strong>استقبال:</strong> تسجيل المرضى والمواعيد</li>
+                            <li><strong>مختبر:</strong> إدارة التحاليل</li>
+                            <li><strong>أشعة:</strong> إدارة الأشعة</li>
+                            <li><strong>محاسب:</strong> إدارة المالية</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>تحذيرات:</h6>
+                        <ul class="mb-0">
+                            <li>تأكد من صحة البيانات المدخلة</li>
+                            <li>كلمة المرور يجب أن تكون قوية</li>
+                            <li>اختر الدور المناسب للمستخدم</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check-circle me-2"></i>بعد الإنشاء:</h6>
+                        <ul class="mb-0">
+                            <li>سيتم إرسال بيانات الدخول للمستخدم</li>
+                            <li>يمكن تعديل البيانات لاحقاً</li>
+                            <li>يمكن تغيير الصلاحيات عند الحاجة</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const button = field.nextElementSibling;
+    const icon = button.querySelector('i');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+// التحقق من تطابق كلمات المرور
+document.getElementById('confirm_password').addEventListener('input', function() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = this.value;
+    
+    if (password !== confirmPassword) {
+        this.setCustomValidity('كلمات المرور غير متطابقة');
+    } else {
+        this.setCustomValidity('');
+    }
+});
+
+// التحقق من قوة كلمة المرور
+document.getElementById('password').addEventListener('input', function() {
+    const password = this.value;
+    const strength = checkPasswordStrength(password);
+    
+    // إضافة مؤشر قوة كلمة المرور
+    let strengthIndicator = document.getElementById('password-strength');
+    if (!strengthIndicator) {
+        strengthIndicator = document.createElement('div');
+        strengthIndicator.id = 'password-strength';
+        strengthIndicator.className = 'mt-2';
+        this.parentNode.appendChild(strengthIndicator);
+    }
+    
+    strengthIndicator.innerHTML = `
+        <div class="progress" style="height: 5px;">
+            <div class="progress-bar ${strength.color}" style="width: ${strength.percentage}%"></div>
+        </div>
+        <small class="text-${strength.color}">${strength.text}</small>
+    `;
+});
+
+function checkPasswordStrength(password) {
+    let score = 0;
+    let feedback = [];
+    
+    if (password.length >= 8) score++;
+    else feedback.push('8 أحرف على الأقل');
+    
+    if (/[a-z]/.test(password)) score++;
+    else feedback.push('أحرف صغيرة');
+    
+    if (/[A-Z]/.test(password)) score++;
+    else feedback.push('أحرف كبيرة');
+    
+    if (/[0-9]/.test(password)) score++;
+    else feedback.push('أرقام');
+    
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    else feedback.push('رموز خاصة');
+    
+    if (score >= 4) {
+        return { percentage: 100, color: 'success', text: 'قوية جداً' };
+    } else if (score >= 3) {
+        return { percentage: 75, color: 'info', text: 'قوية' };
+    } else if (score >= 2) {
+        return { percentage: 50, color: 'warning', text: 'متوسطة' };
+    } else {
+        return { percentage: 25, color: 'danger', text: 'ضعيفة' };
+    }
+}
+
+// منع إرسال النموذج إذا كانت كلمات المرور غير متطابقة
+document.getElementById('createUserForm').addEventListener('submit', function(e) {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('كلمات المرور غير متطابقة');
+        return false;
+    }
+});
+</script>
+{% endblock %}

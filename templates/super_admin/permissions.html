@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة الصلاحيات - السوبر أدمن{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in-up">
+    <h1 class="page-title">
+        <i class="fas fa-key"></i>
+        إدارة الصلاحيات
+    </h1>
+    <p class="page-subtitle">إدارة صلاحيات النظام والأدوار</p>
+</div>
+
+<div class="card fade-in-up">
+    <div class="card-header">
+        <h3>
+            <i class="fas fa-shield-alt"></i>
+            صلاحيات النظام
+        </h3>
+        <div class="card-actions">
+            <button class="btn btn-primary" onclick="createPermission()">
+                <i class="fas fa-plus"></i>
+                إضافة صلاحية
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>اسم الصلاحية</th>
+                        <th>الوصف</th>
+                        <th>الوحدة</th>
+                        <th>تاريخ الإنشاء</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if permissions %}
+                        {% for permission in permissions %}
+                        <tr>
+                            <td>{{ permission.name }}</td>
+                            <td>{{ permission.description }}</td>
+                            <td>{{ permission.module or 'عام' }}</td>
+                            <td>{{ permission.created_at.strftime('%Y-%m-%d') if permission.created_at else '-' }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm shadow-sm" role="group">
+                                    <button class="btn btn-primary" onclick="editPermission({{ permission.id }})" title="تعديل الصلاحية">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-danger" onclick="deletePermission({{ permission.id }})" title="حذف الصلاحية">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                لا توجد صلاحيات حالياً
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for creating/editing permission -->
+<div id="permissionModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">إضافة صلاحية جديدة</h3>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="permissionForm" method="POST" action="{{ url_for('super_admin.create_permission') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="form-group">
+                    <label for="permissionName">اسم الصلاحية</label>
+                    <input type="text" id="permissionName" name="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="permissionDescription">الوصف</label>
+                    <textarea id="permissionDescription" name="description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="permissionCategory">الفئة</label>
+                    <select id="permissionCategory" name="category" class="form-control" required>
+                        <option value="user_management">إدارة المستخدمين</option>
+                        <option value="patient_management">إدارة المرضى</option>
+                        <option value="medical_records">السجلات الطبية</option>
+                        <option value="financial">المالية</option>
+                        <option value="system_admin">إدارة النظام</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="permissionLevel">المستوى</label>
+                    <select id="permissionLevel" name="level" class="form-control" required>
+                        <option value="read">قراءة</option>
+                        <option value="write">كتابة</option>
+                        <option value="delete">حذف</option>
+                        <option value="admin">إدارة</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function createPermission() {
+    document.getElementById('modalTitle').textContent = 'إضافة صلاحية جديدة';
+    document.getElementById('permissionForm').reset();
+    document.getElementById('permissionModal').style.display = 'block';
+}
+
+function editPermission(id) {
+    document.getElementById('modalTitle').textContent = 'تعديل الصلاحية';
+    // هنا يمكن تحميل بيانات الصلاحية وتعبئة النموذج
+    document.getElementById('permissionModal').style.display = 'block';
+}
+
+function deletePermission(id) {
+    if (confirm('هل أنت متأكد من حذف هذه الصلاحية؟')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/super-admin/permissions/${id}/delete`;
+        
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function closeModal() {
+    document.getElementById('permissionModal').style.display = 'none';
+}
+
+// إغلاق النافذة المنبثقة عند النقر خارجها
+window.onclick = function(event) {
+    const modal = document.getElementById('permissionModal');
+    if (event.target == modal) {
+        closeModal();
+    }
+}
+</script>
+
+<style>
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    margin: 5% auto;
+    padding: 0;
+    border-radius: var(--border-radius-lg);
+    width: 90%;
+    max-width: 500px;
+    box-shadow: var(--shadow-xl);
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--gray-900);
+}
+
+.close {
+    color: var(--gray-500);
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close:hover {
+    color: var(--danger-color);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+</style>
+{% endblock %}

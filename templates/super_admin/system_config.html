@@ -1,0 +1,485 @@
+{% extends "base.html" %}
+
+{% block title %}إعدادات النظام - السوبر أدمن{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-cogs me-2"></i>
+                                إعدادات النظام
+                            </h2>
+                            <p class="text-muted mb-0">إدارة شاملة لإعدادات النظام</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="saveSettings()">
+                                    <i class="fas fa-save me-1"></i>
+                                    حفظ الإعدادات
+                                </button>
+                                <button class="btn btn-secondary" onclick="resetSettings()">
+                                    <i class="fas fa-undo me-1"></i>
+                                    إعادة تعيين
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Settings Tabs -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <ul class="nav nav-tabs card-header-tabs" id="settingsTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="general-tab" data-bs-toggle="tab" href="#general" role="tab">
+                                <i class="fas fa-cog me-2"></i>عام
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="security-tab" data-bs-toggle="tab" href="#security" role="tab">
+                                <i class="fas fa-shield-alt me-2"></i>الأمان
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="database-tab" data-bs-toggle="tab" href="#database" role="tab">
+                                <i class="fas fa-database me-2"></i>قاعدة البيانات
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="notifications-tab" data-bs-toggle="tab" href="#notifications" role="tab">
+                                <i class="fas fa-bell me-2"></i>الإشعارات
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="backup-tab" data-bs-toggle="tab" href="#backup" role="tab">
+                                <i class="fas fa-archive me-2"></i>النسخ الاحتياطية
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="settingsTabContent">
+                        <!-- General Settings -->
+                        <div class="tab-pane fade show active" id="general" role="tabpanel">
+                            <form id="generalSettingsForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="system_name" class="form-label">اسم النظام</label>
+                                            <input type="text" class="form-control" id="system_name" name="system_name" 
+                                                   value="النظام الصحي" placeholder="أدخل اسم النظام">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="system_version" class="form-label">إصدار النظام</label>
+                                            <input type="text" class="form-control" id="system_version" name="system_version" 
+                                                   value="1.0.0" placeholder="أدخل إصدار النظام">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="timezone" class="form-label">المنطقة الزمنية</label>
+                                            <select class="form-control" id="timezone" name="timezone">
+                                                <option value="Asia/Gaza">غزة (Asia/Gaza)</option>
+                                                <option value="Asia/Jerusalem">القدس (Asia/Jerusalem)</option>
+                                                <option value="UTC">UTC</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="language" class="form-label">اللغة</label>
+                                            <select class="form-control" id="language" name="language">
+                                                <option value="ar">العربية</option>
+                                                <option value="en">English</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="currency" class="form-label">العملة</label>
+                                            <select class="form-control" id="currency" name="currency">
+                                                <option value="ILS">شيكل (ILS)</option>
+                                                <option value="USD">دولار (USD)</option>
+                                                <option value="EUR">يورو (EUR)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="date_format" class="form-label">تنسيق التاريخ</label>
+                                            <select class="form-control" id="date_format" name="date_format">
+                                                <option value="dd/mm/yyyy">dd/mm/yyyy</option>
+                                                <option value="mm/dd/yyyy">mm/dd/yyyy</option>
+                                                <option value="yyyy-mm-dd">yyyy-mm-dd</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Security Settings -->
+                        <div class="tab-pane fade" id="security" role="tabpanel">
+                            <form id="securitySettingsForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="session_timeout" class="form-label">مهلة الجلسة (دقيقة)</label>
+                                            <input type="number" class="form-control" id="session_timeout" name="session_timeout" 
+                                                   value="30" min="5" max="480">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="max_login_attempts" class="form-label">عدد محاولات الدخول</label>
+                                            <input type="number" class="form-control" id="max_login_attempts" name="max_login_attempts" 
+                                                   value="5" min="3" max="10">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="password_min_length" class="form-label">الحد الأدنى لكلمة المرور</label>
+                                            <input type="number" class="form-control" id="password_min_length" name="password_min_length" 
+                                                   value="8" min="6" max="20">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="password_expiry_days" class="form-label">انتهاء صلاحية كلمة المرور (يوم)</label>
+                                            <input type="number" class="form-control" id="password_expiry_days" name="password_expiry_days" 
+                                                   value="90" min="30" max="365">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="two_factor_auth" name="two_factor_auth">
+                                            <label class="form-check-label" for="two_factor_auth">
+                                                تفعيل المصادقة الثنائية
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="ip_whitelist" name="ip_whitelist">
+                                            <label class="form-check-label" for="ip_whitelist">
+                                                قائمة IP المسموحة
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Database Settings -->
+                        <div class="tab-pane fade" id="database" role="tabpanel">
+                            <form id="databaseSettingsForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="db_host" class="form-label">خادم قاعدة البيانات</label>
+                                            <input type="text" class="form-control" id="db_host" name="db_host" 
+                                                   value="localhost" placeholder="أدخل عنوان الخادم">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="db_port" class="form-label">منفذ قاعدة البيانات</label>
+                                            <input type="number" class="form-control" id="db_port" name="db_port" 
+                                                   value="5432" placeholder="أدخل المنفذ">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="db_name" class="form-label">اسم قاعدة البيانات</label>
+                                            <input type="text" class="form-control" id="db_name" name="db_name" 
+                                                   value="medical_system" placeholder="أدخل اسم قاعدة البيانات">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="db_username" class="form-label">اسم المستخدم</label>
+                                            <input type="text" class="form-control" id="db_username" name="db_username" 
+                                                   value="postgres" placeholder="أدخل اسم المستخدم">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="db_password" class="form-label">كلمة المرور</label>
+                                            <input type="password" class="form-control" id="db_password" name="db_password" 
+                                                   placeholder="أدخل كلمة المرور">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="db_ssl" class="form-label">SSL</label>
+                                            <select class="form-control" id="db_ssl" name="db_ssl">
+                                                <option value="false">معطل</option>
+                                                <option value="true">مفعل</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <button type="button" class="btn btn-info" onclick="testConnection()">
+                                            <i class="fas fa-plug me-2"></i>
+                                            اختبار الاتصال
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Notifications Settings -->
+                        <div class="tab-pane fade" id="notifications" role="tabpanel">
+                            <form id="notificationsSettingsForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="email_host" class="form-label">خادم البريد الإلكتروني</label>
+                                            <input type="text" class="form-control" id="email_host" name="email_host" 
+                                                   value="smtp.gmail.com" placeholder="أدخل عنوان الخادم">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="email_port" class="form-label">منفذ البريد الإلكتروني</label>
+                                            <input type="number" class="form-control" id="email_port" name="email_port" 
+                                                   value="587" placeholder="أدخل المنفذ">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="email_username" class="form-label">اسم المستخدم</label>
+                                            <input type="text" class="form-control" id="email_username" name="email_username" 
+                                                   placeholder="أدخل اسم المستخدم">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="email_password" class="form-label">كلمة المرور</label>
+                                            <input type="password" class="form-control" id="email_password" name="email_password" 
+                                                   placeholder="أدخل كلمة المرور">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="whatsapp_api" class="form-label">WhatsApp API</label>
+                                            <input type="text" class="form-control" id="whatsapp_api" name="whatsapp_api" 
+                                                   placeholder="أدخل مفتاح API">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="sms_api" class="form-label">SMS API</label>
+                                            <input type="text" class="form-control" id="sms_api" name="sms_api" 
+                                                   placeholder="أدخل مفتاح API">
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Backup Settings -->
+                        <div class="tab-pane fade" id="backup" role="tabpanel">
+                            <form id="backupSettingsForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="backup_frequency" class="form-label">تكرار النسخ الاحتياطية</label>
+                                            <select class="form-control" id="backup_frequency" name="backup_frequency">
+                                                <option value="daily">يومي</option>
+                                                <option value="weekly">أسبوعي</option>
+                                                <option value="monthly">شهري</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="backup_retention" class="form-label">عدد النسخ المحفوظة</label>
+                                            <input type="number" class="form-control" id="backup_retention" name="backup_retention" 
+                                                   value="7" min="1" max="30">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="backup_location" class="form-label">موقع النسخ الاحتياطية</label>
+                                            <input type="text" class="form-control" id="backup_location" name="backup_location" 
+                                                   value="/backups" placeholder="أدخل المسار">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="backup_compression" class="form-label">ضغط النسخ</label>
+                                            <select class="form-control" id="backup_compression" name="backup_compression">
+                                                <option value="none">بدون ضغط</option>
+                                                <option value="zip">ZIP</option>
+                                                <option value="gzip">GZIP</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="auto_backup" name="auto_backup" checked>
+                                            <label class="form-check-label" for="auto_backup">
+                                                النسخ الاحتياطية التلقائية
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveSettings() {
+    // حفظ الإعدادات
+    const forms = ['generalSettingsForm', 'securitySettingsForm', 'databaseSettingsForm', 'notificationsSettingsForm', 'backupSettingsForm'];
+    const settings = {};
+    
+    forms.forEach(formId => {
+        const form = document.getElementById(formId);
+        if (form) {
+            const formData = new FormData(form);
+            for (let [key, value] of formData.entries()) {
+                settings[key] = value;
+            }
+        }
+    });
+    
+    // إرسال الإعدادات إلى الخادم
+    fetch('{{ url_for("super_admin.system_config") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(settings)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('تم حفظ الإعدادات بنجاح');
+        } else {
+            alert('حدث خطأ في حفظ الإعدادات');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في حفظ الإعدادات');
+    });
+}
+
+function resetSettings() {
+    // إعادة تعيين الإعدادات
+    if (confirm('هل تريد إعادة تعيين جميع الإعدادات إلى القيم الافتراضية؟')) {
+        location.reload();
+    }
+}
+
+function testConnection() {
+    // اختبار اتصال قاعدة البيانات
+    const dbSettings = {
+        host: document.getElementById('db_host').value,
+        port: document.getElementById('db_port').value,
+        name: document.getElementById('db_name').value,
+        username: document.getElementById('db_username').value,
+        password: document.getElementById('db_password').value
+    };
+    
+    fetch('{{ url_for("super_admin.system_config") }}?action=test_db', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(dbSettings)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('تم الاتصال بقاعدة البيانات بنجاح');
+        } else {
+            alert('فشل الاتصال بقاعدة البيانات: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في اختبار الاتصال');
+    });
+}
+
+// تحميل الإعدادات عند فتح الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    // تحميل الإعدادات الحالية
+    fetch('{{ url_for("super_admin.system_config") }}?action=load')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // تطبيق الإعدادات على النماذج
+                Object.keys(data.settings).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = data.settings[key];
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading settings:', error);
+        });
+});
+</script>
+{% endblock %}

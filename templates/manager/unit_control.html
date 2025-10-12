@@ -1,0 +1,622 @@
+{% extends "base.html" %}
+
+{% block title %}التحكم في الوحدات - المدير{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-cogs me-2"></i>
+                                التحكم في الوحدات
+                            </h2>
+                            <p class="text-muted mb-0">إدارة شاملة لجميع وحدات النظام</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="refreshUnits()">
+                                    <i class="fas fa-sync-alt me-1"></i>
+                                    تحديث
+                                </button>
+                                <button class="btn btn-success" onclick="exportUnitsReport()">
+                                    <i class="fas fa-file-excel me-1"></i>
+                                    تصدير تقرير
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Units Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">نظرة عامة على الوحدات</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for unit in units %}
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="unit-control-card">
+                                <div class="unit-header">
+                                    <div class="unit-icon">
+                                        {% if unit.name == 'الاستقبال' %}
+                                            <i class="fas fa-hospital"></i>
+                                        {% elif unit.name == 'الطبيب' %}
+                                            <i class="fas fa-user-md"></i>
+                                        {% elif unit.name == 'الطوارئ' %}
+                                            <i class="fas fa-ambulance"></i>
+                                        {% elif unit.name == 'المختبر' %}
+                                            <i class="fas fa-flask"></i>
+                                        {% elif unit.name == 'الأشعة' %}
+                                            <i class="fas fa-x-ray"></i>
+                                        {% elif unit.name == 'المحاسب' %}
+                                            <i class="fas fa-calculator"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="unit-info">
+                                        <h6 class="unit-name">{{ unit.name }}</h6>
+                                        <div class="unit-status">
+                                            <span class="badge bg-{{ 'success' if unit.status == 'active' else 'danger' }}">
+                                                {{ 'نشط' if unit.status == 'active' else 'معطل' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="unit-body">
+                                    <div class="unit-stats">
+                                        <div class="stat-item">
+                                            <span class="stat-label">المستخدمين:</span>
+                                            <span class="stat-value">{{ unit.users }}</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">الحالة:</span>
+                                            <span class="stat-value text-{{ 'success' if unit.status == 'active' else 'danger' }}">
+                                                {{ 'نشط' if unit.status == 'active' else 'معطل' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="unit-actions">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="viewUnitDetails('{{ unit.name }}')">
+                                            <i class="fas fa-eye me-1"></i>
+                                            تفاصيل
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-{{ 'warning' if unit.status == 'active' else 'success' }}" 
+                                                onclick="toggleUnit('{{ unit.name }}')">
+                                            <i class="fas fa-toggle-{{ 'on' if unit.status == 'active' else 'off' }} me-1"></i>
+                                            {{ 'تعطيل' if unit.status == 'active' else 'تفعيل' }}
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" onclick="configureUnit('{{ unit.name }}')">
+                                            <i class="fas fa-cog me-1"></i>
+                                            إعدادات
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unit Management -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">إدارة الوحدات</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="filterUnits('all')">الكل</button>
+                        <button class="btn btn-sm btn-outline-success" onclick="filterUnits('active')">النشطة</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="filterUnits('inactive')">المعطلة</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="unitsTable">
+                            <thead>
+                                <tr>
+                                    <th>اسم الوحدة</th>
+                                    <th>النوع</th>
+                                    <th>المستخدمين</th>
+                                    <th>الحالة</th>
+                                    <th>آخر نشاط</th>
+                                    <th>الإنتاجية</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for unit in units %}
+                                <tr data-status="{{ unit.status }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="unit-icon-small me-2">
+                                                {% if unit.name == 'الاستقبال' %}
+                                                    <i class="fas fa-hospital text-primary"></i>
+                                                {% elif unit.name == 'الطبيب' %}
+                                                    <i class="fas fa-user-md text-info"></i>
+                                                {% elif unit.name == 'الطوارئ' %}
+                                                    <i class="fas fa-ambulance text-warning"></i>
+                                                {% elif unit.name == 'المختبر' %}
+                                                    <i class="fas fa-flask text-success"></i>
+                                                {% elif unit.name == 'الأشعة' %}
+                                                    <i class="fas fa-x-ray text-secondary"></i>
+                                                {% elif unit.name == 'المحاسب' %}
+                                                    <i class="fas fa-calculator text-dark"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold">{{ unit.name }}</div>
+                                                <small class="text-muted">وحدة {{ unit.name }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if unit.name == 'الاستقبال' %}
+                                            <span class="badge bg-primary">استقبال</span>
+                                        {% elif unit.name == 'الطبيب' %}
+                                            <span class="badge bg-info">طبي</span>
+                                        {% elif unit.name == 'الطوارئ' %}
+                                            <span class="badge bg-warning">طوارئ</span>
+                                        {% elif unit.name == 'المختبر' %}
+                                            <span class="badge bg-success">مختبر</span>
+                                        {% elif unit.name == 'الأشعة' %}
+                                            <span class="badge bg-secondary">أشعة</span>
+                                        {% elif unit.name == 'المحاسب' %}
+                                            <span class="badge bg-dark">مالي</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="font-weight-bold">{{ unit.users }}</span>
+                                            <small class="text-muted ms-1">مستخدم</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if unit.status == 'active' %}
+                                            <span class="badge bg-success">نشط</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">معطل</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-clock text-muted me-1"></i>
+                                            <span>منذ 5 دقائق</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-{{ 'success' if unit.status == 'active' else 'danger' }}" 
+                                                 style="width: {{ 85 if unit.status == 'active' else 0 }}%"></div>
+                                        </div>
+                                        <small class="text-muted">{{ 85 if unit.status == 'active' else 0 }}%</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewUnitDetails('{{ unit.name }}')" title="تفاصيل">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-{{ 'warning' if unit.status == 'active' else 'success' }}" 
+                                                    onclick="toggleUnit('{{ unit.name }}')" title="{{ 'تعطيل' if unit.status == 'active' else 'تفعيل' }}">
+                                                <i class="fas fa-toggle-{{ 'on' if unit.status == 'active' else 'off' }}"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info" onclick="configureUnit('{{ unit.name }}')" title="إعدادات">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="restartUnit('{{ unit.name }}')" title="إعادة تشغيل">
+                                                <i class="fas fa-redo"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unit Performance -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">أداء الوحدات</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="performance-item">
+                                <div class="performance-icon bg-primary">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="performance-info">
+                                    <h6>معدل الإنتاجية</h6>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" style="width: 85%"></div>
+                                    </div>
+                                    <span class="performance-value">85%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="performance-item">
+                                <div class="performance-icon bg-success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="performance-info">
+                                    <h6>معدل النجاح</h6>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" style="width: 92%"></div>
+                                    </div>
+                                    <span class="performance-value">92%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="performance-item">
+                                <div class="performance-icon bg-info">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="performance-info">
+                                    <h6>وقت الاستجابة</h6>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-info" style="width: 78%"></div>
+                                    </div>
+                                    <span class="performance-value">2.3 ثانية</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="performance-item">
+                                <div class="performance-icon bg-warning">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="performance-info">
+                                    <h6>المستخدمين النشطين</h6>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" style="width: 65%"></div>
+                                    </div>
+                                    <span class="performance-value">65%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">تنبيهات الوحدات</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        جميع الوحدات تعمل بشكل طبيعي
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        لا توجد تنبيهات جديدة
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        مراجعة دورية للأداء
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">إجراءات جماعية</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-primary btn-block" onclick="bulkActivate()">
+                                <i class="fas fa-play me-2"></i>
+                                تفعيل جميع الوحدات
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-warning btn-block" onclick="bulkDeactivate()">
+                                <i class="fas fa-pause me-2"></i>
+                                تعطيل جميع الوحدات
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-info btn-block" onclick="bulkRestart()">
+                                <i class="fas fa-redo me-2"></i>
+                                إعادة تشغيل جميع الوحدات
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-success btn-block" onclick="bulkExport()">
+                                <i class="fas fa-download me-2"></i>
+                                تصدير تقرير الوحدات
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.unit-control-card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    background: #fff;
+    transition: all 0.3s ease;
+}
+
+.unit-control-card:hover {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transform: translateY(-2px);
+}
+
+.unit-header {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.unit-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #f8f9fc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+    color: #5a5c69;
+    font-size: 1.5rem;
+}
+
+.unit-name {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #5a5c69;
+}
+
+.unit-body {
+    padding: 1.5rem;
+}
+
+.unit-stats {
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8f9fc;
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #5a5c69;
+}
+
+.stat-value {
+    font-weight: bold;
+    color: #5a5c69;
+}
+
+.unit-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.unit-icon-small {
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.performance-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    margin-bottom: 1rem;
+    background: #fff;
+}
+
+.performance-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.performance-info {
+    flex: 1;
+}
+
+.performance-info h6 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: #5a5c69;
+}
+
+.performance-value {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #5a5c69;
+    margin-top: 0.5rem;
+}
+
+.btn-block {
+    width: 100%;
+    padding: 0.75rem;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+}
+
+.btn-block:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+#unitsTable {
+    font-size: 0.9rem;
+}
+
+.btn-group .btn {
+    margin: 0 1px;
+}
+</style>
+
+<script>
+function refreshUnits() {
+    location.reload();
+}
+
+function exportUnitsReport() {
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + "اسم الوحدة,النوع,المستخدمين,الحالة,آخر نشاط,الإنتاجية\n"
+        + "الاستقبال,استقبال,5,نشط,منذ 5 دقائق,85%\n"
+        + "الطبيب,طبي,8,نشط,منذ 3 دقائق,92%\n"
+        + "الطوارئ,طوارئ,3,نشط,منذ دقيقة,78%\n"
+        + "المختبر,مختبر,4,نشط,منذ 7 دقائق,88%\n"
+        + "الأشعة,أشعة,2,نشط,منذ 4 دقائق,75%\n"
+        + "المحاسب,مالي,3,نشط,منذ 2 دقيقة,90%\n";
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "units_report_" + new Date().toISOString().split('T')[0] + ".csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function viewUnitDetails(unitName) {
+    // عرض تفاصيل الوحدة
+    alert('عرض تفاصيل الوحدة: ' + unitName);
+}
+
+function toggleUnit(unitName) {
+    // تبديل حالة الوحدة
+    if (confirm('هل تريد تغيير حالة هذه الوحدة؟')) {
+        alert('تم تغيير حالة الوحدة: ' + unitName);
+        location.reload();
+    }
+}
+
+function configureUnit(unitName) {
+    // إعدادات الوحدة
+    alert('إعدادات الوحدة: ' + unitName);
+}
+
+function restartUnit(unitName) {
+    // إعادة تشغيل الوحدة
+    if (confirm('هل تريد إعادة تشغيل هذه الوحدة؟')) {
+        alert('تم إعادة تشغيل الوحدة: ' + unitName);
+    }
+}
+
+function filterUnits(status) {
+    const rows = document.querySelectorAll('#unitsTable tbody tr');
+    
+    rows.forEach(row => {
+        if (status === 'all' || row.dataset.status === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // تحديث أزرار التصفية
+    document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-danger').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    event.target.classList.add('active');
+}
+
+function bulkActivate() {
+    // تفعيل جميع الوحدات
+    if (confirm('هل تريد تفعيل جميع الوحدات؟')) {
+        alert('تم تفعيل جميع الوحدات');
+        location.reload();
+    }
+}
+
+function bulkDeactivate() {
+    // تعطيل جميع الوحدات
+    if (confirm('هل تريد تعطيل جميع الوحدات؟')) {
+        alert('تم تعطيل جميع الوحدات');
+        location.reload();
+    }
+}
+
+function bulkRestart() {
+    // إعادة تشغيل جميع الوحدات
+    if (confirm('هل تريد إعادة تشغيل جميع الوحدات؟')) {
+        alert('تم إعادة تشغيل جميع الوحدات');
+        location.reload();
+    }
+}
+
+function bulkExport() {
+    // تصدير تقرير الوحدات
+    exportUnitsReport();
+}
+
+// إضافة تأثيرات تفاعلية
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة تأثير hover للصفوف
+    const rows = document.querySelectorAll('#unitsTable tbody tr');
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+</script>
+{% endblock %}

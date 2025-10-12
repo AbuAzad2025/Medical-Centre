@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة موظفي {{ department.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg glass-effect">
+                <div class="card-header" style="background: var(--success-gradient); color: white;">
+                    <h4 class="mb-0">
+                        <i class="fas fa-users me-2"></i>
+                        إدارة موظفي قسم: {{ department.name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>الموظفون الحاليون ({{ staff|length }})</h5>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+                                <i class="fas fa-user-plus me-2"></i>
+                                إضافة موظف
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>الدور</th>
+                                    <th>البريد الإلكتروني</th>
+                                    <th>الهاتف</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if staff %}
+                                    {% for user in staff %}
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-user text-primary me-2"></i>
+                                            {{ user.full_name }}
+                                        </td>
+                                        <td><span class="badge bg-info">{{ user.role }}</span></td>
+                                        <td>{{ user.email }}</td>
+                                        <td>{{ user.phone or '-' }}</td>
+                                        <td>
+                                            {% if user.is_active %}
+                                            <span class="badge bg-success">نشط</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">غير نشط</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger" onclick="removeFromDepartment({{ user.id }})">
+                                                <i class="fas fa-times"></i>
+                                                إزالة
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">لا يوجد موظفين في هذا القسم</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('super_admin.view_department', department_id=department.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-right me-2"></i>
+                            العودة لتفاصيل القسم
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal إضافة موظف -->
+<div class="modal fade" id="addStaffModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>
+                    إضافة موظف للقسم
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addStaffForm">
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">اختر الموظف</label>
+                        <select class="form-select" id="user_id" name="user_id" required>
+                            <option value="">-- اختر موظف --</option>
+                            {% for user in all_users %}
+                                {% if user.department_id != department.id %}
+                                <option value="{{ user.id }}">{{ user.full_name }} ({{ user.role }})</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-plus me-2"></i>
+                        إضافة
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('addStaffForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const userId = document.getElementById('user_id').value;
+    
+    fetch(`/super-admin/department-staff/{{ department.id }}/add`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ user_id: userId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || 'حدث خطأ');
+        }
+    });
+});
+
+function removeFromDepartment(userId) {
+    if (confirm('هل أنت متأكد من إزالة هذا الموظف من القسم؟')) {
+        fetch(`/super-admin/department-staff/{{ department.id }}/remove`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ user_id: userId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'حدث خطأ');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}
+

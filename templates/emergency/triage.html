@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}فرز المريض - {{ visit.patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-sort-amount-down me-2"></i>
+                                فرز المريض (Triage)
+                            </h2>
+                            <p class="text-muted mb-0">{{ visit.patient.full_name }} - رقم الزيارة: {{ visit.visit_id_number or visit.id }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('emergency.emergency_visits') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للطوارئ
+                                </a>
+                                <button class="btn btn-primary" onclick="window.print()">
+                                    <i class="fas fa-print me-1"></i>
+                                    طباعة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Triage Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-sort-amount-down me-2"></i>
+                        نموذج فرز المريض
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form id="triageForm">
+                        <!-- Patient Info -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card border-left-info">
+                                    <div class="card-body">
+                                        <h6 class="text-info">بيانات المريض</h6>
+                                        <p><strong>الاسم:</strong> {{ visit.patient.full_name }}</p>
+                                        <p><strong>العمر:</strong> {{ visit.patient.age or 'غير محدد' }} سنة</p>
+                                        <p><strong>الجنس:</strong> {{ visit.patient.get_gender_display() }}</p>
+                                        <p><strong>رقم الزيارة:</strong> {{ visit.visit_id_number or visit.id }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-left-warning">
+                                    <div class="card-body">
+                                        <h6 class="text-warning">بيانات الطوارئ</h6>
+                                        <p><strong>وقت الوصول:</strong> {{ visit.created_at.strftime('%H:%M') }}</p>
+                                        <p><strong>الموظف:</strong> {{ current_user.full_name }}</p>
+                                        <p><strong>التاريخ:</strong> {{ visit.visit_date.strftime('%Y-%m-%d') }}</p>
+                                        <p><strong>الحالة:</strong> 
+                                            <span class="badge bg-info">{{ visit.get_status_display() }}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Triage Level -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">مستوى الأولوية</h6>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="triage_level">مستوى الفرز</label>
+                                    <select class="form-control" id="triage_level" name="triage_level" required>
+                                        <option value="">اختر مستوى الفرز</option>
+                                        <option value="RED" style="background-color: #dc3545; color: white;">أحمر - حرج (فوري)</option>
+                                        <option value="YELLOW" style="background-color: #ffc107; color: black;">أصفر - عاجل (15 دقيقة)</option>
+                                        <option value="GREEN" style="background-color: #28a745; color: white;">أخضر - عادي (60 دقيقة)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chief Complaint -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="chief_complaint">الشكوى الرئيسية</label>
+                                    <textarea class="form-control" id="chief_complaint" name="chief_complaint" rows="3" 
+                                              placeholder="أدخل الشكوى الرئيسية للمريض" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vital Signs -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">العلامات الحيوية</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="blood_pressure">ضغط الدم</label>
+                                    <input type="text" class="form-control" id="blood_pressure" name="blood_pressure" 
+                                           placeholder="120/80">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="heart_rate">معدل النبض</label>
+                                    <input type="number" class="form-control" id="heart_rate" name="heart_rate" 
+                                           placeholder="80">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="temperature">درجة الحرارة</label>
+                                    <input type="number" class="form-control" id="temperature" name="temperature" 
+                                           placeholder="37.0" step="0.1">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="oxygen_saturation">تشبع الأكسجين</label>
+                                    <input type="number" class="form-control" id="oxygen_saturation" name="oxygen_saturation" 
+                                           placeholder="98">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="respiratory_rate">معدل التنفس</label>
+                                    <input type="number" class="form-control" id="respiratory_rate" name="respiratory_rate" 
+                                           placeholder="16">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="pain_level">مستوى الألم (1-10)</label>
+                                    <input type="number" class="form-control" id="pain_level" name="pain_level" 
+                                           min="1" max="10" placeholder="5">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Triage Notes -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="triage_notes">ملاحظات الفرز</label>
+                                    <textarea class="form-control" id="triage_notes" name="triage_notes" rows="4" 
+                                              placeholder="أدخل ملاحظات الفرز والتقييم الأولي"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-1"></i>
+                                    حفظ بيانات الفرز
+                                </button>
+                                <a href="{{ url_for('emergency.emergency_visits') }}" class="btn btn-secondary btn-lg ml-2">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للطوارئ
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('triageForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    // جمع العلامات الحيوية
+    const vitalSigns = {
+        blood_pressure: formData.get('blood_pressure'),
+        heart_rate: formData.get('heart_rate'),
+        temperature: formData.get('temperature'),
+        oxygen_saturation: formData.get('oxygen_saturation'),
+        respiratory_rate: formData.get('respiratory_rate'),
+        pain_level: formData.get('pain_level')
+    };
+    
+    formData.set('vital_signs', JSON.stringify(vitalSigns));
+    
+    fetch('{{ url_for("emergency.triage", visit_id=visit.id) }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('تم حفظ بيانات الفرز بنجاح');
+            // إعادة توجيه للطوارئ
+            window.location.href = '{{ url_for("emergency.emergency_visits") }}';
+        } else {
+            alert('خطأ: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في حفظ بيانات الفرز');
+    });
+});
+</script>
+{% endblock %}

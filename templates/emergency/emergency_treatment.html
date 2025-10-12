@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}علاج إسعافي - {{ visit.patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-ambulance me-2"></i>
+                                علاج إسعافي
+                            </h2>
+                            <p class="text-muted mb-0">{{ visit.patient.full_name }} - رقم الزيارة: {{ visit.visit_id_number or visit.id }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('emergency.emergency_visits') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للطوارئ
+                                </a>
+                                <button class="btn btn-primary" onclick="window.print()">
+                                    <i class="fas fa-print me-1"></i>
+                                    طباعة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Treatment Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-ambulance me-2"></i>
+                        نموذج العلاج الإسعافي
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form id="emergencyTreatmentForm">
+                        <!-- Patient Info -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card border-left-info">
+                                    <div class="card-body">
+                                        <h6 class="text-info">بيانات المريض</h6>
+                                        <p><strong>الاسم:</strong> {{ visit.patient.full_name }}</p>
+                                        <p><strong>العمر:</strong> {{ visit.patient.age or 'غير محدد' }} سنة</p>
+                                        <p><strong>الجنس:</strong> {{ visit.patient.get_gender_display() }}</p>
+                                        <p><strong>رقم الزيارة:</strong> {{ visit.visit_id_number or visit.id }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-left-warning">
+                                    <div class="card-body">
+                                        <h6 class="text-warning">بيانات الطوارئ</h6>
+                                        <p><strong>وقت الوصول:</strong> {{ visit.created_at.strftime('%H:%M') }}</p>
+                                        <p><strong>الموظف:</strong> {{ current_user.full_name }}</p>
+                                        <p><strong>التاريخ:</strong> {{ visit.visit_date.strftime('%Y-%m-%d') }}</p>
+                                        <p><strong>مستوى الفرز:</strong> 
+                                            {% if visit.triage_level == 'RED' %}
+                                                <span class="badge bg-danger">أحمر - حرج</span>
+                                            {% elif visit.triage_level == 'YELLOW' %}
+                                                <span class="badge bg-warning">أصفر - عاجل</span>
+                                            {% else %}
+                                                <span class="badge bg-success">أخضر - عادي</span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Emergency Diagnosis -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">التشخيص الإسعافي</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="emergency_diagnosis">التشخيص الأولي</label>
+                                    <textarea class="form-control" id="emergency_diagnosis" name="emergency_diagnosis" rows="3" 
+                                              placeholder="أدخل التشخيص الإسعافي الأولي" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Emergency Treatment -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">الإجراءات الإسعافية</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="emergency_treatment">الإجراءات المطبقة</label>
+                                    <textarea class="form-control" id="emergency_treatment" name="emergency_treatment" rows="4" 
+                                              placeholder="أدخل الإجراءات الإسعافية المطبقة" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Emergency Medications -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">الأدوية الإسعافية</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="emergency_medications">الأدوية المعطاة</label>
+                                    <textarea class="form-control" id="emergency_medications" name="emergency_medications" rows="3" 
+                                              placeholder="أدخل الأدوية الإسعافية المعطاة"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Treatment Details -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="treatment_start_time">وقت بدء العلاج</label>
+                                    <input type="time" class="form-control" id="treatment_start_time" name="treatment_start_time" 
+                                           value="{{ moment().format('HH:mm') }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="treatment_duration">مدة العلاج (دقائق)</label>
+                                    <input type="number" class="form-control" id="treatment_duration" name="treatment_duration" 
+                                           placeholder="30">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Patient Response -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">استجابة المريض</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="patient_condition">حالة المريض بعد العلاج</label>
+                                    <select class="form-control" id="patient_condition" name="patient_condition">
+                                        <option value="">اختر الحالة</option>
+                                        <option value="stable">مستقر</option>
+                                        <option value="improved">تحسن</option>
+                                        <option value="critical">حرج</option>
+                                        <option value="deteriorated">تدهور</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="consciousness_level">مستوى الوعي</label>
+                                    <select class="form-control" id="consciousness_level" name="consciousness_level">
+                                        <option value="">اختر المستوى</option>
+                                        <option value="alert">واعي</option>
+                                        <option value="drowsy">نعسان</option>
+                                        <option value="unconscious">فاقد الوعي</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="pain_level_after">مستوى الألم بعد العلاج</label>
+                                    <input type="number" class="form-control" id="pain_level_after" name="pain_level_after" 
+                                           min="1" max="10" placeholder="5">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Emergency Notes -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="emergency_notes">ملاحظات إسعافية</label>
+                                    <textarea class="form-control" id="emergency_notes" name="emergency_notes" rows="4" 
+                                              placeholder="أدخل الملاحظات الإسعافية الإضافية"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Follow-up Recommendations -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">التوصيات</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="follow_up_recommendations">توصيات المتابعة</label>
+                                    <textarea class="form-control" id="follow_up_recommendations" name="follow_up_recommendations" rows="3" 
+                                              placeholder="أدخل توصيات المتابعة"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-1"></i>
+                                    حفظ العلاج الإسعافي
+                                </button>
+                                <a href="{{ url_for('emergency.emergency_visits') }}" class="btn btn-secondary btn-lg ml-2">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للطوارئ
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('emergencyTreatmentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{{ url_for("emergency.emergency_treatment", visit_id=visit.id) }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('تم حفظ العلاج الإسعافي بنجاح');
+            // إعادة توجيه للطوارئ
+            window.location.href = '{{ url_for("emergency.emergency_visits") }}';
+        } else {
+            alert('خطأ: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في حفظ العلاج الإسعافي');
+    });
+});
+</script>
+{% endblock %}

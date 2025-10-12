@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}الملاحظات الطبية{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="medical-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="medical-title">
+                    <i class="fas fa-notes-medical me-2"></i>
+                    الملاحظات الطبية
+                </h1>
+                <p class="medical-subtitle">كتابة الملاحظات الطبية للمريض</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    العودة للطابور
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Info -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        معلومات المريض
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>الاسم:</strong> {{ visit.patient.full_name }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>العمر:</strong> {{ visit.patient.age or 'غير محدد' }} سنة
+                        </div>
+                        <div class="col-md-3">
+                            <strong>الجنس:</strong> {{ visit.patient.get_gender_display() }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>رقم الزيارة:</strong> {{ visit.visit_id_number or visit.id }}
+                        </div>
+                    </div>
+                    {% if visit.visit_reason %}
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <strong>سبب الزيارة:</strong> {{ visit.visit_reason }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical Notes Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        كتابة الملاحظات الطبية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('doctor.notes', visit_id=visit.id) }}">
+                        <div class="mb-3">
+                            <label class="form-label">الملاحظات الطبية *</label>
+                            <textarea class="form-control" name="medical_notes" rows="10" 
+                                      placeholder="أدخل الملاحظات الطبية للمريض..." required></textarea>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>
+                                إلغاء
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                حفظ الملاحظات
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        نصائح
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>اكتب الملاحظات بوضوح</li>
+                        <li><i class="fas fa-check text-success me-2"></i>تأكد من صحة المعلومات</li>
+                        <li><i class="fas fa-check text-success me-2"></i>استخدم المصطلحات الطبية المناسبة</li>
+                        <li><i class="fas fa-check text-success me-2"></i>اذكر أي تحذيرات أو تنبيهات</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Previous Notes -->
+            {% if visit.notes %}
+            <div class="card shadow mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        الملاحظات السابقة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="notes-history">
+                        {{ visit.notes|replace('\n', '<br>')|safe }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-resize textarea
+document.querySelector('textarea[name="medical_notes"]').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = this.scrollHeight + 'px';
+});
+
+// Auto-save draft (optional)
+let autoSaveTimeout;
+document.querySelector('textarea[name="medical_notes"]').addEventListener('input', function() {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(function() {
+        // Save to localStorage as draft
+        localStorage.setItem('medical_notes_draft', document.querySelector('textarea[name="medical_notes"]').value);
+    }, 1000);
+});
+
+// Load draft on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const draft = localStorage.getItem('medical_notes_draft');
+    if (draft) {
+        document.querySelector('textarea[name="medical_notes"]').value = draft;
+    }
+});
+
+// Clear draft on form submit
+document.querySelector('form').addEventListener('submit', function() {
+    localStorage.removeItem('medical_notes_draft');
+});
+</script>
+{% endblock %}
+
+
+

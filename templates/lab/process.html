@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}معالجة المختبر - {{ visit.patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-flask me-2"></i>
+                                معالجة فحص المختبر
+                            </h2>
+                            <p class="text-muted mb-0">{{ visit.patient.full_name }} - رقم الزيارة: {{ visit.visit_id_number or visit.id }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('lab.queue') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للطابور
+                                </a>
+                                <button class="btn btn-primary" onclick="window.print()">
+                                    <i class="fas fa-print me-1"></i>
+                                    طباعة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lab Processing Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-flask me-2"></i>
+                        نموذج معالجة المختبر
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form id="labProcessForm">
+                        <!-- Patient Info -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card border-left-info">
+                                    <div class="card-body">
+                                        <h6 class="text-info">بيانات المريض</h6>
+                                        <p><strong>الاسم:</strong> {{ visit.patient.full_name }}</p>
+                                        <p><strong>العمر:</strong> {{ visit.patient.age or 'غير محدد' }} سنة</p>
+                                        <p><strong>الجنس:</strong> {{ visit.patient.get_gender_display() }}</p>
+                                        <p><strong>رقم الزيارة:</strong> {{ visit.visit_id_number or visit.id }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-left-warning">
+                                    <div class="card-body">
+                                        <h6 class="text-warning">بيانات الفحص</h6>
+                                        <p><strong>الفني:</strong> {{ current_user.full_name }}</p>
+                                        <p><strong>التاريخ:</strong> {{ visit.visit_date.strftime('%Y-%m-%d') }}</p>
+                                        <p><strong>الوقت:</strong> {{ visit.visit_time.strftime('%H:%M') }}</p>
+                                        <p><strong>الطبيب الطالب:</strong> 
+                                            {% if visit.doctor %}
+                                                {{ visit.doctor.full_name }}
+                                            {% else %}
+                                                غير محدد
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Test Details -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">تفاصيل الفحص</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="test_name">نوع الفحص</label>
+                                    <select class="form-control" id="test_name" name="test_name" required>
+                                        <option value="">اختر نوع الفحص</option>
+                                        <option value="CBC">صورة دم كاملة</option>
+                                        <option value="ESR">سرعة ترسيب الدم</option>
+                                        <option value="Glucose">سكر الدم</option>
+                                        <option value="HbA1c">السكر التراكمي</option>
+                                        <option value="Cholesterol">الكوليسترول</option>
+                                        <option value="Triglycerides">الدهون الثلاثية</option>
+                                        <option value="Liver Function">وظائف الكبد</option>
+                                        <option value="Kidney Function">وظائف الكلى</option>
+                                        <option value="Thyroid Function">وظائف الغدة الدرقية</option>
+                                        <option value="Vitamin D">فيتامين د</option>
+                                        <option value="Vitamin B12">فيتامين ب12</option>
+                                        <option value="Iron">الحديد</option>
+                                        <option value="Ferritin">الفيريتين</option>
+                                        <option value="Urine Analysis">تحليل البول</option>
+                                        <option value="Stool Analysis">تحليل البراز</option>
+                                        <option value="Culture">مزرعة</option>
+                                        <option value="Sensitivity">حساسية</option>
+                                        <option value="Pregnancy Test">فحص الحمل</option>
+                                        <option value="Other">أخرى</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="test_priority">أولوية الفحص</label>
+                                    <select class="form-control" id="test_priority" name="test_priority">
+                                        <option value="normal">عادية</option>
+                                        <option value="urgent">عاجلة</option>
+                                        <option value="emergency">طارئة</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="description">وصف الفحص</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3" 
+                                              placeholder="أدخل وصف الفحص المطلوب"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sample Collection -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">جمع العينات</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="sample_type">نوع العينة</label>
+                                    <select class="form-control" id="sample_type" name="sample_type">
+                                        <option value="">اختر نوع العينة</option>
+                                        <option value="blood">دم</option>
+                                        <option value="urine">بول</option>
+                                        <option value="stool">براز</option>
+                                        <option value="sputum">بلغم</option>
+                                        <option value="swab">مسحة</option>
+                                        <option value="other">أخرى</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="collection_time">وقت الجمع</label>
+                                    <input type="time" class="form-control" id="collection_time" name="collection_time" 
+                                           value="{{ moment().format('HH:mm') }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="collection_date">تاريخ الجمع</label>
+                                    <input type="date" class="form-control" id="collection_date" name="collection_date" 
+                                           value="{{ moment().format('YYYY-MM-DD') }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Test Results -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">النتائج</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="results">النتائج</label>
+                                    <textarea class="form-control" id="results" name="results" rows="4" 
+                                              placeholder="أدخل نتائج الفحص" required></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="normal_range">المعدل الطبيعي</label>
+                                    <textarea class="form-control" id="normal_range" name="normal_range" rows="4" 
+                                              placeholder="أدخل المعدل الطبيعي للفحص"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="interpretation">التفسير</label>
+                                    <textarea class="form-control" id="interpretation" name="interpretation" rows="3" 
+                                              placeholder="أدخل تفسير النتائج"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quality Control -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">مراقبة الجودة</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="sample_quality">جودة العينة</label>
+                                    <select class="form-control" id="sample_quality" name="sample_quality">
+                                        <option value="excellent">ممتازة</option>
+                                        <option value="good">جيدة</option>
+                                        <option value="fair">مقبولة</option>
+                                        <option value="poor">ضعيفة</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="equipment_status">حالة الجهاز</label>
+                                    <select class="form-control" id="equipment_status" name="equipment_status">
+                                        <option value="normal">طبيعي</option>
+                                        <option value="maintenance">صيانة</option>
+                                        <option value="calibration">معايرة</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="result_status">حالة النتيجة</label>
+                                    <select class="form-control" id="result_status" name="result_status">
+                                        <option value="normal">طبيعي</option>
+                                        <option value="abnormal">غير طبيعي</option>
+                                        <option value="critical">حرج</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-1"></i>
+                                    حفظ النتائج
+                                </button>
+                                <a href="{{ url_for('lab.queue') }}" class="btn btn-secondary btn-lg ml-2">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للطابور
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('labProcessForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{{ url_for("lab.process_lab", visit_id=visit.id) }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('تم حفظ نتائج المختبر بنجاح');
+            // إعادة توجيه للطابور
+            window.location.href = '{{ url_for("lab.queue") }}';
+        } else {
+            alert('خطأ: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في حفظ النتائج');
+    });
+});
+</script>
+{% endblock %}

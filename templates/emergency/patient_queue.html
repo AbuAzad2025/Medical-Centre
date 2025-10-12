@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}طابور الطوارئ{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-danger">
+                                <i class="fas fa-heartbeat me-2"></i>
+                                طابور الطوارئ
+                            </h2>
+                            <p class="text-muted mb-0">إدارة حالات الطوارئ حسب الأولوية</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('emergency.dashboard') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>
+                                    العودة للوحة التحكم
+                                </a>
+                                <button class="btn btn-danger" onclick="refreshQueue()">
+                                    <i class="fas fa-sync me-1"></i>
+                                    تحديث
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Role Info -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-danger">
+                <h6><i class="fas fa-exclamation-triangle me-2"></i>الوظائف الطبية للطوارئ</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li><strong>التقييم الطبي:</strong> تقييم أولي للحالات الطارئة</li>
+                            <li><strong>العلاج الفوري:</strong> تقديم العلاج الطارئ حسب الأولوية</li>
+                            <li><strong>الوصفات الطبية:</strong> كتابة وصفات للحالات الطارئة</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li><strong>الفحوصات العاجلة:</strong> طلب فحوصات مختبر وأشعة عاجلة</li>
+                            <li><strong>المراقبة:</strong> مراقبة الحالات الحرجة</li>
+                            <li><strong>التقارير:</strong> طباعة تقارير الطوارئ</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Queue Statistics -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                إجمالي الحالات
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ queue_stats.total_cases or 0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-ambulance fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                تحتاج تقييم
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ queue_stats.triage_cases or 0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-stethoscope fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                قيد العلاج
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ queue_stats.treatment_cases or 0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-md fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                تحت المراقبة
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ queue_stats.observation_cases or 0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-eye fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Priority Statistics -->
+    <div class="row mb-4">
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                حالات عاجلة
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ queue_stats.urgent_cases or 0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card border-left-dark shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
+                                حالات حرجة
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ queue_stats.critical_cases or 0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-skull-crossbones fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Cases Queue -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-list me-2"></i>قائمة حالات الطوارئ
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if emergencies %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>المريض</th>
+                                        <th>الأولوية</th>
+                                        <th>الحالة</th>
+                                        <th>الوقت</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for emergency in emergencies %}
+                                    <tr class="{% if emergency.priority == 'CRITICAL' %}table-danger{% elif emergency.priority == 'URGENT' %}table-warning{% elif emergency.status == 'TREATMENT' %}table-info{% endif %}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm bg-danger text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                    {{ emergency.patient.full_name[0] if emergency.patient else '?' }}
+                                                </div>
+                                                <div>
+                                                    <strong>{{ emergency.patient.full_name if emergency.patient else 'غير محدد' }}</strong><br>
+                                                    <small class="text-muted">{{ emergency.patient.national_id if emergency.patient else 'غير محدد' }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if emergency.priority == 'CRITICAL' %}
+                                                <span class="badge badge-danger">حرجة</span>
+                                            {% elif emergency.priority == 'URGENT' %}
+                                                <span class="badge badge-warning">عاجلة</span>
+                                            {% elif emergency.priority == 'HIGH' %}
+                                                <span class="badge badge-info">عالية</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">عادية</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if emergency.status == 'TRIAGE' %}
+                                                <span class="badge badge-warning">تحتاج تقييم</span>
+                                            {% elif emergency.status == 'TREATMENT' %}
+                                                <span class="badge badge-info">قيد العلاج</span>
+                                            {% elif emergency.status == 'OBSERVATION' %}
+                                                <span class="badge badge-success">تحت المراقبة</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">{{ emergency.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if emergency.created_at %}
+                                                {{ emergency.created_at.strftime('%H:%M') }}
+                                            {% else %}
+                                                غير محدد
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                {% if emergency.status == 'TRIAGE' %}
+                                                    <a href="{{ url_for('emergency.triage', emergency_id=emergency.id) }}" class="btn btn-warning btn-sm">
+                                                        <i class="fas fa-stethoscope me-1"></i>تقييم
+                                                    </a>
+                                                {% endif %}
+                                                
+                                                <a href="{{ url_for('emergency.patient_details', emergency_id=emergency.id) }}" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-eye me-1"></i>عرض
+                                                </a>
+                                                
+                                                {% if emergency.status == 'TRIAGE' %}
+                                                    <form method="POST" action="{{ url_for('emergency.start_treatment', emergency_id=emergency.id) }}" class="d-inline">
+                                                        <button type="submit" class="btn btn-success btn-sm">
+                                                            <i class="fas fa-play me-1"></i>بدء
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                                
+                                                {% if emergency.status == 'TREATMENT' %}
+                                                    <a href="{{ url_for('emergency.treatment', emergency_id=emergency.id) }}" class="btn btn-info btn-sm">
+                                                        <i class="fas fa-user-md me-1"></i>علاج
+                                                    </a>
+                                                {% endif %}
+                                                
+                                                {% if emergency.status == 'OBSERVATION' %}
+                                                    <form method="POST" action="{{ url_for('emergency.end_treatment', emergency_id=emergency.id) }}" class="d-inline">
+                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('هل أنت متأكد من إنهاء العلاج؟')">
+                                                            <i class="fas fa-stop me-1"></i>إنهاء
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-heartbeat fa-4x text-muted mb-4"></i>
+                            <h4 class="text-muted">لا توجد حالات طوارئ</h4>
+                            <p class="text-muted">جميع الحالات الطارئة قد تم علاجها أو لا توجد حالات جديدة</p>
+                            <a href="{{ url_for('emergency.dashboard') }}" class="btn btn-danger">
+                                <i class="fas fa-arrow-left me-2"></i>العودة للوحة التحكم
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-bolt me-2"></i>إجراءات سريعة
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('emergency.dashboard') }}" class="btn btn-danger w-100">
+                                <i class="fas fa-tachometer-alt me-2"></i>لوحة التحكم
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-warning w-100" onclick="refreshQueue()">
+                                <i class="fas fa-sync me-2"></i>تحديث الطابور
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('emergency.medical_history', patient_id=0) }}" class="btn btn-info w-100">
+                                <i class="fas fa-history me-2"></i>السجلات الطبية
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('emergency.prescriptions_history', patient_id=0) }}" class="btn btn-secondary w-100">
+                                <i class="fas fa-prescription me-2"></i>تاريخ الوصفات
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshQueue() {
+    location.reload();
+}
+
+// Auto-refresh every 15 seconds for emergency cases
+setInterval(function() {
+    // Only refresh if there are emergency cases
+    const table = document.querySelector('table tbody');
+    if (table && table.children.length > 0) {
+        refreshQueue();
+    }
+}, 15000);
+
+// Add click handlers for better UX
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to table rows
+    const rows = document.querySelectorAll('table tbody tr');
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+    
+    // Add loading states to buttons
+    const buttons = document.querySelectorAll('button[type="submit"]');
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>جاري المعالجة...';
+            this.disabled = true;
+        });
+    });
+    
+    // Highlight critical cases
+    const criticalRows = document.querySelectorAll('tr.table-danger');
+    criticalRows.forEach(row => {
+        row.style.animation = 'pulse 2s infinite';
+    });
+});
+</script>
+
+<style>
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block title %}نموذج إرسال النتائج{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="medical-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="medical-title">
+                    <i class="fas fa-edit me-2"></i>
+                    نموذج إرسال النتائج
+                </h1>
+                <p class="medical-subtitle">تعديل إعدادات إرسال النتائج</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ url_for('lab.dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-right me-1"></i>
+                    العودة للوحة التحكم
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        معلومات المريض
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>الاسم:</strong> {{ lab_request.patient.full_name }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>العمر:</strong> {{ lab_request.patient.age }} سنة
+                        </div>
+                        <div class="col-md-3">
+                            <strong>رقم الهوية:</strong> {{ lab_request.patient.id_number }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>رقم الهاتف:</strong> {{ lab_request.patient.phone }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lab Request Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-flask me-2"></i>
+                        معلومات طلب التحليل
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>نوع التحليل:</strong> {{ lab_request.get_test_type_display() }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>تاريخ الطلب:</strong> {{ lab_request.created_at.strftime('%Y-%m-%d') }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>الطبيب:</strong> {{ lab_request.doctor.full_name if lab_request.doctor else 'غير محدد' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Form -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        إعدادات الإرسال
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="sendResultsForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="lab_request_id" value="{{ lab_request.id }}">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="recipient_type" class="form-label">نوع المستقبل *</label>
+                                    <select class="form-select" id="recipient_type" name="recipient_type" required>
+                                        <option value="">اختر نوع المستقبل</option>
+                                        <option value="patient" {% if send_settings.recipient_type == 'patient' %}selected{% endif %}>المريض</option>
+                                        <option value="doctor" {% if send_settings.recipient_type == 'doctor' %}selected{% endif %}>الطبيب</option>
+                                        <option value="both" {% if send_settings.recipient_type == 'both' %}selected{% endif %}>المريض والطبيب</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="send_method" class="form-label">طريقة الإرسال *</label>
+                                    <select class="form-select" id="send_method" name="send_method" required>
+                                        <option value="">اختر طريقة الإرسال</option>
+                                        <option value="email" {% if send_settings.send_method == 'email' %}selected{% endif %}>البريد الإلكتروني</option>
+                                        <option value="sms" {% if send_settings.send_method == 'sms' %}selected{% endif %}>رسالة نصية</option>
+                                        <option value="whatsapp" {% if send_settings.send_method == 'whatsapp' %}selected{% endif %}>واتساب</option>
+                                        <option value="print" {% if send_settings.send_method == 'print' %}selected{% endif %}>طباعة</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="message" class="form-label">رسالة مخصصة</label>
+                            <textarea class="form-control" id="message" name="message" rows="3" 
+                                      placeholder="رسالة مخصصة لإرسالها مع النتائج">{{ send_settings.message or default_message }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="attachments" class="form-label">مرفقات إضافية</label>
+                            <input type="file" class="form-control" id="attachments" name="attachments" multiple 
+                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                            <small class="form-text text-muted">يمكن إرفاق ملفات PDF، Word، أو صور</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include_interpretation" name="include_interpretation" 
+                                       {% if send_settings.include_interpretation %}checked{% endif %}>
+                                <label class="form-check-label" for="include_interpretation">
+                                    تضمين تفسير النتائج
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include_recommendations" name="include_recommendations" 
+                                       {% if send_settings.include_recommendations %}checked{% endif %}>
+                                <label class="form-check-label" for="include_recommendations">
+                                    تضمين التوصيات
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="auto_send" name="auto_send" 
+                                       {% if send_settings.auto_send %}checked{% endif %}>
+                                <label class="form-check-label" for="auto_send">
+                                    إرسال تلقائي عند اكتمال النتائج
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" onclick="history.back()">
+                                <i class="fas fa-times me-1"></i>
+                                إلغاء
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                حفظ الإعدادات
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        معلومات مفيدة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        <strong>نصائح للإعداد:</strong>
+                    </p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>تأكد من صحة بيانات المستقبل</li>
+                        <li><i class="fas fa-check text-success me-2"></i>اختر طريقة الإرسال المناسبة</li>
+                        <li><i class="fas fa-check text-success me-2"></i>اكتب رسالة واضحة ومفهومة</li>
+                        <li><i class="fas fa-check text-success me-2"></i>تأكد من تضمين جميع المعلومات المطلوبة</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        تاريخ الإرسال
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if lab_request.send_history %}
+                        {% for send in lab_request.send_history %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <small class="text-muted">{{ send.send_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                                <br><small>{{ send.recipient_type }} - {{ send.send_method }}</small>
+                            </div>
+                            <span class="badge {% if send.status == 'sent' %}bg-success{% elif send.status == 'failed' %}bg-danger{% else %}bg-warning{% endif %}">
+                                {{ send.get_status_display() }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">لا يوجد تاريخ إرسال</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('sendResultsForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{{ url_for("lab.save_send_settings", id=lab_request.id) }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('تم حفظ الإعدادات بنجاح!');
+            window.location.href = '{{ url_for("lab.dashboard") }}';
+        } else {
+            alert('حدث خطأ: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الاتصال');
+    });
+});
+
+// Update message based on recipient type
+document.getElementById('recipient_type').addEventListener('change', function() {
+    const recipientType = this.value;
+    const messageTextarea = document.getElementById('message');
+    
+    let defaultMessage = '';
+    
+    if (recipientType === 'patient') {
+        defaultMessage = 'عزيزي المريض، نود إعلامكم بأن نتائج التحاليل جاهزة. يرجى مراجعة المرفقات للحصول على التفاصيل الكاملة.';
+    } else if (recipientType === 'doctor') {
+        defaultMessage = 'عزيزي الدكتور، نتائج التحاليل المطلوبة جاهزة. يرجى مراجعة المرفقات للحصول على التفاصيل الكاملة.';
+    } else if (recipientType === 'both') {
+        defaultMessage = 'نتائج التحاليل جاهزة. يرجى مراجعة المرفقات للحصول على التفاصيل الكاملة.';
+    }
+    
+    if (!messageTextarea.value || messageTextarea.value === '{{ send_settings.message or default_message }}') {
+        messageTextarea.value = defaultMessage;
+    }
+});
+</script>
+{% endblock %}

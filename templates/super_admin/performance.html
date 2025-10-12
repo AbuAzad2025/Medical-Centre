@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}مراقبة الأداء - السوبر أدمن{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in-up">
+    <h1 class="page-title">
+        <i class="fas fa-chart-line"></i>
+        مراقبة الأداء
+    </h1>
+    <p class="page-subtitle">مراقبة أداء النظام والموارد</p>
+</div>
+
+<div class="stats-grid fade-in-up">
+    <div class="stat-card">
+        <div class="stat-icon info">
+            <i class="fas fa-microchip"></i>
+        </div>
+        <div class="stat-value" id="cpu-usage">0%</div>
+        <div class="stat-label">استخدام المعالج</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success">
+            <i class="fas fa-memory"></i>
+        </div>
+        <div class="stat-value" id="memory-usage">0%</div>
+        <div class="stat-label">استخدام الذاكرة</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="fas fa-hdd"></i>
+        </div>
+        <div class="stat-value" id="disk-usage">0%</div>
+        <div class="stat-label">استخدام القرص</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon danger">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-value" id="uptime">0</div>
+        <div class="stat-label">وقت التشغيل (ساعة)</div>
+    </div>
+</div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-line"></i>
+                        إحصائيات الأداء
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>إحصائيات قاعدة البيانات</h5>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    عدد الجداول
+                                    <span class="badge bg-primary rounded-pill">0</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    حجم قاعدة البيانات
+                                    <span class="badge bg-primary rounded-pill">0 MB</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    استعلامات/ثانية
+                                    <span class="badge bg-primary rounded-pill">0</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>إحصائيات التطبيق</h5>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    الطلبات/الدقيقة
+                                    <span class="badge bg-primary rounded-pill">0</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    متوسط وقت الاستجابة
+                                    <span class="badge bg-primary rounded-pill">0 ms</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    المستخدمين النشطين
+                                    <span class="badge bg-primary rounded-pill">0</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// محاكاة تحديث البيانات
+function updatePerformanceData() {
+    document.getElementById('cpu-usage').textContent = Math.floor(Math.random() * 100) + '%';
+    document.getElementById('memory-usage').textContent = Math.floor(Math.random() * 100) + '%';
+    document.getElementById('disk-usage').textContent = Math.floor(Math.random() * 100) + '%';
+    document.getElementById('uptime').textContent = Math.floor(Math.random() * 24);
+}
+
+// تحديث البيانات كل 5 ثوانٍ
+setInterval(updatePerformanceData, 5000);
+updatePerformanceData();
+</script>
+{% endblock %}

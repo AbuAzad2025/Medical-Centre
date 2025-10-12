@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}معالجة الدفع - {{ visit.patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-credit-card me-2"></i>
+                                معالجة الدفع
+                            </h2>
+                            <p class="text-muted mb-0">{{ visit.patient.full_name }} - رقم الزيارة: {{ visit.visit_id_number or visit.id }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('accountant.pending_payments') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للفواتير
+                                </a>
+                                <button class="btn btn-primary" onclick="window.print()">
+                                    <i class="fas fa-print me-1"></i>
+                                    طباعة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Processing Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-credit-card me-2"></i>
+                        نموذج معالجة الدفع
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form id="paymentProcessForm">
+                        <!-- Patient Info -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card border-left-info">
+                                    <div class="card-body">
+                                        <h6 class="text-info">بيانات المريض</h6>
+                                        <p><strong>الاسم:</strong> {{ visit.patient.full_name }}</p>
+                                        <p><strong>العمر:</strong> {{ visit.patient.age or 'غير محدد' }} سنة</p>
+                                        <p><strong>الجنس:</strong> {{ visit.patient.get_gender_display() }}</p>
+                                        <p><strong>رقم الزيارة:</strong> {{ visit.visit_id_number or visit.id }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-left-warning">
+                                    <div class="card-body">
+                                        <h6 class="text-warning">بيانات الفاتورة</h6>
+                                        <p><strong>نوع الزيارة:</strong> {{ visit.get_visit_type_display() }}</p>
+                                        <p><strong>التاريخ:</strong> {{ visit.visit_date.strftime('%Y-%m-%d') }}</p>
+                                        <p><strong>المبلغ الإجمالي:</strong> {{ "%.2f"|format(visit.total_amount) }} ريال</p>
+                                        <p><strong>المدفوع:</strong> {{ "%.2f"|format(visit.paid_amount) }} ريال</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Details -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">تفاصيل الدفع</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="payment_method">طريقة الدفع</label>
+                                    <select class="form-control" id="payment_method" name="payment_method" required>
+                                        <option value="">اختر طريقة الدفع</option>
+                                        <option value="cash">نقدي</option>
+                                        <option value="card">بطاقة ائتمان</option>
+                                        <option value="bank_transfer">تحويل بنكي</option>
+                                        <option value="insurance">تأمين صحي</option>
+                                        <option value="check">شيك</option>
+                                        <option value="other">أخرى</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="paid_amount">المبلغ المدفوع</label>
+                                    <input type="number" class="form-control" id="paid_amount" name="paid_amount" 
+                                           step="0.01" min="0" max="{{ visit.total_amount }}" 
+                                           value="{{ visit.total_amount - visit.paid_amount }}" required>
+                                    <small class="form-text text-muted">
+                                        المبلغ المتبقي: {{ "%.2f"|format(visit.total_amount - visit.paid_amount) }} ريال
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method Specific Fields -->
+                        <div id="cash_fields" class="payment-method-fields" style="display: none;">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        تأكد من استلام المبلغ النقدي قبل تأكيد الدفع
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="card_fields" class="payment-method-fields" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="card_number">رقم البطاقة (آخر 4 أرقام)</label>
+                                        <input type="text" class="form-control" id="card_number" name="card_number" 
+                                               placeholder="1234" maxlength="4">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="transaction_id">رقم المعاملة</label>
+                                        <input type="text" class="form-control" id="transaction_id" name="transaction_id" 
+                                               placeholder="رقم المعاملة">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="insurance_fields" class="payment-method-fields" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="insurance_company">شركة التأمين</label>
+                                        <input type="text" class="form-control" id="insurance_company" name="insurance_company" 
+                                               placeholder="اسم شركة التأمين">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="insurance_number">رقم البطاقة</label>
+                                        <input type="text" class="form-control" id="insurance_number" name="insurance_number" 
+                                               placeholder="رقم بطاقة التأمين">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="bank_transfer_fields" class="payment-method-fields" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="bank_name">اسم البنك</label>
+                                        <input type="text" class="form-control" id="bank_name" name="bank_name" 
+                                               placeholder="اسم البنك">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="transfer_reference">رقم المرجع</label>
+                                        <input type="text" class="form-control" id="transfer_reference" name="transfer_reference" 
+                                               placeholder="رقم المرجع">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Notes -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="payment_notes">ملاحظات الدفع</label>
+                                    <textarea class="form-control" id="payment_notes" name="payment_notes" rows="3" 
+                                              placeholder="أدخل أي ملاحظات إضافية"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Summary -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card border-left-success">
+                                    <div class="card-body">
+                                        <h6 class="text-success">ملخص الدفع</h6>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <strong>المبلغ الإجمالي:</strong> {{ "%.2f"|format(visit.total_amount) }} ريال
+                                            </div>
+                                            <div class="col-md-4">
+                                                <strong>المدفوع سابقاً:</strong> {{ "%.2f"|format(visit.paid_amount) }} ريال
+                                            </div>
+                                            <div class="col-md-4">
+                                                <strong>المتبقي:</strong> <span id="remaining_amount">{{ "%.2f"|format(visit.total_amount - visit.paid_amount) }}</span> ريال
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-credit-card me-1"></i>
+                                    تأكيد الدفع
+                                </button>
+                                <a href="{{ url_for('accountant.pending_payments') }}" class="btn btn-secondary btn-lg ml-2">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للفواتير
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// إظهار/إخفاء الحقول حسب طريقة الدفع
+document.getElementById('payment_method').addEventListener('change', function() {
+    const method = this.value;
+    const fields = document.querySelectorAll('.payment-method-fields');
+    
+    // إخفاء جميع الحقول
+    fields.forEach(field => field.style.display = 'none');
+    
+    // إظهار الحقول المناسبة
+    if (method === 'cash') {
+        document.getElementById('cash_fields').style.display = 'block';
+    } else if (method === 'card') {
+        document.getElementById('card_fields').style.display = 'block';
+    } else if (method === 'insurance') {
+        document.getElementById('insurance_fields').style.display = 'block';
+    } else if (method === 'bank_transfer') {
+        document.getElementById('bank_transfer_fields').style.display = 'block';
+    }
+});
+
+// تحديث المبلغ المتبقي
+document.getElementById('paid_amount').addEventListener('input', function() {
+    const totalAmount = {{ visit.total_amount }};
+    const paidAmount = parseFloat(this.value) || 0;
+    const remaining = totalAmount - paidAmount;
+    
+    document.getElementById('remaining_amount').textContent = remaining.toFixed(2);
+});
+
+// معالجة النموذج
+document.getElementById('paymentProcessForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{{ url_for("accountant.process_payment", visit_id=visit.id) }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('تم معالجة الدفع بنجاح');
+            // إعادة توجيه للفواتير
+            window.location.href = '{{ url_for("accountant.pending_payments") }}';
+        } else {
+            alert('خطأ: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في معالجة الدفع');
+    });
+});
+</script>
+{% endblock %}

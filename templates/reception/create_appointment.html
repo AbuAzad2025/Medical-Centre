@@ -1,0 +1,497 @@
+{% extends "base.html" %}
+
+{% block title %}إنشاء موعد جديد - الاستقبال{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-calendar-plus me-2"></i>
+                                إنشاء موعد جديد
+                            </h2>
+                            <p class="text-muted mb-0">حجز موعد جديد للمريض</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-secondary" onclick="history.back()">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    رجوع
+                                </button>
+                                <button class="btn btn-primary" onclick="saveAppointment()">
+                                    <i class="fas fa-save me-1"></i>
+                                    حفظ الموعد
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">معلومات الموعد</h6>
+                </div>
+                <div class="card-body">
+                    <form id="appointmentForm" method="POST" action="{{ url_for('reception.create_appointment') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <!-- Patient Selection -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">اختيار المريض</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="patient_search" class="form-label">البحث عن المريض</label>
+                                    <input type="text" class="form-control" id="patient_search" 
+                                           placeholder="ابحث بالاسم أو رقم الهوية أو الهاتف">
+                                    <div id="patient_suggestions" class="list-group mt-2" style="display: none;"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="patient_id" class="form-label">المريض المحدد</label>
+                                    <select class="form-control" id="patient_id" name="patient_id" required>
+                                        <option value="">اختر المريض</option>
+                                        {% for patient in patients %}
+                                        <option value="{{ patient.id }}" 
+                                                data-name="{{ patient.first_name }} {{ patient.last_name }}"
+                                                data-phone="{{ patient.phone }}"
+                                                data-national-id="{{ patient.national_id }}">
+                                            {{ patient.first_name }} {{ patient.last_name }} - {{ patient.phone or patient.national_id }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Appointment Details -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">تفاصيل الموعد</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="doctor_id" class="form-label">الطبيب</label>
+                                    <select class="form-control" id="doctor_id" name="doctor_id" required>
+                                        <option value="">اختر الطبيب</option>
+                                        {% for doctor in doctors %}
+                                        <option value="{{ doctor.id }}">{{ doctor.full_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="appointment_date" class="form-label">تاريخ الموعد</label>
+                                    <input type="date" class="form-control" id="appointment_date" name="appointment_date" 
+                                           required min="{{ today.strftime('%Y-%m-%d') if today else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="appointment_time" class="form-label">وقت الموعد</label>
+                                    <input type="time" class="form-control" id="appointment_time" name="appointment_time" 
+                                           required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="appointment_type" class="form-label">نوع الموعد</label>
+                                    <select class="form-control" id="appointment_type" name="appointment_type" required>
+                                        <option value="">اختر نوع الموعد</option>
+                                        <option value="first">زيارة أولى</option>
+                                        <option value="follow_up">متابعة</option>
+                                        <option value="consultation">استشارة</option>
+                                        <option value="emergency">طوارئ</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="duration" class="form-label">مدة الموعد (دقائق)</label>
+                                    <select class="form-control" id="duration" name="duration" required>
+                                        <option value="15">15 دقيقة</option>
+                                        <option value="30" selected>30 دقيقة</option>
+                                        <option value="45">45 دقيقة</option>
+                                        <option value="60">60 دقيقة</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Symptoms and Notes -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">الأعراض والملاحظات</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="symptoms" class="form-label">الأعراض</label>
+                                    <textarea class="form-control" id="symptoms" name="symptoms" 
+                                              rows="3" placeholder="أدخل الأعراض التي يشكو منها المريض"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">ملاحظات إضافية</label>
+                                    <textarea class="form-control" id="notes" name="notes" 
+                                              rows="3" placeholder="أدخل أي ملاحظات إضافية"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">معلومات الاتصال</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="contact_phone" class="form-label">رقم الهاتف للتواصل</label>
+                                    <input type="tel" class="form-control" id="contact_phone" name="contact_phone" 
+                                           placeholder="أدخل رقم الهاتف">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="contact_email" class="form-label">البريد الإلكتروني</label>
+                                    <input type="email" class="form-control" id="contact_email" name="contact_email" 
+                                           placeholder="أدخل البريد الإلكتروني">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reminder Settings -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">إعدادات التذكير</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="reminder_type" class="form-label">نوع التذكير</label>
+                                    <select class="form-control" id="reminder_type" name="reminder_type">
+                                        <option value="none">بدون تذكير</option>
+                                        <option value="sms">رسالة نصية</option>
+                                        <option value="email">بريد إلكتروني</option>
+                                        <option value="both">كلاهما</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="reminder_time" class="form-label">وقت التذكير</label>
+                                    <select class="form-control" id="reminder_time" name="reminder_time">
+                                        <option value="1">قبل ساعة</option>
+                                        <option value="24" selected>قبل 24 ساعة</option>
+                                        <option value="48">قبل 48 ساعة</option>
+                                        <option value="72">قبل 72 ساعة</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>
+                                    حفظ الموعد
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                    <i class="fas fa-undo me-2"></i>
+                                    إعادة تعيين
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-label {
+    font-weight: 600;
+    color: #5a5c69;
+}
+
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.btn {
+    border-radius: 0.35rem;
+}
+
+.btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2e59d9;
+}
+
+#patient_suggestions {
+    position: absolute;
+    z-index: 1000;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#patient_suggestions .list-group-item {
+    cursor: pointer;
+}
+
+#patient_suggestions .list-group-item:hover {
+    background-color: #f8f9fa;
+}
+</style>
+
+<script>
+function saveAppointment() {
+    // حفظ الموعد
+    const form = document.getElementById('appointmentForm');
+    const formData = new FormData(form);
+    
+    // التحقق من صحة البيانات
+    if (!formData.get('patient_id') || !formData.get('doctor_id') || !formData.get('appointment_date') || !formData.get('appointment_time')) {
+        alert('يرجى ملء جميع الحقول المطلوبة');
+        return;
+    }
+    
+    // التحقق من تاريخ الموعد
+    const appointmentDate = new Date(formData.get('appointment_date'));
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (appointmentDate < today) {
+        alert('لا يمكن حجز موعد في تاريخ ماضي');
+        return;
+    }
+    
+    // إرسال البيانات
+    fetch('{{ url_for("reception.create_appointment") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('تم حفظ الموعد بنجاح');
+            location.href = '{{ url_for("reception.appointments") }}';
+        } else {
+            alert('حدث خطأ في حفظ الموعد: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في حفظ الموعد');
+    });
+}
+
+function resetForm() {
+    // إعادة تعيين النموذج
+    if (confirm('هل تريد إعادة تعيين النموذج؟')) {
+        document.getElementById('appointmentForm').reset();
+    }
+}
+
+// البحث عن المريض
+document.getElementById('patient_search').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const suggestions = document.getElementById('patient_suggestions');
+    
+    if (searchTerm.length < 2) {
+        suggestions.style.display = 'none';
+        return;
+    }
+    
+    // البحث في قائمة المرضى
+    const patients = document.querySelectorAll('#patient_id option');
+    let matches = [];
+    
+    patients.forEach(option => {
+        if (option.value && (
+            option.textContent.toLowerCase().includes(searchTerm) ||
+            option.dataset.name.toLowerCase().includes(searchTerm) ||
+            option.dataset.phone.includes(searchTerm) ||
+            option.dataset.nationalId.includes(searchTerm)
+        )) {
+            matches.push(option);
+        }
+    });
+    
+    if (matches.length > 0) {
+        suggestions.innerHTML = matches.map(option => 
+            `<div class="list-group-item" onclick="selectPatient('${option.value}', '${option.textContent}')">
+                ${option.textContent}
+            </div>`
+        ).join('');
+        suggestions.style.display = 'block';
+    } else {
+        suggestions.style.display = 'none';
+    }
+});
+
+function selectPatient(patientId, patientName) {
+    document.getElementById('patient_id').value = patientId;
+    document.getElementById('patient_search').value = patientName;
+    document.getElementById('patient_suggestions').style.display = 'none';
+}
+
+// إخفاء اقتراحات البحث عند النقر خارجها
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#patient_search') && !e.target.closest('#patient_suggestions')) {
+        document.getElementById('patient_suggestions').style.display = 'none';
+    }
+});
+
+// تحديث قائمة الأطباء عند تغيير نوع الموعد
+document.getElementById('appointment_type').addEventListener('change', function() {
+    const appointmentType = this.value;
+    const doctorSelect = document.getElementById('doctor_id');
+    
+    // إعادة تعيين قائمة الأطباء
+    doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
+    
+    if (appointmentType) {
+        // جلب الأطباء المناسبين لنوع الموعد
+        fetch(`/api/doctors?appointment_type=${appointmentType}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                data.doctors.forEach(doctor => {
+                    const option = document.createElement('option');
+                    option.value = doctor.id;
+                    option.textContent = doctor.full_name;
+                    doctorSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading doctors:', error);
+        });
+    }
+});
+
+// تحديث وقت الموعد بناءً على الطبيب المحدد
+document.getElementById('doctor_id').addEventListener('change', function() {
+    const doctorId = this.value;
+    const appointmentDate = document.getElementById('appointment_date').value;
+    
+    if (doctorId && appointmentDate) {
+        // جلب الأوقات المتاحة للطبيب في التاريخ المحدد
+        fetch(`/api/available-times?doctor_id=${doctorId}&date=${appointmentDate}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const timeSelect = document.getElementById('appointment_time');
+                timeSelect.innerHTML = '';
+                
+                data.available_times.forEach(time => {
+                    const option = document.createElement('option');
+                    option.value = time;
+                    option.textContent = time;
+                    timeSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading available times:', error);
+        });
+    }
+});
+
+// تحديث الأوقات المتاحة عند تغيير التاريخ
+document.getElementById('appointment_date').addEventListener('change', function() {
+    const doctorId = document.getElementById('doctor_id').value;
+    const appointmentDate = this.value;
+    
+    if (doctorId && appointmentDate) {
+        // جلب الأوقات المتاحة للطبيب في التاريخ المحدد
+        fetch(`/api/available-times?doctor_id=${doctorId}&date=${appointmentDate}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const timeSelect = document.getElementById('appointment_time');
+                timeSelect.innerHTML = '';
+                
+                data.available_times.forEach(time => {
+                    const option = document.createElement('option');
+                    option.value = time;
+                    option.textContent = time;
+                    timeSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading available times:', error);
+        });
+    }
+});
+
+// إضافة تأثيرات تفاعلية
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة تأثير focus للحقول
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        input.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+    });
+    
+    // تعيين الحد الأدنى للتاريخ إلى اليوم
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('appointment_date').min = today;
+});
+</script>
+{% endblock %}

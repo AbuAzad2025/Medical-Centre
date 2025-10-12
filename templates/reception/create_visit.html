@@ -1,0 +1,595 @@
+{% extends "base.html" %}
+
+{% block title %}إنشاء زيارة جديدة - الاستقبال{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-hospital me-2"></i>
+                                إنشاء زيارة جديدة
+                            </h2>
+                            <p class="text-muted mb-0">تسجيل زيارة جديدة للمريض</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-secondary" onclick="history.back()">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    رجوع
+                                </button>
+                                <button class="btn btn-primary" onclick="saveVisit()">
+                                    <i class="fas fa-save me-1"></i>
+                                    حفظ الزيارة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visit Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">معلومات الزيارة</h6>
+                </div>
+                <div class="card-body">
+                    <form id="visitForm" method="POST" action="{{ url_for('reception.create_visit') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <!-- البحث الذكي عن المريض -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-header">
+                                        <h6 class="text-primary mb-0">
+                                            <i class="fas fa-search"></i> البحث الذكي عن المريض
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <div class="mb-3">
+                                                    <label for="patient_search" class="form-label">البحث الذكي</label>
+                                                    <input type="text" class="form-control" id="patient_search" 
+                                                           placeholder="ابحث بالاسم، الهوية، الهاتف، أو تاريخ الميلاد...">
+                                                    <div id="patient_suggestions" class="list-group mt-2" style="display: none;"></div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label>&nbsp;</label>
+                                                    <button type="button" class="btn btn-success btn-block" id="addNewPatientBtn">
+                                                        <i class="fas fa-plus"></i> إضافة مريض جديد
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" id="selectedPatientId" name="patient_id" required>
+                                        <div id="selectedPatientInfo" class="alert alert-info" style="display: none;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- اختيار القسم والموظف -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="department_id" class="form-label">القسم الصحي <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="department_id" name="department_id" required>
+                                        <option value="">اختر القسم...</option>
+                                        {% for department in departments %}
+                                        <option value="{{ department.id }}">{{ department.name_ar }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="staff_id" class="form-label">الطبيب/الموظف</label>
+                                    <select class="form-control" id="staff_id" name="doctor_id">
+                                        <option value="">اختر الطبيب/الموظف...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- نوع الزيارة والتكلفة -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="visit_type" class="form-label">نوع الزيارة</label>
+                                    <select class="form-control" id="visit_type" name="visit_type">
+                                        <option value="REGULAR">زيارة عادية</option>
+                                        <option value="FOLLOW_UP">مراجعة</option>
+                                        <option value="CONSULTATION">استشارة</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="is_emergency" class="form-label">
+                                        <input type="checkbox" id="is_emergency" name="is_emergency">
+                                        زيارة طوارئ
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="is_force_payment" class="form-label">
+                                        <input type="checkbox" id="is_force_payment" name="is_force_payment">
+                                        دفع قوي/إعفاء
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">التكلفة التلقائية</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="visitCost" readonly>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">₪</span>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted" id="costBreakdown"></small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- معلومات الزيارة -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="symptoms" class="form-label">الأعراض/الشكوى</label>
+                                    <textarea class="form-control" id="symptoms" name="symptoms" rows="3" 
+                                              placeholder="وصف الأعراض أو الشكوى..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- طرق الدفع -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="text-primary mb-0">
+                                            <i class="fas fa-credit-card"></i> طرق الدفع
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="payment_method" class="form-label">طريقة الدفع <span class="text-danger">*</span></label>
+                                                    <select class="form-control" id="payment_method" name="payment_method" required>
+                                                        <option value="">اختر طريقة الدفع...</option>
+                                                        <option value="cash">نقداً</option>
+                                                        <option value="visa">فيزا</option>
+                                                        <option value="insurance">تأمين</option>
+                                                        <option value="force">دفع قوي</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- حقول الدفع الديناميكية -->
+                                        <div id="paymentFields" style="display: none;">
+                                            <!-- حقول الفيزا -->
+                                            <div id="visaFields" class="row" style="display: none;">
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="card_number" class="form-label">رقم البطاقة</label>
+                                                        <input type="text" class="form-control" id="card_number" name="card_number">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="card_holder" class="form-label">اسم حامل البطاقة</label>
+                                                        <input type="text" class="form-control" id="card_holder" name="card_holder">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="expiry_date" class="form-label">تاريخ الانتهاء</label>
+                                                        <input type="text" class="form-control" id="expiry_date" name="expiry_date" placeholder="MM/YY">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- حقول التأمين -->
+                                            <div id="insuranceFields" class="row" style="display: none;">
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="insurance_provider" class="form-label">شركة التأمين</label>
+                                                        <input type="text" class="form-control" id="insurance_provider" name="insurance_provider">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="policy_number" class="form-label">رقم البوليصة</label>
+                                                        <input type="text" class="form-control" id="policy_number" name="policy_number">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="coverage_percentage" class="form-label">نسبة التغطية</label>
+                                                        <input type="number" class="form-control" id="coverage_percentage" name="coverage_percentage" min="0" max="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- حقول الدفع القوي -->
+                                            <div id="forceFields" class="row" style="display: none;">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label for="force_reason" class="form-label">سبب الدفع القوي</label>
+                                                        <textarea class="form-control" id="force_reason" name="force_reason" rows="2"></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label for="approved_by" class="form-label">معتمد من</label>
+                                                        <input type="text" class="form-control" id="approved_by" name="approved_by">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Insurance Information -->
+                        <div class="row mb-4" id="insurance_section" style="display: none;">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">معلومات التأمين</h6>
+                            </div>
+                        </div>
+
+                        <div class="row" id="insurance_fields" style="display: none;">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="insurance_company" class="form-label">شركة التأمين</label>
+                                    <input type="text" class="form-control" id="insurance_company" name="insurance_company" 
+                                           placeholder="أدخل اسم شركة التأمين">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="insurance_number" class="form-label">رقم التأمين</label>
+                                    <input type="text" class="form-control" id="insurance_number" name="insurance_number" 
+                                           placeholder="أدخل رقم التأمين">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Debt Information -->
+                        <div class="row mb-4" id="debt_section" style="display: none;">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">معلومات الدين</h6>
+                            </div>
+                        </div>
+
+                        <div class="row" id="debt_fields" style="display: none;">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="debt_reason" class="form-label">سبب الدين</label>
+                                    <textarea class="form-control" id="debt_reason" name="debt_reason" 
+                                              rows="3" placeholder="أدخل سبب الدين"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Visit Notes -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">ملاحظات الزيارة</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="visit_notes" class="form-label">ملاحظات</label>
+                                    <textarea class="form-control" id="visit_notes" name="visit_notes" 
+                                              rows="4" placeholder="أدخل أي ملاحظات إضافية"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ملاحظات إضافية -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">ملاحظات إضافية</label>
+                                    <textarea class="form-control" id="notes" name="notes" rows="2" 
+                                              placeholder="أي ملاحظات إضافية..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- أزرار العمل -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="btn-group" role="group">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i>
+                                        حفظ الزيارة
+                                    </button>
+                                    <button type="button" class="btn btn-success" id="saveAndPrintBtn">
+                                        <i class="fas fa-print"></i>
+                                        حفظ وطباعة الوصل
+                                    </button>
+                                    <a href="{{ url_for('reception.visits') }}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i>
+                                        إلغاء
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-label {
+    font-weight: 600;
+    color: #5a5c69;
+}
+
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.btn {
+    border-radius: 0.35rem;
+}
+
+.btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2e59d9;
+}
+
+#patient_suggestions {
+    position: absolute;
+    z-index: 1000;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#patient_suggestions .list-group-item {
+    cursor: pointer;
+}
+
+#patient_suggestions .list-group-item:hover {
+    background-color: #f8f9fa;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // البحث الذكي عن المرضى
+    const patientSearch = document.getElementById('patient_search');
+    const searchResults = document.getElementById('patient_suggestions');
+    const selectedPatientId = document.getElementById('selectedPatientId');
+    const selectedPatientInfo = document.getElementById('selectedPatientInfo');
+    const addNewPatientBtn = document.getElementById('addNewPatientBtn');
+
+    let searchTimeout;
+
+    patientSearch.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        searchTimeout = setTimeout(() => {
+            fetch(`/reception/api/smart-patient-search?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.patients && data.patients.length > 0) {
+                        displaySearchResults(data.patients);
+                    } else {
+                        searchResults.innerHTML = '<div class="list-group-item text-muted">لا توجد نتائج</div>';
+                        searchResults.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    searchResults.innerHTML = '<div class="list-group-item text-danger">خطأ في البحث</div>';
+                    searchResults.style.display = 'block';
+                });
+        }, 300);
+    });
+
+    function displaySearchResults(patients) {
+        searchResults.innerHTML = '';
+        patients.forEach(patient => {
+            const item = document.createElement('div');
+            item.className = 'list-group-item list-group-item-action';
+            item.innerHTML = `
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">${patient.full_name}</h6>
+                    <small>${patient.national_id}</small>
+                </div>
+                <p class="mb-1">${patient.phone} | ${patient.gender}</p>
+                <small>${patient.birth_date || 'تاريخ الميلاد غير محدد'}</small>
+            `;
+            item.addEventListener('click', () => selectPatient(patient));
+            searchResults.appendChild(item);
+        });
+        searchResults.style.display = 'block';
+    }
+
+    function selectPatient(patient) {
+        selectedPatientId.value = patient.id;
+        selectedPatientInfo.innerHTML = `
+            <strong>المريض المحدد:</strong> ${patient.full_name} | 
+            الهوية: ${patient.national_id} | 
+            الهاتف: ${patient.phone}
+        `;
+        selectedPatientInfo.style.display = 'block';
+        searchResults.style.display = 'none';
+        patientSearch.value = '';
+    }
+
+    // إضافة مريض جديد
+    addNewPatientBtn.addEventListener('click', function() {
+        window.open('/reception/add_patient', '_blank');
+    });
+
+    // تحديث الموظفين عند تغيير القسم
+    const departmentSelect = document.getElementById('department_id');
+    const staffSelect = document.getElementById('staff_id');
+
+    departmentSelect.addEventListener('change', function() {
+        const departmentId = this.value;
+        staffSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+        
+        if (departmentId) {
+            fetch(`/reception/api/department-staff?department_id=${departmentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    staffSelect.innerHTML = '<option value="">اختر الطبيب/الموظف...</option>';
+                    if (data.staff) {
+                        data.staff.forEach(staff => {
+                            const option = document.createElement('option');
+                            option.value = staff.id;
+                            option.textContent = `${staff.full_name} - ${staff.role}`;
+                            staffSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    staffSelect.innerHTML = '<option value="">خطأ في التحميل</option>';
+                });
+        } else {
+            staffSelect.innerHTML = '<option value="">اختر القسم أولاً</option>';
+        }
+        
+        calculateVisitCost();
+    });
+
+    // تحديث التكلفة عند تغيير المعايير
+    function calculateVisitCost() {
+        const departmentId = departmentSelect.value;
+        const staffId = staffSelect.value;
+        const visitType = document.getElementById('visit_type').value;
+        const isEmergency = document.getElementById('is_emergency').checked;
+        const paymentMethod = document.getElementById('payment_method').value || 'cash';
+
+        if (departmentId) {
+            fetch(`/reception/api/visit-pricing?department_id=${departmentId}&doctor_id=${staffId}&visit_type=${visitType}&is_emergency=${isEmergency}&payment_method=${paymentMethod}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('visitCost').value = data.cost || '0.00';
+                    
+                    // عرض تفاصيل التكلفة
+                    if (data.details && data.details.breakdown) {
+                        const breakdown = data.details.breakdown.map(item => 
+                            `${item.item}: ${item.cost}₪`
+                        ).join(' | ');
+                        document.getElementById('costBreakdown').textContent = breakdown;
+                    } else {
+                        document.getElementById('costBreakdown').textContent = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('visitCost').value = '0.00';
+                    document.getElementById('costBreakdown').textContent = '';
+                });
+        }
+    }
+
+    // إضافة مستمعي الأحداث للتكلفة
+    document.getElementById('visit_type').addEventListener('change', calculateVisitCost);
+    document.getElementById('is_emergency').addEventListener('change', calculateVisitCost);
+    staffSelect.addEventListener('change', calculateVisitCost);
+    document.getElementById('payment_method').addEventListener('change', calculateVisitCost);
+
+    // إدارة حقول الدفع الديناميكية
+    const paymentMethod = document.getElementById('payment_method');
+    const paymentFields = document.getElementById('paymentFields');
+
+    paymentMethod.addEventListener('change', function() {
+        const method = this.value;
+        
+        // إخفاء جميع الحقول
+        document.getElementById('visaFields').style.display = 'none';
+        document.getElementById('insuranceFields').style.display = 'none';
+        document.getElementById('forceFields').style.display = 'none';
+        paymentFields.style.display = 'none';
+
+        // إظهار الحقول المناسبة
+        if (method === 'visa') {
+            document.getElementById('visaFields').style.display = 'block';
+            paymentFields.style.display = 'block';
+        } else if (method === 'insurance') {
+            document.getElementById('insuranceFields').style.display = 'block';
+            paymentFields.style.display = 'block';
+        } else if (method === 'force') {
+            document.getElementById('forceFields').style.display = 'block';
+            paymentFields.style.display = 'block';
+        }
+        
+        // إعادة حساب التكلفة عند تغيير طريقة الدفع
+        calculateVisitCost();
+    });
+
+    // حفظ وطباعة الوصل
+    document.getElementById('saveAndPrintBtn').addEventListener('click', function() {
+        // إضافة حقل مخفي للإشارة للطباعة
+        const printInput = document.createElement('input');
+        printInput.type = 'hidden';
+        printInput.name = 'print_receipt';
+        printInput.value = 'true';
+        document.getElementById('visitForm').appendChild(printInput);
+        
+        // إرسال النموذج
+        document.getElementById('visitForm').submit();
+    });
+
+    // إخفاء نتائج البحث عند النقر خارجها
+    document.addEventListener('click', function(e) {
+        if (!patientSearch.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}
