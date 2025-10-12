@@ -1,0 +1,12 @@
+{
+  "generated_at": "2025-10-12T22:23:08.815451",
+  "total_duplicates": 1,
+  "duplicates": [
+    {
+      "file1": "models\\medical_record.py",
+      "file2": "models\\medical_report.py",
+      "similarity": 90.42,
+      "recommendation": "merge_to_primary"
+    }
+  ]
+}

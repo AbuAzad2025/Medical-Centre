@@ -1,0 +1,102 @@
+{
+  "generated_at": "2025-10-12T22:23:08.817658",
+  "total_orphans": 16,
+  "orphans": [
+    {
+      "file": "templates\\auth\\login.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\errors\\403.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\errors\\404.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\errors\\500.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\includes\\role_sidebar.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\macros\\forms.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\partials\\_csrf_meta.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\partials\\_flash.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\partials\\_footer.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\partials\\_navbar.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\partials\\_sidebar.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\print\\invoice.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\print\\prescription.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\print\\radiology_report.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\print\\receipt.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    },
+    {
+      "file": "templates\\super_admin\\roles.html",
+      "type": "template",
+      "reason": "No render_template() call found",
+      "severity": "medium"
+    }
+  ]
+}
