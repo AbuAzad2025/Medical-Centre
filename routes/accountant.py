@@ -6,6 +6,7 @@ Medical System Accountant Routes
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
+from sqlalchemy import func, and_
 from models.patient import Patient
 from models.visit import Visit
 from models.payment import Payment

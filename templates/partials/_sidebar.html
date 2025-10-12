@@ -251,7 +251,7 @@
                 <li><a href="{{ url_for('accountant.dashboard') }}" class="nav-link {% if request.endpoint and 'accountant' in request.endpoint %}active{% endif %}">
                     <i class="fas fa-calculator"></i> لوحة التحكم
                 </a></li>
-                <li><a href="{{ url_for('accountant.payment_management') }}" class="nav-link {% if request.endpoint == 'accountant.payment_management' %}active{% endif %}">
+                <li><a href="{{ url_for('accountant.payments') }}" class="nav-link {% if request.endpoint == 'accountant.payments' %}active{% endif %}">
                     <i class="fas fa-credit-card"></i> إدارة المدفوعات
                 </a></li>
                 <li><a href="{{ url_for('accountant.financial_reports') }}" class="nav-link {% if request.endpoint == 'accountant.financial_reports' %}active{% endif %}">
