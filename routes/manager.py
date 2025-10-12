@@ -20,6 +20,12 @@ from datetime import datetime, date, timedelta
 
 manager_bp = Blueprint('manager', __name__)
 
+@manager_bp.route('/')
+@login_required
+def index():
+    """توجيه تلقائي إلى لوحة التحكم"""
+    return redirect(url_for('manager.dashboard'))
+
 @manager_bp.route('/dashboard')
 @login_required
 def dashboard():

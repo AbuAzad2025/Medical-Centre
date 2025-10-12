@@ -20,6 +20,12 @@ from decimal import Decimal
 
 accountant_bp = Blueprint('accountant', __name__)
 
+@accountant_bp.route('/')
+@login_required
+def index():
+    """توجيه تلقائي إلى لوحة التحكم"""
+    return redirect(url_for('accountant.dashboard'))
+
 @accountant_bp.route('/dashboard')
 @login_required
 def dashboard():
