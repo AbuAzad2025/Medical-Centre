@@ -254,34 +254,60 @@ class DeepAudit:
         print(f"📊 إجمالي Models المكتشفة: {len(self.models)}")
     
     def detect_duplicates(self):
-        """اكتشاف الملفات المكررة"""
-        # فحص ملفات Python
-        py_files = list(self.project_root.rglob('*.py'))
-        py_files = [f for f in py_files if '__pycache__' not in str(f) and '.venv' not in str(f)]
+        """اكتشاف الملفات المكررة - نسخة سريعة"""
+        print("  🔍 فحص الملفات المكررة (فقط routes/, models/, services/)...")
         
+        # فحص فقط المجلدات المهمة لتسريع العملية
+        important_dirs = ['routes', 'models', 'services', 'forms']
         duplicates_found = []
         
-        for i, file1 in enumerate(py_files):
-            for file2 in py_files[i+1:]:
-                try:
-                    with open(file1, 'r', encoding='utf-8') as f:
-                        content1 = f.read()
-                    with open(file2, 'r', encoding='utf-8') as f:
-                        content2 = f.read()
+        for dir_name in important_dirs:
+            dir_path = self.project_root / dir_name
+            if not dir_path.exists():
+                continue
+            
+            py_files = list(dir_path.glob('*.py'))
+            py_files = [f for f in py_files if not f.name.startswith('_')]
+            
+            # فحص الأسماء المتشابهة فقط
+            for i, file1 in enumerate(py_files):
+                for file2 in py_files[i+1:]:
+                    # فحص سريع بالاسم أولاً
+                    name1 = file1.stem
+                    name2 = file2.stem
                     
-                    # حساب التشابه
-                    similarity = SequenceMatcher(None, content1, content2).ratio()
+                    # تخطي إذا الأسماء مختلفة جداً
+                    name_similarity = SequenceMatcher(None, name1, name2).ratio()
+                    if name_similarity < 0.5:
+                        continue
                     
-                    if similarity >= 0.80:  # 80% تشابه
-                        duplicates_found.append({
-                            'file1': str(file1.relative_to(self.project_root)),
-                            'file2': str(file2.relative_to(self.project_root)),
-                            'similarity': round(similarity * 100, 2),
-                            'recommendation': 'merge_to_primary'
-                        })
+                    try:
+                        # قراءة الملفات
+                        with open(file1, 'r', encoding='utf-8') as f:
+                            content1 = f.read()
+                        with open(file2, 'r', encoding='utf-8') as f:
+                            content2 = f.read()
                         
-                except Exception as e:
-                    continue
+                        # فحص سريع بالحجم
+                        if abs(len(content1) - len(content2)) > len(content1) * 0.5:
+                            continue
+                        
+                        # حساب التشابه للملفات الصغيرة فقط
+                        if len(content1) > 50000:  # تخطي الملفات الكبيرة
+                            continue
+                        
+                        similarity = SequenceMatcher(None, content1, content2).ratio()
+                        
+                        if similarity >= 0.80:  # 80% تشابه
+                            duplicates_found.append({
+                                'file1': str(file1.relative_to(self.project_root)),
+                                'file2': str(file2.relative_to(self.project_root)),
+                                'similarity': round(similarity * 100, 2),
+                                'recommendation': 'merge_to_primary'
+                            })
+                            
+                    except Exception as e:
+                        continue
         
         self.duplicates = duplicates_found
         print(f"📊 ملفات مكررة محتملة: {len(duplicates_found)}")
