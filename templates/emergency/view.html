@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+
+{% block title %}عرض حالة الطوارئ - النظام الصحي المتكامل{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .detail-header {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .info-item {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px dashed #eee;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    
+    .info-item strong {
+        color: #2c3e50;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-item span {
+        color: #6c757d;
+    }
+    
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .status-active {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-resolved {
+        background: #cce5ff;
+        color: #004085;
+    }
+    
+    .status-transferred {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .priority-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .priority-critical {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .priority-high {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .priority-medium {
+        background: #cce5ff;
+        color: #004085;
+    }
+    
+    .priority-low {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .quick-actions-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .quick-actions-card h5 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #ff6b6b;
+    }
+    
+    .vital-signs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .vital-sign-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid #e9ecef;
+    }
+    
+    .vital-sign-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+    
+    .vital-sign-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+    
+    .symptoms-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .symptom-tag {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.875rem;
+        border: 1px solid #bbdefb;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-right: 2rem;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        right: 1rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e9ecef;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 2rem;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        right: 0.5rem;
+        top: 0.5rem;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ff6b6b;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px #ff6b6b;
+    }
+    
+    .timeline-content {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-right: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .timeline-time {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+    
+    .timeline-title {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .timeline-description {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="detail-header">
+                <h2><i class="fas fa-ambulance"></i> عرض حالة الطوارئ</h2>
+                <p class="mb-0">تفاصيل حالة الطوارئ الطبية</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Patient Information -->
+            <div class="detail-card">
+                <h5><i class="fas fa-user"></i> معلومات المريض</h5>
+                <div class="info-item">
+                    <strong>اسم المريض:</strong>
+                    <span><a href="{{ url_for('patient.view_patient', id=emergency.patient.id) }}">{{ emergency.patient.name }}</a></span>
+                </div>
+                <div class="info-item">
+                    <strong>رقم الهاتف:</strong>
+                    <span>{{ emergency.patient.phone or 'غير محدد' }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>الطبيب المعالج:</strong>
+                    <span>{{ emergency.doctor.name if emergency.doctor else 'غير محدد' }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>تاريخ الطوارئ:</strong>
+                    <span>{{ emergency.emergency_date.strftime('%Y-%m-%d') if emergency.emergency_date else 'غير محدد' }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>وقت الطوارئ:</strong>
+                    <span>{{ emergency.emergency_time.strftime('%H:%M') if emergency.emergency_time else 'غير محدد' }}</span>
+                </div>
+            </div>
+
+            <!-- Emergency Details -->
+            <div class="detail-card">
+                <h5><i class="fas fa-exclamation-triangle"></i> تفاصيل الطوارئ</h5>
+                <div class="info-item">
+                    <strong>الشكوى الرئيسية:</strong>
+                    <span>{{ emergency.chief_complaint or 'غير محدد' }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>الأعراض:</strong>
+                    <span>{{ emergency.symptoms or 'غير محدد' }}</span>
+                </div>
+                {% if emergency.common_symptoms %}
+                <div class="info-item">
+                    <strong>الأعراض الشائعة:</strong>
+                    <div class="symptoms-list">
+                        {% for symptom in emergency.common_symptoms %}
+                        <span class="symptom-tag">{{ symptom }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="info-item">
+                    <strong>الأولوية:</strong>
+                    <span class="priority-badge priority-{{ emergency.priority }}">
+                        {% if emergency.priority == 'critical' %}
+                            حرجة
+                        {% elif emergency.priority == 'high' %}
+                            عالية
+                        {% elif emergency.priority == 'medium' %}
+                            متوسطة
+                        {% elif emergency.priority == 'low' %}
+                            منخفضة
+                        {% else %}
+                            {{ emergency.priority }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <strong>الحالة:</strong>
+                    <span class="status-badge status-{{ emergency.status }}">
+                        {% if emergency.status == 'active' %}
+                            نشط
+                        {% elif emergency.status == 'resolved' %}
+                            محلول
+                        {% elif emergency.status == 'transferred' %}
+                            منقول
+                        {% else %}
+                            {{ emergency.status }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Vital Signs -->
+            {% if emergency.vital_signs %}
+            <div class="detail-card">
+                <h5><i class="fas fa-heartbeat"></i> العلامات الحيوية</h5>
+                <div class="vital-signs-grid">
+                    {% if emergency.vital_signs.bp_systolic %}
+                    <div class="vital-sign-card">
+                        <div class="vital-sign-label">ضغط الدم</div>
+                        <div class="vital-sign-value">{{ emergency.vital_signs.bp_systolic }}/{{ emergency.vital_signs.bp_diastolic or '--' }}</div>
+                    </div>
+                    {% endif %}
+                    {% if emergency.vital_signs.heart_rate %}
+                    <div class="vital-sign-card">
+                        <div class="vital-sign-label">نبض القلب</div>
+                        <div class="vital-sign-value">{{ emergency.vital_signs.heart_rate }}</div>
+                    </div>
+                    {% endif %}
+                    {% if emergency.vital_signs.temperature %}
+                    <div class="vital-sign-card">
+                        <div class="vital-sign-label">درجة الحرارة</div>
+                        <div class="vital-sign-value">{{ emergency.vital_signs.temperature }}°C</div>
+                    </div>
+                    {% endif %}
+                    {% if emergency.vital_signs.oxygen_saturation %}
+                    <div class="vital-sign-card">
+                        <div class="vital-sign-label">تشبع الأكسجين</div>
+                        <div class="vital-sign-value">{{ emergency.vital_signs.oxygen_saturation }}%</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Assessment and Treatment -->
+            <div class="detail-card">
+                <h5><i class="fas fa-stethoscope"></i> التقييم والعلاج</h5>
+                {% if emergency.initial_assessment %}
+                <div class="info-item">
+                    <strong>التقييم الأولي:</strong>
+                    <span>{{ emergency.initial_assessment }}</span>
+                </div>
+                {% endif %}
+                {% if emergency.treatment_given %}
+                <div class="info-item">
+                    <strong>العلاج المقدم:</strong>
+                    <span>{{ emergency.treatment_given }}</span>
+                </div>
+                {% endif %}
+                {% if emergency.medications_given %}
+                <div class="info-item">
+                    <strong>الأدوية المعطاة:</strong>
+                    <span>{{ emergency.medications_given }}</span>
+                </div>
+                {% endif %}
+                {% if emergency.procedures_performed %}
+                <div class="info-item">
+                    <strong>الإجراءات المنجزة:</strong>
+                    <span>{{ emergency.procedures_performed }}</span>
+                </div>
+                {% endif %}
+                {% if emergency.response_to_treatment %}
+                <div class="info-item">
+                    <strong>الاستجابة للعلاج:</strong>
+                    <span>{{ emergency.response_to_treatment }}</span>
+                </div>
+                {% endif %}
+                {% if emergency.final_assessment %}
+                <div class="info-item">
+                    <strong>التقييم النهائي:</strong>
+                    <span>{{ emergency.final_assessment }}</span>
+                </div>
+                {% endif %}
+                {% if emergency.discharge_instructions %}
+                <div class="info-item">
+                    <strong>تعليمات الخروج:</strong>
+                    <span>{{ emergency.discharge_instructions }}</span>
+                </div>
+                {% endif %}
+                {% if emergency.follow_up_required %}
+                <div class="info-item">
+                    <strong>يحتاج متابعة:</strong>
+                    <span>نعم</span>
+                </div>
+                {% if emergency.follow_up_date %}
+                <div class="info-item">
+                    <strong>تاريخ المتابعة:</strong>
+                    <span>{{ emergency.follow_up_date.strftime('%Y-%m-%d') }}</span>
+                </div>
+                {% endif %}
+                {% endif %}
+                {% if emergency.notes %}
+                <div class="info-item">
+                    <strong>ملاحظات إضافية:</strong>
+                    <span>{{ emergency.notes }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Timeline -->
+            <div class="detail-card">
+                <h5><i class="fas fa-clock"></i> سجل الحالة</h5>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-time">{{ emergency.created_at.strftime('%Y-%m-%d %H:%M') if emergency.created_at else 'غير محدد' }}</div>
+                            <div class="timeline-title">تسجيل حالة الطوارئ</div>
+                            <div class="timeline-description">تم تسجيل حالة الطوارئ في النظام</div>
+                        </div>
+                    </div>
+                    {% if emergency.updated_at and emergency.updated_at != emergency.created_at %}
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-time">{{ emergency.updated_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                            <div class="timeline-title">تحديث الحالة</div>
+                            <div class="timeline-description">تم تحديث تفاصيل حالة الطوارئ</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if emergency.resolution_time %}
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-time">{{ emergency.resolution_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                            <div class="timeline-title">حل الحالة</div>
+                            <div class="timeline-description">تم حل حالة الطوارئ</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if emergency.transfer_time %}
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-time">{{ emergency.transfer_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                            <div class="timeline-title">نقل الحالة</div>
+                            <div class="timeline-description">تم نقل حالة الطوارئ</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Quick Actions -->
+            <div class="quick-actions-card">
+                <h5><i class="fas fa-bolt"></i> إجراءات سريعة</h5>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('emergency.edit_emergency_case', id=emergency.id) }}" class="btn btn-outline-success">
+                        <i class="fas fa-edit"></i> تعديل الحالة
+                    </a>
+                    {% if emergency.status == 'active' %}
+                    <form method="POST" action="{{ url_for('emergency.resolve_emergency_case', id=emergency.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-outline-info w-100" onclick="return confirm('هل أنت متأكد من حل هذه الحالة؟')">
+                            <i class="fas fa-check"></i> حل الحالة
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('emergency.transfer_emergency_case', id=emergency.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-outline-warning w-100" onclick="return confirm('هل أنت متأكد من نقل هذه الحالة؟')">
+                            <i class="fas fa-exchange-alt"></i> نقل الحالة
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{{ url_for('patient.view_patient', id=emergency.patient.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-user"></i> ملف المريض
+                    </a>
+                    <a href="{{ url_for('emergency.list_emergency_cases') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list"></i> قائمة الطوارئ
+                    </a>
+                    <a href="{{ url_for('emergency.delete_emergency_case', id=emergency.id) }}" class="btn btn-outline-danger" onclick="return confirm('هل أنت متأكد من حذف هذه الحالة؟')">
+                        <i class="fas fa-trash"></i> حذف الحالة
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // طباعة بيانات الحالة
+    function printEmergency() {
+        window.print();
+    }
+    
+    // تصدير بيانات الحالة
+    function exportEmergency() {
+        // يمكن إضافة وظيفة التصدير هنا
+        console.log('تصدير بيانات حالة الطوارئ');
+    }
+    
+    // مشاركة بيانات الحالة
+    function shareEmergency() {
+        // يمكن إضافة وظيفة المشاركة هنا
+        console.log('مشاركة بيانات حالة الطوارئ');
+    }
+</script>
+{% endblock %}

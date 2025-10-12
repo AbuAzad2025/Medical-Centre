@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}زيارات الطوارئ{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <!-- Content Header -->
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">زيارات الطوارئ</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{{ url_for('emergency.dashboard') }}">الطوارئ</a></li>
+                        <li class="breadcrumb-item active">الزيارات</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">قائمة زيارات الطوارئ</h3>
+                        </div>
+                        <div class="card-body">
+                            {% if visits %}
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>رقم الزيارة</th>
+                                            <th>المريض</th>
+                                            <th>التاريخ</th>
+                                            <th>الوقت</th>
+                                            <th>الحالة</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for visit in visits %}
+                                        <tr>
+                                            <td>{{ visit.id }}</td>
+                                            <td>{{ visit.patient.full_name if visit.patient else 'غير محدد' }}</td>
+                                            <td>{{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else 'غير محدد' }}</td>
+                                            <td>{{ visit.visit_time.strftime('%H:%M') if visit.visit_time else 'غير محدد' }}</td>
+                                            <td>
+                                                {% if visit.status == 'READY' %}
+                                                    <span class="badge badge-success">جاهز</span>
+                                                {% elif visit.status == 'IN_PROGRESS' %}
+                                                    <span class="badge badge-warning">قيد التنفيذ</span>
+                                                {% else %}
+                                                    <span class="badge badge-info">{{ visit.status }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-primary btn-sm" onclick="startTreatment({{ visit.id }})">
+                                                    <i class="fas fa-play"></i> بدء العلاج
+                                                </button>
+                                                <button class="btn btn-success btn-sm" onclick="completeVisit({{ visit.id }})">
+                                                    <i class="fas fa-check"></i> إنهاء
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                لا توجد زيارات طوارئ حالياً
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+// بدء العلاج
+function startTreatment(visitId) {
+    if (confirm('هل تريد بدء علاج هذه الحالة؟')) {
+        fetch(`{{ url_for('emergency.complete_visit', visit_id=0) }}`.replace('0', visitId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                status: 'IN_PROGRESS'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('تم بدء العلاج بنجاح');
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ في بدء العلاج');
+        });
+    }
+}
+
+// إنهاء الزيارة
+function completeVisit(visitId) {
+    const notes = prompt('ملاحظات الطوارئ (اختياري):');
+    
+    if (confirm('هل تريد إنهاء هذه الحالة وإرجاعها للاستقبال؟')) {
+        fetch(`{{ url_for('emergency.complete_visit', visit_id=0) }}`.replace('0', visitId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                notes: notes || ''
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('تم إنهاء الحالة وإرجاعها للاستقبال');
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ في إنهاء الحالة');
+        });
+    }
+}
+</script>
+{% endblock %}

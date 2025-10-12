@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}ملخص الزيارة - {{ visit.patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-file-medical me-2"></i>
+                                ملخص الزيارة
+                            </h2>
+                            <p class="text-muted mb-0">{{ visit.patient.full_name }} - رقم الزيارة: {{ visit.visit_id_number or visit.id }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للطابور
+                                </a>
+                                <button class="btn btn-primary" onclick="window.print()">
+                                    <i class="fas fa-print me-1"></i>
+                                    طباعة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visit Summary -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-file-medical me-2"></i>
+                        ملخص الزيارة الطبية
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form id="visitSummaryForm">
+                        <!-- Patient Info -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card border-left-info">
+                                    <div class="card-body">
+                                        <h6 class="text-info">بيانات المريض</h6>
+                                        <p><strong>الاسم:</strong> {{ visit.patient.full_name }}</p>
+                                        <p><strong>العمر:</strong> {{ visit.patient.age or 'غير محدد' }} سنة</p>
+                                        <p><strong>الجنس:</strong> {{ visit.patient.get_gender_display() }}</p>
+                                        <p><strong>رقم الزيارة:</strong> {{ visit.visit_id_number or visit.id }}</p>
+                                        <p><strong>تاريخ الزيارة:</strong> {{ visit.visit_date.strftime('%Y-%m-%d') }}</p>
+                                        <p><strong>وقت الزيارة:</strong> {{ visit.visit_time.strftime('%H:%M') }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-left-warning">
+                                    <div class="card-body">
+                                        <h6 class="text-warning">بيانات الطبيب</h6>
+                                        <p><strong>الطبيب:</strong> د. {{ current_user.full_name }}</p>
+                                        <p><strong>التخصص:</strong> {{ current_user.department }}</p>
+                                        <p><strong>رقم الطبيب:</strong> {{ current_user.id }}</p>
+                                        <p><strong>تاريخ التقرير:</strong> {{ moment().format('YYYY-MM-DD') }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Visit Details -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">تفاصيل الزيارة</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="chief_complaint">الشكوى الرئيسية</label>
+                                    <textarea class="form-control" id="chief_complaint" name="chief_complaint" rows="3" 
+                                              placeholder="أدخل الشكوى الرئيسية للمريض"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="history_of_present_illness">تاريخ المرض الحالي</label>
+                                    <textarea class="form-control" id="history_of_present_illness" name="history_of_present_illness" rows="3" 
+                                              placeholder="أدخل تاريخ المرض الحالي"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="physical_examination">الفحص السريري</label>
+                                    <textarea class="form-control" id="physical_examination" name="physical_examination" rows="4" 
+                                              placeholder="أدخل نتائج الفحص السريري"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="vital_signs">العلامات الحيوية</label>
+                                    <textarea class="form-control" id="vital_signs" name="vital_signs" rows="4" 
+                                              placeholder="أدخل العلامات الحيوية (ضغط الدم، النبض، الحرارة، إلخ)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="diagnosis">التشخيص</label>
+                                    <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3" 
+                                              placeholder="أدخل التشخيص النهائي"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="treatment_plan">خطة العلاج</label>
+                                    <textarea class="form-control" id="treatment_plan" name="treatment_plan" rows="3" 
+                                              placeholder="أدخل خطة العلاج"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="recommendations">التوصيات</label>
+                                    <textarea class="form-control" id="recommendations" name="recommendations" rows="3" 
+                                              placeholder="أدخل التوصيات للمريض"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="follow_up">موعد المتابعة</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="date" class="form-control" id="follow_up_date" name="follow_up_date">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control" id="follow_up_notes" name="follow_up_notes" 
+                                                   placeholder="ملاحظات المتابعة">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-1"></i>
+                                    حفظ ملخص الزيارة
+                                </button>
+                                <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-secondary btn-lg ml-2">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للطابور
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('visitSummaryForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{{ url_for("doctor.save_visit_summary", visit_id=visit.id) }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('تم حفظ ملخص الزيارة بنجاح');
+            // إعادة توجيه للطابور
+            window.location.href = '{{ url_for("doctor.patient_queue") }}';
+        } else {
+            alert('خطأ: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في حفظ ملخص الزيارة');
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,515 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة العلامة التجارية - السوبر أدمن{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-palette me-2"></i>
+                                إدارة العلامة التجارية
+                            </h2>
+                            <p class="text-muted mb-0">تخصيص مظهر النظام والعلامة التجارية</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="saveBranding()">
+                                    <i class="fas fa-save me-1"></i>
+                                    حفظ التغييرات
+                                </button>
+                                <button class="btn btn-secondary" onclick="resetBranding()">
+                                    <i class="fas fa-undo me-1"></i>
+                                    إعادة تعيين
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Branding Overview -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                اسم المؤسسة
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ branding.organization_name or 'غير محدد' }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-building fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                اللون الأساسي
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ branding.primary_color or '#4e73df' }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-palette fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                الشعار
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ 'محدد' if branding.logo_url else 'غير محدد' }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-image fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                الثيم
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ themes|length }} ثيم</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-paint-brush fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Branding Settings -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">إعدادات العلامة التجارية</h6>
+                </div>
+                <div class="card-body">
+                    <form id="brandingForm" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <!-- Organization Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">معلومات المؤسسة</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="organization_name" class="form-label">اسم المؤسسة (عربي)</label>
+                                    <input type="text" class="form-control" id="organization_name" name="organization_name" 
+                                           value="{{ branding.organization_name or '' }}" placeholder="أدخل اسم المؤسسة">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="organization_name_en" class="form-label">اسم المؤسسة (إنجليزي)</label>
+                                    <input type="text" class="form-control" id="organization_name_en" name="organization_name_en" 
+                                           value="{{ branding.organization_name_en or '' }}" placeholder="Enter organization name">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="organization_address" class="form-label">العنوان</label>
+                                    <textarea class="form-control" id="organization_address" name="organization_address" 
+                                              rows="3" placeholder="أدخل عنوان المؤسسة">{{ branding.organization_address or '' }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="organization_phone" class="form-label">رقم الهاتف</label>
+                                    <input type="tel" class="form-control" id="organization_phone" name="organization_phone" 
+                                           value="{{ branding.organization_phone or '' }}" placeholder="أدخل رقم الهاتف">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="organization_email" class="form-label">البريد الإلكتروني</label>
+                                    <input type="email" class="form-control" id="organization_email" name="organization_email" 
+                                           value="{{ branding.organization_email or '' }}" placeholder="أدخل البريد الإلكتروني">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="organization_website" class="form-label">الموقع الإلكتروني</label>
+                                    <input type="url" class="form-control" id="organization_website" name="organization_website" 
+                                           value="{{ branding.organization_website or '' }}" placeholder="أدخل الموقع الإلكتروني">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Color Scheme -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">نظام الألوان</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="primary_color" class="form-label">اللون الأساسي</label>
+                                    <input type="color" class="form-control" id="primary_color" name="primary_color" 
+                                           value="{{ branding.primary_color or '#4e73df' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="secondary_color" class="form-label">اللون الثانوي</label>
+                                    <input type="color" class="form-control" id="secondary_color" name="secondary_color" 
+                                           value="{{ branding.secondary_color or '#1cc88a' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="accent_color" class="form-label">لون التمييز</label>
+                                    <input type="color" class="form-control" id="accent_color" name="accent_color" 
+                                           value="{{ branding.accent_color or '#f6c23e' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logo Upload -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">الشعار</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="logo_file" class="form-label">رفع شعار جديد</label>
+                                    <input type="file" class="form-control" id="logo_file" name="logo_file" 
+                                           accept="image/*">
+                                    <div class="form-text">الصيغ المدعومة: JPG, PNG, SVG. الحد الأقصى: 2MB</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">الشعار الحالي</label>
+                                    <div class="logo-preview">
+                                        {% if branding.logo_url %}
+                                            <img src="{{ branding.logo_url }}" alt="الشعار" class="img-thumbnail" style="max-height: 100px;">
+                                        {% else %}
+                                            <div class="text-muted">لا يوجد شعار</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Report Header/Footer -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">ترويسة وتذييل التقارير</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="report_header_html" class="form-label">ترويسة التقارير (HTML)</label>
+                                    <textarea class="form-control" id="report_header_html" name="report_header_html" 
+                                              rows="4" placeholder="أدخل HTML للترويسة">{{ branding.report_header_html or '' }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="report_footer_html" class="form-label">تذييل التقارير (HTML)</label>
+                                    <textarea class="form-control" id="report_footer_html" name="report_footer_html" 
+                                              rows="4" placeholder="أدخل HTML للتذييل">{{ branding.report_footer_html or '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Theme Selection -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">اختيار الثيم</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            {% for theme in themes %}
+                            <div class="col-md-4 mb-3">
+                                <div class="theme-card">
+                                    <div class="theme-preview">
+                                        <div class="theme-colors">
+                                            <div class="color-swatch" style="background-color: {{ theme.primary_color }};"></div>
+                                            <div class="color-swatch" style="background-color: {{ theme.secondary_color }};"></div>
+                                            <div class="color-swatch" style="background-color: {{ theme.accent_color }};"></div>
+                                        </div>
+                                    </div>
+                                    <div class="theme-info">
+                                        <h6>{{ theme.name }}</h6>
+                                        <p class="text-muted">{{ theme.description or 'لا يوجد وصف' }}</p>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectTheme('{{ theme.id }}')">
+                                            <i class="fas fa-check me-1"></i>
+                                            اختيار
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>
+                                    حفظ إعدادات العلامة التجارية
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">معاينة التغييرات</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="preview-item">
+                                <h6>معاينة الألوان</h6>
+                                <div class="color-preview">
+                                    <div class="color-box" id="primary-preview" style="background-color: {{ branding.primary_color or '#4e73df' }};"></div>
+                                    <div class="color-box" id="secondary-preview" style="background-color: {{ branding.secondary_color or '#1cc88a' }};"></div>
+                                    <div class="color-box" id="accent-preview" style="background-color: {{ branding.accent_color or '#f6c23e' }};"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="preview-item">
+                                <h6>معاينة الشعار</h6>
+                                <div class="logo-preview-large">
+                                    {% if branding.logo_url %}
+                                        <img src="{{ branding.logo_url }}" alt="الشعار" class="img-fluid" style="max-height: 100px;">
+                                    {% else %}
+                                        <div class="text-muted">لا يوجد شعار</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.theme-card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    padding: 1rem;
+    background: #fff;
+    transition: all 0.3s ease;
+}
+
+.theme-card:hover {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transform: translateY(-2px);
+}
+
+.theme-preview {
+    margin-bottom: 1rem;
+}
+
+.theme-colors {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.color-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.theme-info h6 {
+    margin: 0 0 0.5rem 0;
+    color: #5a5c69;
+}
+
+.color-preview {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.color-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 0.35rem;
+    border: 1px solid #e3e6f0;
+}
+
+.logo-preview-large {
+    text-align: center;
+    padding: 1rem;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    background: #f8f9fc;
+}
+
+.preview-item {
+    padding: 1rem;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    background: #fff;
+    margin-bottom: 1rem;
+}
+
+.preview-item h6 {
+    margin: 0 0 1rem 0;
+    color: #5a5c69;
+}
+</style>
+
+<script>
+function saveBranding() {
+    // حفظ إعدادات العلامة التجارية
+    const form = document.getElementById('brandingForm');
+    const formData = new FormData(form);
+    
+    fetch('{{ url_for("super_admin.update_branding") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('تم حفظ إعدادات العلامة التجارية بنجاح');
+            location.reload();
+        } else {
+            alert('حدث خطأ في حفظ الإعدادات');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في حفظ الإعدادات');
+    });
+}
+
+function resetBranding() {
+    // إعادة تعيين إعدادات العلامة التجارية
+    if (confirm('هل تريد إعادة تعيين جميع إعدادات العلامة التجارية إلى القيم الافتراضية؟')) {
+        location.reload();
+    }
+}
+
+function selectTheme(themeId) {
+    // اختيار ثيم
+    alert('تم اختيار الثيم: ' + themeId);
+}
+
+// تحديث معاينة الألوان عند تغييرها
+document.getElementById('primary_color').addEventListener('change', function() {
+    document.getElementById('primary-preview').style.backgroundColor = this.value;
+});
+
+document.getElementById('secondary_color').addEventListener('change', function() {
+    document.getElementById('secondary-preview').style.backgroundColor = this.value;
+});
+
+document.getElementById('accent_color').addEventListener('change', function() {
+    document.getElementById('accent-preview').style.backgroundColor = this.value;
+});
+
+// معاينة الشعار عند اختيار ملف جديد
+document.getElementById('logo_file').addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const logoPreview = document.querySelector('.logo-preview');
+            logoPreview.innerHTML = `<img src="${e.target.result}" alt="الشعار" class="img-thumbnail" style="max-height: 100px;">`;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// إضافة تأثيرات تفاعلية
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة تأثير hover للثيمات
+    const themeCards = document.querySelectorAll('.theme-card');
+    themeCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

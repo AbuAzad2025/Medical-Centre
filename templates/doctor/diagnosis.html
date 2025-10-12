@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}التشخيص الطبي - {{ visit.patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-stethoscope me-2"></i>
+                                التشخيص الطبي المتقدم
+                            </h2>
+                            <p class="text-muted mb-0">{{ visit.patient.full_name }} - {{ visit.visit_type }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('doctor.patient_details', visit_id=visit.id) }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>
+                                    العودة للمريض
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Quick Info -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user me-2"></i>معلومات سريعة عن المريض
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>الاسم:</strong> {{ visit.patient.full_name }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>العمر:</strong> 
+                            {% if visit.patient.date_of_birth %}
+                                {{ ((now() - visit.patient.date_of_birth).days // 365) }} سنة
+                            {% else %}
+                                غير محدد
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>الجنس:</strong> {{ visit.patient.gender or 'غير محدد' }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>نوع الزيارة:</strong> 
+                            {% if visit.visit_type == 'first' %}
+                                <span class="badge badge-primary">أولى</span>
+                            {% elif visit.visit_type == 'follow_up' %}
+                                <span class="badge badge-info">متابعة</span>
+                            {% elif visit.visit_type == 'emergency' %}
+                                <span class="badge badge-danger">طوارئ</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagnosis Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-clipboard-list me-2"></i>نموذج التشخيص الطبي
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <!-- Chief Complaint -->
+                            <div class="col-md-6 mb-4">
+                                <label for="chief_complaint" class="form-label">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>الشكوى الرئيسية
+                                </label>
+                                <textarea class="form-control" id="chief_complaint" name="chief_complaint" rows="3" 
+                                    placeholder="وصف الشكوى الرئيسية للمريض...">{{ visit.chief_complaint or '' }}</textarea>
+                            </div>
+
+                            <!-- Symptoms -->
+                            <div class="col-md-6 mb-4">
+                                <label for="symptoms" class="form-label">
+                                    <i class="fas fa-list me-2"></i>الأعراض
+                                </label>
+                                <textarea class="form-control" id="symptoms" name="symptoms" rows="3" 
+                                    placeholder="وصف الأعراض التي يشكو منها المريض...">{{ visit.symptoms or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Vital Signs -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-heartbeat me-2"></i>العلامات الحيوية
+                                </h6>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="blood_pressure" class="form-label">ضغط الدم</label>
+                                <input type="text" class="form-control" id="blood_pressure" name="blood_pressure" 
+                                    placeholder="120/80" value="{{ visit.vital_signs.blood_pressure if visit.vital_signs else '' }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="heart_rate" class="form-label">معدل النبض</label>
+                                <input type="number" class="form-control" id="heart_rate" name="heart_rate" 
+                                    placeholder="72" value="{{ visit.vital_signs.heart_rate if visit.vital_signs else '' }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="temperature" class="form-label">درجة الحرارة</label>
+                                <input type="number" step="0.1" class="form-control" id="temperature" name="temperature" 
+                                    placeholder="36.5" value="{{ visit.vital_signs.temperature if visit.vital_signs else '' }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="respiratory_rate" class="form-label">معدل التنفس</label>
+                                <input type="number" class="form-control" id="respiratory_rate" name="respiratory_rate" 
+                                    placeholder="16" value="{{ visit.vital_signs.respiratory_rate if visit.vital_signs else '' }}">
+                            </div>
+                        </div>
+
+                        <!-- Diagnosis -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="diagnosis" class="form-label">
+                                    <i class="fas fa-diagnoses me-2"></i>التشخيص الرئيسي
+                                </label>
+                                <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3" 
+                                    placeholder="التشخيص الرئيسي للحالة...">{{ visit.diagnosis or '' }}</textarea>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="differential_diagnosis" class="form-label">
+                                    <i class="fas fa-list-alt me-2"></i>التشخيص التفريقي
+                                </label>
+                                <textarea class="form-control" id="differential_diagnosis" name="differential_diagnosis" rows="3" 
+                                    placeholder="التشخيصات البديلة المحتملة...">{{ visit.differential_diagnosis or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Treatment Plan -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="treatment_plan" class="form-label">
+                                    <i class="fas fa-pills me-2"></i>خطة العلاج
+                                </label>
+                                <textarea class="form-control" id="treatment_plan" name="treatment_plan" rows="4" 
+                                    placeholder="وصف خطة العلاج المقترحة...">{{ visit.treatment_plan or '' }}</textarea>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="follow_up_notes" class="form-label">
+                                    <i class="fas fa-calendar-check me-2"></i>ملاحظات المتابعة
+                                </label>
+                                <textarea class="form-control" id="follow_up_notes" name="follow_up_notes" rows="4" 
+                                    placeholder="تعليمات المتابعة والمواعيد...">{{ visit.follow_up_notes or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Additional Notes -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label for="notes" class="form-label">
+                                    <i class="fas fa-sticky-note me-2"></i>ملاحظات إضافية
+                                </label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                    placeholder="أي ملاحظات إضافية أو تعليمات خاصة...">{{ visit.notes or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a href="{{ url_for('doctor.patient_details', visit_id=visit.id) }}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>إلغاء
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>حفظ التشخيص
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bolt me-2"></i>إجراءات سريعة
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('doctor.prescription', visit_id=visit.id) }}" class="btn btn-info w-100">
+                                <i class="fas fa-prescription me-2"></i>كتابة وصفة
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('doctor.lab_request', visit_id=visit.id) }}" class="btn btn-warning w-100">
+                                <i class="fas fa-flask me-2"></i>طلب مختبر
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('doctor.radiology_request', visit_id=visit.id) }}" class="btn btn-secondary w-100">
+                                <i class="fas fa-x-ray me-2"></i>طلب أشعة
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('doctor.notes', visit_id=visit.id) }}" class="btn btn-dark w-100">
+                                <i class="fas fa-notes-medical me-2"></i>ملاحظات طبية
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-save functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input, textarea');
+    
+    // Auto-save every 30 seconds
+    setInterval(function() {
+        const formData = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).then(response => {
+            if (response.ok) {
+                console.log('Auto-saved successfully');
+            }
+        }).catch(error => {
+            console.error('Auto-save failed:', error);
+        });
+    }, 30000);
+    
+    // Mark form as dirty when user types
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            form.classList.add('dirty');
+        });
+    });
+    
+    // Warn before leaving if form is dirty
+    window.addEventListener('beforeunload', function(e) {
+        if (form.classList.contains('dirty')) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+});
+</script>
+{% endblock %}

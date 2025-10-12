@@ -1,0 +1,33 @@
+{
+  "export_date": "2025-10-09T18:58:21.424378",
+  "system_info": {
+    "version": "1.0.0",
+    "exported_by": "admin"
+  },
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "username": "admin ",
+        "email": "admin@example.com",
+        "full_name": "Administrator",
+        "role": "admin",
+        "department_id": null,
+        "is_active": true,
+        "created_at": "2025-10-09T14:59:19.793885"
+      },
+      {
+        "id": 2,
+        "username": "admin",
+        "email": "admin@medical-center.com",
+        "full_name": "مدير النظام",
+        "role": "admin",
+        "department_id": null,
+        "is_active": true,
+        "created_at": "2025-10-09T15:29:29.055507"
+      }
+    ],
+    "patients": [],
+    "visits": []
+  }
+}

@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}معالجة الأشعة - {{ visit.patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-x-ray me-2"></i>
+                                معالجة فحص الأشعة
+                            </h2>
+                            <p class="text-muted mb-0">{{ visit.patient.full_name }} - رقم الزيارة: {{ visit.visit_id_number or visit.id }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('radiology.queue') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للطابور
+                                </a>
+                                <button class="btn btn-primary" onclick="window.print()">
+                                    <i class="fas fa-print me-1"></i>
+                                    طباعة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Radiology Processing Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-x-ray me-2"></i>
+                        نموذج معالجة الأشعة
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form id="radiologyProcessForm">
+                        <!-- Patient Info -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card border-left-info">
+                                    <div class="card-body">
+                                        <h6 class="text-info">بيانات المريض</h6>
+                                        <p><strong>الاسم:</strong> {{ visit.patient.full_name }}</p>
+                                        <p><strong>العمر:</strong> {{ visit.patient.age or 'غير محدد' }} سنة</p>
+                                        <p><strong>الجنس:</strong> {{ visit.patient.get_gender_display() }}</p>
+                                        <p><strong>رقم الزيارة:</strong> {{ visit.visit_id_number or visit.id }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-left-warning">
+                                    <div class="card-body">
+                                        <h6 class="text-warning">بيانات الفحص</h6>
+                                        <p><strong>الفني:</strong> {{ current_user.full_name }}</p>
+                                        <p><strong>التاريخ:</strong> {{ visit.visit_date.strftime('%Y-%m-%d') }}</p>
+                                        <p><strong>الوقت:</strong> {{ visit.visit_time.strftime('%H:%M') }}</p>
+                                        <p><strong>الطبيب الطالب:</strong> 
+                                            {% if visit.doctor %}
+                                                {{ visit.doctor.full_name }}
+                                            {% else %}
+                                                غير محدد
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Test Details -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">تفاصيل الفحص</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="test_name">نوع الفحص</label>
+                                    <select class="form-control" id="test_name" name="test_name" required>
+                                        <option value="">اختر نوع الفحص</option>
+                                        <option value="X-Ray Chest">أشعة الصدر</option>
+                                        <option value="X-Ray Abdomen">أشعة البطن</option>
+                                        <option value="X-Ray Spine">أشعة العمود الفقري</option>
+                                        <option value="X-Ray Extremities">أشعة الأطراف</option>
+                                        <option value="CT Scan">أشعة مقطعية</option>
+                                        <option value="MRI">رنين مغناطيسي</option>
+                                        <option value="Ultrasound">موجات فوق صوتية</option>
+                                        <option value="Mammography">أشعة الثدي</option>
+                                        <option value="Other">أخرى</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="body_part">جزء الجسم</label>
+                                    <input type="text" class="form-control" id="body_part" name="body_part" 
+                                           placeholder="أدخل جزء الجسم المفحوص">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="description">وصف الفحص</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3" 
+                                              placeholder="أدخل وصف الفحص المطلوب"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">رفع الصور</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="image_upload">رفع صور الأشعة</label>
+                                    <input type="file" class="form-control" id="image_upload" name="image_upload" 
+                                           multiple accept="image/*,.dcm,.pdf">
+                                    <small class="form-text text-muted">
+                                        يمكن رفع ملفات DICOM, JPG, PNG, PDF
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Results -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">النتائج</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="results">النتائج</label>
+                                    <textarea class="form-control" id="results" name="results" rows="4" 
+                                              placeholder="أدخل نتائج الفحص" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="findings">الملاحظات</label>
+                                    <textarea class="form-control" id="findings" name="findings" rows="4" 
+                                              placeholder="أدخل الملاحظات والنتائج التفصيلية"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="recommendations">التوصيات</label>
+                                    <textarea class="form-control" id="recommendations" name="recommendations" rows="3" 
+                                              placeholder="أدخل التوصيات الطبية"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quality Control -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">مراقبة الجودة</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="image_quality">جودة الصورة</label>
+                                    <select class="form-control" id="image_quality" name="image_quality">
+                                        <option value="excellent">ممتازة</option>
+                                        <option value="good">جيدة</option>
+                                        <option value="fair">مقبولة</option>
+                                        <option value="poor">ضعيفة</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="positioning">وضعية المريض</label>
+                                    <select class="form-control" id="positioning" name="positioning">
+                                        <option value="correct">صحيحة</option>
+                                        <option value="acceptable">مقبولة</option>
+                                        <option value="incorrect">غير صحيحة</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="exposure">التعرض</label>
+                                    <select class="form-control" id="exposure" name="exposure">
+                                        <option value="optimal">مثالي</option>
+                                        <option value="adequate">كافي</option>
+                                        <option value="overexposed">مفرط</option>
+                                        <option value="underexposed">ناقص</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-1"></i>
+                                    حفظ النتائج
+                                </button>
+                                <a href="{{ url_for('radiology.queue') }}" class="btn btn-secondary btn-lg ml-2">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للطابور
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('radiologyProcessForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{{ url_for("radiology.process_radiology", visit_id=visit.id) }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('تم حفظ نتائج الأشعة بنجاح');
+            // إعادة توجيه للطابور
+            window.location.href = '{{ url_for("radiology.queue") }}';
+        } else {
+            alert('خطأ: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في حفظ النتائج');
+    });
+});
+</script>
+{% endblock %}

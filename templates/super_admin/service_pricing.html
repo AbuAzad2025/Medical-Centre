@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة تسعير - {{ service.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg glass-effect">
+                <div class="card-header" style="background: var(--success-gradient); color: white;">
+                    <h4 class="mb-0">
+                        <i class="fas fa-dollar-sign me-2"></i>
+                        إدارة تسعير: {{ service.name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <h5 class="mb-3">التسعيرات الحالية</h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>نوع التسعير</th>
+                                            <th>السعر</th>
+                                            <th>الوصف</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if pricing %}
+                                            {% for price in pricing %}
+                                            <tr>
+                                                <td>{{ price.price_type }}</td>
+                                                <td><span class="badge bg-success">{{ price.price }} ل.س</span></td>
+                                                <td>{{ price.description or '-' }}</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-danger" onclick="deletePricing({{ price.id }})">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted">لا توجد تسعيرات محددة</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-plus me-2"></i>
+                                        إضافة تسعير جديد
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <form method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        
+                                        <div class="mb-3">
+                                            <label for="price_type" class="form-label">نوع التسعير</label>
+                                            <select class="form-select" id="price_type" name="price_type" required>
+                                                <option value="standard">عادي</option>
+                                                <option value="urgent">عاجل</option>
+                                                <option value="vip">VIP</option>
+                                                <option value="insurance">تأمين</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="price" class="form-label">السعر</label>
+                                            <input type="number" class="form-control" id="price" name="price" 
+                                                   step="0.01" required>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="description" class="form-label">الوصف</label>
+                                            <textarea class="form-control" id="description" name="description" rows="2"></textarea>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="fas fa-plus me-2"></i>
+                                            إضافة
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <a href="{{ url_for('super_admin.services') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-right me-2"></i>
+                                العودة للخدمات
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function deletePricing(pricingId) {
+    if (confirm('هل أنت متأكد من حذف هذا التسعير؟')) {
+        // سيتم إضافة route للحذف لاحقاً
+        alert('سيتم تفعيل الحذف قريباً');
+    }
+}
+</script>
+{% endblock %}
+

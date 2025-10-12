@@ -1,0 +1,19 @@
+{% macro render_sidebar(role) %}
+    {% if role == 'reception' %}
+        {% include '_partials/sidebar_reception.html' %}
+    {% elif role == 'admin' or role == 'manager' %}
+        {% include '_partials/sidebar_admin.html' %}
+    {% elif role == 'doctor' %}
+        {% include '_partials/sidebar_doctor.html' %}
+    {% elif role == 'lab' %}
+        {% include '_partials/sidebar_lab.html' %}
+    {% elif role == 'radiology' %}
+        {% include '_partials/sidebar_radiology.html' %}
+    {% elif role == 'emergency' %}
+        {% include '_partials/sidebar_emergency.html' %}
+    {% elif role == 'accountant' %}
+        {% include '_partials/sidebar_accountant.html' %}
+    {% else %}
+        {% include '_partials/sidebar_default.html' %}
+    {% endif %}
+{% endmacro %}

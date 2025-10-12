@@ -1,0 +1,516 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة الطابور الموحد{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-users"></i>
+                        إدارة الطابور الموحد
+                        <small class="text-muted">- لجميع الأقسام</small>
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{{ url_for('reception.add_patient_to_queue') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            إضافة مريض للطابور
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- إحصائيات سريعة -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="info-box bg-info">
+                                <span class="info-box-icon"><i class="fas fa-clock"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">في الانتظار</span>
+                                    <span class="info-box-number" id="waiting-count">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box bg-warning">
+                                <span class="info-box-icon"><i class="fas fa-bell"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">مستدعى</span>
+                                    <span class="info-box-number" id="called-count">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box bg-success">
+                                <span class="info-box-icon"><i class="fas fa-user-md"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">قيد العلاج</span>
+                                    <span class="info-box-number" id="in-progress-count">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box bg-danger">
+                                <span class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">طوارئ</span>
+                                    <span class="info-box-number" id="emergency-count">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- أقسام الطابور -->
+                    <div class="row">
+                        {% for department in departments %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-hospital"></i>
+                                        {{ department.name }}
+                                    </h5>
+                                    <div class="card-tools">
+                                        <button class="btn btn-sm btn-primary" onclick="callNextPatient({{ department.id }})">
+                                            <i class="fas fa-bell"></i>
+                                            استدعاء التالي
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="queue-status-{{ department.id }}">
+                                        <div class="text-center">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            جاري التحميل...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة استدعاء المريض -->
+<div class="modal fade" id="callPatientModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">استدعاء المريض</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="patient-info">
+                    <!-- معلومات المريض -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">إغلاق</button>
+                <button type="button" class="btn btn-success" onclick="startTreatment()">
+                    <i class="fas fa-play"></i>
+                    بدء العلاج
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تخطي المريض -->
+<div class="modal fade" id="skipPatientModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تخطي المريض</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="skipPatientForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>سبب التخطي:</label>
+                        <textarea class="form-control" name="reason" rows="3" placeholder="أدخل سبب تخطي المريض..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-forward"></i>
+                        تخطي المريض
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة إلغاء التذكرة -->
+<div class="modal fade" id="cancelTicketModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">إلغاء التذكرة</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="cancelTicketForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>سبب الإلغاء:</label>
+                        <textarea class="form-control" name="reason" rows="3" placeholder="أدخل سبب الإلغاء..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times"></i>
+                        إلغاء التذكرة
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة الموافقة على دين الطوارئ -->
+<div class="modal fade" id="approveEmergencyDebtModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">الموافقة على دين الطوارئ</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="approveEmergencyDebtForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>الحد الأقصى للمبلغ:</label>
+                        <input type="number" class="form-control" name="max_amount" step="0.01" placeholder="أدخل الحد الأقصى للمبلغ">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i>
+                        الموافقة
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة الموافقة على الدخول القوي -->
+<div class="modal fade" id="approveForceEntryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">الموافقة على الدخول القوي</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="approveForceEntryForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>سبب الدخول القوي:</label>
+                        <textarea class="form-control" name="reason" rows="3" placeholder="أدخل سبب الدخول القوي..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i>
+                        الموافقة
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentTicketId = null;
+
+// تحديث حالة الطابور
+function updateQueueStatus() {
+    {% for department in departments %}
+    updateDepartmentQueue({{ department.id }});
+    {% endfor %}
+}
+
+// تحديث طابور قسم معين
+function updateDepartmentQueue(departmentId) {
+    fetch(`/reception/api/queue-status/${departmentId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayQueueStatus(departmentId, data.data);
+            } else {
+                document.getElementById(`queue-status-${departmentId}`).innerHTML = 
+                    '<div class="text-center text-danger">خطأ في تحميل الطابور</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById(`queue-status-${departmentId}`).innerHTML = 
+                '<div class="text-center text-danger">خطأ في الاتصال</div>';
+        });
+}
+
+// عرض حالة الطابور
+function displayQueueStatus(departmentId, status) {
+    const container = document.getElementById(`queue-status-${departmentId}`);
+    
+    let html = '';
+    
+    // المريض الحالي
+    if (status.current_patient) {
+        html += `
+            <div class="alert alert-success">
+                <h6><i class="fas fa-user-md"></i> المريض الحالي</h6>
+                <p><strong>${status.current_patient.patient_name}</strong></p>
+                <p>التذكرة: ${status.current_patient.ticket_number}</p>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-success" onclick="completeTreatment(${status.current_patient.id})">
+                        <i class="fas fa-check"></i> إكمال العلاج
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="skipPatient(${status.current_patient.id})">
+                        <i class="fas fa-forward"></i> تخطي
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    // المرضى المستدعين
+    if (status.called_patients && status.called_patients.length > 0) {
+        html += '<h6><i class="fas fa-bell"></i> المرضى المستدعين</h6>';
+        status.called_patients.forEach(patient => {
+            html += `
+                <div class="alert alert-warning">
+                    <p><strong>${patient.patient_name}</strong></p>
+                    <p>التذكرة: ${patient.ticket_number}</p>
+                    <button class="btn btn-sm btn-primary" onclick="startTreatment(${patient.id})">
+                        <i class="fas fa-play"></i> بدء العلاج
+                    </button>
+                </div>
+            `;
+        });
+    }
+    
+    // المرضى في الانتظار
+    if (status.waiting_patients && status.waiting_patients.length > 0) {
+        html += '<h6><i class="fas fa-clock"></i> في الانتظار</h6>';
+        status.waiting_patients.forEach(patient => {
+            let statusClass = 'secondary';
+            let statusText = 'في الانتظار';
+            
+            if (patient.is_emergency) {
+                statusClass = 'danger';
+                statusText = 'طوارئ';
+            } else if (patient.force_entry) {
+                statusClass = 'warning';
+                statusText = 'دخول قوي';
+            }
+            
+            html += `
+                <div class="alert alert-${statusClass}">
+                    <p><strong>${patient.patient_name}</strong></p>
+                    <p>التذكرة: ${patient.ticket_number}</p>
+                    <p>الموقع: ${patient.queue_position || 'غير محدد'}</p>
+                    <p>الحالة: ${statusText}</p>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-primary" onclick="callPatient(${patient.id})">
+                            <i class="fas fa-bell"></i> استدعاء
+                        </button>
+                        <button class="btn btn-sm btn-warning" onclick="skipPatient(${patient.id})">
+                            <i class="fas fa-forward"></i> تخطي
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="cancelTicket(${patient.id})">
+                            <i class="fas fa-times"></i> إلغاء
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    if (html === '') {
+        html = '<div class="text-center text-muted">لا يوجد مرضى في الطابور</div>';
+    }
+    
+    container.innerHTML = html;
+}
+
+// استدعاء المريض التالي
+function callNextPatient(departmentId) {
+    fetch(`/reception/queue/call-next/${departmentId}`)
+        .then(response => response.text())
+        .then(() => {
+            updateQueueStatus();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ في استدعاء المريض');
+        });
+}
+
+// استدعاء مريض محدد
+function callPatient(ticketId) {
+    currentTicketId = ticketId;
+    $('#callPatientModal').modal('show');
+}
+
+// بدء العلاج
+function startTreatment(ticketId) {
+    fetch(`/reception/queue/start-treatment/${ticketId}`)
+        .then(response => response.text())
+        .then(() => {
+            updateQueueStatus();
+            $('#callPatientModal').modal('hide');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ في بدء العلاج');
+        });
+}
+
+// إكمال العلاج
+function completeTreatment(ticketId) {
+    fetch(`/reception/queue/complete-treatment/${ticketId}`)
+        .then(response => response.text())
+        .then(() => {
+            updateQueueStatus();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ في إكمال العلاج');
+        });
+}
+
+// تخطي المريض
+function skipPatient(ticketId) {
+    currentTicketId = ticketId;
+    $('#skipPatientModal').modal('show');
+}
+
+// إلغاء التذكرة
+function cancelTicket(ticketId) {
+    currentTicketId = ticketId;
+    $('#cancelTicketModal').modal('show');
+}
+
+// الموافقة على دين الطوارئ
+function approveEmergencyDebt(ticketId) {
+    currentTicketId = ticketId;
+    $('#approveEmergencyDebtModal').modal('show');
+}
+
+// الموافقة على الدخول القوي
+function approveForceEntry(ticketId) {
+    currentTicketId = ticketId;
+    $('#approveForceEntryModal').modal('show');
+}
+
+// معالجة النماذج
+document.getElementById('skipPatientForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch(`/reception/queue/skip-patient/${currentTicketId}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(() => {
+        updateQueueStatus();
+        $('#skipPatientModal').modal('hide');
+        this.reset();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في تخطي المريض');
+    });
+});
+
+document.getElementById('cancelTicketForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch(`/reception/queue/cancel-ticket/${currentTicketId}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(() => {
+        updateQueueStatus();
+        $('#cancelTicketModal').modal('hide');
+        this.reset();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في إلغاء التذكرة');
+    });
+});
+
+document.getElementById('approveEmergencyDebtForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch(`/reception/queue/approve-emergency-debt/${currentTicketId}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(() => {
+        updateQueueStatus();
+        $('#approveEmergencyDebtModal').modal('hide');
+        this.reset();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الموافقة على دين الطوارئ');
+    });
+});
+
+document.getElementById('approveForceEntryForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch(`/reception/queue/approve-force-entry/${currentTicketId}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(() => {
+        updateQueueStatus();
+        $('#approveForceEntryModal').modal('hide');
+        this.reset();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الموافقة على الدخول القوي');
+    });
+});
+
+// تحديث دوري
+setInterval(updateQueueStatus, 30000); // كل 30 ثانية
+
+// تحميل أولي
+$(document).ready(function() {
+    updateQueueStatus();
+});
+</script>
+{% endblock %}

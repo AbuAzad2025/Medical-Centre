@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}التقارير - السوبر أدمن{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-bar"></i>
+                        التقارير والإحصائيات
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-primary"><i class="fas fa-users"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">إجمالي المرضى</span>
+                                    <span class="info-box-number">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success"><i class="fas fa-user-md"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">إجمالي الأطباء</span>
+                                    <span class="info-box-number">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info"><i class="fas fa-calendar-check"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">المواعيد اليوم</span>
+                                    <span class="info-box-number">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-warning"><i class="fas fa-dollar-sign"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">الإيرادات اليوم</span>
+                                    <span class="info-box-number">0 ₪</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">
+                                        <i class="fas fa-chart-pie"></i>
+                                        تقرير الأدوار
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="rolesChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">
+                                        <i class="fas fa-chart-line"></i>
+                                        نشاط النظام
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="activityChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">
+                                        <i class="fas fa-download"></i>
+                                        تصدير التقارير
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <button class="btn btn-success btn-block" onclick="exportReport('patients')">
+                                                <i class="fas fa-file-excel"></i>
+                                                تصدير تقرير المرضى
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button class="btn btn-info btn-block" onclick="exportReport('appointments')">
+                                                <i class="fas fa-file-excel"></i>
+                                                تصدير تقرير المواعيد
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button class="btn btn-warning btn-block" onclick="exportReport('financial')">
+                                                <i class="fas fa-file-excel"></i>
+                                                تصدير التقرير المالي
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// رسم بياني للأدوار
+const rolesCtx = document.getElementById('rolesChart').getContext('2d');
+const rolesChart = new Chart(rolesCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['السوبر أدمن', 'المدير', 'الطبيب', 'الاستقبال', 'المحاسب'],
+        datasets: [{
+            data: [1, 0, 0, 0, 0],
+            backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56',
+                '#4BC0C0',
+                '#9966FF'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// رسم بياني للنشاط
+const activityCtx = document.getElementById('activityChart').getContext('2d');
+const activityChart = new Chart(activityCtx, {
+    type: 'line',
+    data: {
+        labels: ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+        datasets: [{
+            label: 'نشاط المستخدمين',
+            data: [0, 0, 0, 0, 0, 0, 0],
+            borderColor: '#36A2EB',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+function exportReport(type) {
+    alert(`جاري تصدير تقرير ${type}...`);
+    // هنا يمكن إضافة منطق التصدير الفعلي
+}
+</script>
+{% endblock %}
+

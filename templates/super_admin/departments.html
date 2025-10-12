@@ -1,0 +1,511 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة الأقسام - السوبر أدمن{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-building me-2"></i>
+                                إدارة الأقسام
+                            </h2>
+                            <p class="text-muted mb-0">إدارة وتنظيم جميع أقسام المركز الصحي</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+                                    <i class="fas fa-plus me-1"></i>
+                                    إضافة قسم جديد
+                                </button>
+                                <button class="btn btn-success" onclick="exportDepartments()">
+                                    <i class="fas fa-download me-1"></i>
+                                    تصدير
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                إجمالي الأقسام
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ departments|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-building fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                الأقسام النشطة
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ departments|selectattr('is_active', 'equalto', true)|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                الأطباء
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ departments|sum(attribute='doctors')|length if departments else 0 }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-md fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                الموظفين
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ departments|sum(attribute='staff')|length if departments else 0 }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Departments Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-list me-2"></i>
+                                قائمة الأقسام
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="searchInput" placeholder="البحث في الأقسام...">
+                                <div class="input-group-append">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if departments %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="departmentsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>الاسم العربي</th>
+                                    <th>الموقع</th>
+                                    <th>الهاتف</th>
+                                    <th>البريد الإلكتروني</th>
+                                    <th>الأطباء</th>
+                                    <th>الموظفين</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for department in departments %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <i class="fas fa-building text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ department.name }}</strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ department.name_ar }}</span>
+                                    </td>
+                                    <td>
+                                        {% if department.location %}
+                                        <i class="fas fa-map-marker-alt text-muted me-1"></i>
+                                        {{ department.location }}
+                                        {% else %}
+                                        <span class="text-muted">غير محدد</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if department.phone %}
+                                        <i class="fas fa-phone text-muted me-1"></i>
+                                        {{ department.phone }}
+                                        {% else %}
+                                        <span class="text-muted">غير محدد</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if department.email %}
+                                        <i class="fas fa-envelope text-muted me-1"></i>
+                                        {{ department.email }}
+                                        {% else %}
+                                        <span class="text-muted">غير محدد</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            {{ department.doctors|length if department.doctors else 0 }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ department.staff|length if department.staff else 0 }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if department.is_active %}
+                                        <span class="badge bg-success">نشط</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">غير نشط</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm shadow-sm" role="group">
+                                            <!-- عرض -->
+                                            <button type="button" class="btn btn-info" 
+                                                    onclick="viewDepartment({{ department.id }})" title="عرض التفاصيل">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            
+                                            <!-- تعديل -->
+                                            <button type="button" class="btn btn-primary" 
+                                                    onclick="editDepartment({{ department.id }})" title="تعديل القسم">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            
+                                            <!-- الموظفين -->
+                                            <button type="button" class="btn btn-success" 
+                                                    onclick="manageStaff({{ department.id }})" title="إدارة الموظفين">
+                                                <i class="fas fa-users"></i>
+                                            </button>
+                                            
+                                            <!-- تفعيل/إلغاء -->
+                                            {% if department.is_active %}
+                                            <button type="button" class="btn btn-warning" 
+                                                    onclick="deactivateDepartment({{ department.id }})" title="إلغاء التفعيل">
+                                                <i class="fas fa-times-circle"></i>
+                                            </button>
+                                            {% else %}
+                                            <button type="button" class="btn btn-secondary" 
+                                                    onclick="activateDepartment({{ department.id }})" title="تفعيل القسم">
+                                                <i class="fas fa-check-circle"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">لا توجد أقسام</h5>
+                        <p class="text-muted">لم يتم إنشاء أي أقسام بعد</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+                            <i class="fas fa-plus me-1"></i>
+                            إضافة قسم جديد
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Department Modal -->
+<div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addDepartmentModalLabel">
+                    <i class="fas fa-plus me-2"></i>
+                    إضافة قسم جديد
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addDepartmentForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">الاسم (إنجليزي) <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name_ar" class="form-label">الاسم العربي <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name_ar" name="name_ar" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="location" class="form-label">الموقع</label>
+                                <input type="text" class="form-control" id="location" name="location">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">الهاتف</label>
+                                <input type="tel" class="form-control" id="phone" name="phone">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">البريد الإلكتروني</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                    <label class="form-check-label" for="is_active">
+                                        قسم نشط
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">الوصف</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>
+                        حفظ القسم
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.table th {
+    background-color: #f8f9fc;
+    border-color: #e3e6f0;
+    font-weight: 600;
+    color: #5a5c69;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+.modal-content {
+    border-radius: 0.35rem;
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+</style>
+
+<script>
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const table = document.getElementById('departmentsTable');
+    const rows = table.getElementsByTagName('tr');
+    
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+});
+
+// Department management functions
+function viewDepartment(departmentId) {
+    // عرض تفاصيل القسم
+    window.open(`/super-admin/department/${departmentId}`, '_blank');
+}
+
+function editDepartment(departmentId) {
+    // تعديل القسم
+    window.location.href = `/super-admin/edit-department/${departmentId}`;
+}
+
+function manageStaff(departmentId) {
+    // إدارة موظفي القسم
+    window.location.href = `/super-admin/department-staff/${departmentId}`;
+}
+
+function activateDepartment(departmentId) {
+    if (confirm('هل أنت متأكد من تفعيل هذا القسم؟')) {
+        // تفعيل القسم
+        fetch(`/super-admin/activate-department/${departmentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ في تفعيل القسم');
+            }
+        });
+    }
+}
+
+function deactivateDepartment(departmentId) {
+    if (confirm('هل أنت متأكد من إلغاء تفعيل هذا القسم؟')) {
+        // إلغاء تفعيل القسم
+        fetch(`/super-admin/deactivate-department/${departmentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ في إلغاء تفعيل القسم');
+            }
+        });
+    }
+}
+
+function exportDepartments() {
+    // تصدير الأقسام
+    window.open('/super-admin/export-departments', '_blank');
+}
+
+// Add department form
+document.getElementById('addDepartmentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('/super-admin/departments/create', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('حدث خطأ في إضافة القسم: ' + data.message);
+        }
+    });
+});
+</script>
+{% endblock %}

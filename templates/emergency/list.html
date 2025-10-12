@@ -1,0 +1,578 @@
+{% extends "base.html" %}
+
+{% block title %}قائمة حالات الطوارئ - النظام الصحي المتكامل{% endblock %}
+
+{% block extra_css %}
+<style>
+    .emergency-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .emergency-header {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    
+    .emergency-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-right: 5px solid #ff6b6b;
+        transition: all 0.3s ease;
+    }
+    
+    .emergency-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    
+    .priority-critical {
+        border-right-color: #e74c3c;
+        background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+    }
+    
+    .priority-high {
+        border-right-color: #f39c12;
+        background: linear-gradient(135deg, #a8e6cf 0%, #88d8c0 100%);
+    }
+    
+    .priority-medium {
+        border-right-color: #3498db;
+        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    }
+    
+    .priority-low {
+        border-right-color: #2ecc71;
+        background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+    }
+    
+    .patient-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .patient-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        margin-left: 1rem;
+    }
+    
+    .patient-details h6 {
+        margin-bottom: 0.25rem;
+        color: #2c3e50;
+    }
+    
+    .patient-details p {
+        margin-bottom: 0;
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+    
+    .emergency-info {
+        margin-bottom: 1rem;
+    }
+    
+    .emergency-info h6 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .emergency-info p {
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+    
+    .vital-signs {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .vital-signs h6 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .vital-signs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.5rem;
+    }
+    
+    .vital-sign {
+        text-align: center;
+        padding: 0.5rem;
+        background: white;
+        border-radius: 5px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .vital-sign-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+    
+    .vital-sign-value {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-align: center;
+    }
+    
+    .status-active {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-resolved {
+        background: #cce5ff;
+        color: #004085;
+    }
+    
+    .status-transferred {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .priority-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-align: center;
+    }
+    
+    .priority-critical {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .priority-high {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .priority-medium {
+        background: #cce5ff;
+        color: #004085;
+    }
+    
+    .priority-low {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .filters-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .filter-group {
+        margin-bottom: 1rem;
+    }
+    
+    .filter-group label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .search-box {
+        position: relative;
+    }
+    
+    .search-box input {
+        padding-right: 3rem;
+    }
+    
+    .search-box i {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+    
+    .pagination {
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .page-link {
+        color: #667eea;
+        border-color: #667eea;
+    }
+    
+    .page-link:hover {
+        color: #764ba2;
+        background-color: #f8f9fa;
+        border-color: #764ba2;
+    }
+    
+    .page-item.active .page-link {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="emergency-header">
+                <h2><i class="fas fa-ambulance"></i> قائمة حالات الطوارئ</h2>
+                <p class="mb-0">إدارة حالات الطوارئ الطبية</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ total_emergencies }}</div>
+                <div class="stats-label">إجمالي الحالات</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ today_emergencies }}</div>
+                <div class="stats-label">حالات اليوم</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ critical_emergencies }}</div>
+                <div class="stats-label">حالات حرجة</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ active_emergencies }}</div>
+                <div class="stats-label">حالات نشطة</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="filters-card">
+                <h5><i class="fas fa-filter"></i> فلاتر البحث</h5>
+                <form method="GET" action="{{ url_for('emergency.list_emergency_cases') }}">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="filter-group">
+                                <label>البحث</label>
+                                <div class="search-box">
+                                    <input type="text" name="search" class="form-control" placeholder="ابحث في الحالات..." value="{{ request.args.get('search', '') }}">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="filter-group">
+                                <label>الأولوية</label>
+                                <select name="priority" class="form-control">
+                                    <option value="">جميع الأولويات</option>
+                                    <option value="critical" {% if request.args.get('priority') == 'critical' %}selected{% endif %}>حرجة</option>
+                                    <option value="high" {% if request.args.get('priority') == 'high' %}selected{% endif %}>عالية</option>
+                                    <option value="medium" {% if request.args.get('priority') == 'medium' %}selected{% endif %}>متوسطة</option>
+                                    <option value="low" {% if request.args.get('priority') == 'low' %}selected{% endif %}>منخفضة</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="filter-group">
+                                <label>الحالة</label>
+                                <select name="status" class="form-control">
+                                    <option value="">جميع الحالات</option>
+                                    <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>نشطة</option>
+                                    <option value="resolved" {% if request.args.get('status') == 'resolved' %}selected{% endif %}>محلولة</option>
+                                    <option value="transferred" {% if request.args.get('status') == 'transferred' %}selected{% endif %}>منقولة</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="filter-group">
+                                <label>الطبيب</label>
+                                <select name="doctor_id" class="form-control">
+                                    <option value="">جميع الأطباء</option>
+                                    {% for doctor in doctors %}
+                                    <option value="{{ doctor.id }}" {% if request.args.get('doctor_id') == doctor.id|string %}selected{% endif %}>د. {{ doctor.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="filter-group">
+                                <label>التاريخ</label>
+                                <select name="today" class="form-control">
+                                    <option value="">جميع التواريخ</option>
+                                    <option value="true" {% if request.args.get('today') == 'true' %}selected{% endif %}>اليوم فقط</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="filter-group">
+                                <label>&nbsp;</label>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Cases List -->
+    <div class="row">
+        {% if emergency_cases.items %}
+            {% for emergency in emergency_cases.items %}
+            <div class="col-md-6 col-lg-4">
+                <div class="emergency-card priority-{{ emergency.priority }}">
+                    <!-- Patient Information -->
+                    <div class="patient-info">
+                        <div class="patient-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="patient-details">
+                            <h6>{{ emergency.patient.name if emergency.patient else 'مريض غير محدد' }}</h6>
+                            <p>{{ emergency.patient.phone if emergency.patient else 'غير محدد' }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Information -->
+                    <div class="emergency-info">
+                        <h6><i class="fas fa-exclamation-triangle"></i> {{ emergency.chief_complaint or 'شكوى غير محددة' }}</h6>
+                        <p><strong>التاريخ:</strong> {{ emergency.emergency_date.strftime('%Y-%m-%d') if emergency.emergency_date else 'غير محدد' }}</p>
+                        <p><strong>الوقت:</strong> {{ emergency.emergency_time.strftime('%H:%M') if emergency.emergency_time else 'غير محدد' }}</p>
+                        <p><strong>الطبيب:</strong> {{ emergency.doctor.name if emergency.doctor else 'غير محدد' }}</p>
+                    </div>
+
+                    <!-- Vital Signs -->
+                    {% if emergency.vital_signs %}
+                    <div class="vital-signs">
+                        <h6><i class="fas fa-heartbeat"></i> العلامات الحيوية</h6>
+                        <div class="vital-signs-grid">
+                            {% if emergency.vital_signs.bp_systolic %}
+                            <div class="vital-sign">
+                                <div class="vital-sign-label">ضغط الدم</div>
+                                <div class="vital-sign-value">{{ emergency.vital_signs.bp_systolic }}/{{ emergency.vital_signs.bp_diastolic or '--' }}</div>
+                            </div>
+                            {% endif %}
+                            {% if emergency.vital_signs.heart_rate %}
+                            <div class="vital-sign">
+                                <div class="vital-sign-label">نبض القلب</div>
+                                <div class="vital-sign-value">{{ emergency.vital_signs.heart_rate }}</div>
+                            </div>
+                            {% endif %}
+                            {% if emergency.vital_signs.temperature %}
+                            <div class="vital-sign">
+                                <div class="vital-sign-label">درجة الحرارة</div>
+                                <div class="vital-sign-value">{{ emergency.vital_signs.temperature }}°C</div>
+                            </div>
+                            {% endif %}
+                            {% if emergency.vital_signs.oxygen_saturation %}
+                            <div class="vital-sign">
+                                <div class="vital-sign-label">تشبع الأكسجين</div>
+                                <div class="vital-sign-value">{{ emergency.vital_signs.oxygen_saturation }}%</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Status and Priority -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="status-badge status-{{ emergency.status }}">
+                            {% if emergency.status == 'active' %}
+                                نشط
+                            {% elif emergency.status == 'resolved' %}
+                                محلول
+                            {% elif emergency.status == 'transferred' %}
+                                منقول
+                            {% else %}
+                                {{ emergency.status }}
+                            {% endif %}
+                        </span>
+                        <span class="priority-badge priority-{{ emergency.priority }}">
+                            {% if emergency.priority == 'critical' %}
+                                حرج
+                            {% elif emergency.priority == 'high' %}
+                                عالي
+                            {% elif emergency.priority == 'medium' %}
+                                متوسط
+                            {% elif emergency.priority == 'low' %}
+                                منخفض
+                            {% else %}
+                                {{ emergency.priority }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <a href="{{ url_for('emergency.view_emergency_case', id=emergency.id) }}" class="btn btn-outline-primary btn-action">
+                            <i class="fas fa-eye"></i> عرض
+                        </a>
+                        <a href="{{ url_for('emergency.edit_emergency_case', id=emergency.id) }}" class="btn btn-outline-success btn-action">
+                            <i class="fas fa-edit"></i> تعديل
+                        </a>
+                        {% if emergency.status == 'active' %}
+                        <form method="POST" action="{{ url_for('emergency.resolve_emergency_case', id=emergency.id) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-outline-info btn-action" onclick="return confirm('هل أنت متأكد من حل هذه الحالة؟')">
+                                <i class="fas fa-check"></i> حل
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="col-12">
+            <div class="emergency-container text-center">
+                <i class="fas fa-ambulance fa-3x text-muted mb-3"></i>
+                <h5>لا توجد حالات طوارئ</h5>
+                <p class="text-muted">لم يتم العثور على أي حالات طوارئ تطابق معايير البحث</p>
+                <a href="{{ url_for('emergency.emergency_visits') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> إضافة حالة طوارئ
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if emergency_cases.pages > 1 %}
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="صفحات النتائج">
+                <ul class="pagination">
+                    {% if emergency_cases.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('emergency.list_emergency_cases', page=emergency_cases.prev_num, **request.args) }}">السابق</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in emergency_cases.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != emergency_cases.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('emergency.list_emergency_cases', page=page_num, **request.args) }}">{{ page_num }}</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if emergency_cases.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('emergency.list_emergency_cases', page=emergency_cases.next_num, **request.args) }}">التالي</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // تحديث الصفحة كل 30 ثانية للحالات النشطة
+    setInterval(function() {
+        if (document.querySelector('.status-active')) {
+            location.reload();
+        }
+    }, 30000);
+    
+    // فلترة سريعة
+    document.querySelectorAll('select[name="priority"], select[name="status"], select[name="doctor_id"], select[name="today"]').forEach(function(select) {
+        select.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+</script>
+{% endblock %}

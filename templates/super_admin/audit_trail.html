@@ -1,0 +1,656 @@
+{% extends "base.html" %}
+
+{% block title %}سجل التدقيق - السوبر أدمن{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-clipboard-list me-2"></i>
+                                سجل التدقيق
+                            </h2>
+                            <p class="text-muted mb-0">مراقبة شاملة لجميع أنشطة النظام</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="refreshAuditLogs()">
+                                    <i class="fas fa-sync-alt me-1"></i>
+                                    تحديث
+                                </button>
+                                <button class="btn btn-success" onclick="exportAuditLogs()">
+                                    <i class="fas fa-download me-1"></i>
+                                    تصدير السجلات
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Overview -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                إجمالي السجلات
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ audit_logs|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                السجلات اليوم
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">156</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                المستخدمين النشطين
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">23</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                الأحداث الحرجة
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">12</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">تصفية السجلات</h6>
+                </div>
+                <div class="card-body">
+                    <form id="auditFiltersForm">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="action_filter" class="form-label">نوع العمل</label>
+                                    <select class="form-control" id="action_filter" name="action_filter">
+                                        <option value="">جميع الأعمال</option>
+                                        <option value="create">إنشاء</option>
+                                        <option value="update">تحديث</option>
+                                        <option value="delete">حذف</option>
+                                        <option value="login">تسجيل دخول</option>
+                                        <option value="logout">تسجيل خروج</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="user_filter" class="form-label">المستخدم</label>
+                                    <select class="form-control" id="user_filter" name="user_filter">
+                                        <option value="">جميع المستخدمين</option>
+                                        <option value="admin">مدير</option>
+                                        <option value="doctor">طبيب</option>
+                                        <option value="reception">استقبال</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="date_from" class="form-label">من تاريخ</label>
+                                    <input type="date" class="form-control" id="date_from" name="date_from">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="date_to" class="form-label">إلى تاريخ</label>
+                                    <input type="date" class="form-control" id="date_to" name="date_to">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="button" class="btn btn-primary" onclick="applyFilters()">
+                                    <i class="fas fa-filter me-2"></i>
+                                    تطبيق التصفية
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="clearFilters()">
+                                    <i class="fas fa-times me-2"></i>
+                                    مسح التصفية
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Logs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">سجلات التدقيق</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="filterLogs('all')">الكل</button>
+                        <button class="btn btn-sm btn-outline-success" onclick="filterLogs('success')">نجح</button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="filterLogs('warning')">تحذير</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="filterLogs('error')">خطأ</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="auditLogsTable">
+                            <thead>
+                                <tr>
+                                    <th>الوقت</th>
+                                    <th>المستخدم</th>
+                                    <th>العمل</th>
+                                    <th>الكيان</th>
+                                    <th>التفاصيل</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in audit_logs %}
+                                <tr data-status="{{ 'success' if log.status == 'SUCCESS' else 'error' if log.status == 'ERROR' else 'warning' }}">
+                                    <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else 'غير محدد' }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                {{ log.user.username[0] if log.user and log.user.username else 'U' }}
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold">{{ log.user.full_name if log.user else 'غير محدد' }}</div>
+                                                <small class="text-muted">{{ log.user.username if log.user else 'غير محدد' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if log.action == 'create' %}
+                                            <span class="badge bg-success">إنشاء</span>
+                                        {% elif log.action == 'update' %}
+                                            <span class="badge bg-info">تحديث</span>
+                                        {% elif log.action == 'delete' %}
+                                            <span class="badge bg-danger">حذف</span>
+                                        {% elif log.action == 'login' %}
+                                            <span class="badge bg-primary">تسجيل دخول</span>
+                                        {% elif log.action == 'logout' %}
+                                            <span class="badge bg-secondary">تسجيل خروج</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">{{ log.action }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ log.entity_type or 'غير محدد' }}</td>
+                                    <td>{{ log.description or 'لا يوجد تفاصيل' }}</td>
+                                    <td>
+                                        {% if log.status == 'SUCCESS' %}
+                                            <span class="badge bg-success">نجح</span>
+                                        {% elif log.status == 'ERROR' %}
+                                            <span class="badge bg-danger">خطأ</span>
+                                        {% elif log.status == 'WARNING' %}
+                                            <span class="badge bg-warning">تحذير</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">{{ log.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewLogDetails('{{ log.id }}')" title="عرض التفاصيل">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info" onclick="exportLog('{{ log.id }}')" title="تصدير">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">إحصائيات التدقيق</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="stat-item">
+                                <div class="stat-icon bg-primary">
+                                    <i class="fas fa-chart-bar"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h6>الأعمال الأكثر شيوعاً</h6>
+                                    <div class="stat-chart">
+                                        <div class="chart-item">
+                                            <span class="chart-label">تسجيل دخول</span>
+                                            <div class="chart-bar">
+                                                <div class="chart-fill" style="width: 85%"></div>
+                                            </div>
+                                            <span class="chart-value">85%</span>
+                                        </div>
+                                        <div class="chart-item">
+                                            <span class="chart-label">تحديث</span>
+                                            <div class="chart-bar">
+                                                <div class="chart-fill" style="width: 70%"></div>
+                                            </div>
+                                            <span class="chart-value">70%</span>
+                                        </div>
+                                        <div class="chart-item">
+                                            <span class="chart-label">إنشاء</span>
+                                            <div class="chart-bar">
+                                                <div class="chart-fill" style="width: 60%"></div>
+                                            </div>
+                                            <span class="chart-value">60%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-item">
+                                <div class="stat-icon bg-success">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h6>المستخدمين الأكثر نشاطاً</h6>
+                                    <div class="user-stats">
+                                        <div class="user-stat-item">
+                                            <span class="user-name">أحمد محمد</span>
+                                            <span class="user-count">156</span>
+                                        </div>
+                                        <div class="user-stat-item">
+                                            <span class="user-name">د. سارة أحمد</span>
+                                            <span class="user-count">134</span>
+                                        </div>
+                                        <div class="user-stat-item">
+                                            <span class="user-name">ريم علي</span>
+                                            <span class="user-count">98</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">ملخص سريع</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>السجلات اليوم</span>
+                            <span class="font-weight-bold text-primary">156</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>السجلات هذا الأسبوع</span>
+                            <span class="font-weight-bold text-info">1,234</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>السجلات هذا الشهر</span>
+                            <span class="font-weight-bold text-success">5,678</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>معدل النجاح</span>
+                            <span class="font-weight-bold text-success">98.5%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">إجراءات التدقيق</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-primary btn-block" onclick="generateAuditReport()">
+                                <i class="fas fa-file-alt me-2"></i>
+                                إنشاء تقرير التدقيق
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-success btn-block" onclick="exportAllLogs()">
+                                <i class="fas fa-download me-2"></i>
+                                تصدير جميع السجلات
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-warning btn-block" onclick="cleanOldLogs()">
+                                <i class="fas fa-trash me-2"></i>
+                                تنظيف السجلات القديمة
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-info btn-block" onclick="viewAuditSettings()">
+                                <i class="fas fa-cog me-2"></i>
+                                إعدادات التدقيق
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    margin-bottom: 1rem;
+    background: #fff;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.stat-info h6 {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: #5a5c69;
+}
+
+.stat-chart {
+    width: 100%;
+}
+
+.chart-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.chart-label {
+    width: 100px;
+    font-size: 0.8rem;
+    color: #5a5c69;
+}
+
+.chart-bar {
+    flex: 1;
+    height: 8px;
+    background: #f8f9fc;
+    border-radius: 4px;
+    margin: 0 1rem;
+}
+
+.chart-fill {
+    height: 100%;
+    background: #4e73df;
+    border-radius: 4px;
+}
+
+.chart-value {
+    width: 40px;
+    text-align: right;
+    font-size: 0.8rem;
+    color: #5a5c69;
+}
+
+.user-stats {
+    width: 100%;
+}
+
+.user-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8f9fc;
+}
+
+.user-stat-item:last-child {
+    border-bottom: none;
+}
+
+.user-name {
+    font-size: 0.9rem;
+    color: #5a5c69;
+}
+
+.user-count {
+    font-weight: bold;
+    color: #5a5c69;
+}
+
+.btn-block {
+    width: 100%;
+    padding: 0.75rem;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+}
+
+.btn-block:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+#auditLogsTable {
+    font-size: 0.9rem;
+}
+
+.btn-group .btn {
+    margin: 0 1px;
+}
+</style>
+
+<script>
+function refreshAuditLogs() {
+    location.reload();
+}
+
+function exportAuditLogs() {
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + "الوقت,المستخدم,العمل,الكيان,التفاصيل,الحالة\n"
+        {% for log in audit_logs %}
+        + "{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else 'غير محدد' }},{{ log.user.full_name if log.user else 'غير محدد' }},{{ log.action }},{{ log.entity_type or 'غير محدد' }},{{ log.description or 'لا يوجد تفاصيل' }},{{ log.status }}\n"
+        {% endfor %};
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "audit_logs_" + new Date().toISOString().split('T')[0] + ".csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function applyFilters() {
+    // تطبيق التصفية
+    const form = document.getElementById('auditFiltersForm');
+    const formData = new FormData(form);
+    
+    const filters = {};
+    for (let [key, value] of formData.entries()) {
+        if (value) filters[key] = value;
+    }
+    
+    alert('تم تطبيق التصفية: ' + JSON.stringify(filters));
+}
+
+function clearFilters() {
+    // مسح التصفية
+    document.getElementById('auditFiltersForm').reset();
+    alert('تم مسح التصفية');
+}
+
+function filterLogs(status) {
+    const rows = document.querySelectorAll('#auditLogsTable tbody tr');
+    
+    rows.forEach(row => {
+        if (status === 'all' || row.dataset.status === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // تحديث أزرار التصفية
+    document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    event.target.classList.add('active');
+}
+
+function viewLogDetails(logId) {
+    // عرض تفاصيل السجل
+    alert('عرض تفاصيل السجل: ' + logId);
+}
+
+function exportLog(logId) {
+    // تصدير السجل
+    alert('تصدير السجل: ' + logId);
+}
+
+function generateAuditReport() {
+    // إنشاء تقرير التدقيق
+    alert('إنشاء تقرير التدقيق');
+}
+
+function exportAllLogs() {
+    // تصدير جميع السجلات
+    exportAuditLogs();
+}
+
+function cleanOldLogs() {
+    // تنظيف السجلات القديمة
+    if (confirm('هل تريد تنظيف السجلات القديمة (أكثر من 90 يوم)؟')) {
+        alert('تم تنظيف السجلات القديمة');
+    }
+}
+
+function viewAuditSettings() {
+    // عرض إعدادات التدقيق
+    alert('عرض إعدادات التدقيق');
+}
+
+// إضافة تأثيرات تفاعلية
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة تأثير hover للصفوف
+    const rows = document.querySelectorAll('#auditLogsTable tbody tr');
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+</script>
+{% endblock %}

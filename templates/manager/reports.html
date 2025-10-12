@@ -1,0 +1,745 @@
+{% extends "base.html" %}
+
+{% block title %}التقارير - المدير{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                التقارير والإحصائيات
+                            </h2>
+                            <p class="text-muted mb-0">تقارير شاملة وإحصائيات مفصلة</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="generateReport()">
+                                    <i class="fas fa-file-alt me-1"></i>
+                                    إنشاء تقرير
+                                </button>
+                                <button class="btn btn-success" onclick="exportAllReports()">
+                                    <i class="fas fa-download me-1"></i>
+                                    تصدير جميع التقارير
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Categories -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">فئات التقارير</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="report-category-card">
+                                <div class="category-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h6>تقارير المرضى</h6>
+                                    <p class="text-muted">إحصائيات المرضى والزيارات</p>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewPatientReports()">
+                                        عرض التقارير
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="report-category-card">
+                                <div class="category-icon">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h6>التقارير المالية</h6>
+                                    <p class="text-muted">الإيرادات والمصروفات</p>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewFinancialReports()">
+                                        عرض التقارير
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="report-category-card">
+                                <div class="category-icon">
+                                    <i class="fas fa-user-md"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h6>تقارير الأطباء</h6>
+                                    <p class="text-muted">أداء الأطباء والإنتاجية</p>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewDoctorReports()">
+                                        عرض التقارير
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="report-category-card">
+                                <div class="category-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h6>التقارير التحليلية</h6>
+                                    <p class="text-muted">تحليلات متقدمة واتجاهات</p>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewAnalyticalReports()">
+                                        عرض التقارير
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Reports -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">التقارير السريعة</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="quick-report-item">
+                                <div class="report-icon bg-primary">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <div class="report-info">
+                                    <h6>تقرير اليوم</h6>
+                                    <p class="text-muted">إحصائيات اليوم الحالي</p>
+                                    <button class="btn btn-sm btn-primary" onclick="generateDailyReport()">
+                                        إنشاء التقرير
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="quick-report-item">
+                                <div class="report-icon bg-success">
+                                    <i class="fas fa-calendar-week"></i>
+                                </div>
+                                <div class="report-info">
+                                    <h6>تقرير الأسبوع</h6>
+                                    <p class="text-muted">إحصائيات الأسبوع الحالي</p>
+                                    <button class="btn btn-sm btn-success" onclick="generateWeeklyReport()">
+                                        إنشاء التقرير
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="quick-report-item">
+                                <div class="report-icon bg-info">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="report-info">
+                                    <h6>تقرير الشهر</h6>
+                                    <p class="text-muted">إحصائيات الشهر الحالي</p>
+                                    <button class="btn btn-sm btn-info" onclick="generateMonthlyReport()">
+                                        إنشاء التقرير
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Reports -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">التقارير المخصصة</h6>
+                </div>
+                <div class="card-body">
+                    <form id="customReportForm">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="report_type" class="form-label">نوع التقرير</label>
+                                    <select class="form-control" id="report_type" name="report_type">
+                                        <option value="">اختر نوع التقرير</option>
+                                        <option value="patients">المرضى</option>
+                                        <option value="visits">الزيارات</option>
+                                        <option value="financial">المالي</option>
+                                        <option value="doctors">الأطباء</option>
+                                        <option value="departments">الأقسام</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="date_from" class="form-label">من تاريخ</label>
+                                    <input type="date" class="form-control" id="date_from" name="date_from">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="date_to" class="form-label">إلى تاريخ</label>
+                                    <input type="date" class="form-control" id="date_to" name="date_to">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="format" class="form-label">تنسيق التقرير</label>
+                                    <select class="form-control" id="format" name="format">
+                                        <option value="pdf">PDF</option>
+                                        <option value="excel">Excel</option>
+                                        <option value="csv">CSV</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="button" class="btn btn-primary" onclick="generateCustomReport()">
+                                    <i class="fas fa-file-alt me-2"></i>
+                                    إنشاء التقرير المخصص
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report History -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">تاريخ التقارير</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="filterReports('all')">الكل</button>
+                        <button class="btn btn-sm btn-outline-success" onclick="filterReports('recent')">الأحدث</button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="filterReports('favorite')">المفضلة</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="reportsTable">
+                            <thead>
+                                <tr>
+                                    <th>اسم التقرير</th>
+                                    <th>النوع</th>
+                                    <th>التاريخ</th>
+                                    <th>الحجم</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="report-icon-small me-2">
+                                                <i class="fas fa-file-pdf text-danger"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold">تقرير المرضى اليومي</div>
+                                                <small class="text-muted">تقرير شامل عن المرضى</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">مرضى</span>
+                                    </td>
+                                    <td>2024-01-15 10:30</td>
+                                    <td>2.5 MB</td>
+                                    <td>
+                                        <span class="badge bg-success">مكتمل</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewReport('report1')" title="عرض">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="downloadReport('report1')" title="تحميل">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning" onclick="shareReport('report1')" title="مشاركة">
+                                                <i class="fas fa-share"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteReport('report1')" title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="report-icon-small me-2">
+                                                <i class="fas fa-file-excel text-success"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold">تقرير الإيرادات الشهري</div>
+                                                <small class="text-muted">تقرير مالي شامل</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">مالي</span>
+                                    </td>
+                                    <td>2024-01-14 15:45</td>
+                                    <td>1.8 MB</td>
+                                    <td>
+                                        <span class="badge bg-success">مكتمل</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewReport('report2')" title="عرض">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="downloadReport('report2')" title="تحميل">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning" onclick="shareReport('report2')" title="مشاركة">
+                                                <i class="fas fa-share"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteReport('report2')" title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="report-icon-small me-2">
+                                                <i class="fas fa-file-csv text-info"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold">تقرير الأطباء الأسبوعي</div>
+                                                <small class="text-muted">أداء الأطباء والإنتاجية</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">أطباء</span>
+                                    </td>
+                                    <td>2024-01-13 09:15</td>
+                                    <td>1.2 MB</td>
+                                    <td>
+                                        <span class="badge bg-warning">قيد الإنشاء</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewReport('report3')" title="عرض">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="downloadReport('report3')" title="تحميل">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning" onclick="shareReport('report3')" title="مشاركة">
+                                                <i class="fas fa-share"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteReport('report3')" title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Analytics -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">تحليلات التقارير</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="analytics-item">
+                                <div class="analytics-icon bg-primary">
+                                    <i class="fas fa-chart-bar"></i>
+                                </div>
+                                <div class="analytics-info">
+                                    <h6>إجمالي التقارير</h6>
+                                    <span class="analytics-value">156</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="analytics-item">
+                                <div class="analytics-icon bg-success">
+                                    <i class="fas fa-download"></i>
+                                </div>
+                                <div class="analytics-info">
+                                    <h6>التحميلات</h6>
+                                    <span class="analytics-value">1,234</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="analytics-item">
+                                <div class="analytics-icon bg-info">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="analytics-info">
+                                    <h6>متوسط وقت الإنشاء</h6>
+                                    <span class="analytics-value">2.3 دقيقة</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="analytics-item">
+                                <div class="analytics-icon bg-warning">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="analytics-info">
+                                    <h6>التقارير المفضلة</h6>
+                                    <span class="analytics-value">23</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">التقارير الأكثر استخداماً</h6>
+                </div>
+                <div class="card-body">
+                    <div class="popular-reports">
+                        <div class="popular-report-item">
+                            <div class="report-name">تقرير المرضى اليومي</div>
+                            <div class="report-usage">
+                                <div class="progress">
+                                    <div class="progress-bar bg-primary" style="width: 85%"></div>
+                                </div>
+                                <span class="usage-text">85%</span>
+                            </div>
+                        </div>
+                        <div class="popular-report-item">
+                            <div class="report-name">تقرير الإيرادات الشهري</div>
+                            <div class="report-usage">
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width: 72%"></div>
+                                </div>
+                                <span class="usage-text">72%</span>
+                            </div>
+                        </div>
+                        <div class="popular-report-item">
+                            <div class="report-name">تقرير الأطباء الأسبوعي</div>
+                            <div class="report-usage">
+                                <div class="progress">
+                                    <div class="progress-bar bg-info" style="width: 68%"></div>
+                                </div>
+                                <span class="usage-text">68%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.report-category-card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.report-category-card:hover {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transform: translateY(-2px);
+}
+
+.category-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #f8f9fc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+    color: #5a5c69;
+}
+
+.category-info h6 {
+    margin-bottom: 0.5rem;
+    color: #5a5c69;
+}
+
+.quick-report-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    background: #fff;
+    transition: all 0.3s ease;
+}
+
+.quick-report-item:hover {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transform: translateY(-2px);
+}
+
+.report-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.report-info h6 {
+    margin: 0 0 0.5rem 0;
+    color: #5a5c69;
+}
+
+.report-icon-small {
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.analytics-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    margin-bottom: 1rem;
+    background: #fff;
+}
+
+.analytics-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.analytics-info h6 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #5a5c69;
+}
+
+.analytics-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #5a5c69;
+}
+
+.popular-reports {
+    padding: 0;
+}
+
+.popular-report-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid #f8f9fc;
+}
+
+.popular-report-item:last-child {
+    border-bottom: none;
+}
+
+.report-name {
+    font-weight: bold;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+}
+
+.report-usage {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.report-usage .progress {
+    flex: 1;
+    height: 8px;
+}
+
+.usage-text {
+    font-weight: bold;
+    color: #5a5c69;
+    min-width: 40px;
+}
+
+#reportsTable {
+    font-size: 0.9rem;
+}
+
+.btn-group .btn {
+    margin: 0 1px;
+}
+</style>
+
+<script>
+function generateReport() {
+    // إنشاء تقرير جديد
+    alert('إنشاء تقرير جديد');
+}
+
+function exportAllReports() {
+    // تصدير جميع التقارير
+    alert('تصدير جميع التقارير');
+}
+
+function viewPatientReports() {
+    // عرض تقارير المرضى
+    alert('عرض تقارير المرضى');
+}
+
+function viewFinancialReports() {
+    // عرض التقارير المالية
+    alert('عرض التقارير المالية');
+}
+
+function viewDoctorReports() {
+    // عرض تقارير الأطباء
+    alert('عرض تقارير الأطباء');
+}
+
+function viewAnalyticalReports() {
+    // عرض التقارير التحليلية
+    alert('عرض التقارير التحليلية');
+}
+
+function generateDailyReport() {
+    // إنشاء تقرير يومي
+    alert('إنشاء تقرير يومي');
+}
+
+function generateWeeklyReport() {
+    // إنشاء تقرير أسبوعي
+    alert('إنشاء تقرير أسبوعي');
+}
+
+function generateMonthlyReport() {
+    // إنشاء تقرير شهري
+    alert('إنشاء تقرير شهري');
+}
+
+function generateCustomReport() {
+    // إنشاء تقرير مخصص
+    const form = document.getElementById('customReportForm');
+    const formData = new FormData(form);
+    
+    const reportData = {};
+    for (let [key, value] of formData.entries()) {
+        reportData[key] = value;
+    }
+    
+    if (!reportData.report_type || !reportData.date_from || !reportData.date_to) {
+        alert('يرجى ملء جميع الحقول المطلوبة');
+        return;
+    }
+    
+    alert('إنشاء تقرير مخصص: ' + JSON.stringify(reportData));
+}
+
+function filterReports(filter) {
+    const rows = document.querySelectorAll('#reportsTable tbody tr');
+    
+    rows.forEach(row => {
+        if (filter === 'all') {
+            row.style.display = '';
+        } else if (filter === 'recent') {
+            // تصفية التقارير الحديثة
+            row.style.display = '';
+        } else if (filter === 'favorite') {
+            // تصفية التقارير المفضلة
+            row.style.display = '';
+        }
+    });
+    
+    // تحديث أزرار التصفية
+    document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    event.target.classList.add('active');
+}
+
+function viewReport(reportId) {
+    // عرض التقرير
+    alert('عرض التقرير: ' + reportId);
+}
+
+function downloadReport(reportId) {
+    // تحميل التقرير
+    alert('تحميل التقرير: ' + reportId);
+}
+
+function shareReport(reportId) {
+    // مشاركة التقرير
+    alert('مشاركة التقرير: ' + reportId);
+}
+
+function deleteReport(reportId) {
+    // حذف التقرير
+    if (confirm('هل تريد حذف هذا التقرير؟')) {
+        alert('تم حذف التقرير: ' + reportId);
+    }
+}
+
+// إضافة تأثيرات تفاعلية
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة تأثير hover للصفوف
+    const rows = document.querySelectorAll('#reportsTable tbody tr');
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,281 @@
+"""
+نموذج إدارة التدفق - Workflow Models
+Medical System Workflow Models
+"""
+
+from datetime import datetime
+from app_factory import db
+
+class WorkflowStep(db.Model):
+    """نموذج خطوة التدفق"""
+    
+    __tablename__ = 'workflow_steps'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    name_ar = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    step_type = db.Column(db.String(50), nullable=False)  # reception, doctor, lab, radiology, pharmacy, billing
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # العلاقات
+    department = db.relationship('Department', backref='workflow_steps')
+    
+    def __repr__(self):
+        return f'<WorkflowStep {self.name_ar}>'
+    
+    def to_dict(self):
+        """تحويل إلى قاموس"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'name_ar': self.name_ar,
+            'description': self.description,
+            'step_type': self.step_type,
+            'department_id': self.department_id,
+            'department_name': self.department.name_ar if self.department else None,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+
+class PatientWorkflow(db.Model):
+    """نموذج تدفق المريض"""
+    
+    __tablename__ = 'patient_workflows'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.id'), nullable=True)
+    
+    # معلومات التدفق
+    current_step_id = db.Column(db.Integer, db.ForeignKey('workflow_steps.id'), nullable=False)
+    status = db.Column(db.String(20), default='active')  # active, completed, cancelled, transferred
+    priority = db.Column(db.String(20), default='normal')  # low, normal, high, urgent
+    
+    # معلومات إضافية
+    notes = db.Column(db.Text, nullable=True)
+    estimated_duration = db.Column(db.Integer, default=30)  # بالدقائق
+    actual_duration = db.Column(db.Integer, nullable=True)  # بالدقائق
+    
+    # تواريخ
+    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # العلاقات
+    patient = db.relationship('Patient', backref='workflows')
+    visit = db.relationship('Visit', backref='workflows')
+    appointment = db.relationship('Appointment', backref='workflows')
+    current_step = db.relationship('WorkflowStep', backref='patient_workflows')
+    
+    def __repr__(self):
+        return f'<PatientWorkflow {self.id}: {self.patient.full_name}>'
+    
+    def get_status_display(self):
+        """حالة التدفق للعرض"""
+        status_map = {
+            'active': 'نشط',
+            'completed': 'مكتمل',
+            'cancelled': 'ملغي',
+            'transferred': 'منقول'
+        }
+        return status_map.get(self.status, 'غير محدد')
+    
+    def get_priority_display(self):
+        """أولوية التدفق للعرض"""
+        priority_map = {
+            'low': 'منخفضة',
+            'normal': 'عادية',
+            'high': 'عالية',
+            'urgent': 'عاجلة'
+        }
+        return priority_map.get(self.priority, 'غير محددة')
+    
+    def get_priority_color(self):
+        """لون الأولوية"""
+        color_map = {
+            'low': 'success',
+            'normal': 'primary',
+            'high': 'warning',
+            'urgent': 'danger'
+        }
+        return color_map.get(self.priority, 'secondary')
+    
+    def is_completed(self):
+        """هل تم إكمال التدفق"""
+        return self.status == 'completed'
+    
+    def is_active(self):
+        """هل التدفق نشط"""
+        return self.status == 'active'
+    
+    def can_transfer(self):
+        """هل يمكن نقل التدفق"""
+        return self.status == 'active'
+    
+    def get_duration(self):
+        """مدة التدفق"""
+        if self.completed_at:
+            return (self.completed_at - self.started_at).total_seconds() / 60
+        else:
+            return (datetime.utcnow() - self.started_at).total_seconds() / 60
+    
+    def to_dict(self):
+        """تحويل إلى قاموس"""
+        return {
+            'id': self.id,
+            'patient_id': self.patient_id,
+            'patient_name': self.patient.full_name,
+            'visit_id': self.visit_id,
+            'appointment_id': self.appointment_id,
+            'current_step_id': self.current_step_id,
+            'current_step_name': self.current_step.name_ar if self.current_step else None,
+            'status': self.status,
+            'status_display': self.get_status_display(),
+            'priority': self.priority,
+            'priority_display': self.get_priority_display(),
+            'priority_color': self.get_priority_color(),
+            'notes': self.notes,
+            'estimated_duration': self.estimated_duration,
+            'actual_duration': self.actual_duration,
+            'duration': self.get_duration(),
+            'is_completed': self.is_completed(),
+            'is_active': self.is_active(),
+            'can_transfer': self.can_transfer(),
+            'started_at': self.started_at.isoformat(),
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+
+class WorkflowTransfer(db.Model):
+    """نموذج نقل التدفق"""
+    
+    __tablename__ = 'workflow_transfers'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    workflow_id = db.Column(db.Integer, db.ForeignKey('patient_workflows.id'), nullable=False)
+    from_step_id = db.Column(db.Integer, db.ForeignKey('workflow_steps.id'), nullable=False)
+    to_step_id = db.Column(db.Integer, db.ForeignKey('workflow_steps.id'), nullable=False)
+    
+    # معلومات النقل
+    reason = db.Column(db.Text, nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    transferred_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    
+    # تواريخ
+    transferred_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # العلاقات
+    workflow = db.relationship('PatientWorkflow', backref='transfers')
+    from_step = db.relationship('WorkflowStep', foreign_keys=[from_step_id], backref='transfers_from')
+    to_step = db.relationship('WorkflowStep', foreign_keys=[to_step_id], backref='transfers_to')
+    transferred_by_user = db.relationship('User', backref='workflow_transfers')
+    
+    def __repr__(self):
+        return f'<WorkflowTransfer {self.id}: {self.from_step.name_ar} -> {self.to_step.name_ar}>'
+    
+    def to_dict(self):
+        """تحويل إلى قاموس"""
+        return {
+            'id': self.id,
+            'workflow_id': self.workflow_id,
+            'from_step_id': self.from_step_id,
+            'from_step_name': self.from_step.name_ar if self.from_step else None,
+            'to_step_id': self.to_step_id,
+            'to_step_name': self.to_step.name_ar if self.to_step else None,
+            'reason': self.reason,
+            'notes': self.notes,
+            'transferred_by': self.transferred_by,
+            'transferred_by_name': self.transferred_by_user.full_name if self.transferred_by_user else None,
+            'transferred_at': self.transferred_at.isoformat(),
+            'created_at': self.created_at.isoformat()
+        }
+
+class WorkflowQueue(db.Model):
+    """نموذج طابور التدفق"""
+    
+    __tablename__ = 'workflow_queues'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    step_id = db.Column(db.Integer, db.ForeignKey('workflow_steps.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    workflow_id = db.Column(db.Integer, db.ForeignKey('patient_workflows.id'), nullable=False)
+    
+    # معلومات الطابور
+    queue_number = db.Column(db.Integer, nullable=False)
+    estimated_wait_time = db.Column(db.Integer, default=30)  # بالدقائق
+    actual_wait_time = db.Column(db.Integer, nullable=True)  # بالدقائق
+    status = db.Column(db.String(20), default='waiting')  # waiting, called, in_progress, completed
+    
+    # تواريخ
+    queued_at = db.Column(db.DateTime, default=datetime.utcnow)
+    called_at = db.Column(db.DateTime, nullable=True)
+    started_at = db.Column(db.DateTime, nullable=True)
+    completed_at = db.Column(db.DateTime, nullable=True)
+    
+    # العلاقات
+    step = db.relationship('WorkflowStep', backref='workflow_queue_items')
+    patient = db.relationship('Patient', backref='workflow_queue_items')
+    workflow = db.relationship('PatientWorkflow', backref='workflow_queue_items')
+    
+    def __repr__(self):
+        return f'<WorkflowQueue {self.id}: {self.patient.full_name} - {self.step.name_ar}>'
+    
+    def get_status_display(self):
+        """حالة الطابور للعرض"""
+        status_map = {
+            'waiting': 'في الانتظار',
+            'called': 'تم الاستدعاء',
+            'in_progress': 'قيد التنفيذ',
+            'completed': 'مكتمل'
+        }
+        return status_map.get(self.status, 'غير محدد')
+    
+    def get_status_color(self):
+        """لون الحالة"""
+        color_map = {
+            'waiting': 'warning',
+            'called': 'info',
+            'in_progress': 'primary',
+            'completed': 'success'
+        }
+        return color_map.get(self.status, 'secondary')
+    
+    def get_wait_time(self):
+        """وقت الانتظار"""
+        if self.completed_at:
+            return (self.completed_at - self.queued_at).total_seconds() / 60
+        elif self.started_at:
+            return (self.started_at - self.queued_at).total_seconds() / 60
+        else:
+            return (datetime.utcnow() - self.queued_at).total_seconds() / 60
+    
+    def to_dict(self):
+        """تحويل إلى قاموس"""
+        return {
+            'id': self.id,
+            'step_id': self.step_id,
+            'step_name': self.step.name_ar if self.step else None,
+            'patient_id': self.patient_id,
+            'patient_name': self.patient.full_name,
+            'workflow_id': self.workflow_id,
+            'queue_number': self.queue_number,
+            'estimated_wait_time': self.estimated_wait_time,
+            'actual_wait_time': self.actual_wait_time,
+            'wait_time': self.get_wait_time(),
+            'status': self.status,
+            'status_display': self.get_status_display(),
+            'status_color': self.get_status_color(),
+            'queued_at': self.queued_at.isoformat(),
+            'called_at': self.called_at.isoformat() if self.called_at else None,
+            'started_at': self.started_at.isoformat() if self.started_at else None,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None
+        }

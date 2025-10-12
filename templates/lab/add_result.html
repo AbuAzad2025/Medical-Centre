@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}إضافة نتائج فحص مختبر{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-vial"></i>
+                        إضافة نتائج فحص مختبر
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- معلومات الطلب -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h5 class="card-title">معلومات الطلب</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>رقم الطلب:</strong> {{ request_obj.request_number }}</p>
+                                    <p><strong>المريض:</strong> {{ request_obj.patient.name if request_obj.patient else 'غير محدد' }}</p>
+                                    <p><strong>الطبيب:</strong> {{ request_obj.doctor.full_name if request_obj.doctor else 'غير محدد' }}</p>
+                                    <p><strong>نوع الفحص:</strong> {{ request_obj.lab_test.name_ar if request_obj.lab_test else 'غير محدد' }}</p>
+                                    <p><strong>الأولوية:</strong> 
+                                        {% if request_obj.priority == 'urgent' %}
+                                            <span class="badge bg-danger">عاجل</span>
+                                        {% elif request_obj.priority == 'high' %}
+                                            <span class="badge bg-warning">عالي</span>
+                                        {% elif request_obj.priority == 'normal' %}
+                                            <span class="badge bg-info">عادي</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">منخفض</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h5 class="card-title">الملاحظات السريرية</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>{{ request_obj.clinical_notes or 'لا توجد ملاحظات' }}</p>
+                                    {% if request_obj.special_instructions %}
+                                        <p><strong>تعليمات خاصة:</strong> {{ request_obj.special_instructions }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- نموذج إضافة النتائج -->
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="result_value">قيمة النتيجة</label>
+                                    <input type="text" class="form-control" id="result_value" name="result_value" 
+                                           placeholder="مثال: 120" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="result_unit">الوحدة</label>
+                                    <select class="form-control" id="result_unit" name="result_unit" required>
+                                        <option value="">اختر الوحدة</option>
+                                        <option value="mg/dL">mg/dL</option>
+                                        <option value="g/dL">g/dL</option>
+                                        <option value="U/L">U/L</option>
+                                        <option value="mEq/L">mEq/L</option>
+                                        <option value="%">%</option>
+                                        <option value="cells/μL">cells/μL</option>
+                                        <option value="IU/mL">IU/mL</option>
+                                        <option value="ng/mL">ng/mL</option>
+                                        <option value="أخرى">أخرى</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="normal_range">المعدل الطبيعي</label>
+                                    <input type="text" class="form-control" id="normal_range" name="normal_range" 
+                                           placeholder="مثال: 70-110 mg/dL">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="is_abnormal">النتيجة غير طبيعية</label>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="is_abnormal" name="is_abnormal">
+                                        <label class="form-check-label" for="is_abnormal">
+                                            النتيجة خارج المعدل الطبيعي
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="interpretation">التفسير والملاحظات</label>
+                            <textarea class="form-control" id="interpretation" name="interpretation" rows="4" 
+                                      placeholder="اكتب تفسير النتيجة والملاحظات المهمة..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> حفظ النتائج
+                            </button>
+                            <a href="{{ url_for('lab.requests') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> العودة
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// إضافة JavaScript للتحقق من النتائج
+document.getElementById('result_value').addEventListener('input', function() {
+    const value = parseFloat(this.value);
+    const normalRange = document.getElementById('normal_range').value;
+    
+    if (value && normalRange) {
+        // تحليل النطاق الطبيعي (مثال: 70-110)
+        const range = normalRange.split('-');
+        if (range.length === 2) {
+            const min = parseFloat(range[0]);
+            const max = parseFloat(range[1]);
+            
+            if (value < min || value > max) {
+                document.getElementById('is_abnormal').checked = true;
+                document.getElementById('interpretation').value = 'النتيجة خارج المعدل الطبيعي - تحتاج مراجعة طبية';
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,608 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة الأسعار - المدير{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-dollar-sign me-2"></i>
+                                إدارة الأسعار والتسعير
+                            </h2>
+                            <p class="text-muted mb-0">إدارة شاملة لأسعار الخدمات الطبية وقواعد التسعير</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="addNewPrice()">
+                                    <i class="fas fa-plus me-1"></i>
+                                    إضافة سعر جديد
+                                </button>
+                                <button class="btn btn-success" onclick="exportPricing()">
+                                    <i class="fas fa-file-excel me-1"></i>
+                                    تصدير الأسعار
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing Categories -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">فئات التسعير</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="pricing-category-card">
+                                <div class="category-icon">
+                                    <i class="fas fa-user-md"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h6>استشارات الأطباء</h6>
+                                    <p class="text-muted">أسعار الاستشارات الطبية</p>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewCategory('doctors')">
+                                        عرض الأسعار
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="pricing-category-card">
+                                <div class="category-icon">
+                                    <i class="fas fa-flask"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h6>فحوصات المختبر</h6>
+                                    <p class="text-muted">أسعار التحاليل المخبرية</p>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewCategory('lab')">
+                                        عرض الأسعار
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="pricing-category-card">
+                                <div class="category-icon">
+                                    <i class="fas fa-x-ray"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h6>فحوصات الأشعة</h6>
+                                    <p class="text-muted">أسعار الفحوصات الإشعاعية</p>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewCategory('radiology')">
+                                        عرض الأسعار
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="pricing-category-card">
+                                <div class="category-icon">
+                                    <i class="fas fa-procedures"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h6>الخدمات العامة</h6>
+                                    <p class="text-muted">أسعار الخدمات الأخرى</p>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewCategory('general')">
+                                        عرض الأسعار
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Pricing Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">أسعار الخدمات</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="filterServices('all')">الكل</button>
+                        <button class="btn btn-sm btn-outline-success" onclick="filterServices('active')">النشطة</button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="filterServices('inactive')">المعلقة</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="pricingTable">
+                            <thead>
+                                <tr>
+                                    <th>اسم الخدمة</th>
+                                    <th>الفئة</th>
+                                    <th>السعر الأساسي</th>
+                                    <th>سعر الطوارئ</th>
+                                    <th>سعر التأمين</th>
+                                    <th>العملة</th>
+                                    <th>الحالة</th>
+                                    <th>تاريخ التحديث</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for service in services %}
+                                <tr data-status="{{ 'active' if service.is_active else 'inactive' }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="service-icon me-2">
+                                                {% if service.category == 'doctor' %}
+                                                    <i class="fas fa-user-md text-primary"></i>
+                                                {% elif service.category == 'lab' %}
+                                                    <i class="fas fa-flask text-success"></i>
+                                                {% elif service.category == 'radiology' %}
+                                                    <i class="fas fa-x-ray text-info"></i>
+                                                {% else %}
+                                                    <i class="fas fa-procedures text-secondary"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold">{{ service.name_ar or service.name }}</div>
+                                                <small class="text-muted">{{ service.description or 'لا يوجد وصف' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if service.category == 'doctor' %}
+                                            <span class="badge bg-primary">طبيب</span>
+                                        {% elif service.category == 'lab' %}
+                                            <span class="badge bg-success">مختبر</span>
+                                        {% elif service.category == 'radiology' %}
+                                            <span class="badge bg-info">أشعة</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">عام</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="font-weight-bold text-primary">
+                                            {{ "%.2f"|format(service.base_price or 0) }} ₪
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="font-weight-bold text-warning">
+                                            {{ "%.2f"|format(service.emergency_price or 0) }} ₪
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="font-weight-bold text-info">
+                                            {{ "%.2f"|format(service.insurance_price or 0) }} ₪
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ service.currency or 'شيكل' }}</span>
+                                    </td>
+                                    <td>
+                                        {% if service.is_active %}
+                                            <span class="badge bg-success">نشط</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">معطل</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ service.updated_at.strftime('%Y-%m-%d') if service.updated_at else 'غير محدد' }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="editPrice({{ service.id }})" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="duplicatePrice({{ service.id }})" title="نسخ">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning" onclick="toggleStatus({{ service.id }})" title="تغيير الحالة">
+                                                <i class="fas fa-toggle-{{ 'on' if service.is_active else 'off' }}"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deletePrice({{ service.id }})" title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">إحصائيات التسعير</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="stat-item">
+                                <div class="stat-icon bg-primary">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h6>متوسط السعر</h6>
+                                    <span class="stat-value">150.50 ₪</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-item">
+                                <div class="stat-icon bg-success">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h6>أعلى سعر</h6>
+                                    <span class="stat-value">500.00 ₪</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-item">
+                                <div class="stat-icon bg-info">
+                                    <i class="fas fa-chart-bar"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h6>أقل سعر</h6>
+                                    <span class="stat-value">25.00 ₪</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-item">
+                                <div class="stat-icon bg-warning">
+                                    <i class="fas fa-list"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h6>إجمالي الخدمات</h6>
+                                    <span class="stat-value">{{ services|length }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">تحديثات الأسعار</h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6>تحديث أسعار المختبر</h6>
+                                <p class="text-muted">تم تحديث 5 أسعار</p>
+                                <small class="text-muted">منذ ساعتين</small>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6>إضافة خدمة جديدة</h6>
+                                <p class="text-muted">فحص القلب</p>
+                                <small class="text-muted">منذ 4 ساعات</small>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-warning"></div>
+                            <div class="timeline-content">
+                                <h6>تعديل أسعار الأشعة</h6>
+                                <p class="text-muted">تم تعديل 3 أسعار</p>
+                                <small class="text-muted">منذ يوم</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">إجراءات جماعية</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-primary btn-block" onclick="bulkUpdatePrices()">
+                                <i class="fas fa-edit me-2"></i>
+                                تحديث جماعي
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-success btn-block" onclick="bulkActivate()">
+                                <i class="fas fa-check me-2"></i>
+                                تفعيل جماعي
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-warning btn-block" onclick="bulkDeactivate()">
+                                <i class="fas fa-pause me-2"></i>
+                                تعطيل جماعي
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-info btn-block" onclick="bulkExport()">
+                                <i class="fas fa-download me-2"></i>
+                                تصدير جماعي
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.pricing-category-card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.pricing-category-card:hover {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transform: translateY(-2px);
+}
+
+.category-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #f8f9fc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+    color: #5a5c69;
+}
+
+.category-info h6 {
+    margin-bottom: 0.5rem;
+    color: #5a5c69;
+}
+
+.service-icon {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    margin-bottom: 1rem;
+    background: #fff;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.stat-info h6 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #5a5c69;
+}
+
+.stat-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #5a5c69;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e3e6f0;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -1.5rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.timeline-content {
+    background: #f8f9fc;
+    padding: 1rem;
+    border-radius: 0.35rem;
+    border-left: 3px solid #4e73df;
+}
+
+.timeline-content h6 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: #5a5c69;
+}
+
+.timeline-content p {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.8rem;
+    color: #858796;
+}
+
+.btn-block {
+    width: 100%;
+    padding: 0.75rem;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+}
+
+.btn-block:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+#pricingTable {
+    font-size: 0.9rem;
+}
+
+.btn-group .btn {
+    margin: 0 1px;
+}
+</style>
+
+<script>
+function addNewPrice() {
+    // إضافة سعر جديد
+    alert('إضافة سعر جديد');
+}
+
+function exportPricing() {
+    // تصدير الأسعار
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + "اسم الخدمة,الفئة,السعر الأساسي,سعر الطوارئ,سعر التأمين,العملة,الحالة\n"
+        + "استشارة طبيب,طبيب,100.00,150.00,80.00,شيكل,نشط\n"
+        + "فحص دم,مختبر,50.00,75.00,40.00,شيكل,نشط\n"
+        + "أشعة صدر,أشعة,80.00,120.00,64.00,شيكل,نشط\n";
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "pricing_" + new Date().toISOString().split('T')[0] + ".csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function viewCategory(category) {
+    // عرض فئة معينة
+    alert('عرض فئة: ' + category);
+}
+
+function filterServices(status) {
+    const rows = document.querySelectorAll('#pricingTable tbody tr');
+    
+    rows.forEach(row => {
+        if (status === 'all' || row.dataset.status === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // تحديث أزرار التصفية
+    document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    event.target.classList.add('active');
+}
+
+function editPrice(serviceId) {
+    // تعديل السعر
+    alert('تعديل السعر للخدمة: ' + serviceId);
+}
+
+function duplicatePrice(serviceId) {
+    // نسخ السعر
+    alert('نسخ السعر للخدمة: ' + serviceId);
+}
+
+function toggleStatus(serviceId) {
+    // تغيير الحالة
+    if (confirm('هل تريد تغيير حالة هذه الخدمة؟')) {
+        alert('تم تغيير الحالة للخدمة: ' + serviceId);
+    }
+}
+
+function deletePrice(serviceId) {
+    // حذف السعر
+    if (confirm('هل تريد حذف هذا السعر نهائياً؟')) {
+        alert('تم حذف السعر للخدمة: ' + serviceId);
+    }
+}
+
+function bulkUpdatePrices() {
+    // تحديث جماعي
+    alert('تحديث جماعي للأسعار');
+}
+
+function bulkActivate() {
+    // تفعيل جماعي
+    alert('تفعيل جماعي للخدمات');
+}
+
+function bulkDeactivate() {
+    // تعطيل جماعي
+    alert('تعطيل جماعي للخدمات');
+}
+
+function bulkExport() {
+    // تصدير جماعي
+    alert('تصدير جماعي للأسعار');
+}
+
+// إضافة تأثيرات تفاعلية
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة تأثير hover للصفوف
+    const rows = document.querySelectorAll('#pricingTable tbody tr');
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+</script>
+{% endblock %}

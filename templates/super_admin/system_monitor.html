@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}مراقب النظام المتقدم{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body" style="background: var(--primary-gradient); color: white;">
+                    <h1 class="mb-2">
+                        <i class="fas fa-chart-line me-3"></i>
+                        مراقب النظام المتقدم
+                    </h1>
+                    <p class="mb-0">مراقبة شاملة لأداء النظام والموارد</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Resources -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-lg" style="background: var(--primary-gradient); color: white;">
+                <div class="card-body text-center">
+                    <i class="fas fa-microchip fa-3x mb-3"></i>
+                    <h3>{{ system_info.cpu_usage or '0' }}%</h3>
+                    <p>استخدام المعالج</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-lg" style="background: var(--success-gradient); color: white;">
+                <div class="card-body text-center">
+                    <i class="fas fa-memory fa-3x mb-3"></i>
+                    <h3>{{ system_info.memory_usage or '0' }}%</h3>
+                    <p>استخدام الذاكرة</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-lg" style="background: var(--warning-gradient); color: white;">
+                <div class="card-body text-center">
+                    <i class="fas fa-hdd fa-3x mb-3"></i>
+                    <h3>{{ system_info.disk_usage or '0' }}%</h3>
+                    <p>استخدام القرص</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-lg" style="background: var(--info-gradient); color: white;">
+                <div class="card-body text-center">
+                    <i class="fas fa-network-wired fa-3x mb-3"></i>
+                    <h3>{{ system_info.network_status or 'نشط' }}</h3>
+                    <p>حالة الشبكة</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Users -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5><i class="fas fa-users me-2"></i>المستخدمين النشطين</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-center">عدد المستخدمين النشطين: <strong>{{ system_info.active_users or 0 }}</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 text-center">
+            <a href="{{ url_for('super_admin.dashboard') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-arrow-right me-2"></i>
+                العودة للوحة التحكم
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

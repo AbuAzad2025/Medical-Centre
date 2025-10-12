@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}الفواتير المعلقة{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-money-bill-wave me-2"></i>
+                                الفواتير المعلقة
+                            </h2>
+                            <p class="text-muted mb-0">المرضى الذين يحتاجون دفع</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('accountant.dashboard') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للوحة التحكم
+                                </a>
+                                <button class="btn btn-primary" onclick="refreshPage()">
+                                    <i class="fas fa-sync me-1"></i>
+                                    تحديث
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                إجمالي الفواتير</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ visits|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-invoice fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                المبلغ الإجمالي</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ "%.2f"|format(visits|sum(attribute='total_amount')) }} ريال
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                المدفوع</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ "%.2f"|format(visits|sum(attribute='paid_amount')) }} ريال
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                المتبقي</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ "%.2f"|format((visits|sum(attribute='total_amount')) - (visits|sum(attribute='paid_amount'))) }} ريال
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Payments Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list me-2"></i>
+                        الفواتير المعلقة
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>رقم الزيارة</th>
+                                    <th>اسم المريض</th>
+                                    <th>نوع الزيارة</th>
+                                    <th>المبلغ الإجمالي</th>
+                                    <th>المدفوع</th>
+                                    <th>المتبقي</th>
+                                    <th>تاريخ الزيارة</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for visit in visits %}
+                                <tr>
+                                    <td>{{ visit.visit_id_number or visit.id }}</td>
+                                    <td>{{ visit.patient.full_name }}</td>
+                                    <td>{{ visit.get_visit_type_display() }}</td>
+                                    <td>{{ "%.2f"|format(visit.total_amount) }} ريال</td>
+                                    <td>{{ "%.2f"|format(visit.paid_amount) }} ريال</td>
+                                    <td>{{ "%.2f"|format(visit.total_amount - visit.paid_amount) }} ريال</td>
+                                    <td>{{ visit.visit_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        {% if visit.payment_status == 'PENDING' %}
+                                            <span class="badge bg-warning">في انتظار الدفع</span>
+                                        {% elif visit.payment_status == 'PARTIAL' %}
+                                            <span class="badge bg-info">دفع جزئي</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ visit.payment_status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('accountant.process_payment', visit_id=visit.id) }}" 
+                                               class="btn btn-primary btn-sm">
+                                                <i class="fas fa-credit-card me-1"></i>
+                                                معالجة الدفع
+                                            </a>
+                                            <a href="{{ url_for('accountant.print_receipt', visit_id=visit.id) }}" 
+                                               class="btn btn-info btn-sm">
+                                                <i class="fas fa-print me-1"></i>
+                                                طباعة
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="9" class="text-center">
+                                        <div class="text-muted">
+                                            <i class="fas fa-check-circle fa-3x mb-3"></i>
+                                            <p>لا توجد فواتير معلقة</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshPage() {
+    location.reload();
+}
+
+// تحديث تلقائي كل 60 ثانية
+setInterval(function() {
+    // يمكن إضافة AJAX لتحديث الصفحة بدون إعادة تحميل
+}, 60000);
+</script>
+{% endblock %}

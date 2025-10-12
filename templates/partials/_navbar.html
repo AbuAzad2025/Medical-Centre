@@ -1,0 +1,124 @@
+<!-- Header -->
+<header class="header">
+    <div class="header-content">
+        <a href="{{ url_for('main.index') }}" class="logo">
+            <img src="{{ url_for('static', filename='img/azad_logo.png') }}" alt="Logo">
+            <span>المركز الصحي المتخصص</span>
+        </a>
+        
+        {% if current_user.is_authenticated %}
+        <nav class="nav">
+            <!-- Dynamic Navigation Based on User Role -->
+            {% if current_user.role == 'super_admin' or current_user.role == 'admin' %}
+                <div class="dropdown">
+                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-crown"></i>
+                        إدارة النظام
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('super_admin.dashboard') }}"><i class="fas fa-home me-2"></i>لوحة التحكم</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('super_admin.users') }}"><i class="fas fa-users me-2"></i>المستخدمين</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('super_admin.roles') }}"><i class="fas fa-user-shield me-2"></i>الأدوار</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('super_admin.system_config') }}"><i class="fas fa-cogs me-2"></i>الإعدادات</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('super_admin.security_logs') }}"><i class="fas fa-shield-alt me-2"></i>سجلات الأمان</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('super_admin.system_backup') }}"><i class="fas fa-database me-2"></i>النسخ الاحتياطية</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('super_admin.reports') }}"><i class="fas fa-chart-bar me-2"></i>التقارير</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('super_admin.system_monitor') }}"><i class="fas fa-chart-line me-2"></i>مراقب النظام</a></li>
+                    </ul>
+                </div>
+                <a href="{{ url_for('super_admin.users') }}" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    المستخدمين
+                </a>
+                <a href="{{ url_for('super_admin.roles') }}" class="nav-link">
+                    <i class="fas fa-user-shield"></i>
+                    الأدوار
+                </a>
+                <a href="{{ url_for('super_admin.system_config') }}" class="nav-link">
+                    <i class="fas fa-cogs"></i>
+                    الإعدادات
+                </a>
+                <a href="{{ url_for('super_admin.security_logs') }}" class="nav-link">
+                    <i class="fas fa-shield-alt"></i>
+                    الأمان
+                </a>
+                <a href="{{ url_for('super_admin.system_backup') }}" class="nav-link">
+                    <i class="fas fa-database"></i>
+                    النسخ
+                </a>
+                <a href="{{ url_for('super_admin.reports') }}" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    التقارير
+                </a>
+            {% elif current_user.role == 'manager' %}
+                <a href="{{ url_for('manager.dashboard') }}" class="nav-link {% if request.endpoint and 'manager' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-user-tie"></i>
+                    المدير
+                </a>
+            {% elif current_user.role == 'reception' %}
+                <a href="{{ url_for('reception.dashboard') }}" class="nav-link {% if request.endpoint and 'reception' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-user-nurse"></i>
+                    الاستقبال
+                </a>
+            {% elif current_user.role == 'doctor' %}
+                <a href="{{ url_for('doctor.dashboard') }}" class="nav-link {% if request.endpoint and 'doctor' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-user-md"></i>
+                    الطبيب
+                </a>
+            {% elif current_user.role == 'emergency' %}
+                <a href="{{ url_for('emergency.dashboard') }}" class="nav-link {% if request.endpoint and 'emergency' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-ambulance"></i>
+                    الطوارئ
+                </a>
+            {% elif current_user.role == 'lab' %}
+                <a href="{{ url_for('lab.dashboard') }}" class="nav-link {% if request.endpoint and 'lab' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-vial"></i>
+                    المختبر
+                </a>
+            {% elif current_user.role == 'radiology' %}
+                <a href="{{ url_for('radiology.dashboard') }}" class="nav-link {% if request.endpoint and 'radiology' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-x-ray"></i>
+                    الأشعة
+                </a>
+            {% elif current_user.role == 'accountant' %}
+                <a href="{{ url_for('accountant.dashboard') }}" class="nav-link {% if request.endpoint and 'accountant' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-calculator"></i>
+                    المحاسب
+                </a>
+            {% elif current_user.role == 'pharmacist' %}
+                <a href="{{ url_for('medication.dashboard') }}" class="nav-link {% if request.endpoint and 'medication' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-pills"></i>
+                    الصيدلية
+                </a>
+            {% elif current_user.role == 'nurse' %}
+                <a href="{{ url_for('nurse.dashboard') }}" class="nav-link {% if request.endpoint and 'nurse' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-user-nurse"></i>
+                    التمريض
+                </a>
+            {% endif %}
+        </nav>
+        
+        <div class="user-menu">
+            <div class="user-avatar">
+                {{ current_user.full_name[0] if current_user.full_name else 'U' }}
+            </div>
+            <div class="user-info">
+                <div class="user-name">{{ current_user.full_name or current_user.username }}</div>
+                <div class="user-role">{{ current_user.role }}</div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-sm">
+                <i class="fas fa-sign-out-alt"></i>
+                خروج
+            </a>
+        </div>
+        {% else %}
+        <nav class="nav">
+            <a href="{{ url_for('auth.login') }}" class="nav-link">
+                <i class="fas fa-sign-in-alt"></i>
+                تسجيل الدخول
+            </a>
+        </nav>
+        {% endif %}
+    </div>
+</header>

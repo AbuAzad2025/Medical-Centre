@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}تقرير التحليل{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-file-medical me-2"></i>
+                                تقرير التحليل
+                            </h2>
+                            <p class="text-muted mb-0">إدخال نتائج التحاليل وطباعة التقارير</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="saveReport()">
+                                    <i class="fas fa-save me-1"></i>
+                                    حفظ التقرير
+                                </button>
+                                <button class="btn btn-success" onclick="printReport()">
+                                    <i class="fas fa-print me-1"></i>
+                                    طباعة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lab Report Form -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">تقرير التحليل</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="labReportForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="patient_name">اسم المريض</label>
+                                    <input type="text" class="form-control" id="patient_name" name="patient_name" value="{{ lab_test.patient.full_name if lab_test.patient else '' }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="test_type">نوع التحليل</label>
+                                    <input type="text" class="form-control" id="test_type" name="test_type" value="{{ lab_test.test_type if lab_test else '' }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="test_date">تاريخ التحليل</label>
+                                    <input type="date" class="form-control" id="test_date" name="test_date" value="{{ lab_test.test_date.strftime('%Y-%m-%d') if lab_test and lab_test.test_date else '' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="result_date">تاريخ النتيجة</label>
+                                    <input type="date" class="form-control" id="result_date" name="result_date" value="{{ today }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="results">النتائج</label>
+                            <div id="results-container">
+                                {% if lab_test and lab_test.results %}
+                                    {% for result in lab_test.results %}
+                                    <div class="result-item mb-2">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <input type="text" class="form-control" name="test_name[]" value="{{ result.name }}" placeholder="اسم التحليل" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input type="text" class="form-control" name="test_value[]" value="{{ result.value }}" placeholder="النتيجة" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input type="text" class="form-control" name="test_unit[]" value="{{ result.unit }}" placeholder="الوحدة">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input type="text" class="form-control" name="test_normal[]" value="{{ result.normal_range }}" placeholder="المعدل الطبيعي">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <select class="form-control" name="test_status[]">
+                                                    <option value="normal" {% if result.status == 'normal' %}selected{% endif %}>طبيعي</option>
+                                                    <option value="abnormal" {% if result.status == 'abnormal' %}selected{% endif %}>غير طبيعي</option>
+                                                    <option value="high" {% if result.status == 'high' %}selected{% endif %}>مرتفع</option>
+                                                    <option value="low" {% if result.status == 'low' %}selected{% endif %}>منخفض</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="removeResult(this)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="result-item mb-2">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <input type="text" class="form-control" name="test_name[]" placeholder="اسم التحليل" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input type="text" class="form-control" name="test_value[]" placeholder="النتيجة" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input type="text" class="form-control" name="test_unit[]" placeholder="الوحدة">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input type="text" class="form-control" name="test_normal[]" placeholder="المعدل الطبيعي">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <select class="form-control" name="test_status[]">
+                                                    <option value="normal">طبيعي</option>
+                                                    <option value="abnormal">غير طبيعي</option>
+                                                    <option value="high">مرتفع</option>
+                                                    <option value="low">منخفض</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="removeResult(this)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <button type="button" class="btn btn-success btn-sm" onclick="addResult()">
+                                <i class="fas fa-plus"></i> إضافة نتيجة
+                            </button>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="interpretation">التفسير</label>
+                            <textarea class="form-control" id="interpretation" name="interpretation" rows="4" required>{{ lab_test.interpretation if lab_test else '' }}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recommendations">التوصيات</label>
+                            <textarea class="form-control" id="recommendations" name="recommendations" rows="3">{{ lab_test.recommendations if lab_test else '' }}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="technician_notes">ملاحظات الفني</label>
+                            <textarea class="form-control" id="technician_notes" name="technician_notes" rows="2">{{ lab_test.technician_notes if lab_test else '' }}</textarea>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">معلومات التحليل</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>رقم التحليل:</strong> {{ lab_test.id if lab_test else 'جديد' }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>تاريخ الطلب:</strong> {{ lab_test.created_at.strftime('%Y-%m-%d') if lab_test and lab_test.created_at else 'اليوم' }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>الطبيب:</strong> {{ lab_test.doctor.full_name if lab_test and lab_test.doctor else 'غير محدد' }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>الحالة:</strong> 
+                        {% if lab_test %}
+                            {% if lab_test.status == 'pending' %}
+                                <span class="badge badge-warning">في الانتظار</span>
+                            {% elif lab_test.status == 'in_progress' %}
+                                <span class="badge badge-info">قيد التنفيذ</span>
+                            {% elif lab_test.status == 'completed' %}
+                                <span class="badge badge-success">مكتمل</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge badge-secondary">جديد</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addResult() {
+    const container = document.getElementById('results-container');
+    const newResult = document.createElement('div');
+    newResult.className = 'result-item mb-2';
+    newResult.innerHTML = `
+        <div class="row">
+            <div class="col-md-3">
+                <input type="text" class="form-control" name="test_name[]" placeholder="اسم التحليل" required>
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control" name="test_value[]" placeholder="النتيجة" required>
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control" name="test_unit[]" placeholder="الوحدة">
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control" name="test_normal[]" placeholder="المعدل الطبيعي">
+            </div>
+            <div class="col-md-2">
+                <select class="form-control" name="test_status[]">
+                    <option value="normal">طبيعي</option>
+                    <option value="abnormal">غير طبيعي</option>
+                    <option value="high">مرتفع</option>
+                    <option value="low">منخفض</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeResult(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    container.appendChild(newResult);
+}
+
+function removeResult(button) {
+    button.closest('.result-item').remove();
+}
+
+function saveReport() {
+    document.getElementById('labReportForm').submit();
+}
+
+function printReport() {
+    window.print();
+}
+</script>
+{% endblock %}
+

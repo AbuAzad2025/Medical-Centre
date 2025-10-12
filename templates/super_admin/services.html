@@ -1,0 +1,555 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة الخدمات - السوبر أدمن{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-cogs me-2"></i>
+                                إدارة الخدمات
+                            </h2>
+                            <p class="text-muted mb-0">إدارة وتنظيم جميع خدمات المركز الصحي</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                                    <i class="fas fa-plus me-1"></i>
+                                    إضافة خدمة جديدة
+                                </button>
+                                <button class="btn btn-success" onclick="exportServices()">
+                                    <i class="fas fa-download me-1"></i>
+                                    تصدير
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                إجمالي الخدمات
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ services|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-cogs fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                الخدمات النشطة
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ services|selectattr('is_active', 'equalto', true)|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                متوسط السعر
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ "%.2f"|format(services|sum(attribute='price') / services|length) if services else 0 }} ₪
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                الخدمات المطلوبة
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ services|selectattr('is_required', 'equalto', true)|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-list me-2"></i>
+                                قائمة الخدمات
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="searchInput" placeholder="البحث في الخدمات...">
+                                <div class="input-group-append">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if services %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="servicesTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>الاسم العربي</th>
+                                    <th>النوع</th>
+                                    <th>القسم</th>
+                                    <th>السعر</th>
+                                    <th>المدة</th>
+                                    <th>مطلوبة</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for service in services %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <i class="fas fa-stethoscope text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ service.name }}</strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ service.name_ar }}</span>
+                                    </td>
+                                    <td>
+                                        {% if service.service_type == 'CONSULTATION' %}
+                                        <span class="badge bg-primary">استشارة</span>
+                                        {% elif service.service_type == 'EXAMINATION' %}
+                                        <span class="badge bg-success">فحص</span>
+                                        {% elif service.service_type == 'TREATMENT' %}
+                                        <span class="badge bg-warning">علاج</span>
+                                        {% elif service.service_type == 'EMERGENCY' %}
+                                        <span class="badge bg-danger">طوارئ</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ service.service_type }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if service.department %}
+                                        <span class="badge bg-info">{{ service.department.name_ar }}</span>
+                                        {% else %}
+                                        <span class="text-muted">عام</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-dollar-sign text-success me-1"></i>
+                                            <strong>{{ "%.2f"|format(service.price) }} ₪</strong>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if service.duration %}
+                                        <i class="fas fa-clock text-muted me-1"></i>
+                                        {{ service.duration }} دقيقة
+                                        {% else %}
+                                        <span class="text-muted">غير محدد</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if service.is_required %}
+                                        <span class="badge bg-danger">مطلوبة</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">اختيارية</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if service.is_active %}
+                                        <span class="badge bg-success">نشطة</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">غير نشطة</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm shadow-sm" role="group">
+                                            <!-- عرض -->
+                                            <button type="button" class="btn btn-info" 
+                                                    onclick="viewService({{ service.id }})" title="عرض التفاصيل">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            
+                                            <!-- تعديل -->
+                                            <button type="button" class="btn btn-primary" 
+                                                    onclick="editService({{ service.id }})" title="تعديل الخدمة">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            
+                                            <!-- التسعير -->
+                                            <button type="button" class="btn btn-success" 
+                                                    onclick="managePricing({{ service.id }})" title="إدارة التسعير">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </button>
+                                            
+                                            <!-- تفعيل/إلغاء -->
+                                            {% if service.is_active %}
+                                            <button type="button" class="btn btn-warning" 
+                                                    onclick="deactivateService({{ service.id }})" title="إلغاء التفعيل">
+                                                <i class="fas fa-times-circle"></i>
+                                            </button>
+                                            {% else %}
+                                            <button type="button" class="btn btn-secondary" 
+                                                    onclick="activateService({{ service.id }})" title="تفعيل الخدمة">
+                                                <i class="fas fa-check-circle"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-cogs fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">لا توجد خدمات</h5>
+                        <p class="text-muted">لم يتم إنشاء أي خدمات بعد</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                            <i class="fas fa-plus me-1"></i>
+                            إضافة خدمة جديدة
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Service Modal -->
+<div class="modal fade" id="addServiceModal" tabindex="-1" aria-labelledby="addServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addServiceModalLabel">
+                    <i class="fas fa-plus me-2"></i>
+                    إضافة خدمة جديدة
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addServiceForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">الاسم (إنجليزي) <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name_ar" class="form-label">الاسم العربي <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name_ar" name="name_ar" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="service_type" class="form-label">نوع الخدمة <span class="text-danger">*</span></label>
+                                <select class="form-control" id="service_type" name="service_type" required>
+                                    <option value="">اختر نوع الخدمة...</option>
+                                    <option value="CONSULTATION">استشارة</option>
+                                    <option value="EXAMINATION">فحص</option>
+                                    <option value="TREATMENT">علاج</option>
+                                    <option value="EMERGENCY">طوارئ</option>
+                                    <option value="LAB">مختبر</option>
+                                    <option value="RADIOLOGY">أشعة</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="department_id" class="form-label">القسم</label>
+                                <select class="form-control" id="department_id" name="department_id">
+                                    <option value="">اختر القسم...</option>
+                                    {% for department in departments %}
+                                    <option value="{{ department.id }}">{{ department.name_ar }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="price" class="form-label">السعر (₪) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="duration" class="form-label">المدة (دقيقة)</label>
+                                <input type="number" class="form-control" id="duration" name="duration" min="1">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="max_daily" class="form-label">الحد الأقصى اليومي</label>
+                                <input type="number" class="form-control" id="max_daily" name="max_daily" min="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_required" name="is_required">
+                                    <label class="form-check-label" for="is_required">
+                                        خدمة مطلوبة
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                    <label class="form-check-label" for="is_active">
+                                        خدمة نشطة
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">الوصف</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>
+                        حفظ الخدمة
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.table th {
+    background-color: #f8f9fc;
+    border-color: #e3e6f0;
+    font-weight: 600;
+    color: #5a5c69;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+.modal-content {
+    border-radius: 0.35rem;
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+</style>
+
+<script>
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const table = document.getElementById('servicesTable');
+    const rows = table.getElementsByTagName('tr');
+    
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+});
+
+// Service management functions
+function viewService(serviceId) {
+    // عرض تفاصيل الخدمة
+    window.open(`/super-admin/service/${serviceId}`, '_blank');
+}
+
+function editService(serviceId) {
+    // تعديل الخدمة
+    window.location.href = `/super-admin/edit-service/${serviceId}`;
+}
+
+function managePricing(serviceId) {
+    // إدارة تسعير الخدمة
+    window.location.href = `/super-admin/service-pricing/${serviceId}`;
+}
+
+function activateService(serviceId) {
+    if (confirm('هل أنت متأكد من تفعيل هذه الخدمة؟')) {
+        // تفعيل الخدمة
+        fetch(`/super-admin/activate-service/${serviceId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ في تفعيل الخدمة');
+            }
+        });
+    }
+}
+
+function deactivateService(serviceId) {
+    if (confirm('هل أنت متأكد من إلغاء تفعيل هذه الخدمة؟')) {
+        // إلغاء تفعيل الخدمة
+        fetch(`/super-admin/deactivate-service/${serviceId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ في إلغاء تفعيل الخدمة');
+            }
+        });
+    }
+}
+
+function exportServices() {
+    // تصدير الخدمات
+    window.open('/super-admin/export-services', '_blank');
+}
+
+// Add service form
+document.getElementById('addServiceForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('/super-admin/services/create', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('حدث خطأ في إضافة الخدمة: ' + data.message);
+        }
+    });
+});
+</script>
+{% endblock %}

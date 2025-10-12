@@ -1,0 +1,260 @@
+2025-10-07 17:47:56 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: (sqlite3.OperationalError) unable to open database file
+(Background on this error at: https://sqlalche.me/e/20/e3q8) [in D:\MED-2-7-2025\medical_system\app_factory.py:174]
+2025-10-07 17:48:16 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\MED-2-7-2025\medical_system\app_factory.py:171]
+2025-10-07 17:48:25 | INFO | app_factory | تم إنشاء المستخدم الافتراضي [in D:\MED-2-7-2025\medical_system\app_factory.py:167]
+2025-10-07 17:48:33 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 17:48:40 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 17:48:52 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 17:49:10 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 18:00:26 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 18:01:01 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 18:01:44 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 18:03:17 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 18:04:03 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 18:04:56 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 18:05:35 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 18:06:10 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 18:06:53 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 18:07:31 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 18:09:39 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 18:42:23 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 18:43:36 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:08:02 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:08:45 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:09:07 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:12:53 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:13:46 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:14:30 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:15:09 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:15:58 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:16:40 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:17:47 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:19:08 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:19:41 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:20:08 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:21:21 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:22:32 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:23:16 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 21:23:28 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 23:21:54 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 23:23:39 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-07 23:24:55 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 00:02:10 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 07:29:45 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:35:07 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:35:13 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:36:24 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:36:30 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:36:36 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:37:01 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:37:49 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:37:56 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:38:02 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:38:07 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:38:55 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:39:01 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:39:06 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:39:11 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:40:06 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:40:12 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:40:17 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:40:23 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:40:28 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:41:28 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:43:12 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:43:17 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:43:20 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:43:24 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:44:32 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:45:01 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:45:04 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:45:07 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:45:51 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:45:53 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:45:56 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 22:45:58 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:09:58 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:10:04 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:10:09 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:10:15 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:11:44 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:11:50 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:11:57 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:12:04 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:12:10 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:12:42 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:12:47 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:12:52 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:12:58 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:13:05 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:14:10 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:14:15 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:14:20 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:14:26 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:15:07 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:21:05 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:21:26 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:37:02 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:42:03 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:42:25 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:43:31 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-08 23:57:11 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 00:15:43 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 00:20:48 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 00:22:20 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 00:25:28 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 00:43:32 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 17:57:11 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 17:57:24 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 17:57:42 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 17:57:53 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 17:58:05 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 17:58:08 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 17:58:11 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 17:58:39 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\MED-2-7-2025\medical_system\app_factory.py:171]
+2025-10-09 17:58:49 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\MED-2-7-2025\medical_system\app_factory.py:171]
+2025-10-09 17:59:03 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\MED-2-7-2025\medical_system\app_factory.py:171]
+2025-10-09 17:59:19 | INFO | app_factory | تم إنشاء المستخدم الافتراضي [in D:\MED-2-7-2025\medical_system\app_factory.py:167]
+2025-10-09 18:02:13 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: (sqlite3.IntegrityError) UNIQUE constraint failed: users.email
+[SQL: INSERT INTO users (username, email, password_hash, full_name, role, department_id, phone, is_active, is_admin, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('admin', 'admin@example.com', 'scrypt:32768:8:1$9DBPAGJvrkrzePbT$1dc4bf53af48a47c785a6d24a66aa18dd7309f8908477432c036529145fe6c0617034ed98b14a0144fbe425ad93345338972ced27e91ba30cc1bf17333256068', 'Administrator', 'admin', None, None, 1, 1, None, '2025-10-09 15:02:13.633322', '2025-10-09 15:02:13.633327')]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) [in D:\MED-2-7-2025\medical_system\app_factory.py:174]
+2025-10-09 18:02:55 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: (sqlite3.IntegrityError) UNIQUE constraint failed: users.email
+[SQL: INSERT INTO users (username, email, password_hash, full_name, role, department_id, phone, is_active, is_admin, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('admin', 'admin@example.com', 'scrypt:32768:8:1$tFmPp1T94YZFK2nf$020a2f81890f4e37dc8b9900e5064ccb23d61c9395dd4d1a1b3c285f6b3405001604fde0b8831216dc0b6a232883eb84f1c524d4416f242d695aa53b26208a07', 'Administrator', 'admin', None, None, 1, 1, None, '2025-10-09 15:02:55.952283', '2025-10-09 15:02:55.952292')]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) [in D:\MED-2-7-2025\medical_system\app_factory.py:174]
+2025-10-09 18:03:07 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: (sqlite3.IntegrityError) UNIQUE constraint failed: users.email
+[SQL: INSERT INTO users (username, email, password_hash, full_name, role, department_id, phone, is_active, is_admin, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('admin', 'admin@example.com', 'scrypt:32768:8:1$UStrAVbAmMgXhp7Q$e5a8ea512adab68c9684978538e7e8c8f99f39a6dc0f7937f2a5c31438659bba7b08cca1927fa8a4866f3666591e0323b9e4a76b70f5b891040c58498d9acd2f', 'Administrator', 'admin', None, None, 1, 1, None, '2025-10-09 15:03:07.919003', '2025-10-09 15:03:07.919009')]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) [in D:\MED-2-7-2025\medical_system\app_factory.py:174]
+2025-10-09 18:08:31 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: (sqlite3.IntegrityError) UNIQUE constraint failed: users.email
+[SQL: INSERT INTO users (username, email, password_hash, full_name, role, department_id, phone, is_active, is_admin, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('admin', 'admin@example.com', 'scrypt:32768:8:1$I31hKVuHwQGtTqnD$324a17261bc61267aaecf5e6320e1ce2f3a0e2fbd3e0560b1dda0adb518fca4b34dc4c776eb9d7dad787a6e548363f5f2be579971472762340a367f9a2b33a27', 'Administrator', 'admin', None, None, 1, 1, None, '2025-10-09 15:08:31.010980', '2025-10-09 15:08:31.010986')]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) [in D:\MED-2-7-2025\medical_system\app_factory.py:174]
+2025-10-09 18:17:28 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: (sqlite3.IntegrityError) UNIQUE constraint failed: users.email
+[SQL: INSERT INTO users (username, email, password_hash, full_name, role, department_id, phone, is_active, is_admin, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('admin', 'admin@example.com', 'scrypt:32768:8:1$wqIXWVKIOVd5Ql7E$e1fcbf51f1a407c90a5af6fed83f97e7631648ffb7fddaa0d1060216eb93486f6ca0385e1c8a25ba1142aeaf25ce904752d18986d62f1b38636e9c5d8dbfe9e0', 'Administrator', 'admin', None, None, 1, 1, None, '2025-10-09 15:17:28.068880', '2025-10-09 15:17:28.068889')]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) [in D:\MED-2-7-2025\medical_system\app_factory.py:174]
+2025-10-09 18:20:37 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: (sqlite3.IntegrityError) UNIQUE constraint failed: users.email
+[SQL: INSERT INTO users (username, email, password_hash, full_name, role, department_id, phone, is_active, is_admin, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('admin', 'admin@example.com', 'scrypt:32768:8:1$hu2CZWppATWwVwqm$08bfa49163ef27a991f3d437b12bb3f5ba459ed57e891c68c0d82ee9652506605fc6a70b10cbac2c962eae66e9e9f972c8d7faddd909ed842538faba12bf3fef', 'Administrator', 'admin', None, None, 1, 1, None, '2025-10-09 15:20:37.990523', '2025-10-09 15:20:37.990535')]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) [in D:\MED-2-7-2025\medical_system\app_factory.py:174]
+2025-10-09 18:29:29 | INFO | app_factory | تم إنشاء المستخدم الافتراضي [in D:\MED-2-7-2025\medical_system\app_factory.py:167]
+2025-10-09 18:32:11 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 18:33:16 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 18:39:18 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 18:50:05 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 18:55:22 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 18:58:17 | ERROR | app_factory | Exception on /super-admin/system-monitor [GET] [in D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\flask\app.py:875]
+Traceback (most recent call last):
+  File "D:\MED-2-7-2025\medical_system\routes\super_admin.py", line 1391, in system_monitor
+    return render_template('super_admin/system_monitor.html', system_info=system_info)
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: super_admin/system_monitor.html
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\MED-2-7-2025\medical_system\routes\super_admin.py", line 28, in decorated_function
+    return f(*args, **kwargs)
+  File "D:\MED-2-7-2025\medical_system\routes\super_admin.py", line 1396, in system_monitor
+    return render_template('super_admin/system_monitor.html', system_info={})
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\karaj\garage_manager_project\garage_manager\.venv\Lib\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: super_admin/system_monitor.html
+2025-10-09 19:13:57 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 19:20:48 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 19:21:43 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 19:28:31 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 19:38:57 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 19:44:48 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 19:48:36 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 19:48:55 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 19:55:55 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 20:10:12 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 20:23:35 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 20:29:39 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 20:35:39 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 20:43:03 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 20:48:39 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 20:53:55 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 20:59:27 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 21:10:04 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 21:17:14 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 21:38:50 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 21:43:41 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 21:46:28 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 21:54:23 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 22:01:05 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 22:43:04 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 22:50:08 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 23:00:30 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 23:11:29 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 23:16:25 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 23:22:06 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 23:23:19 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 23:26:17 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 23:32:16 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 23:35:41 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 23:40:21 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 23:45:59 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 23:49:11 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-09 23:49:15 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 00:06:47 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 00:06:58 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 00:15:50 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 00:15:54 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 00:33:04 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 00:33:09 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 00:41:47 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 00:41:53 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 00:45:38 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 00:45:43 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 00:48:14 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 00:48:17 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 00:59:47 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 01:01:22 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 01:02:12 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]
+2025-10-10 01:03:15 | INFO | app_factory | تخطّي إنشاء المستخدم الافتراضي: موجود مسبقًا أو لم يُحدَّد اسم مستخدم. [in D:\MED-2-7-2025\medical_system\app_factory.py:169]

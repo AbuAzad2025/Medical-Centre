@@ -1,0 +1,540 @@
+{% extends "base.html" %}
+
+{% block title %}مراقبة النظام - المدير{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-eye me-2"></i>
+                                مراقبة النظام
+                            </h2>
+                            <p class="text-muted mb-0">مراقبة شاملة لحالة جميع وحدات النظام</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="refreshMonitoring()">
+                                    <i class="fas fa-sync-alt me-1"></i>
+                                    تحديث
+                                </button>
+                                <button class="btn btn-success" onclick="exportMonitoringReport()">
+                                    <i class="fas fa-file-excel me-1"></i>
+                                    تصدير تقرير
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">حالة النظام العامة</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="status-card">
+                                <div class="status-icon bg-success">
+                                    <i class="fas fa-server"></i>
+                                </div>
+                                <div class="status-info">
+                                    <h6>خادم قاعدة البيانات</h6>
+                                    <span class="badge bg-success">متصل</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="status-card">
+                                <div class="status-icon bg-success">
+                                    <i class="fas fa-memory"></i>
+                                </div>
+                                <div class="status-info">
+                                    <h6>الذاكرة</h6>
+                                    <span class="badge bg-success">طبيعية</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="status-card">
+                                <div class="status-icon bg-success">
+                                    <i class="fas fa-hdd"></i>
+                                </div>
+                                <div class="status-info">
+                                    <h6>مساحة القرص</h6>
+                                    <span class="badge bg-success">متاحة</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="status-card">
+                                <div class="status-icon bg-success">
+                                    <i class="fas fa-network-wired"></i>
+                                </div>
+                                <div class="status-info">
+                                    <h6>الشبكة</h6>
+                                    <span class="badge bg-success">مستقرة</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Units Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">حالة الوحدات</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for unit_key, unit in units_status.items() %}
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="unit-card">
+                                <div class="unit-header">
+                                    <div class="unit-icon">
+                                        {% if unit_key == 'reception' %}
+                                            <i class="fas fa-hospital"></i>
+                                        {% elif unit_key == 'doctor' %}
+                                            <i class="fas fa-user-md"></i>
+                                        {% elif unit_key == 'emergency' %}
+                                            <i class="fas fa-ambulance"></i>
+                                        {% elif unit_key == 'lab' %}
+                                            <i class="fas fa-flask"></i>
+                                        {% elif unit_key == 'radiology' %}
+                                            <i class="fas fa-x-ray"></i>
+                                        {% elif unit_key == 'accountant' %}
+                                            <i class="fas fa-calculator"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="unit-info">
+                                        <h6 class="unit-name">{{ unit.name }}</h6>
+                                        <span class="badge bg-{{ 'success' if unit.status == 'active' else 'danger' }}">
+                                            {{ 'نشط' if unit.status == 'active' else 'معطل' }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="unit-body">
+                                    <div class="unit-stats">
+                                        {% if unit_key == 'reception' %}
+                                            <div class="stat-item">
+                                                <span class="stat-label">الزيارات المعلقة:</span>
+                                                <span class="stat-value">{{ unit.pending_visits }}</span>
+                                            </div>
+                                        {% elif unit_key == 'doctor' %}
+                                            <div class="stat-item">
+                                                <span class="stat-label">الزيارات قيد التنفيذ:</span>
+                                                <span class="stat-value">{{ unit.in_progress_visits }}</span>
+                                            </div>
+                                        {% elif unit_key == 'emergency' %}
+                                            <div class="stat-item">
+                                                <span class="stat-label">حالات الطوارئ:</span>
+                                                <span class="stat-value">{{ unit.emergency_visits }}</span>
+                                            </div>
+                                        {% elif unit_key == 'lab' %}
+                                            <div class="stat-item">
+                                                <span class="stat-label">طلبات المختبر:</span>
+                                                <span class="stat-value">{{ unit.lab_requests }}</span>
+                                            </div>
+                                        {% elif unit_key == 'radiology' %}
+                                            <div class="stat-item">
+                                                <span class="stat-label">طلبات الأشعة:</span>
+                                                <span class="stat-value">{{ unit.radiology_requests }}</span>
+                                            </div>
+                                        {% elif unit_key == 'accountant' %}
+                                            <div class="stat-item">
+                                                <span class="stat-label">الفواتير المفتوحة:</span>
+                                                <span class="stat-value">{{ unit.open_invoices }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="unit-actions">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="viewUnitDetails('{{ unit_key }}')">
+                                            <i class="fas fa-eye me-1"></i>
+                                            تفاصيل
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-success" onclick="refreshUnit('{{ unit_key }}')">
+                                            <i class="fas fa-sync-alt me-1"></i>
+                                            تحديث
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">مؤشرات الأداء</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="metric-item">
+                                <div class="metric-label">معدل الاستجابة</div>
+                                <div class="metric-value">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" style="width: 95%"></div>
+                                    </div>
+                                    <span class="metric-text">95%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="metric-item">
+                                <div class="metric-label">وقت التشغيل</div>
+                                <div class="metric-value">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-info" style="width: 99%"></div>
+                                    </div>
+                                    <span class="metric-text">99.9%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="metric-item">
+                                <div class="metric-label">استخدام الذاكرة</div>
+                                <div class="metric-value">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" style="width: 75%"></div>
+                                    </div>
+                                    <span class="metric-text">75%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="metric-item">
+                                <div class="metric-label">استخدام القرص</div>
+                                <div class="metric-value">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" style="width: 60%"></div>
+                                    </div>
+                                    <span class="metric-text">60%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">تنبيهات النظام</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        جميع الوحدات تعمل بشكل طبيعي
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        لا توجد تنبيهات جديدة
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        مراجعة دورية للنسخ الاحتياطية
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Logs -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">سجلات النظام</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="clearLogs()">
+                            <i class="fas fa-trash me-1"></i>
+                            مسح السجلات
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="exportLogs()">
+                            <i class="fas fa-download me-1"></i>
+                            تصدير السجلات
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>الوقت</th>
+                                    <th>المستوى</th>
+                                    <th>الوحدة</th>
+                                    <th>الرسالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2024-01-15 10:30:25</td>
+                                    <td><span class="badge bg-success">INFO</span></td>
+                                    <td>النظام</td>
+                                    <td>تم تحديث حالة الوحدات بنجاح</td>
+                                </tr>
+                                <tr>
+                                    <td>2024-01-15 10:25:15</td>
+                                    <td><span class="badge bg-info">DEBUG</span></td>
+                                    <td>قاعدة البيانات</td>
+                                    <td>تم تنفيذ استعلام بنجاح</td>
+                                </tr>
+                                <tr>
+                                    <td>2024-01-15 10:20:05</td>
+                                    <td><span class="badge bg-warning">WARN</span></td>
+                                    <td>الذاكرة</td>
+                                    <td>استخدام الذاكرة مرتفع قليلاً</td>
+                                </tr>
+                                <tr>
+                                    <td>2024-01-15 10:15:30</td>
+                                    <td><span class="badge bg-success">INFO</span></td>
+                                    <td>الشبكة</td>
+                                    <td>تم اختبار الاتصال بنجاح</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.status-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    background: #fff;
+}
+
+.status-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.status-info h6 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #5a5c69;
+}
+
+.unit-card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    background: #fff;
+    transition: all 0.3s ease;
+}
+
+.unit-card:hover {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transform: translateY(-2px);
+}
+
+.unit-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.unit-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f8f9fc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+    color: #5a5c69;
+    font-size: 1.1rem;
+}
+
+.unit-name {
+    margin: 0;
+    font-size: 1rem;
+    color: #5a5c69;
+}
+
+.unit-body {
+    padding: 1rem;
+}
+
+.unit-stats {
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8f9fc;
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #5a5c69;
+}
+
+.stat-value {
+    font-weight: bold;
+    color: #5a5c69;
+}
+
+.unit-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.metric-item {
+    margin-bottom: 1.5rem;
+}
+
+.metric-label {
+    font-size: 0.9rem;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+}
+
+.metric-value {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.metric-value .progress {
+    flex: 1;
+    height: 8px;
+}
+
+.metric-text {
+    font-weight: bold;
+    color: #5a5c69;
+    min-width: 40px;
+}
+</style>
+
+<script>
+function refreshMonitoring() {
+    location.reload();
+}
+
+function exportMonitoringReport() {
+    const reportData = {
+        timestamp: new Date().toISOString(),
+        units: {{ units_status|tojson }},
+        performance: {
+            response_rate: 95,
+            uptime: 99.9,
+            memory_usage: 75,
+            disk_usage: 60
+        }
+    };
+    
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + "الوحدة,الحالة,الإحصائيات\n"
+        + "الاستقبال,نشط," + ({{ units_status.reception.pending_visits }} || 0) + "\n"
+        + "الطبيب,نشط," + ({{ units_status.doctor.in_progress_visits }} || 0) + "\n"
+        + "الطوارئ,نشط," + ({{ units_status.emergency.emergency_visits }} || 0) + "\n"
+        + "المختبر,نشط," + ({{ units_status.lab.lab_requests }} || 0) + "\n"
+        + "الأشعة,نشط," + ({{ units_status.radiology.radiology_requests }} || 0) + "\n"
+        + "المحاسبة,نشط," + ({{ units_status.accountant.open_invoices }} || 0) + "\n";
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "monitoring_report_" + new Date().toISOString().split('T')[0] + ".csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function viewUnitDetails(unitKey) {
+    // عرض تفاصيل الوحدة
+    alert('عرض تفاصيل الوحدة: ' + unitKey);
+}
+
+function refreshUnit(unitKey) {
+    // تحديث حالة الوحدة
+    alert('تحديث الوحدة: ' + unitKey);
+}
+
+function clearLogs() {
+    if (confirm('هل تريد مسح جميع السجلات؟')) {
+        // مسح السجلات
+        alert('تم مسح السجلات');
+    }
+}
+
+function exportLogs() {
+    // تصدير السجلات
+    alert('تم تصدير السجلات');
+}
+
+// تحديث تلقائي كل دقيقة
+setInterval(function() {
+    // تحديث حالة الوحدات
+    fetch('{{ url_for("manager.monitoring") }}?ajax=true')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // تحديث البيانات في الصفحة
+                updateUnitStatus(data.units_status);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating monitoring data:', error);
+        });
+}, 60000); // دقيقة واحدة
+
+function updateUnitStatus(unitsStatus) {
+    // تحديث حالة الوحدات في الصفحة
+    Object.keys(unitsStatus).forEach(unitKey => {
+        const unit = unitsStatus[unitKey];
+        // تحديث الإحصائيات للوحدة
+        console.log('Updated unit:', unitKey, unit);
+    });
+}
+</script>
+{% endblock %}

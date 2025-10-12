@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}نتائج التحاليل{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="medical-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="medical-title">
+                    <i class="fas fa-chart-line me-2"></i>
+                    نتائج التحاليل
+                </h1>
+                <p class="medical-subtitle">عرض نتائج التحاليل المطلوبة</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ url_for('lab.dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-right me-1"></i>
+                    العودة للوحة التحكم
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        معلومات المريض
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>الاسم:</strong> {{ lab_request.patient.full_name }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>العمر:</strong> {{ lab_request.patient.age }} سنة
+                        </div>
+                        <div class="col-md-3">
+                            <strong>رقم الهوية:</strong> {{ lab_request.patient.id_number }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>رقم الهاتف:</strong> {{ lab_request.patient.phone }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lab Request Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-flask me-2"></i>
+                        معلومات طلب التحليل
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>نوع التحليل:</strong> {{ lab_request.get_test_type_display() }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>تاريخ الطلب:</strong> {{ lab_request.created_at.strftime('%Y-%m-%d') }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>الطبيب:</strong> {{ lab_request.doctor.full_name if lab_request.doctor else 'غير محدد' }}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <strong>سبب التحليل:</strong> {{ lab_request.reason }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>الحالة:</strong> 
+                            <span class="badge {% if lab_request.status == 'completed' %}bg-success{% elif lab_request.status == 'in_progress' %}bg-warning{% elif lab_request.status == 'pending' %}bg-info{% else %}bg-danger{% endif %}">
+                                {{ lab_request.get_status_display() }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lab Results -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        نتائج التحاليل
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if lab_request.results %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>اسم التحليل</th>
+                                        <th>النتيجة</th>
+                                        <th>الوحدة</th>
+                                        <th>القيمة الطبيعية</th>
+                                        <th>الحالة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in lab_request.results %}
+                                    <tr>
+                                        <td>{{ result.test_name }}</td>
+                                        <td>{{ result.result_value }}</td>
+                                        <td>{{ result.unit or '-' }}</td>
+                                        <td>{{ result.normal_range or '-' }}</td>
+                                        <td>
+                                            <span class="badge {% if result.status == 'normal' %}bg-success{% elif result.status == 'abnormal' %}bg-danger{% elif result.status == 'high' %}bg-warning{% elif result.status == 'low' %}bg-info{% else %}bg-secondary{% endif %}">
+                                                {{ result.get_status_display() }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-flask fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">لا توجد نتائج متاحة</h5>
+                            <p class="text-muted">لم يتم إدخال نتائج التحاليل بعد</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lab Notes -->
+    {% if lab_request.lab_notes %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-sticky-note me-2"></i>
+                        ملاحظات المختبر
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ lab_request.lab_notes }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>
+                        الإجراءات
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-2">
+                        {% if lab_request.status != 'completed' %}
+                        <a href="{{ url_for('lab.edit_results', id=lab_request.id) }}" class="btn btn-primary">
+                            <i class="fas fa-edit me-1"></i>
+                            إدخال النتائج
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('lab.print_results', id=lab_request.id) }}" class="btn btn-success" target="_blank">
+                            <i class="fas fa-print me-1"></i>
+                            طباعة النتائج
+                        </a>
+                        <a href="{{ url_for('lab.send_results', id=lab_request.id) }}" class="btn btn-info">
+                            <i class="fas fa-paper-plane me-1"></i>
+                            إرسال النتائج
+                        </a>
+                        <a href="{{ url_for('lab.dashboard') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            العودة
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

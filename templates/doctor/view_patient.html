@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+
+{% block title %}بيانات المريض - {{ visit.patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-user me-2"></i>
+                                بيانات المريض
+                            </h2>
+                            <p class="text-muted mb-0">{{ visit.patient.full_name }} - رقم الزيارة: {{ visit.visit_id_number or visit.id }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة للطابور
+                                </a>
+                                <button class="btn btn-primary" onclick="window.print()">
+                                    <i class="fas fa-print me-1"></i>
+                                    طباعة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Information -->
+    <div class="row">
+        <!-- Basic Info -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user me-2"></i>
+                        البيانات الأساسية
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>الاسم الكامل:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {{ visit.patient.full_name }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>الرقم الوطني:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {{ visit.patient.national_id }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>العمر:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {{ visit.patient.age or 'غير محدد' }} سنة
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>الجنس:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {{ visit.patient.get_gender_display() }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>رقم الهاتف:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {{ visit.patient.phone }}
+                        </div>
+                    </div>
+                    {% if visit.patient.phone_2 %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>هاتف إضافي:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {{ visit.patient.phone_2 }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if visit.patient.address %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>العنوان:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {{ visit.patient.address }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Visit Info -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-calendar me-2"></i>
+                        تفاصيل الزيارة
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>رقم الزيارة:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {{ visit.visit_id_number or visit.id }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>نوع الزيارة:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {{ visit.get_visit_type_display() }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>تاريخ الزيارة:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {{ visit.visit_date.strftime('%Y-%m-%d') }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>وقت الزيارة:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {{ visit.visit_time.strftime('%H:%M') }}
+                        </div>
+                    </div>
+                    {% if visit.visit_reason %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>سبب الزيارة:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {{ visit.visit_reason }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <strong>حالة الزيارة:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            <span class="badge badge-{{ 'success' if visit.status == 'IN_PROGRESS' else 'warning' }}">
+                                {{ visit.get_status_display() }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical History -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-history me-2"></i>
+                        التاريخ الطبي
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if visit.patient.chronic_diseases %}
+                    <div class="mb-3">
+                        <strong>الأمراض المزمنة:</strong>
+                        <p class="mt-1">{{ visit.patient.chronic_diseases }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if visit.patient.allergies %}
+                    <div class="mb-3">
+                        <strong>الحساسيات:</strong>
+                        <p class="mt-1 text-danger">{{ visit.patient.allergies }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if visit.patient.current_medications %}
+                    <div class="mb-3">
+                        <strong>الأدوية الحالية:</strong>
+                        <p class="mt-1">{{ visit.patient.current_medications }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if visit.patient.medical_history %}
+                    <div class="mb-3">
+                        <strong>التاريخ الطبي:</strong>
+                        <p class="mt-1">{{ visit.patient.medical_history }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if visit.patient.surgical_history %}
+                    <div class="mb-3">
+                        <strong>تاريخ العمليات:</strong>
+                        <p class="mt-1">{{ visit.patient.surgical_history }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Visit Details -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-stethoscope me-2"></i>
+                        تفاصيل الزيارة الحالية
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if visit.diagnosis %}
+                    <div class="mb-3">
+                        <strong>التشخيص:</strong>
+                        <p class="mt-1">{{ visit.diagnosis }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if visit.treatment %}
+                    <div class="mb-3">
+                        <strong>العلاج:</strong>
+                        <p class="mt-1">{{ visit.treatment }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if visit.prescription %}
+                    <div class="mb-3">
+                        <strong>الوصفة الطبية:</strong>
+                        <p class="mt-1">{{ visit.prescription }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if visit.notes %}
+                    <div class="mb-3">
+                        <strong>ملاحظات:</strong>
+                        <p class="mt-1">{{ visit.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Previous Visits -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        الزيارات السابقة
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% set previous_visits = visit.patient.visits.filter(Visit.id != visit.id).order_by(Visit.created_at.desc()).limit(5).all() %}
+                    {% if previous_visits %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>تاريخ الزيارة</th>
+                                        <th>نوع الزيارة</th>
+                                        <th>التشخيص</th>
+                                        <th>العلاج</th>
+                                        <th>الطبيب</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for prev_visit in previous_visits %}
+                                    <tr>
+                                        <td>{{ prev_visit.visit_date.strftime('%Y-%m-%d') }}</td>
+                                        <td>{{ prev_visit.get_visit_type_display() }}</td>
+                                        <td>{{ prev_visit.diagnosis or 'غير محدد' }}</td>
+                                        <td>{{ prev_visit.treatment or 'غير محدد' }}</td>
+                                        <td>{{ prev_visit.doctor.full_name if prev_visit.doctor else 'غير محدد' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">لا توجد زيارات سابقة</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h6 class="mb-3">إجراءات سريعة</h6>
+                    <div class="row g-2">
+                        <div class="col-md-2">
+                            <a href="{{ url_for('doctor.diagnosis', visit_id=visit.id) }}" 
+                               class="btn btn-warning btn-block" target="_blank">
+                                <i class="fas fa-stethoscope me-1"></i>
+                                التشخيص
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{ url_for('doctor.prescription', visit_id=visit.id) }}" 
+                               class="btn btn-success btn-block" target="_blank">
+                                <i class="fas fa-prescription me-1"></i>
+                                روشيتا
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{ url_for('doctor.lab_request', visit_id=visit.id) }}" 
+                               class="btn btn-primary btn-block" target="_blank">
+                                <i class="fas fa-vial me-1"></i>
+                                فحوصات
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{ url_for('doctor.radiology_request', visit_id=visit.id) }}" 
+                               class="btn btn-secondary btn-block" target="_blank">
+                                <i class="fas fa-x-ray me-1"></i>
+                                أشعة
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{ url_for('doctor.visit_summary', visit_id=visit.id) }}" 
+                               class="btn btn-dark btn-block" target="_blank">
+                                <i class="fas fa-file-medical me-1"></i>
+                                ملخص
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-danger btn-block" 
+                                    onclick="completeTreatment({{ visit.id }})">
+                                <i class="fas fa-check-circle me-1"></i>
+                                إنهاء العلاج
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Treatment Modal -->
+<div class="modal fade" id="completeTreatmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">إنهاء العلاج</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="completeTreatmentForm">
+                    <div class="form-group">
+                        <label for="final_diagnosis">التشخيص النهائي</label>
+                        <textarea class="form-control" id="final_diagnosis" name="diagnosis" rows="3" placeholder="أدخل التشخيص النهائي">{{ visit.diagnosis or '' }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="final_treatment">العلاج الموصى به</label>
+                        <textarea class="form-control" id="final_treatment" name="treatment" rows="3" placeholder="أدخل العلاج الموصى به">{{ visit.treatment or '' }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="final_notes">ملاحظات إضافية</label>
+                        <textarea class="form-control" id="final_notes" name="notes" rows="2" placeholder="أدخل أي ملاحظات إضافية">{{ visit.notes or '' }}</textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" id="confirmCompleteBtn">إنهاء العلاج</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function completeTreatment(visitId) {
+    $('#completeTreatmentModal').modal('show');
+}
+
+document.getElementById('confirmCompleteBtn').addEventListener('click', function() {
+    const formData = {
+        diagnosis: document.getElementById('final_diagnosis').value,
+        treatment: document.getElementById('final_treatment').value,
+        notes: document.getElementById('final_notes').value
+    };
+    
+    fetch(`/doctor/complete-visit/{{ visit.id }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('تم إنهاء العلاج بنجاح');
+            $('#completeTreatmentModal').modal('hide');
+            window.location.href = '{{ url_for("doctor.patient_queue") }}';
+        } else {
+            alert('خطأ: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في إنهاء العلاج');
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block title %}قائمة الزيارات - الاستقبال{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-list-alt me-2"></i>
+                                قائمة الزيارات
+                            </h2>
+                            <p class="text-muted mb-0">إدارة وعرض جميع زيارات المرضى</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('reception.create_visit') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i>
+                                    زيارة جديدة
+                                </a>
+                                <button class="btn btn-success" onclick="exportVisits()">
+                                    <i class="fas fa-download me-1"></i>
+                                    تصدير
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="text-primary mb-0">
+                        <i class="fas fa-filter"></i> فلاتر البحث
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">البحث</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ search }}" placeholder="اسم المريض، الهاتف، الهوية...">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="department_id" class="form-label">القسم</label>
+                            <select class="form-control" id="department_id" name="department_id">
+                                <option value="">جميع الأقسام</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept.id }}" {% if selected_department == dept.id %}selected{% endif %}>
+                                    {{ dept.name_ar }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">الحالة</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="">جميع الحالات</option>
+                                <option value="OPEN" {% if selected_status == 'OPEN' %}selected{% endif %}>مفتوحة</option>
+                                <option value="IN_PROGRESS" {% if selected_status == 'IN_PROGRESS' %}selected{% endif %}>قيد التنفيذ</option>
+                                <option value="COMPLETED" {% if selected_status == 'COMPLETED' %}selected{% endif %}>مكتملة</option>
+                                <option value="ARCHIVED" {% if selected_status == 'ARCHIVED' %}selected{% endif %}>مؤرشفة</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> بحث
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visits Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        الزيارات ({{ visits|length }} زيارة)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if visits %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>رقم الزيارة</th>
+                                    <th>المريض</th>
+                                    <th>القسم</th>
+                                    <th>الطبيب</th>
+                                    <th>نوع الزيارة</th>
+                                    <th>التاريخ</th>
+                                    <th>المبلغ</th>
+                                    <th>حالة الدفع</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for visit in visits %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-primary">{{ visit.visit_number or visit.id }}</span>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ visit.patient.full_name }}</strong><br>
+                                            <small class="text-muted">{{ visit.patient.phone }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if visit.department %}
+                                        <span class="badge bg-info">{{ visit.department.name_ar }}</span>
+                                        {% else %}
+                                        <span class="text-muted">غير محدد</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if visit.doctor %}
+                                        {{ visit.doctor.full_name }}
+                                        {% else %}
+                                        <span class="text-muted">غير محدد</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if visit.visit_type == 'EMERGENCY' %}
+                                        <span class="badge bg-danger">طوارئ</span>
+                                        {% elif visit.visit_type == 'FOLLOW_UP' %}
+                                        <span class="badge bg-warning">مراجعة</span>
+                                        {% elif visit.visit_type == 'CONSULTATION' %}
+                                        <span class="badge bg-info">استشارة</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">عادية</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div>
+                                            {{ visit.created_at.strftime('%Y-%m-%d') }}<br>
+                                            <small class="text-muted">{{ visit.created_at.strftime('%H:%M') }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ "%.2f"|format(visit.total_amount) }} ₪</strong><br>
+                                            {% if visit.paid_amount > 0 %}
+                                            <small class="text-success">مدفوع: {{ "%.2f"|format(visit.paid_amount) }} ₪</small>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if visit.payment_status == 'PAID' %}
+                                        <span class="badge bg-success">مدفوع</span>
+                                        {% elif visit.payment_status == 'PENDING' %}
+                                        <span class="badge bg-warning">معلق</span>
+                                        {% elif visit.payment_status == 'DEBT' %}
+                                        <span class="badge bg-danger">دين</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ visit.payment_status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if visit.status == 'OPEN' %}
+                                        <span class="badge bg-primary">مفتوحة</span>
+                                        {% elif visit.status == 'IN_PROGRESS' %}
+                                        <span class="badge bg-warning">قيد التنفيذ</span>
+                                        {% elif visit.status == 'COMPLETED' %}
+                                        <span class="badge bg-success">مكتملة</span>
+                                        {% elif visit.status == 'ARCHIVED' %}
+                                        <span class="badge bg-secondary">مؤرشفة</span>
+                                        {% else %}
+                                        <span class="badge bg-light text-dark">{{ visit.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                    onclick="viewVisit({{ visit.id }})" title="عرض">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            {% if visit.payment_status == 'PENDING' %}
+                                            <button type="button" class="btn btn-sm btn-outline-success" 
+                                                    onclick="processPayment({{ visit.id }})" title="معالجة الدفع">
+                                                <i class="fas fa-credit-card"></i>
+                                            </button>
+                                            {% elif visit.payment_status == 'PAID' and not visit.receipt_printed %}
+                                            <button type="button" class="btn btn-sm btn-outline-success" 
+                                                    onclick="printReceipt({{ visit.id }})" title="طباعة الوصل">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                            {% endif %}
+                                            {% if visit.status == 'OPEN' %}
+                                            <button type="button" class="btn btn-sm btn-outline-warning" 
+                                                    onclick="editVisit({{ visit.id }})" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">لا توجد زيارات</h5>
+                        <p class="text-muted">لم يتم العثور على زيارات تطابق معايير البحث</p>
+                        <a href="{{ url_for('reception.create_visit') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>
+                            إنشاء زيارة جديدة
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.table th {
+    background-color: #f8f9fc;
+    border-color: #e3e6f0;
+    font-weight: 600;
+    color: #5a5c69;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+.card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+}
+</style>
+
+<script>
+function viewVisit(visitId) {
+    // عرض تفاصيل الزيارة
+    window.open(`/reception/visit/${visitId}`, '_blank');
+}
+
+function processPayment(visitId) {
+    // معالجة الدفع
+    window.location.href = `/reception/process_payment/${visitId}`;
+}
+
+function printReceipt(visitId) {
+    // طباعة الوصل
+    window.open(`/reception/print_receipt/${visitId}`, '_blank');
+}
+
+function editVisit(visitId) {
+    // تعديل الزيارة
+    window.location.href = `/reception/edit_visit/${visitId}`;
+}
+
+function exportVisits() {
+    // تصدير الزيارات
+    const params = new URLSearchParams(window.location.search);
+    window.open(`/reception/export/visits?${params.toString()}`, '_blank');
+}
+
+// Auto-refresh every 30 seconds
+setInterval(function() {
+    if (document.visibilityState === 'visible') {
+        location.reload();
+    }
+}, 30000);
+</script>
+{% endblock %}

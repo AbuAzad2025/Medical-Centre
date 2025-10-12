@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}طباعة نتائج التحاليل{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Print Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-print me-2"></i>
+                                طباعة نتائج التحاليل
+                            </h2>
+                            <p class="text-muted mb-0">طباعة تقرير نتائج التحاليل</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="window.print()">
+                                    <i class="fas fa-print me-1"></i>
+                                    طباعة
+                                </button>
+                                <button class="btn btn-secondary" onclick="history.back()">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    العودة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Content -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <h3 class="text-primary">تقرير نتائج التحاليل</h3>
+                        <p class="text-muted">مستشفى/عيادة طبية</p>
+                    </div>
+
+                    <!-- Patient Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">معلومات المريض</h5>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <strong>الاسم:</strong> {{ lab_request.patient.full_name }}
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>العمر:</strong> {{ lab_request.patient.age }} سنة
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>رقم الهوية:</strong> {{ lab_request.patient.id_number }}
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>رقم الهاتف:</strong> {{ lab_request.patient.phone }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lab Request Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">معلومات طلب التحليل</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <strong>نوع التحليل:</strong> {{ lab_request.get_test_type_display() }}
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>تاريخ الطلب:</strong> {{ lab_request.created_at.strftime('%Y-%m-%d') }}
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>الطبيب:</strong> {{ lab_request.doctor.full_name if lab_request.doctor else 'غير محدد' }}
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <strong>سبب التحليل:</strong> {{ lab_request.reason }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>الحالة:</strong> {{ lab_request.get_status_display() }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lab Results -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">نتائج التحاليل</h5>
+                            {% if lab_request.results %}
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-primary">
+                                            <tr>
+                                                <th>اسم التحليل</th>
+                                                <th>النتيجة</th>
+                                                <th>الوحدة</th>
+                                                <th>القيمة الطبيعية</th>
+                                                <th>الحالة</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for result in lab_request.results %}
+                                            <tr>
+                                                <td>{{ result.test_name }}</td>
+                                                <td>{{ result.result_value }}</td>
+                                                <td>{{ result.unit or '-' }}</td>
+                                                <td>{{ result.normal_range or '-' }}</td>
+                                                <td>
+                                                    <span class="badge {% if result.status == 'normal' %}bg-success{% elif result.status == 'abnormal' %}bg-danger{% elif result.status == 'high' %}bg-warning{% elif result.status == 'low' %}bg-info{% else %}bg-secondary{% endif %}">
+                                                        {{ result.get_status_display() }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-flask fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">لا توجد نتائج متاحة</h5>
+                                    <p class="text-muted">لم يتم إدخال نتائج التحاليل بعد</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Lab Notes -->
+                    {% if lab_request.lab_notes %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">ملاحظات المختبر</h5>
+                            <p>{{ lab_request.lab_notes }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Quality Control Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">معلومات ضبط الجودة</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <strong>تاريخ إجراء التحليل:</strong> {{ lab_request.test_date.strftime('%Y-%m-%d') if lab_request.test_date else 'غير محدد' }}
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>وقت إجراء التحليل:</strong> {{ lab_request.test_time.strftime('%H:%M') if lab_request.test_time else 'غير محدد' }}
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>الفني المسؤول:</strong> {{ lab_request.technician or 'غير محدد' }}
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <strong>حالة التقرير:</strong> {{ lab_request.get_report_status_display() }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>تاريخ إكمال التقرير:</strong> {{ lab_request.completion_date.strftime('%Y-%m-%d') if lab_request.completion_date else 'غير محدد' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="text-center">
+                                <p class="text-muted">
+                                    <strong>تاريخ الطباعة:</strong> {{ today.strftime('%Y-%m-%d %H:%M') }}
+                                </p>
+                                <p class="text-muted">
+                                    <strong>مستشفى/عيادة طبية</strong><br>
+                                    العنوان: [عنوان المستشفى/العيادة]<br>
+                                    الهاتف: [رقم الهاتف] | البريد الإلكتروني: [البريد الإلكتروني]
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn {
+        display: none !important;
+    }
+    
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .container-fluid {
+        padding: 0 !important;
+    }
+    
+    .row {
+        margin: 0 !important;
+    }
+    
+    .col-12, .col-md-3, .col-md-4, .col-md-6, .col-md-8 {
+        padding: 0 !important;
+    }
+    
+    .table {
+        font-size: 12px;
+    }
+    
+    .badge {
+        font-size: 10px;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        color: #000 !important;
+    }
+    
+    .text-primary {
+        color: #000 !important;
+    }
+    
+    .text-muted {
+        color: #666 !important;
+    }
+}
+</style>
+
+<script>
+// Auto print when page loads
+window.onload = function() {
+    setTimeout(function() {
+        window.print();
+    }, 1000);
+};
+</script>
+{% endblock %}

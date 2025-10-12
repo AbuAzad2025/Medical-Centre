@@ -1,0 +1,523 @@
+{% extends "base.html" %}
+
+{% block title %}قائمة المواعيد - الاستقبال{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-calendar-check me-2"></i>
+                                قائمة المواعيد
+                            </h2>
+                            <p class="text-muted mb-0">إدارة شاملة لمواعيد المرضى</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="createNewAppointment()">
+                                    <i class="fas fa-plus me-1"></i>
+                                    موعد جديد
+                                </button>
+                                <button class="btn btn-success" onclick="exportAppointments()">
+                                    <i class="fas fa-file-excel me-1"></i>
+                                    تصدير
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">البحث والتصفية</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="searchInput" class="form-label">البحث</label>
+                                <input type="text" class="form-control" id="searchInput" 
+                                       placeholder="ابحث بالاسم أو رقم الموعد">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="statusFilter" class="form-label">الحالة</label>
+                                <select class="form-control" id="statusFilter">
+                                    <option value="">جميع الحالات</option>
+                                    <option value="SCHEDULED">مجدول</option>
+                                    <option value="CONFIRMED">مؤكد</option>
+                                    <option value="CANCELLED">ملغي</option>
+                                    <option value="COMPLETED">مكتمل</option>
+                                    <option value="NO_SHOW">لم يحضر</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="doctorFilter" class="form-label">الطبيب</label>
+                                <select class="form-control" id="doctorFilter">
+                                    <option value="">جميع الأطباء</option>
+                                    <option value="1">د. أحمد محمد</option>
+                                    <option value="2">د. سارة أحمد</option>
+                                    <option value="3">د. محمد علي</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="dateFilter" class="form-label">التاريخ</label>
+                                <input type="date" class="form-control" id="dateFilter">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary" onclick="applyFilters()">
+                                        <i class="fas fa-search me-1"></i>
+                                        بحث
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="clearFilters()">
+                                        <i class="fas fa-times me-1"></i>
+                                        مسح
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments Statistics -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                إجمالي المواعيد
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ appointments|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                مواعيد اليوم
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                مؤكدة
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">15</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                معلقة
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">3</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">قائمة المواعيد</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="filterAppointments('all')">الكل</button>
+                        <button class="btn btn-sm btn-outline-success" onclick="filterAppointments('today')">اليوم</button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="filterAppointments('pending')">معلقة</button>
+                        <button class="btn btn-sm btn-outline-info" onclick="filterAppointments('confirmed')">مؤكدة</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="appointmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>رقم الموعد</th>
+                                    <th>المريض</th>
+                                    <th>الطبيب</th>
+                                    <th>التاريخ</th>
+                                    <th>الوقت</th>
+                                    <th>الحالة</th>
+                                    <th>نوع الموعد</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in appointments %}
+                                <tr data-status="{{ appointment.status.lower() }}" data-date="{{ appointment.appointment_date.strftime('%Y-%m-%d') if appointment.appointment_date else '' }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="appointment-icon me-2">
+                                                <i class="fas fa-calendar text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold">#{{ appointment.id }}</div>
+                                                <small class="text-muted">{{ appointment.created_at.strftime('%H:%M') if appointment.created_at else 'غير محدد' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                {{ appointment.patient.first_name[0] if appointment.patient and appointment.patient.first_name else 'P' }}
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold">{{ appointment.patient.first_name }} {{ appointment.patient.last_name if appointment.patient else 'غير محدد' }}</div>
+                                                <small class="text-muted">{{ appointment.patient.phone if appointment.patient and appointment.patient.phone else 'لا يوجد رقم' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ appointment.doctor.full_name if appointment.doctor else 'غير محدد' }}</td>
+                                    <td>{{ appointment.appointment_date.strftime('%Y-%m-%d') if appointment.appointment_date else 'غير محدد' }}</td>
+                                    <td>{{ appointment.appointment_time.strftime('%H:%M') if appointment.appointment_time else 'غير محدد' }}</td>
+                                    <td>
+                                        {% if appointment.status == 'SCHEDULED' %}
+                                            <span class="badge bg-warning">مجدول</span>
+                                        {% elif appointment.status == 'CONFIRMED' %}
+                                            <span class="badge bg-success">مؤكد</span>
+                                        {% elif appointment.status == 'CANCELLED' %}
+                                            <span class="badge bg-danger">ملغي</span>
+                                        {% elif appointment.status == 'COMPLETED' %}
+                                            <span class="badge bg-info">مكتمل</span>
+                                        {% elif appointment.status == 'NO_SHOW' %}
+                                            <span class="badge bg-secondary">لم يحضر</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">{{ appointment.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if appointment.appointment_type == 'first' %}
+                                            <span class="badge bg-primary">أولى</span>
+                                        {% elif appointment.appointment_type == 'follow_up' %}
+                                            <span class="badge bg-info">متابعة</span>
+                                        {% elif appointment.appointment_type == 'consultation' %}
+                                            <span class="badge bg-success">استشارة</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ appointment.appointment_type or 'عام' }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewAppointment({{ appointment.id }})" title="عرض">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="confirmAppointment({{ appointment.id }})" title="تأكيد">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning" onclick="editAppointment({{ appointment.id }})" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment({{ appointment.id }})" title="إلغاء">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">إجراءات سريعة</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-primary btn-block" onclick="createNewAppointment()">
+                                <i class="fas fa-plus me-2"></i>
+                                موعد جديد
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-success btn-block" onclick="createNewVisit()">
+                                <i class="fas fa-hospital me-2"></i>
+                                زيارة جديدة
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-info btn-block" onclick="generateReport()">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                تقرير المواعيد
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-warning btn-block" onclick="bulkActions()">
+                                <i class="fas fa-tasks me-2"></i>
+                                إجراءات جماعية
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+}
+
+.appointment-icon {
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-block {
+    width: 100%;
+    padding: 0.75rem;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+}
+
+.btn-block:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+#appointmentsTable {
+    font-size: 0.9rem;
+}
+
+.btn-group .btn {
+    margin: 0 1px;
+}
+</style>
+
+<script>
+function createNewAppointment() {
+    location.href = '{{ url_for("reception.create_appointment") }}';
+}
+
+function createNewVisit() {
+    location.href = '{{ url_for("reception.create_visit") }}';
+}
+
+function exportAppointments() {
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + "رقم الموعد,المريض,الطبيب,التاريخ,الوقت,الحالة,نوع الموعد\n"
+        {% for appointment in appointments %}
+        + "#{{ appointment.id }},{{ appointment.patient.first_name + ' ' + appointment.patient.last_name if appointment.patient else 'غير محدد' }},{{ appointment.doctor.full_name if appointment.doctor else 'غير محدد' }},{{ appointment.appointment_date.strftime('%Y-%m-%d') if appointment.appointment_date else 'غير محدد' }},{{ appointment.appointment_time.strftime('%H:%M') if appointment.appointment_time else 'غير محدد' }},{{ appointment.status }},{{ appointment.appointment_type or 'عام' }}\n"
+        {% endfor %};
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "appointments_" + new Date().toISOString().split('T')[0] + ".csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function applyFilters() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const doctorFilter = document.getElementById('doctorFilter').value;
+    const dateFilter = document.getElementById('dateFilter').value;
+    
+    const rows = document.querySelectorAll('#appointmentsTable tbody tr');
+    
+    rows.forEach(row => {
+        const patientName = row.cells[1].textContent.toLowerCase();
+        const appointmentNumber = row.cells[0].textContent.toLowerCase();
+        const status = row.dataset.status;
+        const date = row.dataset.date;
+        
+        let showRow = true;
+        
+        // البحث
+        if (searchTerm && !patientName.includes(searchTerm) && !appointmentNumber.includes(searchTerm)) {
+            showRow = false;
+        }
+        
+        // تصفية الحالة
+        if (statusFilter && status !== statusFilter.toLowerCase()) {
+            showRow = false;
+        }
+        
+        // تصفية التاريخ
+        if (dateFilter && date !== dateFilter) {
+            showRow = false;
+        }
+        
+        row.style.display = showRow ? '' : 'none';
+    });
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('doctorFilter').value = '';
+    document.getElementById('dateFilter').value = '';
+    applyFilters();
+}
+
+function filterAppointments(filter) {
+    const rows = document.querySelectorAll('#appointmentsTable tbody tr');
+    const today = new Date().toISOString().split('T')[0];
+    
+    rows.forEach(row => {
+        if (filter === 'all') {
+            row.style.display = '';
+        } else if (filter === 'today') {
+            row.style.display = row.dataset.date === today ? '' : 'none';
+        } else if (filter === 'pending') {
+            row.style.display = row.dataset.status === 'scheduled' ? '' : 'none';
+        } else if (filter === 'confirmed') {
+            row.style.display = row.dataset.status === 'confirmed' ? '' : 'none';
+        }
+    });
+    
+    // تحديث أزرار التصفية
+    document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-info').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    event.target.classList.add('active');
+}
+
+function viewAppointment(appointmentId) {
+    location.href = '{{ url_for("reception.view_appointment") }}?id=' + appointmentId;
+}
+
+function confirmAppointment(appointmentId) {
+    if (confirm('هل تريد تأكيد هذا الموعد؟')) {
+        alert('تم تأكيد الموعد: ' + appointmentId);
+        location.reload();
+    }
+}
+
+function editAppointment(appointmentId) {
+    location.href = '{{ url_for("reception.edit_appointment") }}?id=' + appointmentId;
+}
+
+function cancelAppointment(appointmentId) {
+    if (confirm('هل تريد إلغاء هذا الموعد؟')) {
+        alert('تم إلغاء الموعد: ' + appointmentId);
+        location.reload();
+    }
+}
+
+function generateReport() {
+    alert('إنشاء تقرير المواعيد');
+}
+
+function bulkActions() {
+    alert('الإجراءات الجماعية');
+}
+
+// البحث المباشر
+document.getElementById('searchInput').addEventListener('input', function() {
+    applyFilters();
+});
+
+// إضافة تأثيرات تفاعلية
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة تأثير hover للصفوف
+    const rows = document.querySelectorAll('#appointmentsTable tbody tr');
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+</script>
+{% endblock %}

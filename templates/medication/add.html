@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}إضافة دواء جديد{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="medical-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="medical-title">
+                    <i class="fas fa-plus me-2"></i>
+                    إضافة دواء جديد
+                </h1>
+                <p class="medical-subtitle">إضافة دواء جديد إلى النظام</p>
+            </div>
+            <div class="header-actions">
+                <a href="{{ url_for('medication.list_medications') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    العودة للقائمة
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-pills me-2"></i>
+                        بيانات الدواء
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">اسم الدواء *</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="generic_name" class="form-label">الاسم العلمي</label>
+                                    <input type="text" class="form-control" id="generic_name" name="generic_name">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">الفئة</label>
+                                    <select class="form-select" id="category" name="category">
+                                        <option value="">اختر الفئة</option>
+                                        <option value="antibiotic">مضاد حيوي</option>
+                                        <option value="painkiller">مسكن</option>
+                                        <option value="vitamin">فيتامين</option>
+                                        <option value="supplement">مكمل غذائي</option>
+                                        <option value="other">أخرى</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="dosage_form" class="form-label">شكل الجرعة</label>
+                                    <select class="form-select" id="dosage_form" name="dosage_form">
+                                        <option value="">اختر الشكل</option>
+                                        <option value="tablet">أقراص</option>
+                                        <option value="capsule">كبسولات</option>
+                                        <option value="syrup">شراب</option>
+                                        <option value="injection">حقن</option>
+                                        <option value="cream">كريم</option>
+                                        <option value="drops">قطرات</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="strength" class="form-label">التركيز</label>
+                                    <input type="text" class="form-control" id="strength" name="strength" placeholder="مثال: 500mg">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="unit" class="form-label">الوحدة</label>
+                                    <select class="form-select" id="unit" name="unit">
+                                        <option value="mg">ملغ</option>
+                                        <option value="g">جرام</option>
+                                        <option value="ml">مل</option>
+                                        <option value="units">وحدات</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">السعر (₪)</label>
+                                    <input type="number" class="form-control" id="price" name="price" step="0.01" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="stock_quantity" class="form-label">كمية المخزون</label>
+                                    <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" min="0" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="min_stock_level" class="form-label">الحد الأدنى للمخزون</label>
+                                    <input type="number" class="form-control" id="min_stock_level" name="min_stock_level" min="0" value="10">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="expiry_date" class="form-label">تاريخ الانتهاء</label>
+                                    <input type="date" class="form-control" id="expiry_date" name="expiry_date">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="supplier" class="form-label">المورد</label>
+                                    <input type="text" class="form-control" id="supplier" name="supplier">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">الوصف</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                <label class="form-check-label" for="is_active">
+                                    دواء نشط
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                حفظ الدواء
+                            </button>
+                            <a href="{{ url_for('medication.list_medications') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>
+                                إلغاء
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle me-2"></i>
+                        معلومات مهمة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-lightbulb me-1"></i> نصائح:</h6>
+                        <ul class="mb-0">
+                            <li>تأكد من صحة اسم الدواء</li>
+                            <li>أدخل التركيز بوحدة صحيحة</li>
+                            <li>حدد الحد الأدنى للمخزون</li>
+                            <li>تحقق من تاريخ الانتهاء</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
