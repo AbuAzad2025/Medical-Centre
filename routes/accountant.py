@@ -53,12 +53,12 @@ def dashboard():
         
         # الفواتير المفتوحة
         open_invoices = Invoice.query.filter(
-            Invoice.payment_status.in_(['PENDING', 'PARTIAL'])
+            Invoice.status.in_(['DRAFT', 'ISSUED'])
         ).count()
         
         # المبالغ المستحقة
         pending_amount = db.session.query(db.func.sum(Invoice.remaining_amount)).filter(
-            Invoice.payment_status.in_(['PENDING', 'PARTIAL'])
+            Invoice.status.in_(['DRAFT', 'ISSUED'])
         ).scalar() or 0
         
         # الميزات الذكية
@@ -100,7 +100,7 @@ def open_invoices():
     try:
         # جلب الفواتير المفتوحة
         invoices = Invoice.query.filter(
-            Invoice.payment_status.in_(['PENDING', 'PARTIAL'])
+            Invoice.status.in_(['DRAFT', 'ISSUED'])
         ).order_by(Invoice.created_at.desc()).all()
         
         return render_template('accountant/open_invoices.html', invoices=invoices)
