@@ -1,7 +1,7 @@
 """
 التأمين - شركة ومطالبات (نسخة نهائية مبسطة)
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index
 from app_factory import db
 
@@ -17,8 +17,8 @@ class InsuranceCompany(db.Model):
     address = db.Column(db.String(200), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
     claims = db.relationship('InsuranceClaim', back_populates='company', lazy='selectin', passive_deletes=True)
 
@@ -40,8 +40,14 @@ class InsuranceClaim(db.Model):
     approved_amount = db.Column(db.Numeric(12, 2), default=0)
     notes = db.Column(db.Text, nullable=True)
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+
+    __table_args__ = (
+        Index('idx_insurance_claim_company_status', 'company_id', 'status'),
+        Index('idx_insurance_claim_status', 'status'),
+        Index('idx_insurance_claim_created', 'created_at'),
+    )
 
     company = db.relationship('InsuranceCompany', back_populates='claims', lazy='select')
     visit = db.relationship('Visit', lazy='select')

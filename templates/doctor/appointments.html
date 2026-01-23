@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}مواعيد الطبيب{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-3"><i class="fas fa-calendar-alt me-2"></i> المواعيد</h2>
+  <div class="card shadow-sm"><div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-striped"><thead><tr><th>#</th><th>المريض</th><th>التاريخ</th><th>الوقت</th><th>الحالة</th></tr></thead><tbody>
+        {% for a in appointments or [] %}
+        <tr><td>{{ a.id }}</td><td>{{ a.patient.full_name if a.patient else '' }}</td><td>{{ a.starts_at.date() if a.starts_at else '' }}</td><td>{{ a.starts_at.strftime('%H:%M') if a.starts_at else '' }}</td><td>{{ a.status }}</td></tr>
+        {% else %}
+        <tr><td colspan="5" class="text-center">لا توجد مواعيد</td></tr>
+        {% endfor %}
+      </tbody></table>
+    </div>
+  </div></div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}إدارة الأقسام{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-3">الأقسام</h2>
+  <div class="card"><div class="card-body">
+    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>#</th><th>الاسم</th><th>مفعل</th></tr></thead><tbody>
+      {% for d in departments or [] %}
+      <tr><td>{{ d.id }}</td><td>{{ d.name_ar or d.name }}</td><td>{{ 'نعم' if d.is_active else 'لا' }}</td></tr>
+      {% else %}
+      <tr><td colspan="3" class="text-center">لا أقسام</td></tr>
+      {% endfor %}
+    </tbody></table></div>
+  </div></div>
+</div>
+{% endblock %}
+

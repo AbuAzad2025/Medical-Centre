@@ -1,300 +1,307 @@
-<!-- Smart Sidebar Based on User Role -->
+<style>
+    .luxury-sidebar {
+        background: linear-gradient(180deg, #1a1f3a 0%, #0f1225 100%);
+        border-left: 1px solid rgba(212,175,55,0.2); /* Gold border */
+        height: 100vh;
+        overflow-y: auto;
+        padding-bottom: 2rem;
+        box-shadow: 4px 0 15px rgba(0,0,0,0.3);
+        scrollbar-width: thin;
+        scrollbar-color: var(--luxury-gold) #1a1f3a;
+    }
+    
+    .luxury-sidebar::-webkit-scrollbar {
+        width: 4px; /* Thinner scrollbar */
+    }
+    .luxury-sidebar::-webkit-scrollbar-track {
+        background: #1a1f3a;
+    }
+    .luxury-sidebar::-webkit-scrollbar-thumb {
+        background-color: var(--luxury-gold);
+        border-radius: 10px;
+    }
+
+    .sidebar-header {
+        padding: 1rem 1rem; /* Reduced padding */
+        text-align: center;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        margin-bottom: 0.5rem; /* Reduced margin */
+        background: rgba(0,0,0,0.2);
+    }
+    
+    .user-role-badge {
+        background: rgba(212,175,55,0.15);
+        color: var(--luxury-gold);
+        border: 1px solid rgba(212,175,55,0.3);
+        padding: 2px 10px; /* Compact padding */
+        border-radius: 50px;
+        font-size: 0.75rem; /* Smaller font */
+        font-weight: bold;
+        display: inline-block;
+        margin-top: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .nav-section-title {
+        color: rgba(255,255,255,0.4);
+        font-size: 0.7rem; /* Smaller font */
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 0.75rem 1rem 0.25rem; /* Reduced padding */
+        margin-top: 0.25rem;
+        border-top: 1px solid rgba(255,255,255,0.03);
+    }
+    
+    .nav-section-title:first-child {
+        border-top: none;
+        margin-top: 0;
+    }
+
+    .nav-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .nav-link-luxury {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem; /* Compact padding */
+        color: rgba(255,255,255,0.7);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border-right: 3px solid transparent;
+        font-size: 0.9rem; /* Slightly smaller font */
+    }
+    
+    .nav-link-luxury:hover {
+        background: rgba(255,255,255,0.03);
+        color: white;
+        padding-right: 1.3rem; /* Adjusted slide effect */
+    }
+    
+    .nav-link-luxury.active {
+        background: linear-gradient(90deg, rgba(212,175,55,0.15) 0%, transparent 100%);
+        color: var(--luxury-gold);
+        border-right-color: var(--luxury-gold);
+        font-weight: bold;
+    }
+    
+    .nav-link-luxury i {
+        width: 20px; /* Smaller icon width */
+        font-size: 1rem; /* Smaller icon size */
+        color: rgba(255,255,255,0.5);
+        transition: color 0.3s;
+    }
+    
+    .nav-link-luxury:hover i, .nav-link-luxury.active i {
+        color: var(--luxury-gold);
+    }
+</style>
+
 {% if current_user.is_authenticated %}
-<aside class="sidebar">
+<aside class="luxury-sidebar" id="appSidebar" role="navigation" aria-label="القائمة الجانبية">
     <div class="sidebar-header">
-        <h3>لوحة التحكم</h3>
-        <p class="user-role-badge">{{ current_user.role }}</p>
+        <h5 class="text-white mb-0 fw-bold" style="font-size: 1.1rem;">لوحة التحكم</h5>
+        <span class="user-role-badge">{{ current_user.role }}</span>
     </div>
     
     <nav class="sidebar-nav">
-        <!-- Common Links for All Users -->
+        <!-- Common Links -->
         <div class="nav-section">
-            <h4 class="nav-section-title">عام</h4>
+            <h6 class="nav-section-title">عام</h6>
             <ul class="nav-list">
-                <li><a href="{{ url_for('main.index') }}" class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">
-                    <i class="fas fa-home"></i> الرئيسية
-                </a></li>
+                <li>
+                    <a href="{{ url_for('main.dashboard') }}" class="nav-link-luxury {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                        <i class="fas fa-home"></i> <span>الرئيسية</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('auth.profile') }}" class="nav-link-luxury {% if request.endpoint == 'auth.profile' %}active{% endif %}">
+                        <i class="fas fa-id-card"></i> <span>ملفي الشخصي</span>
+                    </a>
+                </li>
             </ul>
         </div>
         
-        <!-- Role-Specific Links -->
+        <!-- Role Specific Links -->
         {% if current_user.role == 'super_admin' or current_user.role == 'admin' %}
-        <!-- إدارة المستخدمين والصلاحيات -->
         <div class="nav-section">
-            <h4 class="nav-section-title"><i class="fas fa-users-cog me-2"></i>إدارة المستخدمين</h4>
+            <h6 class="nav-section-title">إدارة المستخدمين</h6>
             <ul class="nav-list">
-                <li><a href="{{ url_for('super_admin.dashboard') }}" class="nav-link">
-                    <i class="fas fa-tachometer-alt"></i> لوحة التحكم
-                </a></li>
-                <li><a href="{{ url_for('super_admin.users') }}" class="nav-link">
-                    <i class="fas fa-users"></i> جميع المستخدمين
-                </a></li>
-                <li><a href="{{ url_for('super_admin.roles') }}" class="nav-link">
-                    <i class="fas fa-user-shield"></i> الأدوار والصلاحيات
-                </a></li>
-                <li><a href="{{ url_for('super_admin.permissions') }}" class="nav-link">
-                    <i class="fas fa-key"></i> إدارة الصلاحيات
-                </a></li>
-                <li><a href="{{ url_for('super_admin.audit_trail') }}" class="nav-link">
-                    <i class="fas fa-clipboard-list"></i> سجل التدقيق
-                </a></li>
+                <li><a href="{{ url_for('super_admin.dashboard') }}" class="nav-link-luxury {% if 'super_admin.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-tachometer-alt"></i> <span>لوحة القيادة</span></a></li>
+                <li><a href="{{ url_for('super_admin.users') }}" class="nav-link-luxury {% if 'super_admin.users' in request.endpoint %}active{% endif %}"><i class="fas fa-users"></i> <span>المستخدمين</span></a></li>
+                <li><a href="{{ url_for('super_admin.roles') }}" class="nav-link-luxury {% if 'super_admin.roles' in request.endpoint %}active{% endif %}"><i class="fas fa-user-shield"></i> <span>الأدوار</span></a></li>
+                <li><a href="{{ url_for('super_admin.permissions') }}" class="nav-link-luxury {% if 'super_admin.permissions' in request.endpoint %}active{% endif %}"><i class="fas fa-key"></i> <span>الصلاحيات</span></a></li>
+                <li><a href="{{ url_for('manager.staff_schedule') }}" class="nav-link-luxury {% if 'manager.staff_schedule' in request.endpoint %}active{% endif %}"><i class="fas fa-clock"></i> <span>جداول العمل</span></a></li>
             </ul>
         </div>
-        
-        <!-- إدارة النظام -->
         <div class="nav-section">
-            <h4 class="nav-section-title"><i class="fas fa-cogs me-2"></i>إدارة النظام</h4>
+            <h6 class="nav-section-title">إدارة النظام</h6>
             <ul class="nav-list">
-                <li><a href="{{ url_for('super_admin.system_config') }}" class="nav-link">
-                    <i class="fas fa-sliders-h"></i> إعدادات النظام
-                </a></li>
-                <li><a href="{{ url_for('super_admin.departments') }}" class="nav-link">
-                    <i class="fas fa-building"></i> إدارة الأقسام
-                </a></li>
-                <li><a href="{{ url_for('super_admin.services') }}" class="nav-link">
-                    <i class="fas fa-concierge-bell"></i> إدارة الخدمات
-                </a></li>
-                <li><a href="{{ url_for('super_admin.branding') }}" class="nav-link">
-                    <i class="fas fa-palette"></i> العلامة التجارية
-                </a></li>
-                <li><a href="{{ url_for('super_admin.system_maintenance') }}" class="nav-link">
-                    <i class="fas fa-tools"></i> صيانة النظام
-                </a></li>
+                <li><a href="{{ url_for('super_admin.system_config') }}" class="nav-link-luxury {% if 'super_admin.system_config' in request.endpoint %}active{% endif %}"><i class="fas fa-cogs"></i> <span>الإعدادات</span></a></li>
+                <li><a href="{{ url_for('super_admin.queue_settings') }}" class="nav-link-luxury {% if 'super_admin.queue_settings' in request.endpoint %}active{% endif %}"><i class="fas fa-stream"></i> <span>إعدادات الطوابير</span></a></li>
+                <li><a href="{{ url_for('super_admin.departments') }}" class="nav-link-luxury {% if 'super_admin.departments' in request.endpoint %}active{% endif %}"><i class="fas fa-building"></i> <span>الأقسام</span></a></li>
+                <li><a href="{{ url_for('super_admin.services') }}" class="nav-link-luxury {% if 'super_admin.services' in request.endpoint %}active{% endif %}"><i class="fas fa-concierge-bell"></i> <span>الخدمات</span></a></li>
+                <li><a href="{{ url_for('super_admin.system_backup') }}" class="nav-link-luxury {% if 'super_admin.system_backup' in request.endpoint %}active{% endif %}"><i class="fas fa-database"></i> <span>النسخ الاحتياطي</span></a></li>
             </ul>
         </div>
-        
-        <!-- الأمان والحماية -->
         <div class="nav-section">
-            <h4 class="nav-section-title"><i class="fas fa-shield-alt me-2"></i>الأمان والحماية</h4>
+            <h6 class="nav-section-title">التقارير والأمان</h6>
             <ul class="nav-list">
-                <li><a href="{{ url_for('super_admin.security_logs') }}" class="nav-link">
-                    <i class="fas fa-shield-alt"></i> سجلات الأمان
-                </a></li>
-                <li><a href="{{ url_for('super_admin.users') }}?view=banned" class="nav-link">
-                    <i class="fas fa-user-slash"></i> المستخدمين المحظورين
-                </a></li>
-                <li><a href="{{ url_for('super_admin.users') }}?view=sessions" class="nav-link">
-                    <i class="fas fa-user-clock"></i> الجلسات النشطة
-                </a></li>
+                <li><a href="{{ url_for('super_admin.analytics') }}" class="nav-link-luxury {% if 'super_admin.analytics' in request.endpoint %}active{% endif %}"><i class="fas fa-chart-line"></i> <span>التحليلات</span></a></li>
+                <li><a href="{{ url_for('super_admin.reports') }}" class="nav-link-luxury {% if 'super_admin.reports' in request.endpoint %}active{% endif %}"><i class="fas fa-file-alt"></i> <span>التقارير</span></a></li>
+                <li><a href="{{ url_for('super_admin.system_monitor') }}" class="nav-link-luxury {% if 'super_admin.system_monitor' in request.endpoint %}active{% endif %}"><i class="fas fa-chart-line"></i> <span>مراقب النظام</span></a></li>
+                <li><a href="{{ url_for('super_admin.audit_trail') }}" class="nav-link-luxury {% if 'super_admin.audit_trail' in request.endpoint %}active{% endif %}"><i class="fas fa-clipboard-list"></i> <span>سجل التدقيق</span></a></li>
+                <li><a href="{{ url_for('super_admin.security_logs') }}" class="nav-link-luxury {% if 'super_admin.security_logs' in request.endpoint %}active{% endif %}"><i class="fas fa-shield-alt"></i> <span>سجلات الأمان</span></a></li>
             </ul>
         </div>
-        
-        <!-- النسخ الاحتياطي -->
-        <div class="nav-section">
-            <h4 class="nav-section-title"><i class="fas fa-database me-2"></i>النسخ الاحتياطي</h4>
-            <ul class="nav-list">
-                <li><a href="{{ url_for('super_admin.system_backup') }}" class="nav-link">
-                    <i class="fas fa-database"></i> إدارة النسخ
-                </a></li>
-                <li><a href="javascript:createInstantBackup()" class="nav-link">
-                    <i class="fas fa-save"></i> نسخة فورية
-                </a></li>
-                <li><a href="{{ url_for('super_admin.system_backup') }}?tab=restore" class="nav-link">
-                    <i class="fas fa-undo"></i> استعادة نسخة
-                </a></li>
-                <li><a href="{{ url_for('super_admin.system_backup') }}?tab=schedule" class="nav-link">
-                    <i class="fas fa-clock"></i> جدولة النسخ
-                </a></li>
-            </ul>
-        </div>
-        
-        <!-- التحليلات والتقارير -->
-        <div class="nav-section">
-            <h4 class="nav-section-title"><i class="fas fa-chart-line me-2"></i>التحليلات والتقارير</h4>
-            <ul class="nav-list">
-                <li><a href="{{ url_for('super_admin.analytics') }}" class="nav-link">
-                    <i class="fas fa-chart-bar"></i> التحليلات المتقدمة
-                </a></li>
-                <li><a href="{{ url_for('super_admin.reports') }}" class="nav-link">
-                    <i class="fas fa-file-alt"></i> التقارير الشاملة
-                </a></li>
-                <li><a href="{{ url_for('super_admin.performance') }}" class="nav-link">
-                    <i class="fas fa-tachometer-alt"></i> مراقبة الأداء
-                </a></li>
-                <li><a href="{{ url_for('super_admin.system_monitor') }}" class="nav-link">
-                    <i class="fas fa-desktop"></i> مراقب النظام
-                </a></li>
-            </ul>
-        </div>
-        
-        <!-- أدوات متقدمة -->
-        <div class="nav-section">
-            <h4 class="nav-section-title"><i class="fas fa-tools me-2"></i>أدوات متقدمة</h4>
-            <ul class="nav-list">
-                <li><a href="javascript:exportData()" class="nav-link">
-                    <i class="fas fa-download"></i> تصدير البيانات
-                </a></li>
-                <li><a href="javascript:cleanupSystem()" class="nav-link">
-                    <i class="fas fa-broom"></i> تنظيف النظام
-                </a></li>
-                <li><a href="javascript:runSecurityScan()" class="nav-link">
-                    <i class="fas fa-shield-virus"></i> فحص الأمان
-                </a></li>
-            </ul>
-        </div>
-        
+
         {% elif current_user.role == 'manager' %}
         <div class="nav-section">
-            <h4 class="nav-section-title">المدير</h4>
+            <h6 class="nav-section-title">الإدارة</h6>
             <ul class="nav-list">
-                <li><a href="{{ url_for('manager.dashboard') }}" class="nav-link {% if request.endpoint and 'manager' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-user-tie"></i> لوحة التحكم
-                </a></li>
-                <li><a href="{{ url_for('manager.pricing') }}" class="nav-link {% if request.endpoint == 'manager.pricing' %}active{% endif %}">
-                    <i class="fas fa-dollar-sign"></i> إدارة الأسعار
-                </a></li>
-                <li><a href="{{ url_for('manager.reports') }}" class="nav-link {% if request.endpoint == 'manager.reports' %}active{% endif %}">
-                    <i class="fas fa-chart-bar"></i> التقارير
-                </a></li>
-                <li><a href="{{ url_for('manager.monitoring') }}" class="nav-link {% if request.endpoint == 'manager.monitoring' %}active{% endif %}">
-                    <i class="fas fa-monitor"></i> المراقبة
-                </a></li>
+                <li><a href="{{ url_for('manager.dashboard') }}" class="nav-link-luxury {% if 'manager.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-tachometer-alt"></i> <span>لوحة التحكم</span></a></li>
+                <li><a href="{{ url_for('manager.kpi_dashboard') }}" class="nav-link-luxury {% if 'manager.kpi_dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-chart-line"></i> <span>مؤشرات الأداء</span></a></li>
+                <li><a href="{{ url_for('manager.pricing') }}" class="nav-link-luxury {% if 'manager.pricing' in request.endpoint %}active{% endif %}"><i class="fas fa-dollar-sign"></i> <span>إدارة الأسعار</span></a></li>
+                <li><a href="{{ url_for('manager.reports') }}" class="nav-link-luxury {% if 'manager.reports' in request.endpoint %}active{% endif %}"><i class="fas fa-chart-pie"></i> <span>التقارير</span></a></li>
+                <li><a href="{{ url_for('manager.monitoring') }}" class="nav-link-luxury {% if 'manager.monitoring' in request.endpoint %}active{% endif %}"><i class="fas fa-desktop"></i> <span>المراقبة</span></a></li>
+                <li><a href="{{ url_for('manager.staff_schedule') }}" class="nav-link-luxury {% if 'manager.staff_schedule' in request.endpoint %}active{% endif %}"><i class="fas fa-clock"></i> <span>جداول العمل</span></a></li>
             </ul>
         </div>
-        
+        <div class="nav-section">
+            <h6 class="nav-section-title">المالية والحجوزات</h6>
+            <ul class="nav-list">
+                <li><a href="{{ url_for('finance.dashboard') }}" class="nav-link-luxury {% if 'finance.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-wallet"></i> <span>المالية</span></a></li>
+                <li><a href="{{ url_for('finance.audit') }}" class="nav-link-luxury {% if 'finance.audit' in request.endpoint %}active{% endif %}"><i class="fas fa-file-invoice"></i> <span>التدقيق</span></a></li>
+                <li><a href="{{ url_for('booking.index') }}" class="nav-link-luxury {% if 'booking.index' in request.endpoint %}active{% endif %}"><i class="fas fa-calendar-check"></i> <span>الحجز عن بعد</span></a></li>
+            </ul>
+        </div>
+
         {% elif current_user.role == 'reception' %}
         <div class="nav-section">
-            <h4 class="nav-section-title">الاستقبال</h4>
+            <h6 class="nav-section-title">الاستقبال</h6>
             <ul class="nav-list">
-                <li><a href="{{ url_for('reception.dashboard') }}" class="nav-link {% if request.endpoint and 'reception' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-user-nurse"></i> لوحة التحكم
-                </a></li>
-                <li><a href="{{ url_for('reception.patients') }}" class="nav-link {% if request.endpoint == 'reception.patients' %}active{% endif %}">
-                    <i class="fas fa-users"></i> إدارة المرضى
-                </a></li>
-                <li><a href="{{ url_for('reception.appointments') }}" class="nav-link {% if request.endpoint == 'reception.appointments' %}active{% endif %}">
-                    <i class="fas fa-calendar"></i> المواعيد
-                </a></li>
-                <li><a href="{{ url_for('reception.visits') }}" class="nav-link {% if request.endpoint == 'reception.visits' %}active{% endif %}">
-                    <i class="fas fa-stethoscope"></i> الزيارات
-                </a></li>
-                <li><a href="{{ url_for('reception.queue_management') }}" class="nav-link {% if request.endpoint == 'reception.queue_management' %}active{% endif %}">
-                    <i class="fas fa-list"></i> إدارة الطابور
-                </a></li>
+                <li><a href="{{ url_for('reception.dashboard') }}" class="nav-link-luxury {% if 'reception.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-user-nurse"></i> <span>لوحة التحكم</span></a></li>
+                <li><a href="{{ url_for('reception.patients') }}" class="nav-link-luxury {% if 'reception.patients' in request.endpoint %}active{% endif %}"><i class="fas fa-users"></i> <span>إدارة المرضى</span></a></li>
+                <li><a href="{{ url_for('reception.appointments') }}" class="nav-link-luxury {% if 'reception.appointments' in request.endpoint %}active{% endif %}"><i class="fas fa-calendar-alt"></i> <span>المواعيد</span></a></li>
+                <li><a href="{{ url_for('reception.follow_ups') }}" class="nav-link-luxury {% if 'reception.follow_ups' in request.endpoint %}active{% endif %}"><i class="fas fa-calendar-check"></i> <span>المتابعات</span></a></li>
+                <li><a href="{{ url_for('reception.visits') }}" class="nav-link-luxury {% if 'reception.visits' in request.endpoint %}active{% endif %}"><i class="fas fa-clipboard-check"></i> <span>الزيارات</span></a></li>
+                <li><a href="{{ url_for('reception.queue_management') }}" class="nav-link-luxury {% if 'reception.queue_management' in request.endpoint %}active{% endif %}"><i class="fas fa-sort-amount-down"></i> <span>إدارة الطابور</span></a></li>
             </ul>
         </div>
-        
+        <div class="nav-section">
+            <h6 class="nav-section-title">أخرى</h6>
+            <ul class="nav-list">
+                <li><a href="{{ url_for('reception.reception_staff_schedule') }}" class="nav-link-luxury {% if 'reception.reception_staff_schedule' in request.endpoint %}active{% endif %}"><i class="fas fa-clock"></i> <span>جداول العمل</span></a></li>
+                <li><a href="{{ url_for('booking.index') }}" class="nav-link-luxury {% if 'booking.index' in request.endpoint %}active{% endif %}"><i class="fas fa-calendar-check"></i> <span>الحجز عن بعد</span></a></li>
+            </ul>
+        </div>
+
         {% elif current_user.role == 'doctor' %}
         <div class="nav-section">
-            <h4 class="nav-section-title">الطبيب</h4>
+            <h6 class="nav-section-title">الطبيب</h6>
             <ul class="nav-list">
-                <li><a href="{{ url_for('doctor.dashboard') }}" class="nav-link {% if request.endpoint and 'doctor' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-user-md"></i> لوحة التحكم
-                </a></li>
-                <li><a href="{{ url_for('doctor.patient_queue') }}" class="nav-link {% if request.endpoint == 'doctor.patient_queue' %}active{% endif %}">
-                    <i class="fas fa-list"></i> طابور المرضى
-                </a></li>
-                <li><a href="{{ url_for('doctor.prescriptions') }}" class="nav-link {% if request.endpoint == 'doctor.prescriptions' %}active{% endif %}">
-                    <i class="fas fa-prescription"></i> الوصفات الطبية
-                </a></li>
-                <li><a href="{{ url_for('doctor.lab_requests') }}" class="nav-link {% if request.endpoint == 'doctor.lab_requests' %}active{% endif %}">
-                    <i class="fas fa-vial"></i> طلبات المختبر
-                </a></li>
-                <li><a href="{{ url_for('doctor.radiology_requests') }}" class="nav-link {% if request.endpoint == 'doctor.radiology_requests' %}active{% endif %}">
-                    <i class="fas fa-x-ray"></i> طلبات الأشعة
-                </a></li>
+                <li><a href="{{ url_for('doctor.dashboard') }}" class="nav-link-luxury {% if 'doctor.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-user-md"></i> <span>لوحة التحكم</span></a></li>
+                <li><a href="{{ url_for('doctor.patient_queue') }}" class="nav-link-luxury {% if 'doctor.patient_queue' in request.endpoint %}active{% endif %}"><i class="fas fa-list-ol"></i> <span>طابور المرضى</span></a></li>
+                <li><a href="{{ url_for('doctor.patients') }}" class="nav-link-luxury {% if 'doctor.patients' in request.endpoint %}active{% endif %}"><i class="fas fa-search"></i> <span>بحث المرضى</span></a></li>
+                <li><a href="{{ url_for('doctor.prescriptions') }}" class="nav-link-luxury {% if 'doctor.prescriptions' in request.endpoint %}active{% endif %}"><i class="fas fa-file-prescription"></i> <span>الوصفات الطبية</span></a></li>
             </ul>
         </div>
-        
+
         {% elif current_user.role == 'emergency' %}
         <div class="nav-section">
-            <h4 class="nav-section-title">الطوارئ</h4>
+            <h6 class="nav-section-title">الطوارئ</h6>
             <ul class="nav-list">
-                <li><a href="{{ url_for('emergency.dashboard') }}" class="nav-link {% if request.endpoint and 'emergency' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-ambulance"></i> لوحة التحكم
-                </a></li>
-                <li><a href="{{ url_for('emergency.patient_queue') }}" class="nav-link {% if request.endpoint == 'emergency.patient_queue' %}active{% endif %}">
-                    <i class="fas fa-list"></i> طابور الطوارئ
-                </a></li>
-                <li><a href="{{ url_for('emergency.emergency_visits') }}" class="nav-link {% if request.endpoint == 'emergency.emergency_visits' %}active{% endif %}">
-                    <i class="fas fa-stethoscope"></i> زيارات الطوارئ
-                </a></li>
+                <li><a href="{{ url_for('emergency.dashboard') }}" class="nav-link-luxury {% if 'emergency.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-ambulance"></i> <span>لوحة التحكم</span></a></li>
+                <li><a href="{{ url_for('emergency.patient_queue') }}" class="nav-link-luxury {% if 'emergency.patient_queue' in request.endpoint %}active{% endif %}"><i class="fas fa-list-ul"></i> <span>طابور الطوارئ</span></a></li>
+                <li><a href="{{ url_for('emergency.emergency_visits') }}" class="nav-link-luxury {% if 'emergency.emergency_visits' in request.endpoint %}active{% endif %}"><i class="fas fa-procedures"></i> <span>زيارات الطوارئ</span></a></li>
+                <li><a href="{{ url_for('emergency.triage_list') }}" class="nav-link-luxury {% if 'emergency.triage_list' in request.endpoint %}active{% endif %}"><i class="fas fa-notes-medical"></i> <span>قائمة الفرز</span></a></li>
             </ul>
         </div>
-        
+
         {% elif current_user.role == 'lab' %}
         <div class="nav-section">
-            <h4 class="nav-section-title">المختبر</h4>
+            <h6 class="nav-section-title">المختبر</h6>
             <ul class="nav-list">
-                <li><a href="{{ url_for('lab.dashboard') }}" class="nav-link {% if request.endpoint and 'lab' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-vial"></i> لوحة التحكم
-                </a></li>
-                <li><a href="{{ url_for('lab.tests') }}" class="nav-link {% if request.endpoint == 'lab.tests' %}active{% endif %}">
-                    <i class="fas fa-flask"></i> الفحوصات
-                </a></li>
-                <li><a href="{{ url_for('lab.lab_requests') }}" class="nav-link {% if request.endpoint == 'lab.lab_requests' %}active{% endif %}">
-                    <i class="fas fa-clipboard-list"></i> طلبات المختبر
-                </a></li>
+                <li><a href="{{ url_for('lab.dashboard') }}" class="nav-link-luxury {% if 'lab.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-vial"></i> <span>لوحة التحكم</span></a></li>
+                <li><a href="{{ url_for('lab.tests') }}" class="nav-link-luxury {% if 'lab.tests' in request.endpoint %}active{% endif %}"><i class="fas fa-flask"></i> <span>الفحوصات</span></a></li>
+                <li><a href="{{ url_for('lab.worklist') }}" class="nav-link-luxury {% if 'lab.worklist' in request.endpoint %}active{% endif %}"><i class="fas fa-tasks"></i> <span>قائمة العمل</span></a></li>
+                <li><a href="{{ url_for('lab.quality') }}" class="nav-link-luxury {% if 'lab.quality' in request.endpoint %}active{% endif %}"><i class="fas fa-shield-alt"></i> <span>الجودة</span></a></li>
+                <li><a href="{{ url_for('lab.quality_control') }}" class="nav-link-luxury {% if 'lab.quality_control' in request.endpoint %}active{% endif %}"><i class="fas fa-sliders-h"></i> <span>ضبط الجودة</span></a></li>
+                <li><a href="{{ url_for('lab.reagents') }}" class="nav-link-luxury {% if 'lab.reagents' in request.endpoint %}active{% endif %}"><i class="fas fa-boxes"></i> <span>مواد المختبر</span></a></li>
             </ul>
         </div>
-        
+
         {% elif current_user.role == 'radiology' %}
         <div class="nav-section">
-            <h4 class="nav-section-title">الأشعة</h4>
+            <h6 class="nav-section-title">الأشعة</h6>
             <ul class="nav-list">
-                <li><a href="{{ url_for('radiology.dashboard') }}" class="nav-link {% if request.endpoint and 'radiology' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-x-ray"></i> لوحة التحكم
-                </a></li>
-                <li><a href="{{ url_for('radiology.tests') }}" class="nav-link {% if request.endpoint == 'radiology.tests' %}active{% endif %}">
-                    <i class="fas fa-image"></i> الفحوصات
-                </a></li>
-                <li><a href="{{ url_for('radiology.radiology_requests') }}" class="nav-link {% if request.endpoint == 'radiology.radiology_requests' %}active{% endif %}">
-                    <i class="fas fa-clipboard-list"></i> طلبات الأشعة
-                </a></li>
+                <li><a href="{{ url_for('radiology.dashboard') }}" class="nav-link-luxury {% if 'radiology.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-x-ray"></i> <span>لوحة التحكم</span></a></li>
+                <li><a href="{{ url_for('radiology.tests') }}" class="nav-link-luxury {% if 'radiology.tests' in request.endpoint %}active{% endif %}"><i class="fas fa-film"></i> <span>الفحوصات</span></a></li>
+                <li><a href="{{ url_for('radiology.reports') }}" class="nav-link-luxury {% if 'radiology.reports' in request.endpoint %}active{% endif %}"><i class="fas fa-file-medical-alt"></i> <span>التقارير</span></a></li>
+                <li><a href="{{ url_for('radiology.worklist') }}" class="nav-link-luxury {% if 'radiology.worklist' in request.endpoint %}active{% endif %}"><i class="fas fa-clipboard-list"></i> <span>قائمة العمل</span></a></li>
+                <li><a href="{{ url_for('radiology.quality') }}" class="nav-link-luxury {% if 'radiology.quality' in request.endpoint %}active{% endif %}"><i class="fas fa-shield-alt"></i> <span>الجودة</span></a></li>
             </ul>
         </div>
-        
+
         {% elif current_user.role == 'accountant' %}
         <div class="nav-section">
-            <h4 class="nav-section-title">المحاسب</h4>
+            <h6 class="nav-section-title">المحاسبة</h6>
             <ul class="nav-list">
-                <li><a href="{{ url_for('accountant.dashboard') }}" class="nav-link {% if request.endpoint and 'accountant' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-calculator"></i> لوحة التحكم
-                </a></li>
-                <li><a href="{{ url_for('accountant.payments') }}" class="nav-link {% if request.endpoint == 'accountant.payments' %}active{% endif %}">
-                    <i class="fas fa-credit-card"></i> إدارة المدفوعات
-                </a></li>
-                <li><a href="{{ url_for('accountant.financial_reports') }}" class="nav-link {% if request.endpoint == 'accountant.financial_reports' %}active{% endif %}">
-                    <i class="fas fa-chart-line"></i> التقارير المالية
-                </a></li>
+                <li><a href="{{ url_for('accountant.dashboard') }}" class="nav-link-luxury {% if 'accountant.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-calculator"></i> <span>لوحة التحكم</span></a></li>
+                <li><a href="{{ url_for('accountant.payments') }}" class="nav-link-luxury {% if 'accountant.payments' in request.endpoint %}active{% endif %}"><i class="fas fa-money-check-alt"></i> <span>المدفوعات</span></a></li>
+                <li><a href="{{ url_for('accountant.financial') }}" class="nav-link-luxury {% if 'accountant.financial' in request.endpoint %}active{% endif %}"><i class="fas fa-chart-line"></i> <span>التقارير المالية</span></a></li>
             </ul>
         </div>
-        
+        <div class="nav-section">
+            <h6 class="nav-section-title">المالية العامة</h6>
+            <ul class="nav-list">
+                <li><a href="{{ url_for('finance.dashboard') }}" class="nav-link-luxury {% if 'finance.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-wallet"></i> <span>المالية</span></a></li>
+                <li><a href="{{ url_for('finance.payments') }}" class="nav-link-luxury {% if 'finance.payments' in request.endpoint %}active{% endif %}"><i class="fas fa-file-invoice-dollar"></i> <span>فواتير المالية</span></a></li>
+                <li><a href="{{ url_for('finance.audit') }}" class="nav-link-luxury {% if 'finance.audit' in request.endpoint %}active{% endif %}"><i class="fas fa-search-dollar"></i> <span>التدقيق</span></a></li>
+            </ul>
+        </div>
+
         {% elif current_user.role == 'pharmacist' %}
         <div class="nav-section">
-            <h4 class="nav-section-title">الصيدلية</h4>
+            <h6 class="nav-section-title">الصيدلية</h6>
             <ul class="nav-list">
-                <li><a href="{{ url_for('medication.dashboard') }}" class="nav-link {% if request.endpoint and 'medication' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-pills"></i> لوحة التحكم
-                </a></li>
-                <li><a href="{{ url_for('medication.list_medications') }}" class="nav-link {% if request.endpoint == 'medication.list_medications' %}active{% endif %}">
-                    <i class="fas fa-list"></i> قائمة الأدوية
-                </a></li>
-                <li><a href="{{ url_for('medication.stock_alerts') }}" class="nav-link {% if request.endpoint == 'medication.stock_alerts' %}active{% endif %}">
-                    <i class="fas fa-exclamation-triangle"></i> تنبيهات المخزون
-                </a></li>
+                <li><a href="{{ url_for('medication.dashboard') }}" class="nav-link-luxury {% if 'medication.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-pills"></i> <span>لوحة التحكم</span></a></li>
+                <li><a href="{{ url_for('medication.list_medications') }}" class="nav-link-luxury {% if 'medication.list_medications' in request.endpoint %}active{% endif %}"><i class="fas fa-capsules"></i> <span>قائمة الأدوية</span></a></li>
+                <li><a href="{{ url_for('medication.stock_alerts') }}" class="nav-link-luxury {% if 'medication.stock_alerts' in request.endpoint %}active{% endif %}"><i class="fas fa-exclamation-triangle"></i> <span>تنبيهات المخزون</span></a></li>
+                <li><a href="{{ url_for('medication.supply_requests') }}" class="nav-link-luxury {% if 'medication.supply_requests' in request.endpoint %}active{% endif %}"><i class="fas fa-truck-loading"></i> <span>طلبات التوريد</span></a></li>
+                <li><a href="{{ url_for('medication.interactions') }}" class="nav-link-luxury {% if 'medication.interactions' in request.endpoint %}active{% endif %}"><i class="fas fa-exchange-alt"></i> <span>التداخلات الدوائية</span></a></li>
+                <li><a href="{{ url_for('medication.consumption_report') }}" class="nav-link-luxury {% if 'medication.consumption_report' in request.endpoint %}active{% endif %}"><i class="fas fa-chart-line"></i> <span>تقرير الاستهلاك</span></a></li>
             </ul>
         </div>
-        
+
         {% elif current_user.role == 'nurse' %}
         <div class="nav-section">
-            <h4 class="nav-section-title">التمريض</h4>
+            <h6 class="nav-section-title">التمريض</h6>
             <ul class="nav-list">
-                <li><a href="{{ url_for('nurse.dashboard') }}" class="nav-link {% if request.endpoint and 'nurse' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-user-nurse"></i> لوحة التحكم
-                </a></li>
-                <li><a href="{{ url_for('nurse.patient_care') }}" class="nav-link {% if request.endpoint == 'nurse.patient_care' %}active{% endif %}">
-                    <i class="fas fa-heartbeat"></i> رعاية المرضى
-                </a></li>
-                <li><a href="{{ url_for('nurse.medication_administration') }}" class="nav-link {% if request.endpoint == 'nurse.medication_administration' %}active{% endif %}">
-                    <i class="fas fa-pills"></i> إعطاء الأدوية
-                </a></li>
-                <li><a href="{{ url_for('nurse.patient_monitoring') }}" class="nav-link {% if request.endpoint == 'nurse.patient_monitoring' %}active{% endif %}">
-                    <i class="fas fa-eye"></i> مراقبة المرضى
-                </a></li>
+                <li><a href="{{ url_for('nurse.dashboard') }}" class="nav-link-luxury {% if 'nurse.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-user-nurse"></i> <span>لوحة التحكم</span></a></li>
+                <li><a href="{{ url_for('nurse.patient_care') }}" class="nav-link-luxury {% if 'nurse.patient_care' in request.endpoint %}active{% endif %}"><i class="fas fa-heartbeat"></i> <span>رعاية المرضى</span></a></li>
+                <li><a href="{{ url_for('nurse.vital_signs') }}" class="nav-link-luxury {% if 'nurse.vital_signs' in request.endpoint %}active{% endif %}"><i class="fas fa-notes-medical"></i> <span>العلامات الحيوية</span></a></li>
+                <li><a href="{{ url_for('nurse.medications') }}" class="nav-link-luxury {% if 'nurse.medications' in request.endpoint %}active{% endif %}"><i class="fas fa-pills"></i> <span>الأدوية</span></a></li>
+                <li><a href="{{ url_for('nurse.tasks') }}" class="nav-link-luxury {% if 'nurse.tasks' in request.endpoint %}active{% endif %}"><i class="fas fa-tasks"></i> <span>المهام</span></a></li>
+                <li><a href="{{ url_for('nurse.reports') }}" class="nav-link-luxury {% if 'nurse.reports' in request.endpoint %}active{% endif %}"><i class="fas fa-chart-bar"></i> <span>تقرير التمريض</span></a></li>
             </ul>
         </div>
         {% endif %}
+        
+        <!-- Bottom Section (Logout) -->
+        <div class="nav-section mt-auto pt-2 border-top border-secondary">
+             <ul class="nav-list">
+                <li>
+                    <a href="{{ url_for('auth.logout') }}" class="nav-link-luxury text-danger">
+                        <i class="fas fa-sign-out-alt"></i> <span>تسجيل الخروج</span>
+                    </a>
+                </li>
+             </ul>
+        </div>
     </nav>
 </aside>
 {% endif %}

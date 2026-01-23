@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}تقرير مالي{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0 text-primary">التقرير المالي</h2>
+                    <a href="{{ url_for('accountant.dashboard') }}" class="btn btn-secondary">رجوع</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">الإجماليات</div>
+                <div class="card-body">
+                    <div class="mb-2"><strong>إجمالي المدفوعات:</strong> {{ report.total_payments }}</div>
+                    <div class="mb-2"><strong>نقداً:</strong> {{ report.cash_payments }}</div>
+                    <div class="mb-2"><strong>بطاقة:</strong> {{ report.card_payments }}</div>
+                    <div class="mb-2"><strong>تأمين:</strong> {{ report.insurance_payments }}</div>
+                    <div class="mb-2"><strong>عدد العمليات:</strong> {{ report.payments_count }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">الفترة</div>
+                <div class="card-body">
+                    <div class="mb-2"><strong>من:</strong> {{ report.start_date }}</div>
+                    <div class="mb-2"><strong>إلى:</strong> {{ report.end_date }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

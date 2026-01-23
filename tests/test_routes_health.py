@@ -1,0 +1,23 @@
+import unittest
+from app_factory import create_app, db
+
+
+class HealthRoutesTestCase(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app('testing')
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        self.client = self.app.test_client()
+
+    def tearDown(self):
+        db.session.remove()
+        self.ctx.pop()
+
+    def test_main_health(self):
+        r = self.client.get('/health')
+        self.assertIn(r.status_code, (200, 503))
+        self.assertIn('application/json', r.content_type)
+
+
+if __name__ == '__main__':
+    unittest.main()

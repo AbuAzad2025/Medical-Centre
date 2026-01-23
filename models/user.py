@@ -1,10 +1,10 @@
 """
 نموذج المستخدم - User Model (نسخة نهائية)
 """
-from datetime import datetime
+from datetime import datetime, time, date, timezone
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import Index, CheckConstraint
+from sqlalchemy import Index, CheckConstraint, event
 from app_factory import db
 
 
@@ -26,12 +26,15 @@ class User(UserMixin, db.Model):
     )
 
     phone = db.Column(db.String(20), nullable=True)
+    doctor_room = db.Column(db.String(50), nullable=True)
     is_active = db.Column(db.Boolean, default=True, index=True)
     is_admin = db.Column(db.Boolean, default=False, index=True)
+    digital_signature = db.Column(db.Text, nullable=True)
 
     last_login = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, index=True)
+    session_version = db.Column(db.Integer, default=0, nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=db.func.now(), nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now(), nullable=False, index=True)
 
     __table_args__ = (
         CheckConstraint("length(username) >= 3", name='chk_user_username_len'),
@@ -56,14 +59,14 @@ class User(UserMixin, db.Model):
         'Visit',
         foreign_keys='Visit.doctor_id',
         back_populates='doctor',
-        lazy='selectin'
+        lazy='select'
     )
 
     doctor_appointments = db.relationship(
         'Appointment',
         foreign_keys='Appointment.doctor_id',
         back_populates='doctor',
-        lazy='selectin'
+        lazy='select'
     )
 
     # علاقات التدقيق
@@ -71,7 +74,7 @@ class User(UserMixin, db.Model):
         'AuditTrail',
         foreign_keys='AuditTrail.user_id',
         back_populates='user',
-        lazy='selectin'
+        lazy='select'
     )
 
     # علاقات سجلات النظام
@@ -79,7 +82,7 @@ class User(UserMixin, db.Model):
         'SystemLog',
         foreign_keys='SystemLog.user_id',
         back_populates='user',
-        lazy='selectin'
+        lazy='select'
     )
 
     # علاقات أحداث الأمان
@@ -87,7 +90,7 @@ class User(UserMixin, db.Model):
         'SecurityEvent',
         foreign_keys='SecurityEvent.user_id',
         back_populates='user',
-        lazy='selectin'
+        lazy='select'
     )
 
     # علاقات أحداث الأمان المحلولة
@@ -95,7 +98,22 @@ class User(UserMixin, db.Model):
         'SecurityEvent',
         foreign_keys='SecurityEvent.resolved_by',
         back_populates='resolver',
-        lazy='selectin'
+        lazy='select'
+    )
+    
+    # الإشعارات
+    notifications = db.relationship(
+        'Notification',
+        foreign_keys='Notification.recipient_id',
+        back_populates='recipient',
+        lazy='select'
+    )
+    
+    sent_notifications = db.relationship(
+        'Notification',
+        foreign_keys='Notification.sender_id',
+        back_populates='sender',
+        lazy='select'
     )
 
     # علاقات إعدادات النظام
@@ -111,6 +129,21 @@ class User(UserMixin, db.Model):
         foreign_keys='SystemConfig.updated_by',
         back_populates='updater',
         lazy='selectin'
+    )
+
+    # علاقات النسخ الاحتياطي
+    created_backups = db.relationship(
+        'Backup',
+        foreign_keys='Backup.created_by',
+        back_populates='creator',
+        lazy='select'
+    )
+
+    restored_backups = db.relationship(
+        'Backup',
+        foreign_keys='Backup.last_restore_by',
+        back_populates='last_restore_user',
+        lazy='select'
     )
 
     # علاقات نظام الصلاحيات
@@ -150,13 +183,6 @@ class User(UserMixin, db.Model):
         lazy='select'
     )
     
-    # علاقة الزيارات كطبيب
-    doctor_visits = db.relationship(
-        'Visit',
-        foreign_keys='Visit.doctor_id',
-        back_populates='doctor',
-        lazy='select'
-    )
 
     # علاقات الإشعارات
     notifications = db.relationship(
@@ -173,11 +199,97 @@ class User(UserMixin, db.Model):
             lazy='selectin'
         )
 
+    # علاقات إدارة الملفات
+    uploaded_files = db.relationship(
+        'FileUpload',
+        foreign_keys='FileUpload.uploaded_by',
+        back_populates='uploader',
+        lazy='selectin'
+    )
+    file_permissions = db.relationship(
+        'FilePermission',
+        foreign_keys='FilePermission.user_id',
+        back_populates='user',
+        lazy='selectin'
+    )
+    granted_file_permissions = db.relationship(
+        'FilePermission',
+        foreign_keys='FilePermission.granted_by',
+        back_populates='granter',
+        lazy='selectin'
+    )
+    created_file_categories = db.relationship(
+        'FileCategory',
+        foreign_keys='FileCategory.created_by',
+        back_populates='creator',
+        lazy='selectin'
+    )
+
+    # علاقات إدارة المهام والمشاريع
+    assigned_tasks = db.relationship(
+        'Task',
+        foreign_keys='Task.assigned_to',
+        back_populates='assignee',
+        lazy='selectin'
+    )
+    created_tasks = db.relationship(
+        'Task',
+        foreign_keys='Task.assigned_by',
+        back_populates='assigner',
+        lazy='selectin'
+    )
+    task_comments = db.relationship(
+        'TaskComment',
+        foreign_keys='TaskComment.user_id',
+        back_populates='user',
+        lazy='selectin'
+    )
+    task_attachments = db.relationship(
+        'TaskAttachment',
+        foreign_keys='TaskAttachment.attached_by',
+        back_populates='attacher',
+        lazy='selectin'
+    )
+    managed_projects = db.relationship(
+        'Project',
+        foreign_keys='Project.project_manager',
+        back_populates='manager',
+        lazy='selectin'
+    )
+    created_projects = db.relationship(
+        'Project',
+        foreign_keys='Project.created_by',
+        back_populates='creator',
+        lazy='selectin'
+    )
+    project_tasks = db.relationship(
+        'ProjectTask',
+        foreign_keys='ProjectTask.added_by',
+        back_populates='adder',
+        lazy='selectin'
+    )
+    project_memberships = db.relationship(
+        'ProjectMember',
+        foreign_keys='ProjectMember.user_id',
+        back_populates='user',
+        lazy='selectin'
+    )
+    added_project_members = db.relationship(
+        'ProjectMember',
+        foreign_keys='ProjectMember.added_by',
+        back_populates='adder',
+        lazy='selectin'
+    )
+
     def set_password(self, password: str) -> None:
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
 
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
+
+    def get_id(self):
+        v = int(self.session_version or 0)
+        return f"{self.id}:{v}"
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"
@@ -193,7 +305,80 @@ class User(UserMixin, db.Model):
             "phone": self.phone,
             "is_active": self.is_active,
             "is_admin": self.is_admin,
+            "digital_signature": self.digital_signature,
             "last_login": self.last_login.isoformat() if self.last_login else None,
+            "session_version": int(self.session_version or 0),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
+    def get_role_display(self) -> str:
+        role_map = {
+            'admin': 'مدير النظام',
+            'manager': 'مدير',
+            'doctor': 'طبيب',
+            'nurse': 'ممرض',
+            'reception': 'استقبال',
+            'lab': 'مختبر',
+            'radiology': 'أشعة',
+            'accountant': 'محاسب',
+            'emergency': 'طوارئ',
+            'super_admin': 'مدير أعلى',
+            'user': 'مستخدم'
+        }
+        return role_map.get(self.role, self.role)
+
+    def is_admin_user(self) -> bool:
+        return bool(self.is_admin or self.role in ('admin', 'super_admin', 'manager'))
+
+
+class StaffWorkSchedule(db.Model):
+    __tablename__ = 'staff_work_schedules'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    day_of_week = db.Column(db.Integer, nullable=False, index=True)
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
+    is_active = db.Column(db.Boolean, default=True, index=True)
+    created_at = db.Column(db.DateTime, default=db.func.now(), nullable=False, index=True)
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'day_of_week', name='uq_staff_schedule_user_day'),
+    )
+
+    user = db.relationship('User', backref=db.backref('schedules', cascade='all, delete-orphan', lazy='selectin'))
+
+
+class StaffAbsence(db.Model):
+    __tablename__ = 'staff_absences'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    start_date = db.Column(db.Date, nullable=False, index=True)
+    end_date = db.Column(db.Date, nullable=False, index=True)
+    reason = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+
+    user = db.relationship('User', backref=db.backref('absences', cascade='all, delete-orphan', lazy='selectin'))
+
+
+@event.listens_for(User, 'after_insert')
+def _create_default_schedule(mapper, connection, target):
+    try:
+        if target.role in ('doctor', 'lab', 'radiology'):
+            tbl = StaffWorkSchedule.__table__
+            default_days = [0, 1, 2, 3, 4]
+            for d in default_days:
+                connection.execute(
+                    tbl.insert().values(
+                        user_id=target.id,
+                        day_of_week=d,
+                        start_time=time(9, 0),
+                        end_time=time(17, 0),
+                        is_active=True,
+                        created_at=datetime.now(timezone.utc),
+                    )
+                )
+    except Exception:
+        pass

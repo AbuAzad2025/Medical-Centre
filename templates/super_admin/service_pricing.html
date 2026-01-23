@@ -23,6 +23,7 @@
                                         <tr>
                                             <th>نوع التسعير</th>
                                             <th>السعر</th>
+                                            <th>الخصم</th>
                                             <th>الوصف</th>
                                             <th>الإجراءات</th>
                                         </tr>
@@ -33,6 +34,15 @@
                                             <tr>
                                                 <td>{{ price.price_type }}</td>
                                                 <td><span class="badge bg-success">{{ price.price }} ل.س</span></td>
+                                                <td>
+                                                    {% if price.discount_percentage %}
+                                                    <span class="badge bg-warning">{{ price.discount_percentage }}%</span>
+                                                    {% elif price.discount_amount %}
+                                                    <span class="badge bg-warning">{{ price.discount_amount }} ل.س</span>
+                                                    {% else %}
+                                                    <span class="text-muted">لا يوجد</span>
+                                                    {% endif %}
+                                                </td>
                                                 <td>{{ price.description or '-' }}</td>
                                                 <td>
                                                     <button class="btn btn-sm btn-danger" onclick="deletePricing({{ price.id }})">
@@ -76,7 +86,26 @@
                                         <div class="mb-3">
                                             <label for="price" class="form-label">السعر</label>
                                             <input type="number" class="form-control" id="price" name="price" 
-                                                   step="0.01" required>
+                                                   step="0.01" min="0" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="currency" class="form-label">العملة</label>
+                                            <select class="form-select" id="currency" name="currency">
+                                                <option value="ILS">شيكل</option>
+                                                <option value="USD">دولار</option>
+                                                <option value="EUR">يورو</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="discount_percentage" class="form-label">الحد الأقصى للخصم (%)</label>
+                                            <input type="number" class="form-control" id="discount_percentage" name="discount_percentage" step="0.01" min="0" max="100">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="discount_amount" class="form-label">الخصم الثابت</label>
+                                            <input type="number" class="form-control" id="discount_amount" name="discount_amount" step="0.01" min="0">
                                         </div>
                                         
                                         <div class="mb-3">
@@ -110,10 +139,14 @@
 
 <script>
 function deletePricing(pricingId) {
-    if (confirm('هل أنت متأكد من حذف هذا التسعير؟')) {
-        // سيتم إضافة route للحذف لاحقاً
-        alert('سيتم تفعيل الحذف قريباً');
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل أنت متأكد من حذف هذا التسعير؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، حذف',
+        cancelButtonText: 'إلغاء'
+    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'قريباً', text: 'سيتم تفعيل الحذف قريباً', icon: 'info' }); } });
 }
 </script>
 {% endblock %}

@@ -124,7 +124,7 @@
                                     </div>
                                     <div class="unit-info">
                                         <h6 class="unit-name">{{ unit.name }}</h6>
-                                        <span class="badge bg-{{ 'success' if unit.status == 'active' else 'danger' }}">
+                                        <span id="badge-{{ unit_key }}-status" class="badge bg-{{ 'success' if unit.status == 'active' else 'danger' }}">
                                             {{ 'نشط' if unit.status == 'active' else 'معطل' }}
                                         </span>
                                     </div>
@@ -134,32 +134,32 @@
                                         {% if unit_key == 'reception' %}
                                             <div class="stat-item">
                                                 <span class="stat-label">الزيارات المعلقة:</span>
-                                                <span class="stat-value">{{ unit.pending_visits }}</span>
+                                                <span id="stat-reception-pending_visits" class="stat-value">{{ unit.pending_visits }}</span>
                                             </div>
                                         {% elif unit_key == 'doctor' %}
                                             <div class="stat-item">
                                                 <span class="stat-label">الزيارات قيد التنفيذ:</span>
-                                                <span class="stat-value">{{ unit.in_progress_visits }}</span>
+                                                <span id="stat-doctor-in_progress_visits" class="stat-value">{{ unit.in_progress_visits }}</span>
                                             </div>
                                         {% elif unit_key == 'emergency' %}
                                             <div class="stat-item">
                                                 <span class="stat-label">حالات الطوارئ:</span>
-                                                <span class="stat-value">{{ unit.emergency_visits }}</span>
+                                                <span id="stat-emergency-emergency_visits" class="stat-value">{{ unit.emergency_visits }}</span>
                                             </div>
                                         {% elif unit_key == 'lab' %}
                                             <div class="stat-item">
                                                 <span class="stat-label">طلبات المختبر:</span>
-                                                <span class="stat-value">{{ unit.lab_requests }}</span>
+                                                <span id="stat-lab-lab_requests" class="stat-value">{{ unit.lab_requests }}</span>
                                             </div>
                                         {% elif unit_key == 'radiology' %}
                                             <div class="stat-item">
                                                 <span class="stat-label">طلبات الأشعة:</span>
-                                                <span class="stat-value">{{ unit.radiology_requests }}</span>
+                                                <span id="stat-radiology-radiology_requests" class="stat-value">{{ unit.radiology_requests }}</span>
                                             </div>
                                         {% elif unit_key == 'accountant' %}
                                             <div class="stat-item">
                                                 <span class="stat-label">الفواتير المفتوحة:</span>
-                                                <span class="stat-value">{{ unit.open_invoices }}</span>
+                                                <span id="stat-accountant-open_invoices" class="stat-value">{{ unit.open_invoices }}</span>
                                             </div>
                                         {% endif %}
                                     </div>
@@ -491,25 +491,26 @@ function exportMonitoringReport() {
 }
 
 function viewUnitDetails(unitKey) {
-    // عرض تفاصيل الوحدة
-    alert('عرض تفاصيل الوحدة: ' + unitKey);
+    Swal.fire({ title: 'تفاصيل الوحدة', text: 'عرض تفاصيل الوحدة: ' + unitKey, icon: 'info' });
 }
 
 function refreshUnit(unitKey) {
-    // تحديث حالة الوحدة
-    alert('تحديث الوحدة: ' + unitKey);
+    Swal.fire({ title: 'تحديث', text: 'تحديث الوحدة: ' + unitKey, icon: 'info' });
 }
 
 function clearLogs() {
-    if (confirm('هل تريد مسح جميع السجلات؟')) {
-        // مسح السجلات
-        alert('تم مسح السجلات');
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل تريد مسح جميع السجلات؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم مسح السجلات', icon: 'success' }); } });
 }
 
 function exportLogs() {
-    // تصدير السجلات
-    alert('تم تصدير السجلات');
+    Swal.fire({ title: 'تم', text: 'تم تصدير السجلات', icon: 'success' });
 }
 
 // تحديث تلقائي كل دقيقة
@@ -529,11 +530,35 @@ setInterval(function() {
 }, 60000); // دقيقة واحدة
 
 function updateUnitStatus(unitsStatus) {
-    // تحديث حالة الوحدات في الصفحة
+    const map = {
+        reception: 'pending_visits',
+        doctor: 'in_progress_visits',
+        emergency: 'emergency_visits',
+        lab: 'lab_requests',
+        radiology: 'radiology_requests',
+        accountant: 'open_invoices'
+    };
     Object.keys(unitsStatus).forEach(unitKey => {
         const unit = unitsStatus[unitKey];
-        // تحديث الإحصائيات للوحدة
-        console.log('Updated unit:', unitKey, unit);
+        const statProp = map[unitKey];
+        const statEl = document.getElementById(`stat-${unitKey}-${statProp}`);
+        if (statEl) {
+            statEl.textContent = unit[statProp] ?? 0;
+        }
+        const badgeEl = document.getElementById(`badge-${unitKey}-status`);
+        if (badgeEl) {
+            const active = unit.status === 'active';
+            let cls = active ? 'bg-success' : 'bg-danger';
+            const val = unit[statProp] ?? 0;
+            if (active) {
+                if ((unitKey === 'lab' || unitKey === 'radiology') && val > 40) cls = 'bg-danger';
+                else if ((unitKey === 'lab' || unitKey === 'radiology') && val > 20) cls = 'bg-warning';
+                else if (unitKey === 'emergency' && val > 15) cls = 'bg-danger';
+                else if (unitKey === 'emergency' && val > 8) cls = 'bg-warning';
+            }
+            badgeEl.className = `badge ${cls}`;
+            badgeEl.textContent = active ? 'نشط' : 'معطل';
+        }
     });
 }
 </script>

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}دفع رسوم الحجز{% endblock %}
+{% block content %}
+<div class="container">
+  <h2 class="mb-3">دفع رسوم الحجز</h2>
+  <form method="post" action="{{ url_for('booking.payment', booking_id=booking.id) }}" class="card p-3 shadow-sm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3"><label class="form-label">المبلغ</label><input name="amount" type="number" step="0.01" class="form-control" value="50"></div>
+    <div class="mb-3"><label class="form-label">طريقة الدفع</label>
+      <select name="payment_method" class="form-select">
+        <option value="CASH">نقدي</option>
+        <option value="CARD">بطاقة</option>
+        <option value="INSURANCE">تأمين</option>
+        <option value="WIRE">تحويل</option>
+      </select>
+    </div>
+    <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">دفع</button><a class="btn btn-secondary" href="{{ url_for('booking.confirmation', booking_id=booking.id) }}">رجوع</a></div>
+  </form>
+</div>
+{% endblock %}

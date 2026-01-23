@@ -3,7 +3,7 @@
 Medical System Workflow Models
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from app_factory import db
 
 class WorkflowStep(db.Model):
@@ -18,8 +18,8 @@ class WorkflowStep(db.Model):
     step_type = db.Column(db.String(50), nullable=False)  # reception, doctor, lab, radiology, pharmacy, billing
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # العلاقات
     department = db.relationship('Department', backref='workflow_steps')
@@ -63,10 +63,10 @@ class PatientWorkflow(db.Model):
     actual_duration = db.Column(db.Integer, nullable=True)  # بالدقائق
     
     # تواريخ
-    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    started_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     completed_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # العلاقات
     patient = db.relationship('Patient', backref='workflows')
@@ -124,7 +124,7 @@ class PatientWorkflow(db.Model):
         if self.completed_at:
             return (self.completed_at - self.started_at).total_seconds() / 60
         else:
-            return (datetime.utcnow() - self.started_at).total_seconds() / 60
+            return (datetime.now(timezone.utc) - self.started_at).total_seconds() / 60
     
     def to_dict(self):
         """تحويل إلى قاموس"""
@@ -170,8 +170,8 @@ class WorkflowTransfer(db.Model):
     transferred_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     # تواريخ
-    transferred_at = db.Column(db.DateTime, default=datetime.utcnow)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    transferred_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # العلاقات
     workflow = db.relationship('PatientWorkflow', backref='transfers')
@@ -216,7 +216,7 @@ class WorkflowQueue(db.Model):
     status = db.Column(db.String(20), default='waiting')  # waiting, called, in_progress, completed
     
     # تواريخ
-    queued_at = db.Column(db.DateTime, default=datetime.utcnow)
+    queued_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     called_at = db.Column(db.DateTime, nullable=True)
     started_at = db.Column(db.DateTime, nullable=True)
     completed_at = db.Column(db.DateTime, nullable=True)
@@ -256,7 +256,7 @@ class WorkflowQueue(db.Model):
         elif self.started_at:
             return (self.started_at - self.queued_at).total_seconds() / 60
         else:
-            return (datetime.utcnow() - self.queued_at).total_seconds() / 60
+            return (datetime.now(timezone.utc) - self.queued_at).total_seconds() / 60
     
     def to_dict(self):
         """تحويل إلى قاموس"""

@@ -19,13 +19,10 @@ class VisitForm(FlaskForm):
     
     # معلومات الزيارة
     visit_type = SelectField('نوع الزيارة', choices=[
-        ('consultation', 'استشارة'),
-        ('follow_up', 'متابعة'),
-        ('emergency', 'طوارئ'),
-        ('surgery', 'عملية جراحية'),
-        ('checkup', 'فحص دوري'),
-        ('vaccination', 'تطعيم'),
-        ('other', 'أخرى')
+        ('REGULAR', 'عادية'),
+        ('FOLLOW_UP', 'متابعة'),
+        ('CONSULTATION', 'استشارة'),
+        ('EMERGENCY', 'طوارئ')
     ], validators=[DataRequired()])
     
     visit_date = DateField('تاريخ الزيارة', validators=[DataRequired()])
@@ -52,10 +49,10 @@ class VisitForm(FlaskForm):
     
     # معلومات الدفع
     payment_status = SelectField('حالة الدفع', choices=[
-        ('pending', 'معلق'),
-        ('paid', 'مدفوع'),
-        ('partial', 'مدفوع جزئياً'),
-        ('insurance', 'تأمين')
+        ('PENDING', 'معلق'),
+        ('PAID', 'مدفوع'),
+        ('PARTIAL', 'جزئي'),
+        ('DEBT', 'دين')
     ], validators=[DataRequired()])
     
     total_amount = DecimalField('المبلغ الإجمالي', validators=[Optional(), NumberRange(min=0)])
@@ -83,13 +80,10 @@ class VisitEditForm(FlaskForm):
     
     # معلومات الزيارة
     visit_type = SelectField('نوع الزيارة', choices=[
-        ('consultation', 'استشارة'),
-        ('follow_up', 'متابعة'),
-        ('emergency', 'طوارئ'),
-        ('surgery', 'عملية جراحية'),
-        ('checkup', 'فحص دوري'),
-        ('vaccination', 'تطعيم'),
-        ('other', 'أخرى')
+        ('REGULAR', 'عادية'),
+        ('FOLLOW_UP', 'متابعة'),
+        ('CONSULTATION', 'استشارة'),
+        ('EMERGENCY', 'طوارئ')
     ], validators=[DataRequired()])
     
     visit_date = DateField('تاريخ الزيارة', validators=[DataRequired()])
@@ -116,10 +110,10 @@ class VisitEditForm(FlaskForm):
     
     # معلومات الدفع
     payment_status = SelectField('حالة الدفع', choices=[
-        ('pending', 'معلق'),
-        ('paid', 'مدفوع'),
-        ('partial', 'مدفوع جزئياً'),
-        ('insurance', 'تأمين')
+        ('PENDING', 'معلق'),
+        ('PAID', 'مدفوع'),
+        ('PARTIAL', 'جزئي'),
+        ('DEBT', 'دين')
     ], validators=[DataRequired()])
     
     total_amount = DecimalField('المبلغ الإجمالي', validators=[Optional(), NumberRange(min=0)])
@@ -127,11 +121,10 @@ class VisitEditForm(FlaskForm):
     
     # حالة الزيارة
     status = SelectField('حالة الزيارة', choices=[
-        ('scheduled', 'مجدولة'),
-        ('in_progress', 'قيد التنفيذ'),
-        ('completed', 'مكتملة'),
-        ('cancelled', 'ملغية'),
-        ('no_show', 'لم يحضر')
+        ('OPEN', 'مفتوحة'),
+        ('IN_PROGRESS', 'قيد التنفيذ'),
+        ('COMPLETED', 'مكتملة'),
+        ('ARCHIVED', 'مؤرشفة')
     ], validators=[DataRequired()])
     
     submit = SubmitField('حفظ التعديلات')
@@ -164,30 +157,26 @@ class VisitSearchForm(FlaskForm):
     
     visit_type = SelectField('نوع الزيارة', choices=[
         ('', 'جميع الأنواع'),
-        ('consultation', 'استشارة'),
-        ('follow_up', 'متابعة'),
-        ('emergency', 'طوارئ'),
-        ('surgery', 'عملية جراحية'),
-        ('checkup', 'فحص دوري'),
-        ('vaccination', 'تطعيم'),
-        ('other', 'أخرى')
+        ('REGULAR', 'عادية'),
+        ('FOLLOW_UP', 'متابعة'),
+        ('CONSULTATION', 'استشارة'),
+        ('EMERGENCY', 'طوارئ')
     ], validators=[Optional()])
     
     status = SelectField('حالة الزيارة', choices=[
         ('', 'جميع الحالات'),
-        ('scheduled', 'مجدولة'),
-        ('in_progress', 'قيد التنفيذ'),
-        ('completed', 'مكتملة'),
-        ('cancelled', 'ملغية'),
-        ('no_show', 'لم يحضر')
+        ('OPEN', 'مفتوحة'),
+        ('IN_PROGRESS', 'قيد التنفيذ'),
+        ('COMPLETED', 'مكتملة'),
+        ('ARCHIVED', 'مؤرشفة')
     ], validators=[Optional()])
     
     payment_status = SelectField('حالة الدفع', choices=[
         ('', 'جميع الحالات'),
-        ('pending', 'معلق'),
-        ('paid', 'مدفوع'),
-        ('partial', 'مدفوع جزئياً'),
-        ('insurance', 'تأمين')
+        ('PENDING', 'معلق'),
+        ('PAID', 'مدفوع'),
+        ('PARTIAL', 'جزئي'),
+        ('DEBT', 'دين')
     ], validators=[Optional()])
     
     date_from = DateField('من تاريخ', validators=[Optional()])

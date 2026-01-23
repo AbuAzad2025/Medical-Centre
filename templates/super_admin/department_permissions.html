@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}صلاحيات الأقسام{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary"><i class="fas fa-building me-2"></i>صلاحيات الأقسام</h2>
+            <div class="text-muted">الدور: <strong>{{ role.display_name or role.name_ar or role.name }}</strong></div>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('super_admin.manage_role_permissions', role_id=role.id) }}" class="btn btn-outline-primary">صلاحيات عامة</a>
+            <a href="{{ url_for('super_admin.roles') }}" class="btn btn-secondary">رجوع</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form method="POST" class="card border-0 shadow-sm">
+    <div class="card-body">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="min-width: 240px;">القسم</th>
+              <th class="text-center">وصول</th>
+              <th class="text-center">المرضى</th>
+              <th class="text-center">الزيارات</th>
+              <th class="text-center">المواعيد</th>
+              <th class="text-center">الموظفين</th>
+              <th class="text-center">تجاوز القيود</th>
+              <th class="text-center">إعدادات القسم</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set allp = perm_map.get(None) %}
+            <tr class="table-secondary">
+              <td><strong>جميع الأقسام</strong></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_all_can_access" {% if allp and allp.can_access %}checked{% endif %}></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_all_can_manage_patients" {% if allp and allp.can_manage_patients %}checked{% endif %}></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_all_can_manage_visits" {% if allp and allp.can_manage_visits %}checked{% endif %}></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_all_can_manage_appointments" {% if allp and allp.can_manage_appointments %}checked{% endif %}></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_all_can_manage_staff" {% if allp and allp.can_manage_staff %}checked{% endif %}></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_all_can_override_department_limits" {% if allp and allp.can_override_department_limits %}checked{% endif %}></td>
+              <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_all_can_manage_department_settings" {% if allp and allp.can_manage_department_settings %}checked{% endif %}></td>
+            </tr>
+
+            {% for d in departments %}
+              {% set p = perm_map.get(d.id) %}
+              <tr>
+                <td>{{ d.name_ar or d.name }}</td>
+                <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_{{ d.id }}_can_access" {% if p and p.can_access %}checked{% endif %}></td>
+                <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_{{ d.id }}_can_manage_patients" {% if p and p.can_manage_patients %}checked{% endif %}></td>
+                <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_{{ d.id }}_can_manage_visits" {% if p and p.can_manage_visits %}checked{% endif %}></td>
+                <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_{{ d.id }}_can_manage_appointments" {% if p and p.can_manage_appointments %}checked{% endif %}></td>
+                <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_{{ d.id }}_can_manage_staff" {% if p and p.can_manage_staff %}checked{% endif %}></td>
+                <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_{{ d.id }}_can_override_department_limits" {% if p and p.can_override_department_limits %}checked{% endif %}></td>
+                <td class="text-center"><input class="form-check-input" type="checkbox" name="dept_{{ d.id }}_can_manage_department_settings" {% if p and p.can_manage_department_settings %}checked{% endif %}></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary">حفظ</button>
+        <a href="{{ url_for('super_admin.roles') }}" class="btn btn-outline-secondary">إلغاء</a>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

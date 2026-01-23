@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}طلب أشعة للطوارئ{% endblock %}
+{% block content %}
+<div class="container">
+  <h2 class="mb-3">طلب أشعة للحالة #{{ emergency.id }}</h2>
+  <form method="post" action="{{ url_for('emergency.radiology_request', emergency_id=emergency.id) }}" class="card p-3 shadow-sm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="row g-3">
+      <div class="col-md-4"><label class="form-label">نوع التصوير</label><input name="imaging_type" class="form-control" required></div>
+      <div class="col-md-4"><label class="form-label">الجزء</label><input name="body_part" class="form-control"></div>
+      <div class="col-md-4"><label class="form-label">الأولوية</label><select name="urgency" class="form-select"><option>LOW</option><option>MEDIUM</option><option>HIGH</option></select></div>
+      <div class="col-12"><label class="form-label">السؤال السريري</label><input name="clinical_question" class="form-control"></div>
+      <div class="col-12"><label class="form-label">ملاحظات</label><textarea name="notes" class="form-control" rows="3"></textarea></div>
+    </div>
+    <button class="btn btn-primary mt-3" type="submit">إرسال</button>
+  </form>
+</div>
+{% endblock %}
+

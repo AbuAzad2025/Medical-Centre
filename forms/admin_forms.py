@@ -102,6 +102,7 @@ class UserForm(FlaskForm):
     username = StringField('اسم المستخدم', validators=[DataRequired(), Length(min=3, max=50)])
     email = StringField('البريد الإلكتروني', validators=[DataRequired(), Email()])
     phone = StringField('رقم الهاتف', validators=[Optional(), Length(max=20)])
+    doctor_room = StringField('غرفة الطبيب', validators=[Optional(), Length(max=50)])
     
     # معلومات المهنة
     role = SelectField('الدور', choices=[
@@ -157,6 +158,7 @@ class UserEditForm(FlaskForm):
     username = StringField('اسم المستخدم', validators=[DataRequired(), Length(min=3, max=50)])
     email = StringField('البريد الإلكتروني', validators=[DataRequired(), Email()])
     phone = StringField('رقم الهاتف', validators=[Optional(), Length(max=20)])
+    doctor_room = StringField('غرفة الطبيب', validators=[Optional(), Length(max=50)])
     
     # معلومات المهنة
     role = SelectField('الدور', choices=[

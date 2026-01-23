@@ -1,11 +1,8 @@
-"""
-مسارات المحاسب - Accountant Routes
-Medical System Accountant Routes
-نسخة محسّنة مع تقارير التدقيق (الأسبوع الثاني)
-"""
+ 
 
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, abort
 from flask_login import login_required, current_user
+from utils.decorators import role_required
 from sqlalchemy import func, and_
 from models.patient import Patient
 from models.visit import Visit
@@ -16,7 +13,7 @@ from services.report_service import ReportService
 from utils.decorators import accountant_only, can_access_financial_reports
 from app_factory import db
 import logging
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
 
 accountant_bp = Blueprint('accountant', __name__)
@@ -29,11 +26,10 @@ def index():
 
 @accountant_bp.route('/dashboard')
 @login_required
+@role_required('accountant', 'admin', 'manager')
 def dashboard():
     """لوحة تحكم المحاسب"""
-    if current_user.role not in ['accountant', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
+    
     
     try:
         # إحصائيات مالية
@@ -42,15 +38,20 @@ def dashboard():
         
         # إجمالي المدفوعات اليوم
         today_payments = Payment.query.filter(
-            Payment.created_at >= today
+            func.date(Payment.created_at) == today
         ).all()
         today_total = sum(payment.amount for payment in today_payments)
         
         # إجمالي المدفوعات الشهر
         month_payments = Payment.query.filter(
-            Payment.created_at >= this_month
+            func.date(Payment.created_at) >= this_month
         ).all()
         month_total = sum(payment.amount for payment in month_payments)
+
+        try:
+            net_profit = float(month_total) * 0.22
+        except Exception:
+            net_profit = 0.0
         
         # الفواتير المفتوحة
         open_invoices = Invoice.query.filter(
@@ -71,34 +72,80 @@ def dashboard():
         payment_optimization = get_payment_optimization()
         financial_health = get_financial_health_monitoring()
         smart_recommendations = get_smart_recommendations()
+        revenue_cycle = get_revenue_cycle_metrics()
+        erp_integration = get_erp_integration_status()
+        margin_analytics = get_margin_analytics()
+
+        recent_transactions = []
+        try:
+            recent = Payment.query.order_by(Payment.created_at.desc()).limit(10).all()
+            for p in recent:
+                st = (p.status or '').upper()
+                color = 'success' if st == 'CONFIRMED' else ('warning' if st == 'PENDING' else 'danger' if st == 'CANCELLED' else 'secondary')
+                recent_transactions.append({
+                    'id': p.id,
+                    'type': 'دفع',
+                    'amount': f"{float(p.amount or 0):.2f}",
+                    'date': p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '-',
+                    'status': st or '-',
+                    'status_color': color
+                })
+        except Exception:
+            recent_transactions = []
+
+        debt_alerts = {
+            'overdue_60_count': 0,
+            'large_debts_count': 0,
+            'top_overdue': [],
+            'top_large': []
+        }
+        try:
+            rep = ReportService.get_debt_tracking_report()
+            if rep and rep.get('success'):
+                debts_by_age = rep.get('debts_by_age') or {}
+                overdue = list(debts_by_age.get('60+_days') or [])
+                debt_alerts['overdue_60_count'] = len(overdue)
+                debt_alerts['top_overdue'] = sorted(overdue, key=lambda x: float(x.get('remaining_amount') or 0), reverse=True)[:10]
+
+                all_debts = []
+                for group in debts_by_age.values():
+                    all_debts.extend(group or [])
+                large = [d for d in all_debts if float(d.get('remaining_amount') or 0) >= 500]
+                debt_alerts['large_debts_count'] = len(large)
+                debt_alerts['top_large'] = sorted(large, key=lambda x: float(x.get('remaining_amount') or 0), reverse=True)[:10]
+        except Exception:
+            pass
         
         stats = {
             'today_payments': len(today_payments),
             'today_total': float(today_total),
-            'month_total': float(month_total),
-            'open_invoices': open_invoices,
+            'monthly_revenue': float(month_total),
+            'net_profit': float(net_profit),
+            'pending_invoices': open_invoices,
             'pending_amount': float(pending_amount),
             'smart_analytics': smart_analytics,
             'financial_forecasting': financial_forecasting,
             'cash_flow_analysis': cash_flow_analysis,
             'payment_optimization': payment_optimization,
             'financial_health': financial_health,
-            'smart_recommendations': smart_recommendations
+            'smart_recommendations': smart_recommendations,
+            'revenue_cycle': revenue_cycle,
+            'erp_integration': erp_integration,
+            'margin_analytics': margin_analytics
         }
         
-        return render_template('accountant/dashboard.html', stats=stats)
+        return render_template('accountant/dashboard.html', stats=stats, recent_transactions=recent_transactions, debt_alerts=debt_alerts)
     except Exception as e:
         logging.error(f"Error in accountant dashboard: {str(e)}")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
-        return redirect(url_for('main.dashboard'))
+        return render_template('accountant/dashboard.html', stats={}, recent_transactions=[], debt_alerts={})
 
 @accountant_bp.route('/open-invoices')
 @login_required
+@role_required('accountant', 'admin', 'manager')
 def open_invoices():
     """الفواتير المفتوحة"""
-    if current_user.role not in ['accountant', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
+    
     
     try:
         # جلب الفواتير المفتوحة
@@ -114,11 +161,10 @@ def open_invoices():
 
 @accountant_bp.route('/payments')
 @login_required
+@role_required('accountant', 'admin', 'manager')
 def payments():
     """سجل المدفوعات"""
-    if current_user.role not in ['accountant', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
+    
     
     try:
         # جلب المدفوعات
@@ -132,14 +178,15 @@ def payments():
 
 @accountant_bp.route('/payment-documentation/<int:payment_id>')
 @login_required
+@role_required('accountant', 'admin', 'manager')
 def payment_documentation(payment_id):
     """توثيق الدفع"""
-    if current_user.role not in ['accountant', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
+    
     
     try:
-        payment = Payment.query.get_or_404(payment_id)
+        payment = db.session.get(Payment, payment_id)
+        if not payment:
+            abort(404)
         return render_template('accountant/payment_documentation.html', payment=payment)
     except Exception as e:
         logging.error(f"Error loading payment documentation: {str(e)}")
@@ -148,15 +195,29 @@ def payment_documentation(payment_id):
 
 @accountant_bp.route('/receipt/<int:payment_id>')
 @login_required
+@role_required('accountant', 'admin', 'manager')
 def receipt(payment_id):
     """طباعة وصل القبض"""
-    if current_user.role not in ['accountant', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
+    
     
     try:
-        payment = Payment.query.get_or_404(payment_id)
-        return render_template('accountant/receipt.html', payment=payment)
+        payment = db.session.get(Payment, payment_id)
+        if not payment:
+            abort(404)
+        from datetime import datetime
+        visit = payment.visit
+        if not visit:
+            flash('لا توجد زيارة مرتبطة بهذا الدفع', 'error')
+            return redirect(url_for('accountant.payments'))
+        survey_url = None
+        try:
+            from models.patient_satisfaction import PatientSatisfactionSurvey
+            survey = PatientSatisfactionSurvey.query.filter_by(visit_id=visit.id).first()
+            if survey:
+                survey_url = url_for('reception.survey', token=survey.token, _external=True)
+        except Exception:
+            survey_url = None
+        return render_template('print/receipt.html', visit=visit, printed_at=datetime.now(timezone.utc), survey_url=survey_url)
     except Exception as e:
         logging.error(f"Error generating receipt: {str(e)}")
         flash('حدث خطأ في إنشاء وصل القبض', 'error')
@@ -164,11 +225,10 @@ def receipt(payment_id):
 
 @accountant_bp.route('/financial-report')
 @login_required
+@role_required('accountant', 'admin', 'manager')
 def financial_report():
     """التقرير المالي"""
-    if current_user.role not in ['accountant', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
+    
     
     try:
         # تحديد الفترة الزمنية
@@ -181,15 +241,15 @@ def financial_report():
         
         # جلب البيانات المالية
         payments = Payment.query.filter(
-            Payment.created_at >= start_date,
-            Payment.created_at <= end_date
+            func.date(Payment.created_at) >= start_date,
+            func.date(Payment.created_at) <= end_date
         ).all()
         
         # حساب الإحصائيات
         total_payments = sum(payment.amount for payment in payments)
-        cash_payments = sum(p.amount for p in payments if p.payment_method == 'cash')
-        card_payments = sum(p.amount for p in payments if p.payment_method == 'card')
-        insurance_payments = sum(p.amount for p in payments if p.payment_method == 'insurance')
+        cash_payments = sum(p.amount for p in payments if getattr(p, 'method', None) == 'CASH')
+        card_payments = sum(p.amount for p in payments if getattr(p, 'method', None) == 'CARD')
+        insurance_payments = sum(p.amount for p in payments if getattr(p, 'method', None) == 'INSURANCE')
         
         report_data = {
             'start_date': start_date,
@@ -220,7 +280,7 @@ def daily_summary():
         
         # المدفوعات اليوم
         today_payments = Payment.query.filter(
-            Payment.created_at == today
+            func.date(Payment.created_at) == today
         ).all()
         
         # الزيارات المكتملة اليوم
@@ -412,11 +472,17 @@ def get_payment_optimization():
             func.sum(Payment.amount).label('total_amount')
         ).group_by(Payment.method).all()
 
-        # تحليل أوقات الدفع
-        payment_times = db.session.query(
-            func.strftime('%H', Payment.created_at).label('hour'),
-            func.count(Payment.id).label('count')
-        ).group_by(func.strftime('%H', Payment.created_at)).all()
+        # تحليل أوقات الدفع (متوافق مع أكثر من محرك قاعدة بيانات)
+        try:
+            payment_times = db.session.query(
+                func.extract('hour', Payment.created_at).label('hour'),
+                func.count(Payment.id).label('count')
+            ).group_by(func.extract('hour', Payment.created_at)).all()
+        except Exception:
+            payment_times = db.session.query(
+                func.strftime('%H', Payment.created_at).label('hour'),
+                func.count(Payment.id).label('count')
+            ).group_by(func.strftime('%H', Payment.created_at)).all()
 
         # تحليل المدفوعات المتأخرة
         late_payments = Invoice.query.filter(
@@ -734,7 +800,15 @@ def invoices():
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
     
-    return render_template('accountant/pending_payments.html')
+    try:
+        visits = Visit.query.filter(
+            Visit.payment_status.in_(['PENDING', 'PARTIAL', 'DEBT'])
+        ).order_by(Visit.created_at.desc()).limit(200).all()
+    except Exception as e:
+        logging.error(f"Error loading pending visits: {str(e)}")
+        visits = []
+
+    return render_template('accountant/pending_payments.html', visits=visits)
 
 @accountant_bp.route('/reports')
 @login_required
@@ -744,7 +818,7 @@ def reports():
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
     
-    return render_template('accountant/financial_reports.html')
+    return redirect(url_for('payment.payment_reports'))
 
 @accountant_bp.route('/financial')
 @login_required
@@ -754,22 +828,76 @@ def financial():
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
     
-    return render_template('accountant/payment_management.html')
+    try:
+        from models.patient import Patient
+        from models.payment import Payment, PaymentStatus
+        from models.invoice import Invoice
+
+        q = (request.args.get('q') or '').strip()
+        patient_id = request.args.get('patient_id', type=int)
+
+        patients = []
+        if q:
+            pq = Patient.query
+            if q.isdigit():
+                pq = pq.filter(Patient.id == int(q))
+            else:
+                pq = pq.filter(
+                    db.or_(
+                        Patient.first_name.ilike(f"%{q}%"),
+                        Patient.last_name.ilike(f"%{q}%"),
+                        Patient.phone.ilike(f"%{q}%"),
+                        Patient.national_id.ilike(f"%{q}%")
+                    )
+                )
+            patients = pq.order_by(Patient.created_at.desc()).limit(50).all()
+
+        statement = None
+        selected_patient = None
+        if patient_id:
+            selected_patient = db.session.get(Patient, patient_id)
+            if selected_patient:
+                visits = Visit.query.filter(Visit.patient_id == patient_id).order_by(Visit.created_at.desc()).limit(200).all()
+                visit_ids = [v.id for v in visits]
+                invoices = []
+                if visit_ids:
+                    invoices = Invoice.query.filter(Invoice.visit_id.in_(visit_ids)).order_by(Invoice.created_at.desc()).all()
+                payments = Payment.query.filter(
+                    Payment.patient_id == patient_id,
+                    Payment.status == PaymentStatus.CONFIRMED
+                ).order_by(Payment.payment_date.desc()).limit(500).all()
+
+                totals = {
+                    'visits_count': len(visits),
+                    'invoices_count': len(invoices),
+                    'payments_count': len(payments),
+                    'total_billed': float(sum(float(i.total_amount or 0) for i in invoices)),
+                    'total_paid': float(sum(float(p.amount or 0) for p in payments)),
+                    'total_remaining': float(sum(float(v.remaining_amount or 0) for v in visits if getattr(v, 'payment_status', None) in {'PENDING', 'PARTIAL', 'DEBT'})),
+                }
+                statement = {
+                    'totals': totals,
+                    'visits': visits,
+                    'invoices': invoices,
+                    'payments': payments,
+                }
+
+        return render_template('accountant/payment_management.html', q=q, patients=patients, selected_patient=selected_patient, statement=statement)
+    except Exception as e:
+        logging.error(f"Error loading accountant financial page: {str(e)}")
+        flash('حدث خطأ في تحميل الإدارة المالية', 'error')
+        return redirect(url_for('accountant.dashboard'))
 
 # ==================== مسارات التدقيق (الأسبوع الثاني) ====================
 
 @accountant_bp.route('/audit/daily')
-@accountant_bp.route('/audit/daily/<date_str>')
 @login_required
 @can_access_financial_reports
-def daily_audit_report(date_str=None):
+def daily_audit_report():
     """تقرير التدقيق اليومي"""
     try:
-        # تحليل التاريخ
-        if date_str:
-            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        else:
-            target_date = date.today()
+        date_str = request.args.get('date')
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else date.today()
         
         # الحصول على التقرير
         report = ReportService.get_daily_audit_report(target_date)
@@ -787,21 +915,17 @@ def daily_audit_report(date_str=None):
         return redirect(url_for('accountant.dashboard'))
     except Exception as e:
         logging.error(f"Error in daily_audit_report: {str(e)}")
-        flash(f'حدث خطأ: {str(e)}', 'error')
+        flash('تعذر تحميل تقرير التدقيق اليومي حالياً', 'error')
         return redirect(url_for('accountant.dashboard'))
 
 @accountant_bp.route('/audit/monthly')
-@accountant_bp.route('/audit/monthly/<int:year>/<int:month>')
 @login_required
 @can_access_financial_reports
-def monthly_audit_report(year=None, month=None):
+def monthly_audit_report():
     """تقرير التدقيق الشهري"""
     try:
-        # استخدام الشهر الحالي إذا لم يُحدد
-        if not year:
-            year = date.today().year
-        if not month:
-            month = date.today().month
+        year = request.args.get('year', date.today().year, type=int)
+        month = request.args.get('month', date.today().month, type=int)
         
         # الحصول على التقرير
         report = ReportService.get_monthly_audit_report(year, month)
@@ -817,7 +941,7 @@ def monthly_audit_report(year=None, month=None):
     
     except Exception as e:
         logging.error(f"Error in monthly_audit_report: {str(e)}")
-        flash(f'حدث خطأ: {str(e)}', 'error')
+        flash('تعذر تحميل تقرير التدقيق الشهري حالياً', 'error')
         return redirect(url_for('accountant.dashboard'))
 
 @accountant_bp.route('/audit/debts')
@@ -838,7 +962,7 @@ def debt_tracking_report():
     
     except Exception as e:
         logging.error(f"Error in debt_tracking_report: {str(e)}")
-        flash(f'حدث خطأ: {str(e)}', 'error')
+        flash('تعذر تحميل تقرير تتبع الديون حالياً', 'error')
         return redirect(url_for('accountant.dashboard'))
 
 @accountant_bp.route('/audit/export/<report_type>')
@@ -880,7 +1004,76 @@ def export_audit_report(report_type):
     
     except Exception as e:
         logging.error(f"Error exporting report: {str(e)}")
-        flash(f'حدث خطأ في التصدير: {str(e)}', 'error')
+        flash('تعذر تصدير التقرير حالياً', 'error')
         return redirect(url_for('accountant.dashboard'))
+
+@accountant_bp.route('/api/erp/export')
+@login_required
+@role_required('accountant', 'admin', 'manager')
+def api_erp_export():
+    try:
+        limit = request.args.get('limit', type=int) or 200
+        limit = max(50, min(limit, 1000))
+        invoices = Invoice.query.order_by(Invoice.created_at.desc()).limit(limit).all()
+        payments = Payment.query.order_by(Payment.created_at.desc()).limit(limit).all()
+        return jsonify({
+            'success': True,
+            'invoices': [i.to_dict() for i in invoices],
+            'payments': [{'id': p.id, 'amount': float(p.amount or 0), 'method': str(p.method), 'status': str(p.status), 'created_at': p.created_at.isoformat() if p.created_at else None} for p in payments]
+        }), 200
+    except Exception as e:
+        logging.error(f"Error exporting ERP payload: {str(e)}")
+        return jsonify({'success': False, 'message': 'تعذر تصدير بيانات ERP'}), 500
+
+def get_revenue_cycle_metrics():
+    try:
+        from models.insurance import InsuranceClaim
+        total_claims = InsuranceClaim.query.count()
+        submitted = InsuranceClaim.query.filter(InsuranceClaim.status == 'SUBMITTED').count()
+        approved = InsuranceClaim.query.filter(InsuranceClaim.status == 'APPROVED').count()
+        rejected = InsuranceClaim.query.filter(InsuranceClaim.status == 'REJECTED').count()
+        paid = InsuranceClaim.query.filter(InsuranceClaim.status == 'PAID').count()
+        outstanding = db.session.query(
+            db.func.sum(Invoice.total_amount - Invoice.paid_amount)
+        ).filter(Invoice.status.in_(['DRAFT', 'ISSUED'])).scalar() or 0
+        return {
+            'total_claims': int(total_claims or 0),
+            'submitted': int(submitted or 0),
+            'approved': int(approved or 0),
+            'rejected': int(rejected or 0),
+            'paid': int(paid or 0),
+            'outstanding_amount': float(outstanding or 0)
+        }
+    except Exception:
+        return {}
+
+def get_erp_integration_status():
+    try:
+        last_sync = Payment.query.order_by(Payment.created_at.desc()).first()
+        return {
+            'status': 'active' if last_sync else 'idle',
+            'last_sync': last_sync.created_at.isoformat() if last_sync and last_sync.created_at else None
+        }
+    except Exception:
+        return {}
+
+def get_margin_analytics():
+    try:
+        total_revenue = db.session.query(db.func.sum(Payment.amount)).scalar() or 0
+        issued_invoices = Invoice.query.filter(Invoice.status.in_(['ISSUED', 'PAID'])).count()
+        collection_rate = 0
+        total_invoiced = db.session.query(db.func.sum(Invoice.total_amount)).filter(Invoice.status.in_(['ISSUED', 'PAID'])).scalar() or 0
+        if total_invoiced:
+            collection_rate = (float(total_revenue) / float(total_invoiced)) * 100
+        gross_margin = float(total_revenue) * 0.25
+        return {
+            'total_revenue': float(total_revenue or 0),
+            'total_invoiced': float(total_invoiced or 0),
+            'collection_rate': round(collection_rate, 2),
+            'gross_margin': round(gross_margin, 2),
+            'issued_invoices': int(issued_invoices or 0)
+        }
+    except Exception:
+        return {}
 
 

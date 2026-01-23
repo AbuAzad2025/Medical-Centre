@@ -1,33 +1,40 @@
 {% extends "base.html" %}
+{% import 'macros/forms.html' as forms %}
 
-{% block title %}معالجة المختبر - {{ visit.patient.full_name }}{% endblock %}
+{% block title %}
+{% if lab_request %}
+إدخال نتائج المختبر - {{ lab_request.patient.full_name }}
+{% else %}
+قائمة عمل المختبر
+{% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
+    {% if lab_request %}
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
                             <h2 class="mb-1 text-primary">
                                 <i class="fas fa-flask me-2"></i>
-                                معالجة فحص المختبر
+                                إدخال نتائج المختبر
                             </h2>
-                            <p class="text-muted mb-0">{{ visit.patient.full_name }} - رقم الزيارة: {{ visit.visit_id_number or visit.id }}</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <a href="{{ url_for('lab.queue') }}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-right me-1"></i>
-                                    العودة للطابور
-                                </a>
-                                <button class="btn btn-primary" onclick="window.print()">
-                                    <i class="fas fa-print me-1"></i>
-                                    طباعة
-                                </button>
+                            <div class="text-muted">
+                                {{ lab_request.patient.full_name }} — طلب رقم: {{ lab_request.request_number or lab_request.id }}
                             </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('lab.worklist') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-right me-1"></i>
+                                العودة للطابور
+                            </a>
+                            <a href="{{ url_for('lab.print_request', id=lab_request.id) }}" class="btn btn-primary" target="_blank">
+                                <i class="fas fa-print me-1"></i>
+                                طباعة
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -35,264 +42,242 @@
         </div>
     </div>
 
-    <!-- Lab Processing Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3"><strong>الحالة:</strong> 
+                            {% set st = (lab_request.status or '').upper() %}
+                            {% if st == 'REQUESTED' %}قيد الطلب{% elif st == 'RECEIVED' %}تم الاستلام{% elif st == 'ANALYZING' %}قيد التحليل{% elif st == 'REVIEWED' %}قيد المراجعة{% elif st == 'APPROVED' %}قيد الاعتماد{% elif st == 'IN_PROGRESS' %}قيد التنفيذ{% elif st == 'DONE' %}مكتمل{% else %}{{ st }}{% endif %}
+                        </div>
+                        <div class="col-md-3"><strong>تاريخ الطلب:</strong> {{ lab_request.created_at.strftime('%Y-%m-%d %H:%M') if lab_request.created_at else '-' }}</div>
+                        <div class="col-md-3"><strong>الزيارة:</strong> {{ lab_request.visit_id }}</div>
+                        <div class="col-md-3"><strong>الطبيب:</strong> {{ lab_request.requester.full_name if lab_request.requester else 'غير محدد' }}</div>
+                    </div>
+                    {% if lab_request.notes %}
+                    <div class="mt-3">
+                        <strong>ملاحظات:</strong>
+                        <div class="text-muted">{{ lab_request.notes }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12">
             <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-flask me-2"></i>
-                        نموذج معالجة المختبر
-                    </h6>
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">النتائج</h6>
                 </div>
                 <div class="card-body">
-                    <form id="labProcessForm">
-                        <!-- Patient Info -->
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="card border-left-info">
-                                    <div class="card-body">
-                                        <h6 class="text-info">بيانات المريض</h6>
-                                        <p><strong>الاسم:</strong> {{ visit.patient.full_name }}</p>
-                                        <p><strong>العمر:</strong> {{ visit.patient.age or 'غير محدد' }} سنة</p>
-                                        <p><strong>الجنس:</strong> {{ visit.patient.get_gender_display() }}</p>
-                                        <p><strong>رقم الزيارة:</strong> {{ visit.visit_id_number or visit.id }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card border-left-warning">
-                                    <div class="card-body">
-                                        <h6 class="text-warning">بيانات الفحص</h6>
-                                        <p><strong>الفني:</strong> {{ current_user.full_name }}</p>
-                                        <p><strong>التاريخ:</strong> {{ visit.visit_date.strftime('%Y-%m-%d') }}</p>
-                                        <p><strong>الوقت:</strong> {{ visit.visit_time.strftime('%H:%M') }}</p>
-                                        <p><strong>الطبيب الطالب:</strong> 
-                                            {% if visit.doctor %}
-                                                {{ visit.doctor.full_name }}
-                                            {% else %}
-                                                غير محدد
-                                            {% endif %}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                    <form method="post" action="{{ url_for('lab.worklist_request', request_id=lab_request.id) }}">
+                        {{ forms.csrf() }}
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 110px;">الكود</th>
+                                        <th>اسم التحليل</th>
+                                        <th style="width: 160px;">النتيجة</th>
+                                        <th style="width: 120px;">الوحدة</th>
+                                        <th style="width: 180px;">المرجع</th>
+                                        <th style="width: 110px;">حرج</th>
+                                        <th style="width: 130px;">الحالة</th>
+                                        <th>ملاحظات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if lab_request.results and lab_request.results|length > 0 %}
+                                        {% for r in lab_request.results %}
+                                        <tr>
+                                            <td>
+                                                <input type="hidden" name="result_id[]" value="{{ r.id }}">
+                                                <input type="text" class="form-control" name="test_code[]" value="{{ r.test_code }}">
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control" name="test_name[]" value="{{ r.test_name }}">
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control" name="value[]" value="{{ r.value or '' }}">
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control" name="unit[]" value="{{ r.unit or '' }}">
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control" name="reference_range[]" value="{{ r.reference_range or '' }}">
+                                            </td>
+                                            <td>
+                                                <select class="form-control" name="is_critical[]">
+                                                    <option value="0" {% if not r.is_critical %}selected{% endif %}>لا</option>
+                                                    <option value="1" {% if r.is_critical %}selected{% endif %}>نعم</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select class="form-control" name="status[]">
+                                                    <option value="PENDING" {% if (r.status or '').upper() == 'PENDING' %}selected{% endif %}>معلق</option>
+                                                    <option value="READY" {% if (r.status or '').upper() == 'READY' %}selected{% endif %}>جاهز</option>
+                                                    <option value="VALIDATED" {% if (r.status or '').upper() == 'VALIDATED' %}selected{% endif %}>معتمد</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control" name="notes[]" value="{{ r.notes or '' }}">
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td>
+                                                <input type="hidden" name="result_id[]" value="">
+                                                <input type="text" class="form-control" name="test_code[]" value="">
+                                            </td>
+                                            <td><input type="text" class="form-control" name="test_name[]" value=""></td>
+                                            <td><input type="text" class="form-control" name="value[]" value=""></td>
+                                            <td><input type="text" class="form-control" name="unit[]" value=""></td>
+                                            <td><input type="text" class="form-control" name="reference_range[]" value=""></td>
+                                            <td>
+                                                <select class="form-control" name="is_critical[]">
+                                                    <option value="0" selected>لا</option>
+                                                    <option value="1">نعم</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select class="form-control" name="status[]">
+                                                    <option value="PENDING">معلق</option>
+                                                    <option value="READY">جاهز</option>
+                                                    <option value="VALIDATED">معتمد</option>
+                                                </select>
+                                            </td>
+                                            <td><input type="text" class="form-control" name="notes[]" value=""></td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
                         </div>
 
-                        <!-- Test Details -->
-                        <div class="row">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">تفاصيل الفحص</h6>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="test_name">نوع الفحص</label>
-                                    <select class="form-control" id="test_name" name="test_name" required>
-                                        <option value="">اختر نوع الفحص</option>
-                                        <option value="CBC">صورة دم كاملة</option>
-                                        <option value="ESR">سرعة ترسيب الدم</option>
-                                        <option value="Glucose">سكر الدم</option>
-                                        <option value="HbA1c">السكر التراكمي</option>
-                                        <option value="Cholesterol">الكوليسترول</option>
-                                        <option value="Triglycerides">الدهون الثلاثية</option>
-                                        <option value="Liver Function">وظائف الكبد</option>
-                                        <option value="Kidney Function">وظائف الكلى</option>
-                                        <option value="Thyroid Function">وظائف الغدة الدرقية</option>
-                                        <option value="Vitamin D">فيتامين د</option>
-                                        <option value="Vitamin B12">فيتامين ب12</option>
-                                        <option value="Iron">الحديد</option>
-                                        <option value="Ferritin">الفيريتين</option>
-                                        <option value="Urine Analysis">تحليل البول</option>
-                                        <option value="Stool Analysis">تحليل البراز</option>
-                                        <option value="Culture">مزرعة</option>
-                                        <option value="Sensitivity">حساسية</option>
-                                        <option value="Pregnancy Test">فحص الحمل</option>
-                                        <option value="Other">أخرى</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="test_priority">أولوية الفحص</label>
-                                    <select class="form-control" id="test_priority" name="test_priority">
-                                        <option value="normal">عادية</option>
-                                        <option value="urgent">عاجلة</option>
-                                        <option value="emergency">طارئة</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label for="description">وصف الفحص</label>
-                                    <textarea class="form-control" id="description" name="description" rows="3" 
-                                              placeholder="أدخل وصف الفحص المطلوب"></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Sample Collection -->
-                        <div class="row">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">جمع العينات</h6>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="sample_type">نوع العينة</label>
-                                    <select class="form-control" id="sample_type" name="sample_type">
-                                        <option value="">اختر نوع العينة</option>
-                                        <option value="blood">دم</option>
-                                        <option value="urine">بول</option>
-                                        <option value="stool">براز</option>
-                                        <option value="sputum">بلغم</option>
-                                        <option value="swab">مسحة</option>
-                                        <option value="other">أخرى</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="collection_time">وقت الجمع</label>
-                                    <input type="time" class="form-control" id="collection_time" name="collection_time" 
-                                           value="{{ moment().format('HH:mm') }}">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="collection_date">تاريخ الجمع</label>
-                                    <input type="date" class="form-control" id="collection_date" name="collection_date" 
-                                           value="{{ moment().format('YYYY-MM-DD') }}">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Test Results -->
-                        <div class="row">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">النتائج</h6>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="results">النتائج</label>
-                                    <textarea class="form-control" id="results" name="results" rows="4" 
-                                              placeholder="أدخل نتائج الفحص" required></textarea>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="normal_range">المعدل الطبيعي</label>
-                                    <textarea class="form-control" id="normal_range" name="normal_range" rows="4" 
-                                              placeholder="أدخل المعدل الطبيعي للفحص"></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label for="interpretation">التفسير</label>
-                                    <textarea class="form-control" id="interpretation" name="interpretation" rows="3" 
-                                              placeholder="أدخل تفسير النتائج"></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Quality Control -->
-                        <div class="row">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">مراقبة الجودة</h6>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="sample_quality">جودة العينة</label>
-                                    <select class="form-control" id="sample_quality" name="sample_quality">
-                                        <option value="excellent">ممتازة</option>
-                                        <option value="good">جيدة</option>
-                                        <option value="fair">مقبولة</option>
-                                        <option value="poor">ضعيفة</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="equipment_status">حالة الجهاز</label>
-                                    <select class="form-control" id="equipment_status" name="equipment_status">
-                                        <option value="normal">طبيعي</option>
-                                        <option value="maintenance">صيانة</option>
-                                        <option value="calibration">معايرة</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="result_status">حالة النتيجة</label>
-                                    <select class="form-control" id="result_status" name="result_status">
-                                        <option value="normal">طبيعي</option>
-                                        <option value="abnormal">غير طبيعي</option>
-                                        <option value="critical">حرج</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="row mt-4">
-                            <div class="col-12 text-center">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-save me-1"></i>
-                                    حفظ النتائج
+                        <div class="d-flex gap-2 justify-content-end">
+                            {% set st = (lab_request.status or '').upper() %}
+                            {% if st == 'REQUESTED' %}
+                                <button type="submit" class="btn btn-outline-warning" name="action" value="receive">
+                                    <i class="fas fa-inbox me-1"></i>
+                                    استلام
                                 </button>
-                                <a href="{{ url_for('lab.queue') }}" class="btn btn-secondary btn-lg ml-2">
-                                    <i class="fas fa-arrow-right me-1"></i>
-                                    العودة للطابور
-                                </a>
-                            </div>
+                            {% elif st == 'RECEIVED' %}
+                                <button type="submit" class="btn btn-outline-primary" name="action" value="analyze">
+                                    <i class="fas fa-flask me-1"></i>
+                                    بدء التحليل
+                                </button>
+                            {% elif st == 'ANALYZING' %}
+                                <button type="submit" class="btn btn-outline-secondary" name="action" value="review">
+                                    <i class="fas fa-search me-1"></i>
+                                    مراجعة
+                                </button>
+                            {% elif st == 'REVIEWED' %}
+                                <button type="submit" class="btn btn-outline-success" name="action" value="approve">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    اعتماد
+                                </button>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary" name="action" value="save">
+                                <i class="fas fa-save me-1"></i>
+                                حفظ
+                            </button>
+                            <button type="submit" class="btn btn-success" name="action" value="finalize">
+                                <i class="fas fa-check me-1"></i>
+                                اعتماد وإكمال
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    {% else %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-flask me-2"></i>
+                                قائمة عمل المختبر
+                            </h2>
+                            <div class="text-muted">طلبات المختبر حسب الحالة</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a class="btn btn-outline-primary" href="{{ url_for('lab.worklist', status='REQUESTED') }}">قيد الطلب ({{ counts.requested if counts else 0 }})</a>
+                            <a class="btn btn-outline-warning" href="{{ url_for('lab.worklist', status='RECEIVED') }}">تم الاستلام</a>
+                            <a class="btn btn-outline-info" href="{{ url_for('lab.worklist', status='ANALYZING') }}">قيد التحليل</a>
+                            <a class="btn btn-outline-secondary" href="{{ url_for('lab.worklist', status='REVIEWED') }}">قيد المراجعة</a>
+                            <a class="btn btn-outline-success" href="{{ url_for('lab.worklist', status='APPROVED') }}">قيد الاعتماد</a>
+                            <a class="btn btn-outline-warning" href="{{ url_for('lab.worklist', status='IN_PROGRESS') }}">قيد التنفيذ ({{ counts.in_progress if counts else 0 }})</a>
+                            <a class="btn btn-outline-success" href="{{ url_for('lab.worklist', status='DONE_TODAY') }}">مكتمل اليوم ({{ counts.done_today if counts else 0 }})</a>
+                            <a class="btn btn-secondary" href="{{ url_for('lab.dashboard') }}">لوحة المختبر</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<script>
-document.getElementById('labProcessForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    fetch('{{ url_for("lab.process_lab", visit_id=visit.id) }}', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('تم حفظ نتائج المختبر بنجاح');
-            // إعادة توجيه للطابور
-            window.location.href = '{{ url_for("lab.queue") }}';
-        } else {
-            alert('خطأ: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('حدث خطأ في حفظ النتائج');
-    });
-});
-</script>
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>المريض</th>
+                                    <th>الزيارة</th>
+                                    <th>تاريخ الطلب</th>
+                                    <th>الحالة</th>
+                                    <th class="text-end">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if requests and requests|length > 0 %}
+                                    {% for r in requests %}
+                                    <tr>
+                                        <td>{{ r.request_number or r.id }}</td>
+                                        <td>{{ r.patient.full_name if r.patient else r.patient_id }}</td>
+                                        <td>{{ r.visit_id }}</td>
+                                        <td>{{ r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '-' }}</td>
+                                        <td>
+                                            {% set st = (r.status or '').upper() %}
+                                            <span class="badge {% if st == 'REQUESTED' %}bg-info{% elif st in ['RECEIVED','ANALYZING','REVIEWED','APPROVED','IN_PROGRESS'] %}bg-warning{% elif st == 'DONE' %}bg-success{% else %}bg-secondary{% endif %}">
+                                                {% if st == 'REQUESTED' %}قيد الطلب{% elif st == 'RECEIVED' %}تم الاستلام{% elif st == 'ANALYZING' %}قيد التحليل{% elif st == 'REVIEWED' %}قيد المراجعة{% elif st == 'APPROVED' %}قيد الاعتماد{% elif st == 'IN_PROGRESS' %}قيد التنفيذ{% elif st == 'DONE' %}مكتمل{% else %}{{ st }}{% endif %}
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="d-inline-flex gap-2">
+                                                {% if st == 'REQUESTED' %}
+                                                <form method="post" action="{{ url_for('lab.worklist_claim', request_id=r.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-warning">استلام</button>
+                                                </form>
+                                                {% endif %}
+                                                <a class="btn btn-sm btn-primary" href="{{ url_for('lab.worklist_request', request_id=r.id) }}">إدخال النتائج</a>
+                                                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('lab.print_request', id=r.id) }}" target="_blank">طباعة</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">لا توجد طلبات</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

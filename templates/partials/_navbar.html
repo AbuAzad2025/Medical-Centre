@@ -1,124 +1,181 @@
-<!-- Header -->
-<header class="header">
-    <div class="header-content">
-        <a href="{{ url_for('main.index') }}" class="logo">
-            <img src="{{ url_for('static', filename='img/azad_logo.png') }}" alt="Logo">
-            <span>المركز الصحي المتخصص</span>
+<style>
+    :root {
+        --luxury-gold: #D4AF37;
+        --luxury-dark: #1a1f3a;
+        --luxury-gradient: linear-gradient(135deg, #1a1f3a 0%, #2c3e50 100%);
+        --luxury-gold-gradient: linear-gradient(135deg, #D4AF37 0%, #F2D06B 100%);
+    }
+    
+    .luxury-header {
+        background: var(--luxury-gradient);
+        border-bottom: 1px solid var(--luxury-gold);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        padding: 0.25rem 1rem; /* Compact padding */
+        position: sticky;
+        top: 0;
+        z-index: 1050; /* Higher than sidebar */
+        backdrop-filter: blur(10px);
+        height: 60px; /* Fixed compact height */
+    }
+    
+    .luxury-brand {
+        font-family: 'Amiri', serif;
+        font-size: 1.2rem;
+        color: white !important;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .luxury-brand img {
+        height: 35px; /* Smaller logo */
+        filter: drop-shadow(0 0 5px rgba(212,175,55,0.5));
+    }
+    
+    .luxury-nav-link {
+        color: rgba(255,255,255,0.9) !important;
+        font-weight: 500;
+        padding: 0.4rem 0.8rem !important;
+        border-radius: 6px;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.9rem;
+    }
+    
+    .luxury-nav-link i {
+        color: var(--luxury-gold);
+    }
+    
+    .luxury-nav-link:hover, .luxury-nav-link.active {
+        background: rgba(212,175,55,0.15);
+        color: var(--luxury-gold) !important;
+        border: 1px solid rgba(212,175,55,0.3);
+    }
+    
+    .clock-widget {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(212,175,55,0.3);
+        border-radius: 50px;
+        padding: 4px 15px;
+        color: var(--luxury-gold);
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+    }
+    
+    .user-profile-btn {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(212,175,55,0.3);
+        color: white !important;
+        padding: 4px 12px;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+    
+    .user-profile-btn:hover {
+        background: rgba(212,175,55,0.2);
+        box-shadow: 0 0 10px rgba(212,175,55,0.2);
+    }
+
+    .dropdown-menu-dark-luxury {
+        background: #1a1f3a;
+        border: 1px solid var(--luxury-gold);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    }
+    .dropdown-menu-dark-luxury .dropdown-item {
+        color: rgba(255,255,255,0.9);
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+    .dropdown-menu-dark-luxury .dropdown-item:hover {
+        background: rgba(212,175,55,0.2);
+        color: var(--luxury-gold);
+    }
+    .dropdown-divider {
+        border-top-color: rgba(255,255,255,0.1);
+    }
+</style>
+
+<header class="luxury-header d-flex align-items-center justify-content-between">
+    <!-- Left Section: Toggle & Brand -->
+    <div class="d-flex align-items-center">
+        <button class="btn btn-link text-white p-0 me-3 d-lg-none" id="sidebarToggle">
+            <i class="fas fa-bars fa-lg" style="color: var(--luxury-gold);"></i>
+        </button>
+        <a href="{{ url_for('main.dashboard') }}" class="luxury-brand">
+            <img src="{{ branding.logo_path or url_for('static', filename='img/azad_logo.png') }}" alt="Logo">
+            <span class="d-none d-md-block fw-bold">{{ branding.organization_name if branding else 'المركز الطبي' }}</span>
         </a>
-        
-        {% if current_user.is_authenticated %}
-        <nav class="nav">
-            <!-- Dynamic Navigation Based on User Role -->
-            {% if current_user.role == 'super_admin' or current_user.role == 'admin' %}
-                <div class="dropdown">
-                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="fas fa-crown"></i>
-                        إدارة النظام
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url_for('super_admin.dashboard') }}"><i class="fas fa-home me-2"></i>لوحة التحكم</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('super_admin.users') }}"><i class="fas fa-users me-2"></i>المستخدمين</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('super_admin.roles') }}"><i class="fas fa-user-shield me-2"></i>الأدوار</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('super_admin.system_config') }}"><i class="fas fa-cogs me-2"></i>الإعدادات</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ url_for('super_admin.security_logs') }}"><i class="fas fa-shield-alt me-2"></i>سجلات الأمان</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('super_admin.system_backup') }}"><i class="fas fa-database me-2"></i>النسخ الاحتياطية</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('super_admin.reports') }}"><i class="fas fa-chart-bar me-2"></i>التقارير</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('super_admin.system_monitor') }}"><i class="fas fa-chart-line me-2"></i>مراقب النظام</a></li>
-                    </ul>
-                </div>
-                <a href="{{ url_for('super_admin.users') }}" class="nav-link">
-                    <i class="fas fa-users"></i>
-                    المستخدمين
-                </a>
-                <a href="{{ url_for('super_admin.roles') }}" class="nav-link">
-                    <i class="fas fa-user-shield"></i>
-                    الأدوار
-                </a>
-                <a href="{{ url_for('super_admin.system_config') }}" class="nav-link">
-                    <i class="fas fa-cogs"></i>
-                    الإعدادات
-                </a>
-                <a href="{{ url_for('super_admin.security_logs') }}" class="nav-link">
-                    <i class="fas fa-shield-alt"></i>
-                    الأمان
-                </a>
-                <a href="{{ url_for('super_admin.system_backup') }}" class="nav-link">
-                    <i class="fas fa-database"></i>
-                    النسخ
-                </a>
-                <a href="{{ url_for('super_admin.reports') }}" class="nav-link">
-                    <i class="fas fa-chart-bar"></i>
-                    التقارير
-                </a>
-            {% elif current_user.role == 'manager' %}
-                <a href="{{ url_for('manager.dashboard') }}" class="nav-link {% if request.endpoint and 'manager' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-user-tie"></i>
-                    المدير
-                </a>
-            {% elif current_user.role == 'reception' %}
-                <a href="{{ url_for('reception.dashboard') }}" class="nav-link {% if request.endpoint and 'reception' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-user-nurse"></i>
-                    الاستقبال
-                </a>
-            {% elif current_user.role == 'doctor' %}
-                <a href="{{ url_for('doctor.dashboard') }}" class="nav-link {% if request.endpoint and 'doctor' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-user-md"></i>
-                    الطبيب
-                </a>
-            {% elif current_user.role == 'emergency' %}
-                <a href="{{ url_for('emergency.dashboard') }}" class="nav-link {% if request.endpoint and 'emergency' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-ambulance"></i>
-                    الطوارئ
-                </a>
-            {% elif current_user.role == 'lab' %}
-                <a href="{{ url_for('lab.dashboard') }}" class="nav-link {% if request.endpoint and 'lab' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-vial"></i>
-                    المختبر
-                </a>
-            {% elif current_user.role == 'radiology' %}
-                <a href="{{ url_for('radiology.dashboard') }}" class="nav-link {% if request.endpoint and 'radiology' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-x-ray"></i>
-                    الأشعة
-                </a>
-            {% elif current_user.role == 'accountant' %}
-                <a href="{{ url_for('accountant.dashboard') }}" class="nav-link {% if request.endpoint and 'accountant' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-calculator"></i>
-                    المحاسب
-                </a>
-            {% elif current_user.role == 'pharmacist' %}
-                <a href="{{ url_for('medication.dashboard') }}" class="nav-link {% if request.endpoint and 'medication' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-pills"></i>
-                    الصيدلية
-                </a>
-            {% elif current_user.role == 'nurse' %}
-                <a href="{{ url_for('nurse.dashboard') }}" class="nav-link {% if request.endpoint and 'nurse' in request.endpoint %}active{% endif %}">
-                    <i class="fas fa-user-nurse"></i>
-                    التمريض
-                </a>
-            {% endif %}
-        </nav>
-        
-        <div class="user-menu">
-            <div class="user-avatar">
-                {{ current_user.full_name[0] if current_user.full_name else 'U' }}
-            </div>
-            <div class="user-info">
-                <div class="user-name">{{ current_user.full_name or current_user.username }}</div>
-                <div class="user-role">{{ current_user.role }}</div>
-            </div>
-            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-sm">
-                <i class="fas fa-sign-out-alt"></i>
-                خروج
-            </a>
-        </div>
-        {% else %}
-        <nav class="nav">
-            <a href="{{ url_for('auth.login') }}" class="nav-link">
-                <i class="fas fa-sign-in-alt"></i>
-                تسجيل الدخول
-            </a>
-        </nav>
-        {% endif %}
     </div>
+
+    <!-- Center Section: Live Clock (Visible on md+) -->
+    <div class="d-none d-md-flex align-items-center justify-content-center flex-grow-1">
+        <div class="clock-widget" id="liveClockWidget">
+            <i class="far fa-clock"></i>
+            <span id="currentDate">--/--/----</span>
+            <span class="mx-1">|</span>
+            <span id="currentTime">--:-- --</span>
+        </div>
+    </div>
+
+    <!-- Right Section: User Menu -->
+    {% if current_user.is_authenticated %}
+    <div class="d-flex align-items-center gap-2">
+        <!-- Notifications (Example) -->
+        <button type="button" class="btn btn-link position-relative p-1 text-white opacity-75 hover-opacity-100">
+            <i class="fas fa-bell"></i>
+            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="width: 8px; height: 8px;"></span>
+        </button>
+
+        <!-- User Dropdown -->
+        <div class="dropdown">
+            <button type="button" class="user-profile-btn dropdown-toggle text-decoration-none" data-bs-toggle="dropdown">
+                <div class="bg-gradient-warning text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.8rem;">
+                    {{ current_user.full_name[0] if current_user.full_name else 'U' }}
+                </div>
+                <span class="d-none d-lg-block">{{ current_user.full_name.split()[0] if current_user.full_name else current_user.username }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark-luxury shadow-lg mt-2">
+                <li><h6 class="dropdown-header text-warning fw-bold">{{ current_user.role|upper }}</h6></li>
+                <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-user-circle me-2"></i>الملف الشخصي</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-cog me-2"></i>الإعدادات</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>تسجيل خروج</a></li>
+            </ul>
+        </div>
+    </div>
+    {% else %}
+    <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-warning rounded-pill px-3">
+        <i class="fas fa-sign-in-alt me-1"></i> دخول
+    </a>
+    {% endif %}
 </header>
+
+<script>
+    function updateClock() {
+        const now = new Date();
+        const optionsDate = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', calendar: 'islamic-umalqura' }; // Islamic date if supported or locale default
+        const dateStr = now.toLocaleDateString('ar-SA', optionsDate);
+        const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        document.getElementById('currentDate').textContent = dateStr;
+        document.getElementById('currentTime').textContent = timeStr;
+    }
+    
+    // Update every second
+    setInterval(updateClock, 1000);
+    updateClock(); // Initial call
+</script>

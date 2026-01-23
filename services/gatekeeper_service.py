@@ -4,7 +4,7 @@ Medical System Gatekeeper Service
 نسخة محسّنة مع دعم كامل للتحقق من قواعد الدفع
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from flask import current_app
 from app_factory import db
@@ -33,7 +33,7 @@ class GatekeeperService:
         التحقق من إمكانية إدراج الزيارة في الطابور
         """
         try:
-            visit = Visit.query.get(visit_id)
+            visit = db.session.get(Visit, visit_id)
             if not visit:
                 return False, "الزيارة غير موجودة"
             
@@ -62,7 +62,7 @@ class GatekeeperService:
         التحقق من إمكانية الترحيل المالي
         """
         try:
-            visit = Visit.query.get(visit_id)
+            visit = db.session.get(Visit, visit_id)
             if not visit:
                 return False, "الزيارة غير موجودة"
             
@@ -90,7 +90,7 @@ class GatekeeperService:
         التحقق من إمكانية أرشفة الزيارة
         """
         try:
-            visit = Visit.query.get(visit_id)
+            visit = db.session.get(Visit, visit_id)
             if not visit:
                 return False, "الزيارة غير موجودة"
             
@@ -119,7 +119,7 @@ class GatekeeperService:
         إنشاء سند قبض نظامي
         """
         try:
-            visit = Visit.query.get(visit_id)
+            visit = db.session.get(Visit, visit_id)
             if not visit:
                 return False, "الزيارة غير موجودة"
             
@@ -131,10 +131,10 @@ class GatekeeperService:
                 visit_id=visit_id,
                 patient_id=visit.patient_id,
                 amount=amount,
-                payment_method=payment_method,
+                method=(payment_method or 'CASH').upper(),
                 receipt_number=receipt_number,
                 is_provisional=False,
-                user_id=user_id
+                received_by=user_id
             )
             
             db.session.add(payment)
@@ -147,7 +147,7 @@ class GatekeeperService:
             # إذا كان المبلغ المدفوع يساوي المطلوب، إزالة القفل المالي
             if visit.paid_amount >= visit.total_amount:
                 visit.financial_locked = False
-                visit.financial_completed_at = datetime.utcnow()
+                visit.financial_completed_at = datetime.now(timezone.utc)
             
             db.session.commit()
             
@@ -176,7 +176,7 @@ class GatekeeperService:
         إنشاء سند قبض مؤقت (للطوارئ/الدفع القوي)
         """
         try:
-            visit = Visit.query.get(visit_id)
+            visit = db.session.get(Visit, visit_id)
             if not visit:
                 return False, "الزيارة غير موجودة"
             
@@ -192,11 +192,11 @@ class GatekeeperService:
                 visit_id=visit_id,
                 patient_id=visit.patient_id,
                 amount=amount,
-                payment_method=payment_method,
+                method=(payment_method or 'CASH').upper(),
                 receipt_number=receipt_number,
                 is_provisional=True,
                 provisional_reason=reason,
-                user_id=user_id
+                received_by=user_id
             )
             
             db.session.add(payment)
@@ -232,7 +232,7 @@ class GatekeeperService:
         إقرار المسؤولية للطوارئ/الدفع القوي
         """
         try:
-            visit = Visit.query.get(visit_id)
+            visit = db.session.get(Visit, visit_id)
             if not visit:
                 return False, "الزيارة غير موجودة"
             
@@ -241,7 +241,7 @@ class GatekeeperService:
                 return False, "إقرار المسؤولية للطوارئ/الدفع القوي فقط"
             
             # تحديث الزيارة
-            visit.liability_acknowledged_at = datetime.utcnow()
+            visit.liability_acknowledged_at = datetime.now(timezone.utc)
             visit.financial_locked = True
             
             db.session.commit()
@@ -271,7 +271,7 @@ class GatekeeperService:
         الترحيل المالي
         """
         try:
-            visit = Visit.query.get(visit_id)
+            visit = db.session.get(Visit, visit_id)
             if not visit:
                 return False, "الزيارة غير موجودة"
             
@@ -281,7 +281,7 @@ class GatekeeperService:
                 return False, message
             
             # تحديث الزيارة
-            visit.gl_posted_at = datetime.utcnow()
+            visit.gl_posted_at = datetime.now(timezone.utc)
             
             db.session.commit()
             
@@ -310,7 +310,7 @@ class GatekeeperService:
         أرشفة الزيارة
         """
         try:
-            visit = Visit.query.get(visit_id)
+            visit = db.session.get(Visit, visit_id)
             if not visit:
                 return False, "الزيارة غير موجودة"
             
@@ -322,7 +322,7 @@ class GatekeeperService:
             # تحديث الزيارة
             visit.archive_status = 'ARCHIVED'
             visit.archived_by = user_id
-            visit.archived_at = datetime.utcnow()
+            visit.archived_at = datetime.now(timezone.utc)
             
             db.session.commit()
             
@@ -352,7 +352,7 @@ class GatekeeperService:
         """
         التحقق من صلاحية طريقة الدفع
         """
-        valid_methods = ['cash', 'visa', 'card', 'insurance', 'force']
+        valid_methods = ['cash', 'visa', 'card', 'insurance', 'force', 'wire']
         
         if not payment_method:
             return False, "يجب تحديد طريقة الدفع"
@@ -378,7 +378,7 @@ class GatekeeperService:
                 return False, "يجب تقديم سبب واضح للدفع القسري (10 أحرف على الأقل)"
             
             # 2. التحقق من صلاحية المستخدم
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             if not user:
                 return False, "المستخدم غير موجود"
             
@@ -386,12 +386,12 @@ class GatekeeperService:
                 return False, "فقط المدير أو super_admin يمكنه الموافقة على الدفع القسري"
             
             # 3. التحقق من الزيارة
-            visit = Visit.query.get(visit_id)
+            visit = db.session.get(Visit, visit_id)
             if not visit:
                 return False, "الزيارة غير موجودة"
             
             # 4. التحقق من نسبة الدفع القسري في النظام
-            thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+            thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
             total_visits = Visit.query.filter(
                 Visit.created_at >= thirty_days_ago
             ).count()
@@ -477,7 +477,8 @@ class GatekeeperService:
             issues.append("المبلغ المدفوع يتجاوز المبلغ الإجمالي")
         
         # 3. التحقق حسب طريقة الدفع
-        if visit.payment_method == 'insurance':
+        pm = (getattr(visit, 'payment_method', '') or '').lower()
+        if pm == 'insurance':
             if not visit.insurance_provider:
                 issues.append("مزود التأمين غير محدد")
             if not visit.insurance_policy_number:
@@ -488,7 +489,7 @@ class GatekeeperService:
                 if visit.paid_amount < visit.patient_share:
                     issues.append("حصة المريض غير مدفوعة بالكامل")
         
-        elif visit.payment_method == 'force':
+        elif pm == 'force':
             if not visit.is_force_payment:
                 issues.append("الدفع القسري غير مفعل")
             if not visit.force_payment_reason:
@@ -496,7 +497,7 @@ class GatekeeperService:
             if not visit.force_payment_approved_by:
                 issues.append("لا توجد موافقة على الدفع القسري")
         
-        elif visit.payment_method in ['visa', 'card']:
+        elif pm in ['visa', 'card']:
             if not visit.card_number_last_digits:
                 issues.append("آخر 4 أرقام من البطاقة غير محددة")
             if not visit.card_holder_name:
@@ -511,7 +512,7 @@ class GatekeeperService:
         الحصول على إحصائيات الدفع القسري
         """
         try:
-            start_date = datetime.utcnow() - timedelta(days=days)
+            start_date = datetime.now(timezone.utc) - timedelta(days=days)
             
             total_visits = Visit.query.filter(
                 Visit.created_at >= start_date

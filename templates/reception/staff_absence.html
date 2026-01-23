@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}غيابات الموظفين{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header">إدارة الغيابات</div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('reception.reception_staff_absence') }}" class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">الموظف</label>
+                    <select class="form-control" name="user_id" required>
+                        <option value="">اختر الموظف</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}" {% if selected_user_id == u.id %}selected{% endif %}>{{ u.full_name }} ({{ u.get_role_display() }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 align-self-end">
+                    <button class="btn btn-primary">عرض</button>
+                </div>
+            </form>
+
+            {% if selected_user_id %}
+            <form method="POST" action="{{ url_for('reception.reception_staff_absence') }}" class="row g-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="user_id" value="{{ selected_user_id }}">
+                <div class="col-md-3">
+                    <label class="form-label">من تاريخ</label>
+                    <input type="date" class="form-control" name="start_date" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">إلى تاريخ</label>
+                    <input type="date" class="form-control" name="end_date" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">السبب</label>
+                    <input type="text" class="form-control" name="reason">
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-success">إضافة</button>
+                </div>
+            </form>
+
+            <hr>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>من</th>
+                            <th>إلى</th>
+                            <th>السبب</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in absences %}
+                        <tr>
+                            <td>{{ a.start_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ a.end_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ a.reason or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

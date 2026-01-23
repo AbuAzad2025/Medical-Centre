@@ -78,3 +78,23 @@ def health():
 def api_search():
     """البحث في النظام"""
     return {'status': 'success', 'message': 'Search API working'}
+
+@main_bp.route('/privacy-policy')
+def privacy_policy():
+    """سياسة الخصوصية"""
+    return render_template('main/privacy.html')
+
+@main_bp.route('/terms-of-use')
+def terms_of_use():
+    """شروط الاستخدام"""
+    return render_template('main/terms.html')
+
+@main_bp.route('/technical-support')
+def technical_support():
+    """الدعم الفني"""
+    return render_template('main/support.html')
+
+@main_bp.route('/about-system')
+def about_system():
+    """حول النظام"""
+    return render_template('main/about.html')

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فاتورة - {{ invoice.patient.full_name if invoice.patient else 'غير محدد' }}</title>
+    <title>فاتورة - {{ invoice.visit.patient.full_name if invoice.visit and invoice.visit.patient else 'غير محدد' }}</title>
     <style>
         @page {
             size: A4;
@@ -202,13 +202,16 @@
                 font-size: 11px;
             }
         }
-    </style>
+</style>
 </head>
 <body>
     <button class="print-button" onclick="window.print()">طباعة الفاتورة</button>
     
     <div class="header">
-        <h1>المركز الصحي المتخصص</h1>
+        {% if branding and branding.logo_url %}
+        <img src="{{ branding.logo_url }}" alt="Logo" style="max-height: 80px; margin-bottom: 15px;">
+        {% endif %}
+        <h1>{{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}</h1>
         <h2>فاتورة خدمات طبية</h2>
     </div>
     
@@ -217,11 +220,10 @@
             <h3>معلومات الفاتورة</h3>
             <p><strong>رقم الفاتورة:</strong> {{ invoice.invoice_number }}</p>
             <p><strong>تاريخ الإصدار:</strong> {{ invoice.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
-            <p><strong>تاريخ الاستحقاق:</strong> {{ invoice.due_date.strftime('%Y-%m-%d') if invoice.due_date else 'غير محدد' }}</p>
             <p><strong>حالة الفاتورة:</strong> 
                 {% if invoice.status == 'PAID' %}
                     <span style="color: green;">مدفوعة</span>
-                {% elif invoice.status == 'PENDING' %}
+                {% elif invoice.status == 'ISSUED' %}
                     <span style="color: orange;">معلقة</span>
                 {% else %}
                     <span style="color: red;">غير مدفوعة</span>
@@ -243,23 +245,23 @@
         <div class="patient-details">
             <div class="detail">
                 <span><strong>الاسم:</strong></span>
-                <span>{{ invoice.patient.full_name if invoice.patient else 'غير محدد' }}</span>
+                <span>{{ invoice.visit.patient.full_name if invoice.visit and invoice.visit.patient else 'غير محدد' }}</span>
             </div>
             <div class="detail">
                 <span><strong>رقم الهوية:</strong></span>
-                <span>{{ invoice.patient.national_id if invoice.patient else 'غير محدد' }}</span>
+                <span>{{ invoice.visit.patient.national_id if invoice.visit and invoice.visit.patient else 'غير محدد' }}</span>
             </div>
             <div class="detail">
                 <span><strong>تاريخ الميلاد:</strong></span>
-                <span>{{ invoice.patient.birth_date.strftime('%Y-%m-%d') if invoice.patient and invoice.patient.birth_date else 'غير محدد' }}</span>
+                <span>{{ invoice.visit.patient.birth_date.strftime('%Y-%m-%d') if invoice.visit and invoice.visit.patient and invoice.visit.patient.birth_date else 'غير محدد' }}</span>
             </div>
             <div class="detail">
                 <span><strong>الهاتف:</strong></span>
-                <span>{{ invoice.patient.phone if invoice.patient else 'غير محدد' }}</span>
+                <span>{{ invoice.visit.patient.phone if invoice.visit and invoice.visit.patient else 'غير محدد' }}</span>
             </div>
             <div class="detail">
                 <span><strong>العنوان:</strong></span>
-                <span>{{ invoice.patient.address if invoice.patient else 'غير محدد' }}</span>
+                <span>{{ invoice.visit.patient.address if invoice.visit and invoice.visit.patient else 'غير محدد' }}</span>
             </div>
         </div>
     </div>
@@ -275,10 +277,10 @@
             </tr>
         </thead>
         <tbody>
-            {% for service in invoice.services %}
+            {% for service in invoice.lines %}
             <tr>
                 <td>{{ service.service_name }}</td>
-                <td>{{ service.description or 'خدمة طبية' }}</td>
+                <td>{{ service.notes or 'خدمة طبية' }}</td>
                 <td>{{ service.quantity }}</td>
                 <td>{{ "%.2f"|format(service.unit_price) }} {{ invoice.currency }}</td>
                 <td>{{ "%.2f"|format(service.total_price) }} {{ invoice.currency }}</td>
@@ -289,22 +291,6 @@
     
     <div class="totals-section">
         <h3>تفصيل المبالغ</h3>
-        <div class="total-row">
-            <span>المجموع الفرعي:</span>
-            <span>{{ "%.2f"|format(invoice.subtotal) }} {{ invoice.currency }}</span>
-        </div>
-        {% if invoice.tax_amount and invoice.tax_amount > 0 %}
-        <div class="total-row">
-            <span>الضريبة ({{ invoice.tax_rate }}%):</span>
-            <span>{{ "%.2f"|format(invoice.tax_amount) }} {{ invoice.currency }}</span>
-        </div>
-        {% endif %}
-        {% if invoice.discount_amount and invoice.discount_amount > 0 %}
-        <div class="total-row">
-            <span>الخصم:</span>
-            <span style="color: green;">-{{ "%.2f"|format(invoice.discount_amount) }} {{ invoice.currency }}</span>
-        </div>
-        {% endif %}
         <div class="total-row final">
             <span>المجموع الكلي:</span>
             <span>{{ "%.2f"|format(invoice.total_amount) }} {{ invoice.currency }}</span>
@@ -322,30 +308,24 @@
                 <span><strong>المبلغ المتبقي:</strong></span>
                 <span>{{ "%.2f"|format(invoice.total_amount - invoice.paid_amount) }} {{ invoice.currency }}</span>
             </div>
-            <div class="detail">
-                <span><strong>طريقة الدفع:</strong></span>
-                <span>{{ invoice.payment_method or 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>تاريخ الدفع:</strong></span>
-                <span>{{ invoice.paid_at.strftime('%Y-%m-%d %H:%M') if invoice.paid_at else 'غير مدفوع' }}</span>
-            </div>
         </div>
     </div>
     
     <div class="footer">
         <p><strong>شكراً لثقتكم في المركز الصحي المتخصص</strong></p>
         <p>هذه الفاتورة صالحة للاستخدام القانوني</p>
-        <p>تاريخ الطباعة: {{ moment().format('YYYY-MM-DD HH:mm') }}</p>
+        <p>تاريخ الطباعة: {{ (invoice.updated_at or invoice.created_at).strftime('%Y-%m-%d %H:%M') if (invoice.updated_at or invoice.created_at) else '' }}</p>
         <p>للاستفسارات: info@medical-center.com | +970-XX-XXXXXXX</p>
         <hr style="margin: 10px 0; border: 1px solid #ddd;">
         <p style="font-size: 10px; color: #666; margin: 5px 0;">
-            <strong>تطوير:</strong> شركة ازاد للأنظمة الذكية | 
-            <strong>جوال:</strong> 0598953362 | 
-            <strong>وطنية:</strong> 0562150193 | 
-            <strong>واتساب:</strong> +972562150193 | 
-            <strong>رام الله - فلسطين</strong>
+            <strong>تطوير:</strong> {{ developer_company or 'شركة أزاد للأنظمة الذكية' }} | 
+            <strong>مطور:</strong> {{ developer_name or 'أحمد غنام' }}
         </p>
     </div>
+    <script>
+    window.onload = function() {
+        setTimeout(function() { window.print(); }, 800);
+    };
+    </script>
 </body>
 </html>

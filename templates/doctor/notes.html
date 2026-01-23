@@ -72,10 +72,26 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('doctor.notes', visit_id=visit.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="note_type" value="{{ note_type or '' }}">
+                        <div class="row g-2 align-items-end mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label">قوالب جاهزة</label>
+                                <select class="form-control" id="note_template_select">
+                                    <option value="">اختر</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 d-flex gap-2">
+                                <button type="button" class="btn btn-outline-primary w-100" id="apply_note_template_btn">إدراج</button>
+                                <button type="button" class="btn btn-outline-secondary" id="manage_note_templates_btn" data-bs-toggle="modal" data-bs-target="#doctorNoteTemplatesModal" title="إدارة القوالب">
+                                    <i class="fas fa-sliders-h"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label">الملاحظات الطبية *</label>
-                            <textarea class="form-control" name="medical_notes" rows="10" 
-                                      placeholder="أدخل الملاحظات الطبية للمريض..." required></textarea>
+                            <textarea class="form-control" name="medical_notes" id="medical_notes" rows="10" 
+                                      placeholder="أدخل الملاحظات الطبية للمريض..." required>{{ prefill_notes or '' }}</textarea>
                         </div>
                         
                         <div class="d-flex justify-content-end gap-2">
@@ -130,38 +146,257 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="doctorNoteTemplatesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">قوالب ملاحظات الطبيب</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-lg-5">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="mb-3">إضافة/تعديل</h6>
+                                <form id="doctorNoteTemplateForm">
+                                    <input type="hidden" id="dnt_id" value="">
+                                    <div class="mb-2">
+                                        <label class="form-label">الاسم</label>
+                                        <input type="text" class="form-control" id="dnt_name" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">النص</label>
+                                        <textarea class="form-control" id="dnt_text" rows="6"></textarea>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="dnt_active" checked>
+                                        <label class="form-check-label" for="dnt_active">فعال</label>
+                                    </div>
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <button type="button" class="btn btn-light" id="dnt_reset_btn">تفريغ</button>
+                                        <button type="submit" class="btn btn-primary">حفظ</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">القائمة</h6>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="dnt_refresh_btn">تحديث</button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>الاسم</th>
+                                                <th style="width: 70px;">فعال</th>
+                                                <th class="text-end" style="width: 140px;">إجراءات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dnt_table_body"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-// Auto-resize textarea
-document.querySelector('textarea[name="medical_notes"]').addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = this.scrollHeight + 'px';
-});
+const noteTextEl = document.getElementById('medical_notes');
+const tplSelectEl = document.getElementById('note_template_select');
+const applyTplBtn = document.getElementById('apply_note_template_btn');
+const templatesModalEl = document.getElementById('doctorNoteTemplatesModal');
+const dntForm = document.getElementById('doctorNoteTemplateForm');
+const dntTableBody = document.getElementById('dnt_table_body');
+const dntRefreshBtn = document.getElementById('dnt_refresh_btn');
+const dntResetBtn = document.getElementById('dnt_reset_btn');
+const dntIdEl = document.getElementById('dnt_id');
+const dntNameEl = document.getElementById('dnt_name');
+const dntTextEl = document.getElementById('dnt_text');
+const dntActiveEl = document.getElementById('dnt_active');
+const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
+let templatesCache = [];
 
-// Auto-save draft (optional)
+function autoResize() {
+    if (!noteTextEl) return;
+    noteTextEl.style.height = 'auto';
+    noteTextEl.style.height = noteTextEl.scrollHeight + 'px';
+}
+
+async function fetchTemplates() {
+    const r = await fetch('{{ url_for("doctor.api_note_templates") }}', { method: 'GET' });
+    const data = await r.json().catch(() => ({}));
+    const arr = data && data.templates ? data.templates : [];
+    templatesCache = Array.isArray(arr) ? arr : [];
+    return templatesCache;
+}
+
+function fillTemplateSelect(templates) {
+    if (!tplSelectEl) return;
+    const selected = tplSelectEl.value || '';
+    tplSelectEl.innerHTML = '<option value="">اختر</option>';
+    const active = templates.filter(t => t && t.is_active !== false);
+    active.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = t.name || '';
+        tplSelectEl.appendChild(opt);
+    });
+    if (selected) tplSelectEl.value = selected;
+}
+
+function resetTemplateForm() {
+    dntIdEl.value = '';
+    dntNameEl.value = '';
+    dntTextEl.value = '';
+    dntActiveEl.checked = true;
+}
+
+function renderTemplatesTable() {
+    if (!dntTableBody) return;
+    dntTableBody.innerHTML = '';
+    templatesCache.forEach(t => {
+        if (!t || !t.id) return;
+        const active = t.is_active !== false;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${String(t.name || '')}</td>
+            <td>${active ? '<span class="badge bg-success">نعم</span>' : '<span class="badge bg-secondary">لا</span>'}</td>
+            <td class="text-end">
+                <button type="button" class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${t.id}">تعديل</button>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${t.id}">حذف</button>
+            </td>
+        `;
+        dntTableBody.appendChild(tr);
+    });
+}
+
+async function refreshTemplatesUI() {
+    await fetchTemplates();
+    fillTemplateSelect(templatesCache);
+    renderTemplatesTable();
+}
+
+if (noteTextEl) {
+    noteTextEl.addEventListener('input', function() { autoResize(); });
+}
+
 let autoSaveTimeout;
-document.querySelector('textarea[name="medical_notes"]').addEventListener('input', function() {
-    clearTimeout(autoSaveTimeout);
-    autoSaveTimeout = setTimeout(function() {
-        // Save to localStorage as draft
-        localStorage.setItem('medical_notes_draft', document.querySelector('textarea[name="medical_notes"]').value);
-    }, 1000);
-});
+if (noteTextEl) {
+    noteTextEl.addEventListener('input', function() {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(function() {
+            localStorage.setItem('medical_notes_draft', noteTextEl.value);
+        }, 1000);
+    });
+}
 
-// Load draft on page load
 document.addEventListener('DOMContentLoaded', function() {
     const draft = localStorage.getItem('medical_notes_draft');
-    if (draft) {
-        document.querySelector('textarea[name="medical_notes"]').value = draft;
+    if (draft && noteTextEl) {
+        noteTextEl.value = draft;
+        autoResize();
     }
+    refreshTemplatesUI();
 });
 
-// Clear draft on form submit
 document.querySelector('form').addEventListener('submit', function() {
     localStorage.removeItem('medical_notes_draft');
 });
+
+if (applyTplBtn) {
+    applyTplBtn.addEventListener('click', function() {
+        const id = tplSelectEl ? tplSelectEl.value : '';
+        if (!id || !noteTextEl) return;
+        const t = templatesCache.find(x => x && x.id === id);
+        if (!t) return;
+        const current = noteTextEl.value ? String(noteTextEl.value) : '';
+        const insert = String(t.text || '');
+        noteTextEl.value = current ? (current + "\n" + insert) : insert;
+        autoResize();
+    });
+}
+
+if (templatesModalEl) {
+    templatesModalEl.addEventListener('show.bs.modal', function () {
+        resetTemplateForm();
+        refreshTemplatesUI();
+    });
+}
+if (dntRefreshBtn) {
+    dntRefreshBtn.addEventListener('click', function () {
+        refreshTemplatesUI();
+    });
+}
+if (dntResetBtn) {
+    dntResetBtn.addEventListener('click', function () {
+        resetTemplateForm();
+    });
+}
+if (dntForm) {
+    dntForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const payload = {
+            id: dntIdEl.value || undefined,
+            name: dntNameEl.value || '',
+            text: dntTextEl.value || '',
+            is_active: dntActiveEl.checked
+        };
+        const r = await fetch('{{ url_for("doctor.upsert_note_template") }}', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+            body: JSON.stringify(payload)
+        });
+        if (!r.ok) {
+            window.alert('فشل الحفظ');
+            return;
+        }
+        resetTemplateForm();
+        await refreshTemplatesUI();
+    });
+}
+if (dntTableBody) {
+    dntTableBody.addEventListener('click', async function (e) {
+        const btn = e.target && e.target.closest ? e.target.closest('button[data-action]') : null;
+        if (!btn) return;
+        const action = btn.getAttribute('data-action');
+        const id = btn.getAttribute('data-id');
+        const t = templatesCache.find(x => x && x.id === id);
+        if (!t) return;
+        if (action === 'edit') {
+            dntIdEl.value = t.id;
+            dntNameEl.value = t.name || '';
+            dntTextEl.value = t.text || '';
+            dntActiveEl.checked = t.is_active !== false;
+        } else if (action === 'delete') {
+            const ok = window.confirm('حذف القالب؟');
+            if (!ok) return;
+            const r = await fetch(`{{ url_for("doctor.delete_note_template", template_id="__T__") }}`.replace('__T__', encodeURIComponent(id)), {
+                method: 'POST',
+                headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
+            });
+            if (!r.ok) {
+                window.alert('فشل الحذف');
+                return;
+            }
+            await refreshTemplatesUI();
+        }
+    });
+}
 </script>
 {% endblock %}
 

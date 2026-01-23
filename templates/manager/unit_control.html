@@ -533,28 +533,33 @@ function exportUnitsReport() {
 }
 
 function viewUnitDetails(unitName) {
-    // عرض تفاصيل الوحدة
-    alert('عرض تفاصيل الوحدة: ' + unitName);
+    Swal.fire({ title: 'تفاصيل الوحدة', text: 'عرض تفاصيل الوحدة: ' + unitName, icon: 'info' });
 }
 
 function toggleUnit(unitName) {
-    // تبديل حالة الوحدة
-    if (confirm('هل تريد تغيير حالة هذه الوحدة؟')) {
-        alert('تم تغيير حالة الوحدة: ' + unitName);
-        location.reload();
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل تريد تغيير حالة هذه الوحدة؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم تغيير حالة الوحدة: ' + unitName, icon: 'success' }).then(() => { location.reload(); }); } });
 }
 
 function configureUnit(unitName) {
-    // إعدادات الوحدة
-    alert('إعدادات الوحدة: ' + unitName);
+    Swal.fire({ title: 'إعدادات', text: 'إعدادات الوحدة: ' + unitName, icon: 'info' });
 }
 
 function restartUnit(unitName) {
-    // إعادة تشغيل الوحدة
-    if (confirm('هل تريد إعادة تشغيل هذه الوحدة؟')) {
-        alert('تم إعادة تشغيل الوحدة: ' + unitName);
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل تريد إعادة تشغيل هذه الوحدة؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم إعادة تشغيل الوحدة: ' + unitName, icon: 'success' }); } });
 }
 
 function filterUnits(status) {
@@ -577,27 +582,36 @@ function filterUnits(status) {
 }
 
 function bulkActivate() {
-    // تفعيل جميع الوحدات
-    if (confirm('هل تريد تفعيل جميع الوحدات؟')) {
-        alert('تم تفعيل جميع الوحدات');
-        location.reload();
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل تريد تفعيل جميع الوحدات؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم تفعيل جميع الوحدات', icon: 'success' }).then(() => { location.reload(); }); } });
 }
 
 function bulkDeactivate() {
-    // تعطيل جميع الوحدات
-    if (confirm('هل تريد تعطيل جميع الوحدات؟')) {
-        alert('تم تعطيل جميع الوحدات');
-        location.reload();
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل تريد تعطيل جميع الوحدات؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم تعطيل جميع الوحدات', icon: 'success' }).then(() => { location.reload(); }); } });
 }
 
 function bulkRestart() {
-    // إعادة تشغيل جميع الوحدات
-    if (confirm('هل تريد إعادة تشغيل جميع الوحدات؟')) {
-        alert('تم إعادة تشغيل جميع الوحدات');
-        location.reload();
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل تريد إعادة تشغيل جميع الوحدات؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم إعادة تشغيل جميع الوحدات', icon: 'success' }).then(() => { location.reload(); }); } });
 }
 
 function bulkExport() {

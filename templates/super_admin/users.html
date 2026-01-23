@@ -23,6 +23,15 @@
                                     <i class="fas fa-user-plus me-2"></i>
                                     إضافة مستخدم
                                 </a>
+                                <form method="POST" action="{{ url_for('super_admin.seed_users') }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="per_role" value="1">
+                                    <input type="hidden" name="default_password" value="123456">
+                                    <button type="submit" class="btn btn-warning btn-lg">
+                                        <i class="fas fa-user-shield me-2"></i>
+                                        إنشاء حسابات افتراضية
+                                    </button>
+                                </form>
                                 <a href="{{ url_for('super_admin.dashboard') }}" class="btn btn-secondary btn-lg">
                                     <i class="fas fa-home me-2"></i>
                                     الرئيسية
@@ -84,6 +93,15 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
+                                    <label for="doctor_room" class="form-label">غرفة الطبيب</label>
+                                    <input type="text" class="form-control" id="doctor_room" name="doctor_room" 
+                                           value="{{ user.doctor_room }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
                                     <label for="role" class="form-label">الدور</label>
                                     <select class="form-select" id="role" name="role" required>
                                         {% for role_value, role_name in roles %}
@@ -101,6 +119,20 @@
                                         <option value="">اختر القسم</option>
                                         {% for dept in departments %}
                                         <option value="{{ dept.id }}" {% if user.department_id == dept.id %}selected{% endif %}>
+                                            {{ dept.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">صلاحيات إضافية على أقسام</label>
+                                    <select class="form-select" name="extra_department_ids" multiple size="6">
+                                        {% for dept in departments %}
+                                        <option value="{{ dept.id }}" {% if extra_department_ids and (dept.id in extra_department_ids) %}selected{% endif %}>
                                             {{ dept.name }}
                                         </option>
                                         {% endfor %}
@@ -163,6 +195,7 @@
                                     <th>الحالة</th>
                                     <th>آخر دخول</th>
                                     <th>الإجراءات</th>
+                                    <th>كلمة مرور مؤقتة</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -216,13 +249,13 @@
                                                 {% if user.is_active %}
                                                     <a href="{{ url_for('super_admin.ban_user', user_id=user.id) }}" 
                                                        class="btn btn-warning" title="حظر المستخدم"
-                                                       onclick="return confirm('هل تريد حظر هذا المستخدم؟')">
+                                                       onclick="return confirmNavigate(event, 'هل تريد حظر هذا المستخدم؟')">
                                                         <i class="fas fa-ban"></i>
                                                     </a>
                                                 {% else %}
                                                     <a href="{{ url_for('super_admin.unban_user', user_id=user.id) }}" 
                                                        class="btn btn-success" title="إلغاء الحظر"
-                                                       onclick="return confirm('هل تريد إلغاء حظر هذا المستخدم؟')">
+                                                       onclick="return confirmNavigate(event, 'هل تريد إلغاء حظر هذا المستخدم؟')">
                                                         <i class="fas fa-check-circle"></i>
                                                     </a>
                                                 {% endif %}
@@ -230,7 +263,7 @@
                                                 <!-- فرض تسجيل خروج -->
                                                 <a href="{{ url_for('super_admin.force_logout_user', user_id=user.id) }}" 
                                                    class="btn btn-info" title="فرض تسجيل الخروج"
-                                                   onclick="return confirm('هل تريد إجبار هذا المستخدم على تسجيل الخروج؟')">
+                                                   onclick="return confirmNavigate(event, 'هل تريد إجبار هذا المستخدم على تسجيل الخروج؟')">
                                                     <i class="fas fa-sign-out-alt"></i>
                                                 </a>
                                                 
@@ -239,9 +272,14 @@
                                                    onclick="deleteUser({{ user.id }})">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
+                                                <button type="button" class="btn btn-secondary" title="إعادة تعيين كلمة المرور"
+                                                   onclick="resetPassword({{ user.id }})">
+                                                    <i class="fas fa-key"></i>
+                                                </button>
                                             {% endif %}
                                         </div>
                                     </td>
+                                    <td id="temp-pass-{{ user.id }}"></td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -278,12 +316,12 @@
                                                 <i class="fas fa-ellipsis-v"></i>
                                             </button>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#" onclick="alert('تعديل الأدوار قريباً')">
-                                                    <i class="fas fa-edit me-2"></i>تعديل
+                                                <li><a class="dropdown-item" href="{{ url_for('super_admin.roles') }}">
+                                                    <i class="fas fa-edit me-2"></i>إدارة الأدوار
                                                 </a></li>
                                                 {% if role is not mapping or not role.get('is_system_role', True) %}
-                                                <li><a class="dropdown-item text-danger" href="#" onclick="alert('حذف الأدوار قريباً')">
-                                                    <i class="fas fa-trash me-2"></i>حذف
+                                                <li><a class="dropdown-item text-danger" href="{{ url_for('super_admin.roles') }}">
+                                                    <i class="fas fa-trash me-2"></i>حذف الدور
                                                 </a></li>
                                                 {% endif %}
                                             </ul>
@@ -322,12 +360,11 @@
                                                 <i class="fas fa-ellipsis-v"></i>
                                             </button>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#">
-                                                    <i class="fas fa-edit me-2"></i>تعديل
+                                                <li><a class="dropdown-item" href="{{ url_for('super_admin.permissions') }}">
+                                                    <i class="fas fa-edit me-2"></i>إدارة الصلاحيات
                                                 </a></li>
-                                                <li><a class="dropdown-item text-danger" href="#"
-                                                       onclick="return confirm('هل تريد حذف هذه الصلاحية؟')">
-                                                    <i class="fas fa-trash me-2"></i>حذف
+                                                <li><a class="dropdown-item text-danger" href="{{ url_for('super_admin.permissions') }}">
+                                                    <i class="fas fa-trash me-2"></i>حذف الصلاحية
                                                 </a></li>
                                             </ul>
                                         </div>
@@ -366,29 +403,90 @@
     margin: 0 1px;
 }
 </style>
-
 <script>
+ 
+
+function swalInfo(message) {
+    Swal.fire({
+        title: 'معلومة',
+        text: message,
+        icon: 'info'
+    });
+    return false;
+}
+
+function swalConfirmOnly(e, message) {
+    e.preventDefault();
+    Swal.fire({
+        title: 'تأكيد',
+        text: message,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    });
+    return false;
+}
+
 function deleteUser(userId) {
-    if (confirm('هل أنت متأكد من حذف هذا المستخدم نهائياً؟')) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `/super-admin/users/${userId}/delete`;
-        
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = 'csrf_token';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-        
-        document.body.appendChild(form);
-        form.submit();
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل أنت متأكد من حذف هذا المستخدم نهائياً؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، حذف',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/super-admin/users/${userId}/delete`, {
+                method: 'POST'
+            }).then((resp) => {
+                if (resp.ok) {
+                    location.reload();
+                } else {
+                    Swal.fire({ title: 'خطأ', text: 'فشل حذف المستخدم', icon: 'error' });
+                }
+            }).catch(() => {
+                Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الاتصال', icon: 'error' });
+            });
+        }
+    });
+}
+
+function resetPassword(userId) {
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل تريد إعادة تعيين كلمة مرور هذا المستخدم؟',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/super-admin/users/${userId}/reset-password`, {
+                method: 'POST'
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    const el = document.getElementById(`temp-pass-${userId}`);
+                    el.textContent = data.temp_password;
+                    setTimeout(() => { el.textContent = ''; }, 60000);
+                    Swal.fire({
+                        title: 'تم',
+                        text: `كلمة مرور مؤقتة: ${data.temp_password} ستختفي خلال دقيقة.`,
+                        icon: 'success'
+                    });
+                } else {
+                    Swal.fire({ title: 'خطأ', text: 'فشل إعادة تعيين كلمة المرور', icon: 'error' });
+                }
+            }).catch(() => {
+                Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الاتصال', icon: 'error' });
+            });
+        }
+    });
 }
 
 function filterUsers(status) {
     const rows = document.querySelectorAll('#usersTable tbody tr');
-    
     rows.forEach(row => {
         if (status === 'all' || row.dataset.status === status) {
             row.style.display = '';
@@ -396,18 +494,13 @@ function filterUsers(status) {
             row.style.display = 'none';
         }
     });
-    
-    // تحديث أزرار التصفية
     document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning').forEach(btn => {
         btn.classList.remove('active');
     });
-    
     event.target.classList.add('active');
 }
 
-// إضافة تأثيرات تفاعلية
 document.addEventListener('DOMContentLoaded', function() {
-    // إضافة تأثير hover للصفوف
     const rows = document.querySelectorAll('#usersTable tbody tr');
     rows.forEach(row => {
         row.addEventListener('mouseenter', function() {

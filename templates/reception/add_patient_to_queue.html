@@ -21,6 +21,7 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" id="addPatientForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="row">
                             <!-- معلومات المريض -->
                             <div class="col-md-6">
@@ -59,7 +60,7 @@
                                                 <option value="">اختر الموعد</option>
                                                 {% for appointment in appointments %}
                                                 <option value="{{ appointment.id }}">
-                                                    {{ appointment.patient.first_name }} {{ appointment.patient.last_name }} - {{ appointment.appointment_date }} {{ appointment.appointment_time }}
+                                                    {{ appointment.patient.first_name }} {{ appointment.patient.last_name }} - {{ appointment.starts_at.strftime('%Y-%m-%d') if appointment.starts_at else '' }} {{ appointment.starts_at.strftime('%H:%M') if appointment.starts_at else '' }}
                                                 </option>
                                                 {% endfor %}
                                             </select>
@@ -68,7 +69,7 @@
                                 </div>
                             </div>
                             
-                            <!-- معلومات الطابور -->
+                            {% if current_user.is_authenticated and current_user.role in ['reception','manager'] %}
                             <div class="col-md-6">
                                 <div class="card">
                                     <div class="card-header">
@@ -84,7 +85,6 @@
                                                 {% endfor %}
                                             </select>
                                         </div>
-                                        
                                         <div class="form-group">
                                             <label for="doctor_id">الطبيب (اختياري)</label>
                                             <select class="form-control" name="doctor_id" id="doctor_id">
@@ -94,7 +94,6 @@
                                                 {% endfor %}
                                             </select>
                                         </div>
-                                        
                                         <div class="form-group">
                                             <label for="queue_type">نوع الطابور</label>
                                             <select class="form-control" name="queue_type" id="queue_type">
@@ -106,6 +105,7 @@
                                     </div>
                                 </div>
                             </div>
+                            {% endif %}
                         </div>
                         
                         <!-- خيارات خاصة -->
@@ -162,8 +162,8 @@
                                                     <select class="form-control" name="payment_status" id="payment_status">
                                                         <option value="PENDING">في الانتظار</option>
                                                         <option value="PAID">مدفوع</option>
+                                                        <option value="PARTIAL">جزئي</option>
                                                         <option value="DEBT">دين</option>
-                                                        <option value="EMERGENCY_DEBT">دين طوارئ</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -300,19 +300,19 @@ document.getElementById('addPatientForm').addEventListener('submit', function(e)
     
     // التحقق من البيانات المطلوبة
     if (!patientId || !departmentId) {
-        alert('يرجى ملء جميع الحقول المطلوبة');
+        Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى ملء جميع الحقول المطلوبة', icon: 'warning' });
         return;
     }
     
     // التحقق من الطوارئ
     if (isEmergency && !formData.get('emergency_reason')) {
-        alert('يرجى إدخال سبب الطوارئ');
+        Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى إدخال سبب الطوارئ', icon: 'warning' });
         return;
     }
     
     // التحقق من الدخول القوي
     if (forceEntry && !formData.get('force_entry_reason')) {
-        alert('يرجى إدخال سبب الدخول القوي');
+        Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى إدخال سبب الدخول القوي', icon: 'warning' });
         return;
     }
     
@@ -380,7 +380,7 @@ function submitForm() {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('حدث خطأ في إضافة المريض للطابور');
+        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إضافة المريض للطابور', icon: 'error' });
     });
 }
 

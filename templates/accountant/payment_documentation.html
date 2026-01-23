@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}توثيق الدفع{% endblock %}
+{% block content %}
+<div class="container">
+  <h2 class="mb-3">توثيق الدفع #{{ payment.id }}</h2>
+  <div class="card"><div class="card-body">
+    <div>المريض: {{ payment.patient.full_name if payment.patient else '' }}</div>
+    <div>المبلغ: {{ payment.amount }}</div>
+    <div>الطريقة: {{ payment.method }}</div>
+    <div>التاريخ: {{ payment.created_at }}</div>
+  </div></div>
+</div>
+{% endblock %}
+

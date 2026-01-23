@@ -4,7 +4,7 @@ Medical System Invoice Forms
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectField, DateField, FloatField, BooleanField, HiddenField, SubmitField
+from wtforms import StringField, TextAreaField, SelectField, DateField, DecimalField, BooleanField, HiddenField, SubmitField
 from wtforms.validators import DataRequired, Length, NumberRange, Optional, ValidationError
 from .base_forms import FormBase, SearchFormBase, PaymentMixin, MedicalEntityMixin, StatusMixin, DateRangeMixin
 
@@ -12,16 +12,16 @@ class InvoiceForm(FormBase, MedicalEntityMixin, StatusMixin, PaymentMixin):
     """نموذج الفاتورة"""
     
     invoice_number = StringField('رقم الفاتورة', validators=[DataRequired(message='رقم الفاتورة مطلوب'), Length(max=50, message='رقم الفاتورة يجب أن يكون أقل من 50 حرف')])
-    total_amount = FloatField('المبلغ الإجمالي', validators=[DataRequired(message='المبلغ الإجمالي مطلوب'), NumberRange(min=0.01, message='المبلغ يجب أن يكون أكبر من صفر')])
-    paid_amount = FloatField('المبلغ المدفوع', validators=[Optional(), NumberRange(min=0, message='المبلغ المدفوع يجب أن يكون أكبر من أو يساوي صفر')])
-    remaining_amount = FloatField('المبلغ المتبقي', validators=[Optional(), NumberRange(min=0, message='المبلغ المتبقي يجب أن يكون أكبر من أو يساوي صفر')])
+    total_amount = DecimalField('المبلغ الإجمالي', validators=[DataRequired(message='المبلغ الإجمالي مطلوب'), NumberRange(min=0.01, message='المبلغ يجب أن يكون أكبر من صفر')])
+    paid_amount = DecimalField('المبلغ المدفوع', validators=[Optional(), NumberRange(min=0, message='المبلغ المدفوع يجب أن يكون أكبر من أو يساوي صفر')])
+    remaining_amount = DecimalField('المبلغ المتبقي', validators=[Optional(), NumberRange(min=0, message='المبلغ المتبقي يجب أن يكون أكبر من أو يساوي صفر')])
     due_date = DateField('تاريخ الاستحقاق', validators=[Optional()])
     notes = TextAreaField('ملاحظات', validators=[Optional()])
     
     # حقول التأمين
     insurance_company_id = SelectField('شركة التأمين', coerce=int, validators=[Optional()])
     insurance_number = StringField('رقم التأمين', validators=[Optional(), Length(max=50, message='رقم التأمين يجب أن يكون أقل من 50 حرف')])
-    insurance_coverage = FloatField('نسبة التغطية (%)', validators=[Optional(), NumberRange(min=0, max=100, message='نسبة التغطية يجب أن تكون بين 0 و 100')])
+    insurance_coverage = DecimalField('نسبة التغطية (%)', validators=[Optional(), NumberRange(min=0, max=100, message='نسبة التغطية يجب أن تكون بين 0 و 100')])
     
     # حقول الإدخال القوي
     force_payment = BooleanField('دفع قوي', default=False)
@@ -49,6 +49,13 @@ class InvoiceForm(FormBase, MedicalEntityMixin, StatusMixin, PaymentMixin):
             expected_remaining = self.total_amount.data - self.paid_amount.data
             if abs(field.data - expected_remaining) > 0.01:  # تحمل خطأ صغير
                 raise ValidationError('المبلغ المتبقي لا يتطابق مع الحساب')
+    
+    def validate_invoice_number(self, field):
+        """التحقق من عدم تكرار رقم الفاتورة"""
+        from models.invoice import Invoice
+        existing = Invoice.query.filter(Invoice.invoice_number == field.data).first()
+        if existing:
+            raise ValidationError('رقم الفاتورة مستخدم مسبقاً')
 
 class InvoiceSearchForm(SearchFormBase, DateRangeMixin):
     """نموذج البحث في الفواتير"""
@@ -56,21 +63,39 @@ class InvoiceSearchForm(SearchFormBase, DateRangeMixin):
     invoice_number = StringField('رقم الفاتورة', validators=[Optional()])
     patient_name = StringField('اسم المريض', validators=[Optional()])
     doctor_name = StringField('اسم الطبيب', validators=[Optional()])
-    amount_from = FloatField('من مبلغ', validators=[Optional(), NumberRange(min=0, message='المبلغ يجب أن يكون أكبر من أو يساوي صفر')])
-    amount_to = FloatField('إلى مبلغ', validators=[Optional(), NumberRange(min=0, message='المبلغ يجب أن يكون أكبر من أو يساوي صفر')])
-    payment_status = SelectField('حالة الدفع', choices=[
+    amount_from = DecimalField('من مبلغ', validators=[Optional(), NumberRange(min=0, message='المبلغ يجب أن يكون أكبر من أو يساوي صفر')])
+    amount_to = DecimalField('إلى مبلغ', validators=[Optional(), NumberRange(min=0, message='المبلغ يجب أن يكون أكبر من أو يساوي صفر')])
+    status = SelectField('حالة الفاتورة', choices=[
         ('', 'جميع الحالات'),
-        ('PENDING', 'في الانتظار'),
-        ('PAID', 'مدفوع'),
-        ('PARTIAL', 'مدفوع جزئياً'),
-        ('DEBT', 'دين'),
-        ('CANCELLED', 'ملغي')
+        ('DRAFT', 'مسودة'),
+        ('ISSUED', 'صادرة'),
+        ('PAID', 'مدفوعة'),
+        ('VOID', 'ملغاة')
     ], validators=[Optional()])
     insurance_company_id = SelectField('شركة التأمين', coerce=int, validators=[Optional()])
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.load_dynamic_choices()
+    
+    def get_status_choices(self):
+        """خيارات حالة الفاتورة المطابقة للنموذج"""
+        return [
+            ('DRAFT', 'مسودة'),
+            ('ISSUED', 'صادرة'),
+            ('PAID', 'مدفوعة'),
+            ('VOID', 'ملغاة'),
+        ]
+    
+    def get_status_choices(self):
+        """خيارات حالة المطالبة المطابقة للنموذج"""
+        return [
+            ('DRAFT', 'مسودة'),
+            ('SUBMITTED', 'مقدمة'),
+            ('APPROVED', 'معتمدة'),
+            ('REJECTED', 'مرفوضة'),
+            ('PAID', 'مدفوعة'),
+        ]
     
     def load_dynamic_choices(self):
         """تحميل الخيارات الديناميكية"""
@@ -95,8 +120,18 @@ class ReceiptForm(FormBase, PaymentMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل الفواتير غير المدفوعة بالكامل
         from models.invoice import Invoice
-        invoices = Invoice.query.filter(Invoice.payment_status != 'PAID').all()
-        self.invoice_id.choices = [(i.id, f"فاتورة {i.invoice_number} - {i.patient.full_name} - {i.total_amount}") for i in invoices]
+        invoices = Invoice.query.filter(Invoice.status != 'PAID').all()
+        def display_for(i):
+            patient_name = i.visit.patient.full_name if (i.visit and i.visit.patient) else 'غير محدد'
+            return f"فاتورة {i.invoice_number} - {patient_name} - {i.total_amount}"
+        self.invoice_id.choices = [(i.id, display_for(i)) for i in invoices]
+    
+    def validate_receipt_number(self, field):
+        """التحقق من عدم تكرار رقم السند"""
+        from models.receipt import Receipt
+        existing = Receipt.query.filter(Receipt.receipt_number == field.data).first()
+        if existing:
+            raise ValidationError('رقم السند مستخدم مسبقاً')
 
 class RefundForm(FormBase, PaymentMixin):
     """نموذج الاسترداد"""
@@ -109,7 +144,7 @@ class RefundForm(FormBase, PaymentMixin):
         ('other', 'أسباب أخرى')
     ], validators=[DataRequired(message='سبب الاسترداد مطلوب')])
     original_payment_id = SelectField('الدفع الأصلي', coerce=int, validators=[DataRequired(message='الدفع الأصلي مطلوب')])
-    refund_percentage = FloatField('نسبة الاسترداد (%)', validators=[Optional(), NumberRange(min=0, max=100, message='نسبة الاسترداد يجب أن تكون بين 0 و 100')])
+    refund_percentage = DecimalField('نسبة الاسترداد (%)', validators=[Optional(), NumberRange(min=0, max=100, message='نسبة الاسترداد يجب أن تكون بين 0 و 100')])
     admin_approval = BooleanField('موافقة الإدارة', default=False)
     admin_notes = TextAreaField('ملاحظات الإدارة', validators=[Optional()])
     
@@ -121,7 +156,8 @@ class RefundForm(FormBase, PaymentMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل المدفوعات المكتملة
         from models.payment import Payment
-        payments = Payment.query.filter_by(payment_status='PAID').all()
+        from models.payment import PaymentStatus
+        payments = Payment.query.filter(Payment.status == PaymentStatus.CONFIRMED).all()
         self.original_payment_id.choices = [(p.id, f"دفع {p.id} - {p.patient.full_name} - {p.amount}") for p in payments]
 
 class InsuranceClaimForm(FormBase, MedicalEntityMixin):
@@ -130,16 +166,16 @@ class InsuranceClaimForm(FormBase, MedicalEntityMixin):
     claim_number = StringField('رقم المطالبة', validators=[DataRequired(message='رقم المطالبة مطلوب'), Length(max=50, message='رقم المطالبة يجب أن يكون أقل من 50 حرف')])
     insurance_company_id = SelectField('شركة التأمين', coerce=int, validators=[DataRequired(message='شركة التأمين مطلوبة')])
     policy_number = StringField('رقم البوليصة', validators=[DataRequired(message='رقم البوليصة مطلوب'), Length(max=50, message='رقم البوليصة يجب أن يكون أقل من 50 حرف')])
-    claim_amount = FloatField('مبلغ المطالبة', validators=[DataRequired(message='مبلغ المطالبة مطلوب'), NumberRange(min=0.01, message='مبلغ المطالبة يجب أن يكون أكبر من صفر')])
-    approved_amount = FloatField('المبلغ المعتمد', validators=[Optional(), NumberRange(min=0, message='المبلغ المعتمد يجب أن يكون أكبر من أو يساوي صفر')])
+    claim_amount = DecimalField('مبلغ المطالبة', validators=[DataRequired(message='مبلغ المطالبة مطلوب'), NumberRange(min=0.01, message='مبلغ المطالبة يجب أن يكون أكبر من صفر')])
+    approved_amount = DecimalField('المبلغ المعتمد', validators=[Optional(), NumberRange(min=0, message='المبلغ المعتمد يجب أن يكون أكبر من أو يساوي صفر')])
     claim_date = DateField('تاريخ المطالبة', validators=[DataRequired(message='تاريخ المطالبة مطلوب')])
     approval_date = DateField('تاريخ الموافقة', validators=[Optional()])
     status = SelectField('الحالة', choices=[
-        ('PENDING', 'في الانتظار'),
-        ('APPROVED', 'معتمد'),
-        ('REJECTED', 'مرفوض'),
-        ('PARTIAL', 'معتمد جزئياً'),
-        ('PROCESSING', 'قيد المعالجة')
+        ('DRAFT', 'مسودة'),
+        ('SUBMITTED', 'مقدمة'),
+        ('APPROVED', 'معتمدة'),
+        ('REJECTED', 'مرفوضة'),
+        ('PAID', 'مدفوعة')
     ], validators=[DataRequired(message='الحالة مطلوبة')])
     notes = TextAreaField('ملاحظات', validators=[Optional()])
     
@@ -153,6 +189,13 @@ class InsuranceClaimForm(FormBase, MedicalEntityMixin):
         from models.insurance import InsuranceCompany
         companies = InsuranceCompany.query.filter_by(is_active=True).all()
         self.insurance_company_id.choices = [(c.id, c.name) for c in companies]
+    
+    def validate_claim_number(self, field):
+        """التحقق من عدم تكرار رقم المطالبة"""
+        from models.insurance import InsuranceClaim
+        existing = InsuranceClaim.query.filter(InsuranceClaim.claim_number == field.data).first()
+        if existing:
+            raise ValidationError('رقم المطالبة مستخدم مسبقاً')
 
 class InsuranceClaimSearchForm(SearchFormBase, DateRangeMixin):
     """نموذج البحث في مطالبات التأمين"""
@@ -160,8 +203,8 @@ class InsuranceClaimSearchForm(SearchFormBase, DateRangeMixin):
     claim_number = StringField('رقم المطالبة', validators=[Optional()])
     patient_name = StringField('اسم المريض', validators=[Optional()])
     insurance_company_id = SelectField('شركة التأمين', coerce=int, validators=[Optional()])
-    amount_from = FloatField('من مبلغ', validators=[Optional(), NumberRange(min=0, message='المبلغ يجب أن يكون أكبر من أو يساوي صفر')])
-    amount_to = FloatField('إلى مبلغ', validators=[Optional(), NumberRange(min=0, message='المبلغ يجب أن يكون أكبر من أو يساوي صفر')])
+    amount_from = DecimalField('من مبلغ', validators=[Optional(), NumberRange(min=0, message='المبلغ يجب أن يكون أكبر من أو يساوي صفر')])
+    amount_to = DecimalField('إلى مبلغ', validators=[Optional(), NumberRange(min=0, message='المبلغ يجب أن يكون أكبر من أو يساوي صفر')])
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -180,8 +223,8 @@ class InsurancePolicyForm(FormBase):
     policy_number = StringField('رقم البوليصة', validators=[DataRequired(message='رقم البوليصة مطلوب'), Length(max=50, message='رقم البوليصة يجب أن يكون أقل من 50 حرف')])
     insurance_company_id = SelectField('شركة التأمين', coerce=int, validators=[DataRequired(message='شركة التأمين مطلوبة')])
     patient_id = SelectField('المريض', coerce=int, validators=[DataRequired(message='المريض مطلوب')])
-    coverage_percentage = FloatField('نسبة التغطية (%)', validators=[DataRequired(message='نسبة التغطية مطلوبة'), NumberRange(min=0, max=100, message='نسبة التغطية يجب أن تكون بين 0 و 100')])
-    max_coverage_amount = FloatField('الحد الأقصى للتغطية', validators=[Optional(), NumberRange(min=0, message='الحد الأقصى يجب أن يكون أكبر من أو يساوي صفر')])
+    coverage_percentage = DecimalField('نسبة التغطية (%)', validators=[DataRequired(message='نسبة التغطية مطلوبة'), NumberRange(min=0, max=100, message='نسبة التغطية يجب أن تكون بين 0 و 100')])
+    max_coverage_amount = DecimalField('الحد الأقصى للتغطية', validators=[Optional(), NumberRange(min=0, message='الحد الأقصى يجب أن يكون أكبر من أو يساوي صفر')])
     start_date = DateField('تاريخ البداية', validators=[DataRequired(message='تاريخ البداية مطلوب')])
     end_date = DateField('تاريخ النهاية', validators=[DataRequired(message='تاريخ النهاية مطلوب')])
     is_active = BooleanField('نشط', default=True)
@@ -200,7 +243,7 @@ class InsurancePolicyForm(FormBase):
         
         # تحميل المرضى
         from models.patient import Patient
-        patients = Patient.query.filter_by(status='ACTIVE').all()
+        patients = Patient.query.all()
         self.patient_id.choices = [(p.id, f"{p.full_name} - {p.national_id}") for p in patients]
 
 class InsuranceProviderForm(FormBase):
@@ -212,6 +255,6 @@ class InsuranceProviderForm(FormBase):
     phone = StringField('الهاتف', validators=[Optional(), Length(max=20, message='رقم الهاتف يجب أن يكون أقل من 20 رقم')])
     email = StringField('البريد الإلكتروني', validators=[Optional(), Length(max=120, message='البريد الإلكتروني يجب أن يكون أقل من 120 حرف')])
     address = TextAreaField('العنوان', validators=[Optional()])
-    coverage_percentage = FloatField('نسبة التغطية الافتراضية (%)', validators=[DataRequired(message='نسبة التغطية مطلوبة'), NumberRange(min=0, max=100, message='نسبة التغطية يجب أن تكون بين 0 و 100')])
-    max_coverage_amount = FloatField('الحد الأقصى للتغطية', validators=[Optional(), NumberRange(min=0, message='الحد الأقصى يجب أن يكون أكبر من أو يساوي صفر')])
+    coverage_percentage = DecimalField('نسبة التغطية الافتراضية (%)', validators=[DataRequired(message='نسبة التغطية مطلوبة'), NumberRange(min=0, max=100, message='نسبة التغطية يجب أن تكون بين 0 و 100')])
+    max_coverage_amount = DecimalField('الحد الأقصى للتغطية', validators=[Optional(), NumberRange(min=0, message='الحد الأقصى يجب أن يكون أكبر من أو يساوي صفر')])
     is_active = BooleanField('نشط', default=True)

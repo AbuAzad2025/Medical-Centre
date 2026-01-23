@@ -1,7 +1,7 @@
 """
 تقرير طبي مرتبط بزيارة - MedicalReport
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from app_factory import db
 
 
@@ -14,8 +14,8 @@ class MedicalReport(db.Model):
     body = db.Column(db.Text, nullable=True)
     signed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
     visit = db.relationship('Visit', lazy='selectin')
     signer = db.relationship('User', foreign_keys=[signed_by], lazy='select')

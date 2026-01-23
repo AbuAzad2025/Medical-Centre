@@ -3,7 +3,7 @@
 Medical System Branding Management
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from app_factory import db
 import os
 
@@ -36,8 +36,8 @@ class BrandingSettings(db.Model):
     
     # إعدادات إضافية
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
     updated_by = db.Column(db.Integer, db.ForeignKey('users.id'))
     
@@ -112,8 +112,8 @@ class SystemTheme(db.Model):
     # إعدادات إضافية
     is_default = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     def __repr__(self):
         return f'<SystemTheme {self.name}>'

@@ -84,7 +84,7 @@
                                 متوسط السعر
                             </div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ "%.2f"|format(services|sum(attribute='price') / services|length) if services else 0 }} ₪
+                                {{ "%.2f"|format((services|sum(attribute='base_price')) / (services|length)) if services else 0 }} {{ services[0].currency if services else '₪' }}
                             </div>
                         </div>
                         <div class="col-auto">
@@ -148,7 +148,7 @@
                                 <tr>
                                     <th>الاسم</th>
                                     <th>الاسم العربي</th>
-                                    <th>النوع</th>
+                                    <th>التصنيف</th>
                                     <th>القسم</th>
                                     <th>السعر</th>
                                     <th>المدة</th>
@@ -174,16 +174,14 @@
                                         <span class="badge bg-info">{{ service.name_ar }}</span>
                                     </td>
                                     <td>
-                                        {% if service.service_type == 'CONSULTATION' %}
-                                        <span class="badge bg-primary">استشارة</span>
-                                        {% elif service.service_type == 'EXAMINATION' %}
-                                        <span class="badge bg-success">فحص</span>
-                                        {% elif service.service_type == 'TREATMENT' %}
-                                        <span class="badge bg-warning">علاج</span>
-                                        {% elif service.service_type == 'EMERGENCY' %}
-                                        <span class="badge bg-danger">طوارئ</span>
+                                        {% if service.category == 'doctor' %}
+                                        <span class="badge bg-primary">أطباء</span>
+                                        {% elif service.category == 'lab' %}
+                                        <span class="badge bg-success">مختبر</span>
+                                        {% elif service.category == 'radiology' %}
+                                        <span class="badge bg-warning">أشعة</span>
                                         {% else %}
-                                        <span class="badge bg-secondary">{{ service.service_type }}</span>
+                                        <span class="badge bg-secondary">عام</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -196,11 +194,11 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <i class="fas fa-dollar-sign text-success me-1"></i>
-                                            <strong>{{ "%.2f"|format(service.price) }} ₪</strong>
+                                            <strong>{{ "%.2f"|format(service.base_price or 0) }} {{ service.currency or '₪' }}</strong>
                                         </div>
                                     </td>
                                     <td>
-                                        {% if service.duration %}
+                                        {% if service.duration is defined and service.duration %}
                                         <i class="fas fa-clock text-muted me-1"></i>
                                         {{ service.duration }} دقيقة
                                         {% else %}
@@ -208,7 +206,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if service.is_required %}
+                                        {% if service.is_required is defined and service.is_required %}
                                         <span class="badge bg-danger">مطلوبة</span>
                                         {% else %}
                                         <span class="badge bg-secondary">اختيارية</span>
@@ -289,6 +287,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="addServiceForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
@@ -469,7 +468,7 @@ document.getElementById('searchInput').addEventListener('input', function() {
 // Service management functions
 function viewService(serviceId) {
     // عرض تفاصيل الخدمة
-    window.open(`/super-admin/service/${serviceId}`, '_blank');
+    window.location.href = `/super-admin/service/${serviceId}`;
 }
 
 function editService(serviceId) {
@@ -483,45 +482,61 @@ function managePricing(serviceId) {
 }
 
 function activateService(serviceId) {
-    if (confirm('هل أنت متأكد من تفعيل هذه الخدمة؟')) {
-        // تفعيل الخدمة
-        fetch(`/super-admin/activate-service/${serviceId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrf_token]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('حدث خطأ في تفعيل الخدمة');
-            }
-        });
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل أنت متأكد من تفعيل هذه الخدمة؟',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/super-admin/activate-service/${serviceId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    Swal.fire({ title: 'خطأ', text: 'حدث خطأ في تفعيل الخدمة', icon: 'error' });
+                }
+            })
+            .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
+        }
+    });
 }
 
 function deactivateService(serviceId) {
-    if (confirm('هل أنت متأكد من إلغاء تفعيل هذه الخدمة؟')) {
-        // إلغاء تفعيل الخدمة
-        fetch(`/super-admin/deactivate-service/${serviceId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrf_token]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('حدث خطأ في إلغاء تفعيل الخدمة');
-            }
-        });
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل أنت متأكد من إلغاء تفعيل هذه الخدمة؟',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/super-admin/deactivate-service/${serviceId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إلغاء تفعيل الخدمة', icon: 'error' });
+                }
+            })
+            .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
+        }
+    });
 }
 
 function exportServices() {
@@ -537,19 +552,17 @@ document.getElementById('addServiceForm').addEventListener('submit', function(e)
     
     fetch('/super-admin/services/create', {
         method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrf_token]').value
-        }
+        body: formData
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             location.reload();
         } else {
-            alert('حدث خطأ في إضافة الخدمة: ' + data.message);
+            Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إضافة الخدمة: ' + (data.message || ''), icon: 'error' });
         }
-    });
+    })
+    .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
 });
 </script>
 {% endblock %}

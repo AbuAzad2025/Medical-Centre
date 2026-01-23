@@ -7,15 +7,21 @@
     <style>
         @page {
             size: A4;
-            margin: 1cm;
+            margin: 10mm;
         }
         
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Tahoma', 'Segoe UI', 'Arial', sans-serif;
             font-size: 12px;
             line-height: 1.4;
             color: #333;
             margin: 0;
+            padding: 0;
+        }
+
+        .page {
+            width: 190mm;
+            margin: 0 auto;
             padding: 0;
         }
         
@@ -181,13 +187,14 @@
                 font-size: 11px;
             }
         }
-    </style>
+</style>
 </head>
 <body>
     <button class="print-button" onclick="window.print()">طباعة</button>
     
+    <div class="page">
     <div class="header">
-        <h1>المركز الصحي المتخصص</h1>
+        <h1>{{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}</h1>
         <h2>سند قبض</h2>
     </div>
     
@@ -197,16 +204,31 @@
             <p><strong>رقم السند:</strong> {{ visit.receipt_number or 'غير محدد' }}</p>
             <p><strong>تاريخ الإصدار:</strong> {{ visit.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
             <p><strong>حالة الدفع:</strong> 
-                {% if visit.payment_status == 'PAID' %}
+                {% if visit.payment_status == 'PAID' or (visit.remaining_amount is defined and visit.remaining_amount <= 0) %}
                     <span style="color: green;">مدفوع</span>
+                {% elif visit.payment_status == 'PARTIAL' or (visit.paid_amount is defined and visit.remaining_amount is defined and visit.paid_amount > 0 and visit.remaining_amount > 0) %}
+                    <span style="color: #0d6efd;">جزئي</span>
+                {% elif visit.payment_status == 'DEBT' %}
+                    <span style="color: red;">دين</span>
                 {% elif visit.payment_status == 'PENDING' %}
                     <span style="color: orange;">معلق</span>
                 {% else %}
-                    <span style="color: red;">غير مدفوع</span>
+                    <span style="color: #6c757d;">{{ visit.payment_status }}</span>
                 {% endif %}
             </p>
+            {% if visit.paid_amount is defined and visit.remaining_amount is defined %}
+            <p>
+                {% if visit.paid_amount > 0 and visit.remaining_amount > 0 %}
+                    <small style="color:#0d6efd;">مدفوع جزئياً: {{ "%.2f"|format(visit.paid_amount) }} {{ visit.currency }} • المتبقي: {{ "%.2f"|format(visit.remaining_amount) }} {{ visit.currency }}</small>
+                {% elif visit.paid_amount > 0 and visit.remaining_amount <= 0 %}
+                    <small style="color:green;">مدفوع: {{ "%.2f"|format(visit.paid_amount) }} {{ visit.currency }}</small>
+                {% elif visit.paid_amount == 0 and visit.remaining_amount > 0 %}
+                    <small style="color:#f57c00;">متبقي: {{ "%.2f"|format(visit.remaining_amount) }} {{ visit.currency }}</small>
+                {% endif %}
+            </p>
+            {% endif %}
         </div>
-        
+
         <div class="info-section">
             <h3>معلومات المركز</h3>
             <p><strong>المركز:</strong> المركز الصحي المتخصص</p>
@@ -244,7 +266,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="visit-details">
         <h3>تفاصيل الزيارة</h3>
         <div class="patient-details">
@@ -284,27 +306,29 @@
             </div>
         </div>
     </div>
-    
+
     <div class="payment-details">
         <h3>تفاصيل الدفع</h3>
         <div class="patient-details">
             <div class="detail">
                 <span><strong>طريقة الدفع:</strong></span>
                 <span>
-                    {% if visit.payment_method == 'cash' %}
+                    {% if visit.payment_method in ['cash','CASH'] %}
                         نقد
-                    {% elif visit.payment_method == 'visa' %}
-                        فيزا
-                    {% elif visit.payment_method == 'insurance' %}
+                    {% elif visit.payment_method in ['visa','card','CARD','VISA'] %}
+                        بطاقة
+                    {% elif visit.payment_method in ['insurance','INSURANCE'] %}
                         تأمين
-                    {% elif visit.payment_method == 'force_payment' %}
+                    {% elif visit.payment_method in ['wire','WIRE'] %}
+                        تحويل بنكي
+                    {% elif visit.payment_method in ['force','force_payment','FORCE','FORCE_PAYMENT'] %}
                         دفع قوي
                     {% else %}
                         {{ visit.payment_method or 'غير محدد' }}
                     {% endif %}
                 </span>
             </div>
-            {% if visit.payment_method == 'visa' %}
+            {% if visit.payment_method in ['visa','card','CARD','VISA'] %}
             <div class="detail">
                 <span><strong>آخر 4 أرقام:</strong></span>
                 <span>{{ visit.card_number_last_digits or 'غير محدد' }}</span>
@@ -314,17 +338,17 @@
                 <span>{{ visit.card_holder_name or 'غير محدد' }}</span>
             </div>
             {% endif %}
-            {% if visit.payment_method == 'insurance' %}
+            {% if visit.payment_method in ['insurance','INSURANCE'] %}
             <div class="detail">
                 <span><strong>شركة التأمين:</strong></span>
-                <span>{{ visit.insurance_provider.name if visit.insurance_provider else 'غير محدد' }}</span>
+                <span>{{ visit.insurance_company.name_ar if visit.insurance_company else (visit.insurance_provider or 'غير محدد') }}</span>
             </div>
             <div class="detail">
                 <span><strong>رقم البوليصة:</strong></span>
                 <span>{{ visit.insurance_policy_number or 'غير محدد' }}</span>
             </div>
             {% endif %}
-            {% if visit.payment_method == 'force_payment' %}
+            {% if visit.is_force_payment or visit.payment_method in ['force','force_payment','FORCE','FORCE_PAYMENT'] %}
             <div class="detail">
                 <span><strong>سبب الدفع القوي:</strong></span>
                 <span>{{ visit.force_payment_reason or 'غير محدد' }}</span>
@@ -334,23 +358,81 @@
                 <span>{{ visit.approved_by_user.full_name if visit.approved_by_user else 'غير محدد' }}</span>
             </div>
             {% endif %}
+            <div class="detail">
+                <span><strong>المدفوع:</strong></span>
+                <span>{{ "%.2f"|format(visit.paid_amount or 0) }} {{ visit.currency }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>المتبقي:</strong></span>
+                <span>{{ "%.2f"|format(visit.remaining_amount or (visit.total_amount - (visit.paid_amount or 0))) }} {{ visit.currency }}</span>
+            </div>
+            {% if last_payment %}
+            <div class="detail">
+                <span><strong>آخر دفعة:</strong></span>
+                <span>{{ "%.2f"|format(last_payment.amount or 0) }} {{ visit.currency }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>بتاريخ:</strong></span>
+                <span>{{ last_payment.payment_date.strftime('%Y-%m-%d %H:%M') if last_payment.payment_date else (last_payment.created_at.strftime('%Y-%m-%d %H:%M') if last_payment.created_at else '-') }}</span>
+            </div>
+            <div class="detail">
+                <span><strong>مستلم الدفع:</strong></span>
+                <span>{{ last_payment.receiver.full_name if last_payment.receiver else 'غير محدد' }}</span>
+            </div>
+            {% endif %}
+            {% if survey_url %}
+            <div class="detail">
+                <span><strong>استبيان رضا المرضى:</strong></span>
+                <span>{{ survey_url }}</span>
+            </div>
+            {% endif %}
         </div>
     </div>
+
+    {% if queue_ticket %}
+    <div class="cost-breakdown">
+        <h3>تفاصيل الطابور</h3>
+        <div class="cost-item">
+            <span>رقم الدور:</span>
+            <span>{{ queue_ticket.queue_number }}</span>
+        </div>
+        <div class="cost-item">
+            <span>حالة الطابور:</span>
+            <span>{{ queue_ticket.get_status_display() }}</span>
+        </div>
+        <div class="cost-item">
+            <span>وقت الإدراج:</span>
+            <span>{{ queue_ticket.queued_at.strftime('%Y-%m-%d %H:%M') if queue_ticket.queued_at else '-' }}</span>
+        </div>
+        {% if queue_ticket.called_at %}
+        <div class="cost-item">
+            <span>وقت الاستدعاء:</span>
+            <span>{{ queue_ticket.called_at.strftime('%Y-%m-%d %H:%M') }}</span>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
     
     <div class="cost-breakdown">
         <h3>تفصيل التكلفة</h3>
         <div class="cost-item">
             <span>تكلفة الخدمة:</span>
-            <span>{{ "%.2f"|format(visit.total_amount * 0.7) }} {{ visit.currency }}</span>
+            <span>{{ "%.2f"|format(service_cost if service_cost is not none else ((visit.total_amount * 7) / 10)) }} {{ visit.currency }}</span>
         </div>
         <div class="cost-item">
             <span>رسوم الطبيب:</span>
-            <span>{{ "%.2f"|format(visit.total_amount * 0.3) }} {{ visit.currency }}</span>
+            <span>{{ "%.2f"|format(doctor_fee if doctor_fee is not none else ((visit.total_amount * 3) / 10)) }} {{ visit.currency }}</span>
         </div>
         {% if visit.visit_type == 'FOLLOW_UP' %}
         <div class="cost-item">
             <span>خصم المراجعة (30%):</span>
-            <span style="color: green;">-{{ "%.2f"|format(visit.total_amount * 0.3) }} {{ visit.currency }}</span>
+            <span style="color: green;">-{{ "%.2f"|format(follow_up_discount if follow_up_discount is not none else ((visit.total_amount * 3) / 10)) }} {{ visit.currency }}</span>
+        </div>
+        {% endif %}
+        {% if visit.tax_amount and visit.tax_amount > 0 %}
+        <div class="cost-item">
+            <span>ضريبة القيمة المضافة ({{ visit.tax_percent|int }}% {{ 'شاملة' if visit.is_tax_inclusive else 'مضافة' }}):</span>
+            <span>{{ "%.2f"|format(visit.tax_amount) }} {{ visit.currency }}</span>
         </div>
         {% endif %}
         <div class="cost-item total">
@@ -360,17 +442,21 @@
     </div>
     
     <div class="footer">
-        <p>شكراً لثقتكم في المركز الصحي المتخصص</p>
+        <p>شكراً لثقتكم في {{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}</p>
         <p>هذا السند صالح للاستخدام القانوني</p>
-        <p>تاريخ الطباعة: {{ moment().format('YYYY-MM-DD HH:mm') }}</p>
+        <p>تاريخ الطباعة: {{ printed_at.strftime('%Y-%m-%d %H:%M') }}</p>
+        <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else 'info@medical-center.com' }} | {{ branding.organization_phone if branding and branding.organization_phone else '+970-XX-XXXXXXX' }}</p>
         <hr style="margin: 10px 0; border: 1px solid #ddd;">
         <p style="font-size: 10px; color: #666; margin: 5px 0;">
-            <strong>تطوير:</strong> شركة ازاد للأنظمة الذكية | 
-            <strong>جوال:</strong> 0598953362 | 
-            <strong>وطنية:</strong> 0562150193 | 
-            <strong>واتساب:</strong> +972562150193 | 
-            <strong>رام الله - فلسطين</strong>
+            <strong>تطوير:</strong> {{ developer_company or 'شركة أزاد للأنظمة الذكية' }} | 
+            <strong>مطور:</strong> {{ developer_name or 'أحمد غنام' }}
         </p>
     </div>
+    </div>
+    <script>
+    window.onload = function() {
+        setTimeout(function() { window.print(); }, 800);
+    };
+    </script>
 </body>
 </html>

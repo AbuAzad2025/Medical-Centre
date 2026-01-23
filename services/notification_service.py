@@ -3,7 +3,7 @@
 Medical System Notification Management Service
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import and_, or_, func, desc
 from app_factory import db
 from models.notification import Notification, NotificationTemplate, NotificationQueue, WhatsAppMessage, EmailMessage
@@ -33,13 +33,13 @@ class NotificationService:
                 
                 if template:
                     rendered = template.render(template_variables)
-                    title = rendered['title']
-                    message = rendered['message']
+                    title = rendered.get('title') or rendered.get('subject')
+                    message = rendered.get('message') or rendered.get('content')
                     notification_type = rendered['notification_type']
                 else:
                     return {'success': False, 'message': 'قالب الإشعار غير موجود'}
             
-            # إنشاء الإشعار
+            # إنشاء الإشعار (بدون حقول غير موجودة في النموذج)
             notification = Notification(
                 title=title,
                 message=message,
@@ -48,11 +48,9 @@ class NotificationService:
                 recipient_role=recipient_role,
                 recipient_department_id=recipient_department_id,
                 sender_id=sender_id,
-                related_entity_type=related_entity_type,
-                related_entity_id=related_entity_id,
                 is_urgent=is_urgent,
                 expires_at=expires_at,
-                sent_at=datetime.utcnow()
+                sent_at=datetime.now(timezone.utc)
             )
             
             db.session.add(notification)
@@ -63,7 +61,7 @@ class NotificationService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error sending notification: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في إرسال الإشعار: {str(e)}'}
+            return {'success': False, 'message': 'تعذر إرسال الإشعار حالياً'}
     
     @staticmethod
     def send_bulk_notification(recipient_ids=None, recipient_roles=None, recipient_department_ids=None,
@@ -83,11 +81,9 @@ class NotificationService:
                         notification_type=notification_type,
                         recipient_id=recipient_id,
                         sender_id=sender_id,
-                        related_entity_type=related_entity_type,
-                        related_entity_id=related_entity_id,
                         is_urgent=is_urgent,
                         expires_at=expires_at,
-                        sent_at=datetime.utcnow()
+                        sent_at=datetime.now(timezone.utc)
                     )
                     notifications.append(notification)
             
@@ -100,11 +96,9 @@ class NotificationService:
                         notification_type=notification_type,
                         recipient_role=role,
                         sender_id=sender_id,
-                        related_entity_type=related_entity_type,
-                        related_entity_id=related_entity_id,
                         is_urgent=is_urgent,
                         expires_at=expires_at,
-                        sent_at=datetime.utcnow()
+                        sent_at=datetime.now(timezone.utc)
                     )
                     notifications.append(notification)
             
@@ -117,11 +111,9 @@ class NotificationService:
                         notification_type=notification_type,
                         recipient_department_id=department_id,
                         sender_id=sender_id,
-                        related_entity_type=related_entity_type,
-                        related_entity_id=related_entity_id,
                         is_urgent=is_urgent,
                         expires_at=expires_at,
-                        sent_at=datetime.utcnow()
+                        sent_at=datetime.now(timezone.utc)
                     )
                     notifications.append(notification)
             
@@ -136,7 +128,7 @@ class NotificationService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error sending bulk notification: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في إرسال الإشعارات الجماعية: {str(e)}'}
+            return {'success': False, 'message': 'تعذر إرسال الإشعارات الجماعية حالياً'}
     
     @staticmethod
     def get_user_notifications(user_id, unread_only=False, urgent_only=False, limit=None):
@@ -147,7 +139,7 @@ class NotificationService:
                     Notification.recipient_id == user_id,
                     or_(
                         Notification.expires_at.is_(None),
-                        Notification.expires_at > datetime.utcnow()
+                        Notification.expires_at > datetime.now(timezone.utc)
                     )
                 )
             )
@@ -173,7 +165,7 @@ class NotificationService:
             
         except Exception as e:
             logging.error(f"Error getting user notifications: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في الحصول على إشعارات المستخدم: {str(e)}'}
+            return {'success': False, 'message': 'تعذر جلب إشعارات المستخدم حالياً'}
     
     @staticmethod
     def mark_as_read(notification_id, user_id):
@@ -195,7 +187,7 @@ class NotificationService:
             
         except Exception as e:
             logging.error(f"Error marking notification as read: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في تحديد الإشعار كمقروء: {str(e)}'}
+            return {'success': False, 'message': 'تعذر تحديد الإشعار كمقروء حالياً'}
     
     @staticmethod
     def mark_all_as_read(user_id):
@@ -215,7 +207,7 @@ class NotificationService:
             
         except Exception as e:
             logging.error(f"Error marking all notifications as read: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في تحديد جميع الإشعارات كمقروءة: {str(e)}'}
+            return {'success': False, 'message': 'تعذر تحديد جميع الإشعارات كمقروءة حالياً'}
     
     @staticmethod
     def get_notification_count(user_id):
@@ -227,7 +219,7 @@ class NotificationService:
                     Notification.is_read == False,
                     or_(
                         Notification.expires_at.is_(None),
-                        Notification.expires_at > datetime.utcnow()
+                        Notification.expires_at > datetime.now(timezone.utc)
                     )
                 )
             ).count()
@@ -239,7 +231,7 @@ class NotificationService:
                     Notification.is_urgent == True,
                     or_(
                         Notification.expires_at.is_(None),
-                        Notification.expires_at > datetime.utcnow()
+                        Notification.expires_at > datetime.now(timezone.utc)
                     )
                 )
             ).count()
@@ -252,7 +244,7 @@ class NotificationService:
             
         except Exception as e:
             logging.error(f"Error getting notification count: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في الحصول على عدد الإشعارات: {str(e)}'}
+            return {'success': False, 'message': 'تعذر جلب عدد الإشعارات حالياً'}
     
     @staticmethod
     def create_notification_template(name, title_template, message_template, notification_type,
@@ -261,13 +253,13 @@ class NotificationService:
         try:
             template = NotificationTemplate(
                 name=name,
-                title_template=title_template,
-                message_template=message_template,
-                notification_type=notification_type,
+                template_type=notification_type,
+                subject=title_template,
+                content=message_template,
                 variables=json.dumps(variables) if variables else None,
                 is_system=is_system,
                 created_by=created_by,
-                created_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc)
             )
             
             db.session.add(template)
@@ -278,7 +270,7 @@ class NotificationService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error creating notification template: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في إنشاء قالب الإشعار: {str(e)}'}
+            return {'success': False, 'message': 'تعذر إنشاء قالب الإشعار حالياً'}
     
     @staticmethod
     def get_notification_templates():
@@ -295,7 +287,7 @@ class NotificationService:
             
         except Exception as e:
             logging.error(f"Error getting notification templates: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في الحصول على قوالب الإشعارات: {str(e)}'}
+            return {'success': False, 'message': 'تعذر جلب قوالب الإشعارات حالياً'}
     
     @staticmethod
     def create_default_templates():
@@ -304,50 +296,44 @@ class NotificationService:
             default_templates = [
                 {
                     'name': 'new_visit',
-                    'title_template': 'زيارة جديدة - {patient_name}',
-                    'message_template': 'تم تسجيل زيارة جديدة للمريض {patient_name} في قسم {department_name}',
-                    'notification_type': 'info',
-                    'variables': ['patient_name', 'department_name'],
+                    'subject': 'زيارة جديدة - {patient_name}',
+                    'content': 'تم تسجيل زيارة جديدة للمريض {patient_name} في قسم {department_name}',
+                    'template_type': 'info',
                     'is_system': True
                 },
                 {
                     'name': 'appointment_reminder',
-                    'title_template': 'تذكير بالموعد - {patient_name}',
-                    'message_template': 'موعد المريض {patient_name} مع الدكتور {doctor_name} في {appointment_time}',
-                    'notification_type': 'info',
-                    'variables': ['patient_name', 'doctor_name', 'appointment_time'],
+                    'subject': 'تذكير بالموعد - {patient_name}',
+                    'content': 'موعد المريض {patient_name} مع الدكتور {doctor_name} في {appointment_time}',
+                    'template_type': 'info',
                     'is_system': True
                 },
                 {
                     'name': 'payment_required',
-                    'title_template': 'دفع مطلوب - {patient_name}',
-                    'message_template': 'يوجد مبلغ مستحق للمريض {patient_name} بقيمة {amount} شيكل',
-                    'notification_type': 'warning',
-                    'variables': ['patient_name', 'amount'],
+                    'subject': 'دفع مطلوب - {patient_name}',
+                    'content': 'يوجد مبلغ مستحق للمريض {patient_name} بقيمة {amount} شيكل',
+                    'template_type': 'warning',
                     'is_system': True
                 },
                 {
                     'name': 'lab_result_ready',
-                    'title_template': 'نتائج المختبر جاهزة - {patient_name}',
-                    'message_template': 'نتائج فحوصات المختبر للمريض {patient_name} جاهزة للمراجعة',
-                    'notification_type': 'success',
-                    'variables': ['patient_name'],
+                    'subject': 'نتائج المختبر جاهزة - {patient_name}',
+                    'content': 'نتائج فحوصات المختبر للمريض {patient_name} جاهزة للمراجعة',
+                    'template_type': 'success',
                     'is_system': True
                 },
                 {
                     'name': 'radiology_result_ready',
-                    'title_template': 'نتائج الأشعة جاهزة - {patient_name}',
-                    'message_template': 'نتائج فحوصات الأشعة للمريض {patient_name} جاهزة للمراجعة',
-                    'notification_type': 'success',
-                    'variables': ['patient_name'],
+                    'subject': 'نتائج الأشعة جاهزة - {patient_name}',
+                    'content': 'نتائج فحوصات الأشعة للمريض {patient_name} جاهزة للمراجعة',
+                    'template_type': 'success',
                     'is_system': True
                 },
                 {
                     'name': 'emergency_alert',
-                    'title_template': 'تنبيه طوارئ - {patient_name}',
-                    'message_template': 'حالة طوارئ للمريض {patient_name} - {emergency_type}',
-                    'notification_type': 'urgent',
-                    'variables': ['patient_name', 'emergency_type'],
+                    'subject': 'تنبيه طوارئ - {patient_name}',
+                    'content': 'حالة طوارئ للمريض {patient_name} - {emergency_type}',
+                    'template_type': 'urgent',
                     'is_system': True
                 }
             ]
@@ -359,7 +345,13 @@ class NotificationService:
                 ).first()
                 
                 if not existing:
-                    template = NotificationTemplate(**template_data)
+                    template = NotificationTemplate(
+                        name=template_data['name'],
+                        template_type=template_data['template_type'],
+                        subject=template_data['subject'],
+                        content=template_data['content'],
+                        is_system=template_data['is_system']
+                    )
                     db.session.add(template)
             
             db.session.commit()
@@ -368,7 +360,7 @@ class NotificationService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error creating default templates: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في إنشاء قوالب الإشعارات الافتراضية: {str(e)}'}
+            return {'success': False, 'message': 'تعذر إنشاء قوالب الإشعارات الافتراضية حالياً'}
     
     @staticmethod
     def cleanup_expired_notifications():
@@ -377,7 +369,7 @@ class NotificationService:
             expired_notifications = Notification.query.filter(
                 and_(
                     Notification.expires_at.isnot(None),
-                    Notification.expires_at < datetime.utcnow()
+                    Notification.expires_at < datetime.now(timezone.utc)
                 )
             ).all()
             
@@ -391,7 +383,7 @@ class NotificationService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error cleaning up expired notifications: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في تنظيف الإشعارات المنتهية الصلاحية: {str(e)}'}
+            return {'success': False, 'message': 'تعذر تنظيف الإشعارات المنتهية الصلاحية حالياً'}
     
     @staticmethod
     def send_whatsapp_message(phone_number, message_content, message_type='text', template_name=None, media_url=None):
@@ -414,7 +406,7 @@ class NotificationService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error sending WhatsApp message: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في إرسال رسالة الواتساب: {str(e)}'}
+            return {'success': False, 'message': 'تعذر إرسال رسالة الواتساب حالياً'}
     
     @staticmethod
     def send_email_message(recipient_email, subject, content, content_type='text/html', attachments=None):
@@ -437,7 +429,7 @@ class NotificationService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error sending email message: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في إرسال رسالة البريد الإلكتروني: {str(e)}'}
+            return {'success': False, 'message': 'تعذر إرسال رسالة البريد الإلكتروني حالياً'}
     
     @staticmethod
     def add_to_notification_queue(user_id, notification_type, recipient, subject, content, 
@@ -464,7 +456,7 @@ class NotificationService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error adding to notification queue: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في إضافة الإشعار إلى الطابور: {str(e)}'}
+            return {'success': False, 'message': 'تعذر إضافة الإشعار إلى الطابور حالياً'}
     
     @staticmethod
     def process_notification_queue():
@@ -500,16 +492,16 @@ class NotificationService:
                     
                     if result['success']:
                         notification.status = 'sent'
-                        notification.sent_at = datetime.utcnow()
+                        notification.sent_at = datetime.now(timezone.utc)
                         processed_count += 1
                     else:
                         notification.status = 'failed'
-                        notification.failed_at = datetime.utcnow()
+                        notification.failed_at = datetime.now(timezone.utc)
                         notification.error_message = result['message']
                         
                 except Exception as e:
                     notification.status = 'failed'
-                    notification.failed_at = datetime.utcnow()
+                    notification.failed_at = datetime.now(timezone.utc)
                     notification.error_message = str(e)
                     logging.error(f"Error processing notification {notification.id}: {str(e)}")
             
@@ -520,7 +512,7 @@ class NotificationService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error processing notification queue: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في معالجة طابور الإشعارات: {str(e)}'}
+            return {'success': False, 'message': 'تعذر معالجة طابور الإشعارات حالياً'}
     
     @staticmethod
     def get_notification_queue_status():
@@ -540,7 +532,7 @@ class NotificationService:
             
         except Exception as e:
             logging.error(f"Error getting notification queue status: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في الحصول على حالة طابور الإشعارات: {str(e)}'}
+            return {'success': False, 'message': 'تعذر جلب حالة طابور الإشعارات حالياً'}
     
     # ==================== تنبيهات الديون والتأمين (الأسبوع الثاني) ====================
     
@@ -592,8 +584,6 @@ class NotificationService:
                             f'العمر: {age_days} يوم\n'
                             f'السبب: {debt.force_payment_reason or "غير محدد"}',
                     notification_type=urgency,
-                    related_entity_type='visit',
-                    related_entity_id=debt.id,
                     is_urgent=(age_days > 30)
                 )
                 
@@ -604,13 +594,11 @@ class NotificationService:
                 if age_days > 60:
                     NotificationService.send_notification(
                         recipient_role='manager',
-                        title=f'🚨 دين حرج: {age_days} يوم',
+                        title=f'تنبيه دين حرج: {age_days} يوم',
                         message=f'دين متأخر جداً يتطلب التدخل\n'
                                 f'الزيارة: {debt.id}\n'
                                 f'المبلغ: {remaining:.2f} شيكل',
                         notification_type='urgent',
-                        related_entity_type='visit',
-                        related_entity_id=debt.id,
                         is_urgent=True
                     )
             
@@ -625,7 +613,7 @@ class NotificationService:
             logging.error(f"Error sending debt reminders: {str(e)}")
             return {
                 'success': False,
-                'message': f'حدث خطأ في إرسال تذكيرات الديون: {str(e)}'
+                'message': 'تعذر إرسال تذكيرات الديون حالياً'
             }
     
     @staticmethod
@@ -674,8 +662,6 @@ class NotificationService:
                             f'العمر: {age_days} يوم\n'
                             f'الزيارة: {visit.id}',
                     notification_type=urgency,
-                    related_entity_type='visit',
-                    related_entity_id=visit.id,
                     is_urgent=(age_days > 30)
                 )
                 
@@ -693,7 +679,7 @@ class NotificationService:
             logging.error(f"Error sending insurance followup alerts: {str(e)}")
             return {
                 'success': False,
-                'message': f'حدث خطأ في إرسال تنبيهات متابعة التأمين: {str(e)}'
+                'message': 'تعذر إرسال تنبيهات متابعة التأمين حالياً'
             }
     
     @staticmethod
@@ -721,13 +707,13 @@ class NotificationService:
             
             # إرسال تنبيه واحد جماعي للمدير
             visits_list = '\n'.join([
-                f'- الزيارة {v.id}: {v.force_payment_reason[:50]}... ({float(v.total_amount):.2f} شيكل)'
+                f'زيارة رقم {v.id}: {v.force_payment_reason[:50]}... ({float(v.total_amount):.2f} شيكل)'
                 for v in pending_force[:10]  # أول 10 فقط
             ])
             
             result = NotificationService.send_notification(
                 recipient_role='manager',
-                title=f'⚠️ {len(pending_force)} دفعة قسرية بانتظار الموافقة',
+                title=f'تنبيه: {len(pending_force)} دفعة قسرية بانتظار الموافقة',
                 message=f'يوجد {len(pending_force)} دفعة قسرية تحتاج موافقتك:\n\n{visits_list}\n\n'
                         f'{"...والمزيد" if len(pending_force) > 10 else ""}',
                 notification_type='warning',
@@ -744,7 +730,7 @@ class NotificationService:
             logging.error(f"Error sending force payment approval alerts: {str(e)}")
             return {
                 'success': False,
-                'message': f'حدث خطأ في إرسال تنبيهات موافقات الدفع القسري: {str(e)}'
+                'message': 'تعذر إرسال تنبيهات موافقات الدفع القسري حالياً'
             }
     
     @staticmethod
@@ -766,26 +752,25 @@ class NotificationService:
             summary = report['summary']
             
             # بناء الرسالة
-            message = f"""📊 **ملخص اليوم**
-            
-✅ **الزيارات:** {summary['total_visits']}
-💰 **المحصل:** {summary['total_collected']:.2f} شيكل
-⚠️ **دفع قسري:** {summary['force_payment_percentage']:.1f}%
-🏥 **تأمين:** {summary['insurance_visits']} زيارة
-
-{"🔴 **تنبيهات:** " + str(summary['issues_count']) if summary['issues_count'] > 0 else "✅ **لا توجد مشاكل**"}
-"""
+            message = (
+                f"ملخص اليوم\n"
+                f"الزيارات: {summary['total_visits']}\n"
+                f"المحصل: {summary['total_collected']:.2f} شيكل\n"
+                f"دفع قسري: {summary['force_payment_percentage']:.1f}%\n"
+                f"تأمين: {summary['insurance_visits']} زيارة\n"
+                f"{'تنبيهات: ' + str(summary['issues_count']) if summary['issues_count'] > 0 else 'لا توجد مشاكل'}"
+            )
             
             # إضافة القضايا إن وجدت
             if report['audit_issues']:
-                message += "\n\n📋 **القضايا:**\n"
+                message += "\n\nالقضايا:\n"
                 for issue in report['audit_issues']:
-                    message += f"- {issue['message']} ({issue['severity']})\n"
+                    message += f"قضية: {issue['message']} ({issue['severity']})\n"
             
             # إرسال للمدير
             result = NotificationService.send_notification(
                 recipient_role='manager',
-                title=f'📊 ملخص اليوم - {datetime.now().strftime("%Y-%m-%d")}',
+                title=f'ملخص اليوم - {datetime.now().strftime("%Y-%m-%d")}',
                 message=message,
                 notification_type='info',
                 is_urgent=False
@@ -797,7 +782,7 @@ class NotificationService:
             logging.error(f"Error sending daily summary to manager: {str(e)}")
             return {
                 'success': False,
-                'message': f'حدث خطأ في إرسال الملخص اليومي: {str(e)}'
+                'message': 'تعذر إرسال الملخص اليومي حالياً'
             }
     
     @staticmethod
@@ -812,6 +797,11 @@ class NotificationService:
             # 1. تذكيرات الديون
             results['debt_reminders'] = NotificationService.send_debt_reminders()
             
+            # 1-b. تذكيرات المواعيد القادمة خلال 24 ساعة
+            results['appointment_reminders'] = NotificationService.send_appointment_reminders()
+
+            results['online_booking_reminders'] = NotificationService.send_online_booking_reminders()
+
             # 2. متابعة التأمين
             results['insurance_followup'] = NotificationService.send_insurance_followup_alerts()
             
@@ -833,5 +823,152 @@ class NotificationService:
             logging.error(f"Error in check_and_send_alerts: {str(e)}")
             return {
                 'success': False,
-                'message': f'حدث خطأ في فحص وإرسال التنبيهات: {str(e)}'
+                'message': 'تعذر فحص وإرسال التنبيهات حالياً'
             }
+
+    @staticmethod
+    def send_appointment_reminders():
+        """
+        إرسال تذكيرات بالمواعيد المجدولة خلال الـ 24 ساعة القادمة
+        يعتمد على رقم هاتف المريض (SMS) إن وجد
+        """
+        try:
+            from models.appointment import Appointment
+            from models.patient import Patient
+            from models.user import User
+            from datetime import datetime, timedelta
+            now = datetime.now()
+            soon = now + timedelta(hours=24)
+
+            appts = Appointment.query.filter(
+                and_(
+                    Appointment.status == 'SCHEDULED',
+                    Appointment.starts_at >= now,
+                    Appointment.starts_at <= soon
+                )
+            ).all()
+
+            sent = 0
+            fallback_notified = 0
+            for ap in appts:
+                patient = db.session.get(Patient, ap.patient_id)
+                doctor = db.session.get(User, ap.doctor_id) if ap.doctor_id else None
+                dept = db.session.get(Department, ap.department_id) if ap.department_id else None
+                dt_str = ap.starts_at.strftime('%Y-%m-%d %H:%M')
+                subject = 'تذكير بالموعد الطبي'
+                if not patient or not patient.phone:
+                    # إرسال إشعار لموظفي الاستقبال لمتابعة الاتصال
+                    msg = (
+                        f"موعد قادم للمريض ID={ap.patient_id}"
+                        f" {('مع الدكتور ' + doctor.full_name) if doctor else ''}"
+                        f" في {dept.name_ar or dept.name if dept else 'القسم'} بتاريخ {dt_str}."
+                        f" المريض لا يملك رقم هاتف مسجل. يرجى المتابعة."
+                    ).strip()
+                    NotificationService.send_notification(
+                        recipient_role='reception',
+                        title=subject,
+                        message=msg,
+                        notification_type='warning',
+                        is_urgent=True
+                    )
+                    fallback_notified += 1
+                    continue
+                content = (
+                    f"عزيزي {patient.full_name}، لديك موعد "
+                    f"{'مع الدكتور ' + doctor.full_name if doctor else ''} "
+                    f"في {dept.name_ar or dept.name if dept else 'القسم'} بتاريخ {dt_str}."
+                ).strip()
+
+                NotificationService.add_to_notification_queue(
+                    user_id=(doctor.id if doctor else (User.query.filter_by(role='reception').first().id if User.query.filter_by(role='reception').first() else User.query.first().id)),
+                    notification_type='sms',
+                    recipient=patient.phone,
+                    subject=subject,
+                    content=content,
+                    variables={
+                        'patient_id': patient.id,
+                        'appointment_id': ap.id,
+                        'starts_at': dt_str
+                    },
+                    priority='high',
+                    scheduled_at=now
+                )
+                sent += 1
+
+            return {'success': True, 'sent': sent, 'fallback_notified': fallback_notified}
+        except Exception as e:
+            logging.error(f"Error sending appointment reminders: {str(e)}")
+            return {'success': False, 'message': 'تعذر إرسال تذكيرات المواعيد حالياً'}
+
+    @staticmethod
+    def send_online_booking_reminders():
+        try:
+            from models.online_booking import OnlineBooking
+            from models.user import User
+            from models.department import Department
+            from datetime import datetime, timedelta
+
+            now = datetime.now(timezone.utc)
+            soon = now + timedelta(hours=24)
+
+            q = OnlineBooking.query.filter(
+                OnlineBooking.status.in_(['pending', 'confirmed']),
+                OnlineBooking.appointment_date.isnot(None),
+                OnlineBooking.appointment_time.isnot(None)
+            ).all()
+
+            sent = 0
+            fallback_notified = 0
+            for b in q:
+                try:
+                    dt = datetime.combine(b.appointment_date, b.appointment_time, tzinfo=timezone.utc)
+                except Exception:
+                    continue
+                if not (dt >= now and dt <= soon):
+                    continue
+                dept = db.session.get(Department, b.department_id) if b.department_id else None
+                doctor = db.session.get(User, b.doctor_id) if b.doctor_id else None
+                dt_str = dt.strftime('%Y-%m-%d %H:%M')
+                subject = 'تذكير بموعد الحجز'
+
+                if not b.email:
+                    msg = f"حجز {b.booking_reference} للمريض {b.get_full_name()} بتاريخ {dt_str} بدون بريد للتواصل."
+                    NotificationService.send_notification(
+                        recipient_role='reception',
+                        title=subject,
+                        message=msg,
+                        notification_type='warning',
+                        is_urgent=True
+                    )
+                    fallback_notified += 1
+                    continue
+
+                content = (
+                    f"عزيزي {b.get_full_name()}، تذكير بموعدك بتاريخ {dt_str} "
+                    f"في {dept.name_ar or dept.name if dept else 'القسم'} "
+                    f"{('مع ' + doctor.full_name) if doctor else ''}. "
+                    f"رقم الحجز: {b.booking_reference}."
+                ).strip()
+
+                queue_user_id = None
+                if doctor:
+                    queue_user_id = doctor.id
+                if not queue_user_id:
+                    any_user = User.query.filter(User.role.in_(['reception', 'manager', 'super_admin'])).first()
+                    queue_user_id = any_user.id if any_user else 1
+
+                NotificationService.add_to_notification_queue(
+                    user_id=queue_user_id,
+                    notification_type='email',
+                    recipient=b.email,
+                    subject=subject,
+                    content=content,
+                    priority='normal',
+                    scheduled_at=now
+                )
+                sent += 1
+
+            return {'success': True, 'sent': sent, 'fallback_notified': fallback_notified}
+        except Exception as e:
+            logging.error(f"Error sending online booking reminders: {str(e)}")
+            return {'success': False, 'message': 'تعذر إرسال تذكيرات الحجز حالياً'}

@@ -4,7 +4,6 @@
     <div class="flash-messages">
         {% for category, message in messages %}
         <div class="flash-message {{ category }}">
-            <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'error' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
             {{ message }}
         </div>
         {% endfor %}

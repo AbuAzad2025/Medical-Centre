@@ -1,447 +1,445 @@
 {% extends "base.html" %}
 
-{% block title %}لوحة المحاسب الاحترافية{% endblock %}
-
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid py-4">
     <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-lg">
-                <div class="card-body bg-gradient-dark text-white">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h1 class="mb-2 text-white">
-                                <i class="fas fa-calculator me-3"></i>
-                                لوحة المحاسب الاحترافية
-                            </h1>
-                            <p class="mb-0 text-white-50 fs-5">مرحباً {{ current_user.full_name }} - إدارة مالية متقدمة ودقيقة</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <a href="{{ url_for('accountant.invoices') }}" class="btn btn-light btn-lg">
-                                    <i class="fas fa-file-invoice me-2"></i>
-                                    الفواتير
-                                </a>
-                                <a href="{{ url_for('accountant.financial') }}" class="btn btn-warning btn-lg">
-                                    <i class="fas fa-credit-card me-2"></i>
-                                    المدفوعات
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-down">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800 fw-bold">لوحة تحكم المحاسب</h1>
+            <p class="text-muted">نظرة شاملة على الأداء المالي والعمليات المحاسبية</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary shadow-sm">
+                <i class="fas fa-download me-2"></i>تصدير تقرير
+            </button>
+            <button class="btn btn-primary shadow-sm">
+                <i class="fas fa-plus me-2"></i>فاتورة جديدة
+            </button>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4" data-aos="fade-up" data-aos-delay="200">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-lg glass-effect" style="background: var(--dark-gradient); color: white;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">
-                                مدفوعات اليوم
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold gradient-text">
-                                {{ stats.today_payments }}
-                            </div>
-                            <small class="text-white-50">+15% من أمس</small>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar-day fa-3x floating-animation"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills mb-4" id="accountantTabs" role="tablist" data-aos="fade-up">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
+                <i class="fas fa-home me-2"></i> نظرة عامة
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis" type="button" role="tab" aria-controls="analysis" aria-selected="false">
+                <i class="fas fa-chart-pie me-2"></i> التحليل المالي
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="operations-tab" data-bs-toggle="tab" data-bs-target="#operations" type="button" role="tab" aria-controls="operations" aria-selected="false">
+                <i class="fas fa-cogs me-2"></i> العمليات
+            </button>
+        </li>
+    </ul>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                إجمالي اليوم
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ "%.2f"|format(stats.today_total) }} شيكل
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                إجمالي الشهر
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ "%.2f"|format(stats.month_total) }} شيكل
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                فواتير مفتوحة
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ stats.open_invoices }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-file-invoice fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="row">
-        <div class="col-lg-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-bolt me-2"></i>
-                        إجراءات سريعة
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <a href="{{ url_for('accountant.open_invoices') }}" class="btn btn-warning btn-block">
-                                <i class="fas fa-file-invoice me-1"></i>
-                                الفواتير المفتوحة
-                            </a>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <a href="{{ url_for('accountant.payments') }}" class="btn btn-info btn-block">
-                                <i class="fas fa-credit-card me-1"></i>
-                                سجل المدفوعات
-                            </a>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <a href="{{ url_for('accountant.financial_report') }}" class="btn btn-success btn-block">
-                                <i class="fas fa-chart-bar me-1"></i>
-                                التقرير المالي
-                            </a>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <a href="{{ url_for('accountant.daily_summary') }}" class="btn btn-secondary btn-block">
-                                <i class="fas fa-calendar-day me-1"></i>
-                                الملخص اليومي
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-success">
-                        <i class="fas fa-info-circle me-2"></i>
-                        معلومات النظام
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <p class="mb-2">
-                        <strong>المستخدم الحالي:</strong> {{ current_user.full_name }}
-                    </p>
-                    <p class="mb-2">
-                        <strong>الدور:</strong> {{ current_user.get_role_display() }}
-                    </p>
-                    <p class="mb-2">
-                        <strong>المبلغ المستحق:</strong> {{ "%.2f"|format(stats.pending_amount) }} شيكل
-                    </p>
-                    <p class="mb-0">
-                        <strong>آخر دخول:</strong> {{ current_user.last_login.strftime('%Y-%m-%d %H:%M') if current_user.last_login else 'غير محدد' }}
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Smart Analytics Section -->
-    {% if stats.smart_analytics %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-bar me-2"></i>
-                        التحليلات الذكية للمحاسبة
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.smart_analytics.total_payments or 0 }}</h4>
-                                <p class="text-muted mb-0">إجمالي المدفوعات</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.smart_analytics.collection_rate or 0 }}%</h4>
-                                <p class="text-muted mb-0">معدل التحصيل</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.smart_analytics.open_invoices or 0 }}</h4>
-                                <p class="text-muted mb-0">فواتير مفتوحة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.smart_analytics.efficiency_score or 0 }}%</h4>
-                                <p class="text-muted mb-0">كفاءة المحاسبة</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Financial Forecasting Section -->
-    {% if stats.financial_forecasting %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-crystal-ball me-2"></i>
-                        التنبؤ المالي
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.financial_forecasting.predicted_revenue or 0 }}</h4>
-                                <p class="text-muted mb-0">الإيراد المتوقع</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.financial_forecasting.growth_rate or 0 }}%</h4>
-                                <p class="text-muted mb-0">معدل النمو</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.financial_forecasting.seasonal_analysis.pattern or 'غير محدد' }}</h4>
-                                <p class="text-muted mb-0">النمط الموسمي</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.financial_forecasting.seasonal_analysis.confidence or 0 }}%</h4>
-                                <p class="text-muted mb-0">مستوى الثقة</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Cash Flow Analysis Section -->
-    {% if stats.cash_flow_analysis %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-info text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-coins me-2"></i>
-                        تحليل التدفق النقدي
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ "%.2f"|format(stats.cash_flow_analysis.weekly_inflow or 0) }}</h4>
-                                <p class="text-muted mb-0">التدفق الأسبوعي</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ "%.2f"|format(stats.cash_flow_analysis.monthly_inflow or 0) }}</h4>
-                                <p class="text-muted mb-0">التدفق الشهري</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ "%.2f"|format(stats.cash_flow_analysis.pending_amount or 0) }}</h4>
-                                <p class="text-muted mb-0">المبلغ المستحق</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.cash_flow_analysis.cash_flow_health or 0 }}%</h4>
-                                <p class="text-muted mb-0">صحة التدفق</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Payment Optimization Section -->
-    {% if stats.payment_optimization %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-warning text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-credit-card me-2"></i>
-                        تحسين المدفوعات
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.payment_optimization.late_payments or 0 }}</h4>
-                                <p class="text-muted mb-0">مدفوعات متأخرة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.payment_optimization.efficiency_score or 0 }}%</h4>
-                                <p class="text-muted mb-0">كفاءة المدفوعات</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.payment_optimization.payment_methods|length or 0 }}</h4>
-                                <p class="text-muted mb-0">طرق الدفع</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.payment_optimization.optimization_suggestions|length or 0 }}</h4>
-                                <p class="text-muted mb-0">اقتراحات التحسين</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Financial Health Section -->
-    {% if stats.financial_health %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-danger text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-heartbeat me-2"></i>
-                        مراقبة الصحة المالية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ "%.2f"|format(stats.financial_health.total_revenue or 0) }}</h4>
-                                <p class="text-muted mb-0">إجمالي الإيرادات</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.financial_health.collection_rate or 0 }}%</h4>
-                                <p class="text-muted mb-0">معدل التحصيل</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ "%.2f"|format(stats.financial_health.outstanding_amount or 0) }}</h4>
-                                <p class="text-muted mb-0">المبلغ المستحق</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.financial_health.health_score or 0 }}%</h4>
-                                <p class="text-muted mb-0">درجة الصحة المالية</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Smart Recommendations Section -->
-    {% if stats.smart_recommendations %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-lightbulb me-2"></i>
-                        التوصيات الذكية للمحاسبة
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if stats.smart_recommendations.recommendations %}
-                    <div class="row">
-                        {% for recommendation in stats.smart_recommendations.recommendations %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card border-left-{{ 'danger' if recommendation.priority == 'high' else 'warning' if recommendation.priority == 'medium' else 'info' }}">
-                                <div class="card-body">
-                                    <h6 class="card-title">{{ recommendation.title }}</h6>
-                                    <p class="card-text">{{ recommendation.description }}</p>
-                                    <small class="text-muted">الأولوية: {{ recommendation.priority }} | الفئة: {{ recommendation.category }}</small>
+    <!-- Tab Content -->
+    <div class="tab-content" id="accountantTabsContent">
+        
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+            <!-- Statistics Cards -->
+            <div class="row" data-aos="fade-up">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">مدفوعات اليوم</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.today_payments }}</div>
+                                    <small class="text-muted">+15% من أمس</small>
+                                </div>
+                                <div class="icon-circle bg-primary bg-opacity-10 text-primary">
+                                    <i class="fas fa-calendar-day fa-2x"></i>
                                 </div>
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
-                    {% else %}
-                    <div class="text-center text-muted">
-                        <i class="fas fa-info-circle fa-2x mb-2"></i>
-                        <p>لا توجد توصيات حالياً</p>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">إيرادات الشهر</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.monthly_revenue }}</div>
+                                    <small class="text-success fw-bold"><i class="fas fa-arrow-up me-1"></i>8.5%</small>
+                                </div>
+                                <div class="icon-circle bg-success bg-opacity-10 text-success">
+                                    <i class="fas fa-dollar-sign fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    {% endif %}
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">صافي الربح</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.net_profit }}</div>
+                                    <small class="text-info fw-bold">هامش 22%</small>
+                                </div>
+                                <div class="icon-circle bg-info bg-opacity-10 text-info">
+                                    <i class="fas fa-chart-line fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">فواتير معلقة</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.pending_invoices }}</div>
+                                    <small class="text-warning fw-bold">تستحق قريباً</small>
+                                </div>
+                                <div class="icon-circle bg-warning bg-opacity-10 text-warning">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if debt_alerts and (debt_alerts.overdue_60_count or debt_alerts.large_debts_count) %}
+            <div class="card card-modern mb-4" data-aos="fade-up">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-hand-holding-usd me-2 text-danger"></i>تنبيهات الديون</h5>
+                    <a class="btn btn-sm btn-outline-danger" href="{{ url_for('accountant.debt_tracking_report') }}">عرض تقرير الديون</a>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded bg-light">
+                                <div class="d-flex justify-content-between">
+                                    <div class="fw-bold">ديون 60+ يوم</div>
+                                    <div class="fw-bold text-danger">{{ debt_alerts.overdue_60_count }}</div>
+                                </div>
+                                <div class="table-responsive mt-2">
+                                    <table class="table table-sm mb-0">
+                                        <thead>
+                                            <tr><th>زيارة</th><th>المريض</th><th class="text-end">المتبقي</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for d in (debt_alerts.top_overdue or []) %}
+                                            <tr>
+                                                <td>#{{ d.visit_id }}</td>
+                                                <td>{{ d.patient_name or d.patient_id }}</td>
+                                                <td class="text-end">{{ "%.2f"|format(d.remaining_amount) }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded bg-light">
+                                <div class="d-flex justify-content-between">
+                                    <div class="fw-bold">ديون كبيرة (>= 500)</div>
+                                    <div class="fw-bold text-warning">{{ debt_alerts.large_debts_count }}</div>
+                                </div>
+                                <div class="table-responsive mt-2">
+                                    <table class="table table-sm mb-0">
+                                        <thead>
+                                            <tr><th>زيارة</th><th>المريض</th><th class="text-end">المتبقي</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for d in (debt_alerts.top_large or []) %}
+                                            <tr>
+                                                <td>#{{ d.visit_id }}</td>
+                                                <td>{{ d.patient_name or d.patient_id }}</td>
+                                                <td class="text-end">{{ "%.2f"|format(d.remaining_amount) }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Transactions -->
+            <div class="card card-modern mb-4" data-aos="fade-up">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>أحدث المعاملات</h5>
+                    <button class="btn btn-sm btn-link text-decoration-none">عرض الكل</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="border-0 ps-4">رقم المعاملة</th>
+                                    <th class="border-0">النوع</th>
+                                    <th class="border-0">المبلغ</th>
+                                    <th class="border-0">التاريخ</th>
+                                    <th class="border-0">الحالة</th>
+                                    <th class="border-0">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions %}
+                                <tr>
+                                    <td class="ps-4 fw-bold">#{{ transaction.id }}</td>
+                                    <td>{{ transaction.type }}</td>
+                                    <td class="fw-bold">{{ transaction.amount }}</td>
+                                    <td>{{ transaction.date }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ transaction.status_color }} bg-opacity-10 text-{{ transaction.status_color }}">
+                                            {{ transaction.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-light text-primary rounded-circle"><i class="fas fa-eye"></i></button>
+                                        <button class="btn btn-sm btn-light text-secondary rounded-circle"><i class="fas fa-print"></i></button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Tab -->
+        <div class="tab-pane fade" id="analysis" role="tabpanel" aria-labelledby="analysis-tab">
+            <div class="row">
+                <!-- Smart Analytics -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2 text-primary"></i>تحليل الإيرادات والمصروفات</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="p-3 border rounded bg-light">
+                                        <h6 class="text-muted mb-2">توزيع الإيرادات</h6>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <span>العيادات</span>
+                                                    <span class="fw-bold">45%</span>
+                                                </div>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 45%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <span>الصيدلية</span>
+                                                    <span class="fw-bold">30%</span>
+                                                </div>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-success" role="progressbar" style="width: 30%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="p-3 border rounded bg-light">
+                                        <h6 class="text-muted mb-2">توزيع المصروفات</h6>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <span>الرواتب</span>
+                                                    <span class="fw-bold">60%</span>
+                                                </div>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 60%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <span>المستلزمات</span>
+                                                    <span class="fw-bold">25%</span>
+                                                </div>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-info" role="progressbar" style="width: 25%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Health -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-heartbeat me-2 text-danger"></i>الصحة المالية</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">السيولة النقدية</span>
+                                    <span class="text-success fw-bold">ممتاز</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">نسبة الديون</span>
+                                    <span class="text-primary fw-bold">منخفضة</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 15%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">معدل التحصيل</span>
+                                    <span class="text-info fw-bold">جيد جداً</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: 78%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if stats.revenue_cycle or stats.margin_analytics or stats.erp_integration %}
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-sync-alt me-2 text-primary"></i>دورة الإيراد</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2"><span>مطالبات</span><strong>{{ stats.revenue_cycle.total_claims or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>مقبولة</span><strong>{{ stats.revenue_cycle.approved or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>مرفوضة</span><strong>{{ stats.revenue_cycle.rejected or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between"><span>مستحقات</span><strong>{{ stats.revenue_cycle.outstanding_amount or 0 }}</strong></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-percentage me-2 text-success"></i>هوامش وتحصيل</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2"><span>إجمالي الفواتير</span><strong>{{ stats.margin_analytics.total_invoiced or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>الإيراد المحصل</span><strong>{{ stats.margin_analytics.total_revenue or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>معدل التحصيل</span><strong>{{ stats.margin_analytics.collection_rate or 0 }}%</strong></div>
+                            <div class="d-flex justify-content-between"><span>هامش تقديري</span><strong>{{ stats.margin_analytics.gross_margin or 0 }}</strong></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-plug me-2 text-warning"></i>تكامل ERP</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2"><span>الحالة</span><strong>{{ stats.erp_integration.status or 'idle' }}</strong></div>
+                            <div class="d-flex justify-content-between mb-3"><span>آخر مزامنة</span><strong>{{ stats.erp_integration.last_sync or '-' }}</strong></div>
+                            <a class="btn btn-outline-primary w-100" href="{{ url_for('accountant.api_erp_export') }}">تصدير ERP</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Operations Tab -->
+        <div class="tab-pane fade" id="operations" role="tabpanel" aria-labelledby="operations-tab">
+            <div class="row">
+                <!-- Quick Actions -->
+                <div class="col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-bolt me-2 text-warning"></i>إجراءات سريعة</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <button class="btn btn-outline-primary w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2">
+                                        <i class="fas fa-file-invoice fa-2x"></i>
+                                        <span>إضافة فاتورة</span>
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-outline-success w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2">
+                                        <i class="fas fa-money-bill-wave fa-2x"></i>
+                                        <span>تسجيل مصروف</span>
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-outline-info w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2">
+                                        <i class="fas fa-chart-bar fa-2x"></i>
+                                        <span>تقرير مالي</span>
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-outline-secondary w-100 h-100 p-3 d-flex flex-column align-items-center justify-content-center gap-2">
+                                        <i class="fas fa-cog fa-2x"></i>
+                                        <span>إعدادات</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Smart Recommendations -->
+                <div class="col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-lightbulb me-2 text-warning"></i>توصيات ذكية</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="icon-circle bg-warning bg-opacity-10 text-warning me-3 flex-shrink-0">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">تحسين التدفق النقدي</h6>
+                                    <p class="text-muted small mb-0">يُوصى بمتابعة الفواتير المعلقة لزيادة السيولة النقدية بنسبة 10%.</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start">
+                                <div class="icon-circle bg-success bg-opacity-10 text-success me-3 flex-shrink-0">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">فرصة استثمار</h6>
+                                    <p class="text-muted small mb-0">الفائض المالي الحالي يسمح بتحديث معدات المعمل دون التأثير على السيولة.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
 </div>
 {% endblock %}

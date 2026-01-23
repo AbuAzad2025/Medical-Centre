@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}نتائج الأشعة{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-3">نتائج الأشعة المكتملة</h2>
+  <div class="card"><div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>المريض</th>
+            <th>الفحص</th>
+            <th>النتيجة</th>
+            <th>مراجعة ثانية</th>
+            <th>تاريخ الإكمال</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in results or [] %}
+          {% set res = (req.results[0] if req.results else None) %}
+          <tr>
+            <td>{{ req.request_number or req.id }}</td>
+            <td>{{ req.patient.full_name if req.patient else '' }}</td>
+            <td>{{ (req.modality or '') }}{% if req.body_part %} - {{ req.body_part }}{% endif %}</td>
+            <td>
+              {% if res %}
+                <span class="badge bg-success">VALIDATED</span>
+                {% if res.is_critical %}
+                  <span class="badge bg-danger">حرج</span>
+                {% endif %}
+                {% if res.revised_after_review %}
+                  <span class="badge bg-warning text-dark">مُعدّل بعد مراجعة</span>
+                {% endif %}
+              {% else %}
+                <span class="badge bg-secondary">لا توجد نتيجة</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if res and res.reviewed_at %}
+                <span class="badge bg-info">تمت</span>
+              {% else %}
+                <span class="badge bg-secondary">لا</span>
+              {% endif %}
+            </td>
+            <td>{{ req.updated_at or req.created_at }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-center">لا نتائج</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div></div>
+</div>
+{% endblock %}

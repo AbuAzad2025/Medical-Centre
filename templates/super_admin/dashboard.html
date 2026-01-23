@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-lg glass-effect">
+            <div class="card card-modern">
                 <div class="card-body" style="background: var(--primary-gradient); color: white;">
                     <div class="row align-items-center">
                         <div class="col-md-8">
@@ -25,16 +25,16 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2 flex-wrap justify-content-end">
-                                <button class="btn btn-light btn-lg shadow-sm" onclick="refreshDashboard()" title="تحديث البيانات">
+                                <button class="btn btn-light btn-lg btn-modern shadow-sm" onclick="refreshDashboard()" title="تحديث البيانات">
                                     <i class="fas fa-sync-alt"></i>
                                 </button>
-                                <button class="btn btn-warning btn-lg shadow-sm" onclick="createBackup()" title="نسخة احتياطية">
+                                <button class="btn btn-warning btn-lg btn-modern shadow-sm" onclick="createBackup()" title="نسخة احتياطية">
                                     <i class="fas fa-database"></i>
                                 </button>
-                                <button class="btn btn-info btn-lg shadow-sm" onclick="exportSystemData()" title="تصدير البيانات">
+                                <button class="btn btn-info btn-lg btn-modern shadow-sm" onclick="exportSystemData()" title="تصدير البيانات">
                                     <i class="fas fa-download"></i>
                                 </button>
-                                <button class="btn btn-success btn-lg shadow-sm" onclick="openSystemMonitor()" title="مراقب النظام">
+                                <button class="btn btn-success btn-lg btn-modern shadow-sm" onclick="openSystemMonitor()" title="مراقب النظام">
                                     <i class="fas fa-chart-line"></i>
                                 </button>
                             </div>
@@ -45,782 +45,432 @@
         </div>
     </div>
 
-    <!-- AI Assistant Section - FIRST -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <div class="card-body p-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-2 text-center">
-                            <div class="ai-avatar">
-                                <i class="fas fa-robot fa-4x text-white pulse-animation"></i>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex gap-2 flex-wrap">
+                    <a class="btn btn-outline-primary" href="{{ url_for('super_admin.maintenance_automation') }}">
+                        <i class="fas fa-tools me-1"></i>أتمتة الصيانة
+                    </a>
+                    <a class="btn btn-outline-danger" href="{{ url_for('super_admin.security_center') }}">
+                        <i class="fas fa-shield-alt me-1"></i>مركز الأمان
+                    </a>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('super_admin.branch_templates') }}">
+                        <i class="fas fa-code-branch me-1"></i>قوالب الفروع
+                    </a>
+                    <a class="btn btn-outline-info" href="{{ url_for('super_admin.data_warehouse') }}">
+                        <i class="fas fa-database me-1"></i>مستودع البيانات
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-pills mb-4" id="adminTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
+                <i class="fas fa-home me-2"></i> نظرة عامة
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="intelligence-tab" data-bs-toggle="tab" data-bs-target="#intelligence" type="button" role="tab" aria-controls="intelligence" aria-selected="false">
+                <i class="fas fa-brain me-2"></i> الذكاء والتحليل
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab" aria-controls="security" aria-selected="false">
+                <i class="fas fa-shield-alt me-2"></i> الأمان
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tabs Content -->
+    <div class="tab-content" id="adminTabsContent">
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+            <!-- Global Analytics Dashboard -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <h5 class="mb-0">
+                                <i class="fas fa-globe-americas me-2"></i>
+                                لوحة التحليلات العالمية المتقدمة
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="mb-3">
+                                            <i class="fas fa-users fa-3x text-primary floating-animation"></i>
+                                        </div>
+                                        <h3 class="gradient-text">{{ stats.total_users or 0 }}</h3>
+                                        <p class="text-muted">إجمالي المستخدمين</p>
+                                        <div class="progress" style="height: 8px; border-radius: 10px;">
+                                            <div class="progress-bar bg-primary" style="width: 85%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="mb-3">
+                                            <i class="fas fa-heartbeat fa-3x text-success floating-animation"></i>
+                                        </div>
+                                        <h3 class="gradient-text">{{ stats.active_sessions or 0 }}</h3>
+                                        <p class="text-muted">الجلسات النشطة</p>
+                                        <div class="progress" style="height: 8px; border-radius: 10px;">
+                                            <div class="progress-bar bg-success" style="width: 92%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="mb-3">
+                                            <i class="fas fa-shield-alt fa-3x text-warning floating-animation"></i>
+                                        </div>
+                                        <h3 class="gradient-text">{{ stats.security_events or 0 }}</h3>
+                                        <p class="text-muted">أحداث الأمان</p>
+                                        <div class="progress" style="height: 8px; border-radius: 10px;">
+                                            <div class="progress-bar bg-warning" style="width: 15%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <div class="mb-3">
+                                            <i class="fas fa-server fa-3x text-info floating-animation"></i>
+                                        </div>
+                                        <h3 class="gradient-text">{{ stats.system_uptime or '99.9%' }}</h3>
+                                        <p class="text-muted">وقت تشغيل النظام</p>
+                                        <div class="progress" style="height: 8px; border-radius: 10px;">
+                                            <div class="progress-bar bg-info" style="width: 99%"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-10">
-                            <h4 class="text-white mb-3">
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Health Score -->
+            {% if stats.system_health_score %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header bg-gradient-{{ stats.system_health_score.color }} text-white border-0">
+                            <h5 class="mb-0">
+                                <i class="fas fa-heartbeat me-2"></i>
+                                صحة النظام
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h3 class="text-{{ stats.system_health_score.color }} fw-bold display-4">{{ stats.system_health_score.score }}%</h3>
+                                    <p class="text-muted mb-0">حالة النظام: <strong>{{ stats.system_health_score.status }}</strong></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="progress" style="height: 25px; border-radius: 15px;">
+                                        <div class="progress-bar bg-{{ stats.system_health_score.color }}" 
+                                             role="progressbar" 
+                                             style="width: {{ stats.system_health_score.score }}%"
+                                             aria-valuenow="{{ stats.system_health_score.score }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                            {{ stats.system_health_score.score }}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Intelligence Tab -->
+        <div class="tab-pane fade" id="intelligence" role="tabpanel" aria-labelledby="intelligence-tab">
+            <!-- AI Assistant Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-modern" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="card-body p-4">
+                            <div class="row align-items-center">
+                                <div class="col-md-2 text-center">
+                                    <div class="ai-avatar">
+                                        <i class="fas fa-robot fa-4x text-white pulse-animation"></i>
+                                    </div>
+                                </div>
+                                <div class="col-md-10">
+                                    <h4 class="text-white mb-3">
+                                        <i class="fas fa-brain me-2"></i>
+                                        المساعد الذكي المتطور
+                                    </h4>
+                                    <div class="ai-chat-container" id="aiChatContainer">
+                                        <div class="ai-messages" id="aiMessages">
+                                            <div class="ai-message assistant">
+                                                <div class="message-avatar">
+                                                    <i class="fas fa-robot"></i>
+                                                </div>
+                                                <div class="message-content">
+                                                    <strong>المساعد الذكي</strong>
+                                                    <p>مرحباً {{ current_user.full_name }}! أنا مساعدك الذكي المتطور. 🤖</p>
+                                                    <p><strong>✅ نظام التحقق الذكي مفعّل:</strong></p>
+                                                    <ul class="mb-2">
+                                                        <li>🔍 فحص تلقائي للبيانات قبل أي عملية</li>
+                                                        <li>⚠️ تنبيه فوري عند اكتشاف أخطاء</li>
+                                                        <li>🛡️ حماية من البيانات غير المنطقية</li>
+                                                        <li>✅ تأكيد المستخدم قبل التجاوز</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="ai-input-container">
+                                            <div class="input-group">
+                                                <button class="btn btn-light" id="voiceBtn" title="أوامر صوتية">
+                                                    <i class="fas fa-microphone"></i>
+                                                </button>
+                                                <input type="text" class="form-control" id="aiInput" 
+                                                       placeholder="اكتب سؤالك أو طلبك هنا... (مثال: حلل أداء النظام، أنشئ تقرير المستخدمين، ما هي التحسينات المقترحة؟)">
+                                                <button class="btn btn-success" id="sendBtn" onclick="sendAIMessage()">
+                                                    <i class="fas fa-paper-plane me-1"></i>
+                                                    إرسال
+                                                </button>
+                                            </div>
+                                            <div class="quick-commands mt-2">
+                                                <small class="text-white-50">أوامر سريعة:</small>
+                                                <button class="btn btn-sm btn-outline-light ms-1" onclick="quickCommand('analyze')">
+                                                    <i class="fas fa-chart-line"></i> تحليل النظام
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-light ms-1" onclick="quickCommand('report')">
+                                                    <i class="fas fa-file-alt"></i> إنشاء تقرير
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-light ms-1" onclick="quickCommand('optimize')">
+                                                    <i class="fas fa-cog"></i> اقتراحات التحسين
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-light ms-1" onclick="quickCommand('backup')">
+                                                    <i class="fas fa-database"></i> نسخة احتياطية
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Insights Section -->
+            {% if stats.ai_insights %}
+            <div class="row mb-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header bg-gradient-primary text-white border-0">
+                            <h5 class="mb-0">
                                 <i class="fas fa-brain me-2"></i>
-                                المساعد الذكي المتطور
-                            </h4>
-                            <div class="ai-chat-container" id="aiChatContainer">
-                                <div class="ai-messages" id="aiMessages">
-                                    <div class="ai-message assistant">
-                                        <div class="message-avatar">
-                                            <i class="fas fa-robot"></i>
-                                        </div>
-                                        <div class="message-content">
-                                            <strong>المساعد الذكي</strong>
-                                            <p>مرحباً {{ current_user.full_name }}! أنا مساعدك الذكي المتطور. 🤖</p>
-                                            <p><strong>✅ نظام التحقق الذكي مفعّل:</strong></p>
-                                            <ul class="mb-2">
-                                                <li>🔍 فحص تلقائي للبيانات قبل أي عملية</li>
-                                                <li>⚠️ تنبيه فوري عند اكتشاف أخطاء</li>
-                                                <li>🛡️ حماية من البيانات غير المنطقية</li>
-                                                <li>✅ تأكيد المستخدم قبل التجاوز</li>
-                                            </ul>
-                                            <p><strong>يمكنني مساعدتك في:</strong></p>
-                                            <ul class="mb-0">
-                                                <li>📊 تحليل بيانات النظام بدقة</li>
-                                                <li>📄 إنشاء تقارير مفصلة</li>
-                                                <li>💡 اقتراح تحسينات ذكية</li>
-                                                <li>🔍 الإجابة عن أي سؤال من قاعدة البيانات</li>
-                                                <li>🎤 تنفيذ مهام بأوامر صوتية</li>
-                                                <li>🔒 فحص صحة النظام والتحقق من البيانات</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="ai-input-container">
-                                    <div class="input-group">
-                                        <button class="btn btn-light" id="voiceBtn" title="أوامر صوتية">
-                                            <i class="fas fa-microphone"></i>
-                                        </button>
-                                        <input type="text" class="form-control" id="aiInput" 
-                                               placeholder="اكتب سؤالك أو طلبك هنا... (مثال: حلل أداء النظام، أنشئ تقرير المستخدمين، ما هي التحسينات المقترحة؟)">
-                                        <button class="btn btn-success" id="sendBtn" onclick="sendAIMessage()">
-                                            <i class="fas fa-paper-plane me-1"></i>
-                                            إرسال
-                                        </button>
-                                    </div>
-                                    <div class="quick-commands mt-2">
-                                        <small class="text-white-50">أوامر سريعة:</small>
-                                        <button class="btn btn-sm btn-outline-light ms-1" onclick="quickCommand('analyze')">
-                                            <i class="fas fa-chart-line"></i> تحليل النظام
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-light ms-1" onclick="quickCommand('report')">
-                                            <i class="fas fa-file-alt"></i> إنشاء تقرير
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-light ms-1" onclick="quickCommand('optimize')">
-                                            <i class="fas fa-cog"></i> اقتراحات التحسين
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-light ms-1" onclick="quickCommand('backup')">
-                                            <i class="fas fa-database"></i> نسخة احتياطية
-                                        </button>
-                                    </div>
-                                </div>
+                                رؤى الذكاء الاصطناعي
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% for insight in stats.ai_insights %}
+                            <div class="alert alert-{{ 'info' if insight.type == 'optimization' else 'warning' if insight.type == 'security' else 'success' }} alert-dismissible fade show border-0 shadow-sm mb-3">
+                                <h6 class="alert-heading fw-bold">
+                                    <i class="fas fa-{{ 'cogs' if insight.type == 'optimization' else 'shield-alt' if insight.type == 'security' else 'lightbulb' }} me-2"></i>
+                                    {{ insight.title }}
+                                </h6>
+                                <p class="mb-1">{{ insight.description }}</p>
+                                <hr>
+                                <p class="mb-0 small text-muted">{{ insight.recommendation }}</p>
                             </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+            {% endif %}
 
-    <!-- Global Analytics Dashboard -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-globe-americas me-2"></i>
-                        لوحة التحليلات العالمية المتقدمة
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <div class="mb-3">
-                                    <i class="fas fa-users fa-3x text-primary floating-animation"></i>
-                                </div>
-                                <h3 class="gradient-text">{{ stats.total_users or 0 }}</h3>
-                                <p class="text-muted">إجمالي المستخدمين</p>
-                                <div class="progress" style="height: 8px; border-radius: 10px;">
-                                    <div class="progress-bar bg-primary" style="width: 85%"></div>
-                                </div>
-                            </div>
+            <!-- Smart Recommendations -->
+            {% if stats.smart_recommendations %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header bg-gradient-success text-white border-0">
+                            <h5 class="mb-0">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                التوصيات الذكية
+                            </h5>
                         </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <div class="mb-3">
-                                    <i class="fas fa-heartbeat fa-3x text-success floating-animation"></i>
-                                </div>
-                                <h3 class="gradient-text">{{ stats.active_sessions or 0 }}</h3>
-                                <p class="text-muted">الجلسات النشطة</p>
-                                <div class="progress" style="height: 8px; border-radius: 10px;">
-                                    <div class="progress-bar bg-success" style="width: 92%"></div>
-                                </div>
+                        <div class="card-body">
+                            {% for recommendation in stats.smart_recommendations %}
+                            <div class="alert alert-{{ 'danger' if recommendation.priority == 'danger' else 'warning' if recommendation.priority == 'warning' else 'info' }} alert-dismissible fade show border-0 shadow-sm mb-3">
+                                <h6 class="alert-heading fw-bold">
+                                    <i class="fas fa-{{ 'exclamation-triangle' if recommendation.priority == 'danger' else 'info-circle' if recommendation.priority == 'warning' else 'lightbulb' }} me-2"></i>
+                                    {{ recommendation.title }}
+                                </h6>
+                                <p class="mb-0">{{ recommendation.description }}</p>
                             </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <div class="mb-3">
-                                    <i class="fas fa-shield-alt fa-3x text-warning floating-animation"></i>
-                                </div>
-                                <h3 class="gradient-text">{{ stats.security_events or 0 }}</h3>
-                                <p class="text-muted">أحداث الأمان</p>
-                                <div class="progress" style="height: 8px; border-radius: 10px;">
-                                    <div class="progress-bar bg-warning" style="width: 15%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <div class="mb-3">
-                                    <i class="fas fa-server fa-3x text-info floating-animation"></i>
-                                </div>
-                                <h3 class="gradient-text">{{ stats.system_uptime or '99.9%' }}</h3>
-                                <p class="text-muted">وقت تشغيل النظام</p>
-                                <div class="progress" style="height: 8px; border-radius: 10px;">
-                                    <div class="progress-bar bg-info" style="width: 99%"></div>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- AI Insights Section -->
-    {% if stats.ai_insights %}
-    <div class="row mb-4" data-aos="fade-up" data-aos-delay="300">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-brain me-2"></i>
-                        رؤى الذكاء الاصطناعي
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.ai_insights.total_recommendations or 0 }}</h4>
-                                <p class="text-muted mb-0">إجمالي التوصيات</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.ai_insights.pending_recommendations or 0 }}</h4>
-                                <p class="text-muted mb-0">توصيات معلقة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.ai_insights.accepted_recommendations or 0 }}</h4>
-                                <p class="text-muted mb-0">توصيات مقبولة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.ai_insights.high_confidence_recommendations or 0 }}</h4>
-                                <p class="text-muted mb-0">ثقة عالية</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Smart Recommendations -->
-    {% if stats.smart_recommendations %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-lightbulb me-2"></i>
-                        التوصيات الذكية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% for recommendation in stats.smart_recommendations %}
-                    <div class="alert alert-{{ 'danger' if recommendation.priority == 'danger' else 'warning' if recommendation.priority == 'warning' else 'info' }} alert-dismissible fade show">
-                        <h6 class="alert-heading">
-                            <i class="fas fa-{{ 'exclamation-triangle' if recommendation.priority == 'danger' else 'info-circle' if recommendation.priority == 'warning' else 'lightbulb' }} me-2"></i>
-                            {{ recommendation.title }}
-                        </h6>
-                        <p class="mb-0">{{ recommendation.description }}</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- System Health Score -->
-    {% if stats.system_health_score %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-{{ stats.system_health_score.color }} text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-heartbeat me-2"></i>
-                        صحة النظام
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <h3 class="text-{{ stats.system_health_score.color }}">{{ stats.system_health_score.score }}%</h3>
-                            <p class="text-muted mb-0">حالة النظام: {{ stats.system_health_score.status }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="progress" style="height: 20px;">
-                                <div class="progress-bar bg-{{ stats.system_health_score.color }}" 
-                                     role="progressbar" 
-                                     style="width: {{ stats.system_health_score.score }}%"
-                                     aria-valuenow="{{ stats.system_health_score.score }}" 
-                                     aria-valuemin="0" 
-                                     aria-valuemax="100">
-                                    {{ stats.system_health_score.score }}%
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Security Threats -->
-    {% if stats.security_threats %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-danger text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-shield-alt me-2"></i>
-                        التهديدات الأمنية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% for threat in stats.security_threats %}
-                    <div class="alert alert-{{ 'danger' if threat.type == 'critical' else 'warning' if threat.type == 'high' else 'info' }} alert-dismissible fade show">
-                        <h6 class="alert-heading">
-                            <i class="fas fa-{{ 'exclamation-triangle' if threat.type == 'critical' else 'warning' if threat.type == 'high' else 'info-circle' }} me-2"></i>
-                            {{ threat.title }}
-                        </h6>
-                        <p class="mb-1">{{ threat.description }}</p>
-                        <small class="text-muted">الإجراء المطلوب: {{ threat.action }}</small>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- System Status Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                إجمالي المستخدمين
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_users or 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endif %}
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                المستخدمين النشطين
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.active_users or 0 }}</div>
+        <!-- Security Tab -->
+        <div class="tab-pane fade" id="security" role="tabpanel" aria-labelledby="security-tab">
+            <!-- Security Threats -->
+            {% if stats.security_threats %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header bg-gradient-danger text-white border-0">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                التهديدات الأمنية
+                            </h5>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        <div class="card-body">
+                            {% for threat in stats.security_threats %}
+                            <div class="alert alert-{{ 'danger' if threat.type == 'critical' else 'warning' if threat.type == 'high' else 'info' }} alert-dismissible fade show border-0 shadow-sm mb-3">
+                                <h6 class="alert-heading fw-bold">
+                                    <i class="fas fa-{{ 'exclamation-triangle' if threat.type == 'critical' else 'warning' if threat.type == 'high' else 'info-circle' }} me-2"></i>
+                                    {{ threat.title }}
+                                </h6>
+                                <p class="mb-1">{{ threat.description }}</p>
+                                <small class="text-muted">الإجراء المطلوب: {{ threat.action }}</small>
+                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+            {% endif %}
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                الجلسات النشطة
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.active_sessions or 0 }}</div>
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-sign-in-alt me-2 text-warning"></i>محاولات الدخول الفاشلة</h6>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div class="text-muted">آخر ساعة</div>
+                                <div class="fw-bold">{{ stats.failed_logins_1h or 0 }}</div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <div class="text-muted">آخر 24 ساعة</div>
+                                <div class="fw-bold">{{ stats.failed_logins_24h or 0 }}</div>
+                            </div>
+                            <div class="mt-3">
+                                <a class="btn btn-sm btn-outline-secondary w-100" href="{{ url_for('super_admin.security_logs') }}">سجلات الأمان</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-bug me-2 text-danger"></i>أخطاء النظام</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div class="text-muted">ERROR/CRITICAL (24h)</div>
+                                <div class="fw-bold">{{ stats.error_logs_24h or 0 }}</div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <div class="text-muted">CRITICAL (24h)</div>
+                                <div class="fw-bold">{{ stats.critical_logs_24h or 0 }}</div>
+                            </div>
+                            <div class="mt-3">
+                                <a class="btn btn-sm btn-outline-primary w-100" href="{{ url_for('super_admin.system_monitor') }}">مراقب النظام</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-shield-alt me-2 text-primary"></i>أحداث أمان غير محلولة</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div class="text-muted">غير محلول</div>
+                                <div class="fw-bold">{{ stats.unresolved_security_events or 0 }}</div>
+                            </div>
+                            <div class="mt-3">
+                                <a class="btn btn-sm btn-outline-danger w-100" href="{{ url_for('super_admin.audit_trail') }}">سجل التدقيق</a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                أحداث الأمان
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.security_events or 0 }}</div>
+            <div class="row mb-4">
+                <div class="col-lg-6 mb-3">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h6 class="mb-0 fw-bold">آخر أحداث الأمان</h6>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-shield-alt fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- System Information -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                وقت التشغيل
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.system_uptime or '99.9%' }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-server fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                حجم قاعدة البيانات
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.database_size or 'غير محدد' }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-database fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                آخر نسخة احتياطية
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.last_backup or 'لم يتم إنشاء' }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-archive fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                المستخدمين المعطلين
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.inactive_users or 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-times fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Advanced Charts Section -->
-    <div class="row mb-4" data-aos="fade-up">
-        <div class="col-lg-6 mb-4">
-            <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--primary-gradient); color: white;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-line me-2"></i>
-                        نشاط المستخدمين (آخر 7 أيام)
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="userActivityChart" height="250"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-6 mb-4">
-            <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--success-gradient); color: white;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-pie-chart me-2"></i>
-                        توزيع المستخدمين حسب الدور
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="rolesDistributionChart" height="250"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Real-time Activity Feed -->
-    <div class="row mb-4" data-aos="fade-up">
-        <div class="col-lg-6 mb-4">
-            <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--info-gradient); color: white;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-stream me-2"></i>
-                        النشاطات الأخيرة
-                    </h5>
-                </div>
-                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                    <div class="timeline" id="activityTimeline">
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-primary"></div>
-                            <div class="timeline-content">
-                                <div class="d-flex justify-content-between">
-                                    <strong>تسجيل دخول مستخدم جديد</strong>
-                                    <small class="text-muted">منذ 5 دقائق</small>
-                                </div>
-                                <p class="mb-0 text-muted">المستخدم: {{ current_user.full_name }}</p>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-success"></div>
-                            <div class="timeline-content">
-                                <div class="d-flex justify-content-between">
-                                    <strong>تم إنشاء نسخة احتياطية</strong>
-                                    <small class="text-muted">منذ 30 دقيقة</small>
-                                </div>
-                                <p class="mb-0 text-muted">حجم النسخة: 15.2 MB</p>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-warning"></div>
-                            <div class="timeline-content">
-                                <div class="d-flex justify-content-between">
-                                    <strong>تحديث إعدادات النظام</strong>
-                                    <small class="text-muted">منذ ساعة</small>
-                                </div>
-                                <p class="mb-0 text-muted">تم تحديث 3 إعدادات</p>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-3">النوع</th>
+                                            <th>الشدّة</th>
+                                            <th style="width: 160px;">التاريخ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for e in (stats.latest_security_events or []) %}
+                                        <tr>
+                                            <td class="ps-3">{{ e.event_type }}</td>
+                                            <td>{{ e.severity }}</td>
+                                            <td>{{ e.created_at|format_datetime }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="3" class="text-center text-muted py-3">لا بيانات</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-6 mb-4">
-            <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--danger-gradient); color: white;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        تنبيهات النظام
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-warning border-0 shadow-sm mb-3">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-database fa-2x text-warning me-3"></i>
-                            <div>
-                                <strong>مساحة القرص</strong>
-                                <p class="mb-0">المساحة المتبقية: 25%</p>
+                <div class="col-lg-6 mb-3">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h6 class="mb-0 fw-bold">آخر أخطاء النظام</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-3">المستوى</th>
+                                            <th>التصنيف</th>
+                                            <th style="width: 160px;">التاريخ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for e in (stats.latest_error_logs or []) %}
+                                        <tr>
+                                            <td class="ps-3">{{ e.log_level }}</td>
+                                            <td>{{ e.log_category }}</td>
+                                            <td>{{ e.created_at|format_datetime }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="3" class="text-center text-muted py-3">لا بيانات</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
-                    </div>
-                    <div class="alert alert-info border-0 shadow-sm mb-3">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-clock fa-2x text-info me-3"></i>
-                            <div>
-                                <strong>آخر نسخة احتياطية</strong>
-                                <p class="mb-0">{{ stats.last_backup or 'لم يتم إنشاء نسخة' }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="alert alert-success border-0 shadow-sm mb-0">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-check-circle fa-2x text-success me-3"></i>
-                            <div>
-                                <strong>حالة النظام</strong>
-                                <p class="mb-0">جميع الخدمات تعمل بشكل طبيعي</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Quick Actions Grid -->
-    <div class="row mb-4" data-aos="fade-up">
-        <div class="col-12">
-            <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--primary-gradient); color: white;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-rocket me-2"></i>
-                        إجراءات سريعة متقدمة
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-2 col-sm-4">
-                            <button class="btn btn-lg w-100 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;" onclick="window.location.href='{{ url_for('super_admin.users') }}'">
-                                <i class="fas fa-users fa-2x d-block mb-2"></i>
-                                <small>المستخدمين</small>
-                            </button>
-                        </div>
-                        <div class="col-md-2 col-sm-4">
-                            <button class="btn btn-lg w-100 shadow-sm" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;" onclick="window.location.href='{{ url_for('super_admin.roles') }}'">
-                                <i class="fas fa-user-shield fa-2x d-block mb-2"></i>
-                                <small>الأدوار</small>
-                            </button>
-                        </div>
-                        <div class="col-md-2 col-sm-4">
-                            <button class="btn btn-lg w-100 shadow-sm" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;" onclick="window.location.href='{{ url_for('super_admin.departments') }}'">
-                                <i class="fas fa-building fa-2x d-block mb-2"></i>
-                                <small>الأقسام</small>
-                            </button>
-                        </div>
-                        <div class="col-md-2 col-sm-4">
-                            <button class="btn btn-lg w-100 shadow-sm" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;" onclick="window.location.href='{{ url_for('super_admin.services') }}'">
-                                <i class="fas fa-concierge-bell fa-2x d-block mb-2"></i>
-                                <small>الخدمات</small>
-                            </button>
-                        </div>
-                        <div class="col-md-2 col-sm-4">
-                            <button class="btn btn-lg w-100 shadow-sm" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;" onclick="window.location.href='{{ url_for('super_admin.system_backup') }}'">
-                                <i class="fas fa-database fa-2x d-block mb-2"></i>
-                                <small>النسخ</small>
-                            </button>
-                        </div>
-                        <div class="col-md-2 col-sm-4">
-                            <button class="btn btn-lg w-100 shadow-sm" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333;" onclick="window.location.href='{{ url_for('super_admin.reports') }}'">
-                                <i class="fas fa-file-alt fa-2x d-block mb-2"></i>
-                                <small>التقارير</small>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- System Monitoring with Sidebar -->
-    <div class="row">
-        <div class="col-lg-9">
-            <div class="card shadow">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">مراقبة النظام</h6>
-                    <div class="dropdown no-arrow">
-                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown">
-                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right shadow">
-                            <a class="dropdown-item" href="#" onclick="refreshSystemStatus()">تحديث الحالة</a>
-                            <a class="dropdown-item" href="#" onclick="exportSystemLogs()">تصدير السجلات</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="system-status-item">
-                                <i class="fas fa-server text-success me-2"></i>
-                                <span>خادم قاعدة البيانات: <strong class="text-success">متصل</strong></span>
-                            </div>
-                            <div class="system-status-item">
-                                <i class="fas fa-memory text-success me-2"></i>
-                                <span>الذاكرة: <strong class="text-success">طبيعية</strong></span>
-                            </div>
-                            <div class="system-status-item">
-                                <i class="fas fa-hdd text-success me-2"></i>
-                                <span>مساحة القرص: <strong class="text-success">متاحة</strong></span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="system-status-item">
-                                <i class="fas fa-network-wired text-success me-2"></i>
-                                <span>الشبكة: <strong class="text-success">مستقرة</strong></span>
-                            </div>
-                            <div class="system-status-item">
-                                <i class="fas fa-lock text-success me-2"></i>
-                                <span>الأمان: <strong class="text-success">محمي</strong></span>
-                            </div>
-                            <div class="system-status-item">
-                                <i class="fas fa-sync text-success me-2"></i>
-                                <span>المزامنة: <strong class="text-success">نشطة</strong></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3">
-            <div class="card border-0 shadow-lg glass-effect mb-4">
-                <div class="card-header" style="background: var(--primary-gradient); color: white;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bolt me-2"></i>
-                        إجراءات سريعة
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        <a href="{{ url_for('super_admin.users') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-users text-primary me-2"></i>
-                            <strong>إدارة المستخدمين</strong>
-                        </a>
-                        <a href="{{ url_for('super_admin.roles') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-user-shield text-danger me-2"></i>
-                            <strong>إدارة الأدوار</strong>
-                        </a>
-                        <a href="{{ url_for('super_admin.permissions') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-key text-warning me-2"></i>
-                            <strong>الصلاحيات</strong>
-                        </a>
-                        <a href="{{ url_for('super_admin.departments') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-building text-info me-2"></i>
-                            <strong>الأقسام</strong>
-                        </a>
-                        <a href="{{ url_for('super_admin.services') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-concierge-bell text-success me-2"></i>
-                            <strong>الخدمات</strong>
-                        </a>
-                        <a href="{{ url_for('super_admin.system_config') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-cogs text-secondary me-2"></i>
-                            <strong>إعدادات النظام</strong>
-                        </a>
-                        <a href="{{ url_for('super_admin.security_logs') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-shield-alt text-danger me-2"></i>
-                            <strong>سجلات الأمان</strong>
-                        </a>
-                        <a href="{{ url_for('super_admin.audit_trail') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-clipboard-list text-info me-2"></i>
-                            <strong>سجل التدقيق</strong>
-                        </a>
-                        <a href="{{ url_for('super_admin.system_backup') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-database text-success me-2"></i>
-                            <strong>النسخ الاحتياطية</strong>
-                        </a>
-                        <a href="{{ url_for('super_admin.system_monitor') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-chart-line text-primary me-2"></i>
-                            <strong>مراقب النظام</strong>
-                        </a>
-                        <a href="{{ url_for('super_admin.performance') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-tachometer-alt text-warning me-2"></i>
-                            <strong>الأداء</strong>
-                        </a>
-                        <a href="{{ url_for('super_admin.analytics') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-chart-pie text-info me-2"></i>
-                            <strong>التحليلات</strong>
-                        </a>
-                        <a href="{{ url_for('super_admin.reports') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-file-alt text-primary me-2"></i>
-                            <strong>التقارير</strong>
-                        </a>
-                        <a href="{{ url_for('super_admin.branding') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-palette text-danger me-2"></i>
-                            <strong>العلامة التجارية</strong>
-                        </a>
-                        <button onclick="createInstantBackup()" class="list-group-item list-group-item-action">
-                            <i class="fas fa-save text-success me-2"></i>
-                            <strong>نسخة احتياطية الآن</strong>
-                        </button>
-                        <button onclick="cleanupSystem()" class="list-group-item list-group-item-action">
-                            <i class="fas fa-broom text-warning me-2"></i>
-                            <strong>تنظيف النظام</strong>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- إحصائيات سريعة -->
-            <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--success-gradient); color: white;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-bar me-2"></i>
-                        إحصائيات سريعة
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-users text-primary me-2"></i>المستخدمين</span>
-                            <span class="badge bg-primary">{{ stats.total_users or 0 }}</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-user-check text-success me-2"></i>النشطين</span>
-                            <span class="badge bg-success">{{ stats.active_users or 0 }}</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-clock text-warning me-2"></i>الجلسات</span>
-                            <span class="badge bg-warning">{{ stats.active_sessions or 0 }}</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-shield-alt text-danger me-2"></i>أحداث الأمان</span>
-                            <span class="badge bg-danger">{{ stats.security_events or 0 }}</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-server text-info me-2"></i>حالة النظام</span>
-                            <span class="badge bg-success">مستقر</span>
-                        </div>
-                    </div>
-                    <div class="mb-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-database text-secondary me-2"></i>آخر نسخة</span>
-                            <span class="badge bg-secondary">{{ stats.last_backup or 'لا يوجد' }}</span>
                         </div>
                     </div>
                 </div>
@@ -828,1036 +478,4 @@
         </div>
     </div>
 </div>
-
-<style>
-.system-status-item {
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #f8f9fa;
-}
-
-.system-status-item:last-child {
-    border-bottom: none;
-}
-
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df !important;
-}
-
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a !important;
-}
-
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc !important;
-}
-
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e !important;
-}
-
-.border-left-danger {
-    border-left: 0.25rem solid #e74a3b !important;
-}
-</style>
-
-<script>
-function refreshDashboard() {
-    location.reload();
-}
-
-function createBackup() {
-    if (confirm('هل تريد إنشاء نسخة احتياطية للنظام؟')) {
-        fetch('{{ url_for("super_admin.system_backup") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('تم إنشاء النسخة الاحتياطية بنجاح');
-                location.reload();
-            } else {
-                alert('حدث خطأ في إنشاء النسخة الاحتياطية');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ في إنشاء النسخة الاحتياطية');
-        });
-    }
-}
-
-function refreshSystemStatus() {
-    // إعادة تحميل حالة النظام
-    location.reload();
-}
-
-function exportSystemLogs() {
-    // تصدير سجلات النظام
-    window.open('{{ url_for("super_admin.security_logs") }}?export=true', '_blank');
-}
-
-function exportSystemData() {
-    // تصدير بيانات النظام العالمية
-    if (confirm('هل تريد تصدير جميع بيانات النظام؟')) {
-        fetch('/super-admin/export-data', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('تم تصدير البيانات بنجاح');
-                window.open(data.download_url, '_blank');
-            } else {
-                alert('حدث خطأ في تصدير البيانات');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ في تصدير البيانات');
-        });
-    }
-}
-
-function openSystemMonitor() {
-    // فتح مراقب النظام المتقدم
-    window.open('/super-admin/system-monitor', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-}
-
-function refreshDashboard() {
-    // تحديث اللوحة مع تأثير بصري
-    const refreshBtn = event.target;
-    const originalText = refreshBtn.innerHTML;
-    
-    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري التحديث...';
-    refreshBtn.disabled = true;
-    
-    setTimeout(() => {
-        location.reload();
-    }, 1000);
-}
-
-function createBackup() {
-    // إنشاء نسخة احتياطية
-    if (confirm('هل تريد إنشاء نسخة احتياطية من النظام؟')) {
-        fetch('/super-admin/backup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('تم إنشاء النسخة الاحتياطية بنجاح');
-            } else {
-                alert('حدث خطأ في إنشاء النسخة الاحتياطية');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ في إنشاء النسخة الاحتياطية');
-        });
-    }
-}
-
-function exportData() {
-    if (confirm('هل تريد تصدير جميع بيانات النظام؟')) {
-        window.location.href = '/super-admin/export-data';
-    }
-}
-
-// وظائف الحماية والأمان
-function showBanUsers() {
-    window.location.href = '{{ url_for("super_admin.users") }}?action=ban';
-}
-
-function showDeleteData() {
-    if (confirm('تحذير: حذف البيانات عملية خطيرة! هل أنت متأكد؟')) {
-        alert('يرجى الانتقال لصفحة إدارة البيانات لحذف بيانات محددة');
-    }
-}
-
-function cleanupSystem() {
-    if (confirm('هل تريد تنظيف الملفات المؤقتة والكاش؟')) {
-        fetch('/super-admin/system/cleanup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message || 'تم التنظيف بنجاح');
-            location.reload();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ في التنظيف');
-        });
-    }
-}
-
-function createInstantBackup() {
-    if (confirm('هل تريد إنشاء نسخة احتياطية فورية؟')) {
-        const btn = event.target.closest('button');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
-        
-        fetch('/super-admin/backup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('✓ تم إنشاء النسخة الاحتياطية بنجاح!');
-                location.reload();
-            } else {
-                alert('✗ حدث خطأ: ' + (data.message || 'خطأ غير معروف'));
-                btn.disabled = false;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('✗ حدث خطأ في إنشاء النسخة الاحتياطية');
-            btn.disabled = false;
-        });
-    }
-}
-
-function showRestoreBackup() {
-    window.location.href = '{{ url_for("super_admin.system_backup") }}?action=restore';
-}
-
-function runSecurityScan() {
-    if (confirm('هل تريد إجراء فحص أمان شامل للنظام؟')) {
-        alert('جاري فحص النظام... سيتم إشعارك بالنتائج');
-        // يمكن إضافة API call هنا
-    }
-}
-
-function showActiveSessions() {
-    window.location.href = '{{ url_for("super_admin.users") }}?view=sessions';
-}
-
-function clearOldLogs() {
-    if (confirm('هل تريد مسح السجلات الأقدم من 30 يوماً؟')) {
-        alert('جاري مسح السجلات القديمة...');
-        // يمكن إضافة API call هنا
-    }
-}
-
-function showResetPasswords() {
-    window.location.href = '{{ url_for("super_admin.users") }}?action=reset_password';
-}
-
-// وظائف النسخ الاحتياطي المتقدمة
-function createFullBackup() {
-    if (confirm('هل تريد إنشاء نسخة احتياطية كاملة؟ قد يستغرق وقتاً طويلاً.')) {
-        const btn = event.target.closest('button');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...';
-        
-        fetch('/super-admin/backup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ type: 'full' })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('✓ تم إنشاء النسخة الكاملة بنجاح!');
-                location.reload();
-            } else {
-                alert('✗ حدث خطأ: ' + (data.message || 'خطأ غير معروف'));
-                btn.disabled = false;
-            }
-        });
-    }
-}
-
-function createPartialBackup() {
-    const tables = prompt('أدخل أسماء الجداول المراد نسخها (مفصولة بفواصل):', 'users,patients,visits');
-    if (tables) {
-        alert('جاري إنشاء نسخة جزئية من: ' + tables);
-        // يمكن إضافة API call هنا
-    }
-}
-
-function showRestoreOptions() {
-    window.location.href = '{{ url_for("super_admin.system_backup") }}?tab=restore';
-}
-</script>
-
-<!-- Predictive Analytics -->
-{% if stats.predictive_analytics %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-gradient-info text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-chart-line me-2"></i>
-                    التحليلات التنبؤية
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <h4 class="text-info">{{ stats.predictive_analytics.growth_rate }}%</h4>
-                            <p class="text-muted mb-0">معدل النمو</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <h4 class="text-primary">{{ stats.predictive_analytics.predicted_visits_next_week or 0 }}</h4>
-                            <p class="text-muted mb-0">الزيارات المتوقعة الأسبوع القادم</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <h4 class="text-success">{{ stats.predictive_analytics.peak_hour or 'N/A' }}:00</h4>
-                            <p class="text-muted mb-0">ساعة الذروة</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <span class="badge bg-{{ 'success' if stats.predictive_analytics.trend == 'growing' else 'warning' if stats.predictive_analytics.trend == 'stable' else 'danger' }}">
-                        {{ 'نمو' if stats.predictive_analytics.trend == 'growing' else 'مستقر' if stats.predictive_analytics.trend == 'stable' else 'تراجع' }}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Performance Optimization -->
-{% if stats.performance_optimization %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-gradient-warning text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    تحسين الأداء
-                </h5>
-            </div>
-            <div class="card-body">
-                {% for optimization in stats.performance_optimization %}
-                <div class="alert alert-info alert-dismissible fade show">
-                    <h6 class="alert-heading">
-                        <i class="fas fa-{{ 'balance-scale' if optimization.type == 'load_balancing' else 'users' if optimization.type == 'resource_allocation' else 'cog' }} me-2"></i>
-                        {{ optimization.title }}
-                    </h6>
-                    <p class="mb-1">{{ optimization.description }}</p>
-                    <small class="text-muted">الاقتراح: {{ optimization.suggestion }}</small>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- User Behavior Analysis -->
-{% if stats.user_behavior_analysis %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-gradient-secondary text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-user-chart me-2"></i>
-                    تحليل سلوك المستخدمين
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <h4 class="text-success">{{ stats.user_behavior_analysis.active_users or 0 }}</h4>
-                            <p class="text-muted mb-0">مستخدمون نشطون</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <h4 class="text-warning">{{ stats.user_behavior_analysis.inactive_users or 0 }}</h4>
-                            <p class="text-muted mb-0">مستخدمون غير نشطين</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <h4 class="text-info">{{ stats.user_behavior_analysis.engagement_rate or 0 }}%</h4>
-                            <p class="text-muted mb-0">معدل المشاركة</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <h4 class="text-primary">{{ stats.user_behavior_analysis.role_distribution|length or 0 }}</h4>
-                            <p class="text-muted mb-0">أدوار مختلفة</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Resource Utilization -->
-{% if stats.resource_utilization %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-gradient-dark text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-microchip me-2"></i>
-                    استخدام الموارد
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <h6>الذاكرة</h6>
-                        <div class="progress mb-2">
-                            <div class="progress-bar bg-{{ 'danger' if stats.resource_utilization.memory.percentage > 80 else 'warning' if stats.resource_utilization.memory.percentage > 60 else 'success' }}" 
-                                 style="width: {{ stats.resource_utilization.memory.percentage }}%">
-                                {{ stats.resource_utilization.memory.percentage }}%
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <h6>المعالج</h6>
-                        <div class="progress mb-2">
-                            <div class="progress-bar bg-{{ 'danger' if stats.resource_utilization.cpu > 80 else 'warning' if stats.resource_utilization.cpu > 60 else 'success' }}" 
-                                 style="width: {{ stats.resource_utilization.cpu }}%">
-                                {{ stats.resource_utilization.cpu }}%
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <h6>القرص</h6>
-                        <div class="progress mb-2">
-                            <div class="progress-bar bg-{{ 'danger' if stats.resource_utilization.disk.percentage > 80 else 'warning' if stats.resource_utilization.disk.percentage > 60 else 'success' }}" 
-                                 style="width: {{ stats.resource_utilization.disk.percentage }}%">
-                                {{ stats.resource_utilization.disk.percentage }}%
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <span class="badge bg-{{ 'success' if stats.resource_utilization.status == 'optimal' else 'warning' if stats.resource_utilization.status == 'warning' else 'danger' }}">
-                        {{ 'مثالي' if stats.resource_utilization.status == 'optimal' else 'تحذير' if stats.resource_utilization.status == 'warning' else 'حرج' }}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-{% endblock %}
-
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-// رسم بياني لنشاط المستخدمين
-const userActivityCtx = document.getElementById('userActivityChart');
-if (userActivityCtx) {
-    new Chart(userActivityCtx, {
-        type: 'line',
-        data: {
-            labels: ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
-            datasets: [{
-                label: 'تسجيلات الدخول',
-                data: [{{ stats.total_users or 12 }}, 19, 15, 25, 22, 30, 28],
-                borderColor: 'rgb(102, 126, 234)',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                tension: 0.4,
-                fill: true,
-                borderWidth: 3
-            }, {
-                label: 'المستخدمين النشطين',
-                data: [{{ stats.active_users or 8 }}, 15, 12, 20, 18, 25, 23],
-                borderColor: 'rgb(67, 233, 123)',
-                backgroundColor: 'rgba(67, 233, 123, 0.1)',
-                tension: 0.4,
-                fill: true,
-                borderWidth: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        font: {
-                            size: 14,
-                            family: 'Cairo'
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
-    });
-}
-
-// رسم بياني دائري لتوزيع الأدوار
-const rolesDistCtx = document.getElementById('rolesDistributionChart');
-if (rolesDistCtx) {
-    new Chart(rolesDistCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['أطباء', 'ممرضين', 'استقبال', 'مختبر', 'أشعة', 'صيدلية', 'محاسبة', 'إدارة'],
-            datasets: [{
-                data: [15, 25, 10, 8, 6, 7, 5, 4],
-                backgroundColor: [
-                    'rgba(102, 126, 234, 0.9)',
-                    'rgba(240, 147, 251, 0.9)',
-                    'rgba(79, 172, 254, 0.9)',
-                    'rgba(67, 233, 123, 0.9)',
-                    'rgba(250, 112, 154, 0.9)',
-                    'rgba(168, 237, 234, 0.9)',
-                    'rgba(255, 158, 100, 0.9)',
-                    'rgba(173, 83, 137, 0.9)'
-                ],
-                borderWidth: 3,
-                borderColor: '#fff',
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right',
-                    labels: {
-                        font: {
-                            size: 12,
-                            family: 'Cairo'
-                        },
-                        padding: 15
-                    }
-                }
-            }
-        }
-    });
-}
-
-// تحديث النشاطات كل 30 ثانية
-setInterval(function() {
-    fetch('/super-admin/api/recent-activities')
-        .then(response => response.json())
-        .then(data => {
-            if (data.activities) {
-                updateActivityTimeline(data.activities);
-            }
-        })
-        .catch(error => console.log('Waiting for activities...'));
-}, 30000);
-
-function updateActivityTimeline(activities) {
-    const timeline = document.getElementById('activityTimeline');
-    if (timeline && activities.length > 0) {
-        timeline.innerHTML = activities.map(activity => `
-            <div class="timeline-item">
-                <div class="timeline-marker bg-${activity.type}"></div>
-                <div class="timeline-content">
-                    <div class="d-flex justify-content-between">
-                        <strong>${activity.title}</strong>
-                        <small class="text-muted">${activity.time}</small>
-                    </div>
-                    <p class="mb-0 text-muted">${activity.description}</p>
-                </div>
-            </div>
-        `).join('');
-    }
-}
-
-// ============================================
-// AI Assistant Functions
-// ============================================
-
-let isProcessing = false;
-
-function sendAIMessage() {
-    const input = document.getElementById('aiInput');
-    const message = input.value.trim();
-    
-    if (!message || isProcessing) return;
-    
-    // عرض رسالة المستخدم
-    addMessage('user', message);
-    input.value = '';
-    
-    // عرض مؤشر الكتابة
-    showTypingIndicator();
-    isProcessing = true;
-    
-    // إرسال الطلب للـ API
-    fetch('/super-admin/api/ai-assistant', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ message: message })
-    })
-    .then(response => response.json())
-    .then(data => {
-        hideTypingIndicator();
-        if (data.success) {
-            addMessage('assistant', data.response, data.actions);
-            
-            // تنفيذ الإجراءات إذا وجدت
-            if (data.actions && data.actions.length > 0) {
-                executeActions(data.actions);
-            }
-        } else {
-            addMessage('assistant', 'عذراً، حدث خطأ في معالجة طلبك. يرجى المحاولة مرة أخرى.');
-        }
-        isProcessing = false;
-    })
-    .catch(error => {
-        hideTypingIndicator();
-        addMessage('assistant', 'عذراً، حدث خطأ في الاتصال بالمساعد الذكي.');
-        isProcessing = false;
-    });
-}
-
-function addMessage(type, content, actions = null) {
-    const messagesDiv = document.getElementById('aiMessages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `ai-message ${type}`;
-    
-    let actionsHTML = '';
-    if (actions && actions.length > 0) {
-        actionsHTML = '<div class="message-actions mt-2">';
-        actions.forEach(action => {
-            actionsHTML += `<button class="btn btn-sm btn-outline-primary me-1" onclick="${action.function}">
-                <i class="fas fa-${action.icon}"></i> ${action.label}
-            </button>`;
-        });
-        actionsHTML += '</div>';
-    }
-    
-    messageDiv.innerHTML = `
-        <div class="message-avatar">
-            <i class="fas fa-${type === 'user' ? 'user' : 'robot'}"></i>
-        </div>
-        <div class="message-content">
-            <strong>${type === 'user' ? 'أنت' : 'المساعد الذكي'}</strong>
-            <p>${content}</p>
-            ${actionsHTML}
-        </div>
-    `;
-    
-    messagesDiv.appendChild(messageDiv);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-function showTypingIndicator() {
-    const messagesDiv = document.getElementById('aiMessages');
-    const indicator = document.createElement('div');
-    indicator.id = 'typingIndicator';
-    indicator.className = 'ai-message assistant';
-    indicator.innerHTML = `
-        <div class="message-avatar">
-            <i class="fas fa-robot"></i>
-        </div>
-        <div class="message-content">
-            <div class="typing-indicator">
-                <span></span><span></span><span></span>
-            </div>
-        </div>
-    `;
-    messagesDiv.appendChild(indicator);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-function hideTypingIndicator() {
-    const indicator = document.getElementById('typingIndicator');
-    if (indicator) indicator.remove();
-}
-
-function quickCommand(command) {
-    const commands = {
-        'analyze': 'حلل أداء النظام وأعطني تقرير مفصل',
-        'report': 'أنشئ تقرير شامل عن نشاط المستخدمين',
-        'optimize': 'ما هي اقتراحاتك لتحسين أداء النظام؟',
-        'backup': 'قم بإنشاء نسخة احتياطية من النظام'
-    };
-    
-    document.getElementById('aiInput').value = commands[command];
-    sendAIMessage();
-}
-
-function executeActions(actions) {
-    actions.forEach(action => {
-        if (action.type === 'redirect') {
-            setTimeout(() => {
-                if (confirm(action.confirm || 'هل تريد المتابعة؟')) {
-                    window.location.href = action.url;
-                }
-            }, 1000);
-        } else if (action.type === 'download') {
-            setTimeout(() => {
-                window.location.href = action.url;
-            }, 1000);
-        }
-    });
-}
-
-// الأوامر الصوتية
-document.getElementById('voiceBtn').addEventListener('click', function() {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        
-        recognition.lang = 'ar-SA';
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        
-        this.innerHTML = '<i class="fas fa-microphone-slash text-danger"></i>';
-        
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            document.getElementById('aiInput').value = transcript;
-            this.innerHTML = '<i class="fas fa-microphone"></i>';
-        };
-        
-        recognition.onerror = () => {
-            this.innerHTML = '<i class="fas fa-microphone"></i>';
-            alert('حدث خطأ في التعرف على الصوت');
-        };
-        
-        recognition.onend = () => {
-            this.innerHTML = '<i class="fas fa-microphone"></i>';
-        };
-        
-        recognition.start();
-    } else {
-        alert('المتصفح لا يدعم التعرف على الصوت');
-    }
-});
-
-// إرسال بالضغط على Enter
-document.getElementById('aiInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        sendAIMessage();
-    }
-});
-</script>
-
-<style>
-/* Timeline Styles */
-.timeline {
-    position: relative;
-    padding: 0;
-}
-
-.timeline-item {
-    position: relative;
-    padding-right: 40px;
-    padding-bottom: 20px;
-    border-right: 2px solid #e9ecef;
-}
-
-.timeline-item:last-child {
-    border-right: none;
-    padding-bottom: 0;
-}
-
-.timeline-marker {
-    position: absolute;
-    right: -8px;
-    top: 0;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 3px solid #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.timeline-content {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 10px;
-    margin-right: 20px;
-    transition: all 0.3s ease;
-}
-
-.timeline-content:hover {
-    background: #e9ecef;
-    transform: translateX(-5px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-/* Quick Actions Hover Effects */
-.btn-lg:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
-}
-
-.btn-lg {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Animated Progress Bars */
-@keyframes progressAnimation {
-    from { width: 0; }
-}
-
-.progress-bar {
-    animation: progressAnimation 1.5s ease-out;
-}
-
-/* Floating Animation */
-@keyframes floating {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-}
-
-.floating-animation {
-    animation: floating 3s ease-in-out infinite;
-}
-
-/* Gradient Text */
-.gradient-text {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-weight: 700;
-}
-
-/* AI Assistant Styles */
-.ai-chat-container {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 15px;
-    padding: 20px;
-    max-height: 500px;
-    display: flex;
-    flex-direction: column;
-}
-
-.ai-messages {
-    flex: 1;
-    overflow-y: auto;
-    margin-bottom: 15px;
-    max-height: 350px;
-    padding: 10px;
-}
-
-.ai-message {
-    display: flex;
-    margin-bottom: 15px;
-    animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.ai-message.user {
-    flex-direction: row-reverse;
-}
-
-.message-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-}
-
-.ai-message.assistant .message-avatar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.ai-message.user .message-avatar {
-    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    color: white;
-}
-
-.message-content {
-    background: #f8f9fa;
-    padding: 12px 15px;
-    border-radius: 15px;
-    margin: 0 10px;
-    max-width: 80%;
-}
-
-.ai-message.user .message-content {
-    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    color: white;
-}
-
-.message-content strong {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 14px;
-}
-
-.message-content p {
-    margin: 0;
-    line-height: 1.6;
-}
-
-.message-content ul {
-    margin: 10px 0 0 0;
-    padding-right: 20px;
-}
-
-.typing-indicator {
-    display: flex;
-    gap: 5px;
-    padding: 10px;
-}
-
-.typing-indicator span {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #667eea;
-    animation: typing 1.4s infinite;
-}
-
-.typing-indicator span:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.typing-indicator span:nth-child(3) {
-    animation-delay: 0.4s;
-}
-
-@keyframes typing {
-    0%, 60%, 100% {
-        transform: translateY(0);
-    }
-    30% {
-        transform: translateY(-10px);
-    }
-}
-
-.ai-input-container {
-    border-top: 2px solid #e9ecef;
-    padding-top: 15px;
-}
-
-.ai-input-container .form-control {
-    border-radius: 25px;
-    padding: 12px 20px;
-    border: 2px solid #e9ecef;
-}
-
-.ai-input-container .form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
-.ai-input-container .btn {
-    border-radius: 25px;
-    padding: 10px 20px;
-}
-
-.quick-commands {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    align-items: center;
-}
-
-.quick-commands .btn {
-    border-radius: 20px;
-    font-size: 12px;
-    padding: 5px 12px;
-}
-
-.message-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-}
-
-.message-actions .btn {
-    font-size: 12px;
-    padding: 4px 10px;
-}
-
-.ai-avatar {
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.1);
-    }
-}
-
-/* Scrollbar للمحادثة */
-.ai-messages::-webkit-scrollbar {
-    width: 6px;
-}
-
-.ai-messages::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-.ai-messages::-webkit-scrollbar-thumb {
-    background: #667eea;
-    border-radius: 10px;
-}
-
-.ai-messages::-webkit-scrollbar-thumb:hover {
-    background: #764ba2;
-}
-</style>
 {% endblock %}

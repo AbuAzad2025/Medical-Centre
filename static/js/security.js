@@ -84,22 +84,29 @@ class SecurityManager {
     }
 
     setupXSSProtection() {
-        // Override innerHTML to prevent XSS
-        const originalInnerHTML = Element.prototype.__lookupSetter__('innerHTML');
-        
-        Element.prototype.__defineSetter__('innerHTML', function(html) {
-            if (typeof html === 'string') {
-                html = SecurityManager.sanitizeHTML(html);
+        const desc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+        const originalSetter = desc && desc.set;
+        if (!originalSetter) return;
+        Object.defineProperty(Element.prototype, 'innerHTML', {
+            set: function(html) {
+                try {
+                    if (this.tagName === 'SCRIPT' || this.tagName === 'STYLE') {
+                        originalSetter.call(this, html);
+                        return;
+                    }
+                    if (typeof html === 'string') {
+                        const cleaned = html
+                            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                            .replace(/\bon\w+\s*=/gi, '');
+                        originalSetter.call(this, cleaned);
+                    } else {
+                        originalSetter.call(this, html);
+                    }
+                } catch (_) {
+                    originalSetter.call(this, html);
+                }
             }
-            originalInnerHTML.call(this, html);
         });
-    }
-
-    static sanitizeHTML(html) {
-        // Create a temporary div to parse HTML
-        const temp = document.createElement('div');
-        temp.textContent = html;
-        return temp.innerHTML;
     }
 
     setupCSRFProtection() {
@@ -116,18 +123,6 @@ class SecurityManager {
                 }
             }
         });
-
-        // Add CSRF token to AJAX requests
-        const originalFetch = window.fetch;
-        window.fetch = (url, options = {}) => {
-            if (this.csrfToken && options.method && options.method !== 'GET') {
-                options.headers = {
-                    ...options.headers,
-                    'X-CSRFToken': this.csrfToken
-                };
-            }
-            return originalFetch(url, options);
-        };
     }
 
     setupClickjackingProtection() {
@@ -450,7 +445,6 @@ class AuditLogger {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
             },
             body: JSON.stringify(logEntry)
         }).catch(error => {

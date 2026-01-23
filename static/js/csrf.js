@@ -1,30 +1,21 @@
-// CSRF Token Management
-document.addEventListener('DOMContentLoaded', function() {
-    // Get CSRF token from meta tag
-    const csrfToken = document.querySelector('meta[name="csrf-token"]');
-    if (csrfToken) {
-        window.csrfToken = csrfToken.getAttribute('content');
+// CSRF Token Management (ES Module)
+export function initCsrf() {
+  if (window.__csrfInitialized) return;
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  const token = meta ? meta.getAttribute('content') : '';
+  window.csrfToken = token || window.csrfToken || '';
+
+  const forms = document.querySelectorAll('form');
+  forms.forEach(form => {
+    if (!form.querySelector('input[name="csrf_token"]')) {
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrf_token';
+      csrfInput.value = window.csrfToken;
+      form.appendChild(csrfInput);
     }
-    
-    // Add CSRF token to all forms
-    const forms = document.querySelectorAll('form');
-    forms.forEach(function(form) {
-        if (!form.querySelector('input[name="csrf_token"]')) {
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrf_token';
-            csrfInput.value = window.csrfToken;
-            form.appendChild(csrfInput);
-        }
-    });
-    
-    // Add CSRF token to all AJAX requests
-    const originalFetch = window.fetch;
-    window.fetch = function(url, options = {}) {
-        if (options.method && options.method !== 'GET') {
-            options.headers = options.headers || {};
-            options.headers['X-CSRFToken'] = window.csrfToken;
-        }
-        return originalFetch(url, options);
-    };
-});
+  });
+
+  window.__csrfInitialized = true;
+}
+export default { initCsrf }

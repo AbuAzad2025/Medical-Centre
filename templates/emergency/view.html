@@ -230,7 +230,7 @@
                 <h5><i class="fas fa-user"></i> معلومات المريض</h5>
                 <div class="info-item">
                     <strong>اسم المريض:</strong>
-                    <span><a href="{{ url_for('patient.view_patient', id=emergency.patient.id) }}">{{ emergency.patient.name }}</a></span>
+                    <span><a href="{{ url_for('reception.view_patient', patient_id=emergency.patient.id) }}">{{ emergency.patient.name }}</a></span>
                 </div>
                 <div class="info-item">
                     <strong>رقم الهاتف:</strong>
@@ -289,15 +289,20 @@
                 </div>
                 <div class="info-item">
                     <strong>الحالة:</strong>
-                    <span class="status-badge status-{{ emergency.status }}">
-                        {% if emergency.status == 'active' %}
-                            نشط
-                        {% elif emergency.status == 'resolved' %}
+                    {% set st = (emergency.status or '')|upper %}
+                    {% set status_class = 'status-active' %}
+                    {% if st == 'COMPLETED' %}
+                        {% set status_class = 'status-resolved' %}
+                    {% elif st == 'TRANSFERRED' %}
+                        {% set status_class = 'status-transferred' %}
+                    {% endif %}
+                    <span class="status-badge {{ status_class }}">
+                        {% if st == 'COMPLETED' %}
                             محلول
-                        {% elif emergency.status == 'transferred' %}
+                        {% elif st == 'TRANSFERRED' %}
                             منقول
                         {% else %}
-                            {{ emergency.status }}
+                            نشط
                         {% endif %}
                     </span>
                 </div>
@@ -405,6 +410,18 @@
             <div class="detail-card">
                 <h5><i class="fas fa-clock"></i> سجل الحالة</h5>
                 <div class="timeline">
+                    {% for row in status_timeline or [] %}
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-time">{{ row.item.created_at.strftime('%Y-%m-%d %H:%M') if row.item.created_at else 'غير محدد' }}</div>
+                            <div class="timeline-title">{{ row.item.to_status }}</div>
+                            <div class="timeline-description">
+                                {% if row.item.from_status %}من {{ row.item.from_status }}{% else %}بداية الحالة{% endif %}
+                                {% if row.duration_minutes is not none %} • {{ row.duration_minutes }} دقيقة{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
                     <div class="timeline-item">
                         <div class="timeline-content">
                             <div class="timeline-time">{{ emergency.created_at.strftime('%Y-%m-%d %H:%M') if emergency.created_at else 'غير محدد' }}</div>
@@ -412,33 +429,7 @@
                             <div class="timeline-description">تم تسجيل حالة الطوارئ في النظام</div>
                         </div>
                     </div>
-                    {% if emergency.updated_at and emergency.updated_at != emergency.created_at %}
-                    <div class="timeline-item">
-                        <div class="timeline-content">
-                            <div class="timeline-time">{{ emergency.updated_at.strftime('%Y-%m-%d %H:%M') }}</div>
-                            <div class="timeline-title">تحديث الحالة</div>
-                            <div class="timeline-description">تم تحديث تفاصيل حالة الطوارئ</div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% if emergency.resolution_time %}
-                    <div class="timeline-item">
-                        <div class="timeline-content">
-                            <div class="timeline-time">{{ emergency.resolution_time.strftime('%Y-%m-%d %H:%M') }}</div>
-                            <div class="timeline-title">حل الحالة</div>
-                            <div class="timeline-description">تم حل حالة الطوارئ</div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% if emergency.transfer_time %}
-                    <div class="timeline-item">
-                        <div class="timeline-content">
-                            <div class="timeline-time">{{ emergency.transfer_time.strftime('%Y-%m-%d %H:%M') }}</div>
-                            <div class="timeline-title">نقل الحالة</div>
-                            <div class="timeline-description">تم نقل حالة الطوارئ</div>
-                        </div>
-                    </div>
-                    {% endif %}
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -451,26 +442,30 @@
                     <a href="{{ url_for('emergency.edit_emergency_case', id=emergency.id) }}" class="btn btn-outline-success">
                         <i class="fas fa-edit"></i> تعديل الحالة
                     </a>
-                    {% if emergency.status == 'active' %}
+                    {% if emergency.status in ['WAITING', 'TRIAGE', 'RESUSCITATION', 'TREATMENT', 'OBSERVATION'] %}
                     <form method="POST" action="{{ url_for('emergency.resolve_emergency_case', id=emergency.id) }}" style="display: inline;">
-                        <button type="submit" class="btn btn-outline-info w-100" onclick="return confirm('هل أنت متأكد من حل هذه الحالة؟')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-info w-100" onclick="return confirmSubmit(event, 'هل أنت متأكد من حل هذه الحالة؟')">
                             <i class="fas fa-check"></i> حل الحالة
                         </button>
                     </form>
-                    <form method="POST" action="{{ url_for('emergency.transfer_emergency_case', id=emergency.id) }}" style="display: inline;">
-                        <button type="submit" class="btn btn-outline-warning w-100" onclick="return confirm('هل أنت متأكد من نقل هذه الحالة؟')">
+                    <form method="POST" action="{{ url_for('emergency.convert_emergency_case', id=emergency.id) }}" id="convertForm" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <select name="new_destination" class="form-select mb-2" required>
+                            <option value="doctor">طبيب</option>
+                            <option value="lab">مختبر</option>
+                            <option value="radiology">أشعة</option>
+                        </select>
+                        <button type="submit" class="btn btn-outline-warning w-100">
                             <i class="fas fa-exchange-alt"></i> نقل الحالة
                         </button>
                     </form>
                     {% endif %}
-                    <a href="{{ url_for('patient.view_patient', id=emergency.patient.id) }}" class="btn btn-outline-primary">
+                    <a href="{{ url_for('reception.view_patient', patient_id=emergency.patient.id) }}" class="btn btn-outline-primary">
                         <i class="fas fa-user"></i> ملف المريض
                     </a>
                     <a href="{{ url_for('emergency.list_emergency_cases') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-list"></i> قائمة الطوارئ
-                    </a>
-                    <a href="{{ url_for('emergency.delete_emergency_case', id=emergency.id) }}" class="btn btn-outline-danger" onclick="return confirm('هل أنت متأكد من حذف هذه الحالة؟')">
-                        <i class="fas fa-trash"></i> حذف الحالة
                     </a>
                 </div>
             </div>
@@ -497,5 +492,30 @@
         // يمكن إضافة وظيفة المشاركة هنا
         console.log('مشاركة بيانات حالة الطوارئ');
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var form = document.getElementById('convertForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var data = new FormData(form);
+                fetch(form.action, { 
+                        method: 'POST', 
+                        body: data 
+                    })
+                    .then(function(r){ return r.json(); })
+                    .then(function(j){
+                        if (j && j.success) {
+                            Swal.fire({ title: 'تم', text: 'تم نقل الحالة بنجاح', icon: 'success' }).then(() => {
+                                window.location.href = "{{ url_for('emergency.list_emergency_cases') }}";
+                            });
+                        } else {
+                            Swal.fire({ title: 'خطأ', text: (j && j.message) ? j.message : 'فشل نقل الحالة', icon: 'error' });
+                        }
+                    })
+                    .catch(function(){ Swal.fire({ title: 'خطأ', text: 'حدث خطأ أثناء النقل', icon: 'error' }); });
+            });
+        }
+    });
 </script>
 {% endblock %}

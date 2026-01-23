@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}مواد المختبر{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary"><i class="fas fa-boxes me-2"></i>مواد المختبر</h2>
+            <div class="text-muted">إدارة المواد والمحاليل مع التنبيهات</div>
+          </div>
+          <div class="d-flex gap-2">
+            <a class="btn btn-primary" href="{{ url_for('lab.add_reagent') }}"><i class="fas fa-plus me-1"></i>إضافة</a>
+            <a class="btn btn-secondary" href="{{ url_for('lab.dashboard') }}"><i class="fas fa-arrow-left me-1"></i>العودة</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form method="GET" class="row g-3 mb-3">
+    <div class="col-md-4">
+      <label class="form-label">بحث</label>
+      <input class="form-control" name="search" value="{{ search or '' }}" placeholder="اسم/شركة/رقم التشغيلة">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">المخزون</label>
+      <select class="form-select" name="stock">
+        <option value="" {% if not stock %}selected{% endif %}>الكل</option>
+        <option value="low" {% if stock == 'low' %}selected{% endif %}>منخفض</option>
+        <option value="out" {% if stock == 'out' %}selected{% endif %}>نفد</option>
+        <option value="normal" {% if stock == 'normal' %}selected{% endif %}>طبيعي</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">الصلاحية</label>
+      <select class="form-select" name="expiry">
+        <option value="" {% if not expiry %}selected{% endif %}>الكل</option>
+        <option value="soon" {% if expiry == 'soon' %}selected{% endif %}>قريباً</option>
+        <option value="expired" {% if expiry == 'expired' %}selected{% endif %}>منتهي</option>
+      </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <button class="btn btn-primary w-100" type="submit"><i class="fas fa-filter me-1"></i>فلترة</button>
+    </div>
+  </form>
+
+  <div class="card shadow">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>المورد</th>
+              <th>التشغيلة</th>
+              <th style="width: 120px;">المخزون</th>
+              <th style="width: 120px;">الحد الأدنى</th>
+              <th style="width: 140px;">الصلاحية</th>
+              <th style="width: 100px;">الحالة</th>
+              <th class="text-end" style="width: 120px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in reagents %}
+              {% set is_low = (r.stock_quantity <= r.minimum_stock) %}
+              {% set is_expired = (r.expiry_date and r.expiry_date < today) %}
+              {% set is_soon = (r.expiry_date and r.expiry_date <= soon_date) %}
+              <tr>
+                <td>{{ r.name }}</td>
+                <td>{{ r.supplier or '-' }}</td>
+                <td>{{ r.lot_number or '-' }}</td>
+                <td>
+                  <span class="{% if r.stock_quantity <= 0 %}text-danger{% elif is_low %}text-warning{% else %}text-success{% endif %}">{{ r.stock_quantity }}</span>
+                </td>
+                <td>{{ r.minimum_stock }}</td>
+                <td>
+                  {% if r.expiry_date %}
+                    <span class="{% if is_expired %}text-danger{% elif is_soon %}text-warning{% endif %}">{{ r.expiry_date.strftime('%Y-%m-%d') }}</span>
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if r.is_active %}
+                    <span class="badge bg-success">مفعل</span>
+                  {% else %}
+                    <span class="badge bg-secondary">غير مفعل</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <a class="btn btn-sm btn-outline-primary" href="{{ url_for('lab.edit_reagent', reagent_id=r.id) }}"><i class="fas fa-edit"></i></a>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="8" class="text-center text-muted">لا توجد مواد</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

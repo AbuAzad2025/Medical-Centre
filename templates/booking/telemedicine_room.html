@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}جلسة التطبيب عن بُعد{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h3 class="mb-2 text-primary"><i class="fas fa-video me-2"></i>جلسة التطبيب عن بُعد</h3>
+      <div class="text-muted mb-3">الحجز رقم {{ booking.id }}</div>
+      {% if meeting_link %}
+        <div class="alert alert-info">رابط الجلسة: <a href="{{ meeting_link }}">{{ meeting_link }}</a></div>
+      {% else %}
+        <div class="alert alert-warning">لا يوجد رابط للجلسة</div>
+      {% endif %}
+      <a class="btn btn-secondary" href="{{ url_for('booking.dashboard_portal') }}">العودة</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

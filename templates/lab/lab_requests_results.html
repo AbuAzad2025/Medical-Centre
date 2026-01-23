@@ -48,6 +48,12 @@
                             <strong>رقم الهاتف:</strong> {{ lab_request.patient.phone }}
                         </div>
                     </div>
+                    <div class="mt-3 text-end">
+                        <a href="{{ url_for('reception.view_patient', patient_id=lab_request.patient.id) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i>
+                            عرض ملف المريض
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -81,7 +87,7 @@
                         </div>
                         <div class="col-md-6">
                             <strong>الحالة:</strong> 
-                            <span class="badge {% if lab_request.status == 'completed' %}bg-success{% elif lab_request.status == 'in_progress' %}bg-warning{% elif lab_request.status == 'pending' %}bg-info{% else %}bg-danger{% endif %}">
+                            <span class="badge {% if lab_request.status|upper in ['COMPLETED','DONE'] %}bg-success{% elif lab_request.status|upper == 'IN_PROGRESS' %}bg-warning{% elif lab_request.status|upper in ['PENDING','REQUESTED'] %}bg-info{% else %}bg-danger{% endif %}">
                                 {{ lab_request.get_status_display() }}
                             </span>
                         </div>
@@ -174,17 +180,17 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex gap-2">
-                        {% if lab_request.status != 'completed' %}
-                        <a href="{{ url_for('lab.edit_results', id=lab_request.id) }}" class="btn btn-primary">
+                        {% if (lab_request.status|upper) not in ['COMPLETED','DONE'] %}
+                        <a href="{{ url_for('lab.worklist') }}" class="btn btn-primary">
                             <i class="fas fa-edit me-1"></i>
                             إدخال النتائج
                         </a>
                         {% endif %}
-                        <a href="{{ url_for('lab.print_results', id=lab_request.id) }}" class="btn btn-success" target="_blank">
+                        <a href="{{ url_for('lab.print_request', id=lab_request.id) }}" class="btn btn-success" target="_blank">
                             <i class="fas fa-print me-1"></i>
                             طباعة النتائج
                         </a>
-                        <a href="{{ url_for('lab.send_results', id=lab_request.id) }}" class="btn btn-info">
+                        <a href="{{ url_for('lab.worklist') }}" class="btn btn-info">
                             <i class="fas fa-paper-plane me-1"></i>
                             إرسال النتائج
                         </a>

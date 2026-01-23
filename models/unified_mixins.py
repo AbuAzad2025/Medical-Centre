@@ -3,7 +3,7 @@
 Medical System Unified Mixins
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, DateTime, String, Boolean, Text, ForeignKey, Index
 from sqlalchemy.ext.declarative import declared_attr
 from app_factory import db
@@ -12,8 +12,8 @@ class BaseModelMixin:
     """الخلطة الأساسية لجميع النماذج"""
     
     id = Column(Integer, primary_key=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     
     def to_dict(self):
         """تحويل النموذج إلى قاموس بشكل ذكي"""
@@ -110,7 +110,7 @@ class PermissionBase(BaseModelMixin):
     permission_value = Column(String(200), nullable=True)
     is_granted = Column(Boolean, default=True, index=True)
     granted_by = Column(Integer, ForeignKey('users.id'), nullable=True, index=True)
-    granted_at = Column(DateTime, default=datetime.utcnow, index=True)
+    granted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     expires_at = Column(DateTime, nullable=True, index=True)
     reason = Column(Text, nullable=True)
     
@@ -120,13 +120,13 @@ class PermissionBase(BaseModelMixin):
     def is_expired(self):
         """هل انتهت صلاحية الصلاحية"""
         if self.expires_at:
-            return datetime.utcnow() > self.expires_at
+            return datetime.now(timezone.utc) > self.expires_at
         return False
 
 class FinancialBase(BaseModelMixin, StatusMixin):
     """قاعدة المعاملات المالية الموحدة"""
     
-    amount = Column(db.Float, nullable=False, index=True)
+    amount = Column(db.Numeric(12, 2), nullable=False, index=True)
     currency = Column(String(10), default='EGP', nullable=False)
     payment_method = Column(String(50), nullable=False, index=True)
     payment_status = Column(String(50), nullable=False, default='PENDING', index=True)

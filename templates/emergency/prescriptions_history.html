@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}تاريخ وصفات الطوارئ{% endblock %}
+{% block content %}
+<div class="container">
+  <h2 class="mb-3">الوصفات المسجلة للحالة #{{ emergency.id }}</h2>
+  <div class="card"><div class="card-body">
+    {% if emergency.prescription %}
+      <ul class="list-group">
+        {% for item in emergency.prescription %}
+        <li class="list-group-item">{{ item.medication }} — {{ item.dosage }} — {{ item.duration }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      لا توجد وصفات
+    {% endif %}
+  </div></div>
+</div>
+{% endblock %}
+

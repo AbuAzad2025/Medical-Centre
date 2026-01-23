@@ -3,7 +3,7 @@
 Medical System Request Workflow Model
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from app_factory import db
 
 class RequestWorkflow(db.Model):
@@ -18,7 +18,7 @@ class RequestWorkflow(db.Model):
     status = db.Column(db.String(50), nullable=False)  # Current status
     action = db.Column(db.String(100), nullable=False)  # Action taken
     notes = db.Column(db.Text, nullable=True)  # Additional notes
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     # معلومات إضافية

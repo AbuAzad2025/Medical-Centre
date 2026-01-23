@@ -138,9 +138,9 @@
                             <tbody>
                                 {% for visit in visits %}
                                 <tr>
-                                    <td>{{ visit.visit_id_number or visit.id }}</td>
+                                    <td>{{ visit.visit_number or visit.id }}</td>
                                     <td>{{ visit.patient.full_name }}</td>
-                                    <td>{{ visit.get_visit_type_display() }}</td>
+                                    <td>{{ visit.visit_type_display }}</td>
                                     <td>{{ "%.2f"|format(visit.total_amount) }} ريال</td>
                                     <td>{{ "%.2f"|format(visit.paid_amount) }} ريال</td>
                                     <td>{{ "%.2f"|format(visit.total_amount - visit.paid_amount) }} ريال</td>
@@ -156,12 +156,12 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="{{ url_for('accountant.process_payment', visit_id=visit.id) }}" 
+                                            <a href="{{ url_for('payment.process_payment', visit_id=visit.id) }}" 
                                                class="btn btn-primary btn-sm">
                                                 <i class="fas fa-credit-card me-1"></i>
                                                 معالجة الدفع
                                             </a>
-                                            <a href="{{ url_for('accountant.print_receipt', visit_id=visit.id) }}" 
+                                            <a href="{{ url_for('reception.print_receipt', visit_id=visit.id) }}" 
                                                class="btn btn-info btn-sm">
                                                 <i class="fas fa-print me-1"></i>
                                                 طباعة

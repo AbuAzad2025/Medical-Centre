@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}تأكيد الحجز{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h3 class="text-success mb-3"><i class="fas fa-check-circle me-2"></i> تم إنشاء الحجز</h3>
+      <div class="row g-2">
+        <div class="col-md-6">رقم الحجز: <strong>{{ booking.id }}</strong></div>
+        <div class="col-md-6">اسم المريض: <strong>{{ booking.get_full_name() }}</strong></div>
+        <div class="col-md-6">القسم: <strong>{{ booking.department.name_ar if booking.department else booking.department_id }}</strong></div>
+        <div class="col-md-6">الطبيب: <strong>{{ booking.doctor.full_name if booking.doctor else '-' }}</strong></div>
+        <div class="col-md-6">التاريخ: <strong>{{ booking.appointment_date }}</strong></div>
+        <div class="col-md-6">الوقت: <strong>{{ booking.appointment_time.strftime('%H:%M') if booking.appointment_time else '-' }}</strong></div>
+      </div>
+      {% if meeting_link %}
+      <div class="alert alert-info mt-3">
+        رابط التطبيب عن بُعد: <a href="{{ meeting_link }}">{{ meeting_link }}</a>
+      </div>
+      {% endif %}
+      <div class="mt-3 d-flex gap-2">
+        <a class="btn btn-primary" href="{{ url_for('booking.payment', booking_id=booking.id) }}">الدفع</a>
+        <a class="btn btn-secondary" href="{{ url_for('booking.index') }}">عودة</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

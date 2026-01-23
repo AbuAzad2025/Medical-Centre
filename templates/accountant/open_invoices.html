@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}الفواتير المفتوحة{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-3">الفواتير المفتوحة</h2>
+  <div class="card"><div class="card-body">
+    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>#</th><th>المريض</th><th>الإجمالي</th><th>المدفوع</th><th>الحالة</th><th>تاريخ</th></tr></thead><tbody>
+      {% for i in invoices or [] %}
+      <tr><td>{{ i.id }}</td><td>{{ i.patient.full_name if i.patient else '' }}</td><td>{{ i.total_amount }}</td><td>{{ i.paid_amount }}</td><td>{{ i.status }}</td><td>{{ i.created_at }}</td></tr>
+      {% else %}
+      <tr><td colspan="6" class="text-center">لا فواتير</td></tr>
+      {% endfor %}
+    </tbody></table></div>
+  </div></div>
+</div>
+{% endblock %}
+

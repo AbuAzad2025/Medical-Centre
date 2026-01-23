@@ -1,32 +1,16 @@
-"""
-مسارات السوبر أدمن - Super Admin Routes
-Medical System Super Admin Routes
-"""
+ 
 
-from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, abort
 from flask_login import login_required, current_user
-from functools import wraps
+from utils.decorators import super_admin_required
 from services.access_control_service import AccessControlService
 import logging
+from sqlalchemy import func
 
 # إنشاء Blueprint للسوبر أدمن
 super_admin_bp = Blueprint('super_admin', __name__)
 
-def super_admin_required(f):
-    """ديكوريتر للتحقق من صلاحيات السوبر أدمن"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated:
-            flash('يجب تسجيل الدخول أولاً', 'error')
-            return redirect(url_for('auth.login'))
-        
-        # السماح لـ admin و super_admin
-        if not current_user.is_admin or current_user.role not in ['super_admin', 'admin']:
-            flash('ليس لديك صلاحيات للوصول لهذه الصفحة', 'error')
-            return redirect(url_for('main.index'))
-        
-        return f(*args, **kwargs)
-    return decorated_function
+ 
 
 @super_admin_bp.route('/dashboard')
 @login_required
@@ -39,34 +23,113 @@ def dashboard():
         from models.visit import Visit
         from models.department import Department
         from models.service import ServiceMaster
+        from datetime import datetime, timedelta, timezone
         
-        # إحصائيات بسيطة ومباشرة من قاعدة البيانات
+        total_users = User.query.count()
+        active_users = User.query.filter_by(is_active=True).count()
+        inactive_users = User.query.filter_by(is_active=False).count()
+        admin_users = User.query.filter_by(is_admin=True).count()
+        total_patients = Patient.query.count()
+        total_visits = Visit.query.count()
+        total_departments = Department.query.count()
+        active_departments = Department.query.filter_by(is_active=True).count()
+        total_services = ServiceMaster.query.count()
+        active_services = ServiceMaster.query.filter_by(is_active=True).count()
+
+        active_sessions = User.query.filter(User.last_login >= datetime.now() - timedelta(hours=24)).count()
+
+        database_size = get_database_size()
+        last_backup = get_last_backup_time()
+
+        security_threats = get_security_threats()
+        performance_optimization = get_performance_optimization()
+        user_behavior_analysis = get_user_behavior_analysis()
+        resource_utilization = get_resource_utilization()
+
+        from models.audit_trail import LoginAttempt, SystemLog, SecurityEvent
+        start_24h = datetime.now(timezone.utc) - timedelta(hours=24)
+        start_1h = datetime.now(timezone.utc) - timedelta(hours=1)
+        failed_logins_24h = LoginAttempt.query.filter(LoginAttempt.success == False, LoginAttempt.created_at >= start_24h).count()
+        failed_logins_1h = LoginAttempt.query.filter(LoginAttempt.success == False, LoginAttempt.created_at >= start_1h).count()
+        error_logs_24h = SystemLog.query.filter(SystemLog.created_at >= start_24h, SystemLog.log_level.in_(['ERROR', 'CRITICAL'])).count()
+        critical_logs_24h = SystemLog.query.filter(SystemLog.created_at >= start_24h, SystemLog.log_level == 'CRITICAL').count()
+        unresolved_security_events = SecurityEvent.query.filter(SecurityEvent.is_resolved == False).count()
+        latest_security_events = SecurityEvent.query.order_by(SecurityEvent.created_at.desc()).limit(10).all()
+        latest_error_logs = SystemLog.query.filter(SystemLog.log_level.in_(['ERROR', 'CRITICAL'])).order_by(SystemLog.created_at.desc()).limit(10).all()
+        maintenance_cfg = None
+        branch_templates_count = 0
+        try:
+            from models.system_config import SystemConfig
+            maintenance_cfg = SystemConfig.query.filter_by(config_key='maintenance_automation').first()
+            templates_cfg = SystemConfig.query.filter_by(config_key='branch_templates').first()
+            templates_val = templates_cfg.get_value() if templates_cfg else []
+            branch_templates_count = len(templates_val) if isinstance(templates_val, list) else 0
+        except Exception:
+            maintenance_cfg = None
+
+        threats_count = len(security_threats) if security_threats else 0
+        cpu = (resource_utilization or {}).get('cpu', 0) or 0
+        mem = ((resource_utilization or {}).get('memory') or {}).get('percentage', 0) or 0
+        disk = ((resource_utilization or {}).get('disk') or {}).get('percentage', 0) or 0
+        load_factor = min(100, int((cpu + mem + disk) / 3))
+        base_score = 90 if threats_count == 0 else 80 if threats_count <= 2 else 65
+        score = max(30, min(100, int(base_score - (load_factor - 50) * 0.3)))
+        health_color = 'success' if score >= 80 else 'warning' if score >= 60 else 'danger'
+        health_status = 'ممتاز' if score >= 80 else 'جيد' if score >= 60 else 'حرج'
+
+        system_health_score = {
+            'score': score,
+            'color': health_color,
+            'status': health_status
+        }
+
+        ai_insights = {
+            'total_recommendations': 12,
+            'pending_recommendations': 3,
+            'accepted_recommendations': 7,
+            'high_confidence_recommendations': 4
+        }
+
+        predictive_analytics = {
+            'growth_rate': round(((active_users - inactive_users) / (total_users or 1)) * 100, 2),
+            'predicted_visits_next_week': total_visits + max(5, int(total_visits * 0.05)),
+            'peak_hour': 11,
+            'trend': 'growing' if active_users > inactive_users else 'stable' if active_users == inactive_users else 'declining'
+        }
+
         stats = {
-            'total_users': User.query.count(),
-            'active_users': User.query.filter_by(is_active=True).count(),
-            'inactive_users': User.query.filter_by(is_active=False).count(),
-            'admin_users': User.query.filter_by(is_admin=True).count(),
-            'total_patients': Patient.query.count(),
-            'total_visits': Visit.query.count(),
-            'total_departments': Department.query.count(),
-            'active_departments': Department.query.filter_by(is_active=True).count(),
-            'total_services': ServiceMaster.query.count(),
-            'active_services': ServiceMaster.query.filter_by(is_active=True).count(),
-            # قيم افتراضية للميزات المتقدمة
-            'active_sessions': 0,
-            'security_events': 0,
+            'total_users': total_users,
+            'active_users': active_users,
+            'inactive_users': inactive_users,
+            'admin_users': admin_users,
+            'total_patients': total_patients,
+            'total_visits': total_visits,
+            'total_departments': total_departments,
+            'active_departments': active_departments,
+            'total_services': total_services,
+            'active_services': active_services,
+            'active_sessions': active_sessions,
+            'security_events': threats_count,
             'system_uptime': '99.9%',
-            'daily_usage': 0,
-            'database_size': '0 MB',
-            'last_backup': 'لم يتم',
-            'ai_insights': None,
-            'smart_recommendations': None,
-            'predictive_analytics': None,
-            'system_health_score': 85,
-            'security_threats': 0,
-            'performance_optimization': None,
-            'user_behavior_analysis': None,
-            'resource_utilization': None
+            'database_size': database_size,
+            'last_backup': last_backup,
+            'ai_insights': ai_insights,
+            'smart_recommendations': [],
+            'predictive_analytics': predictive_analytics,
+            'system_health_score': system_health_score,
+            'security_threats': security_threats,
+            'performance_optimization': performance_optimization,
+            'user_behavior_analysis': user_behavior_analysis,
+            'resource_utilization': resource_utilization,
+            'failed_logins_24h': int(failed_logins_24h or 0),
+            'failed_logins_1h': int(failed_logins_1h or 0),
+            'error_logs_24h': int(error_logs_24h or 0),
+            'critical_logs_24h': int(critical_logs_24h or 0),
+            'unresolved_security_events': int(unresolved_security_events or 0),
+            'latest_security_events': latest_security_events,
+            'latest_error_logs': latest_error_logs,
+            'maintenance_automation': maintenance_cfg.get_value() if maintenance_cfg else {},
+            'branch_templates_count': branch_templates_count
         }
         
         return render_template('super_admin/dashboard.html', stats=stats)
@@ -75,7 +138,6 @@ def dashboard():
         logging.error(f"Super admin dashboard error: {str(e)}")
         import traceback
         traceback.print_exc()
-        # إرجاع صفحة بدون أخطاء
         return render_template('super_admin/dashboard.html', stats={})
 
 @super_admin_bp.route('/system-config', methods=['GET', 'POST'])
@@ -86,37 +148,106 @@ def system_config():
     try:
         from app_factory import db
         from models.system_config import SystemConfig
+        import logging as _logging
+        from flask import current_app as _current_app
         
         if request.method == 'POST':
             # معالجة حفظ الإعدادات
             if request.is_json:
                 data = request.get_json()
+                allowed = {
+                    'log_level': {'type': 'string', 'choices': ['DEBUG','INFO','WARNING','ERROR','CRITICAL'], 'category': 'system'},
+                    'timezone': {'type': 'string', 'choices': ['Asia/Gaza','Asia/Jerusalem','UTC'], 'category': 'general'},
+                    'language': {'type': 'string', 'choices': ['ar','en'], 'category': 'general'},
+                    'currency': {'type': 'string', 'choices': ['ILS','USD','EUR'], 'category': 'general'},
+                    'date_format': {'type': 'string', 'choices': ['dd/mm/yyyy','mm/dd/yyyy','yyyy-mm-dd'], 'category': 'general'},
+                    'session_timeout': {'type': 'integer', 'min': 5, 'max': 480, 'category': 'security'},
+                    'max_login_attempts': {'type': 'integer', 'min': 3, 'max': 10, 'category': 'security'},
+                    'login_attempt_window_minutes': {'type': 'integer', 'min': 1, 'max': 120, 'category': 'security'},
+                    'login_lockout_minutes': {'type': 'integer', 'min': 1, 'max': 240, 'category': 'security'},
+                    'password_min_length': {'type': 'integer', 'min': 6, 'max': 20, 'category': 'security'},
+                    'password_expiry_days': {'type': 'integer', 'min': 30, 'max': 365, 'category': 'security'},
+                    'allow_partial_payment_global': {'type': 'boolean', 'category': 'system'},
+                    'allow_debt_global': {'type': 'boolean', 'category': 'system'}
+                }
+                errors = []
+                normalized = {}
+                for key, val in data.items():
+                    if key not in allowed:
+                        errors.append(f"إعداد غير معروف: {key}")
+                        continue
+                    rule = allowed[key]
+                    if rule['type'] == 'string':
+                        sval = str(val)
+                        if 'choices' in rule and sval not in rule['choices']:
+                            errors.append(f"قيمة غير مسموحة لـ {key}")
+                            continue
+                        normalized[key] = sval
+                    elif rule['type'] == 'integer':
+                        try:
+                            ival = int(val)
+                            if ('min' in rule and ival < rule['min']) or ('max' in rule and ival > rule['max']):
+                                errors.append(f"القيمة خارج النطاق لـ {key}")
+                                continue
+                            normalized[key] = ival
+                        except Exception:
+                            errors.append(f"قيمة غير صالحة لـ {key}")
+                            continue
+                    elif rule['type'] == 'boolean':
+                        bval = val
+                        if isinstance(bval, str):
+                            bval = bval.strip().lower() in ('true','1','yes','on')
+                        elif isinstance(bval, (int, float)):
+                            bval = bool(bval)
+                        else:
+                            bval = bool(bval)
+                        normalized[key] = bval
+                    else:
+                        normalized[key] = val
+                if errors:
+                    return jsonify({'success': False, 'message': 'فشل التحقق', 'errors': errors}), 400
                 
                 # حفظ الإعدادات في قاعدة البيانات
-                for key, value in data.items():
+                for key, value in normalized.items():
                     setting = SystemConfig.query.filter_by(config_key=key).first()
                     if setting:
                         setting.config_value = str(value)
                         setting.updated_by = current_user.id
-                        setting.updated_at = datetime.utcnow()
+                        setting.updated_at = datetime.now(timezone.utc)
                     else:
-                        # تحديد نوع الإعداد
                         config_type = 'string'
                         if isinstance(value, bool):
                             config_type = 'boolean'
                         elif isinstance(value, int):
                             config_type = 'integer'
-                        
                         setting = SystemConfig(
                             config_key=key,
                             config_value=str(value),
                             config_type=config_type,
+                            category=allowed[key]['category'],
                             created_by=current_user.id,
                             updated_by=current_user.id
                         )
                         db.session.add(setting)
-                
+
+                # تطبيق مستوى السجلات فوراً إن تم إرساله
+                log_level = data.get('log_level')
+                if log_level:
+                    level = getattr(_logging, str(log_level).upper(), None)
+                    if isinstance(level, int):
+                        _current_app.logger.setLevel(level)
+                        for h in _current_app.logger.handlers:
+                            h.setLevel(level)
+
+                from models.audit_trail import AuditTrail
                 db.session.commit()
+                try:
+                    change_desc = ', '.join([f"{k}={normalized[k]}" for k in normalized.keys()])
+                    audit = AuditTrail(entity_type='system', entity_id=0, action='update', user_id=current_user.id, description='تحديث إعدادات النظام', notes=change_desc)
+                    db.session.add(audit)
+                    db.session.commit()
+                except Exception:
+                    pass
                 return jsonify({'success': True, 'message': 'تم حفظ الإعدادات بنجاح'}), 200
             else:
                 flash('تم حفظ الإعدادات بنجاح', 'success')
@@ -143,10 +274,82 @@ def system_config():
         traceback.print_exc()
         
         if request.is_json:
-            return jsonify({'success': False, 'message': str(e)}), 500
+            return jsonify({'success': False, 'message': 'تعذر حفظ الإعدادات حالياً'}), 500
         else:
-            flash(f'حدث خطأ في معالجة الإعدادات: {str(e)}', 'error')
+            flash('تعذر حفظ الإعدادات حالياً', 'error')
             return redirect(url_for('super_admin.dashboard'))
+
+@super_admin_bp.route('/queue-settings', methods=['GET', 'POST'])
+@login_required
+@super_admin_required
+def queue_settings():
+    try:
+        from app_factory import db
+        from models.department import Department
+        from models.queue_management import QueueSettings
+        if request.method == 'GET' and request.args.get('action') == 'load':
+            departments = Department.query.filter_by(is_active=True).all()
+            items = []
+            for dept in departments:
+                qs = QueueSettings.query.filter_by(department_id=dept.id).first()
+                items.append({
+                    'department_id': dept.id,
+                    'department_name': dept.name,
+                    'max_queue_size': int(qs.max_queue_size) if qs and qs.max_queue_size is not None else 50,
+                    'payment_required': bool(qs.payment_required) if qs else True,
+                    'emergency_payment_waived': bool(qs.emergency_payment_waived) if qs else True,
+                    'force_entry_allowed': bool(qs.force_entry_allowed) if qs else True,
+                    'average_wait_time': int(qs.average_wait_time) if qs and qs.average_wait_time is not None else 30,
+                    'allow_partial_payment': bool(qs.allow_partial_payment) if qs else True,
+                    'allow_debt': bool(qs.allow_debt) if qs else False
+                })
+            return jsonify({'success': True, 'items': items}), 200
+        if request.method == 'POST':
+            if not request.is_json:
+                return jsonify({'success': False, 'message': 'الطلب يجب أن يكون JSON'}), 400
+            data = request.get_json() or {}
+            items = data.get('items') or []
+            for it in items:
+                dept_id = it.get('department_id')
+                if not dept_id:
+                    continue
+                qs = QueueSettings.query.filter_by(department_id=dept_id).first()
+                if not qs:
+                    qs = QueueSettings(department_id=dept_id)
+                    db.session.add(qs)
+                mx = it.get('max_queue_size')
+                pr = it.get('payment_required')
+                ew = it.get('emergency_payment_waived')
+                fe = it.get('force_entry_allowed')
+                aw = it.get('average_wait_time')
+                ap = it.get('allow_partial_payment')
+                ad = it.get('allow_debt')
+                if mx is not None:
+                    try:
+                        qs.max_queue_size = int(mx)
+                    except Exception:
+                        pass
+                if pr is not None:
+                    qs.payment_required = bool(pr)
+                if ew is not None:
+                    qs.emergency_payment_waived = bool(ew)
+                if fe is not None:
+                    qs.force_entry_allowed = bool(fe)
+                if aw is not None:
+                    try:
+                        qs.average_wait_time = int(aw)
+                    except Exception:
+                        pass
+                if ap is not None:
+                    qs.allow_partial_payment = bool(ap)
+                if ad is not None:
+                    qs.allow_debt = bool(ad)
+            db.session.commit()
+            return jsonify({'success': True}), 200
+        return render_template('super_admin/queue_settings.html')
+    except Exception as e:
+        logging.error(f"Queue settings error: {str(e)}")
+        return jsonify({'success': False, 'message': 'حدث خطأ في إعدادات الأقسام'}), 500
 
 @super_admin_bp.route('/users')
 @login_required
@@ -155,28 +358,30 @@ def users():
     """إدارة المستخدمين والأدوار والصلاحيات"""
     try:
         from models.user import User
+        from models.department import Department
         
         users_list = User.query.all()
         
-        # الأدوار المتاحة (hardcoded لتجنب مشاكل قاعدة البيانات)
         roles_list = [
-            {'name': 'super_admin', 'display_name': 'السوبر أدمن'},
-            {'name': 'admin', 'display_name': 'مدير'},
-            {'name': 'manager', 'display_name': 'مدير المركز'},
-            {'name': 'doctor', 'display_name': 'طبيب'},
-            {'name': 'nurse', 'display_name': 'ممرض'},
-            {'name': 'receptionist', 'display_name': 'موظف استقبال'},
-            {'name': 'accountant', 'display_name': 'محاسب'},
-            {'name': 'pharmacist', 'display_name': 'صيدلي'},
-            {'name': 'lab_tech', 'display_name': 'فني مختبر'},
-            {'name': 'radiology', 'display_name': 'أشعة'},
-            {'name': 'emergency', 'display_name': 'طوارئ'}
+            ('super_admin', 'السوبر أدمن'),
+            ('admin', 'مدير'),
+            ('manager', 'مدير المركز'),
+            ('doctor', 'طبيب'),
+            ('nurse', 'ممرض'),
+            ('reception', 'موظف استقبال'),
+            ('accountant', 'محاسب'),
+            ('pharmacist', 'صيدلي'),
+            ('lab', 'فني مختبر'),
+            ('radiology', 'أشعة'),
+            ('emergency', 'طوارئ')
         ]
+        departments = Department.query.filter_by(is_active=True).all()
         
         return render_template('super_admin/users.html', 
                              users=users_list,
                              roles=roles_list,
-                             permissions=[])
+                             permissions=[],
+                             departments=departments)
     except Exception as e:
         logging.error(f"Users management error: {str(e)}")
         flash('حدث خطأ في تحميل البيانات', 'error')
@@ -191,6 +396,7 @@ def create_user():
         try:
             from models.user import User
             from models.department import Department
+            from models.pricing import DoctorPricing
             from werkzeug.security import generate_password_hash
             
             user = User(
@@ -200,6 +406,7 @@ def create_user():
                 role=request.form.get('role'),
                 department_id=request.form.get('department_id') or None,
                 phone=request.form.get('phone'),
+                doctor_room=request.form.get('doctor_room'),
                 is_active=bool(request.form.get('is_active')),
                 is_admin=bool(request.form.get('is_admin'))
             )
@@ -208,6 +415,30 @@ def create_user():
             from app_factory import db
             db.session.add(user)
             db.session.commit()
+
+            # إنشاء تسعير للطبيب إن وُجدت قيم أثناء الإنشاء
+            if user.role == 'doctor':
+                def _to_float(val):
+                    try:
+                        return float(val) if val not in (None, '',) else None
+                    except Exception:
+                        return None
+                consultation_price = _to_float(request.form.get('consultation_price'))
+                follow_up_price = _to_float(request.form.get('follow_up_price'))
+                emergency_price = _to_float(request.form.get('emergency_price'))
+                vip_price = _to_float(request.form.get('vip_price'))
+                if any(v is not None for v in [consultation_price, follow_up_price, emergency_price, vip_price]):
+                    dp = DoctorPricing(
+                        doctor_id=user.id,
+                        department_id=user.department_id if user.department_id else None,
+                        consultation_price=consultation_price or 0.0,
+                        follow_up_price=follow_up_price,
+                        emergency_price=emergency_price,
+                        vip_price=vip_price,
+                        is_active=True
+                    )
+                    db.session.add(dp)
+                    db.session.commit()
             
             flash('تم إنشاء المستخدم بنجاح', 'success')
             return redirect(url_for('super_admin.users'))
@@ -216,7 +447,7 @@ def create_user():
             from app_factory import db
             db.session.rollback()
             logging.error(f"Create user error: {str(e)}")
-            flash(f'حدث خطأ في إنشاء المستخدم: {str(e)}', 'error')
+            flash('تعذر إنشاء المستخدم، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
     
     # جلب البيانات المطلوبة للنموذج
     from models.department import Department
@@ -249,7 +480,9 @@ def edit_user(user_id):
         from models.department import Department
         from app_factory import db
         
-        user = User.query.get_or_404(user_id)
+        user = db.session.get(User, user_id)
+        if not user:
+            abort(404)
         if not user:
             flash('المستخدم غير موجود', 'error')
             return redirect(url_for('super_admin.users'))
@@ -261,8 +494,22 @@ def edit_user(user_id):
             user.role = request.form.get('role')
             user.department_id = request.form.get('department_id') or None
             user.phone = request.form.get('phone')
+            user.doctor_room = request.form.get('doctor_room')
             user.is_active = bool(request.form.get('is_active'))
             user.is_admin = bool(request.form.get('is_admin'))
+
+            try:
+                from models.user_department_access import UserDepartmentAccess
+                UserDepartmentAccess.query.filter_by(user_id=user.id).delete()
+                selected = request.form.getlist('extra_department_ids')
+                for dep_id in selected:
+                    try:
+                        did = int(dep_id)
+                    except Exception:
+                        continue
+                    db.session.add(UserDepartmentAccess(user_id=user.id, department_id=did, can_access=True))
+            except Exception:
+                pass
             
             # تحديث كلمة المرور إذا تم إدخالها
             new_password = request.form.get('new_password')
@@ -276,6 +523,12 @@ def edit_user(user_id):
             return redirect(url_for('super_admin.users'))
         
         departments = Department.query.filter_by(is_active=True).all()
+        extra_department_ids = []
+        try:
+            from models.user_department_access import UserDepartmentAccess
+            extra_department_ids = [r.department_id for r in UserDepartmentAccess.query.filter_by(user_id=user.id, can_access=True).all()]
+        except Exception:
+            extra_department_ids = []
         roles = [
             ('super_admin', 'السوبر أدمن'),
             ('manager', 'مدير المركز'),
@@ -292,11 +545,12 @@ def edit_user(user_id):
                              user=user,
                              departments=departments, 
                              roles=roles,
-                             mode='edit')
+                             mode='edit',
+                             extra_department_ids=extra_department_ids)
         
     except Exception as e:
         logging.error(f"Edit user error: {str(e)}")
-        flash(f'حدث خطأ في تحديث المستخدم: {str(e)}', 'error')
+        flash('تعذر تحديث المستخدم، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.users'))
 
 @super_admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
@@ -306,26 +560,56 @@ def delete_user(user_id):
     """حذف مستخدم"""
     try:
         from models.user import User
-        user = User.query.get_or_404(user_id)
+        from app_factory import db
+        user = db.session.get(User, user_id)
+        if not user:
+            abort(404)
         
         # منع حذف السوبر أدمن
         if user.role == 'super_admin':
             flash('لا يمكن حذف السوبر أدمن', 'error')
             return redirect(url_for('super_admin.users'))
         
-        from app_factory import db
         db.session.delete(user)
         db.session.commit()
         
         flash('تم حذف المستخدم بنجاح', 'success')
         return redirect(url_for('super_admin.users'))
-        
+
     except Exception as e:
         from app_factory import db
         db.session.rollback()
         logging.error(f"Delete user error: {str(e)}")
-        flash(f'حدث خطأ في حذف المستخدم: {str(e)}', 'error')
+        flash('تعذر حذف المستخدم، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.users'))
+
+@super_admin_bp.route('/seed/users', methods=['POST'])
+@login_required
+@super_admin_required
+def seed_users():
+    return jsonify({'success': False, 'message': 'غير متاح'}), 404
+
+@super_admin_bp.route('/users/<int:user_id>/reset-password', methods=['POST'])
+@login_required
+@super_admin_required
+def reset_user_password(user_id):
+    try:
+        from models.user import User
+        from app_factory import db
+        import secrets, string
+        user = db.session.get(User, user_id)
+        if not user:
+            return jsonify({'success': False, 'message': 'المستخدم غير موجود'}), 404
+        alphabet = string.ascii_letters + string.digits
+        temp_password = ''.join(secrets.choice(alphabet) for _ in range(10)) + '!'
+        user.set_password(temp_password)
+        db.session.commit()
+        return jsonify({'success': True, 'temp_password': temp_password})
+    except Exception as e:
+        from app_factory import db
+        db.session.rollback()
+        logging.error(f"Reset password error: {str(e)}")
+        return jsonify({'success': False, 'message': 'حدث خطأ في إعادة التعيين'}), 500
 
 # تم دمج إدارة الصلاحيات في صفحة المستخدمين الرئيسية
 
@@ -386,7 +670,7 @@ def create_role():
             from app_factory import db
             db.session.rollback()
             logging.error(f"Create role error: {str(e)}")
-            flash(f'حدث خطأ في إنشاء الدور: {str(e)}', 'error')
+            flash('تعذر إنشاء الدور، يرجى المحاولة مرة أخرى', 'error')
     
     # جلب الصلاحيات المتاحة
     from models.permissions import Permission
@@ -401,8 +685,11 @@ def edit_role(role_id):
     """تعديل دور"""
     try:
         from models.permissions import Role, Permission, RolePermission
+        from app_factory import db
         
-        role = Role.query.get_or_404(role_id)
+        role = db.session.get(Role, role_id)
+        if not role:
+            abort(404)
         
         if request.method == 'POST':
             role.name = request.form.get('name')
@@ -421,10 +708,8 @@ def edit_role(role_id):
                     role_id=role.id,
                     permission_id=int(perm_id)
                 )
-                from app_factory import db
                 db.session.add(role_permission)
             
-            from app_factory import db
             db.session.commit()
             
             flash('تم تحديث الدور بنجاح', 'success')
@@ -442,7 +727,7 @@ def edit_role(role_id):
         
     except Exception as e:
         logging.error(f"Edit role error: {str(e)}")
-        flash(f'حدث خطأ في تحديث الدور: {str(e)}', 'error')
+        flash('تعذر تحديث الدور، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.roles'))
 
 @super_admin_bp.route('/roles/<int:role_id>/permissions', methods=['GET', 'POST'])
@@ -454,7 +739,9 @@ def manage_role_permissions(role_id):
         from models.permissions import Role, Permission, RolePermission
         from app_factory import db
         
-        role = Role.query.get_or_404(role_id)
+        role = db.session.get(Role, role_id)
+        if not role:
+            abort(404)
         
         if request.method == 'POST':
             # حذف الصلاحيات الحالية
@@ -487,6 +774,142 @@ def manage_role_permissions(role_id):
         flash('حدث خطأ في إدارة صلاحيات الدور', 'error')
         return redirect(url_for('super_admin.roles'))
 
+
+@super_admin_bp.route('/roles/<int:role_id>/department-permissions', methods=['GET', 'POST'])
+@login_required
+@super_admin_required
+def manage_role_department_permissions(role_id):
+    try:
+        from sqlalchemy import inspect
+        insp = inspect(db.engine)
+        if not (insp.has_table('roles') and insp.has_table('departments') and insp.has_table('department_permissions')):
+            flash('جداول صلاحيات الأقسام غير متاحة في قاعدة البيانات', 'error')
+            return redirect(url_for('super_admin.roles'))
+
+        from models.permissions import Role
+        from models.department import Department
+        from models.advanced_permissions import DepartmentPermission
+
+        role = db.session.get(Role, role_id)
+        if not role:
+            abort(404)
+
+        departments = Department.query.filter_by(is_active=True).order_by(Department.name_ar.asc()).all()
+
+        if request.method == 'POST':
+            DepartmentPermission.query.filter_by(role_id=role_id).delete()
+
+            def _bool(name: str) -> bool:
+                return str(request.form.get(name) or '').lower() in {'1', 'true', 'on', 'yes'}
+
+            rows = [('all', None)] + [(str(d.id), d.id) for d in departments]
+            for key, did in rows:
+                can_access = _bool(f'dept_{key}_can_access')
+                can_manage_patients = _bool(f'dept_{key}_can_manage_patients')
+                can_manage_visits = _bool(f'dept_{key}_can_manage_visits')
+                can_manage_appointments = _bool(f'dept_{key}_can_manage_appointments')
+                can_manage_staff = _bool(f'dept_{key}_can_manage_staff')
+                can_override_department_limits = _bool(f'dept_{key}_can_override_department_limits')
+                can_manage_department_settings = _bool(f'dept_{key}_can_manage_department_settings')
+
+                any_flag = any([
+                    can_access,
+                    can_manage_patients,
+                    can_manage_visits,
+                    can_manage_appointments,
+                    can_manage_staff,
+                    can_override_department_limits,
+                    can_manage_department_settings
+                ])
+                if not any_flag:
+                    continue
+                if not can_access and any([
+                    can_manage_patients,
+                    can_manage_visits,
+                    can_manage_appointments,
+                    can_manage_staff,
+                    can_override_department_limits,
+                    can_manage_department_settings
+                ]):
+                    can_access = True
+
+                db.session.add(DepartmentPermission(
+                    role_id=role_id,
+                    department_id=did,
+                    can_access=can_access,
+                    can_manage_patients=can_manage_patients,
+                    can_manage_visits=can_manage_visits,
+                    can_manage_appointments=can_manage_appointments,
+                    can_manage_staff=can_manage_staff,
+                    can_override_department_limits=can_override_department_limits,
+                    can_manage_department_settings=can_manage_department_settings
+                ))
+
+            db.session.commit()
+            flash('تم تحديث صلاحيات الأقسام للدور', 'success')
+            return redirect(url_for('super_admin.manage_role_department_permissions', role_id=role_id))
+
+        existing = DepartmentPermission.query.filter_by(role_id=role_id).all()
+        perm_map = {}
+        for r in existing:
+            perm_map[r.department_id] = r
+
+        return render_template('super_admin/department_permissions.html', role=role, departments=departments, perm_map=perm_map)
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Department permissions error: {str(e)}")
+        flash('حدث خطأ في إدارة صلاحيات الأقسام', 'error')
+        return redirect(url_for('super_admin.roles'))
+
+
+@super_admin_bp.route('/permissions-matrix', methods=['GET', 'POST'])
+@login_required
+@super_admin_required
+def permissions_matrix():
+    try:
+        from sqlalchemy import inspect
+        insp = inspect(db.engine)
+        if not (insp.has_table('roles') and insp.has_table('permissions') and insp.has_table('role_permissions')):
+            flash('جداول الصلاحيات غير متاحة في قاعدة البيانات', 'error')
+            return redirect(url_for('super_admin.dashboard'))
+
+        from models.permissions import Role, Permission, RolePermission, create_default_permissions, create_default_roles, assign_super_admin_permissions
+
+        try:
+            create_default_permissions()
+            create_default_roles()
+            assign_super_admin_permissions()
+        except Exception:
+            pass
+
+        roles = Role.query.filter_by(is_active=True).order_by(Role.id.asc()).all()
+        permissions = Permission.query.filter_by(is_active=True).order_by(Permission.category.asc(), Permission.level.asc(), Permission.name.asc()).all()
+
+        if request.method == 'POST':
+            for role in roles:
+                RolePermission.query.filter_by(role_id=role.id).delete()
+                selected = request.form.getlist(f'role_{role.id}_permissions')
+                for pid in selected:
+                    try:
+                        db.session.add(RolePermission(role_id=role.id, permission_id=int(pid), granted_by=current_user.id))
+                    except Exception:
+                        continue
+            db.session.commit()
+            flash('تم تحديث مصفوفة الصلاحيات', 'success')
+            return redirect(url_for('super_admin.permissions_matrix'))
+
+        rp = RolePermission.query.filter(RolePermission.role_id.in_([r.id for r in roles])).all() if roles else []
+        matrix = {}
+        for row in rp:
+            matrix.setdefault(row.role_id, set()).add(row.permission_id)
+
+        return render_template('super_admin/permissions_matrix.html', roles=roles, permissions=permissions, matrix=matrix)
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Permissions matrix error: {str(e)}")
+        flash('حدث خطأ في تحميل مصفوفة الصلاحيات', 'error')
+        return redirect(url_for('super_admin.dashboard'))
+
 @super_admin_bp.route('/roles/<int:role_id>/delete', methods=['POST'])
 @login_required
 @super_admin_required
@@ -494,8 +917,11 @@ def delete_role(role_id):
     """حذف دور"""
     try:
         from models.permissions import Role, RolePermission
+        from app_factory import db
         
-        role = Role.query.get_or_404(role_id)
+        role = db.session.get(Role, role_id)
+        if not role:
+            abort(404)
         
         # منع حذف الأدوار النظامية
         if role.is_system_role:
@@ -505,7 +931,6 @@ def delete_role(role_id):
         # حذف صلاحيات الدور أولاً
         RolePermission.query.filter_by(role_id=role.id).delete()
         
-        from app_factory import db
         db.session.delete(role)
         db.session.commit()
         
@@ -516,7 +941,7 @@ def delete_role(role_id):
         from app_factory import db
         db.session.rollback()
         logging.error(f"Delete role error: {str(e)}")
-        flash(f'حدث خطأ في حذف الدور: {str(e)}', 'error')
+        flash('تعذر حذف الدور، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.roles'))
 
 @super_admin_bp.route('/security-logs')
@@ -561,21 +986,74 @@ def performance():
 @login_required
 @super_admin_required
 def reports():
-    """التقارير المتقدمة"""
+    """مركز التقارير الموحد"""
     try:
+        from services.report_center_service import ReportCenterService
+        from models.department import Department
         from models.user import User
-        from models.patient import Patient
-        from models.visit import Visit
-        
-        stats = {
-            'total_users': User.query.count(),
-            'total_patients': Patient.query.count(),
-            'total_visits': Visit.query.count()
-        }
-        return render_template('super_admin/reports.html', stats=stats)
+
+        report = (request.args.get('report') or '').strip()
+        start_raw = request.args.get('start_date')
+        end_raw = request.args.get('end_date')
+        department_id = request.args.get('department_id', type=int)
+
+        start_date, end_date, start_dt, end_dt = ReportCenterService._parse_dates(start_raw, end_raw)
+        result = None
+
+        if report == 'compare_month':
+            now = date.today()
+            a_start = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
+            a_end = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
+            if now.month == 12:
+                a_end = datetime(now.year + 1, 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
+            else:
+                a_end = datetime(now.year, now.month + 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
+            if now.month == 1:
+                p_year, p_month = now.year - 1, 12
+            else:
+                p_year, p_month = now.year, now.month - 1
+            b_start = datetime(p_year, p_month, 1, tzinfo=timezone.utc)
+            if p_month == 12:
+                b_end = datetime(p_year + 1, 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
+            else:
+                b_end = datetime(p_year, p_month + 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
+            result = {'compare': ReportCenterService.compare_periods(a_start, a_end, b_start, b_end, department_id=department_id)}
+        elif report == 'compare_year':
+            now = date.today()
+            a_start = datetime(now.year, 1, 1, tzinfo=timezone.utc)
+            a_end = datetime(now.year + 1, 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
+            b_start = datetime(now.year - 1, 1, 1, tzinfo=timezone.utc)
+            b_end = datetime(now.year, 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
+            result = {'compare': ReportCenterService.compare_periods(a_start, a_end, b_start, b_end, department_id=department_id)}
+        elif report == 'transfers':
+            result = {'transfers': ReportCenterService.department_transfers(start_dt, end_dt)}
+        elif report == 'capacity':
+            result = {'capacity': ReportCenterService.capacity_impact(start_date, end_date)}
+        elif report == 'booking':
+            booking = ReportCenterService.booking_report(start_dt, end_dt)
+            dept_names = {d.id: (d.name_ar or d.name) for d in Department.query.all()}
+            doctor_names = {u.id: u.full_name for u in User.query.filter_by(role='doctor').all()}
+            booking['top_departments_named'] = [{'label': dept_names.get(did) or 'غير محدد', 'count': cnt} for did, cnt in booking.get('top_departments', [])]
+            booking['top_doctors_named'] = [{'label': doctor_names.get(did) or 'غير محدد', 'count': cnt} for did, cnt in booking.get('top_doctors', [])]
+            result = {'booking': booking}
+        elif report == 'emergency_times':
+            result = {'emergency_times': ReportCenterService.emergency_stage_times(start_dt, end_dt)}
+        elif report == 'radiology_revision':
+            result = {'radiology_revision': ReportCenterService.radiology_revision_rate(start_dt, end_dt)}
+
+        departments = Department.query.filter_by(is_active=True).all()
+        return render_template(
+            'super_admin/reports.html',
+            report=report,
+            start_date=start_date,
+            end_date=end_date,
+            department_id=department_id,
+            departments=departments,
+            result=result
+        )
     except Exception as e:
         logging.error(f"Reports error: {str(e)}")
-        return render_template('super_admin/reports.html', stats={})
+        return render_template('super_admin/reports.html', report='', start_date=None, end_date=None, departments=[], result=None)
 
 @super_admin_bp.route('/system-backup')
 @login_required
@@ -583,7 +1061,7 @@ def reports():
 def system_backup():
     """النسخ الاحتياطية"""
     try:
-        return render_template('super_admin/system_backup.html')
+        return redirect(url_for('super_admin.backup'))
     except Exception as e:
         logging.error(f"System backup error: {str(e)}")
         flash('حدث خطأ في تحميل النسخ الاحتياطية', 'error')
@@ -641,7 +1119,9 @@ def edit_permission(permission_id):
         from models.permissions import Permission
         from app_factory import db
         
-        permission = Permission.query.get_or_404(permission_id)
+        permission = db.session.get(Permission, permission_id)
+        if not permission:
+            abort(404)
         
         permission.name = request.form.get('name')
         permission.description = request.form.get('description')
@@ -668,7 +1148,9 @@ def delete_permission(permission_id):
         from models.permissions import Permission
         from app_factory import db
         
-        permission = Permission.query.get_or_404(permission_id)
+        permission = db.session.get(Permission, permission_id)
+        if not permission:
+            abort(404)
         
         db.session.delete(permission)
         db.session.commit()
@@ -688,11 +1170,14 @@ def departments():
     """إدارة الأقسام"""
     try:
         from models.department import Department
+        from models.user import User
         departments = Department.query.all()
-        return render_template('super_admin/departments.html', departments=departments)
+        total_doctors = User.query.filter_by(role='doctor').count()
+        total_staff = User.query.count()
+        return render_template('super_admin/departments.html', departments=departments, total_doctors=total_doctors, total_staff=total_staff)
     except Exception as e:
         logging.error(f"Departments error: {str(e)}")
-        return render_template('super_admin/departments.html', departments=[])
+        return render_template('super_admin/departments.html', departments=[], total_doctors=0, total_staff=0)
 
 @super_admin_bp.route('/departments/create', methods=['POST'])
 @login_required
@@ -703,25 +1188,30 @@ def create_department():
         from models.department import Department
         from app_factory import db
         
+        # التحقق من الحقول المطلوبة
+        name = request.form.get('name')
+        name_ar = request.form.get('name_ar')
+        if not name or not name_ar:
+            return jsonify({'success': False, 'message': 'الاسم الإنجليزي والاسم العربي مطلوبان'}), 400
+
         department = Department(
             name=request.form.get('name'),
-            name_en=request.form.get('name_en'),
+            name_ar=request.form.get('name_ar'),
             description=request.form.get('description'),
             location=request.form.get('location'),
             phone=request.form.get('phone'),
-            is_active=True
+            email=request.form.get('email'),
+            is_active=bool(request.form.get('is_active', True))
         )
         
         db.session.add(department)
         db.session.commit()
         
-        flash('تم إنشاء القسم بنجاح', 'success')
-        return redirect(url_for('super_admin.departments'))
+        return jsonify({'success': True, 'message': 'تم إنشاء القسم بنجاح', 'department_id': department.id}), 200
         
     except Exception as e:
         logging.error(f"Create department error: {str(e)}")
-        flash('حدث خطأ في إنشاء القسم', 'error')
-        return redirect(url_for('super_admin.departments'))
+        return jsonify({'success': False, 'message': 'تعذر إنشاء القسم حالياً'}), 500
 
 @super_admin_bp.route('/department/<int:department_id>')
 @login_required
@@ -732,7 +1222,9 @@ def view_department(department_id):
         from models.department import Department
         from models.user import User
         
-        department = Department.query.get_or_404(department_id)
+        department = db.session.get(Department, department_id)
+        if not department:
+            abort(404)
         staff = User.query.filter_by(department_id=department_id).all()
         
         return render_template('super_admin/department_detail.html', 
@@ -752,11 +1244,13 @@ def edit_department(department_id):
         from models.department import Department
         from app_factory import db
         
-        department = Department.query.get_or_404(department_id)
+        department = db.session.get(Department, department_id)
+        if not department:
+            abort(404)
         
         if request.method == 'POST':
-            department.name = request.form.get('name')
-            department.name_en = request.form.get('name_en')
+            department.name_ar = request.form.get('name')
+            department.name = request.form.get('name_en')
             department.description = request.form.get('description')
             department.location = request.form.get('location')
             department.phone = request.form.get('phone')
@@ -781,7 +1275,9 @@ def department_staff(department_id):
         from models.department import Department
         from models.user import User
         
-        department = Department.query.get_or_404(department_id)
+        department = db.session.get(Department, department_id)
+        if not department:
+            abort(404)
         staff = User.query.filter_by(department_id=department_id).all()
         all_users = User.query.filter_by(is_active=True).all()
         
@@ -806,14 +1302,16 @@ def add_staff_to_department(department_id):
         data = request.get_json()
         user_id = data.get('user_id')
         
-        user = User.query.get_or_404(user_id)
+        user = db.session.get(User, user_id)
+        if not user:
+            abort(404)
         user.department_id = department_id
         db.session.commit()
         
         return jsonify({'success': True, 'message': 'تم إضافة الموظف للقسم'}), 200
     except Exception as e:
         logging.error(f"Add staff error: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'تعذر إضافة الموظف للقسم حالياً'}), 500
 
 @super_admin_bp.route('/department-staff/<int:department_id>/remove', methods=['POST'])
 @login_required
@@ -827,14 +1325,16 @@ def remove_staff_from_department(department_id):
         data = request.get_json()
         user_id = data.get('user_id')
         
-        user = User.query.get_or_404(user_id)
+        user = db.session.get(User, user_id)
+        if not user:
+            abort(404)
         user.department_id = None
         db.session.commit()
         
         return jsonify({'success': True, 'message': 'تم إزالة الموظف من القسم'}), 200
     except Exception as e:
         logging.error(f"Remove staff error: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'تعذر إزالة الموظف من القسم حالياً'}), 500
 
 @super_admin_bp.route('/activate-department/<int:department_id>', methods=['POST'])
 @login_required
@@ -845,14 +1345,16 @@ def activate_department(department_id):
         from models.department import Department
         from app_factory import db
         
-        department = Department.query.get_or_404(department_id)
+        department = db.session.get(Department, department_id)
+        if not department:
+            abort(404)
         department.is_active = True
         db.session.commit()
         
         return jsonify({'success': True, 'message': 'تم تفعيل القسم'}), 200
     except Exception as e:
         logging.error(f"Activate department error: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'تعذر تفعيل القسم حالياً'}), 500
 
 @super_admin_bp.route('/deactivate-department/<int:department_id>', methods=['POST'])
 @login_required
@@ -863,14 +1365,16 @@ def deactivate_department(department_id):
         from models.department import Department
         from app_factory import db
         
-        department = Department.query.get_or_404(department_id)
+        department = db.session.get(Department, department_id)
+        if not department:
+            abort(404)
         department.is_active = False
         db.session.commit()
         
         return jsonify({'success': True, 'message': 'تم إلغاء تفعيل القسم'}), 200
     except Exception as e:
         logging.error(f"Deactivate department error: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'تعذر إلغاء تفعيل القسم حالياً'}), 500
 
 @super_admin_bp.route('/export-departments')
 @login_required
@@ -887,13 +1391,13 @@ def export_departments():
         
         si = StringIO()
         writer = csv.writer(si)
-        writer.writerow(['ID', 'الاسم', 'الاسم بالإنجليزية', 'الوصف', 'الموقع', 'الهاتف', 'نشط'])
+        writer.writerow(['ID', 'الاسم العربي', 'الاسم (إنجليزي)', 'الوصف', 'الموقع', 'الهاتف', 'نشط'])
         
         for dept in departments:
             writer.writerow([
                 dept.id,
-                dept.name,
-                dept.name_en or '',
+                dept.name_ar or '',
+                dept.name or '',
                 dept.description or '',
                 dept.location or '',
                 dept.phone or '',
@@ -910,6 +1414,24 @@ def export_departments():
         flash('حدث خطأ في تصدير الأقسام', 'error')
         return redirect(url_for('super_admin.departments'))
 
+@super_admin_bp.route('/pricing')
+@login_required
+@super_admin_required
+def pricing():
+    """إدارة الأسعار المركزية (واجهة متطورة)"""
+    try:
+        from models.service import ServiceMaster
+        from models.department import Department
+        
+        services = ServiceMaster.query.order_by(ServiceMaster.updated_at.desc()).all()
+        departments = Department.query.filter_by(is_active=True).all()
+        
+        return render_template('manager/pricing.html', services=services, departments=departments)
+    except Exception as e:
+        logging.error(f"Error loading pricing for super admin: {str(e)}")
+        flash('حدث خطأ في تحميل إدارة الأسعار', 'error')
+        return redirect(url_for('super_admin.dashboard'))
+
 @super_admin_bp.route('/services')
 @login_required
 @super_admin_required
@@ -917,11 +1439,13 @@ def services():
     """إدارة الخدمات"""
     try:
         from models.service import ServiceMaster
+        from models.department import Department
         services = ServiceMaster.query.all()
-        return render_template('super_admin/services.html', services=services)
+        departments = Department.query.filter_by(is_active=True).all()
+        return render_template('super_admin/services.html', services=services, departments=departments)
     except Exception as e:
         logging.error(f"Services error: {str(e)}")
-        return render_template('super_admin/services.html', services=[])
+        return render_template('super_admin/services.html', services=[], departments=[])
 
 @super_admin_bp.route('/services/create', methods=['POST'])
 @login_required
@@ -931,25 +1455,88 @@ def create_service():
     try:
         from models.service import ServiceMaster
         from app_factory import db
+        import re, time
         
+        # التوافق والتحقق من حقول النموذج
+        name = request.form.get('name')
+        name_ar = request.form.get('name_ar')
+        if not name or not name_ar:
+            return jsonify({'success': False, 'message': 'اسم الخدمة (إنجليزي) والاسم العربي مطلوبان'}), 400
+
+        price_value_raw = request.form.get('base_price') or request.form.get('price') or '0'
+        try:
+            price_value = float(price_value_raw)
+        except ValueError:
+            return jsonify({'success': False, 'message': 'السعر يجب أن يكون رقمًا صالحًا'}), 400
+        if price_value < 0:
+            return jsonify({'success': False, 'message': 'السعر يجب أن يكون غير سالب'}), 400
+
+        service_type = request.form.get('service_type') or 'general'
+        category_map = {
+            'LAB': 'lab',
+            'RADIOLOGY': 'radiology',
+        }
+        category = category_map.get(service_type, 'general')
+        if category not in ('general', 'doctor', 'lab', 'radiology'):
+            category = 'general'
+        department_id = request.form.get('department_id') or None
+        currency = request.form.get('currency') or 'شيكل'
+        allowed_currencies = {'شيكل', 'ILS', 'USD', 'EUR'}
+        if currency not in allowed_currencies:
+            currency = 'شيكل'
+
+        # التحقق من المدة والحد اليومي إن تم إرسالها
+        duration_val = request.form.get('duration')
+        if duration_val:
+            try:
+                duration_int = int(duration_val)
+                if duration_int < 1:
+                    return jsonify({'success': False, 'message': 'المدة يجب أن تكون 1 دقيقة على الأقل'}), 400
+            except ValueError:
+                return jsonify({'success': False, 'message': 'المدة يجب أن تكون عددًا صحيحًا'}), 400
+        else:
+            duration_int = None
+
+        max_daily_val = request.form.get('max_daily')
+        if max_daily_val:
+            try:
+                max_daily_int = int(max_daily_val)
+                if max_daily_int < 1:
+                    return jsonify({'success': False, 'message': 'الحد اليومي يجب أن يكون 1 على الأقل'}), 400
+            except ValueError:
+                return jsonify({'success': False, 'message': 'الحد اليومي يجب أن يكون عددًا صحيحًا'}), 400
+        else:
+            max_daily_int = None
+
+        # توليد رمز فريد للخدمة إذا لم يتم إرساله
+        code = request.form.get('code')
+        if not code:
+            base = re.sub(r"[^A-Za-z0-9]+", "_", (name or "SERVICE").upper()).strip('_')
+            code = f"{(category or 'GENERAL').upper()}_{base}_{int(time.time())}"
+
         service = ServiceMaster(
-            name=request.form.get('name'),
-            name_en=request.form.get('name_en'),
+            code=code,
+            name=name,
+            name_ar=name_ar,
             description=request.form.get('description'),
-            base_price=float(request.form.get('base_price', 0)),
+            base_price=float(price_value or 0),
+            category=category,
+            department_id=int(department_id) if department_id else None,
+            currency=currency,
+            duration=duration_int,
+            max_daily=max_daily_int,
+            is_required=bool(request.form.get('is_required')),
             is_active=True
         )
         
         db.session.add(service)
         db.session.commit()
         
-        flash('تم إنشاء الخدمة بنجاح', 'success')
-        return redirect(url_for('super_admin.services'))
+        return jsonify({'success': True, 'message': 'تم إنشاء الخدمة بنجاح', 'service_id': service.id}), 200
         
     except Exception as e:
         logging.error(f"Create service error: {str(e)}")
-        flash('حدث خطأ في إنشاء الخدمة', 'error')
-        return redirect(url_for('super_admin.services'))
+        return jsonify({'success': False, 'message': 'تعذر إنشاء الخدمة حالياً'}), 500
 
 @super_admin_bp.route('/service/<int:service_id>')
 @login_required
@@ -958,7 +1545,10 @@ def view_service(service_id):
     """عرض تفاصيل خدمة"""
     try:
         from models.service import ServiceMaster
-        service = ServiceMaster.query.get_or_404(service_id)
+        from app_factory import db
+        service = db.session.get(ServiceMaster, service_id)
+        if not service:
+            abort(404)
         return render_template('super_admin/service_detail.html', service=service)
     except Exception as e:
         logging.error(f"View service error: {str(e)}")
@@ -974,12 +1564,21 @@ def edit_service(service_id):
         from models.service import ServiceMaster
         from app_factory import db
         
-        service = ServiceMaster.query.get_or_404(service_id)
+        service = db.session.get(ServiceMaster, service_id)
+        if not service:
+            abort(404)
         
         if request.method == 'POST':
-            service.name = request.form.get('name')
-            service.name_en = request.form.get('name_en')
+            service.name_ar = request.form.get('name')
+            service.name = request.form.get('name_en')
             service.description = request.form.get('description')
+            service.category = request.form.get('category') or service.category
+            dep_id = request.form.get('department_id') or None
+            service.department_id = int(dep_id) if dep_id else None
+            service.currency = request.form.get('currency') or service.currency
+            service.duration = int(request.form.get('duration')) if request.form.get('duration') else None
+            service.max_daily = int(request.form.get('max_daily')) if request.form.get('max_daily') else None
+            service.is_required = bool(request.form.get('is_required'))
             service.base_price = float(request.form.get('base_price', 0))
             service.is_active = bool(request.form.get('is_active'))
             
@@ -987,7 +1586,9 @@ def edit_service(service_id):
             flash('تم تحديث الخدمة بنجاح', 'success')
             return redirect(url_for('super_admin.services'))
         
-        return render_template('super_admin/edit_service.html', service=service)
+        from models.department import Department
+        departments = Department.query.filter_by(is_active=True).all()
+        return render_template('super_admin/edit_service.html', service=service, departments=departments)
     except Exception as e:
         logging.error(f"Edit service error: {str(e)}")
         flash('حدث خطأ في تعديل الخدمة', 'error')
@@ -999,20 +1600,54 @@ def edit_service(service_id):
 def service_pricing(service_id):
     """إدارة تسعير الخدمة"""
     try:
-        from models.service import ServiceMaster, ServicePricing
+        from models.service import ServiceMaster
+        from models.pricing_management import PricingManagement
         from app_factory import db
         
-        service = ServiceMaster.query.get_or_404(service_id)
-        pricing = ServicePricing.query.filter_by(service_id=service_id).all()
+        service = db.session.get(ServiceMaster, service_id)
+        if not service:
+            abort(404)
+        pricing_records = PricingManagement.query.filter_by(service_id=service_id).all()
+        pricing = []
+        for rec in pricing_records:
+            if rec.base_price:
+                pricing.append({'id': rec.id, 'price_type': 'standard', 'price': float(rec.base_price or 0), 'discount_percentage': float(rec.discount_percentage or 0), 'discount_amount': float(rec.discount_amount or 0), 'description': ''})
+            if rec.emergency_price:
+                pricing.append({'id': rec.id, 'price_type': 'urgent', 'price': float(rec.emergency_price or 0), 'discount_percentage': float(rec.discount_percentage or 0), 'discount_amount': float(rec.discount_amount or 0), 'description': ''})
+            if rec.private_price:
+                pricing.append({'id': rec.id, 'price_type': 'vip', 'price': float(rec.private_price or 0), 'discount_percentage': float(rec.discount_percentage or 0), 'discount_amount': float(rec.discount_amount or 0), 'description': ''})
+            if rec.insurance_price:
+                pricing.append({'id': rec.id, 'price_type': 'insurance', 'price': float(rec.insurance_price or 0), 'discount_percentage': float(rec.discount_percentage or 0), 'discount_amount': float(rec.discount_amount or 0), 'description': ''})
         
         if request.method == 'POST':
-            # إضافة تسعير جديد
-            new_pricing = ServicePricing(
+            price_type = request.form.get('price_type')
+            price_value = float(request.form.get('price', 0))
+            description = request.form.get('description')
+            currency = request.form.get('currency') or 'ILS'
+            discount_percentage_raw = request.form.get('discount_percentage')
+            discount_amount_raw = request.form.get('discount_amount')
+            try:
+                discount_percentage = float(discount_percentage_raw) if discount_percentage_raw not in (None, '',) else 0.0
+            except Exception:
+                discount_percentage = 0.0
+            try:
+                discount_amount = float(discount_amount_raw) if discount_amount_raw not in (None, '',) else 0.0
+            except Exception:
+                discount_amount = 0.0
+
+            new_pricing = PricingManagement(
                 service_id=service_id,
-                price_type=request.form.get('price_type'),
-                price=float(request.form.get('price', 0)),
-                description=request.form.get('description')
+                base_price=price_value if price_type in (None, '', 'base', 'standard') else 0,
+                emergency_price=price_value if price_type in ('emergency', 'urgent') else None,
+                insurance_price=price_value if price_type == 'insurance' else None,
+                private_price=price_value if price_type == 'vip' else None,
+                currency=currency,
+                created_by=current_user.id,
+                is_active=True
             )
+            new_pricing.discount_percentage = discount_percentage
+            new_pricing.discount_amount = discount_amount
+
             db.session.add(new_pricing)
             db.session.commit()
             flash('تم إضافة التسعير بنجاح', 'success')
@@ -1033,14 +1668,16 @@ def activate_service(service_id):
         from models.service import ServiceMaster
         from app_factory import db
         
-        service = ServiceMaster.query.get_or_404(service_id)
+        service = db.session.get(ServiceMaster, service_id)
+        if not service:
+            abort(404)
         service.is_active = True
         db.session.commit()
         
         return jsonify({'success': True, 'message': 'تم تفعيل الخدمة'}), 200
     except Exception as e:
         logging.error(f"Activate service error: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'تعذر تفعيل الخدمة حالياً'}), 500
 
 @super_admin_bp.route('/deactivate-service/<int:service_id>', methods=['POST'])
 @login_required
@@ -1051,14 +1688,16 @@ def deactivate_service(service_id):
         from models.service import ServiceMaster
         from app_factory import db
         
-        service = ServiceMaster.query.get_or_404(service_id)
+        service = db.session.get(ServiceMaster, service_id)
+        if not service:
+            abort(404)
         service.is_active = False
         db.session.commit()
         
         return jsonify({'success': True, 'message': 'تم إلغاء تفعيل الخدمة'}), 200
     except Exception as e:
         logging.error(f"Deactivate service error: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'تعذر إلغاء تفعيل الخدمة حالياً'}), 500
 
 @super_admin_bp.route('/export-services')
 @login_required
@@ -1080,8 +1719,8 @@ def export_services():
         for service in services:
             writer.writerow([
                 service.id,
-                service.name,
-                service.name_en or '',
+                service.name_ar or '',
+                service.name or '',
                 service.description or '',
                 service.base_price or 0,
                 'نعم' if service.is_active else 'لا'
@@ -1241,13 +1880,25 @@ def force_logout_user(user_id):
     try:
         from app_factory import db
         from models.user import User
+        from models.audit_trail import AuditTrail
         
         user = db.session.get(User, user_id)
         if not user:
             flash('المستخدم غير موجود', 'error')
             return redirect(url_for('super_admin.users'))
-        # هنا يمكن إضافة منطق إجبار تسجيل الخروج
-        # مثل حذف الجلسات أو إضافة المستخدم لقائمة المحظورين مؤقتاً
+
+        user.session_version = int(getattr(user, 'session_version', 0) or 0) + 1
+        db.session.add(AuditTrail(
+            entity_type='user',
+            entity_id=user.id,
+            action='force_logout',
+            user_id=current_user.id,
+            user_ip=request.remote_addr,
+            user_agent=request.headers.get('User-Agent'),
+            description='إجبار المستخدم على تسجيل الخروج',
+            notes=f'target_user_id={user.id}'
+        ))
+        db.session.commit()
         
         flash(f'تم إجبار المستخدم {user.full_name} على تسجيل الخروج', 'success')
         return redirect(url_for('super_admin.users'))
@@ -1302,7 +1953,7 @@ def system_cleanup():
             from datetime import datetime, timedelta
             
             old_logs = AuditTrail.query.filter(
-                AuditTrail.created_at < datetime.utcnow() - timedelta(days=90)
+                AuditTrail.created_at < datetime.now(timezone.utc) - timedelta(days=90)
             ).delete()
             
             db.session.commit()
@@ -1318,6 +1969,81 @@ def system_cleanup():
             # هنا يمكن إضافة منطق تنظيف الكاش
             flash('تم تنظيف الكاش', 'success')
         
+        elif cleanup_type == 'seed_data':
+            from models.medication import PrescriptionItem, Prescription, Medication
+            from models.lab_request import LabResult, LabRequest
+            from models.radiology_test import RadiologyResult
+            from models.radiology_request import RadiologyRequest
+            from models.invoice import InvoiceService, Invoice
+            from models.payment import Payment
+            from models.queue_management import QueueManagement, QueueSettings
+            from models.emergency import EmergencyCase
+            from models.treatment import Treatment
+            from models.notification import Notification, NotificationQueue, NotificationTemplate
+            from models.ai_analytics import AIRecommendation, DiseasePattern, PerformanceAnalytics
+            from models.pricing import ServicePrice, DoctorPricing, PricingCatalog, TemporaryService, InsuranceProvider
+            from models.insurance import InsuranceCompany, InsuranceClaim
+            from models.service import ServiceMaster
+            from models.workflow import WorkflowStep, PatientWorkflow, WorkflowTransfer
+            from models.appointment import Appointment
+            from models.medical_record import MedicalRecord
+            from models.medical_report import MedicalReport
+            from models.receipt import Receipt
+            from models.visit import Visit
+            from models.department import Department
+            from models.user import User
+
+            def delq(Model):
+                return Model.query.delete(synchronize_session=False)
+
+            delq(PrescriptionItem)
+            delq(InvoiceService)
+            delq(LabResult)
+            delq(RadiologyResult)
+            delq(NotificationQueue)
+            delq(MedicalReport)
+            delq(Receipt)
+            delq(QueueManagement)
+            delq(WorkflowTransfer)
+            delq(PatientWorkflow)
+
+            delq(Prescription)
+            delq(LabRequest)
+            delq(RadiologyRequest)
+            delq(Payment)
+            delq(Invoice)
+            delq(EmergencyCase)
+            delq(Treatment)
+            delq(Notification)
+            delq(NotificationTemplate)
+            delq(AIRecommendation)
+            delq(DiseasePattern)
+            delq(PerformanceAnalytics)
+            delq(PricingCatalog)
+            delq(TemporaryService)
+            delq(ServicePrice)
+            delq(DoctorPricing)
+            delq(InsuranceClaim)
+            delq(InsuranceCompany)
+            delq(ServiceMaster)
+            delq(Appointment)
+            delq(Visit)
+            delq(MedicalRecord)
+            delq(QueueSettings)
+
+            User.query.filter(User.department_id.isnot(None)).update({User.department_id: None}, synchronize_session=False)
+            delq(Medication)
+            delq(Department)
+
+            db.session.commit()
+            flash('تم تنظيف بيانات البذور بنجاح (ما عدا المستخدمين)', 'success')
+        elif cleanup_type == 'harmonize':
+            from services.pricing_service import PricingService
+            r_all = PricingService.cleanup_all(max_keep_per_role=1)
+            r_purge = PricingService.purge_users_keep_policy()
+            db.session.commit()
+            flash('تم توحيد وتنظيف البيانات بدون إنشاء أي بيانات افتراضية', 'success')
+        
         return redirect(url_for('super_admin.system_maintenance'))
         
     except Exception as e:
@@ -1325,12 +2051,41 @@ def system_cleanup():
         flash('حدث خطأ في تنظيف النظام', 'error')
         return redirect(url_for('super_admin.system_maintenance'))
 
+@super_admin_bp.route('/system/notifications/run', methods=['POST'])
+@login_required
+@super_admin_required
+def run_notifications():
+    try:
+        from services.notification_service import NotificationService
+        res = NotificationService.check_and_send_alerts()
+        msg = res.get('message') or 'تم تشغيل التنبيهات'
+        flash(msg, 'success' if res.get('success') else 'error')
+        return redirect(url_for('super_admin.system_maintenance'))
+    except Exception as e:
+        logging.error(f"Run notifications error: {str(e)}")
+        flash('حدث خطأ في تشغيل التنبيهات', 'error')
+        return redirect(url_for('super_admin.system_maintenance'))
+
+@super_admin_bp.route('/system/notifications/init-templates', methods=['POST'])
+@login_required
+@super_admin_required
+def init_notification_templates():
+    try:
+        from services.notification_service import NotificationService
+        res = NotificationService.create_default_templates()
+        flash(res.get('message', 'تم تجهيز القوالب الافتراضية'), 'success' if res.get('success') else 'error')
+        return redirect(url_for('super_admin.system_maintenance'))
+    except Exception as e:
+        logging.error(f"Init notification templates error: {str(e)}")
+        flash('حدث خطأ في إنشاء القوالب الافتراضية', 'error')
+        return redirect(url_for('super_admin.system_maintenance'))
+
 # دوال مساعدة إضافية
 def get_database_size():
     """حجم قاعدة البيانات"""
     try:
         import os
-        db_path = 'instance/app.db'
+        db_path = 'instance/medical_system.db'
         if os.path.exists(db_path):
             size_bytes = os.path.getsize(db_path)
             size_mb = size_bytes / (1024 * 1024)
@@ -1384,15 +2139,16 @@ def create_permission_simple():
     """إنشاء صلاحية جديدة (مبسط)"""
     try:
         from app_factory import db
-        from models.permissions import Permission
+        from models.permissions import Permission, PermissionCategory, PermissionLevel
         from flask_wtf.csrf import validate_csrf
         
         validate_csrf(request.form.get('csrf_token'))
         
         permission = Permission(
             name=request.form.get('name'),
-            name_ar=request.form.get('name_ar'),
-            description=request.form.get('description')
+            description=request.form.get('description'),
+            category=PermissionCategory.SYSTEM_ADMIN,
+            level=PermissionLevel.ADMIN
         )
         
         db.session.add(permission)
@@ -1774,29 +2530,38 @@ def get_user_behavior_analysis():
 def get_resource_utilization():
     """استخدام الموارد"""
     try:
-        import psutil
         import os
-        
-        # استخدام الذاكرة
-        memory = psutil.virtual_memory()
-        memory_usage = {
-            'total': memory.total,
-            'used': memory.used,
-            'free': memory.free,
-            'percentage': memory.percent
-        }
-        
-        # استخدام المعالج
-        cpu_usage = psutil.cpu_percent(interval=1)
-        
-        # استخدام القرص
-        disk = psutil.disk_usage('/')
-        disk_usage = {
-            'total': disk.total,
-            'used': disk.used,
-            'free': disk.free,
-            'percentage': (disk.used / disk.total) * 100
-        }
+        try:
+            import psutil
+            memory = psutil.virtual_memory()
+            memory_usage = {
+                'total': memory.total,
+                'used': memory.used,
+                'free': memory.free,
+                'percentage': memory.percent
+            }
+            cpu_usage = psutil.cpu_percent(interval=1)
+            disk = psutil.disk_usage('/')
+            disk_usage = {
+                'total': disk.total,
+                'used': disk.used,
+                'free': disk.free,
+                'percentage': (disk.used / disk.total) * 100
+            }
+        except Exception:
+            memory_usage = {
+                'total': 0,
+                'used': 0,
+                'free': 0,
+                'percentage': 0
+            }
+            cpu_usage = 0
+            disk_usage = {
+                'total': 0,
+                'used': 0,
+                'free': 0,
+                'percentage': 0
+            }
         
         # تحليل قاعدة البيانات
         from models.visit import Visit
@@ -1814,7 +2579,7 @@ def get_resource_utilization():
             'cpu': cpu_usage,
             'disk': disk_usage,
             'database': db_stats,
-            'status': 'optimal' if memory.percent < 80 and cpu_usage < 80 else 'warning' if memory.percent < 90 and cpu_usage < 90 else 'critical'
+            'status': 'optimal' if memory_usage['percentage'] < 80 and cpu_usage < 80 else 'warning' if memory_usage['percentage'] < 90 and cpu_usage < 90 else 'critical'
         }
     except Exception as e:
         logging.error(f"Error getting resource utilization: {str(e)}")
@@ -1831,10 +2596,97 @@ def system():
 @login_required
 @super_admin_required
 def backup():
-    """النسخ الاحتياطي"""
-    return render_template('super_admin/system_backup.html')
+    """النسخ الاحتياطي - عرض القائمة والإحصائيات"""
+    try:
+        from models.backup import Backup
+        from datetime import datetime, timedelta
+        
+        # جلب جميع النسخ مرتبة بالأحدث
+        backups = Backup.query.order_by(Backup.created_at.desc()).all()
+        
+        # حساب الإحصائيات
+        total_backups = len(backups)
+        successful_backups = sum(1 for b in backups if b.backup_status == 'COMPLETED')
+        failed_backups = sum(1 for b in backups if b.backup_status == 'FAILED')
+        
+        # حساب الحجم الإجمالي
+        total_size_bytes = sum(b.backup_size for b in backups if b.backup_size)
+        total_size_gb = round(total_size_bytes / (1024 * 1024 * 1024), 2)
+        
+        # تحديد وقت آخر نسخة
+        last_backup_time = "لا يوجد"
+        if backups:
+            last_backup = backups[0]
+            diff = datetime.now() - last_backup.created_at
+            if diff.days > 0:
+                last_backup_time = f"منذ {diff.days} يوم"
+            elif diff.seconds > 3600:
+                last_backup_time = f"منذ {diff.seconds // 3600} ساعة"
+            elif diff.seconds > 60:
+                last_backup_time = f"منذ {diff.seconds // 60} دقيقة"
+            else:
+                last_backup_time = "منذ لحظات"
+                
+        stats = {
+            'total': total_backups,
+            'success': successful_backups,
+            'failed': failed_backups,
+            'size': total_size_gb,
+            'last_backup': last_backup_time
+        }
 
-@super_admin_bp.route('/backup', methods=['POST'])
+        # استرجاع إعدادات النسخ الاحتياطي
+        from models.system_config import SystemConfig
+        
+        def get_config_value(key, default):
+            config = SystemConfig.query.filter_by(config_key=key).first()
+            return config.get_value() if config else default
+            
+        settings = {
+            'frequency': get_config_value('backup_frequency', 'daily'),
+            'retention': get_config_value('backup_retention', 7),
+            'location': get_config_value('backup_location', '/backups'),
+            'compression': get_config_value('backup_compression', 'zip'),
+            'auto_backup': get_config_value('backup_auto_enabled', True)
+        }
+
+        return render_template('super_admin/system_backup.html', backups=backups, stats=stats, settings=settings)
+    except Exception as e:
+        logging.error(f"Error loading backups: {str(e)}")
+        return render_template('super_admin/system_backup.html', backups=[], stats={}, settings={})
+
+@super_admin_bp.route('/backup/settings', methods=['POST'])
+@super_admin_required
+def save_backup_settings():
+    """حفظ إعدادات النسخ الاحتياطي العامة"""
+    try:
+        from models.system_config import SystemConfig
+        from app_factory import db
+        
+        data = request.get_json()
+        
+        # دالة مساعدة لتحديث الإعدادات
+        def update_config(key, value):
+            config = SystemConfig.query.filter_by(config_key=key).first()
+            if not config:
+                config = SystemConfig(config_key=key, category='backup', is_system=True, config_type='string')
+                db.session.add(config)
+            config.set_value(value)
+            
+        update_config('backup_frequency', data.get('frequency', 'daily'))
+        update_config('backup_retention', data.get('retention', '7'))
+        update_config('backup_location', data.get('location', '/backups'))
+        update_config('backup_compression', data.get('compression', 'zip'))
+        update_config('backup_auto_enabled', data.get('auto_backup', True))
+        
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'تم حفظ الإعدادات بنجاح'})
+        
+    except Exception as e:
+        logging.error(f"Error saving backup settings: {str(e)}")
+        return jsonify({'success': False, 'message': 'تعذر حفظ إعدادات النسخ الاحتياطي حالياً'}), 500
+
+@super_admin_bp.route('/backup/create', methods=['POST'])
 @super_admin_required
 def create_backup():
     """إنشاء نسخة احتياطية"""
@@ -1842,38 +2694,403 @@ def create_backup():
         from datetime import datetime
         import shutil
         import os
+        import zipfile
+        from models.backup import Backup
+        from app_factory import db
+        
+        # تحديد نوع النسخة
+        data = request.get_json() if request.is_json else {}
+        req_type = data.get('type', 'full')
+        
+        backup_type = 'FULL'
+        include_db = True
+        include_files = True
+        
+        if req_type == 'incremental':
+            backup_type = 'INCREMENTAL'
+            include_files = False
+        elif req_type == 'database':
+            backup_type = 'DIFFERENTIAL' # استخدام differential للإشارة لقاعدة البيانات فقط
+            include_files = False
+        elif req_type == 'files':
+            backup_type = 'DIFFERENTIAL' # استخدام differential للملفات فقط
+            include_db = False
         
         # إنشاء مجلد النسخ الاحتياطية
-        backup_dir = 'backups'
-        if not os.path.exists(backup_dir):
-            os.makedirs(backup_dir)
+        now = datetime.now()
+        backup_dir = os.path.join('backups', now.strftime('%Y'), now.strftime('%m'))
+        os.makedirs(backup_dir, exist_ok=True)
         
-        # اسم الملف مع التاريخ والوقت
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        backup_filename = f'medical_system_backup_{timestamp}.db'
+        # اسم الملف
+        timestamp = now.strftime('%Y%m%d_%H%M%S')
+        backup_name = f'backup_{req_type}_{timestamp}'
+        backup_filename = f'{backup_name}.zip'
         backup_path = os.path.join(backup_dir, backup_filename)
         
-        # نسخ قاعدة البيانات
-        if os.path.exists('instance/app.db'):
-            shutil.copy2('instance/app.db', backup_path)
+        # إنشاء ملف ZIP
+        with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            # إضافة ملف قاعدة البيانات
+            if include_db:
+                if os.path.exists('medical_system.db'):
+                    zipf.write('medical_system.db', 'medical_system.db')
+                elif os.path.exists('instance/medical_system.db'):
+                    zipf.write('instance/medical_system.db', 'medical_system.db')
             
-            return jsonify({
-                'success': True,
-                'message': 'تم إنشاء النسخة الاحتياطية بنجاح',
-                'backup_file': backup_filename
-            })
-        else:
-            return jsonify({
-                'success': False,
-                'message': 'لم يتم العثور على قاعدة البيانات'
-            })
+            # إضافة ملفات مهمة أخرى
+            if include_files:
+                for file in ['app.py', 'config.py', 'app_factory.py', 'requirements.txt']:
+                    if os.path.exists(file):
+                        zipf.write(file, file)
+        
+        # حفظ السجل في قاعدة البيانات
+        # التحقق من أن نوع النسخة مقبول في قاعدة البيانات
+        db_type_map = {
+            'FULL': 'full',
+            'INCREMENTAL': 'incremental',
+            'DIFFERENTIAL': 'differential'
+        }
+        
+        backup = Backup(
+            backup_name=backup_name,
+            backup_type=db_type_map.get(backup_type, 'full'),
+            backup_path=backup_path,
+            backup_size=os.path.getsize(backup_path),
+            backup_status='COMPLETED',
+            created_by=current_user.id,
+            started_at=now,
+            completed_at=datetime.now()
+        )
+        
+        db.session.add(backup)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'تم إنشاء النسخة الاحتياطية بنجاح',
+            'backup_file': backup_filename
+        })
             
     except Exception as e:
         logging.error(f"Error creating backup: {str(e)}")
         return jsonify({
             'success': False,
-            'message': f'حدث خطأ في إنشاء النسخة الاحتياطية: {str(e)}'
+            'message': 'تعذر إنشاء النسخة الاحتياطية حالياً'
         })
+
+@super_admin_bp.route('/backup/restore/<int:backup_id>', methods=['POST'])
+@super_admin_required
+def restore_backup(backup_id):
+    """استعادة نسخة احتياطية"""
+    try:
+        from models.backup import Backup
+        from app_factory import db
+        from routes.backup_routes import restore_backup_file
+        
+        backup = db.session.get(Backup, backup_id)
+        if not backup:
+            return jsonify({'success': False, 'message': 'النسخة الاحتياطية غير موجودة'}), 404
+            
+        success = restore_backup_file(backup)
+        
+        if success:
+            backup.restore_count += 1
+            backup.last_restore = datetime.now(timezone.utc)
+            backup.last_restore_by = current_user.id
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'تم استعادة النسخة الاحتياطية بنجاح'})
+        else:
+            return jsonify({'success': False, 'message': 'فشل في استعادة النسخة الاحتياطية'}), 500
+            
+    except Exception as e:
+        logging.error(f"Error restoring backup: {str(e)}")
+        return jsonify({'success': False, 'message': 'تعذر استعادة النسخة الاحتياطية حالياً'}), 500
+
+@super_admin_bp.route('/backup/delete/<int:backup_id>', methods=['POST'])
+@super_admin_required
+def delete_backup(backup_id):
+    """حذف نسخة احتياطية"""
+    try:
+        from models.backup import Backup
+        from app_factory import db
+        import os
+        
+        backup = db.session.get(Backup, backup_id)
+        if not backup:
+            return jsonify({'success': False, 'message': 'النسخة الاحتياطية غير موجودة'}), 404
+            
+        # حذف الملف
+        if backup.backup_path and os.path.exists(backup.backup_path):
+            try:
+                os.remove(backup.backup_path)
+            except Exception as e:
+                logging.error(f"Error deleting backup file: {str(e)}")
+        
+        db.session.delete(backup)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'تم حذف النسخة الاحتياطية بنجاح'})
+            
+    except Exception as e:
+        logging.error(f"Error deleting backup: {str(e)}")
+        return jsonify({'success': False, 'message': 'تعذر حذف النسخة الاحتياطية حالياً'}), 500
+
+@super_admin_bp.route('/backup/cancel/<int:backup_id>', methods=['POST'])
+@super_admin_required
+def cancel_backup(backup_id):
+    """إلغاء (أو تحديث حالة) نسخة احتياطية عالقة"""
+    try:
+        from models.backup import Backup
+        from app_factory import db
+        from datetime import datetime
+        
+        backup = db.session.get(Backup, backup_id)
+        if not backup:
+            return jsonify({'success': False, 'message': 'النسخة الاحتياطية غير موجودة'}), 404
+            
+        if backup.backup_status not in ['PENDING', 'IN_PROGRESS']:
+             return jsonify({'success': False, 'message': 'لا يمكن إلغاء هذه النسخة لأنها مكتملة أو فاشلة بالفعل'}), 400
+
+        backup.backup_status = 'CANCELLED'
+        backup.completed_at = datetime.now()
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'تم إلغاء النسخة الاحتياطية بنجاح'})
+            
+    except Exception as e:
+        logging.error(f"Error cancelling backup: {str(e)}")
+        return jsonify({'success': False, 'message': 'تعذر إلغاء النسخة الاحتياطية حالياً'}), 500
+
+@super_admin_bp.route('/backup/schedule', methods=['GET', 'POST'])
+@super_admin_required
+def backup_schedule():
+    """إدارة جدولة النسخ الاحتياطي"""
+    try:
+        from models.system_config import SystemConfig
+        from app_factory import db
+        
+        if request.method == 'POST':
+            data = request.get_json()
+            
+            # Helper to update or create config
+            def update_config(key, value, type='string'):
+                config = SystemConfig.query.filter_by(config_key=key).first()
+                if not config:
+                    config = SystemConfig(config_key=key, category='backup', is_system=True)
+                    db.session.add(config)
+                
+                config.config_type = type
+                config.set_value(value)
+            
+            update_config('backup_schedule_enabled', data.get('enabled', False), 'boolean')
+            update_config('backup_schedule_type', data.get('type', 'daily'), 'string')
+            update_config('backup_schedule_time', data.get('time', '00:00'), 'string')
+            
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'تم حفظ إعدادات الجدولة بنجاح'})
+            
+        else:
+            # Get current settings
+            def get_config(key, default):
+                config = SystemConfig.query.filter_by(config_key=key).first()
+                return config.get_value() if config else default
+                
+            return jsonify({
+                'success': True,
+                'enabled': get_config('backup_schedule_enabled', False),
+                'type': get_config('backup_schedule_type', 'daily'),
+                'time': get_config('backup_schedule_time', '00:00')
+            })
+            
+    except Exception as e:
+        logging.error(f"Error in backup schedule: {str(e)}")
+        return jsonify({'success': False, 'message': 'تعذر حفظ جدولة النسخ الاحتياطي حالياً'}), 500
+
+@super_admin_bp.route('/backup/report')
+@super_admin_required
+def backup_report():
+    """عرض تقرير النسخ الاحتياطي"""
+    try:
+        from models.backup import Backup
+        
+        backups = Backup.query.order_by(Backup.created_at.desc()).all()
+        
+        # Calculate stats
+        total = len(backups)
+        success = sum(1 for b in backups if b.backup_status == 'COMPLETED')
+        failed = sum(1 for b in backups if b.backup_status == 'FAILED')
+        size_bytes = sum(b.backup_size for b in backups if b.backup_size)
+        size_gb = round(size_bytes / (1024 * 1024 * 1024), 2)
+        
+        stats = {
+            'total': total,
+            'success': success,
+            'failed': failed,
+            'size': size_gb
+        }
+        
+        return render_template('super_admin/backup_report.html', backups=backups, stats=stats)
+    except Exception as e:
+        logging.error(f"Error generating backup report: {str(e)}")
+        flash('حدث خطأ في إنشاء التقرير', 'error')
+        return redirect(url_for('super_admin.backup'))
+
+@super_admin_bp.route('/maintenance/automation', methods=['GET', 'POST'])
+@login_required
+@super_admin_required
+def maintenance_automation():
+    try:
+        from models.system_config import SystemConfig
+        if request.method == 'POST':
+            data = request.get_json() or {}
+            cfg = SystemConfig.query.filter_by(config_key='maintenance_automation').first()
+            if not cfg:
+                cfg = SystemConfig(config_key='maintenance_automation', category='system', is_system=True, config_type='json')
+                db.session.add(cfg)
+            cfg.set_value({
+                'auto_cleanup': bool(data.get('auto_cleanup', False)),
+                'cleanup_days': int(data.get('cleanup_days') or 30),
+                'log_retention_days': int(data.get('log_retention_days') or 90),
+                'auto_backup': bool(data.get('auto_backup', True)),
+            })
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'تم حفظ إعدادات الأتمتة'}), 200
+        cfg = SystemConfig.query.filter_by(config_key='maintenance_automation').first()
+        settings = cfg.get_value() if cfg else {}
+        return render_template('super_admin/maintenance_automation.html', settings=settings)
+    except Exception as e:
+        logging.error(f"Maintenance automation error: {str(e)}")
+        return render_template('super_admin/maintenance_automation.html', settings={})
+
+@super_admin_bp.route('/security-center')
+@login_required
+@super_admin_required
+def security_center():
+    try:
+        from models.audit_trail import LoginAttempt, SystemLog, SecurityEvent
+        start_24h = datetime.now(timezone.utc) - timedelta(hours=24)
+        failed_logins = LoginAttempt.query.filter(LoginAttempt.success == False, LoginAttempt.created_at >= start_24h).count()
+        critical_logs = SystemLog.query.filter(SystemLog.log_level.in_(['ERROR', 'CRITICAL']), SystemLog.created_at >= start_24h).count()
+        unresolved = SecurityEvent.query.filter(SecurityEvent.is_resolved == False).count()
+        latest_events = SecurityEvent.query.order_by(SecurityEvent.created_at.desc()).limit(20).all()
+        stats = {
+            'failed_logins_24h': int(failed_logins or 0),
+            'critical_logs_24h': int(critical_logs or 0),
+            'unresolved_security_events': int(unresolved or 0),
+            'latest_security_events': latest_events
+        }
+        return render_template('super_admin/security_center.html', stats=stats)
+    except Exception as e:
+        logging.error(f"Security center error: {str(e)}")
+        return render_template('super_admin/security_center.html', stats={})
+
+@super_admin_bp.route('/branch-templates', methods=['GET', 'POST'])
+@login_required
+@super_admin_required
+def branch_templates():
+    try:
+        from models.system_config import SystemConfig
+        if request.method == 'POST':
+            data = request.get_json() or {}
+            items = data.get('items') or []
+            cfg = SystemConfig.query.filter_by(config_key='branch_templates').first()
+            if not cfg:
+                cfg = SystemConfig(config_key='branch_templates', category='system', is_system=True, config_type='json')
+                db.session.add(cfg)
+            cfg.set_value(items)
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'تم حفظ القوالب'}), 200
+        cfg = SystemConfig.query.filter_by(config_key='branch_templates').first()
+        items = cfg.get_value() if cfg else []
+        return render_template('super_admin/branch_templates.html', items=items if isinstance(items, list) else [])
+    except Exception as e:
+        logging.error(f"Branch templates error: {str(e)}")
+        return render_template('super_admin/branch_templates.html', items=[])
+
+@super_admin_bp.route('/data-warehouse')
+@login_required
+@super_admin_required
+def data_warehouse():
+    try:
+        from services.data_warehouse_service import DataWarehouseService
+        snapshot = DataWarehouseService.export_snapshot(days=30)
+        return render_template('super_admin/data_warehouse.html', snapshot=snapshot)
+    except Exception as e:
+        logging.error(f"Data warehouse error: {str(e)}")
+        return render_template('super_admin/data_warehouse.html', snapshot={})
+
+@super_admin_bp.route('/data-warehouse/export')
+@login_required
+@super_admin_required
+def data_warehouse_export():
+    try:
+        from services.data_warehouse_service import DataWarehouseService
+        days = request.args.get('days', type=int) or 30
+        days = max(7, min(days, 365))
+        snapshot = DataWarehouseService.export_snapshot(days=days)
+        return jsonify({'success': True, 'snapshot': snapshot}), 200
+    except Exception as e:
+        logging.error(f"Data warehouse export error: {str(e)}")
+        return jsonify({'success': False, 'message': 'تعذر تصدير المستودع'}), 500
+
+@super_admin_bp.route('/backup/export-logs')
+@super_admin_required
+def export_backup_logs():
+    """تصدير سجلات النسخ الاحتياطي CSV"""
+    try:
+        from models.backup import Backup
+        import csv
+        import io
+        from flask import make_response
+        
+        backups = Backup.query.order_by(Backup.created_at.desc()).all()
+        
+        si = io.StringIO()
+        cw = csv.writer(si)
+        cw.writerow(['ID', 'Type', 'Status', 'Path', 'Size (Bytes)', 'Created At', 'Completed At'])
+        
+        for b in backups:
+            cw.writerow([
+                b.id,
+                b.backup_type,
+                b.backup_status,
+                b.backup_path,
+                b.backup_size,
+                b.created_at,
+                b.completed_at
+            ])
+            
+        output = make_response(si.getvalue())
+        output.headers["Content-Disposition"] = "attachment; filename=backup_logs.csv"
+        output.headers["Content-type"] = "text/csv"
+        return output
+        
+    except Exception as e:
+        logging.error(f"Error exporting backup logs: {str(e)}")
+        flash('حدث خطأ في تصدير السجلات', 'error')
+        return redirect(url_for('super_admin.backup'))
+
+@super_admin_bp.route('/backup/history')
+@super_admin_required
+def backup_history():
+    """API للحصول على تاريخ النسخ الاحتياطي"""
+    try:
+        from models.backup import Backup
+        
+        backups = Backup.query.order_by(Backup.created_at.desc()).limit(50).all()
+        
+        history = [{
+            'id': b.id,
+            'created_at': b.created_at.strftime('%Y-%m-%d %H:%M'),
+            'type': b.backup_type,
+            'status': b.backup_status,
+            'size': b.backup_size,
+            'message': f"نسخة {b.backup_type} - {b.backup_status}"
+        } for b in backups]
+        
+        return jsonify({'success': True, 'history': history})
+    except Exception as e:
+        logging.error(f"Error getting backup history: {str(e)}")
+        return jsonify({'success': False, 'message': 'تعذر جلب سجل النسخ الاحتياطي حالياً'}), 500
 
 @super_admin_bp.route('/export-data', methods=['POST'])
 @super_admin_required
@@ -1958,7 +3175,7 @@ def export_system_data():
         logging.error(f"Error exporting data: {str(e)}")
         return jsonify({
             'success': False,
-            'message': f'حدث خطأ في تصدير البيانات: {str(e)}'
+            'message': 'تعذر تصدير البيانات حالياً'
         })
 
 @super_admin_bp.route('/download-export/<filename>')
@@ -1986,17 +3203,26 @@ def download_export(filename):
 def system_monitor():
     """مراقب النظام المتقدم"""
     try:
-        # معلومات النظام
-        import psutil
         import os
-        
-        system_info = {
-            'cpu_percent': psutil.cpu_percent(interval=1),
-            'memory_percent': psutil.virtual_memory().percent,
-            'disk_usage': psutil.disk_usage('/').percent,
-            'process_count': len(psutil.pids()),
-            'boot_time': psutil.boot_time()
-        }
+        try:
+            import psutil
+            drive = os.path.splitdrive(os.getcwd())[0]
+            root_path = (drive + os.sep) if drive else os.path.abspath(os.sep)
+            system_info = {
+                'cpu_percent': psutil.cpu_percent(interval=1),
+                'memory_percent': psutil.virtual_memory().percent,
+                'disk_usage': psutil.disk_usage(root_path).percent,
+                'process_count': len(psutil.pids()),
+                'boot_time': psutil.boot_time()
+            }
+        except Exception:
+            system_info = {
+                'cpu_percent': 0,
+                'memory_percent': 0,
+                'disk_usage': 0,
+                'process_count': 0,
+                'boot_time': 0
+            }
         
         return render_template('super_admin/system_monitor.html', system_info=system_info)
         
@@ -2020,15 +3246,23 @@ def api_audit_log():
         
         data = request.get_json()
         
+        action = (data.get('action') or 'view')
+        allowed_actions = {'create', 'update', 'delete', 'view', 'login', 'logout', 'export', 'import', 'backup', 'restore', 'security', 'login_failed', 'login_blocked', 'force_logout', 'permission_denied', 'unauthorized_access'}
+        safe_action = action if action in allowed_actions else 'view'
+
+        entity_type = (data.get('entity_type') or 'system')
+        allowed_entity_types = {'system', 'user', 'patient', 'visit', 'appointment', 'payment', 'invoice', 'lab_test', 'radiology_test', 'notification', 'role', 'department'}
+        safe_entity_type = entity_type if entity_type in allowed_entity_types else 'system'
+
         audit = AuditTrail(
-            entity_type=data.get('entity_type', 'system'),
-            entity_id=data.get('entity_id', 0),
-            action=data.get('action', 'view'),
+            entity_type=safe_entity_type,
+            entity_id=int(data.get('entity_id', 0) or 0),
+            action=safe_action,
             user_id=current_user.id,
             user_ip=request.remote_addr,
             user_agent=request.headers.get('User-Agent'),
             description=data.get('description', ''),
-            notes=data.get('notes', '')
+            notes=(data.get('notes') or '') + (f"\nraw_action={action}" if safe_action != action else '') + (f"\nraw_entity_type={entity_type}" if safe_entity_type != entity_type else '')
         )
         
         db.session.add(audit)
@@ -2038,7 +3272,7 @@ def api_audit_log():
         
     except Exception as e:
         logging.error(f"API audit log error: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'تعذر تسجيل الحدث حالياً'}), 500
 
 @super_admin_bp.route('/api/recent-activities')
 @login_required
@@ -2055,7 +3289,7 @@ def api_recent_activities():
         activities = []
         for activity in recent:
             # حساب الوقت النسبي
-            time_diff = datetime.utcnow() - activity.created_at
+            time_diff = datetime.now(timezone.utc) - activity.created_at
             if time_diff.seconds < 60:
                 time_str = f"منذ {time_diff.seconds} ثانية"
             elif time_diff.seconds < 3600:
@@ -2114,7 +3348,7 @@ def api_ai_assistant():
         
         # إضافة تحذير إذا كانت هناك أخطاء في النظام (بدون منع الاستخدام)
         if not validation['valid'] and len(validation['errors']) > 0:
-            warning = "\n\n⚠️ **ملاحظة:** تم اكتشاف بعض المشاكل في النظام. اكتب 'فحص صحة النظام' للتفاصيل."
+            warning = "\n\nملاحظة: تم اكتشاف بعض المشاكل في النظام. اكتب فحص صحة النظام للتفاصيل."
             response += warning
         
         return jsonify({
@@ -2129,6 +3363,5 @@ def api_ai_assistant():
         traceback.print_exc()
         return jsonify({
             'success': False,
-            'response': f'عذراً، حدث خطأ في معالجة طلبك: {str(e)}'
+            'response': 'تعذر معالجة طلبك حالياً، يرجى المحاولة مرة أخرى'
         }), 200
-

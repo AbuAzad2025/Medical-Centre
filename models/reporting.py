@@ -3,7 +3,7 @@
 Medical System Reporting Model
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from app_factory import db
 import json
 
@@ -32,8 +32,8 @@ class Report(db.Model):
     is_system = db.Column(db.Boolean, default=False)
     
     # التوقيت
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     
     # العلاقات
@@ -102,7 +102,7 @@ class ReportExecution(db.Model):
     error_message = db.Column(db.Text, nullable=True)
     
     # التوقيت
-    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    started_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     completed_at = db.Column(db.DateTime, nullable=True)
     execution_time = db.Column(db.Float, nullable=True)  # بالثواني
     
@@ -184,8 +184,8 @@ class ReportTemplate(db.Model):
     is_system = db.Column(db.Boolean, default=False)
     
     # التوقيت
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     
     # العلاقات

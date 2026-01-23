@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}الحجز{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0"><i class="fas fa-calendar-plus me-2"></i> الحجز</h2>
+    <div class="d-flex gap-2">
+      {% if current_user.is_authenticated and current_user.role == 'patient' %}
+        <a class="btn btn-outline-primary" href="{{ url_for('booking.dashboard_portal') }}">حسابي</a>
+      {% else %}
+        <a class="btn btn-outline-primary" href="{{ url_for('booking.register') }}">إنشاء حساب</a>
+        <a class="btn btn-outline-secondary" href="{{ url_for('auth.login') }}">تسجيل الدخول</a>
+      {% endif %}
+    </div>
+  </div>
+  <form class="card p-3 shadow-sm" method="get" action="{{ url_for('booking.create_booking') }}">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">القسم</label>
+        <select id="department_id" name="department_id" class="form-select" onchange="loadDoctors()">
+          <option value="">اختر القسم</option>
+          {% for d in departments or [] %}
+          <option value="{{ d.id }}">{{ d.name_ar or d.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">الطبيب</label>
+        <select id="doctor_id" name="doctor_id" class="form-select" onchange="loadTimes()">
+          <option value="">اختر الطبيب</option>
+          {% for doc in doctors or [] %}
+          <option value="{{ doc.id }}">{{ doc.full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">التاريخ</label>
+        <input id="appointment_date" name="appointment_date" type="date" class="form-control" onchange="loadTimes()">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">الوقت المتاح</label>
+        <select id="appointment_time" name="appointment_time" class="form-select">
+          <option value="">اختر الوقت</option>
+        </select>
+      </div>
+    </div>
+    <div class="mt-3 d-flex gap-2">
+      <button class="btn btn-primary" type="submit">متابعة</button>
+    </div>
+  </form>
+</div>
+<script>
+function loadDoctors(){
+  const dept = document.getElementById('department_id').value;
+  const url = '{{ url_for('booking.api_available_doctors') }}' + (dept ? ('?department_id='+dept) : '');
+  fetch(url).then(r=>r.json()).then(d=>{
+    const sel = document.getElementById('doctor_id'); sel.innerHTML = '<option value="">اختر الطبيب</option>';
+    (d.doctors||[]).forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=x.full_name; sel.appendChild(o); });
+  });
+}
+function loadTimes(){
+  const doc = document.getElementById('doctor_id').value;
+  const dt = document.getElementById('appointment_date').value;
+  if(!doc || !dt) return;
+  const url = '{{ url_for('booking.api_available_times') }}' + `?doctor_id=${doc}&date=${dt}`;
+  fetch(url).then(r=>r.json()).then(d=>{
+    const sel = document.getElementById('appointment_time'); sel.innerHTML = '<option value="">اختر الوقت</option>';
+    (d.available_times||[]).forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
+  });
+}
+</script>
+{% endblock %}

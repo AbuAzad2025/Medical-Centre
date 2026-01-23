@@ -12,10 +12,13 @@ class Config:
     if DATABASE_URL:
         SQLALCHEMY_DATABASE_URI = DATABASE_URL
     else:
-        SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or 'sqlite:///instance/medical_system.db'
+        # SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or 'sqlite:///instance/medical_system.db'
+        # تم نقل قاعدة البيانات إلى المجلد الرئيسي للتجربة
+        SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or 'sqlite:///medical_system.db'
     
     # إعدادات PostgreSQL
     SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': 10,
         'pool_pre_ping': True,
         'pool_recycle': 300,
         'pool_timeout': 20,
@@ -32,6 +35,7 @@ class Config:
     JSON_SORT_KEYS = False
     JSONIFY_PRETTYPRINT_REGULAR = False
     SEND_FILE_MAX_AGE_DEFAULT = 31536000  # سنة واحدة للكاش
+    DEFAULT_CURRENCY = os.environ.get('DEFAULT_CURRENCY') or 'ILS'
     
     # إعدادات قاعدة البيانات
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -75,7 +79,8 @@ class DevelopmentConfig(Config):
     
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
-        'sqlite:///' + os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance', 'medical_system.db')
+        os.environ.get('DATABASE_URL') or \
+        'sqlite:///' + os.path.join(os.path.dirname(os.path.abspath(__file__)), 'medical_system.db')
     
     # إعدادات التطوير
     TESTING = False
@@ -91,10 +96,12 @@ class ProductionConfig(Config):
     
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance', 'medical_system.db')
+        'sqlite:///' + os.path.join(os.path.dirname(os.path.abspath(__file__)), 'medical_system.db')
     
     # إعدادات الأمان للإنتاج
-    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'true').lower() in ['true','on','1']
+    REMEMBER_COOKIE_SECURE = os.environ.get('REMEMBER_COOKIE_SECURE', 'true').lower() in ['true','on','1']
+    SESSION_COOKIE_SAMESITE = 'Lax'
     WTF_CSRF_ENABLED = True
     
     # إعدادات الأداء (موروثة من Config عند الحاجة)
@@ -109,8 +116,12 @@ class TestingConfig(Config):
     
     TESTING = True
     WTF_CSRF_ENABLED = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
-        'sqlite:///' + os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance', 'medical_system.db')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or 'sqlite:///:memory:'
+    from sqlalchemy.pool import StaticPool
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'poolclass': StaticPool,
+        'connect_args': {'check_same_thread': False}
+    }
     
     # إعدادات الاختبار
     LOGIN_DISABLED = False

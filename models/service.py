@@ -1,7 +1,7 @@
 """
 مرجع الخدمات الطبية - ServiceMaster
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index
 from app_factory import db
 
@@ -22,11 +22,14 @@ class ServiceMaster(db.Model):
     emergency_price = db.Column(db.Numeric(12, 2), nullable=True)
     insurance_price = db.Column(db.Numeric(12, 2), nullable=True)
     currency = db.Column(db.String(10), default='شيكل', nullable=False)
+    duration = db.Column(db.Integer, nullable=True)
+    max_daily = db.Column(db.Integer, nullable=True)
+    is_required = db.Column(db.Boolean, default=False, nullable=True)
     
     is_active = db.Column(db.Boolean, default=True, index=True)
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
     department = db.relationship('Department', lazy='select')
 

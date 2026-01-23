@@ -579,13 +579,13 @@ function applyFilters() {
         if (value) filters[key] = value;
     }
     
-    alert('تم تطبيق التصفية: ' + JSON.stringify(filters));
+    Swal.fire({ title: 'تطبيق التصفية', text: 'تم تطبيق التصفية', icon: 'success' });
 }
 
 function clearFilters() {
     // مسح التصفية
     document.getElementById('auditFiltersForm').reset();
-    alert('تم مسح التصفية');
+    Swal.fire({ title: 'تم', text: 'تم مسح التصفية', icon: 'success' });
 }
 
 function filterLogs(status) {
@@ -608,18 +608,15 @@ function filterLogs(status) {
 }
 
 function viewLogDetails(logId) {
-    // عرض تفاصيل السجل
-    alert('عرض تفاصيل السجل: ' + logId);
+    Swal.fire({ title: 'تفاصيل السجل', text: 'عرض تفاصيل السجل: ' + logId, icon: 'info' });
 }
 
 function exportLog(logId) {
-    // تصدير السجل
-    alert('تصدير السجل: ' + logId);
+    Swal.fire({ title: 'تصدير', text: 'تصدير السجل: ' + logId, icon: 'info' });
 }
 
 function generateAuditReport() {
-    // إنشاء تقرير التدقيق
-    alert('إنشاء تقرير التدقيق');
+    Swal.fire({ title: 'إنشاء تقرير', text: 'إنشاء تقرير التدقيق', icon: 'info' });
 }
 
 function exportAllLogs() {
@@ -628,15 +625,18 @@ function exportAllLogs() {
 }
 
 function cleanOldLogs() {
-    // تنظيف السجلات القديمة
-    if (confirm('هل تريد تنظيف السجلات القديمة (أكثر من 90 يوم)؟')) {
-        alert('تم تنظيف السجلات القديمة');
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل تريد تنظيف السجلات القديمة (أكثر من 90 يوم)؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، تنظيف',
+        cancelButtonText: 'إلغاء'
+    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم تنظيف السجلات القديمة', icon: 'success' }); } });
 }
 
 function viewAuditSettings() {
-    // عرض إعدادات التدقيق
-    alert('عرض إعدادات التدقيق');
+    Swal.fire({ title: 'إعدادات التدقيق', text: 'عرض إعدادات التدقيق', icon: 'info' });
 }
 
 // إضافة تأثيرات تفاعلية

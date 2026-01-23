@@ -3,8 +3,9 @@
 Medical System Pricing Models
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
+from decimal import Decimal, ROUND_HALF_UP
 from app_factory import db
 
 class ServicePrice(db.Model):
@@ -18,10 +19,10 @@ class ServicePrice(db.Model):
     service_code = db.Column(db.String(50), nullable=True)  # كود الخدمة
     
     # الأسعار
-    base_price = db.Column(db.Float, nullable=False, default=0.0)
-    insurance_price = db.Column(db.Float, nullable=True)  # سعر التأمين
-    cash_price = db.Column(db.Float, nullable=True)  # سعر النقد
-    vip_price = db.Column(db.Float, nullable=True)  # سعر VIP
+    base_price = db.Column(db.Numeric(12, 2), nullable=False, default=0.0)
+    insurance_price = db.Column(db.Numeric(12, 2), nullable=True)
+    cash_price = db.Column(db.Numeric(12, 2), nullable=True)
+    vip_price = db.Column(db.Numeric(12, 2), nullable=True)
     
     # معلومات إضافية
     description = db.Column(db.Text, nullable=True)
@@ -30,10 +31,10 @@ class ServicePrice(db.Model):
     requires_department = db.Column(db.Boolean, default=False)
     
     # التواريخ
-    effective_from = db.Column(db.DateTime, default=datetime.utcnow)
+    effective_from = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     effective_to = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (
@@ -95,20 +96,20 @@ class DoctorPricing(db.Model):
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)
     
     # الأسعار
-    consultation_price = db.Column(db.Float, nullable=False, default=0.0)
-    follow_up_price = db.Column(db.Float, nullable=True)
-    emergency_price = db.Column(db.Float, nullable=True)
-    vip_price = db.Column(db.Float, nullable=True)
+    consultation_price = db.Column(db.Numeric(12, 2), nullable=False, default=0.0)
+    follow_up_price = db.Column(db.Numeric(12, 2), nullable=True)
+    emergency_price = db.Column(db.Numeric(12, 2), nullable=True)
+    vip_price = db.Column(db.Numeric(12, 2), nullable=True)
     
     # معلومات إضافية
     is_active = db.Column(db.Boolean, default=True)
     notes = db.Column(db.Text, nullable=True)
     
     # التواريخ
-    effective_from = db.Column(db.DateTime, default=datetime.utcnow)
+    effective_from = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     effective_to = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (
@@ -131,6 +132,7 @@ class DoctorPricing(db.Model):
     
     def get_price(self, visit_type='consultation', payment_method='cash'):
         """الحصول على السعر حسب نوع الزيارة وطريقة الدفع"""
+        visit_type = (visit_type or 'consultation').lower()
         if visit_type == 'consultation':
             base_price = self.consultation_price
         elif visit_type == 'follow_up':
@@ -183,16 +185,16 @@ class InsuranceProvider(db.Model):
     address = db.Column(db.Text, nullable=True)
     
     # معلومات التأمين
-    coverage_percentage = db.Column(db.Float, default=100.0)  # نسبة التغطية
-    max_coverage_amount = db.Column(db.Float, nullable=True)  # الحد الأقصى للتغطية
+    coverage_percentage = db.Column(db.Float, default=100.0)
+    max_coverage_amount = db.Column(db.Numeric(12, 2), nullable=True)
     requires_authorization = db.Column(db.Boolean, default=False)  # يتطلب ترخيص مسبق
     
     # الحالة
     is_active = db.Column(db.Boolean, default=True)
     
     # التواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (
@@ -209,10 +211,11 @@ class InsuranceProvider(db.Model):
     
     def calculate_coverage(self, amount):
         """حساب مبلغ التغطية"""
-        coverage = amount * (self.coverage_percentage / 100)
-        if self.max_coverage_amount and coverage > self.max_coverage_amount:
-            coverage = self.max_coverage_amount
-        return coverage
+        amount_dec = Decimal(str(amount))
+        coverage = amount_dec * (Decimal(str(self.coverage_percentage)) / Decimal(100))
+        if self.max_coverage_amount and coverage > Decimal(self.max_coverage_amount):
+            coverage = Decimal(self.max_coverage_amount)
+        return coverage.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     
     def to_dict(self):
         """تحويل إلى قاموس"""
@@ -243,14 +246,14 @@ class PricingCatalog(db.Model):
     service_type = db.Column(db.String(100), nullable=False)  # consultation, lab, radiology, medication
     service_name = db.Column(db.String(200), nullable=False)  # اسم الخدمة
     service_name_ar = db.Column(db.String(200), nullable=False)  # اسم الخدمة بالعربية
-    base_price = db.Column(db.Float, nullable=False, default=0.0)  # السعر الأساسي
-    insurance_coverage = db.Column(db.Float, default=0.0)  # نسبة التغطية التأمينية
-    patient_share = db.Column(db.Float, default=0.0)  # حصة المريض
+    base_price = db.Column(db.Numeric(12, 2), nullable=False, default=0.0)
+    insurance_coverage = db.Column(db.Float, default=0.0)
+    patient_share = db.Column(db.Numeric(12, 2), default=0.0)
     is_active = db.Column(db.Boolean, default=True)
     is_temporary = db.Column(db.Boolean, default=False)  # خدمة مؤقتة من "أخرى"
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (
@@ -277,7 +280,7 @@ class PricingCatalog(db.Model):
     
     def get_insurance_coverage_amount(self):
         """مبلغ التغطية التأمينية"""
-        return self.base_price * (self.insurance_coverage / 100)
+        return (Decimal(self.base_price) * (Decimal(str(self.insurance_coverage)) / Decimal(100))).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     
     def to_dict(self):
         """تحويل إلى قاموس"""
@@ -306,12 +309,12 @@ class TemporaryService(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     service_name = db.Column(db.String(200), nullable=False)
     service_name_ar = db.Column(db.String(200), nullable=False)
-    price = db.Column(db.Float, nullable=False, default=0.0)
+    price = db.Column(db.Numeric(12, 2), nullable=False, default=0.0)
     description = db.Column(db.Text, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (

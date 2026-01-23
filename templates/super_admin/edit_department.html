@@ -24,7 +24,7 @@
                                     اسم القسم *
                                 </label>
                                 <input type="text" class="form-control" id="name" name="name" 
-                                       value="{{ department.name }}" required>
+                                       value="{{ department.name_ar or '' }}" required>
                             </div>
                             
                             <div class="col-md-6 mb-3">
@@ -33,7 +33,7 @@
                                     الاسم بالإنجليزية
                                 </label>
                                 <input type="text" class="form-control" id="name_en" name="name_en" 
-                                       value="{{ department.name_en or '' }}">
+                                       value="{{ department.name or '' }}">
                             </div>
                         </div>
                         

@@ -3,7 +3,7 @@
 Medical System WhatsApp Integration Models
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from app_factory import db
 import secrets
 import string
@@ -37,7 +37,7 @@ class WhatsAppMessage(db.Model):
     error_message = db.Column(db.Text, nullable=True)
     
     # تواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     sent_at = db.Column(db.DateTime, nullable=True)
     delivered_at = db.Column(db.DateTime, nullable=True)
     read_at = db.Column(db.DateTime, nullable=True)
@@ -54,7 +54,7 @@ class WhatsAppMessage(db.Model):
     def generate_message_id():
         """توليد معرف الرسالة"""
         while True:
-            msg_id = f"WA{datetime.now().strftime('%Y%m%d%H%M%S')}{secrets.randbelow(1000):03d}"
+            msg_id = f"WA{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}{secrets.randbelow(1000):03d}"
             if not WhatsAppMessage.query.filter_by(message_id=msg_id).first():
                 return msg_id
     
@@ -155,7 +155,7 @@ class WhatsAppTemplate(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     
     # تواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     approved_at = db.Column(db.DateTime, nullable=True)
     
     def __repr__(self):
@@ -213,8 +213,8 @@ class WhatsAppConfig(db.Model):
     config_value = db.Column(db.Text, nullable=False)
     description = db.Column(db.Text, nullable=True)
     is_encrypted = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     def __repr__(self):
         return f'<WhatsAppConfig {self.config_key}>'
@@ -235,7 +235,7 @@ class WhatsAppConfig(db.Model):
             config.config_value = value
             config.description = description
             config.is_encrypted = is_encrypted
-            config.updated_at = datetime.utcnow()
+            config.updated_at = datetime.now(timezone.utc)
         else:
             config = WhatsAppConfig(
                 config_key=key,

@@ -3,7 +3,7 @@
 Medical System Invoice Management Service
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import and_, or_, func
 from app_factory import db
 from models.invoice import Invoice, InvoiceService
@@ -49,7 +49,7 @@ class InvoiceService:
         """إنشاء فاتورة جديدة"""
         try:
             # التحقق من وجود المريض
-            patient = Patient.query.get(patient_id)
+            patient = db.session.get(Patient, patient_id)
             if not patient:
                 return {'success': False, 'message': 'المريض غير موجود'}
             
@@ -58,8 +58,8 @@ class InvoiceService:
                 invoice_number=InvoiceService.generate_invoice_number(),
                 patient_id=patient_id,
                 visit_id=visit_id,
-                issue_date=datetime.utcnow(),
-                due_date=kwargs.get('due_date', datetime.utcnow() + timedelta(days=30)),
+                issue_date=datetime.now(timezone.utc),
+                due_date=kwargs.get('due_date', datetime.now(timezone.utc) + timedelta(days=30)),
                 total_amount=0.0,
                 discount_amount=kwargs.get('discount_amount', 0.0),
                 tax_amount=kwargs.get('tax_amount', 0.0),
@@ -112,13 +112,13 @@ class InvoiceService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error creating invoice: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في إنشاء الفاتورة: {str(e)}'}
+            return {'success': False, 'message': 'تعذر إنشاء الفاتورة حالياً'}
     
     @staticmethod
     def add_service_to_invoice(invoice_id, service_data):
         """إضافة خدمة إلى الفاتورة"""
         try:
-            invoice = Invoice.query.get(invoice_id)
+            invoice = db.session.get(Invoice, invoice_id)
             if not invoice:
                 return {'success': False, 'message': 'الفاتورة غير موجودة'}
             
@@ -148,13 +148,13 @@ class InvoiceService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error adding service to invoice: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في إضافة الخدمة: {str(e)}'}
+            return {'success': False, 'message': 'تعذر إضافة الخدمة حالياً'}
     
     @staticmethod
     def process_payment(invoice_id, payment_data, processed_by=None):
         """معالجة الدفع للفاتورة"""
         try:
-            invoice = Invoice.query.get(invoice_id)
+            invoice = db.session.get(Invoice, invoice_id)
             if not invoice:
                 return {'success': False, 'message': 'الفاتورة غير موجودة'}
             
@@ -168,7 +168,7 @@ class InvoiceService:
             invoice.paid_amount += paid_amount
             invoice.payment_method = payment_method
             invoice.updated_by = processed_by
-            invoice.updated_at = datetime.utcnow()
+            invoice.updated_at = datetime.now(timezone.utc)
             
             # إعادة حساب المبالغ
             invoice.calculate_amounts()
@@ -178,7 +178,7 @@ class InvoiceService:
                 invoice_id=invoice_id,
                 amount=paid_amount,
                 payment_method=payment_method,
-                payment_date=datetime.utcnow(),
+                payment_date=datetime.now(timezone.utc),
                 notes=payment_data.get('notes'),
                 created_by=processed_by
             )
@@ -196,13 +196,13 @@ class InvoiceService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error processing payment: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في معالجة الدفع: {str(e)}'}
+            return {'success': False, 'message': 'تعذر معالجة الدفع حالياً'}
     
     @staticmethod
     def force_payment(invoice_id, reason, approved_by=None):
         """تفعيل الدفع القوي للفاتورة"""
         try:
-            invoice = Invoice.query.get(invoice_id)
+            invoice = db.session.get(Invoice, invoice_id)
             if not invoice:
                 return {'success': False, 'message': 'الفاتورة غير موجودة'}
             
@@ -210,11 +210,11 @@ class InvoiceService:
             invoice.force_payment = True
             invoice.force_payment_reason = reason
             invoice.force_payment_approved_by = approved_by
-            invoice.force_payment_approved_at = datetime.utcnow()
+            invoice.force_payment_approved_at = datetime.now(timezone.utc)
             invoice.status = 'FORCE_PAYMENT'
             invoice.payment_status = 'FORCE_ENTRY'
             invoice.updated_by = approved_by
-            invoice.updated_at = datetime.utcnow()
+            invoice.updated_at = datetime.now(timezone.utc)
             
             db.session.commit()
             
@@ -223,13 +223,13 @@ class InvoiceService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error forcing payment: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في تفعيل الدفع القوي: {str(e)}'}
+            return {'success': False, 'message': 'تعذر تفعيل الدفع القوي حالياً'}
     
     @staticmethod
     def get_invoice_summary(invoice_id):
         """الحصول على ملخص الفاتورة"""
         try:
-            invoice = Invoice.query.get(invoice_id)
+            invoice = db.session.get(Invoice, invoice_id)
             if not invoice:
                 return {'success': False, 'message': 'الفاتورة غير موجودة'}
             
@@ -242,7 +242,7 @@ class InvoiceService:
             
         except Exception as e:
             logging.error(f"Error getting invoice summary: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في الحصول على ملخص الفاتورة: {str(e)}'}
+            return {'success': False, 'message': 'تعذر جلب ملخص الفاتورة حالياً'}
     
     @staticmethod
     def get_patient_invoices(patient_id, status=None):
@@ -263,7 +263,7 @@ class InvoiceService:
             
         except Exception as e:
             logging.error(f"Error getting patient invoices: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في الحصول على فواتير المريض: {str(e)}'}
+            return {'success': False, 'message': 'تعذر جلب فواتير المريض حالياً'}
     
     @staticmethod
     def get_financial_summary(start_date=None, end_date=None, department_id=None):
@@ -308,13 +308,13 @@ class InvoiceService:
             
         except Exception as e:
             logging.error(f"Error getting financial summary: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في الحصول على الملخص المالي: {str(e)}'}
+            return {'success': False, 'message': 'تعذر جلب الملخص المالي حالياً'}
     
     @staticmethod
     def create_visit_invoice(visit_id, created_by=None):
         """إنشاء فاتورة للزيارة"""
         try:
-            visit = Visit.query.get(visit_id)
+            visit = db.session.get(Visit, visit_id)
             if not visit:
                 return {'success': False, 'message': 'الزيارة غير موجودة'}
             
@@ -382,7 +382,7 @@ class InvoiceService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error creating visit invoice: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في إنشاء فاتورة الزيارة: {str(e)}'}
+            return {'success': False, 'message': 'تعذر إنشاء فاتورة الزيارة حالياً'}
     
     # ==================== تحسينات الأسبوع الثاني ====================
     
@@ -393,7 +393,7 @@ class InvoiceService:
         ملاحظة: لا يتم الحذف، بل يتم التعليم كملغية فقط
         """
         try:
-            invoice = Invoice.query.get(invoice_id)
+            invoice = db.session.get(Invoice, invoice_id)
             if not invoice:
                 return {'success': False, 'message': 'الفاتورة غير موجودة'}
             
@@ -413,10 +413,10 @@ class InvoiceService:
             old_status = invoice.status
             invoice.status = 'CANCELLED'
             invoice.cancelled_by = user_id
-            invoice.cancelled_at = datetime.utcnow()
+            invoice.cancelled_at = datetime.now(timezone.utc)
             invoice.cancellation_reason = reason
             invoice.updated_by = user_id
-            invoice.updated_at = datetime.utcnow()
+            invoice.updated_at = datetime.now(timezone.utc)
             
             db.session.commit()
             
@@ -443,7 +443,7 @@ class InvoiceService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error cancelling invoice: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في إلغاء الفاتورة: {str(e)}'}
+            return {'success': False, 'message': 'تعذر إلغاء الفاتورة حالياً'}
     
     @staticmethod
     def link_payment_to_invoice(invoice_id, payment_id):
@@ -451,11 +451,11 @@ class InvoiceService:
         ربط دفعة بفاتورة
         """
         try:
-            invoice = Invoice.query.get(invoice_id)
+            invoice = db.session.get(Invoice, invoice_id)
             if not invoice:
                 return {'success': False, 'message': 'الفاتورة غير موجودة'}
             
-            payment = Payment.query.get(payment_id)
+            payment = db.session.get(Payment, payment_id)
             if not payment:
                 return {'success': False, 'message': 'الدفعة غير موجودة'}
             
@@ -469,7 +469,7 @@ class InvoiceService:
             # تحديث حالة الفاتورة
             if invoice.balance_due <= 0:
                 invoice.status = 'PAID'
-                invoice.paid_at = datetime.utcnow()
+                invoice.paid_at = datetime.now(timezone.utc)
             elif invoice.paid_amount > 0:
                 invoice.status = 'PARTIALLY_PAID'
             
@@ -484,7 +484,7 @@ class InvoiceService:
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error linking payment to invoice: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في ربط الدفعة: {str(e)}'}
+            return {'success': False, 'message': 'تعذر ربط الدفعة حالياً'}
     
     @staticmethod
     def get_invoice_with_details(invoice_id):
@@ -492,7 +492,7 @@ class InvoiceService:
         الحصول على فاتورة مع جميع التفاصيل
         """
         try:
-            invoice = Invoice.query.get(invoice_id)
+            invoice = db.session.get(Invoice, invoice_id)
             if not invoice:
                 return {'success': False, 'message': 'الفاتورة غير موجودة'}
             
@@ -540,4 +540,4 @@ class InvoiceService:
             
         except Exception as e:
             logging.error(f"Error getting invoice details: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ: {str(e)}'}
+            return {'success': False, 'message': 'تعذر جلب تفاصيل الفاتورة حالياً'}

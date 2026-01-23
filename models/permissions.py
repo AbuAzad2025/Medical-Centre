@@ -4,7 +4,7 @@ Advanced Permissions System
 """
 
 from app_factory import db
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 class PermissionLevel(Enum):
@@ -39,8 +39,8 @@ class Permission(db.Model):
     category = db.Column(db.Enum(PermissionCategory), nullable=False)
     level = db.Column(db.Enum(PermissionLevel), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # العلاقات
     role_permissions = db.relationship('RolePermission', cascade='all, delete-orphan')
@@ -58,11 +58,13 @@ class Role(db.Model):
     description = db.Column(db.Text)
     is_system_role = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # العلاقات
     role_permissions = db.relationship('RolePermission', cascade='all, delete-orphan')
+    module_permissions = db.relationship('ModulePermission', back_populates='role', cascade='all, delete-orphan')
+    department_permissions = db.relationship('DepartmentPermission', back_populates='role', cascade='all, delete-orphan')
     # users = db.relationship('User', back_populates='role_obj')
     
     # الصلاحيات بصيغة JSON
@@ -85,7 +87,7 @@ class RolePermission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     permission_id = db.Column(db.Integer, db.ForeignKey('permissions.id'), nullable=False)
-    granted_at = db.Column(db.DateTime, default=datetime.utcnow)
+    granted_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     granted_by = db.Column(db.Integer, db.ForeignKey('users.id'))
     
     # العلاقات
@@ -107,7 +109,7 @@ class UserPermission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     permission_id = db.Column(db.Integer, db.ForeignKey('permissions.id'), nullable=False)
-    granted_at = db.Column(db.DateTime, default=datetime.utcnow)
+    granted_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     granted_by = db.Column(db.Integer, db.ForeignKey('users.id'))
     expires_at = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
@@ -134,7 +136,7 @@ class AuditLog(db.Model):
     new_values = db.Column(db.Text)
     ip_address = db.Column(db.String(45))
     user_agent = db.Column(db.Text)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # العلاقات
     user = db.relationship('User', foreign_keys=[user_id], back_populates='audit_logs')
@@ -223,6 +225,8 @@ def create_default_permissions():
         ('audit_view', 'عرض سجلات التدقيق', PermissionCategory.AUDIT, PermissionLevel.ADMIN),
         ('audit_export', 'تصدير سجلات التدقيق', PermissionCategory.AUDIT, PermissionLevel.SUPER_ADMIN),
         ('audit_manage', 'إدارة التدقيق', PermissionCategory.AUDIT, PermissionLevel.SUPER_ADMIN),
+        # إعدادات الطوابير
+        ('queue_settings_manage', 'إدارة إعدادات الطابور', PermissionCategory.SETTINGS, PermissionLevel.ADMIN),
     ]
     
     for name, description, category, level in permissions:
@@ -243,6 +247,7 @@ def create_default_roles():
     """إنشاء الأدوار الافتراضية"""
     roles = [
         ('super_admin', 'السوبر أدمن', 'مدير النظام الأعلى', True),
+        ('admin', 'مدير النظام', 'مدير النظام', True),
         ('manager', 'مدير المركز', 'مدير المركز', True),
         ('reception', 'استقبال', 'موظف الاستقبال', True),
         ('doctor', 'طبيب', 'طبيب', True),
@@ -251,6 +256,7 @@ def create_default_roles():
         ('emergency', 'طوارئ', 'موظف طوارئ', True),
         ('nurse', 'ممرض', 'ممرض', True),
         ('accountant', 'محاسب', 'محاسب', True),
+        ('pharmacist', 'صيدلي', 'صيدلي', True),
     ]
     
     for name, name_ar, description, is_system in roles:

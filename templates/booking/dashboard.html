@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}حساب الحجز{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary"><i class="fas fa-calendar-alt me-2"></i>حجوزاتي</h2>
+            <div class="text-muted">{{ patient.full_name if patient else 'غير مرتبط بمريض' }}</div>
+          </div>
+          <div class="d-flex gap-2">
+            <a class="btn btn-primary" href="{{ url_for('booking.index') }}">حجز جديد</a>
+            <a class="btn btn-outline-secondary" href="{{ url_for('auth.logout') }}">تسجيل الخروج</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if not patient %}
+    <div class="alert alert-warning">لا يوجد ربط بمريض. راجع الإدارة.</div>
+  {% endif %}
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+          <thead>
+            <tr>
+              <th>المرجع</th>
+              <th>القسم</th>
+              <th>الطبيب</th>
+              <th>التاريخ</th>
+              <th>الوقت</th>
+              <th>الحالة</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in bookings or [] %}
+              <tr>
+                <td>{{ b.booking_reference }}</td>
+                <td>{{ b.department.name_ar if b.department else '-' }}</td>
+                <td>{{ b.doctor.full_name if b.doctor else '-' }}</td>
+                <td>{{ b.appointment_date }}</td>
+                <td>{{ b.appointment_time.strftime('%H:%M') if b.appointment_time else '-' }}</td>
+                <td><span class="badge bg-{{ b.get_status_color() }}">{{ b.get_status_display() }}</span></td>
+                <td class="text-end">
+                  {% if b.can_be_cancelled() %}
+                    <form method="POST" action="{{ url_for('booking.cancel_booking', booking_id=b.id) }}" class="d-inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirmSubmit(event, 'هل تريد إلغاء هذا الحجز؟')">إلغاء</button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">لا توجد حجوزات</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

@@ -133,8 +133,9 @@ function filterPayments() {
         
         // فلترة حسب الطريقة
         if (methodFilter && methodFilter.value !== '') {
-            const paymentMethod = row.dataset.method;
-            if (paymentMethod !== methodFilter.value) {
+            const paymentMethod = (row.dataset.method || '').toLowerCase();
+            const filterValue = (methodFilter.value || '').toLowerCase();
+            if (paymentMethod !== filterValue) {
                 showRow = false;
             }
         }

@@ -124,16 +124,63 @@
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="date_format" class="form-label">تنسيق التاريخ</label>
-                                            <select class="form-control" id="date_format" name="date_format">
-                                                <option value="dd/mm/yyyy">dd/mm/yyyy</option>
-                                                <option value="mm/dd/yyyy">mm/dd/yyyy</option>
-                                                <option value="yyyy-mm-dd">yyyy-mm-dd</option>
-                                            </select>
+                                <div class="mb-3">
+                                    <label for="date_format" class="form-label">تنسيق التاريخ</label>
+                                    <select class="form-control" id="date_format" name="date_format">
+                                        <option value="dd/mm/yyyy">dd/mm/yyyy</option>
+                                        <option value="mm/dd/yyyy">mm/dd/yyyy</option>
+                                        <option value="yyyy-mm-dd">yyyy-mm-dd</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="allow_partial_payment_global" name="allow_partial_payment_global">
+                                    <label class="form-check-label" for="allow_partial_payment_global">السماح بالدفع الجزئي (عام)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="allow_debt_global" name="allow_debt_global">
+                                    <label class="form-check-label" for="allow_debt_global">السماح بالدين (عام)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">إعدادات الدفع حسب الأقسام</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped" id="deptQueueTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>القسم</th>
+                                                        <th>الحجم الأقصى للطابور</th>
+                                                        <th>يتطلب دفع</th>
+                                                        <th>إعفاء دفع الطوارئ</th>
+                                                        <th>السماح بالدخول القوي</th>
+                                                        <th>متوسط وقت الانتظار (دقيقة)</th>
+                                                        <th>السماح بالدفع الجزئي</th>
+                                                        <th>السماح بالدين</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-primary" id="saveDeptQueueSettings">حفظ إعدادات الأقسام</button>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
                             </form>
                         </div>
 
@@ -153,6 +200,22 @@
                                             <label for="max_login_attempts" class="form-label">عدد محاولات الدخول</label>
                                             <input type="number" class="form-control" id="max_login_attempts" name="max_login_attempts" 
                                                    value="5" min="3" max="10">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="login_attempt_window_minutes" class="form-label">نافذة احتساب المحاولات (دقائق)</label>
+                                            <input type="number" class="form-control" id="login_attempt_window_minutes" name="login_attempt_window_minutes"
+                                                   value="15" min="1" max="120">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="login_lockout_minutes" class="form-label">مدة التجميد بعد التجاوز (دقائق)</label>
+                                            <input type="number" class="form-control" id="login_lockout_minutes" name="login_lockout_minutes"
+                                                   value="15" min="1" max="240">
                                         </div>
                                     </div>
                                 </div>
@@ -385,48 +448,54 @@
 
 <script>
 function saveSettings() {
-    // حفظ الإعدادات
     const forms = ['generalSettingsForm', 'securitySettingsForm', 'databaseSettingsForm', 'notificationsSettingsForm', 'backupSettingsForm'];
     const settings = {};
-    
     forms.forEach(formId => {
         const form = document.getElementById(formId);
         if (form) {
-            const formData = new FormData(form);
-            for (let [key, value] of formData.entries()) {
-                settings[key] = value;
-            }
+            const elements = form.querySelectorAll('input, select, textarea');
+            elements.forEach(el => {
+                const key = el.name || el.id;
+                if (!key) return;
+                if (el.type === 'checkbox') {
+                    settings[key] = el.checked;
+                } else {
+                    settings[key] = el.value;
+                }
+            });
         }
     });
-    
-    // إرسال الإعدادات إلى الخادم
     fetch('{{ url_for("super_admin.system_config") }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
         body: JSON.stringify(settings)
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('تم حفظ الإعدادات بنجاح');
+            Swal.fire({ title: 'تم', text: 'تم حفظ الإعدادات بنجاح', icon: 'success' });
         } else {
-            alert('حدث خطأ في حفظ الإعدادات');
+            Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ الإعدادات', icon: 'error' });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('حدث خطأ في حفظ الإعدادات');
+        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ الإعدادات', icon: 'error' });
     });
 }
 
 function resetSettings() {
     // إعادة تعيين الإعدادات
-    if (confirm('هل تريد إعادة تعيين جميع الإعدادات إلى القيم الافتراضية؟')) {
-        location.reload();
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل تريد إعادة تعيين جميع الإعدادات إلى القيم الافتراضية؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، إعادة',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => { if (result.isConfirmed) { location.reload(); } });
 }
 
 function testConnection() {
@@ -443,21 +512,20 @@ function testConnection() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
         body: JSON.stringify(dbSettings)
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('تم الاتصال بقاعدة البيانات بنجاح');
+            Swal.fire({ title: 'تم', text: 'تم الاتصال بقاعدة البيانات بنجاح', icon: 'success' });
         } else {
-            alert('فشل الاتصال بقاعدة البيانات: ' + data.message);
+            Swal.fire({ title: 'فشل', text: 'فشل الاتصال بقاعدة البيانات: ' + (data.message || ''), icon: 'error' });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('حدث خطأ في اختبار الاتصال');
+        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في اختبار الاتصال', icon: 'error' });
     });
 }
 
@@ -472,7 +540,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 Object.keys(data.settings).forEach(key => {
                     const element = document.getElementById(key);
                     if (element) {
-                        element.value = data.settings[key];
+                        const val = data.settings[key];
+                        if (element.type === 'checkbox') {
+                            const s = String(val).toLowerCase();
+                            element.checked = (s === 'true' || s === '1' || s === 'yes' || s === 'on');
+                        } else {
+                            element.value = val;
+                        }
                     }
                 });
             }
@@ -480,6 +554,54 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error loading settings:', error);
         });
+
+    fetch('{{ url_for("super_admin.queue_settings") }}?action=load')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const tbody = document.querySelector('#deptQueueTable tbody');
+                tbody.innerHTML = '';
+                data.items.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td data-id="${item.department_id}">${item.department_name}</td>
+                        <td><input type="number" class="dept-max" value="${item.max_queue_size}" min="1" style="width:100px"></td>
+                        <td><input type="checkbox" class="dept-required" ${item.payment_required ? 'checked' : ''}></td>
+                        <td><input type="checkbox" class="dept-emergency-waived" ${item.emergency_payment_waived ? 'checked' : ''}></td>
+                        <td><input type="checkbox" class="dept-force" ${item.force_entry_allowed ? 'checked' : ''}></td>
+                        <td><input type="number" class="dept-avg" value="${item.average_wait_time}" min="5" max="240" style="width:120px"></td>
+                        <td><input type="checkbox" class="dept-partial" ${item.allow_partial_payment ? 'checked' : ''}></td>
+                        <td><input type="checkbox" class="dept-debt" ${item.allow_debt ? 'checked' : ''}></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        });
+
+    document.getElementById('saveDeptQueueSettings').addEventListener('click', function() {
+        const rows = document.querySelectorAll('#deptQueueTable tbody tr');
+        const items = [];
+        rows.forEach(row => {
+            const deptId = parseInt(row.querySelector('td[data-id]').getAttribute('data-id'));
+            const maxSize = parseInt(row.querySelector('.dept-max').value || '0');
+            const paymentRequired = row.querySelector('.dept-required').checked;
+            const emergencyWaived = row.querySelector('.dept-emergency-waived').checked;
+            const forceAllowed = row.querySelector('.dept-force').checked;
+            const avgWait = parseInt(row.querySelector('.dept-avg').value || '0');
+            const allowPartial = row.querySelector('.dept-partial').checked;
+            const allowDebt = row.querySelector('.dept-debt').checked;
+            items.push({ department_id: deptId, max_queue_size: maxSize, payment_required: paymentRequired, emergency_payment_waived: emergencyWaived, force_entry_allowed: forceAllowed, average_wait_time: avgWait, allow_partial_payment: allowPartial, allow_debt: allowDebt });
+        });
+        fetch('{{ url_for("super_admin.queue_settings") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ items })
+        })
+        .then(r => r.json())
+        .then(d => { if (d.success) { Swal.fire({ title: 'تم', text: 'تم حفظ إعدادات الأقسام بنجاح', icon: 'success' }); } else { Swal.fire({ title: 'خطأ', text: 'فشل حفظ إعدادات الأقسام', icon: 'error' }); } });
+    });
 });
 </script>
 {% endblock %}

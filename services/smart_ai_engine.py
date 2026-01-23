@@ -295,7 +295,7 @@ class SmartAIEngine:
         if 'موعد' in message or 'appointment' in message:
             total_appointments = Appointment.query.count()
             today_appointments = Appointment.query.filter(
-                func.date(Appointment.appointment_date) == date.today()
+                func.date(Appointment.starts_at) == date.today()
             ).count()
             response += f"📅 **المواعيد:**\n"
             response += f"├─ إجمالي المواعيد: {total_appointments}\n"
@@ -616,19 +616,19 @@ class SmartAIEngine:
         
         total_appointments = Appointment.query.count()
         today_appointments = Appointment.query.filter(
-            func.date(Appointment.appointment_date) == date.today()
+            func.date(Appointment.starts_at) == date.today()
         ).count()
         
         # مواعيد قادمة
         upcoming = Appointment.query.filter(
-            Appointment.appointment_date > datetime.now(),
-            Appointment.status == 'scheduled'
+            Appointment.starts_at > datetime.now(),
+            Appointment.status == 'SCHEDULED'
         ).count()
         
         # مواعيد متأخرة
         overdue = Appointment.query.filter(
-            Appointment.appointment_date < datetime.now(),
-            Appointment.status == 'scheduled'
+            Appointment.starts_at < datetime.now(),
+            Appointment.status == 'SCHEDULED'
         ).count()
         
         response = f"""

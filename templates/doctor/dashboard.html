@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="row mb-4" data-aos="fade-down">
         <div class="col-12">
-            <div class="card border-0 shadow-lg glass-effect">
+            <div class="card card-modern">
                 <div class="card-body" style="background: var(--info-gradient); color: white;">
                     <div class="row align-items-center">
                         <div class="col-md-8">
@@ -15,7 +15,7 @@
                                 <i class="fas fa-user-md me-3"></i>
                                 لوحة الطبيب الاحترافية
                             </h1>
-                            <p class="mb-0 text-white-50 fs-5">مرحباً د. {{ current_user.full_name }} - إدارة طبية متقدمة ومتطورة</p>
+                            <p class="mb-0 text-white-50 fs-5">مرحباً د. {{ (viewing_doctor.full_name if viewing_doctor else current_user.full_name) }} - إدارة طبية متقدمة ومتطورة</p>
                             <div class="mt-2">
                                 <small class="text-white-50">
                                     <i class="fas fa-clock me-1"></i>
@@ -24,439 +24,393 @@
                             </div>
                         </div>
                         <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2 justify-content-end">
                                 <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-light btn-lg btn-modern pulse-animation">
                                     <i class="fas fa-stethoscope me-2"></i>
                                     طابور المرضى
                                 </a>
-                                <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-warning btn-lg btn-modern">
+                                <a href="{{ url_for('doctor.patients') }}" class="btn btn-warning btn-lg btn-modern">
                                     <i class="fas fa-users me-2"></i>
-                                    إدارة المرضى
+                                    بحث المرضى
+                                </a>
+                                <button class="btn btn-outline-light btn-lg btn-modern" data-bs-toggle="modal" data-bs-target="#dashboardSettingsModal">
+                                    <i class="fas fa-sliders-h me-2"></i>
+                                    تخصيص اللوحة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Tabs -->
+    <ul class="nav nav-pills mb-4" id="doctorTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab" aria-controls="stats" aria-selected="true">
+                <i class="fas fa-chart-pie me-2"></i> الإحصائيات
+            </button>
+        </li>
+        {% if current_user.role in ['manager','super_admin','accountant'] %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="finance-tab" data-bs-toggle="tab" data-bs-target="#finance" type="button" role="tab" aria-controls="finance" aria-selected="false">
+                <i class="fas fa-coins me-2"></i> المالية
+            </button>
+        </li>
+        {% endif %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="false">
+                <i class="fas fa-info-circle me-2"></i> معلومات الدور
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="doctorTabsContent">
+        <!-- Statistics Tab -->
+        <div class="tab-pane fade show active" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+            <div class="dashboard-panels d-flex flex-column gap-4" id="doctorPanels">
+            <div class="dashboard-panel" data-panel="stats_overview">
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">زيارات اليوم</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.today_visits or 0 }}</div>
+                                </div>
+                                <div class="icon-circle bg-primary bg-opacity-10 text-primary">
+                                    <i class="fas fa-calendar-day fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">زيارات مكتملة</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.completed_today or 0 }}</div>
+                                </div>
+                                <div class="icon-circle bg-success bg-opacity-10 text-success">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">زيارات معلقة</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.pending_visits or 0 }}</div>
+                                </div>
+                                <div class="icon-circle bg-warning bg-opacity-10 text-warning">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">الوصفات اليوم</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.prescriptions_today or 0 }}</div>
+                                </div>
+                                <div class="icon-circle bg-info bg-opacity-10 text-info">
+                                    <i class="fas fa-prescription fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <div class="dashboard-panel" data-panel="patients_actions">
+            <div class="row">
+                <!-- Upcoming Patients -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 text-primary fw-bold">
+                                <i class="fas fa-user-injured me-2"></i>
+                                المرضى القادمون
+                            </h5>
+                            <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-sm btn-outline-primary rounded-pill">
+                                عرض الكل
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            {% if upcoming_patients %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>المريض</th>
+                                            <th>الوقت</th>
+                                            <th>النوع</th>
+                                            <th>الإجراء</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for visit in upcoming_patients %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-circle me-2 bg-primary bg-opacity-10 text-primary">
+                                                        {{ visit.patient.full_name[:1] }}
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-bold">{{ visit.patient.full_name }}</div>
+                                                        <small class="text-muted">#{{ visit.visit_number }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ visit.visit_time.strftime('%I:%M %p') if visit.visit_time else '---' }}</td>
+                                            <td>
+                                                <span class="badge {{ 'bg-danger' if visit.visit_type == 'EMERGENCY' else 'bg-info' }}">
+                                                    {{ visit.get_visit_type_display() }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-stethoscope"></i> فحص
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="fas fa-user-slash fa-3x mb-3 opacity-50"></i>
+                                <p>لا يوجد مرضى في الانتظار حالياً</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Quick Actions & Signature -->
+                <div class="col-lg-4 mb-4">
+                    <!-- Quick Actions -->
+                    <div class="card card-modern mb-4">
+                        <div class="card-header bg-transparent border-0">
+                            <h5 class="mb-0 text-primary fw-bold">
+                                <i class="fas fa-bolt me-2"></i>
+                                إجراءات سريعة
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-outline-primary text-start p-3 hover-scale">
+                                    <i class="fas fa-list-ol me-2 fa-lg"></i>
+                                    إدارة الطابور
+                                </a>
+                                <a href="{{ url_for('doctor.patients') }}" class="btn btn-outline-info text-start p-3 hover-scale">
+                                    <i class="fas fa-users me-2 fa-lg"></i>
+                                    بحث المرضى
+                                </a>
+                                <a href="{{ url_for('doctor.prescriptions') }}" class="btn btn-outline-success text-start p-3 hover-scale">
+                                    <i class="fas fa-file-prescription me-2 fa-lg"></i>
+                                    الوصفات الطبية
                                 </a>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Doctor Role Info -->
-    <div class="row mb-4" data-aos="fade-up" data-aos-delay="200">
-        <div class="col-12">
-            <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--info-gradient); color: white;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        الوظائف الطبية الاحترافية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <ul class="mb-0">
-                                <li><strong>التشخيص الطبي:</strong> فحص وتشخيص المرضى المخصصين له</li>
-                                <li><strong>الوصفات الطبية:</strong> كتابة وصفات إلكترونية متقدمة</li>
-                                <li><strong>الفحوصات:</strong> طلب تحاليل وأشعة حسب الحاجة</li>
-                            </ul>
+                    <!-- Digital Signature Status -->
+                    <div class="card card-modern">
+                        <div class="card-header bg-transparent border-0">
+                            <h5 class="mb-0 text-primary fw-bold">
+                                <i class="fas fa-signature me-2"></i>
+                                التوقيع الرقمي
+                            </h5>
                         </div>
-                        <div class="col-md-6">
-                            <ul class="mb-0">
-                                <li><strong>السجل الطبي:</strong> مراجعة التاريخ الطبي للمريض</li>
-                            <li><strong>العلاج:</strong> إدارة خطة العلاج والمتابعة</li>
-                            <li><strong>التقارير:</strong> طباعة التقارير الطبية</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                زيارات اليوم
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.today_visits or 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                زيارات مكتملة
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.completed_today or 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                زيارات معلقة
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.pending_visits or 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                الوصفات اليوم
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.prescriptions_today or 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-prescription fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Additional Statistics -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                طلبات مختبر معلقة
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.pending_lab_requests or 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-flask fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-secondary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
-                                طلبات أشعة معلقة
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.pending_radiology_requests or 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-x-ray fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-dark shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
-                                زيارات الأسبوع
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.weekly_visits or 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                المرضى القادمين
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ upcoming_patients|length or 0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Today's Appointments -->
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">مواعيد اليوم</h6>
-                    <a href="{{ url_for('doctor.treatment_queue') }}" class="btn btn-sm btn-primary">عرض الكل</a>
-                </div>
-                <div class="card-body">
-                    {% if today_appointments %}
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>الوقت</th>
-                                        <th>اسم المريض</th>
-                                        <th>نوع الموعد</th>
-                                        <th>الحالة</th>
-                                        <th>الإجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for appointment in today_appointments %}
-                                    <tr>
-                                        <td>{{ appointment.appointment_time.strftime('%H:%M') if appointment.appointment_time else 'غير محدد' }}</td>
-                                        <td>{{ appointment.patient.full_name if appointment.patient else 'غير محدد' }}</td>
-                                        <td>
-                                            {% if appointment.appointment_type == 'consultation' %}
-                                                <span class="badge badge-primary">استشارة</span>
-                                            {% elif appointment.appointment_type == 'follow_up' %}
-                                                <span class="badge badge-info">متابعة</span>
-                                            {% else %}
-                                                <span class="badge badge-secondary">{{ appointment.appointment_type }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if appointment.status == 'scheduled' %}
-                                                <span class="badge badge-warning">مجدول</span>
-                                            {% elif appointment.status == 'completed' %}
-                                                <span class="badge badge-success">مكتمل</span>
-                                            {% else %}
-                                                <span class="badge badge-secondary">{{ appointment.status }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <a href="{{ url_for('doctor.start_visit', visit_id=appointment.id) }}" class="btn btn-sm btn-primary">
-                                                <i class="fas fa-play"></i> بدء
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-calendar fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">لا توجد مواعيد اليوم</h5>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">إجراءات سريعة</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('doctor.treatment_queue') }}" class="btn btn-primary">
-                            <i class="fas fa-stethoscope me-2"></i>طابور العلاج
-                        </a>
-                        <a href="{{ url_for('doctor.prescriptions') }}" class="btn btn-success">
-                            <i class="fas fa-prescription me-2"></i>الروشيتات
-                        </a>
-                        <a href="{{ url_for('doctor.lab_requests') }}" class="btn btn-warning">
-                            <i class="fas fa-flask me-2"></i>طلبات التحاليل
-                        </a>
-                        <a href="{{ url_for('doctor.radiology_requests') }}" class="btn btn-info">
-                            <i class="fas fa-x-ray me-2"></i>طلبات الأشعة
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Pending Visits -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">الزيارات المعلقة</h6>
-                    <a href="{{ url_for('doctor.treatment_queue') }}" class="btn btn-sm btn-primary">عرض الكل</a>
-                </div>
-                <div class="card-body">
-                    {% if pending_visits %}
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>تاريخ الزيارة</th>
-                                        <th>اسم المريض</th>
-                                        <th>نوع الزيارة</th>
-                                        <th>الحالة</th>
-                                        <th>الإجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for visit in pending_visits %}
-                                    <tr>
-                                        <td>{{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else 'غير محدد' }}</td>
-                                        <td>{{ visit.patient.full_name if visit.patient else 'غير محدد' }}</td>
-                                        <td>
-                                            {% if visit.visit_type == 'first' %}
-                                                <span class="badge badge-primary">أولى</span>
-                                            {% elif visit.visit_type == 'follow_up' %}
-                                                <span class="badge badge-info">متابعة</span>
-                                            {% elif visit.visit_type == 'emergency' %}
-                                                <span class="badge badge-danger">طوارئ</span>
-                                            {% else %}
-                                                <span class="badge badge-secondary">{{ visit.visit_type }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if visit.status == 'READY' %}
-                                                <span class="badge badge-success">جاهز</span>
-                                            {% elif visit.status == 'IN_PROGRESS' %}
-                                                <span class="badge badge-warning">قيد التنفيذ</span>
-                                            {% else %}
-                                                <span class="badge badge-secondary">{{ visit.status }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <a href="{{ url_for('doctor.start_visit', visit_id=visit.id) }}" class="btn btn-sm btn-primary">
-                                                <i class="fas fa-play"></i> بدء
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-clock fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">لا توجد زيارات معلقة</h5>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- AI Diagnostic Assistant Section -->
-    {% if stats.ai_diagnostic_assistant %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-brain me-2"></i>
-                        مساعد التشخيص بالذكاء الاصطناعي
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-primary">التشخيصات الشائعة</h6>
-                            {% if stats.ai_diagnostic_assistant.common_diagnoses %}
-                            <ul class="list-unstyled">
-                                {% for diagnosis in stats.ai_diagnostic_assistant.common_diagnoses %}
-                                <li class="mb-2">
-                                    <span class="badge bg-primary me-2">{{ diagnosis.count }}</span>
-                                    {{ diagnosis.diagnosis }}
-                                </li>
-                                {% endfor %}
-                            </ul>
+                        <div class="card-body text-center">
+                            {% if current_user.digital_signature %}
+                                <div class="signature-preview mb-3 p-2 border rounded bg-light">
+                                    <img src="{{ current_user.digital_signature }}" alt="التوقيع" class="img-fluid" style="max-height: 80px;">
+                                </div>
+                                <div class="alert alert-success py-2 mb-2">
+                                    <i class="fas fa-check-circle me-1"></i> التوقيع مفعل
+                                </div>
+                                <a href="{{ url_for('auth.profile') }}" class="btn btn-sm btn-outline-secondary w-100">
+                                    تحديث التوقيع
+                                </a>
                             {% else %}
-                            <p class="text-muted">لا توجد بيانات تشخيص</p>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="text-success">الأدوية الموصوفة</h6>
-                            {% if stats.ai_diagnostic_assistant.common_medications %}
-                            <ul class="list-unstyled">
-                                {% for medication in stats.ai_diagnostic_assistant.common_medications %}
-                                <li class="mb-2">
-                                    <span class="badge bg-success me-2">{{ medication.count }}</span>
-                                    {{ medication.medication }}
-                                </li>
-                                {% endfor %}
-                            </ul>
-                            {% else %}
-                            <p class="text-muted">لا توجد بيانات أدوية</p>
+                                <div class="mb-3 text-muted">
+                                    <i class="fas fa-file-signature fa-3x opacity-50"></i>
+                                    <p class="mt-2 small">لم يتم إعداد توقيع رقمي بعد</p>
+                                </div>
+                                <a href="{{ url_for('auth.profile') }}" class="btn btn-primary w-100 pulse-animation">
+                                    <i class="fas fa-plus me-1"></i> إضافة توقيع
+                                </a>
                             {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    {% endif %}
+            </div>
 
-    <!-- Patient Medical History AI Section -->
-    {% if stats.patient_medical_history_ai %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-history me-2"></i>
-                        التاريخ الطبي للمرضى بالذكاء الاصطناعي
-                    </h5>
+            <div class="dashboard-panel" data-panel="smart_insights">
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h5 class="mb-0 text-primary fw-bold">
+                                <i class="fas fa-brain me-2"></i>
+                                دعم القرار السريري
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if stats.smart_recommendations %}
+                                <ul class="list-unstyled mb-0">
+                                    {% for rec in stats.smart_recommendations %}
+                                        <li class="mb-2">
+                                            <strong>{{ rec.title }}</strong>
+                                            <div class="text-muted small">{{ rec.suggestion }}</div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <div class="text-muted">لا توجد توصيات حالياً</div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.patient_medical_history_ai.frequent_patients or 0 }}</h4>
-                                <p class="text-muted mb-0">المرضى المتكررين</p>
+                <div class="col-lg-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h5 class="mb-0 text-primary fw-bold">
+                                <i class="fas fa-chart-line me-2"></i>
+                                التحليلات والتحسينات
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if stats.medical_analytics %}
+                                <div class="mb-3">
+                                    <div class="small text-muted">معدل الإنجاز</div>
+                                    <div class="fw-bold">{{ stats.medical_analytics.completion_rate }}%</div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="small text-muted">متوسط مدة الزيارة</div>
+                                    <div class="fw-bold">{{ stats.medical_analytics.avg_visit_duration }} دقيقة</div>
+                                </div>
+                            {% endif %}
+                            {% if stats.workflow_optimizations %}
+                                <ul class="list-unstyled mb-0">
+                                    {% for opt in stats.workflow_optimizations %}
+                                        <li class="mb-2">
+                                            <strong>{{ opt.title }}</strong>
+                                            <div class="text-muted small">{{ opt.suggestion }}</div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <div class="text-muted">لا توجد تحسينات مقترحة حالياً</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- Finance Tab -->
+        {% if current_user.role in ['manager','super_admin','accountant'] %}
+        <div class="tab-pane fade" id="finance" role="tabpanel" aria-labelledby="finance-tab">
+            <div class="row mb-4">
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">إيراد الطبيب اليوم</div>
+                                    <div class="h3 mb-0 fw-bold gradient-text">{{ stats.doctor_earnings_today|round(2) }} </div>
+                                </div>
+                                <div class="icon-circle bg-primary bg-opacity-10 text-primary">
+                                    <i class="fas fa-coins fa-2x"></i>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.patient_medical_history_ai.chronic_conditions or 0 }}</h4>
-                                <p class="text-muted mb-0">الحالات المزمنة</p>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">إيراد الأسبوع</div>
+                                    <div class="h3 mb-0 fw-bold gradient-text">{{ stats.doctor_earnings_week|round(2) }}</div>
+                                </div>
+                                <div class="icon-circle bg-success bg-opacity-10 text-success">
+                                    <i class="fas fa-chart-line fa-2x"></i>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.patient_medical_history_ai.long_term_medications or 0 }}</h4>
-                                <p class="text-muted mb-0">الأدوية طويلة المدى</p>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">إيراد الشهر</div>
+                                    <div class="h3 mb-0 fw-bold gradient-text">{{ stats.doctor_earnings_month|round(2) }}</div>
+                                </div>
+                                <div class="icon-circle bg-info bg-opacity-10 text-info">
+                                    <i class="fas fa-calendar-alt fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Role Info Tab -->
+        <div class="tab-pane fade" id="info" role="tabpanel" aria-labelledby="info-tab">
+            <div class="row mb-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header bg-transparent border-0">
+                            <h5 class="mb-0 text-primary fw-bold">
+                                <i class="fas fa-info-circle me-2"></i>
+                                الوظائف الطبية الاحترافية
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled mb-0">
+                                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> <strong>التشخيص الطبي:</strong> فحص وتشخيص المرضى المخصصين له</li>
+                                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> <strong>الوصفات الطبية:</strong> كتابة وصفات إلكترونية متقدمة</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> <strong>الفحوصات:</strong> طلب تحاليل وأشعة حسب الحاجة</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled mb-0">
+                                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> <strong>السجل الطبي:</strong> مراجعة التاريخ الطبي للمريض</li>
+                                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> <strong>العلاج:</strong> إدارة خطة العلاج والمتابعة</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> <strong>التقارير:</strong> طباعة التقارير الطبية</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -464,214 +418,117 @@
             </div>
         </div>
     </div>
-    {% endif %}
-
-    <!-- Treatment Recommendations Section -->
-    {% if stats.treatment_recommendations %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-info text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-lightbulb me-2"></i>
-                        توصيات العلاج
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.treatment_recommendations.successful_treatments or 0 }}</h4>
-                                <p class="text-muted mb-0">العلاجات الناجحة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.treatment_recommendations.drug_interactions or 0 }}</h4>
-                                <p class="text-muted mb-0">تفاعلات الأدوية</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.treatment_recommendations.recommendation_score or 0 }}%</h4>
-                                <p class="text-muted mb-0">نتيجة التوصيات</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Clinical Decision Support Section -->
-    {% if stats.clinical_decision_support %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-warning text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-stethoscope me-2"></i>
-                        دعم القرارات السريرية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.clinical_decision_support.diagnosis_success_rate or 0 }}%</h4>
-                                <p class="text-muted mb-0">معدل نجاح التشخيص</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.clinical_decision_support.medication_effectiveness or 0 }}%</h4>
-                                <p class="text-muted mb-0">فعالية الأدوية</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.clinical_decision_support.treatment_success or 0 }}%</h4>
-                                <p class="text-muted mb-0">نجاح العلاج</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.clinical_decision_support.overall_score or 0 }}%</h4>
-                                <p class="text-muted mb-0">النتيجة الإجمالية</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Medical Analytics Section -->
-    {% if stats.medical_analytics %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-secondary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-bar me-2"></i>
-                        التحليلات الطبية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.medical_analytics.doctor_performance or 0 }}%</h4>
-                                <p class="text-muted mb-0">أداء الطبيب</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.medical_analytics.avg_visit_duration or 0 }} دقيقة</h4>
-                                <p class="text-muted mb-0">متوسط مدة الزيارة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.medical_analytics.diagnosis_accuracy or 0 }}%</h4>
-                                <p class="text-muted mb-0">دقة التشخيص</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.medical_analytics.medication_distribution or 0 }}%</h4>
-                                <p class="text-muted mb-0">توزيع الأدوية</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Workflow Optimization Section -->
-    {% if stats.workflow_optimization %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-dark text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-cogs me-2"></i>
-                        تحسين سير العمل
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.workflow_optimization.efficiency_score or 0 }}%</h4>
-                                <p class="text-muted mb-0">كفاءة سير العمل</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.workflow_optimization.time_saved or 0 }} دقيقة</h4>
-                                <p class="text-muted mb-0">الوقت المحفوظ</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.workflow_optimization.optimization_potential or 0 }}%</h4>
-                                <p class="text-muted mb-0">إمكانية التحسين</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Smart Reminders Section -->
-    {% if stats.smart_reminders %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-light text-dark">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bell me-2"></i>
-                        التذكيرات الذكية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.smart_reminders.appointment_reminders or 0 }}</h4>
-                                <p class="text-muted mb-0">تذكيرات المواعيد</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.smart_reminders.follow_up_reminders or 0 }}</h4>
-                                <p class="text-muted mb-0">تذكيرات المتابعة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.smart_reminders.medication_reminders or 0 }}</h4>
-                                <p class="text-muted mb-0">تذكيرات الأدوية</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.smart_reminders.reminder_effectiveness or 0 }}%</h4>
-                                <p class="text-muted mb-0">فعالية التذكيرات</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
+
+<div class="modal fade" id="dashboardSettingsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تخصيص اللوحة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="dashboardSettingsList"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                <button type="button" class="btn btn-primary" id="saveDashboardSettings">حفظ</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const dashboardLayoutUrl = "{{ url_for('doctor.api_dashboard_layout') }}";
+const csrfToken = "{{ csrf_token() }}";
+const panelContainer = document.getElementById('doctorPanels');
+const settingsList = document.getElementById('dashboardSettingsList');
+const saveSettingsBtn = document.getElementById('saveDashboardSettings');
+
+function applyLayout(items) {
+    const map = {};
+    (items || []).forEach(it => map[it.id] = it);
+    const panels = panelContainer.querySelectorAll('.dashboard-panel');
+    panels.forEach(panel => {
+        const id = panel.getAttribute('data-panel');
+        const cfg = map[id];
+        if (!cfg) return;
+        panel.style.order = cfg.order || 0;
+        panel.style.display = cfg.enabled ? '' : 'none';
+    });
+}
+
+function renderSettings(items) {
+    settingsList.innerHTML = '';
+    (items || []).sort((a,b) => (a.order || 0) - (b.order || 0)).forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'd-flex align-items-center justify-content-between border rounded p-2 mb-2';
+        row.innerHTML = `
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="panel_${item.id}" ${item.enabled ? 'checked' : ''}>
+                <label class="form-check-label" for="panel_${item.id}">${item.title || item.id}</label>
+            </div>
+            <input type="number" class="form-control form-control-sm" style="width: 80px;" value="${item.order || 0}" data-panel="${item.id}">
+        `;
+        settingsList.appendChild(row);
+    });
+}
+
+async function loadLayout() {
+    const r = await fetch(dashboardLayoutUrl);
+    const data = await r.json().catch(() => ({}));
+    if (!data || !data.items) return;
+    applyLayout(data.items);
+    renderSettings(data.items);
+}
+
+async function saveLayout() {
+    const items = [];
+    settingsList.querySelectorAll('input[type="number"]').forEach(input => {
+        const id = input.getAttribute('data-panel');
+        const checkbox = document.getElementById(`panel_${id}`);
+        items.push({
+            id,
+            order: parseInt(input.value || '0', 10),
+            enabled: checkbox ? checkbox.checked : true
+        });
+    });
+    const r = await fetch(dashboardLayoutUrl, {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        body: JSON.stringify({ items })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (data && data.items) {
+        applyLayout(data.items);
+        renderSettings(data.items);
+    }
+}
+
+if (saveSettingsBtn) {
+    saveSettingsBtn.addEventListener('click', saveLayout);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadLayout();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+    if (e.altKey && e.key.toLowerCase() === 'q') {
+        window.location.href = "{{ url_for('doctor.patient_queue') }}";
+    }
+    if (e.altKey && e.key.toLowerCase() === 'p') {
+        window.location.href = "{{ url_for('doctor.patients') }}";
+    }
+    if (e.altKey && e.key.toLowerCase() === 'r') {
+        window.location.href = "{{ url_for('doctor.prescriptions') }}";
+    }
+    if (e.altKey && e.key.toLowerCase() === 'a') {
+        window.location.href = "{{ url_for('doctor.appointments') }}";
+    }
+});
+</script>
 {% endblock %}

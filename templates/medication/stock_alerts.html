@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}تنبيهات المخزون{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-3">الأدوية منخفضة المخزون</h2>
+  <div class="card mb-4"><div class="card-body">
+    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>الدواء</th><th>المخزون</th><th>الحد الأدنى</th></tr></thead><tbody>
+      {% for m in low_stock or [] %}
+      <tr><td>{{ m.name }}</td><td>{{ m.stock_quantity }}</td><td>{{ m.min_stock_level }}</td></tr>
+      {% else %}
+      <tr><td colspan="3" class="text-center">لا توجد عناصر منخفضة</td></tr>
+      {% endfor %}
+    </tbody></table></div>
+  </div></div>
+  <h2 class="mb-3">المنتهية قريباً</h2>
+  <div class="card"><div class="card-body">
+    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>الدواء</th><th>تاريخ الانتهاء</th></tr></thead><tbody>
+      {% for m in expiring_soon or [] %}
+      <tr><td>{{ m.name }}</td><td>{{ m.expiry_date }}</td></tr>
+      {% else %}
+      <tr><td colspan="2" class="text-center">لا توجد عناصر</td></tr>
+      {% endfor %}
+    </tbody></table></div>
+  </div></div>
+</div>
+{% endblock %}
+

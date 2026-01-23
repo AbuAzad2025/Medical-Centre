@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}بحث عن المرضى{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary"><i class="fas fa-users me-2"></i> بحث عن المرضى</h2>
+            <div class="text-muted">يمكنك البحث في جميع مرضى المركز وعرض تاريخهم الطبي دون تعديل البيانات الأساسية.</div>
+          </div>
+          <div>
+            <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i> العودة</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header">بحث عن مريض</div>
+        <div class="card-body">
+          <form method="get" class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">كلمة البحث</label>
+              <input type="text" class="form-control" name="q" value="{{ q or '' }}" placeholder="اسم المريض، الهاتف، الهوية...">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> بحث</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header">النتائج</div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>الاسم</th>
+                  <th>الهاتف</th>
+                  <th>الهوية</th>
+                  <th>العمر</th>
+                  <th>عدد الزيارات</th>
+                  <th>آخر زيارة</th>
+                  <th>الخط الزمني</th>
+                  <th>السجل الطبي</th>
+                  <th>الوصفات</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if results %}
+                  {% for row in results %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ row.full_name }}</td>
+                    <td>{{ row.phone or '-' }}</td>
+                    <td>{{ row.national_id or '-' }}</td>
+                    <td>{{ row.age or '-' }}</td>
+                    <td>{{ row.visits_count }}</td>
+                    <td>
+                      {% if row.last_visit %}
+                        {{ row.last_visit.strftime('%Y-%m-%d') }}
+                      {% else %}
+                        -
+                      {% endif %}
+                    </td>
+                    <td>
+                      <a href="{{ url_for('doctor.patient_timeline', patient_id=row.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-stream me-1"></i> الخط الزمني
+                      </a>
+                    </td>
+                    <td>
+                      <a href="{{ url_for('doctor.medical_history', patient_id=row.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-notes-medical me-1"></i> السجل الطبي
+                      </a>
+                    </td>
+                    <td>
+                      <a href="{{ url_for('doctor.prescriptions_history', patient_id=row.id) }}" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-file-prescription me-1"></i> الوصفات
+                      </a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="10" class="text-center text-muted">لا توجد نتائج. جرّب توسيع البحث.</td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

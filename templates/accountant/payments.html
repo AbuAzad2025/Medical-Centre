@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}سجل المدفوعات{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-3">سجل المدفوعات</h2>
+  <div class="card"><div class="card-body">
+    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>#</th><th>المريض</th><th>الزيارة</th><th>المبلغ</th><th>الطريقة</th><th>التاريخ</th></tr></thead><tbody>
+      {% for p in payments or [] %}
+      <tr><td>{{ p.id }}</td><td>{{ p.patient.full_name if p.patient else '' }}</td><td>{{ p.visit_id }}</td><td>{{ "%.2f"|format(p.amount or 0) }}</td><td>{{ p.method_display }}</td><td>{{ p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '' }}</td></tr>
+      {% else %}
+      <tr><td colspan="6" class="text-center">لا مدفوعات</td></tr>
+      {% endfor %}
+    </tbody></table></div>
+  </div></div>
+</div>
+{% endblock %}

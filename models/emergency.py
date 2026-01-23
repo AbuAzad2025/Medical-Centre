@@ -30,6 +30,34 @@ class EmergencyCase(db.Model):
     # العلاقات
     patient = db.relationship('Patient', backref='emergency_cases', lazy='select')
     visit = db.relationship('Visit', backref='emergency_cases', lazy='select')
+
+    @property
+    def priority(self):
+        severity = (self.severity or '').upper()
+        if severity == 'CRITICAL':
+            return 'CRITICAL'
+        if severity == 'HIGH':
+            return 'URGENT'
+        if severity == 'MODERATE':
+            return 'NORMAL'
+        if severity == 'LOW':
+            return 'LOW'
+        return None
+
+    @priority.setter
+    def priority(self, value):
+        val = (value or '').upper()
+        priority_map = {
+            'CRITICAL': 'CRITICAL',
+            'URGENT': 'HIGH',
+            'HIGH': 'HIGH',
+            'NORMAL': 'MODERATE',
+            'MODERATE': 'MODERATE',
+            'LOW': 'LOW'
+        }
+        mapped = priority_map.get(val)
+        if mapped:
+            self.severity = mapped
     
     def __repr__(self):
         return f'<EmergencyCase {self.case_number}>'

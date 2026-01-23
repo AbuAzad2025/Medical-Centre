@@ -3,7 +3,7 @@
 Medical System File Management Models
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
 import os
@@ -37,7 +37,7 @@ class FileUpload(db.Model):
     uploaded_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     # التواريخ
-    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    uploaded_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     last_accessed = db.Column(db.DateTime, nullable=True)
     expires_at = db.Column(db.DateTime, nullable=True)
     
@@ -72,7 +72,7 @@ class FileUpload(db.Model):
     def is_expired(self):
         """هل انتهت صلاحية الملف"""
         if self.expires_at:
-            return datetime.utcnow() > self.expires_at
+            return datetime.now(timezone.utc) > self.expires_at
         return False
     
     def get_file_url(self):
@@ -121,8 +121,8 @@ class FileCategory(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     
     # التواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     
     # Constraints and Indexes
@@ -192,7 +192,7 @@ class FilePermission(db.Model):
     can_delete = db.Column(db.Boolean, default=False)
     
     # التواريخ
-    granted_at = db.Column(db.DateTime, default=datetime.utcnow)
+    granted_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     granted_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     expires_at = db.Column(db.DateTime, nullable=True)
     
@@ -216,7 +216,7 @@ class FilePermission(db.Model):
     def is_expired(self):
         """هل انتهت صلاحية الصلاحية"""
         if self.expires_at:
-            return datetime.utcnow() > self.expires_at
+            return datetime.now(timezone.utc) > self.expires_at
         return False
     
     def to_dict(self):

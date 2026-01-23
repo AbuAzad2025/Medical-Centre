@@ -189,7 +189,7 @@
                                             <span class="badge bg-danger">معطل</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'لم يسجل دخول' }}</td>
+                                    <td>{{ user.last_login|format_datetime if user.last_login else 'لم يسجل دخول' }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
                                             <button class="btn btn-sm btn-outline-primary" onclick="viewUser({{ user.id }})" title="عرض">
@@ -437,15 +437,14 @@
 
 <script>
 function addNewUser() {
-    // إضافة مستخدم جديد
-    alert('إضافة مستخدم جديد');
+    Swal.fire({ title: 'إضافة مستخدم', text: 'إضافة مستخدم جديد', icon: 'info' });
 }
 
 function exportUsers() {
     const csvContent = "data:text/csv;charset=utf-8," 
         + "الاسم,اسم المستخدم,البريد الإلكتروني,الدور,القسم,الحالة,آخر دخول\n"
         {% for user in users %}
-        + "{{ user.full_name or 'غير محدد' }},{{ user.username }},{{ user.email or 'غير محدد' }},{{ user.role }},{{ user.department.name if user.department else 'غير محدد' }},{{ 'نشط' if user.is_active else 'معطل' }},{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'لم يسجل دخول' }}\n"
+        + "{{ user.full_name or 'غير محدد' }},{{ user.username }},{{ user.email or 'غير محدد' }},{{ user.role }},{{ user.department.name if user.department else 'غير محدد' }},{{ 'نشط' if user.is_active else 'معطل' }},{{ user.last_login|format_datetime if user.last_login else 'لم يسجل دخول' }}\n"
         {% endfor %};
     
     const encodedUri = encodeURI(csvContent);
@@ -458,36 +457,56 @@ function exportUsers() {
 }
 
 function viewUser(userId) {
-    // عرض تفاصيل المستخدم
-    alert('عرض تفاصيل المستخدم: ' + userId);
+    Swal.fire({ title: 'عرض المستخدم', text: 'عرض تفاصيل المستخدم: ' + userId, icon: 'info' });
 }
 
 function editUser(userId) {
-    // تعديل المستخدم
-    alert('تعديل المستخدم: ' + userId);
+    Swal.fire({ title: 'تعديل المستخدم', text: 'تعديل المستخدم: ' + userId, icon: 'info' });
 }
 
 function toggleUser(userId) {
-    // تبديل حالة المستخدم
-    if (confirm('هل تريد تغيير حالة هذا المستخدم؟')) {
-        alert('تم تغيير حالة المستخدم: ' + userId);
-        location.reload();
-    }
+    Swal.fire({
+        title: 'تغيير الحالة',
+        text: 'هل تريد تغيير حالة هذا المستخدم؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'تأكيد',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            Swal.fire({ title: 'تم', text: 'تم تغيير حالة المستخدم: ' + userId, icon: 'success' }).then(() => { location.reload(); });
+        }
+    });
 }
 
 function resetPassword(userId) {
-    // إعادة تعيين كلمة المرور
-    if (confirm('هل تريد إعادة تعيين كلمة مرور هذا المستخدم؟')) {
-        alert('تم إعادة تعيين كلمة المرور للمستخدم: ' + userId);
-    }
+    Swal.fire({
+        title: 'إعادة تعيين كلمة المرور',
+        text: 'هل تريد إعادة تعيين كلمة مرور هذا المستخدم؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'تأكيد',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            Swal.fire({ title: 'تم', text: 'تم إعادة تعيين كلمة المرور للمستخدم: ' + userId, icon: 'success' });
+        }
+    });
 }
 
 function deleteUser(userId) {
-    // حذف المستخدم
-    if (confirm('هل تريد حذف هذا المستخدم نهائياً؟')) {
-        alert('تم حذف المستخدم: ' + userId);
-        location.reload();
-    }
+    Swal.fire({
+        title: 'حذف المستخدم',
+        text: 'هل تريد حذف هذا المستخدم نهائياً؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'حذف',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            Swal.fire({ title: 'تم', text: 'تم حذف المستخدم: ' + userId, icon: 'success' }).then(() => { location.reload(); });
+        }
+    });
 }
 
 function filterUsers(filter) {
@@ -514,26 +533,48 @@ function filterUsers(filter) {
 }
 
 function bulkActivate() {
-    // تفعيل المستخدمين
-    if (confirm('هل تريد تفعيل المستخدمين المحددين؟')) {
-        alert('تم تفعيل المستخدمين');
-        location.reload();
-    }
+    Swal.fire({
+        title: 'تفعيل المستخدمين',
+        text: 'هل تريد تفعيل المستخدمين المحددين؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'تفعيل',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            Swal.fire({ title: 'تم', text: 'تم تفعيل المستخدمين', icon: 'success' }).then(() => { location.reload(); });
+        }
+    });
 }
 
 function bulkDeactivate() {
-    // تعطيل المستخدمين
-    if (confirm('هل تريد تعطيل المستخدمين المحددين؟')) {
-        alert('تم تعطيل المستخدمين');
-        location.reload();
-    }
+    Swal.fire({
+        title: 'تعطيل المستخدمين',
+        text: 'هل تريد تعطيل المستخدمين المحددين؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'تعطيل',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            Swal.fire({ title: 'تم', text: 'تم تعطيل المستخدمين', icon: 'success' }).then(() => { location.reload(); });
+        }
+    });
 }
 
 function bulkResetPassword() {
-    // إعادة تعيين كلمات المرور
-    if (confirm('هل تريد إعادة تعيين كلمات مرور المستخدمين المحددين؟')) {
-        alert('تم إعادة تعيين كلمات المرور');
-    }
+    Swal.fire({
+        title: 'إعادة تعيين كلمات المرور',
+        text: 'هل تريد إعادة تعيين كلمات مرور المستخدمين المحددين؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'تأكيد',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            Swal.fire({ title: 'تم', text: 'تم إعادة تعيين كلمات المرور', icon: 'success' });
+        }
+    });
 }
 
 function bulkExport() {

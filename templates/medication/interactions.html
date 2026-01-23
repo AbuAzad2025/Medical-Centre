@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}تداخلات دوائية{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary"><i class="fas fa-exchange-alt me-2"></i>تداخلات دوائية</h2>
+            <div class="text-muted">جدول تداخلات شائعة للتنبيه عند وصف الأدوية</div>
+          </div>
+          <div>
+            <a class="btn btn-secondary" href="{{ url_for('medication.dashboard') }}"><i class="fas fa-arrow-left me-1"></i>العودة</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow mb-4">
+    <div class="card-header">إضافة / تحديث تداخل</div>
+    <div class="card-body">
+      <form method="POST" class="row g-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="col-md-4">
+          <label class="form-label">الدواء الأول</label>
+          <select class="form-select" name="medication_a_id" required>
+            <option value="">اختر</option>
+            {% for m in medications %}
+              <option value="{{ m.id }}">{{ m.trade_name }}{% if m.generic_name %} ({{ m.generic_name }}){% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">الدواء الثاني</label>
+          <select class="form-select" name="medication_b_id" required>
+            <option value="">اختر</option>
+            {% for m in medications %}
+              <option value="{{ m.id }}">{{ m.trade_name }}{% if m.generic_name %} ({{ m.generic_name }}){% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">الشدة</label>
+          <select class="form-select" name="severity">
+            <option value="LOW">منخفض</option>
+            <option value="MODERATE" selected>متوسط</option>
+            <option value="HIGH">عالي</option>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="is_active" id="is_active" checked>
+            <label class="form-check-label" for="is_active">مفعل</label>
+          </div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">الوصف</label>
+          <textarea class="form-control" name="description" rows="2"></textarea>
+        </div>
+        <div class="col-12 d-flex justify-content-end">
+          <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow">
+    <div class="card-header">القائمة</div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>الدواء A</th>
+              <th>الدواء B</th>
+              <th>الشدة</th>
+              <th>الحالة</th>
+              <th>الوصف</th>
+              <th class="text-end"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for it in interactions %}
+              <tr>
+                <td>{{ it.id }}</td>
+                <td>{{ it.medication_a.trade_name if it.medication_a else it.medication_a_id }}</td>
+                <td>{{ it.medication_b.trade_name if it.medication_b else it.medication_b_id }}</td>
+                <td><span class="badge {% if it.severity == 'HIGH' %}bg-danger{% elif it.severity == 'MODERATE' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">{{ it.severity }}</span></td>
+                <td>
+                  {% if it.is_active %}
+                    <span class="badge bg-success">مفعل</span>
+                  {% else %}
+                    <span class="badge bg-secondary">غير مفعل</span>
+                  {% endif %}
+                </td>
+                <td class="text-muted" style="white-space: pre-line;">{{ it.description or '' }}</td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-primary" type="button" onclick="toggleInteraction({{ it.id }})">
+                    تبديل
+                  </button>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="7" class="text-center text-muted">لا توجد تداخلات</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const csrfToken = "{{ csrf_token() }}";
+async function toggleInteraction(id) {
+  const res = await fetch(`/medication/interactions/${id}/toggle`, { method: 'POST', headers: { 'X-CSRFToken': csrfToken } });
+  if (res.ok) location.reload();
+}
+</script>
+{% endblock %}

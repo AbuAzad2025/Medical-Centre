@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}نتائج أشعة الطوارئ{% endblock %}
+{% block content %}
+<div class="container">
+  <h2 class="mb-3">نتائج الأشعة: {{ patient.full_name }}</h2>
+  <div class="card"><div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>رقم الطلب</th>
+            <th>نوع الفحص</th>
+            <th>منطقة الفحص</th>
+            <th>الحالة</th>
+            <th>التاريخ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in radiology_requests or [] %}
+          <tr>
+            <td>{{ r.request_number or r.id }}</td>
+            <td>{{ r.modality or '-' }}</td>
+            <td>{{ r.body_part or '-' }}</td>
+            <td>
+              {% if r.status == 'REQUESTED' %}
+                <span class="badge badge-warning">مطلوب</span>
+              {% elif r.status == 'IN_PROGRESS' %}
+                <span class="badge badge-info">قيد التنفيذ</span>
+              {% elif r.status == 'DONE' %}
+                <span class="badge badge-success">مكتمل</span>
+              {% elif r.status == 'CANCELLED' %}
+                <span class="badge badge-danger">ملغي</span>
+              {% else %}
+                <span class="badge badge-secondary">{{ r.status }}</span>
+              {% endif %}
+            </td>
+            <td>{{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '-' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center">لا نتائج</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div></div>
+</div>
+{% endblock %}

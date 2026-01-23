@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}جودة المختبر{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary"><i class="fas fa-shield-alt me-2"></i>جودة المختبر</h2>
+            <div class="text-muted">مؤشرات الجودة ضمن فترة</div>
+          </div>
+          <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary" href="{{ url_for('lab.quality_control') }}"><i class="fas fa-sliders-h me-1"></i>ضبط الجودة</a>
+            <a class="btn btn-secondary" href="{{ url_for('lab.dashboard') }}"><i class="fas fa-arrow-left me-1"></i>العودة</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form method="GET" class="row g-3 mb-3">
+    <div class="col-md-3">
+      <label class="form-label">من</label>
+      <input type="date" class="form-control" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">إلى</label>
+      <input type="date" class="form-control" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <button class="btn btn-primary w-100" type="submit"><i class="fas fa-filter me-1"></i>عرض</button>
+    </div>
+  </form>
+
+  <div class="row mb-4">
+    <div class="col-md-3 mb-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted">طلبات مكتملة</div>
+          <div class="h3 mb-0">{{ total_done_requests }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted">متوسط زمن الإنجاز (دقيقة)</div>
+          <div class="h3 mb-0">{{ "%.1f"|format(avg_tat_minutes) }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted">نتائج معتمدة</div>
+          <div class="h3 mb-0">{{ total_validated_results }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted">نتائج حرجة</div>
+          <div class="h3 mb-0">{{ critical_validated_results }}</div>
+          <div class="text-muted small">{{ "%.1f"|format(critical_ratio * 100) }}%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6 mb-3">
+      <div class="card shadow">
+        <div class="card-header">ضبط الجودة</div>
+        <div class="card-body">
+          <div>إجمالي السجلات: {{ qc_total_count }}</div>
+          <div>فشل: {{ qc_fail_count }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-3">
+      <div class="card shadow">
+        <div class="card-header">إعادة الفحوصات (Top)</div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-striped align-middle">
+              <thead>
+                <tr>
+                  <th>المريض</th>
+                  <th>كود</th>
+                  <th>عدد</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in repeats %}
+                  <tr>
+                    <td>#{{ r.patient_id }}</td>
+                    <td>{{ r.test_code }}</td>
+                    <td>{{ r.count }}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="3" class="text-center text-muted">لا بيانات</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow">
+    <div class="card-header">زمن الإنجاز حسب كود التحليل (Top)</div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead>
+            <tr>
+              <th>الكود</th>
+              <th style="width: 220px;">متوسط الدقائق</th>
+              <th style="width: 140px;">عدد الطلبات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in test_tat_rows %}
+              <tr>
+                <td>{{ r.test_code }}</td>
+                <td>{{ "%.1f"|format(r.avg_minutes) }}</td>
+                <td>{{ r.requests_count }}</td>
+              </tr>
+            {% else %}
+              <tr><td colspan="3" class="text-center text-muted">لا بيانات</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

@@ -4,7 +4,6 @@
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
@@ -31,22 +30,200 @@
         </div>
     </div>
 
-    <!-- Vital Signs -->
-    <div class="row">
-        <div class="col-12">
+    <div class="row g-3">
+        <div class="col-lg-5">
             <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">العلامات الحيوية</h6>
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">المرضى</h6>
                 </div>
                 <div class="card-body">
-                    <div class="text-center py-5">
-                        <i class="fas fa-heartbeat fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">لا توجد علامات حيوية مسجلة</h5>
-                        <p class="text-muted">ستظهر العلامات الحيوية هنا عند تسجيلها</p>
-                    </div>
+                    {% if patients %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>الاسم</th>
+                                        <th class="text-end">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in patients %}
+                                        <tr {% if selected_patient and selected_patient.id == p.id %}class="table-primary"{% endif %}>
+                                            <td>{{ p.full_name }}</td>
+                                            <td class="text-end">
+                                                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('nurse.vital_signs', patient_id=p.id) }}">
+                                                    <i class="fas fa-heartbeat me-1"></i>
+                                                    قياس
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-user-injured fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">لا توجد بيانات مرضى</h5>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card shadow mb-3">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">تسجيل العلامات الحيوية</h6>
+                </div>
+                <div class="card-body">
+                    {% if selected_patient %}
+                        <div class="mb-3">
+                            <div class="fw-bold">{{ selected_patient.full_name }}</div>
+                            <div class="text-muted small">رقم المريض: {{ selected_patient.id }}</div>
+                        </div>
+                        <form id="vitalSignsForm" method="post" action="{{ url_for('nurse.record_vital_signs', patient_id=selected_patient.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">الضغط (انقباضي)</label>
+                                    <input type="number" class="form-control" name="blood_pressure_systolic" min="0" inputmode="numeric">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">الضغط (انبساطي)</label>
+                                    <input type="number" class="form-control" name="blood_pressure_diastolic" min="0" inputmode="numeric">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">النبض</label>
+                                    <input type="number" class="form-control" name="heart_rate" min="0" inputmode="numeric">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">الحرارة</label>
+                                    <input type="number" class="form-control" name="temperature" step="0.1" min="0" inputmode="decimal">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">SpO2</label>
+                                    <input type="number" class="form-control" name="oxygen_saturation" min="0" max="100" inputmode="numeric">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">معدل التنفس</label>
+                                    <input type="number" class="form-control" name="respiratory_rate" min="0" inputmode="numeric">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">الوزن</label>
+                                    <input type="number" class="form-control" name="weight" step="0.1" min="0" inputmode="decimal">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">الطول</label>
+                                    <input type="number" class="form-control" name="height" step="0.1" min="0" inputmode="decimal">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">ملاحظات</label>
+                                    <textarea class="form-control" name="notes" rows="2"></textarea>
+                                </div>
+                                <div class="col-12 d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i>
+                                        حفظ
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-hand-pointer fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">اختر مريضاً من القائمة لتسجيل القياسات</h5>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">آخر القياسات</h6>
+                </div>
+                <div class="card-body">
+                    {% if selected_patient and vital_records %}
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>الوقت</th>
+                                        <th>الضغط</th>
+                                        <th>النبض</th>
+                                        <th>الحرارة</th>
+                                        <th>SpO2</th>
+                                        <th>التنفس</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in vital_records %}
+                                        <tr>
+                                            <td>{{ r.recorded_at.strftime('%Y-%m-%d %H:%M') if r.recorded_at else '' }}</td>
+                                            <td>
+                                                {% if r.blood_pressure_systolic or r.blood_pressure_diastolic %}
+                                                    {{ r.blood_pressure_systolic or '' }}/{{ r.blood_pressure_diastolic or '' }}
+                                                {% else %}
+                                                    <span class="text-muted">—</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ r.heart_rate if r.heart_rate is not none else '—' }}</td>
+                                            <td>{{ r.temperature if r.temperature is not none else '—' }}</td>
+                                            <td>{{ r.oxygen_saturation if r.oxygen_saturation is not none else '—' }}</td>
+                                            <td>{{ r.respiratory_rate if r.respiratory_rate is not none else '—' }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% elif selected_patient %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-heartbeat fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">لا توجد قياسات لهذا المريض</h5>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-list fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">اختر مريضاً لعرض القياسات</h5>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('vitalSignsForm');
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const csrf = formData.get('csrf_token') || '';
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrf
+                }
+            });
+            const result = await response.json();
+            if (result && result.success) {
+                window.location.reload();
+            } else {
+                alert((result && result.message) ? result.message : 'حدث خطأ');
+            }
+        } catch (err) {
+            alert('حدث خطأ');
+        } finally {
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    });
+});
+</script>
 {% endblock %}

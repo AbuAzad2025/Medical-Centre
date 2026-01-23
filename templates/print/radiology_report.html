@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقرير الأشعة - {{ radiology_request.patient.full_name }}</title>
+    <title>تقرير الأشعة - {{ radiology_result.patient.full_name }}</title>
     <style>
         @page {
             size: A4;
@@ -149,6 +149,8 @@
             border-radius: 5px;
             border: 1px solid #f5c6cb;
             min-height: 100px;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
         
         .impression-section {
@@ -170,6 +172,8 @@
             border-radius: 5px;
             border: 1px solid #c3e6cb;
             min-height: 100px;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
         
         .recommendations-section {
@@ -191,6 +195,8 @@
             border-radius: 5px;
             border: 1px solid #d6d8db;
             min-height: 80px;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
         
         .signature-section {
@@ -261,18 +267,23 @@
     <div class="header">
         <h1>المركز الصحي المتخصص</h1>
         <h2>تقرير الأشعة</h2>
+        {% if qr_data_uri %}
+        <div style="margin-top:10px;">
+            <img src="{{ qr_data_uri }}" alt="QR" style="height:110px; border:1px solid #eee; border-radius:4px;" />
+        </div>
+        {% endif %}
     </div>
     
     <div class="radiology-info">
         <div class="info-section">
             <h3>معلومات التقرير</h3>
-            <p><strong>رقم التقرير:</strong> {{ radiology_request.report_number or 'غير محدد' }}</p>
-            <p><strong>تاريخ التقرير:</strong> {{ radiology_request.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
-            <p><strong>تاريخ الإكمال:</strong> {{ radiology_request.completed_at.strftime('%Y-%m-%d %H:%M') if radiology_request.completed_at else 'غير مكتمل' }}</p>
+            <p><strong>رقم التقرير:</strong> {{ radiology_result.request.request_number if radiology_result.request else 'غير محدد' }}</p>
+            <p><strong>تاريخ التقرير:</strong> {{ radiology_result.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            <p><strong>تاريخ الإكمال:</strong> {{ radiology_result.updated_at.strftime('%Y-%m-%d %H:%M') if radiology_result.updated_at else 'غير مكتمل' }}</p>
             <p><strong>حالة التقرير:</strong> 
-                {% if radiology_request.status == 'COMPLETED' %}
+                {% if radiology_result.status == 'VALIDATED' %}
                     <span style="color: green;">مكتمل</span>
-                {% elif radiology_request.status == 'IN_PROGRESS' %}
+                {% elif radiology_result.status == 'READY' %}
                     <span style="color: orange;">قيد التنفيذ</span>
                 {% else %}
                     <span style="color: red;">معلق</span>
@@ -294,21 +305,21 @@
         <div class="patient-details">
             <div class="detail">
                 <span><strong>الاسم:</strong></span>
-                <span>{{ radiology_request.patient.full_name }}</span>
+                <span>{{ radiology_result.patient.full_name }}</span>
             </div>
             <div class="detail">
                 <span><strong>رقم الهوية:</strong></span>
-                <span>{{ radiology_request.patient.national_id or 'غير محدد' }}</span>
+                <span>{{ radiology_result.patient.national_id or 'غير محدد' }}</span>
             </div>
             <div class="detail">
                 <span><strong>تاريخ الميلاد:</strong></span>
-                <span>{{ radiology_request.patient.birth_date.strftime('%Y-%m-%d') if radiology_request.patient.birth_date else 'غير محدد' }}</span>
+                <span>{{ radiology_result.patient.birth_date.strftime('%Y-%m-%d') if radiology_result.patient and radiology_result.patient.birth_date else 'غير محدد' }}</span>
             </div>
             <div class="detail">
                 <span><strong>العمر:</strong></span>
                 <span>
-                    {% if radiology_request.patient.birth_date %}
-                        {{ moment().diff(moment(radiology_request.patient.birth_date), 'years') }} سنة
+                    {% if radiology_result.patient.birth_date %}
+                        {{ moment().diff(moment(radiology_result.patient.birth_date), 'years') }} سنة
                     {% else %}
                         غير محدد
                     {% endif %}
@@ -316,11 +327,11 @@
             </div>
             <div class="detail">
                 <span><strong>الجنس:</strong></span>
-                <span>{{ radiology_request.patient.gender or 'غير محدد' }}</span>
+                <span>{{ radiology_result.patient.gender or 'غير محدد' }}</span>
             </div>
             <div class="detail">
                 <span><strong>الهاتف:</strong></span>
-                <span>{{ radiology_request.patient.phone or 'غير محدد' }}</span>
+                <span>{{ radiology_result.patient.phone or 'غير محدد' }}</span>
             </div>
         </div>
     </div>
@@ -330,19 +341,19 @@
         <div class="patient-details">
             <div class="detail">
                 <span><strong>اسم الطبيب:</strong></span>
-                <span>{{ radiology_request.doctor.full_name if radiology_request.doctor else 'غير محدد' }}</span>
+                <span>{{ radiology_result.request.requester.full_name if radiology_result.request and radiology_result.request.requester else 'غير محدد' }}</span>
             </div>
             <div class="detail">
                 <span><strong>التخصص:</strong></span>
-                <span>{{ radiology_request.doctor.specialization if radiology_request.doctor else 'غير محدد' }}</span>
+                <span>{{ radiology_result.performer.specialization if radiology_result.performer else 'غير محدد' }}</span>
             </div>
             <div class="detail">
                 <span><strong>رقم الترخيص:</strong></span>
-                <span>{{ radiology_request.doctor.license_number if radiology_request.doctor else 'غير محدد' }}</span>
+                <span>{{ radiology_result.performer.license_number if radiology_result.performer else 'غير محدد' }}</span>
             </div>
             <div class="detail">
                 <span><strong>القسم:</strong></span>
-                <span>{{ radiology_request.doctor.department.name_ar if radiology_request.doctor and radiology_request.doctor.department else 'غير محدد' }}</span>
+                <span>{{ radiology_result.performer.department.name_ar if radiology_result.performer and radiology_result.performer.department else 'غير محدد' }}</span>
             </div>
         </div>
     </div>
@@ -352,49 +363,61 @@
         <div class="examination-details">
             <div class="detail">
                 <span><strong>نوع الفحص:</strong></span>
-                <span>{{ radiology_request.examination_type or 'غير محدد' }}</span>
+                <span>{{ radiology_result.request.modality if radiology_result.request else 'غير محدد' }}</span>
             </div>
             <div class="detail">
                 <span><strong>منطقة الفحص:</strong></span>
-                <span>{{ radiology_request.body_part or 'غير محدد' }}</span>
+                <span>{{ radiology_result.request.body_part if radiology_result.request else 'غير محدد' }}</span>
             </div>
             <div class="detail">
                 <span><strong>تاريخ الفحص:</strong></span>
-                <span>{{ radiology_request.examination_date.strftime('%Y-%m-%d') if radiology_request.examination_date else 'غير محدد' }}</span>
+                <span>{{ radiology_result.created_at.strftime('%Y-%m-%d') }}</span>
             </div>
             <div class="detail">
                 <span><strong>وقت الفحص:</strong></span>
-                <span>{{ radiology_request.examination_time.strftime('%H:%M') if radiology_request.examination_time else 'غير محدد' }}</span>
+                <span>{{ radiology_result.created_at.strftime('%H:%M') }}</span>
             </div>
             <div class="detail">
                 <span><strong>الفني المسؤول:</strong></span>
-                <span>{{ radiology_request.technician or 'غير محدد' }}</span>
+                <span>{{ radiology_result.performer.full_name if radiology_result.performer else 'غير محدد' }}</span>
             </div>
             <div class="detail">
                 <span><strong>الطبيب المشرف:</strong></span>
-                <span>{{ radiology_request.supervising_doctor or 'غير محدد' }}</span>
+                <span>{{ radiology_result.request.requester.full_name if radiology_result.request and radiology_result.request.requester else 'غير محدد' }}</span>
             </div>
+            {% if radiology_result.study_uid %}
+            <div class="detail">
+                <span><strong>Study UID:</strong></span>
+                <span>{{ radiology_result.study_uid }}</span>
+            </div>
+            {% endif %}
+            {% if radiology_result.pacs_url %}
+            <div class="detail">
+                <span><strong>رابط PACS:</strong></span>
+                <span>{{ radiology_result.pacs_url }}</span>
+            </div>
+            {% endif %}
         </div>
     </div>
     
     <div class="findings-section">
         <h3>النتائج والملاحظات</h3>
         <div class="findings-content">
-            {{ radiology_request.findings or 'لم يتم تحديد النتائج بعد' }}
+            {{ radiology_result.findings or 'لم يتم تحديد النتائج بعد' }}
         </div>
     </div>
     
     <div class="impression-section">
         <h3>الانطباع والتشخيص</h3>
         <div class="impression-content">
-            {{ radiology_request.impression or 'لم يتم تحديد الانطباع بعد' }}
+            {{ radiology_result.impression or 'لم يتم تحديد الانطباع بعد' }}
         </div>
     </div>
     
     <div class="recommendations-section">
         <h3>التوصيات</h3>
         <div class="recommendations-content">
-            {{ radiology_request.recommendations or 'لا توجد توصيات إضافية' }}
+            {{ radiology_result.notes or 'لا توجد توصيات إضافية' }}
         </div>
     </div>
     
@@ -412,15 +435,18 @@
     <div class="footer">
         <p><strong>هذا التقرير صالح للاستخدام الطبي</strong></p>
         <p>تاريخ الطباعة: {{ moment().format('YYYY-MM-DD HH:mm') }}</p>
-        <p>للاستفسارات: radiology@medical-center.com | +970-XX-XXXXXXX</p>
+        <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else 'radiology@medical-center.com' }} | {{ branding.organization_phone if branding and branding.organization_phone else '+970-XX-XXXXXXX' }}</p>
         <hr style="margin: 10px 0; border: 1px solid #ddd;">
         <p style="font-size: 10px; color: #666; margin: 5px 0;">
-            <strong>تطوير:</strong> شركة ازاد للأنظمة الذكية | 
-            <strong>جوال:</strong> 0598953362 | 
-            <strong>وطنية:</strong> 0562150193 | 
-            <strong>واتساب:</strong> +972562150193 | 
-            <strong>رام الله - فلسطين</strong>
+            <strong>تطوير:</strong> {{ developer_company or 'شركة أزاد للأنظمة الذكية' }} | 
+            <strong>مطور:</strong> {{ developer_name or 'أحمد غنام' }}
         </p>
-    </div>
+</div>
+
+    <script>
+    window.onload = function() {
+        setTimeout(function() { window.print(); }, 800);
+    };
+    </script>
 </body>
 </html>

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
+{% import 'macros/forms.html' as forms %}
 
 {% block title %}قائمة الزيارات - الاستقبال{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
@@ -19,10 +19,12 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2">
+                                {% if current_user.role == 'reception' %}
                                 <a href="{{ url_for('reception.create_visit') }}" class="btn btn-primary">
                                     <i class="fas fa-plus me-1"></i>
                                     زيارة جديدة
                                 </a>
+                                {% endif %}
                                 <button class="btn btn-success" onclick="exportVisits()">
                                     <i class="fas fa-download me-1"></i>
                                     تصدير
@@ -35,7 +37,103 @@
         </div>
     </div>
 
-    <!-- Filters -->
+    {% if visit %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h6 class="text-primary mb-0">
+                        تفاصيل الزيارة رقم {{ visit.visit_number or visit.id }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="fw-bold">المريض</div>
+                            <div>{{ visit.patient.full_name }}</div>
+                            <div class="text-muted">{{ visit.patient.phone }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold">القسم</div>
+                            <div>{{ visit.department.name_ar if visit.department else 'غير محدد' }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold">الطبيب</div>
+                            <div>{{ visit.doctor.full_name if visit.doctor else 'غير محدد' }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold">نوع الزيارة</div>
+                            <div>
+                                {% if visit.visit_type == 'EMERGENCY' %}
+                                <span class="badge bg-danger">طوارئ</span>
+                                {% elif visit.visit_type == 'FOLLOW_UP' %}
+                                <span class="badge bg-warning">مراجعة</span>
+                                {% elif visit.visit_type == 'CONSULTATION' %}
+                                <span class="badge bg-info">استشارة</span>
+                                {% else %}
+                                <span class="badge bg-secondary">عادية</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold">التاريخ</div>
+                            <div>{{ visit.created_at|format_date }}</div>
+                            <div class="text-muted">{{ visit.created_at|format_time }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold">المبلغ الإجمالي</div>
+                            <div><strong>{{ "%.2f"|format(visit.total_amount) }} ₪</strong></div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold">حالة الدفع</div>
+                            <div>
+                                {% if visit.payment_status == 'PAID' or visit.remaining_amount <= 0 %}
+                                <span class="badge bg-success">مدفوع</span>
+                                {% elif visit.payment_status == 'PARTIAL' or (visit.paid_amount > 0 and visit.remaining_amount > 0) %}
+                                <span class="badge bg-info">جزئي</span>
+                                {% elif visit.payment_status == 'PENDING' %}
+                                <span class="badge bg-warning">معلق</span>
+                                {% elif visit.payment_status == 'DEBT' %}
+                                <span class="badge bg-danger">دين</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ visit.payment_status }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold">حالة الزيارة</div>
+                            <div>
+                                {% if visit.status == 'OPEN' %}
+                                <span class="badge bg-primary">مفتوحة</span>
+                                {% elif visit.status == 'IN_PROGRESS' %}
+                                <span class="badge bg-warning">قيد التنفيذ</span>
+                                {% elif visit.status == 'COMPLETED' %}
+                                <span class="badge bg-success">مكتملة</span>
+                                {% elif visit.status == 'ARCHIVED' %}
+                                <span class="badge bg-secondary">مؤرشفة</span>
+                                {% else %}
+                                <span class="badge bg-light text-dark">{{ visit.status }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 d-flex gap-2">
+                        <form method="post" action="{{ url_for('reception.process_payment', visit_id=visit.id) }}" style="display:inline">
+                            {{ forms.csrf() }}
+                            <button type="submit" class="btn btn-outline-success">
+                                <i class="fas fa-share-square me-1"></i> إرسال للمحاسبة
+                            </button>
+                        </form>
+                        <a href="{{ url_for('reception.print_receipt', visit_id=visit.id) }}" class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-print me-1"></i> طباعة الوصل
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
@@ -46,6 +144,7 @@
                 </div>
                 <div class="card-body">
                     <form method="GET" class="row g-3">
+                        <input type="hidden" name="page" value="1">
                         <div class="col-md-4">
                             <label for="search" class="form-label">البحث</label>
                             <input type="text" class="form-control" id="search" name="search" 
@@ -72,7 +171,15 @@
                                 <option value="ARCHIVED" {% if selected_status == 'ARCHIVED' %}selected{% endif %}>مؤرشفة</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-1">
+                            <label for="per_page" class="form-label">لكل صفحة</label>
+                            <select class="form-control" id="per_page" name="per_page" onchange="this.form.submit()">
+                                {% for n in [10, 25, 50, 100, 200] %}
+                                <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-1">
                             <label class="form-label">&nbsp;</label>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary">
@@ -86,19 +193,18 @@
         </div>
     </div>
 
-    <!-- Visits Table -->
     <div class="row">
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
-                        الزيارات ({{ visits|length }} زيارة)
+                        الزيارات ({{ total }} زيارة)
                     </h6>
                 </div>
                 <div class="card-body">
                     {% if visits %}
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover">
+                        <table class="table table-bordered table-hover" id="visitsTable">
                             <thead class="table-light">
                                 <tr>
                                     <th>رقم الزيارة</th>
@@ -115,7 +221,7 @@
                             </thead>
                             <tbody>
                                 {% for visit in visits %}
-                                <tr>
+                                <tr data-visit-id="{{ visit.id }}">
                                     <td>
                                         <span class="badge bg-primary">{{ visit.visit_number or visit.id }}</span>
                                     </td>
@@ -152,21 +258,27 @@
                                     </td>
                                     <td>
                                         <div>
-                                            {{ visit.created_at.strftime('%Y-%m-%d') }}<br>
-                                            <small class="text-muted">{{ visit.created_at.strftime('%H:%M') }}</small>
+                                            {{ visit.created_at|format_date }}<br>
+                                            <small class="text-muted">{{ visit.created_at|format_time }}</small>
                                         </div>
                                     </td>
                                     <td>
                                         <div>
                                             <strong>{{ "%.2f"|format(visit.total_amount) }} ₪</strong><br>
-                                            {% if visit.paid_amount > 0 %}
+                                            {% if visit.paid_amount > 0 and visit.remaining_amount > 0 %}
+                                            <small class="text-info">مدفوع جزئياً: {{ "%.2f"|format(visit.paid_amount) }} ₪ • المتبقي: {{ "%.2f"|format(visit.remaining_amount) }} ₪</small>
+                                            {% elif visit.paid_amount > 0 and visit.remaining_amount <= 0 %}
                                             <small class="text-success">مدفوع: {{ "%.2f"|format(visit.paid_amount) }} ₪</small>
+                                            {% elif visit.paid_amount == 0 and visit.remaining_amount > 0 %}
+                                            <small class="text-warning">متبقي: {{ "%.2f"|format(visit.remaining_amount) }} ₪</small>
                                             {% endif %}
                                         </div>
                                     </td>
                                     <td>
-                                        {% if visit.payment_status == 'PAID' %}
+                                        {% if visit.payment_status == 'PAID' or visit.remaining_amount <= 0 %}
                                         <span class="badge bg-success">مدفوع</span>
+                                        {% elif visit.payment_status == 'PARTIAL' or (visit.paid_amount > 0 and visit.remaining_amount > 0) %}
+                                        <span class="badge bg-info">جزئي</span>
                                         {% elif visit.payment_status == 'PENDING' %}
                                         <span class="badge bg-warning">معلق</span>
                                         {% elif visit.payment_status == 'DEBT' %}
@@ -195,15 +307,31 @@
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                             {% if visit.payment_status == 'PENDING' %}
-                                            <button type="button" class="btn btn-sm btn-outline-success" 
-                                                    onclick="processPayment({{ visit.id }})" title="معالجة الدفع">
-                                                <i class="fas fa-credit-card"></i>
-                                            </button>
+                                            <form method="post" action="{{ url_for('reception.process_payment', visit_id=visit.id) }}" style="display:inline">
+                                                {{ forms.csrf() }}
+                                                <button type="submit" class="btn btn-sm btn-outline-success" title="إرسال للمحاسبة">
+                                                    <i class="fas fa-share-square"></i>
+                                                </button>
+                                            </form>
                                             {% elif visit.payment_status == 'PAID' and not visit.receipt_printed %}
                                             <button type="button" class="btn btn-sm btn-outline-success" 
                                                     onclick="printReceipt({{ visit.id }})" title="طباعة الوصل">
                                                 <i class="fas fa-print"></i>
                                             </button>
+                                            {% endif %}
+                                            {% if current_user.role in ['reception','manager','super_admin'] %}
+                                            <button type="button" class="btn btn-sm btn-outline-dark" 
+                                                    onclick="openTransfer({{ visit.id }})" title="تحويل">
+                                                <i class="fas fa-random"></i>
+                                            </button>
+                                            {% endif %}
+                                            {% if visit.status == 'COMPLETED' %}
+                                            <form method="POST" action="{{ url_for('reception.archive_visit', visit_id=visit.id) }}" style="display:inline">
+                                                {{ forms.csrf() }}
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="أرشفة">
+                                                    <i class="fas fa-archive"></i>
+                                                </button>
+                                            </form>
                                             {% endif %}
                                             {% if visit.status == 'OPEN' %}
                                             <button type="button" class="btn btn-sm btn-outline-warning" 
@@ -218,15 +346,37 @@
                             </tbody>
                         </table>
                     </div>
+                    {% set pages = (total // per_page) + (1 if (total % per_page) else 0) %}
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="text-muted small">صفحة {{ page }} من {{ pages if pages > 0 else 1 }}</div>
+                        <div class="btn-group">
+                            <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
+                               href="{{ url_for('reception.visits', search=search, department_id=selected_department, status=selected_status, per_page=per_page, page=page-1) }}">
+                                السابق
+                            </a>
+                            <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
+                               href="{{ url_for('reception.visits', search=search, department_id=selected_department, status=selected_status, per_page=per_page, page=page+1) }}">
+                                التالي
+                            </a>
+                        </div>
+                    </div>
                     {% else %}
                     <div class="text-center py-5">
                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">لا توجد زيارات</h5>
-                        <p class="text-muted">لم يتم العثور على زيارات تطابق معايير البحث</p>
-                        <a href="{{ url_for('reception.create_visit') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-1"></i>
-                            إنشاء زيارة جديدة
-                        </a>
+                        {% if search or selected_department or selected_status %}
+                            <h5 class="text-muted">لا توجد نتائج مطابقة</h5>
+                            <p class="text-muted">جرّب تغيير الفلاتر أو مسح البحث</p>
+                            <a class="btn btn-outline-secondary" href="{{ url_for('reception.visits') }}">مسح الفلاتر</a>
+                        {% else %}
+                            <h5 class="text-muted">لا توجد زيارات</h5>
+                            <p class="text-muted">ابدأ بإنشاء زيارة جديدة</p>
+                            {% if current_user.role == 'reception' %}
+                            <a href="{{ url_for('reception.create_visit') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>
+                                إنشاء زيارة جديدة
+                            </a>
+                            {% endif %}
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
@@ -234,6 +384,44 @@
         </div>
     </div>
 </div>
+
+{% if current_user.role in ['reception','manager'] %}
+<div class="modal fade" id="transferVisitModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">تحويل الزيارة بين الأقسام</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="transferForm">
+          <input type="hidden" id="transferVisitId">
+          <div class="mb-3">
+            <label class="form-label" for="transferDepartment">القسم الجديد</label>
+            <select class="form-control" id="transferDepartment" required>
+              <option value="">اختر القسم</option>
+              {% for dept in departments %}
+              <option value="{{ dept.id }}">{{ dept.name_ar }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="transferDoctor">الطبيب</label>
+            <select class="form-control" id="transferDoctor">
+              <option value="">اختر الطبيب</option>
+            </select>
+          </div>
+        </form>
+        <small id="transferStatus" class="text-muted"></small>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+        <button type="button" class="btn btn-primary" id="confirmTransferBtn">تحويل</button>
+      </div>
+    </div>
+  </div>
+  </div>
+{% endif %}
 
 <style>
 .table th {
@@ -267,14 +455,15 @@
 </style>
 
 <script>
+{% if current_user.role in ['reception','manager'] %}
 function viewVisit(visitId) {
     // عرض تفاصيل الزيارة
-    window.open(`/reception/visit/${visitId}`, '_blank');
+    window.location.href = `/reception/view_visit/${visitId}`;
 }
 
 function processPayment(visitId) {
     // معالجة الدفع
-    window.location.href = `/reception/process_payment/${visitId}`;
+    window.location.href = `/payment/process/${visitId}`;
 }
 
 function printReceipt(visitId) {
@@ -299,5 +488,55 @@ setInterval(function() {
         location.reload();
     }
 }, 30000);
+
+function openTransfer(visitId) {
+    document.getElementById('transferVisitId').value = visitId;
+    document.getElementById('transferStatus').textContent = '';
+    const modal = new bootstrap.Modal(document.getElementById('transferVisitModal'));
+    modal.show();
+}
+
+document.getElementById('transferDepartment')?.addEventListener('change', function() {
+    const deptId = this.value;
+    const doctorSelect = document.getElementById('transferDoctor');
+    doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
+    if (!deptId) return;
+    fetch(`/reception/api/department-staff?department_id=${deptId}`)
+        .then(r => r.json())
+        .then(d => {
+            const staff = d.staff || [];
+            staff.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.full_name;
+                doctorSelect.appendChild(opt);
+            });
+        }).catch(() => {});
+});
+
+document.getElementById('confirmTransferBtn')?.addEventListener('click', function() {
+    const visitId = document.getElementById('transferVisitId').value;
+    const deptId = document.getElementById('transferDepartment').value;
+    const doctorId = document.getElementById('transferDoctor').value;
+    const statusEl = document.getElementById('transferStatus');
+    if (!deptId) { Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى اختيار القسم', icon: 'warning' }); return; }
+    fetch(`/reception/visits/${visitId}/transfer`, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: new URLSearchParams({ department_id: deptId, doctor_id: doctorId })
+    }).then(r => r.json()).then(d => {
+        if (d.success) { Swal.fire({ title: 'تم', text: 'تم تحويل الزيارة بنجاح', icon: 'success' }).then(() => { location.reload(); }); }
+        else { Swal.fire({ title: 'خطأ', text: (d.message || 'فشل التحويل'), icon: 'error' }); }
+    }).catch(() => { Swal.fire({ title: 'خطأ', text: 'خطأ اتصال', icon: 'error' }); });
+});
+
+document.getElementById('visitsTable')?.addEventListener('contextmenu', function(e) {
+    const row = e.target.closest('tr[data-visit-id]');
+    if (!row) return;
+    e.preventDefault();
+    const id = row.getAttribute('data-visit-id');
+    openTransfer(id);
+});
+{% endif %}
 </script>
 {% endblock %}

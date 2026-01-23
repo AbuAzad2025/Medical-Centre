@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}السجل الطبي{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-3">السجل الطبي: {{ patient.full_name }}</h2>
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card shadow-sm"><div class="card-header">السجلات</div><div class="card-body">
+        <ul class="list-group">
+          {% for r in medical_records or [] %}
+          <li class="list-group-item">{{ r.created_at }} — {{ r.diagnosis }} — {{ r.notes }}</li>
+          {% else %}
+          <li class="list-group-item text-center">لا سجلات</li>
+          {% endfor %}
+        </ul>
+      </div></div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm"><div class="card-header">زيارات سابقة</div><div class="card-body">
+        <ul class="list-group">
+          {% for v in previous_visits or [] %}
+          <li class="list-group-item">{{ v.visit_date }} — {{ v.visit_type }} — {{ v.status }}</li>
+          {% else %}
+          <li class="list-group-item text-center">لا زيارات</li>
+          {% endfor %}
+        </ul>
+      </div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

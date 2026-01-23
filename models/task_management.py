@@ -3,7 +3,7 @@
 Medical System Task Management Models
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
 
@@ -32,8 +32,8 @@ class Task(db.Model):
     # التواريخ
     due_date = db.Column(db.DateTime, nullable=True)
     completed_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (
@@ -62,13 +62,13 @@ class Task(db.Model):
     def is_overdue(self):
         """هل المهمة متأخرة"""
         if self.due_date and self.status not in ['completed', 'cancelled']:
-            return datetime.utcnow() > self.due_date
+            return datetime.now(timezone.utc) > self.due_date
         return False
     
     def get_remaining_time(self):
         """الحصول على الوقت المتبقي"""
         if self.due_date and self.status not in ['completed', 'cancelled']:
-            remaining = self.due_date - datetime.utcnow()
+            remaining = self.due_date - datetime.now(timezone.utc)
             if remaining.total_seconds() > 0:
                 return remaining
         return None
@@ -111,7 +111,7 @@ class TaskComment(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     # التواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (
@@ -151,7 +151,7 @@ class TaskAttachment(db.Model):
     file_id = db.Column(db.Integer, db.ForeignKey('file_uploads.id'), nullable=False)
     
     # التواريخ
-    attached_at = db.Column(db.DateTime, default=datetime.utcnow)
+    attached_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     attached_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     # Constraints and Indexes
@@ -204,8 +204,8 @@ class Project(db.Model):
     start_date = db.Column(db.DateTime, nullable=True)
     end_date = db.Column(db.DateTime, nullable=True)
     completed_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (
@@ -243,7 +243,7 @@ class Project(db.Model):
     def is_overdue(self):
         """هل المشروع متأخر"""
         if self.end_date and self.status not in ['completed', 'cancelled']:
-            return datetime.utcnow() > self.end_date
+            return datetime.now(timezone.utc) > self.end_date
         return False
     
     def to_dict(self):
@@ -279,7 +279,7 @@ class ProjectTask(db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'), nullable=False)
     
     # التواريخ
-    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+    added_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     added_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     # Constraints and Indexes
@@ -321,7 +321,7 @@ class ProjectMember(db.Model):
     role = db.Column(db.String(50), nullable=False, default='member')  # member, contributor, reviewer
     
     # التواريخ
-    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    joined_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     added_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     # Constraints and Indexes
