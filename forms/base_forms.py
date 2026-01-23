@@ -4,7 +4,7 @@ Medical System Base Forms
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectField, DateField, DateTimeField, IntegerField, FloatField, BooleanField, HiddenField, PasswordField, SubmitField
+from wtforms import StringField, TextAreaField, SelectField, DateField, DateTimeField, IntegerField, DecimalField, BooleanField, HiddenField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length, Email, NumberRange, Optional, ValidationError
 from wtforms.widgets import TextArea
 from datetime import datetime, date
@@ -48,13 +48,13 @@ class SearchFormBase(FormBase):
 class PaymentMixin:
     """خلطة الدفع للمعاملات المالية"""
     
-    amount = FloatField('المبلغ', validators=[DataRequired(message='المبلغ مطلوب'), NumberRange(min=0.01, message='المبلغ يجب أن يكون أكبر من صفر')])
+    amount = DecimalField('المبلغ', validators=[DataRequired(message='المبلغ مطلوب'), NumberRange(min=0.01, message='المبلغ يجب أن يكون أكبر من صفر')])
     payment_method = SelectField('طريقة الدفع', choices=[
-        ('cash', 'نقدي'),
-        ('card', 'بطاقة ائتمان'),
-        ('bank_transfer', 'تحويل بنكي'),
-        ('insurance', 'تأمين'),
-        ('cheque', 'شيك')
+        ('CASH', 'نقدي'),
+        ('CARD', 'بطاقة'),
+        ('WIRE', 'تحويل'),
+        ('INSURANCE', 'تأمين'),
+        ('FORCE', 'قسري')
     ], validators=[DataRequired(message='طريقة الدفع مطلوبة')])
     payment_date = DateField('تاريخ الدفع', default=date.today, validators=[DataRequired(message='تاريخ الدفع مطلوب')])
     notes = TextAreaField('ملاحظات', validators=[Optional()])
@@ -62,10 +62,10 @@ class PaymentMixin:
 class PricingBaseForm(FormBase):
     """النموذج الأساسي للتسعير"""
     
-    base_price = FloatField('السعر الأساسي', validators=[DataRequired(message='السعر الأساسي مطلوب'), NumberRange(min=0, message='السعر يجب أن يكون أكبر من أو يساوي صفر')])
-    urgent_price = FloatField('سعر الطوارئ', validators=[Optional(), NumberRange(min=0, message='سعر الطوارئ يجب أن يكون أكبر من أو يساوي صفر')])
-    insurance_price = FloatField('سعر التأمين', validators=[Optional(), NumberRange(min=0, message='سعر التأمين يجب أن يكون أكبر من أو يساوي صفر')])
-    discount_percentage = FloatField('نسبة الخصم (%)', validators=[Optional(), NumberRange(min=0, max=100, message='نسبة الخصم يجب أن تكون بين 0 و 100')])
+    base_price = DecimalField('السعر الأساسي', validators=[DataRequired(message='السعر الأساسي مطلوب'), NumberRange(min=0, message='السعر يجب أن يكون أكبر من أو يساوي صفر')])
+    urgent_price = DecimalField('سعر الطوارئ', validators=[Optional(), NumberRange(min=0, message='سعر الطوارئ يجب أن يكون أكبر من أو يساوي صفر')])
+    insurance_price = DecimalField('سعر التأمين', validators=[Optional(), NumberRange(min=0, message='سعر التأمين يجب أن يكون أكبر من أو يساوي صفر')])
+    discount_percentage = DecimalField('نسبة الخصم (%)', validators=[Optional(), NumberRange(min=0, max=100, message='نسبة الخصم يجب أن تكون بين 0 و 100')])
     is_active = BooleanField('نشط', default=True)
     
     def validate_urgent_price(self, field):
@@ -104,7 +104,7 @@ class MedicalEntityMixin:
         
         # تحميل الزيارات
         from models.visit import Visit
-        visits = Visit.query.filter_by(status='ACTIVE').order_by(Visit.created_at.desc()).limit(100).all()
+        visits = Visit.query.filter(Visit.status.in_(['OPEN', 'IN_PROGRESS', 'COMPLETED'])).order_by(Visit.created_at.desc()).limit(100).all()
         self.visit_id.choices = [('', 'اختر الزيارة')] + [(v.id, f"زيارة {v.id} - {v.patient.full_name}") for v in visits]
 
 class StatusMixin:

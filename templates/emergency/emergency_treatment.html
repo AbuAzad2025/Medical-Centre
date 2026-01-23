@@ -251,16 +251,16 @@ document.getElementById('emergencyTreatmentForm').addEventListener('submit', fun
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('تم حفظ العلاج الإسعافي بنجاح');
+            Swal.fire({ title: 'تم', text: 'تم حفظ العلاج الإسعافي بنجاح', icon: 'success' });
             // إعادة توجيه للطوارئ
             window.location.href = '{{ url_for("emergency.emergency_visits") }}';
         } else {
-            alert('خطأ: ' + data.error);
+            Swal.fire({ title: 'خطأ', text: 'خطأ: ' + (data.error || ''), icon: 'error' });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('حدث خطأ في حفظ العلاج الإسعافي');
+        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ العلاج الإسعافي', icon: 'error' });
     });
 });
 </script>

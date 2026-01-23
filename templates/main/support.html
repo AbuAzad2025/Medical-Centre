@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}الدعم الفني - {{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card card-modern">
+                <div class="card-body p-5">
+                    <div class="text-center mb-5">
+                        <i class="fas fa-headset fa-4x text-primary mb-3"></i>
+                        <h1 class="mb-3">مركز الدعم الفني</h1>
+                        <p class="lead text-muted">نحن هنا لمساعدتك في حل أي مشكلة تواجهها</p>
+                    </div>
+                    
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-6">
+                            <div class="p-4 border rounded-3 h-100 text-center bg-light">
+                                <i class="fas fa-phone fa-2x text-success mb-3"></i>
+                                <h4>اتصل بنا</h4>
+                                <p class="mb-0">{{ branding.organization_phone if branding else '+970-XX-XXXXXXX' }}</p>
+                                <small class="text-muted">متاح 24/7 للحالات الطارئة</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-4 border rounded-3 h-100 text-center bg-light">
+                                <i class="fas fa-envelope fa-2x text-info mb-3"></i>
+                                <h4>راسلنا</h4>
+                                <p class="mb-0">{{ branding.organization_email if branding else 'support@medical-center.com' }}</p>
+                                <small class="text-muted">سنرد عليك خلال 24 ساعة</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="support-info">
+                        <h4 class="mb-3">معلومات الدعم التقني للنظام</h4>
+                        <div class="alert alert-info">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle fa-2x"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5 class="alert-heading">شركة التطوير</h5>
+                                    <p class="mb-0">تم تطوير هذا النظام وتشغيله بواسطة <strong>{{ developer_company or 'شركة أزاد للأنظمة الذكية' }}</strong>.</p>
+                                    <hr>
+                                    <p class="mb-0">
+                                        للدعم المباشر من المطور: <strong>{{ developer_name or 'أحمد غنام' }}</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-section mt-5">
+                        <h4 class="mb-4">الأسئلة الشائعة</h4>
+                        <div class="accordion" id="accordionExample">
+                            <div class="accordion-item border-0 mb-2 shadow-sm">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                        نسيت كلمة المرور، ماذا أفعل؟
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                                    <div class="accordion-body">
+                                        يمكنك استعادة كلمة المرور من خلال صفحة تسجيل الدخول بالضغط على "نسيت كلمة المرور"، أو التواصل مع مسؤول النظام في مؤسستك.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item border-0 mb-2 shadow-sm">
+                                <h2 class="accordion-header" id="headingTwo">
+                                    <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                        النظام بطيء، ما السبب؟
+                                    </button>
+                                </h2>
+                                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                                    <div class="accordion-body">
+                                        قد يكون السبب ضعف في اتصال الإنترنت لديك. حاول تحديث الصفحة أو التحقق من الاتصال. إذا استمرت المشكلة، يرجى التواصل مع الدعم الفني.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

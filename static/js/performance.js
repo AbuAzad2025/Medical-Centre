@@ -27,23 +27,13 @@ class PerformanceMonitor {
     }
 
     monitorAPI() {
-        const originalFetch = window.fetch;
-        window.fetch = async (...args) => {
-            const start = performance.now();
-            try {
-                const response = await originalFetch(...args);
-                const end = performance.now();
-                const duration = end - start;
-                this.metrics.apiCalls = (this.metrics.apiCalls || 0) + 1;
-                this.metrics.apiTime = (this.metrics.apiTime || 0) + duration;
-                console.log(`API call took ${duration.toFixed(2)}ms`);
-                return response;
-            } catch (error) {
-                const end = performance.now();
-                console.error(`API call failed after ${(end - start).toFixed(2)}ms:`, error);
-                throw error;
+        setInterval(() => {
+            const m = window.__apiMetrics;
+            if (m) {
+                this.metrics.apiCalls = m.calls;
+                this.metrics.apiTime = m.time;
             }
-        };
+        }, 5000);
     }
 
     monitorMemory() {

@@ -3,7 +3,7 @@
 Medical System Configuration Models
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
 
@@ -24,8 +24,8 @@ class SystemConfig(db.Model):
     is_encrypted = db.Column(db.Boolean, default=False)  # مشفرة
     
     # التواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     updated_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     

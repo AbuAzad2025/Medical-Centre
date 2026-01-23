@@ -3,7 +3,7 @@
 Medical System Backup Model
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
 
@@ -39,7 +39,7 @@ class Backup(db.Model):
     encryption_key = db.Column(db.String(500), nullable=True)  # مشفرة
     
     # التواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     started_at = db.Column(db.DateTime, nullable=True)
     completed_at = db.Column(db.DateTime, nullable=True)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -57,8 +57,8 @@ class Backup(db.Model):
     )
     
     # العلاقات (مبسطة)
-    creator = db.relationship('User', foreign_keys=[created_by], lazy='select')
-    last_restore_user = db.relationship('User', foreign_keys=[last_restore_by], lazy='select')
+    creator = db.relationship('User', foreign_keys=[created_by], back_populates='created_backups', lazy='select')
+    last_restore_user = db.relationship('User', foreign_keys=[last_restore_by], back_populates='restored_backups', lazy='select')
     logs = db.relationship('BackupLog', back_populates='backup', lazy='selectin', cascade='all, delete-orphan', passive_deletes=True)
     
     def __repr__(self):
@@ -131,7 +131,7 @@ class BackupLog(db.Model):
     details = db.Column(db.Text, nullable=True)  # تفاصيل إضافية
     
     # التواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (

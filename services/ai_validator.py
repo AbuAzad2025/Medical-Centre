@@ -3,7 +3,7 @@
 AI Data Validation Service
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 class AIValidator:
     """نظام التحقق الذكي من البيانات"""
@@ -63,7 +63,7 @@ class AIValidator:
             # 5. التحقق من الزيارات المعلقة
             old_active_visits = Visit.query.filter(
                 Visit.status == 'active',
-                Visit.created_at < datetime.utcnow() - timedelta(days=1)
+                Visit.created_at < datetime.now(timezone.utc) - timedelta(days=1)
             ).count()
             
             if old_active_visits > 0:

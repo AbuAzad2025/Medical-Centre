@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}تقرير تدقيق يومي{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0 text-primary">تقرير التدقيق اليومي</h2>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('accountant.dashboard') }}" class="btn btn-secondary">رجوع</a>
+                        <a href="{{ url_for('accountant.export_audit_report', report_type='daily') }}?format=json&date={{ report.date }}" class="btn btn-info">تصدير JSON</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow">
+                <div class="card-header">التاريخ</div>
+                <div class="card-body">{{ report.date }}</div>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card shadow">
+                <div class="card-header">ملخص</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2"><strong>عدد الزيارات:</strong> {{ report.summary.total_visits }}</div>
+                        <div class="col-md-3 mb-2"><strong>المحصّل:</strong> {{ "%.2f"|format(report.summary.total_collected) }}</div>
+                        <div class="col-md-3 mb-2"><strong>دفع قسري %:</strong> {{ report.summary.force_payment_percentage }}</div>
+                        <div class="col-md-3 mb-2"><strong>زيارات التأمين:</strong> {{ report.summary.insurance_visits }}</div>
+                        <div class="col-md-3 mb-2"><strong>قضايا التدقيق:</strong> {{ report.summary.issues_count }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">الزيارات حسب الحالة</div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead><tr><th>الحالة</th><th>عدد</th></tr></thead>
+                        <tbody>
+                            <tr><td>OPEN</td><td>{{ report.visits.by_status.OPEN }}</td></tr>
+                            <tr><td>IN_PROGRESS</td><td>{{ report.visits.by_status.IN_PROGRESS }}</td></tr>
+                            <tr><td>COMPLETED</td><td>{{ report.visits.by_status.COMPLETED }}</td></tr>
+                            <tr><td>ARCHIVED</td><td>{{ report.visits.by_status.ARCHIVED }}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">الزيارات حسب النوع</div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead><tr><th>النوع</th><th>عدد</th></tr></thead>
+                        <tbody>
+                            <tr><td>REGULAR</td><td>{{ report.visits.by_type.REGULAR }}</td></tr>
+                            <tr><td>FOLLOW_UP</td><td>{{ report.visits.by_type.FOLLOW_UP }}</td></tr>
+                            <tr><td>CONSULTATION</td><td>{{ report.visits.by_type.CONSULTATION }}</td></tr>
+                            <tr><td>EMERGENCY</td><td>{{ report.visits.by_type.EMERGENCY }}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">مدفوعات اليوم</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>عدد العمليات:</strong> {{ report.payments.total_transactions }}</div>
+                        <div class="col-md-3"><strong>المحصّل:</strong> {{ "%.2f"|format(report.payments.total_collected) }}</div>
+                        <div class="col-md-3"><strong>قيد الانتظار:</strong> {{ "%.2f"|format(report.payments.total_pending) }}</div>
+                        <div class="col-md-3"><strong>ملغى:</strong> {{ "%.2f"|format(report.payments.total_cancelled) }}</div>
+                    </div>
+                    <h6 class="mt-2">حسب الطريقة</h6>
+                    <table class="table">
+                        <thead><tr><th>الطريقة</th><th>عدد</th><th>المبلغ</th></tr></thead>
+                        <tbody>
+                            {% for method, info in report.payments.by_method.items() %}
+                            <tr>
+                                <td>{{ method }}</td>
+                                <td>{{ info.count }}</td>
+                                <td>{{ "%.2f"|format(info.amount) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <h6 class="mt-3">حسب الحالة</h6>
+                    <table class="table">
+                        <thead><tr><th>الحالة</th><th>عدد</th><th>المبلغ</th></tr></thead>
+                        <tbody>
+                            {% for status, info in report.payments.by_status.items() %}
+                            <tr>
+                                <td>{{ status }}</td>
+                                <td>{{ info.count }}</td>
+                                <td>{{ "%.2f"|format(info.amount) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">الدفع القسري</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>عدد:</strong> {{ report.force_payments.total }}</div>
+                        <div class="col-md-3"><strong>معتمد:</strong> {{ report.force_payments.approved }}</div>
+                        <div class="col-md-3"><strong>قيد الموافقة:</strong> {{ report.force_payments.pending }}</div>
+                        <div class="col-md-3"><strong>نسبة %:</strong> {{ report.force_payments.percentage }}</div>
+                    </div>
+                    <h6 class="mt-2">تفاصيل</h6>
+                    <table class="table">
+                        <thead><tr><th>زيارة</th><th>مريض</th><th>سبب</th><th>معتمد من</th><th>تاريخ اعتماد</th></tr></thead>
+                        <tbody>
+                            {% for item in report.force_payments.list %}
+                            <tr>
+                                <td>{{ item.visit_id }}</td>
+                                <td>{{ item.patient_id }}</td>
+                                <td>{{ item.reason }}</td>
+                                <td>{{ item.approved_by or '—' }}</td>
+                                <td>{{ item.approved_at or '—' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">تحليل التأمين</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>عدد زيارات التأمين:</strong> {{ report.insurance.total_visits }}</div>
+                        <div class="col-md-3"><strong>فاتورة التأمين:</strong> {{ "%.2f"|format(report.insurance.total_insurance_amount) }}</div>
+                        <div class="col-md-3"><strong>حصة المريض:</strong> {{ "%.2f"|format(report.insurance.total_patient_share) }}</div>
+                        <div class="col-md-3"><strong>المحصل من المريض:</strong> {{ "%.2f"|format(report.insurance.patient_share_collected) }}</div>
+                    </div>
+                    <h6 class="mt-2">حسب المزود</h6>
+                    <table class="table">
+                        <thead><tr><th>المزود</th><th>عدد</th><th>إجمالي التأمين</th><th>حصة المريض</th></tr></thead>
+                        <tbody>
+                            {% for provider, info in report.insurance.by_provider.items() %}
+                            <tr>
+                                <td>{{ provider }}</td>
+                                <td>{{ info.count }}</td>
+                                <td>{{ "%.2f"|format(info.total_amount) }}</td>
+                                <td>{{ "%.2f"|format(info.patient_share) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">قضايا التدقيق</div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead><tr><th>النوع</th><th>الخطورة</th><th>عدد</th><th>الرسالة</th></tr></thead>
+                        <tbody>
+                            {% for issue in report.audit_issues %}
+                            <tr>
+                                <td>{{ issue.type }}</td>
+                                <td>{{ issue.severity }}</td>
+                                <td>{{ issue.count }}</td>
+                                <td>{{ issue.message }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

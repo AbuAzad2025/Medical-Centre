@@ -1,181 +1,192 @@
 {% extends "base.html" %}
 
-{% block title %}التقارير - السوبر أدمن{% endblock %}
+{% block title %}مركز التقارير{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-chart-bar"></i>
-                        التقارير والإحصائيات
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="info-box">
-                                <span class="info-box-icon bg-primary"><i class="fas fa-users"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">إجمالي المرضى</span>
-                                    <span class="info-box-number">0</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="info-box">
-                                <span class="info-box-icon bg-success"><i class="fas fa-user-md"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">إجمالي الأطباء</span>
-                                    <span class="info-box-number">0</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="info-box">
-                                <span class="info-box-icon bg-info"><i class="fas fa-calendar-check"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">المواعيد اليوم</span>
-                                    <span class="info-box-number">0</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="info-box">
-                                <span class="info-box-icon bg-warning"><i class="fas fa-dollar-sign"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">الإيرادات اليوم</span>
-                                    <span class="info-box-number">0 ₪</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row mt-4">
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">
-                                        <i class="fas fa-chart-pie"></i>
-                                        تقرير الأدوار
-                                    </h3>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="rolesChart" width="400" height="200"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">
-                                        <i class="fas fa-chart-line"></i>
-                                        نشاط النظام
-                                    </h3>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="activityChart" width="400" height="200"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">
-                                        <i class="fas fa-download"></i>
-                                        تصدير التقارير
-                                    </h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <button class="btn btn-success btn-block" onclick="exportReport('patients')">
-                                                <i class="fas fa-file-excel"></i>
-                                                تصدير تقرير المرضى
-                                            </button>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <button class="btn btn-info btn-block" onclick="exportReport('appointments')">
-                                                <i class="fas fa-file-excel"></i>
-                                                تصدير تقرير المواعيد
-                                            </button>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <button class="btn btn-warning btn-block" onclick="exportReport('financial')">
-                                                <i class="fas fa-file-excel"></i>
-                                                تصدير التقرير المالي
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary"><i class="fas fa-chart-bar me-2"></i>مركز التقارير الموحد</h2>
+            <div class="text-muted">اختر تقريراً وحدد فترة وفلاتر أساسية</div>
+          </div>
+          <div>
+            <a href="{{ url_for('super_admin.dashboard') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i>رجوع</a>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
+
+  <form method="GET" class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label">التقرير</label>
+          <select class="form-select" name="report" required>
+            <option value="" {% if not report %}selected{% endif %}>اختر</option>
+            <option value="compare_month" {% if report == 'compare_month' %}selected{% endif %}>مقارنة شهر بشهر</option>
+            <option value="compare_year" {% if report == 'compare_year' %}selected{% endif %}>مقارنة سنة بسنة</option>
+            <option value="transfers" {% if report == 'transfers' %}selected{% endif %}>تحويلات الأقسام (عبر الاستقبال)</option>
+            <option value="capacity" {% if report == 'capacity' %}selected{% endif %}>تأثير الغياب على القدرة الاستيعابية</option>
+            <option value="booking" {% if report == 'booking' %}selected{% endif %}>تقارير الحجز</option>
+            <option value="emergency_times" {% if report == 'emergency_times' %}selected{% endif %}>زمن الحالات بين مراحل الطوارئ</option>
+            <option value="radiology_revision" {% if report == 'radiology_revision' %}selected{% endif %}>نسبة تقارير الأشعة المعدلة بعد مراجعة ثانية</option>
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label">من</label>
+          <input type="date" class="form-control" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">إلى</label>
+          <input type="date" class="form-control" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">القسم</label>
+          <select class="form-select" name="department_id">
+            <option value="">كل الأقسام</option>
+            {% for d in departments or [] %}
+              <option value="{{ d.id }}" {% if department_id and department_id == d.id %}selected{% endif %}>{{ d.name_ar or d.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-1">
+          <button class="btn btn-primary w-100" type="submit">عرض</button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {% if result and report %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        {% if report in ['compare_month', 'compare_year'] and result.compare %}
+          <h5 class="mb-3">مقارنة</h5>
+          <div class="table-responsive">
+            <table class="table table-striped mb-0">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>الفترة A</th>
+                  <th>الفترة B</th>
+                  <th>الفرق</th>
+                  <th>%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>الزيارات</td>
+                  <td>{{ result.compare.a.visits }}</td>
+                  <td>{{ result.compare.b.visits }}</td>
+                  <td>{{ result.compare.delta.visits }}</td>
+                  <td>{{ result.compare.pct.visits if result.compare.pct.visits is not none else '-' }}</td>
+                </tr>
+                <tr>
+                  <td>الإيراد</td>
+                  <td>{{ result.compare.a.revenue }}</td>
+                  <td>{{ result.compare.b.revenue }}</td>
+                  <td>{{ result.compare.delta.revenue }}</td>
+                  <td>{{ result.compare.pct.revenue if result.compare.pct.revenue is not none else '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        {% elif report == 'transfers' and result.transfers %}
+          <h5 class="mb-3">تحويلات الأقسام</h5>
+          <div class="table-responsive">
+            <table class="table table-striped mb-0">
+              <thead><tr><th>من</th><th>إلى</th><th>العدد</th></tr></thead>
+              <tbody>
+                {% for r in result.transfers %}
+                  <tr><td>{{ r.from }}</td><td>{{ r.to }}</td><td>{{ r.count }}</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% elif report == 'capacity' and result.capacity %}
+          <h5 class="mb-3">تأثير الغياب على القدرة الاستيعابية</h5>
+          <div class="table-responsive">
+            <table class="table table-striped mb-0">
+              <thead><tr><th>القسم</th><th>ساعات مجدولة</th><th>ساعات غياب</th><th>% تأثير</th></tr></thead>
+              <tbody>
+                {% for r in result.capacity %}
+                  <tr><td>{{ r.department }}</td><td>{{ r.scheduled_hours }}</td><td>{{ r.absence_hours }}</td><td>{{ r.impact_percent }}</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% elif report == 'booking' and result.booking %}
+          <h5 class="mb-3">تقارير الحجز</h5>
+          <div class="row g-3 mb-3">
+            <div class="col-md-3"><div class="p-3 border rounded bg-light">إجمالي الحجوزات: <strong>{{ result.booking.total }}</strong></div></div>
+            <div class="col-md-3"><div class="p-3 border rounded bg-light">نسبة الحضور: <strong>{{ result.booking.attendance_rate }}%</strong></div></div>
+            <div class="col-md-3"><div class="p-3 border rounded bg-light">نسبة عدم الحضور: <strong>{{ result.booking.no_show_rate }}%</strong></div></div>
+            <div class="col-md-3"><div class="p-3 border rounded bg-light">المؤكد: <strong>{{ result.booking.by_status.confirmed }}</strong></div></div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <h6 class="mb-2">أكثر الأقسام</h6>
+              <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                  <thead><tr><th>القسم</th><th>العدد</th></tr></thead>
+                  <tbody>
+                    {% for r in result.booking.top_departments_named or [] %}
+                      <tr><td>{{ r.label }}</td><td>{{ r.count }}</td></tr>
+                    {% else %}
+                      <tr><td colspan="2" class="text-center text-muted">لا يوجد</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h6 class="mb-2">أكثر الأطباء</h6>
+              <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                  <thead><tr><th>الطبيب</th><th>العدد</th></tr></thead>
+                  <tbody>
+                    {% for r in result.booking.top_doctors_named or [] %}
+                      <tr><td>{{ r.label }}</td><td>{{ r.count }}</td></tr>
+                    {% else %}
+                      <tr><td colspan="2" class="text-center text-muted">لا يوجد</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        {% elif report == 'emergency_times' and result.emergency_times %}
+          <h5 class="mb-3">زمن الحالات بين المراحل</h5>
+          <div class="mb-2 text-muted">عدد الحالات: {{ result.emergency_times.cases }}</div>
+          <div class="table-responsive">
+            <table class="table table-striped mb-0">
+              <thead><tr><th>المرحلة</th><th>متوسط دقائق</th></tr></thead>
+              <tbody>
+                {% for k, v in (result.emergency_times.avg_minutes or {}).items() %}
+                  <tr><td>{{ k }}</td><td>{{ v }}</td></tr>
+                {% else %}
+                  <tr><td colspan="2" class="text-center text-muted">لا يوجد</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% elif report == 'radiology_revision' and result.radiology_revision %}
+          <h5 class="mb-3">تقارير الأشعة المعدلة بعد مراجعة ثانية</h5>
+          <div class="row g-3">
+            <div class="col-md-4"><div class="p-3 border rounded bg-light">مراجعة ثانية: <strong>{{ result.radiology_revision.reviewed }}</strong></div></div>
+            <div class="col-md-4"><div class="p-3 border rounded bg-light">تعديل بعد المراجعة: <strong>{{ result.radiology_revision.revised_after_review }}</strong></div></div>
+            <div class="col-md-4"><div class="p-3 border rounded bg-light">النسبة: <strong>{{ result.radiology_revision.rate }}%</strong></div></div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// رسم بياني للأدوار
-const rolesCtx = document.getElementById('rolesChart').getContext('2d');
-const rolesChart = new Chart(rolesCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['السوبر أدمن', 'المدير', 'الطبيب', 'الاستقبال', 'المحاسب'],
-        datasets: [{
-            data: [1, 0, 0, 0, 0],
-            backgroundColor: [
-                '#FF6384',
-                '#36A2EB',
-                '#FFCE56',
-                '#4BC0C0',
-                '#9966FF'
-            ]
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false
-    }
-});
-
-// رسم بياني للنشاط
-const activityCtx = document.getElementById('activityChart').getContext('2d');
-const activityChart = new Chart(activityCtx, {
-    type: 'line',
-    data: {
-        labels: ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
-        datasets: [{
-            label: 'نشاط المستخدمين',
-            data: [0, 0, 0, 0, 0, 0, 0],
-            borderColor: '#36A2EB',
-            backgroundColor: 'rgba(54, 162, 235, 0.1)',
-            tension: 0.1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-});
-
-function exportReport(type) {
-    alert(`جاري تصدير تقرير ${type}...`);
-    // هنا يمكن إضافة منطق التصدير الفعلي
-}
-</script>
 {% endblock %}
 

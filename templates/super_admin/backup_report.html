@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}تقرير النسخ الاحتياطي{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>تقرير النسخ الاحتياطي</h3>
+        <button onclick="window.print()" class="btn btn-secondary">
+            <i class="fas fa-print me-2"></i>طباعة
+        </button>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">إجمالي النسخ</h5>
+                    <h2 class="display-4">{{ stats.total }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">نسخ ناجحة</h5>
+                    <h2 class="display-4">{{ stats.success }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">نسخ فاشلة</h5>
+                    <h2 class="display-4">{{ stats.failed }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">الحجم الإجمالي</h5>
+                    <h2 class="display-4">{{ stats.size }} GB</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header">
+            <h5 class="mb-0">سجل العمليات التفصيلي</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>التاريخ</th>
+                            <th>النوع</th>
+                            <th>الحالة</th>
+                            <th>الحجم</th>
+                            <th>المسار</th>
+                            <th>المدة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for backup in backups %}
+                        <tr>
+                            <td>{{ backup.id }}</td>
+                            <td>{{ backup.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                {% if backup.backup_type == 'full' %}كامل
+                                {% elif backup.backup_type == 'incremental' %}تدريجي
+                                {% else %}قاعدة بيانات{% endif %}
+                            </td>
+                            <td>
+                                {% if backup.backup_status == 'COMPLETED' %}
+                                    <span class="badge bg-success">ناجح</span>
+                                {% elif backup.backup_status == 'FAILED' %}
+                                    <span class="badge bg-danger">فشل</span>
+                                {% elif backup.backup_status == 'IN_PROGRESS' %}
+                                    <span class="badge bg-warning text-dark">جاري التنفيذ</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ backup.backup_status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ (backup.backup_size / 1024 / 1024)|round(2) if backup.backup_size else 0 }} MB</td>
+                            <td>{{ backup.backup_path }}</td>
+                            <td>
+                                {% if backup.completed_at and backup.started_at %}
+                                    {{ ((backup.completed_at - backup.started_at).total_seconds())|round|int }} ثانية
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .navbar, .sidebar { display: none !important; }
+    .card { border: 1px solid #ddd !important; }
+    .bg-primary, .bg-success, .bg-danger, .bg-info { color: black !important; background: white !important; border: 1px solid black !important; }
+}
+</style>
+{% endblock %}

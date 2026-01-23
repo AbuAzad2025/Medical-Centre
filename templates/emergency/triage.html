@@ -19,7 +19,7 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2">
-                                <a href="{{ url_for('emergency.emergency_visits') }}" class="btn btn-secondary">
+                                <a href="{{ url_for('emergency.patient_queue') }}" class="btn btn-secondary">
                                     <i class="fas fa-arrow-right me-1"></i>
                                     العودة للطوارئ
                                 </a>
@@ -47,6 +47,7 @@
                 </div>
                 <div class="card-body">
                     <form id="triageForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <!-- Patient Info -->
                         <div class="row mb-4">
                             <div class="col-md-6">
@@ -88,9 +89,9 @@
                                     <label for="triage_level">مستوى الفرز</label>
                                     <select class="form-control" id="triage_level" name="triage_level" required>
                                         <option value="">اختر مستوى الفرز</option>
-                                        <option value="RED" style="background-color: #dc3545; color: white;">أحمر - حرج (فوري)</option>
-                                        <option value="YELLOW" style="background-color: #ffc107; color: black;">أصفر - عاجل (15 دقيقة)</option>
-                                        <option value="GREEN" style="background-color: #28a745; color: white;">أخضر - عادي (60 دقيقة)</option>
+                                        <option value="RED" {% if (visit.triage_level or '') == 'RED' %}selected{% endif %} style="background-color: #dc3545; color: white;">أحمر - حرج (فوري)</option>
+                                        <option value="YELLOW" {% if (visit.triage_level or '') == 'YELLOW' %}selected{% endif %} style="background-color: #ffc107; color: black;">أصفر - عاجل (15 دقيقة)</option>
+                                        <option value="GREEN" {% if (visit.triage_level or '') == 'GREEN' %}selected{% endif %} style="background-color: #28a745; color: white;">أخضر - عادي (60 دقيقة)</option>
                                     </select>
                                 </div>
                             </div>
@@ -180,7 +181,7 @@
                                     <i class="fas fa-save me-1"></i>
                                     حفظ بيانات الفرز
                                 </button>
-                                <a href="{{ url_for('emergency.emergency_visits') }}" class="btn btn-secondary btn-lg ml-2">
+                                <a href="{{ url_for('emergency.patient_queue') }}" class="btn btn-secondary btn-lg ml-2">
                                     <i class="fas fa-arrow-right me-1"></i>
                                     العودة للطوارئ
                                 </a>
@@ -211,23 +212,24 @@ document.getElementById('triageForm').addEventListener('submit', function(e) {
     
     formData.set('vital_signs', JSON.stringify(vitalSigns));
     
-    fetch('{{ url_for("emergency.triage", visit_id=visit.id) }}', {
+    fetch('{{ url_for("emergency.triage", emergency_id=emergency.id) }}', {
         method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
         body: formData
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('تم حفظ بيانات الفرز بنجاح');
+            Swal.fire({ title: 'تم', text: 'تم حفظ بيانات الفرز بنجاح', icon: 'success' });
             // إعادة توجيه للطوارئ
-            window.location.href = '{{ url_for("emergency.emergency_visits") }}';
+            window.location.href = '{{ url_for("emergency.patient_queue") }}';
         } else {
-            alert('خطأ: ' + data.error);
+            Swal.fire({ title: 'خطأ', text: 'خطأ: ' + (data.error || ''), icon: 'error' });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('حدث خطأ في حفظ بيانات الفرز');
+        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ بيانات الفرز', icon: 'error' });
     });
 });
 </script>

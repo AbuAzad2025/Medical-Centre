@@ -48,6 +48,12 @@
                             <strong>رقم الهاتف:</strong> {{ lab_request.patient.phone }}
                         </div>
                     </div>
+                    <div class="mt-3 text-end">
+                        <a href="{{ url_for('reception.view_patient', patient_id=lab_request.patient.id) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i>
+                            عرض ملف المريض
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -156,14 +162,14 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex gap-2">
-                        {% if lab_request.status == 'pending' %}
-                        <a href="{{ url_for('lab.process_request', id=lab_request.id) }}" class="btn btn-primary">
+                        {% if (lab_request.status|upper) in ['PENDING','REQUESTED'] %}
+                        <a href="{{ url_for('lab.worklist') }}" class="btn btn-primary">
                             <i class="fas fa-cog me-1"></i>
                             معالجة الطلب
                         </a>
                         {% endif %}
-                        {% if lab_request.status == 'in_progress' %}
-                        <a href="{{ url_for('lab.edit_results', id=lab_request.id) }}" class="btn btn-success">
+                        {% if (lab_request.status|upper) == 'IN_PROGRESS' %}
+                        <a href="{{ url_for('lab.worklist') }}" class="btn btn-success">
                             <i class="fas fa-edit me-1"></i>
                             إدخال النتائج
                         </a>
@@ -172,7 +178,7 @@
                             <i class="fas fa-print me-1"></i>
                             طباعة الطلب
                         </a>
-                        <a href="{{ url_for('lab.send_results', id=lab_request.id) }}" class="btn btn-warning">
+                        <a href="{{ url_for('lab.worklist') }}" class="btn btn-warning">
                             <i class="fas fa-paper-plane me-1"></i>
                             إرسال النتائج
                         </a>

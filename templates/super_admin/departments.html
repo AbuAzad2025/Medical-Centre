@@ -83,9 +83,7 @@
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                                 الأطباء
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ departments|sum(attribute='doctors')|length if departments else 0 }}
-                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_doctors }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-user-md fa-2x text-gray-300"></i>
@@ -103,9 +101,7 @@
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                                 الموظفين
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ departments|sum(attribute='staff')|length if departments else 0 }}
-                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_staff }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-users fa-2x text-gray-300"></i>
@@ -282,6 +278,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="addDepartmentForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
@@ -439,45 +436,61 @@ function manageStaff(departmentId) {
 }
 
 function activateDepartment(departmentId) {
-    if (confirm('هل أنت متأكد من تفعيل هذا القسم؟')) {
-        // تفعيل القسم
-        fetch(`/super-admin/activate-department/${departmentId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrf_token]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('حدث خطأ في تفعيل القسم');
-            }
-        });
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل أنت متأكد من تفعيل هذا القسم؟',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/super-admin/activate-department/${departmentId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    Swal.fire({ title: 'خطأ', text: 'حدث خطأ في تفعيل القسم', icon: 'error' });
+                }
+            })
+            .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
+        }
+    });
 }
 
 function deactivateDepartment(departmentId) {
-    if (confirm('هل أنت متأكد من إلغاء تفعيل هذا القسم؟')) {
-        // إلغاء تفعيل القسم
-        fetch(`/super-admin/deactivate-department/${departmentId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrf_token]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('حدث خطأ في إلغاء تفعيل القسم');
-            }
-        });
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل أنت متأكد من إلغاء تفعيل هذا القسم؟',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/super-admin/deactivate-department/${departmentId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إلغاء تفعيل القسم', icon: 'error' });
+                }
+            })
+            .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
+        }
+    });
 }
 
 function exportDepartments() {
@@ -493,19 +506,17 @@ document.getElementById('addDepartmentForm').addEventListener('submit', function
     
     fetch('/super-admin/departments/create', {
         method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrf_token]').value
-        }
+        body: formData
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             location.reload();
         } else {
-            alert('حدث خطأ في إضافة القسم: ' + data.message);
+            Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إضافة القسم: ' + (data.message || ''), icon: 'error' });
         }
-    });
+    })
+    .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
 });
 </script>
 {% endblock %}

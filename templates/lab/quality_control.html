@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}ضبط جودة المختبر{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary"><i class="fas fa-sliders-h me-2"></i>ضبط جودة المختبر</h2>
+            <div class="text-muted">تسجيل قراءات QC ومتابعتها</div>
+          </div>
+          <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary" href="{{ url_for('lab.quality') }}"><i class="fas fa-shield-alt me-1"></i>مؤشرات الجودة</a>
+            <a class="btn btn-secondary" href="{{ url_for('lab.dashboard') }}"><i class="fas fa-arrow-left me-1"></i>العودة</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow mb-4">
+    <div class="card-header">إضافة سجل</div>
+    <div class="card-body">
+      <form method="POST" class="row g-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="col-md-2">
+          <label class="form-label">كود التحليل</label>
+          <input class="form-control" name="test_code" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">اسم التحليل</label>
+          <input class="form-control" name="test_name">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">المستوى</label>
+          <select class="form-select" name="control_level">
+            <option value="LOW">منخفض</option>
+            <option value="NORMAL" selected>طبيعي</option>
+            <option value="HIGH">مرتفع</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">القراءة</label>
+          <input class="form-control" name="measured_value" required>
+        </div>
+        <div class="col-md-1">
+          <label class="form-label">الوحدة</label>
+          <input class="form-control" name="unit">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">المدى المتوقع</label>
+          <input class="form-control" name="expected_range">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">النتيجة</label>
+          <select class="form-select" name="status">
+            <option value="PASS" selected>Pass</option>
+            <option value="FAIL">Fail</option>
+          </select>
+        </div>
+        <div class="col-md-10">
+          <label class="form-label">ملاحظات</label>
+          <input class="form-control" name="notes">
+        </div>
+        <div class="col-12 d-flex justify-content-end">
+          <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow">
+    <div class="card-header">السجلات ({{ entries|length }})</div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>الكود</th>
+              <th>الاسم</th>
+              <th>المستوى</th>
+              <th>القراءة</th>
+              <th>المدى</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in entries %}
+              <tr>
+                <td>{{ e.recorded_at|format_datetime }}</td>
+                <td>{{ e.test_code }}</td>
+                <td>{{ e.test_name or '-' }}</td>
+                <td>{{ e.control_level }}</td>
+                <td>{{ e.measured_value }}{% if e.unit %} {{ e.unit }}{% endif %}</td>
+                <td>{{ e.expected_range or '-' }}</td>
+                <td>
+                  {% if e.status == 'PASS' %}
+                    <span class="badge bg-success">PASS</span>
+                  {% else %}
+                    <span class="badge bg-danger">FAIL</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="7" class="text-center text-muted">لا توجد سجلات</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

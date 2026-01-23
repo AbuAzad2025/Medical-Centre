@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة المالية الاحترافية{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body bg-gradient-success text-white">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="mb-2 text-white">
+                                <i class="fas fa-chart-line me-3"></i>
+                                لوحة المالية الاحترافية
+                            </h1>
+                            <p class="mb-0 text-white-50 fs-5">مرحباً {{ current_user.full_name }} - نظرة شاملة على الأداء المالي</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('finance.invoices') if 'finance.invoices' in url_for_list else '#' }}" class="btn btn-light btn-lg">
+                                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                                    الفواتير
+                                </a>
+                                <a href="{{ url_for('finance.payments') if 'finance.payments' in url_for_list else '#' }}" class="btn btn-warning btn-lg">
+                                    <i class="fas fa-money-bill-wave me-2"></i>
+                                    المدفوعات
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills mb-4" id="financeTabs" role="tablist" data-aos="fade-up">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
+                <i class="fas fa-home me-2"></i> نظرة عامة
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="operations-tab" data-bs-toggle="tab" data-bs-target="#operations" type="button" role="tab" aria-controls="operations" aria-selected="false">
+                <i class="fas fa-cogs me-2"></i> العمليات المالية
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab" aria-controls="reports" aria-selected="false">
+                <i class="fas fa-chart-pie me-2"></i> التقارير والتحليلات
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="financeTabsContent">
+        
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+            <!-- إحصائيات سريعة -->
+            <div class="row" data-aos="fade-up" data-aos-delay="200">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-lg glass-effect" style="background: var(--success-gradient); color: white;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 class="mb-0 gradient-text">{{ stats.total_revenue or 0 }}</h3>
+                                    <p class="mb-0">الإيرادات الإجمالية</p>
+                                    <small class="text-white-50">الرصيد الحالي</small>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-wallet fa-3x floating-animation"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-lg glass-effect" style="background: var(--warning-gradient); color: white;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 class="mb-0 gradient-text">{{ stats.pending_payments or 0 }}</h3>
+                                    <p class="mb-0">مدفوعات معلقة</p>
+                                    <small class="text-white-50">تحتاج متابعة</small>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-clock fa-3x floating-animation"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-lg glass-effect" style="background: var(--info-gradient); color: white;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 class="mb-0 gradient-text">{{ stats.locked_visits or 0 }}</h3>
+                                    <p class="mb-0">زيارات مقفلة</p>
+                                    <small class="text-white-50">تمت الفوترة</small>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-lock fa-3x floating-animation"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Charts or Info (Placeholder) -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="alert alert-light border shadow-sm">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        مرحباً بك في لوحة التحكم المالية. يمكنك التنقل بين التبويبات للوصول إلى الوظائف المختلفة.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operations Tab -->
+        <div class="tab-pane fade" id="operations" role="tabpanel" aria-labelledby="operations-tab">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0 shadow-sm hover-card">
+                        <div class="card-body text-center p-5">
+                            <div class="icon-circle bg-primary text-white mb-3 mx-auto" style="width: 80px; height: 80px; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <h4 class="card-title">الفواتير</h4>
+                            <p class="card-text text-muted">إدارة الفواتير، إنشاء فواتير جديدة، ومتابعة الفواتير المستحقة.</p>
+                            <a href="{{ url_for('finance.invoices') if 'finance.invoices' in url_for_list else '#' }}" class="btn btn-outline-primary stretched-link">الذهاب للفواتير</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0 shadow-sm hover-card">
+                        <div class="card-body text-center p-5">
+                            <div class="icon-circle bg-warning text-white mb-3 mx-auto" style="width: 80px; height: 80px; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <h4 class="card-title">المدفوعات</h4>
+                            <p class="card-text text-muted">سجل المدفوعات، التحصيلات اليومية، وطرق الدفع.</p>
+                            <a href="{{ url_for('finance.payments') if 'finance.payments' in url_for_list else '#' }}" class="btn btn-outline-warning stretched-link">الذهاب للمدفوعات</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0 shadow-sm hover-card">
+                        <div class="card-body text-center p-5">
+                            <div class="icon-circle bg-info text-white mb-3 mx-auto" style="width: 80px; height: 80px; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                <i class="fas fa-search-dollar"></i>
+                            </div>
+                            <h4 class="card-title">التدقيق المالي</h4>
+                            <p class="card-text text-muted">سجلات التدقيق، تتبع العمليات المالية، وكشف الأخطاء.</p>
+                            <a href="{{ url_for('finance.audit') if 'finance.audit' in url_for_list else '#' }}" class="btn btn-outline-info stretched-link">الذهاب للتدقيق</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0 shadow-sm hover-card">
+                        <div class="card-body text-center p-5">
+                            <div class="icon-circle bg-secondary text-white mb-3 mx-auto" style="width: 80px; height: 80px; font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h4 class="card-title">الاستعلامات البطيئة</h4>
+                            <p class="card-text text-muted">تقرير أسبوعي لأبطأ الاستعلامات وتأثيرها.</p>
+                            <a href="{{ url_for('finance.slow_queries') if 'finance.slow_queries' in url_for_list else '#' }}" class="btn btn-outline-secondary stretched-link">عرض التقرير</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
+            <div class="row">
+                <div class="col-12 text-center py-5">
+                    <div class="empty-state">
+                        <i class="fas fa-chart-pie fa-5x text-muted mb-3"></i>
+                        <h3 class="text-muted">تقارير مالية متقدمة</h3>
+                        <p class="text-muted">هذا القسم قيد التطوير. سيتم إضافة رسوم بيانية وتقارير تفصيلية قريباً.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

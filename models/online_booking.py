@@ -3,7 +3,7 @@
 Medical System Online Booking Models
 """
 
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from app_factory import db
 import secrets
 import string
@@ -36,7 +36,7 @@ class OnlineBooking(db.Model):
     notes = db.Column(db.Text, nullable=True)
     
     # معلومات الدفع
-    payment_amount = db.Column(db.Float, nullable=False, default=10.0)  # 10 شيقل
+    payment_amount = db.Column(db.Numeric(12, 2), nullable=False, default=10.0)
     payment_status = db.Column(db.String(20), default='pending')  # pending, paid, failed, refunded
     payment_reference = db.Column(db.String(100), nullable=True)
     payment_method = db.Column(db.String(50), nullable=True)  # card, bank_transfer, etc.
@@ -51,7 +51,7 @@ class OnlineBooking(db.Model):
     insurance_number = db.Column(db.String(50), nullable=True)
     
     # تواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     confirmed_at = db.Column(db.DateTime, nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
     no_show_at = db.Column(db.DateTime, nullable=True)
@@ -68,14 +68,15 @@ class OnlineBooking(db.Model):
     def generate_booking_reference():
         """توليد رقم مرجع الحجز"""
         while True:
-            ref = ''.join(secrets.choices(string.ascii_uppercase + string.digits, k=8))
+            alphabet = string.ascii_uppercase + string.digits
+            ref = ''.join(secrets.choice(alphabet) for _ in range(8))
             if not OnlineBooking.query.filter_by(booking_reference=ref).first():
                 return ref
     
     @staticmethod
     def generate_confirmation_code():
         """توليد رمز التأكيد"""
-        return ''.join(secrets.choices(string.digits, k=6))
+        return ''.join(secrets.choice(string.digits) for _ in range(6))
     
     def get_status_display(self):
         """حالة الحجز للعرض"""
@@ -193,7 +194,7 @@ class PaymentTransaction(db.Model):
     transaction_reference = db.Column(db.String(100), unique=True, nullable=False)
     
     # معلومات الدفع
-    amount = db.Column(db.Float, nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
     currency = db.Column(db.String(3), default='ILS')  # شيقل إسرائيلي
     payment_method = db.Column(db.String(50), nullable=False)
     payment_gateway = db.Column(db.String(50), nullable=True)
@@ -208,7 +209,7 @@ class PaymentTransaction(db.Model):
     card_type = db.Column(db.String(20), nullable=True)
     
     # تواريخ
-    initiated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    initiated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     completed_at = db.Column(db.DateTime, nullable=True)
     failed_at = db.Column(db.DateTime, nullable=True)
     

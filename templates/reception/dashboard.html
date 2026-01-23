@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="row mb-4" data-aos="fade-down">
         <div class="col-12">
-            <div class="card border-0 shadow-lg glass-effect">
+            <div class="card card-modern">
                 <div class="card-body" style="background: var(--success-gradient); color: white;">
                     <div class="row align-items-center">
                         <div class="col-md-8">
@@ -24,7 +24,7 @@
                             </div>
                         </div>
                         <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2 justify-content-end">
                                 <a href="{{ url_for('reception.create_visit') }}" class="btn btn-light btn-lg btn-modern pulse-animation">
                                     <i class="fas fa-plus me-2"></i>
                                     زيارة جديدة
@@ -41,450 +41,664 @@
         </div>
     </div>
 
-    <!-- إحصائيات سريعة -->
-    <div class="row mb-4" data-aos="fade-up" data-aos-delay="100">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-lg glass-effect" style="background: var(--primary-gradient); color: white;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="card-title mb-1">إجمالي المرضى</h5>
-                            <h2 class="mb-0 gradient-text">{{ total_patients }}</h2>
-                            <small class="text-white-50">+12% من الشهر الماضي</small>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-users fa-3x floating-animation"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-lg glass-effect" style="background: var(--success-gradient); color: white;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="card-title mb-1">زيارات اليوم</h5>
-                            <h2 class="mb-0 gradient-text">{{ today_visits }}</h2>
-                            <small class="text-white-50">+8% من أمس</small>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-calendar-day fa-3x floating-animation"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-lg glass-effect" style="background: var(--warning-gradient); color: white;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="card-title mb-1">مواعيد معلقة</h5>
-                            <h2 class="mb-0 gradient-text">{{ pending_appointments }}</h2>
-                            <small class="text-white-50">يحتاج متابعة</small>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-clock fa-3x floating-animation"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-lg glass-effect" style="background: var(--info-gradient); color: white;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="card-title mb-1">حالة النظام</h5>
-                            <h2 class="mb-0 gradient-text">نشط</h2>
-                            <small class="text-white-50">جميع الخدمات تعمل</small>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-check-circle fa-3x floating-animation"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Dashboard Tabs -->
+    <ul class="nav nav-pills mb-4" id="receptionTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
+                <i class="fas fa-chart-pie me-2"></i> نظرة عامة
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="operations-tab" data-bs-toggle="tab" data-bs-target="#operations" type="button" role="tab" aria-controls="operations" aria-selected="false">
+                <i class="fas fa-cogs me-2"></i> العمليات
+            </button>
+        </li>
+        {% if stats and stats.smart_queue_management %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="queue-tab" data-bs-toggle="tab" data-bs-target="#queue" type="button" role="tab" aria-controls="queue" aria-selected="false">
+                <i class="fas fa-users me-2"></i> الطابور الذكي
+            </button>
+        </li>
+        {% endif %}
+        {% if stats and (stats.patient_flow or stats.appointment_optimization) %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab" aria-controls="analytics" aria-selected="false">
+                <i class="fas fa-chart-line me-2"></i> التحليلات
+            </button>
+        </li>
+        {% endif %}
+        {% if stats and stats.real_time_alerts %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="alerts-tab" data-bs-toggle="tab" data-bs-target="#alerts" type="button" role="tab" aria-controls="alerts" aria-selected="false">
+                <i class="fas fa-bell me-2"></i> التنبيهات
+            </button>
+        </li>
+        {% endif %}
+    </ul>
 
-    <!-- إجراءات سريعة -->
-    <div class="row" data-aos="fade-up" data-aos-delay="400">
-        <div class="col-md-6">
-            <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--primary-gradient); color: white;">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-users me-2"></i>
-                        إدارة المرضى
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                        <a href="{{ url_for('reception.patients') }}" class="list-group-item list-group-item-action btn-modern">
-                            <i class="fas fa-users me-2"></i> عرض جميع المرضى
-                        </a>
-                        <a href="{{ url_for('reception.patients') }}" class="list-group-item list-group-item-action btn-modern">
-                            <i class="fas fa-user-plus me-2"></i> إضافة مريض جديد
-                        </a>
-                        <a href="{{ url_for('reception.visits') }}" class="list-group-item list-group-item-action btn-modern">
-                            <i class="fas fa-calendar-alt me-2"></i> عرض الزيارات
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--info-gradient); color: white;">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-calendar me-2"></i>
-                        إدارة المواعيد
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                        <a href="{{ url_for('reception.appointments') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-calendar-check me-2"></i> عرض المواعيد
-                        </a>
-                        <a href="{{ url_for('reception.create_appointment') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-plus me-2"></i> إنشاء موعد جديد
-                        </a>
-                        <a href="{{ url_for('reception.create_visit') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-hospital me-2"></i> إنشاء زيارة جديدة
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Smart Queue Management Section -->
-    {% if stats and stats.smart_queue_management %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-queue me-2"></i>
-                        إدارة الطابور الذكية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.smart_queue_management.current_queue_length or 0 }}</h4>
-                                <p class="text-muted mb-0">طول الطابور الحالي</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.smart_queue_management.avg_wait_time or 0 }} دقيقة</h4>
-                                <p class="text-muted mb-0">متوسط وقت الانتظار</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.smart_queue_management.peak_hour or 'غير محدد' }}</h4>
-                                <p class="text-muted mb-0">ساعة الذروة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.smart_queue_management.efficiency_score or 0 }}%</h4>
-                                <p class="text-muted mb-0">كفاءة الطابور</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Patient Flow Analysis Section -->
-    {% if stats and stats.patient_flow %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-route me-2"></i>
-                        تحليل تدفق المرضى
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.patient_flow_analysis.daily_flow or 0 }}</h4>
-                                <p class="text-muted mb-0">التدفق اليومي</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.patient_flow_analysis.hourly_flow or 0 }}</h4>
-                                <p class="text-muted mb-0">التدفق بالساعة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.patient_flow_analysis.flow_trend or 'مستقر' }}</h4>
-                                <p class="text-muted mb-0">اتجاه التدفق</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Appointment Optimization Section -->
-    {% if stats and stats.appointment_optimization %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-info text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-calendar-check me-2"></i>
-                        تحسين المواعيد
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.appointment_optimization.appointment_density or 0 }}%</h4>
-                                <p class="text-muted mb-0">كثافة المواعيد</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.appointment_optimization.doctor_workload or 0 }}%</h4>
-                                <p class="text-muted mb-0">عبء العمل على الأطباء</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.appointment_optimization.optimization_score or 0 }}%</h4>
-                                <p class="text-muted mb-0">نتيجة التحسين</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.appointment_optimization.suggestions_count or 0 }}</h4>
-                                <p class="text-muted mb-0">اقتراحات التحسين</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Real-time Alerts Section -->
-    {% if stats and stats.real_time_alerts %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-warning text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        التنبيهات الفورية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-danger">{{ stats.real_time_alerts.overdue_appointments or 0 }}</h4>
-                                <p class="text-muted mb-0">مواعيد متأخرة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.real_time_alerts.long_wait_times or 0 }}</h4>
-                                <p class="text-muted mb-0">أوقات انتظار طويلة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.real_time_alerts.high_capacity or 0 }}</h4>
-                                <p class="text-muted mb-0">سعة عالية</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Workflow Automation Section -->
-    {% if stats and stats.workflow_automation %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-secondary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-cogs me-2"></i>
-                        أتمتة سير العمل
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.workflow_automation.automated_tasks or 0 }}</h4>
-                                <p class="text-muted mb-0">المهام المؤتمتة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.workflow_automation.reminders_sent or 0 }}</h4>
-                                <p class="text-muted mb-0">التذكيرات المرسلة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.workflow_automation.follow_ups or 0 }}</h4>
-                                <p class="text-muted mb-0">المتابعات</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.workflow_automation.efficiency_gain or 0 }}%</h4>
-                                <p class="text-muted mb-0">تحسين الكفاءة</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Patient Satisfaction AI Section -->
-    {% if stats and stats.patient_satisfaction_ai %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-dark text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-smile me-2"></i>
-                        رضا المرضى بالذكاء الاصطناعي
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.patient_satisfaction_ai.satisfaction_score or 0 }}%</h4>
-                                <p class="text-muted mb-0">درجة الرضا</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.patient_satisfaction_ai.wait_time_satisfaction or 0 }}%</h4>
-                                <p class="text-muted mb-0">رضا وقت الانتظار</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.patient_satisfaction_ai.service_quality or 0 }}%</h4>
-                                <p class="text-muted mb-0">جودة الخدمة</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Resource Planning Section -->
-    {% if stats and stats.resource_planning %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-light text-dark">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-pie me-2"></i>
-                        تخطيط الموارد
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.resource_planning.staff_utilization or 0 }}%</h4>
-                                <p class="text-muted mb-0">استخدام الموظفين</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.resource_planning.room_occupancy or 0 }}%</h4>
-                                <p class="text-muted mb-0">إشغال الغرف</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.resource_planning.equipment_usage or 0 }}%</h4>
-                                <p class="text-muted mb-0">استخدام المعدات</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.resource_planning.optimization_potential or 0 }}%</h4>
-                                <p class="text-muted mb-0">إمكانية التحسين</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Smart Recommendations Section -->
-    {% if stats and stats.smart_recommendations %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-lightbulb me-2"></i>
-                        التوصيات الذكية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if stats.smart_recommendations.recommendations %}
-                    <div class="row">
-                        {% for recommendation in stats.smart_recommendations.recommendations %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card border-left-{{ 'success' if recommendation.priority == 'high' else 'warning' if recommendation.priority == 'medium' else 'info' }}">
-                                <div class="card-body">
-                                    <h6 class="card-title">{{ recommendation.title }}</h6>
-                                    <p class="card-text">{{ recommendation.description }}</p>
-                                    <small class="text-muted">الأولوية: {{ recommendation.priority }}</small>
+    <div class="tab-content" id="receptionTabsContent">
+        <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+            <div class="row mb-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">إجمالي المرضى</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ total_patients }}</div>
+                                    <small class="text-muted">+12% من الشهر الماضي</small>
+                                </div>
+                                <div class="icon-circle bg-primary bg-opacity-10 text-primary">
+                                    <i class="fas fa-users fa-2x"></i>
                                 </div>
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
-                    {% else %}
-                    <div class="text-center text-muted">
-                        <i class="fas fa-info-circle fa-2x mb-2"></i>
-                        <p>لا توجد توصيات حالياً</p>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">زيارات اليوم</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ today_visits }}</div>
+                                    <small class="text-muted">+8% من أمس</small>
+                                </div>
+                                <div class="icon-circle bg-success bg-opacity-10 text-success">
+                                    <i class="fas fa-calendar-day fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    {% endif %}
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">مواعيد معلقة</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ pending_appointments }}</div>
+                                    <small class="text-muted">يحتاج متابعة</small>
+                                </div>
+                                <div class="icon-circle bg-warning bg-opacity-10 text-warning">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">حالة النظام</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">نشط</div>
+                                    <small class="text-muted">جميع الخدمات تعمل</small>
+                                </div>
+                                <div class="icon-circle bg-info bg-opacity-10 text-info">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-4" data-aos="fade-up" data-aos-delay="120">
+                <div class="col-lg-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">تنبؤ الطلب (الساعات القادمة)</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text" id="forecast-total">{{ patient_demand_forecast.expected_total if patient_demand_forecast else 0 }}</div>
+                                    <small class="text-muted" id="forecast-hours">
+                                        {% if patient_demand_forecast and patient_demand_forecast.next_hours %}
+                                            {% for h in patient_demand_forecast.next_hours %}
+                                                {{ "%02d"|format(h.hour) }}:00 ({{ h.expected }}){% if not loop.last %} • {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            لا بيانات
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div class="icon-circle bg-info bg-opacity-10 text-info">
+                                    <i class="fas fa-chart-area fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">رضا المرضى</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text" id="satisfaction-score">{{ stats.patient_satisfaction_ai.satisfaction_score if stats and stats.patient_satisfaction_ai else 0 }}</div>
+                                    <small class="text-muted" id="satisfaction-status">
+                                        {% if stats and stats.patient_satisfaction_ai %}
+                                            {{ stats.patient_satisfaction_ai.status }}
+                                        {% else %}
+                                            غير متوفر
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div class="icon-circle bg-success bg-opacity-10 text-success">
+                                    <i class="fas fa-smile fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% set status_labels = {
+                'OPEN': 'جديدة',
+                'IN_PROGRESS': 'قيد التنفيذ',
+                'COMPLETED': 'مكتملة',
+                'ARCHIVED': 'مؤرشفة'
+            } %}
+            {% if today_visits_list %}
+            <div class="row mb-4" data-aos="fade-up" data-aos-delay="150">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0 fw-bold gradient-text">
+                                <i class="fas fa-calendar-day me-2"></i>
+                                زيارات اليوم
+                            </h5>
+                            <a href="{{ url_for('reception.visits') }}" class="btn btn-sm btn-outline-primary">
+                                عرض الكل
+                            </a>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>الزيارة</th>
+                                        <th>المريض</th>
+                                        <th>القسم</th>
+                                        <th>الطبيب</th>
+                                        <th>الحالة</th>
+                                        <th>الدفع</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for visit in today_visits_list %}
+                                    <tr>
+                                        <td>{{ visit.visit_number or visit.id }}</td>
+                                        <td>{{ visit.patient.full_name if visit.patient else '' }}</td>
+                                        <td>{{ visit.department.name_ar if visit.department else '' }}</td>
+                                        <td>{{ visit.doctor.full_name if visit.doctor else '' }}</td>
+                                        <td>{{ status_labels.get(visit.status, visit.status) }}</td>
+                                        <td>{{ visit.payment_status_display }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% if today_online_bookings %}
+            <div class="row mb-4" data-aos="fade-up" data-aos-delay="175">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0 fw-bold gradient-text">
+                                <i class="fas fa-globe me-2"></i>
+                                حجوزات إلكترونية اليوم
+                            </h5>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>المرجع</th>
+                                        <th>المريض</th>
+                                        <th>الهاتف</th>
+                                        <th>القسم</th>
+                                        <th>الطبيب</th>
+                                        <th>الوقت</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in today_online_bookings %}
+                                    <tr>
+                                        <td>{{ booking.booking_reference }}</td>
+                                        <td>{{ booking.get_full_name() }}</td>
+                                        <td>{{ booking.phone }}</td>
+                                        <td>{{ booking.department.name_ar if booking.department else '' }}</td>
+                                        <td>{{ booking.doctor.full_name if booking.doctor else '' }}</td>
+                                        <td>{{ booking.appointment_time.strftime('%H:%M') if booking.appointment_time else '' }}</td>
+                                        <td class="text-end">
+                                            <form method="POST" action="{{ url_for('reception.checkin_online_booking') }}" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-success">تحويل لزيارة</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% set queue_items = active_queue_items or [] %}
+            <div class="row mb-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0 fw-bold gradient-text">
+                                <i class="fas fa-users me-2"></i>
+                                طابور الانتظار الحالي
+                            </h5>
+                            <a href="{{ url_for('reception.queue_management') }}" class="btn btn-sm btn-outline-primary">
+                                إدارة الطابور
+                            </a>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>رقم الدور</th>
+                                        <th>المريض</th>
+                                        <th>القسم</th>
+                                        <th>الحالة</th>
+                                        <th>الأولوية</th>
+                                        <th>الدفع</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reception-queue-body">
+                                    {% for item in queue_items %}
+                                    <tr>
+                                        <td>{{ item.queue_number }}</td>
+                                        <td>{{ item.patient.full_name if item.patient else '' }}</td>
+                                        <td>{{ item.department.name_ar if item.department else '' }}</td>
+                                        <td>{{ item.get_status_display() }}</td>
+                                        <td>{{ item.get_priority_display() }}</td>
+                                        <td>{{ item.get_payment_status_display() }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center">لا يوجد طابور حالياً</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Operations Tab -->
+        <div class="tab-pane fade" id="operations" role="tabpanel" aria-labelledby="operations-tab">
+            <div class="row" data-aos="fade-up" data-aos-delay="400">
+                <div class="col-md-6">
+                    <div class="card card-modern h-100">
+                        <div class="card-header border-0 bg-transparent">
+                            <h5 class="card-title mb-0 fw-bold gradient-text">
+                                <i class="fas fa-users me-2"></i>
+                                إدارة المرضى
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <a href="{{ url_for('reception.patients') }}" class="list-group-item list-group-item-action border-0 rounded mb-2">
+                                    <i class="fas fa-users me-2 text-primary"></i> عرض جميع المرضى
+                                </a>
+                                <a href="{{ url_for('reception.patients') }}?show_add=1" class="list-group-item list-group-item-action border-0 rounded mb-2">
+                                    <i class="fas fa-user-plus me-2 text-success"></i> إضافة مريض جديد
+                                </a>
+                                <a href="{{ url_for('reception.visits') }}" class="list-group-item list-group-item-action border-0 rounded mb-2">
+                                    <i class="fas fa-calendar-alt me-2 text-info"></i> عرض الزيارات
+                                </a>
+                                <a href="{{ url_for('payment.dashboard') }}" class="list-group-item list-group-item-action border-0 rounded mb-2">
+                                    <i class="fas fa-credit-card me-2 text-warning"></i> المدفوعات
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card card-modern h-100">
+                        <div class="card-header border-0 bg-transparent">
+                            <h5 class="card-title mb-0 fw-bold gradient-text">
+                                <i class="fas fa-calendar me-2"></i>
+                                إدارة المواعيد
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <a href="{{ url_for('reception.appointments') }}" class="list-group-item list-group-item-action border-0 rounded mb-2">
+                                    <i class="fas fa-calendar-check me-2 text-primary"></i> عرض المواعيد
+                                </a>
+                                <a href="{{ url_for('reception.create_appointment') }}" class="list-group-item list-group-item-action border-0 rounded mb-2">
+                                    <i class="fas fa-plus me-2 text-success"></i> إنشاء موعد جديد
+                                </a>
+                                <a href="{{ url_for('reception.create_visit') }}" class="list-group-item list-group-item-action border-0 rounded mb-2">
+                                    <i class="fas fa-hospital me-2 text-info"></i> إنشاء زيارة جديدة
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4" data-aos="fade-up" data-aos-delay="450">
+                <div class="col-md-6">
+                    <div class="card card-modern h-100">
+                        <div class="card-header border-0 bg-transparent">
+                            <h5 class="card-title mb-0 fw-bold gradient-text">
+                                <i class="fas fa-tv me-2"></i>
+                                شاشات العرض
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <a href="{{ url_for('reception.waiting_display') }}" class="list-group-item list-group-item-action border-0 rounded mb-2">
+                                    <i class="fas fa-users me-2 text-primary"></i> شاشة الانتظار
+                                </a>
+                                <a href="{{ url_for('reception.calls_display') }}" class="list-group-item list-group-item-action border-0 rounded mb-2">
+                                    <i class="fas fa-bullhorn me-2 text-warning"></i> شاشة النداء
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Queue Tab -->
+        {% if stats and stats.smart_queue_management %}
+        <div class="tab-pane fade" id="queue" role="tabpanel" aria-labelledby="queue-tab">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header bg-gradient-primary text-white border-0">
+                            <h5 class="mb-0">
+                                <i class="fas fa-queue me-2"></i>
+                                إدارة الطابور الذكية
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-primary fw-bold" id="queue-length">{{ stats.smart_queue_management.current_queue_length or 0 }}</h4>
+                                        <p class="text-muted mb-0">طول الطابور الحالي</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-success fw-bold" id="avg-wait">{{ stats.smart_queue_management.avg_wait_time or 0 }} دقيقة</h4>
+                                        <p class="text-muted mb-0">متوسط وقت الانتظار</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-info fw-bold" id="peak-hour">{{ stats.smart_queue_management.peak_hour or 'غير محدد' }}</h4>
+                                        <p class="text-muted mb-0">ساعة الذروة</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-warning fw-bold" id="queue-efficiency">{{ stats.smart_queue_management.efficiency_score or 0 }}%</h4>
+                                        <p class="text-muted mb-0">كفاءة الطابور</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Analytics Tab -->
+        {% if stats and (stats.patient_flow or stats.appointment_optimization) %}
+        <div class="tab-pane fade" id="analytics" role="tabpanel" aria-labelledby="analytics-tab">
+            <!-- Patient Flow Analysis Section -->
+            {% if stats.patient_flow %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-gradient-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-route me-2"></i>
+                                تحليل تدفق المرضى
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% set total_daily_visits = stats.patient_flow_analysis.daily_flow|sum(attribute='visits') %}
+                                {% set total_hourly_visits = stats.patient_flow_analysis.hourly_flow|sum(attribute='count') %}
+                                {% set trend = stats.patient_flow_analysis.trend %}
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h4 class="text-success">{{ total_daily_visits }}</h4>
+                                        <p class="text-muted mb-0">إجمالي زيارات آخر ٧ أيام</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h4 class="text-info">{{ total_hourly_visits }}</h4>
+                                        <p class="text-muted mb-0">إجمالي التدفق الأسبوعي بالساعة</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h4 class="text-warning">{{ 'نمو' if trend == 'growing' else 'تناقص' if trend == 'declining' else 'مستقر' }}</h4>
+                                        <p class="text-muted mb-0">اتجاه التدفق</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Appointment Optimization Section -->
+            {% if stats.appointment_optimization %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-gradient-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calendar-check me-2"></i>
+                                تحسين المواعيد
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% set total_upcoming = stats.appointment_optimization.appointment_density|sum(attribute='count') %}
+                                {% set doctors_involved = stats.appointment_optimization.doctor_workload|length %}
+                                {% set days_scheduled = stats.appointment_optimization.appointment_density|length %}
+                                {% set suggestions_count = stats.appointment_optimization.optimizations|length %}
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-primary">{{ total_upcoming }}</h4>
+                                        <p class="text-muted mb-0">مواعيد خلال ٧ أيام</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-success">{{ doctors_involved }}</h4>
+                                        <p class="text-muted mb-0">أطباء مشاركون</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-info">{{ days_scheduled }}</h4>
+                                        <p class="text-muted mb-0">أيام مجدولة</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-warning">{{ suggestions_count }}</h4>
+                                        <p class="text-muted mb-0">اقتراحات التحسين</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Alerts Tab -->
+        {% if stats and stats.real_time_alerts %}
+        <div class="tab-pane fade" id="alerts" role="tabpanel" aria-labelledby="alerts-tab">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-gradient-warning text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                التنبيهات الفورية
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% set alerts = stats.real_time_alerts %}
+                                {% set overdue_count = alerts|selectattr('type','equalto','appointment')|list|length %}
+                                {% set long_wait_count = alerts|selectattr('type','equalto','queue')|list|length %}
+                                {% set capacity_count = alerts|selectattr('type','equalto','capacity')|list|length %}
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h4 class="text-danger">{{ overdue_count }}</h4>
+                                        <p class="text-muted mb-0">مواعيد متأخرة</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h4 class="text-warning">{{ long_wait_count }}</h4>
+                                        <p class="text-muted mb-0">أوقات انتظار طويلة</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h4 class="text-info">{{ capacity_count }}</h4>
+                                        <p class="text-muted mb-0">سعة عالية</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+const queueSnapshotUrl = "{{ url_for('reception.api_queue_snapshot') }}";
+const queueSocket = io('/queue');
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
+
+function renderQueue(items) {
+    const body = document.getElementById('reception-queue-body');
+    if (!body) return;
+    body.innerHTML = '';
+    if (!items || items.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 6;
+        td.className = 'text-center';
+        td.textContent = 'لا يوجد طابور حالياً';
+        tr.appendChild(td);
+        body.appendChild(tr);
+        return;
+    }
+    items.forEach(item => {
+        const tr = document.createElement('tr');
+        const cols = [
+            item.queue_number ?? '',
+            item.patient_name ?? '',
+            item.department_name ?? '',
+            item.status ?? '',
+            item.priority ?? '',
+            item.payment ?? ''
+        ];
+        cols.forEach(val => {
+            const td = document.createElement('td');
+            td.textContent = val;
+            tr.appendChild(td);
+        });
+        body.appendChild(tr);
+    });
+}
+
+function renderForecast(forecast) {
+    if (!forecast) {
+        setText('forecast-total', 0);
+        setText('forecast-hours', 'لا بيانات');
+        return;
+    }
+    setText('forecast-total', forecast.expected_total ?? 0);
+    if (forecast.next_hours && forecast.next_hours.length) {
+        const parts = forecast.next_hours.map(h => {
+            const hour = String(h.hour ?? 0).padStart(2, '0');
+            return `${hour}:00 (${h.expected ?? 0})`;
+        });
+        setText('forecast-hours', parts.join(' • '));
+    } else {
+        setText('forecast-hours', 'لا بيانات');
+    }
+}
+
+function renderSatisfaction(sat) {
+    setText('satisfaction-score', sat?.satisfaction_score ?? 0);
+    setText('satisfaction-status', sat?.status ?? 'غير متوفر');
+}
+
+function renderQueueStats(stats) {
+    setText('queue-length', stats?.current_queue_length ?? 0);
+    setText('avg-wait', `${stats?.avg_wait_time ?? 0} دقيقة`);
+    setText('peak-hour', stats?.peak_hour ?? 'غير محدد');
+    setText('queue-efficiency', `${stats?.efficiency_score ?? 0}%`);
+}
+
+function refreshQueueSnapshot() {
+    fetch(queueSnapshotUrl, { headers: { 'Accept': 'application/json' } })
+        .then(r => r.json())
+        .then(data => {
+            if (!data || !data.success) return;
+            renderQueue(data.items || []);
+            renderQueueStats(data.stats || {});
+            renderForecast(data.forecast || {});
+            renderSatisfaction(data.satisfaction || {});
+        })
+        .catch(() => {});
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    refreshQueueSnapshot();
+    setInterval(refreshQueueSnapshot, 10000);
+});
+
+queueSocket.on('queue_snapshot', function(data) {
+    if (!data) return;
+    renderQueue(data.items || []);
+});
+</script>
 {% endblock %}

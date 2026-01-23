@@ -3,7 +3,7 @@
 Medical System Nurse Model
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from app_factory import db
 import json
 
@@ -18,8 +18,8 @@ class Nurse(db.Model):
     specialization = db.Column(db.String(100), nullable=True)
     experience_years = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # العلاقات
     user = db.relationship('User', backref='nurse_profile')
@@ -64,7 +64,7 @@ class VitalSigns(db.Model):
     
     # ملاحظات
     notes = db.Column(db.Text, nullable=True)
-    recorded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    recorded_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # العلاقات
     patient = db.relationship('Patient', backref='vital_signs')
@@ -95,4 +95,38 @@ class VitalSigns(db.Model):
             'respiratory_rate': self.respiratory_rate,
             'notes': self.notes,
             'recorded_at': self.recorded_at.isoformat() if self.recorded_at else None
+        }
+
+
+class MedicationAdministrationLog(db.Model):
+    __tablename__ = 'medication_administration_logs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='CASCADE'), nullable=False, index=True)
+    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='SET NULL'), nullable=True, index=True)
+    prescription_item_id = db.Column(db.Integer, db.ForeignKey('prescription_items.id', ondelete='SET NULL'), nullable=True, index=True)
+    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='SET NULL'), nullable=True, index=True)
+    nurse_id = db.Column(db.Integer, db.ForeignKey('nurses.id', ondelete='SET NULL'), nullable=True, index=True)
+    administered_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    notes = db.Column(db.Text, nullable=True)
+
+    patient = db.relationship('Patient', lazy='select')
+    visit = db.relationship('Visit', lazy='select')
+    prescription = db.relationship('Prescription', lazy='select')
+    prescription_item = db.relationship('PrescriptionItem', lazy='select')
+    medication = db.relationship('Medication', lazy='select')
+    nurse = db.relationship('Nurse', lazy='select')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'patient_id': self.patient_id,
+            'visit_id': self.visit_id,
+            'prescription_id': self.prescription_id,
+            'prescription_item_id': self.prescription_item_id,
+            'medication_id': self.medication_id,
+            'nurse_id': self.nurse_id,
+            'administered_at': self.administered_at.isoformat() if self.administered_at else None,
+            'notes': self.notes,
         }

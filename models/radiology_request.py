@@ -1,7 +1,7 @@
 """
 الأشعة - طلب تصوير (Request)
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from app_factory import db
 
 
@@ -19,10 +19,10 @@ class RadiologyRequest(db.Model):
     body_part = db.Column(db.String(120), nullable=True)
     notes = db.Column(db.Text, nullable=True)
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
-    visit = db.relationship('Visit', lazy='selectin')
+    visit = db.relationship('Visit', back_populates='radiology_requests', lazy='selectin')
     patient = db.relationship('Patient', lazy='selectin')
     requester = db.relationship('User', foreign_keys=[requested_by], lazy='select')
 
@@ -36,3 +36,18 @@ class RadiologyRequest(db.Model):
 
     def __repr__(self) -> str:
         return f"<RadiologyRequest #{self.request_number or self.id}>"
+    
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "request_number": self.request_number,
+            "visit_id": self.visit_id,
+            "patient_id": self.patient_id,
+            "requested_by": self.requested_by,
+            "status": self.status,
+            "modality": self.modality,
+            "body_part": self.body_part,
+            "notes": self.notes,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }

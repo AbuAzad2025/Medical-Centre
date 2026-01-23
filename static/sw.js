@@ -13,7 +13,7 @@ const urlsToCache = [
   '/static/js/performance.js'
 ];
 
-// Install event - cache resources
+// Install event - cache resources and activate immediately
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -23,6 +23,7 @@ self.addEventListener('install', event => {
       })
       .catch(err => console.log('Service Worker: Cache failed', err))
   );
+  self.skipWaiting();
 });
 
 // Activate event - clean up old caches
@@ -39,6 +40,7 @@ self.addEventListener('activate', event => {
       );
     })
   );
+  self.clients.claim();
 });
 
 // Fetch event - serve from cache, fallback to network

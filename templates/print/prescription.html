@@ -255,7 +255,7 @@
                 font-size: 11px;
             }
         }
-    </style>
+</style>
 </head>
 <body>
     <button class="print-button" onclick="window.print()">طباعة الروشتة</button>
@@ -283,7 +283,7 @@
         
         <div class="info-section">
             <h3>معلومات المركز</h3>
-            <p><strong>المركز:</strong> المركز الصحي المتخصص</p>
+            <p><strong>المركز:</strong> {{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}</p>
             <p><strong>العنوان:</strong> العنوان الكامل للمركز</p>
             <p><strong>الهاتف:</strong> +970-XX-XXXXXXX</p>
         </div>
@@ -365,16 +365,22 @@
             </tr>
         </thead>
         <tbody>
-            {% for medication in prescription.medications %}
+            {% for item in prescription.items.all() %}
             <tr>
                 <td>
-                    <div class="medication-name">{{ medication.medication_name }}</div>
-                    <div class="medication-dosage">{{ medication.dosage_form or 'أقراص' }}</div>
+                    <div class="medication-name">
+                        {{ item.medication.trade_name if item.medication else 'غير محدد' }}
+                        {% if item.medication and item.medication.generic_name %} ({{ item.medication.generic_name }}){% endif %}
+                    </div>
+                    <div class="medication-dosage">
+                        {% if item.medication %}{{ item.medication.strength }} {{ item.medication.dosage_form }}{% endif %}
+                    </div>
                 </td>
-                <td>{{ medication.dosage }}</td>
-                <td>{{ medication.frequency }}</td>
-                <td>{{ medication.duration }}</td>
-                <td class="medication-instructions">{{ medication.instructions or 'اتبع تعليمات الطبيب' }}</td>
+                {% set parts = (item.dosage or '').split(' | ', 1) %}
+                <td>{{ parts[0] if parts and parts[0] else '' }}</td>
+                <td>{{ parts[1] if parts|length > 1 else '' }}</td>
+                <td>{{ item.duration_days }}</td>
+                <td class="medication-instructions">{{ item.instructions or 'اتبع تعليمات الطبيب' }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -383,7 +389,7 @@
     <div class="instructions-section">
         <h3>تعليمات إضافية</h3>
         <div class="instructions-content">
-            {{ prescription.additional_instructions or 'لا توجد تعليمات إضافية' }}
+            {{ prescription.notes or 'لا توجد تعليمات إضافية' }}
         </div>
     </div>
     
@@ -401,15 +407,17 @@
     <div class="footer">
         <p><strong>هذه الروشتة صالحة لمدة 30 يوماً من تاريخ الإصدار</strong></p>
         <p>تاريخ الطباعة: {{ moment().format('YYYY-MM-DD HH:mm') }}</p>
-        <p>للاستفسارات: info@medical-center.com | +970-XX-XXXXXXX</p>
+        <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else 'info@medical-center.com' }} | {{ branding.organization_phone if branding and branding.organization_phone else '+970-XX-XXXXXXX' }}</p>
         <hr style="margin: 10px 0; border: 1px solid #ddd;">
         <p style="font-size: 10px; color: #666; margin: 5px 0;">
-            <strong>تطوير:</strong> شركة ازاد للأنظمة الذكية | 
-            <strong>جوال:</strong> 0598953362 | 
-            <strong>وطنية:</strong> 0562150193 | 
-            <strong>واتساب:</strong> +972562150193 | 
-            <strong>رام الله - فلسطين</strong>
+            <strong>تطوير:</strong> {{ developer_company or 'شركة أزاد للأنظمة الذكية' }} | 
+            <strong>مطور:</strong> {{ developer_name or 'أحمد غنام' }}
         </p>
     </div>
+    <script>
+    window.onload = function() {
+        setTimeout(function() { window.print(); }, 800);
+    };
+    </script>
 </body>
 </html>

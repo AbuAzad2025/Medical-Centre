@@ -448,28 +448,30 @@ function saveBranding() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('تم حفظ إعدادات العلامة التجارية بنجاح');
-            location.reload();
+            Swal.fire({ title: 'تم', text: 'تم حفظ إعدادات العلامة التجارية بنجاح', icon: 'success' }).then(() => location.reload());
         } else {
-            alert('حدث خطأ في حفظ الإعدادات');
+            Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ الإعدادات', icon: 'error' });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('حدث خطأ في حفظ الإعدادات');
+        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ الإعدادات', icon: 'error' });
     });
 }
 
 function resetBranding() {
-    // إعادة تعيين إعدادات العلامة التجارية
-    if (confirm('هل تريد إعادة تعيين جميع إعدادات العلامة التجارية إلى القيم الافتراضية؟')) {
-        location.reload();
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل تريد إعادة تعيين جميع إعدادات العلامة التجارية إلى القيم الافتراضية؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، إعادة',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => { if (res.isConfirmed) { location.reload(); } });
 }
 
 function selectTheme(themeId) {
-    // اختيار ثيم
-    alert('تم اختيار الثيم: ' + themeId);
+    Swal.fire({ title: 'تم', text: 'تم اختيار الثيم: ' + themeId, icon: 'success' });
 }
 
 // تحديث معاينة الألوان عند تغييرها

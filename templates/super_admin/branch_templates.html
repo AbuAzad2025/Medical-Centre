@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}قوالب الفروع{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary"><i class="fas fa-code-branch me-2"></i>قوالب إعدادات الفروع</h2>
+            <div class="text-muted">تجميع قوالب جاهزة لتطبيقها على الفروع</div>
+          </div>
+          <a class="btn btn-secondary" href="{{ url_for('super_admin.dashboard') }}">العودة</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <label class="form-label">القوالب (JSON)</label>
+      <textarea id="templatesJson" class="form-control" rows="10">{{ items | tojson }}</textarea>
+      <button class="btn btn-primary mt-3" id="saveTemplates">حفظ القوالب</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const saveBtn = document.getElementById('saveTemplates');
+if (saveBtn) {
+  saveBtn.addEventListener('click', async () => {
+    let items = [];
+    try {
+      items = JSON.parse(document.getElementById('templatesJson').value || '[]');
+    } catch (e) {
+      alert('صيغة JSON غير صحيحة');
+      return;
+    }
+    const r = await fetch('{{ url_for("super_admin.branch_templates") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (data.success) {
+      alert('تم حفظ القوالب');
+    } else {
+      alert('تعذر الحفظ');
+    }
+  });
+}
+</script>
+{% endblock %}

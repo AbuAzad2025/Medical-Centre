@@ -1,7 +1,7 @@
 """
 عداد زيارات للمريض - Denormalized Counter (اختياري)
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from app_factory import db
 
 
@@ -13,7 +13,7 @@ class PatientVisitCounter(db.Model):
     visit_count = db.Column(db.Integer, default=0, nullable=False)
     last_visit_at = db.Column(db.DateTime, nullable=True)
 
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
     def __repr__(self) -> str:
         return f"<PatientVisitCounter patient={self.patient_id} cnt={self.visit_count}>"

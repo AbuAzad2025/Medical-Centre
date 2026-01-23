@@ -1,0 +1,3992 @@
+{
+  "counts": {
+    "server_endpoints": 285,
+    "template_endpoints": 164,
+    "python_endpoints": 54,
+    "combined_used": 167,
+    "extra": 118,
+    "rendered_templates": 140,
+    "missing_template_files": 0,
+    "templates_on_disk": 146,
+    "orphaned_templates": 0,
+    "template_fetch_calls": 72,
+    "js_fetch_calls": 6
+  },
+  "missing_templates_only": [],
+  "missing_python_only": [],
+  "extra_endpoints": [
+    "__health",
+    "__ping",
+    "accountant.daily_audit_report",
+    "accountant.debt_tracking_report",
+    "accountant.index",
+    "accountant.monthly_audit_report",
+    "accountant.payment_documentation",
+    "accountant.receipt",
+    "accountant.reports",
+    "auth._auth_ping",
+    "auth.change_password",
+    "auth.profile",
+    "doctor.dashboard_for_doctor",
+    "doctor.lab_results",
+    "doctor.medical_records",
+    "doctor.print_medical_report",
+    "doctor.print_prescription",
+    "doctor.radiology_results",
+    "doctor.visit_summary",
+    "doctor.visits",
+    "emergency.create_emergency_case",
+    "emergency.emergency_report",
+    "emergency.lab_results",
+    "emergency.patients",
+    "emergency.print_emergency_report",
+    "emergency.print_prescription",
+    "emergency.queue",
+    "emergency.radiology_results",
+    "favicon",
+    "finance.archive_visit",
+    "finance.invoices",
+    "finance.post_gl",
+    "lab.api_fhir_lab_diagnostic_report",
+    "lab.api_fhir_lab_observation",
+    "lab.worklist_claim",
+    "lab.worklist_complete",
+    "list_routes",
+    "main.api_search",
+    "main.health",
+    "main.settings",
+    "manager.analytics",
+    "manager.departments",
+    "manager.financial_reports",
+    "manager.index",
+    "manager.kpi_dashboard",
+    "manager.seed_pricing",
+    "manager.staff",
+    "medication.prescriptions",
+    "nurse.record_vital_signs",
+    "nurse.tasks",
+    "nurse.vitals",
+    "nurse.wards",
+    "payment.payment_history",
+    "payment.payment_methods",
+    "radiology.api_fhir_imaging_study",
+    "radiology.api_fhir_radiology_diagnostic_report",
+    "radiology.api_fhir_radiology_observation",
+    "radiology.images",
+    "radiology.results",
+    "radiology.worklist_claim",
+    "radiology.worklist_complete",
+    "reception.api_available_times",
+    "reception.api_department_services",
+    "reception.api_department_staff",
+    "reception.api_doctors",
+    "reception.api_fhir_appointment",
+    "reception.api_fhir_encounter",
+    "reception.api_fhir_organization",
+    "reception.api_fhir_patient",
+    "reception.api_fhir_practitioner",
+    "reception.api_patient_queue_position",
+    "reception.api_queue_status",
+    "reception.api_queue_status_all",
+    "reception.api_smart_patient_search",
+    "reception.api_visit_pricing",
+    "reception.approve_emergency_debt",
+    "reception.approve_force_entry",
+    "reception.call_next_patient",
+    "reception.cancel_ticket",
+    "reception.complete_treatment",
+    "reception.end_visit",
+    "reception.export_visits",
+    "reception.index",
+    "reception.payments",
+    "reception.pos_charge",
+    "reception.print_invoice",
+    "reception.print_prescription",
+    "reception.save_queue_settings",
+    "reception.skip_patient",
+    "reception.start_treatment",
+    "reception.transfer_visit",
+    "reception.view_visit",
+    "super_admin.activate_department",
+    "super_admin.activate_service",
+    "super_admin.add_staff_to_department",
+    "super_admin.api_ai_assistant",
+    "super_admin.api_audit_log",
+    "super_admin.api_recent_activities",
+    "super_admin.backup",
+    "super_admin.create_backup",
+    "super_admin.create_department",
+    "super_admin.create_permission_simple",
+    "super_admin.create_role_simple",
+    "super_admin.create_service",
+    "super_admin.deactivate_department",
+    "super_admin.deactivate_service",
+    "super_admin.delete_permission",
+    "super_admin.delete_role",
+    "super_admin.delete_user",
+    "super_admin.download_export",
+    "super_admin.edit_permission",
+    "super_admin.export_departments",
+    "super_admin.export_services",
+    "super_admin.export_system_data",
+    "super_admin.manage_role_permissions",
+    "super_admin.remove_staff_from_department",
+    "super_admin.reset_user_password",
+    "super_admin.system"
+  ],
+  "grouped_extra": {
+    "_root": [
+      {
+        "endpoint": "__health",
+        "kind": "page"
+      },
+      {
+        "endpoint": "__ping",
+        "kind": "page"
+      },
+      {
+        "endpoint": "favicon",
+        "kind": "page"
+      },
+      {
+        "endpoint": "list_routes",
+        "kind": "page"
+      }
+    ],
+    "accountant": [
+      {
+        "endpoint": "accountant.daily_audit_report",
+        "kind": "page"
+      },
+      {
+        "endpoint": "accountant.debt_tracking_report",
+        "kind": "page"
+      },
+      {
+        "endpoint": "accountant.index",
+        "kind": "page"
+      },
+      {
+        "endpoint": "accountant.monthly_audit_report",
+        "kind": "page"
+      },
+      {
+        "endpoint": "accountant.payment_documentation",
+        "kind": "page"
+      },
+      {
+        "endpoint": "accountant.receipt",
+        "kind": "page"
+      },
+      {
+        "endpoint": "accountant.reports",
+        "kind": "page"
+      }
+    ],
+    "auth": [
+      {
+        "endpoint": "auth._auth_ping",
+        "kind": "page"
+      },
+      {
+        "endpoint": "auth.change_password",
+        "kind": "page"
+      },
+      {
+        "endpoint": "auth.profile",
+        "kind": "page"
+      }
+    ],
+    "doctor": [
+      {
+        "endpoint": "doctor.dashboard_for_doctor",
+        "kind": "page"
+      },
+      {
+        "endpoint": "doctor.lab_results",
+        "kind": "page"
+      },
+      {
+        "endpoint": "doctor.medical_records",
+        "kind": "page"
+      },
+      {
+        "endpoint": "doctor.print_medical_report",
+        "kind": "page"
+      },
+      {
+        "endpoint": "doctor.print_prescription",
+        "kind": "page"
+      },
+      {
+        "endpoint": "doctor.radiology_results",
+        "kind": "page"
+      },
+      {
+        "endpoint": "doctor.visit_summary",
+        "kind": "page"
+      },
+      {
+        "endpoint": "doctor.visits",
+        "kind": "page"
+      }
+    ],
+    "emergency": [
+      {
+        "endpoint": "emergency.create_emergency_case",
+        "kind": "page"
+      },
+      {
+        "endpoint": "emergency.emergency_report",
+        "kind": "page"
+      },
+      {
+        "endpoint": "emergency.lab_results",
+        "kind": "page"
+      },
+      {
+        "endpoint": "emergency.patients",
+        "kind": "page"
+      },
+      {
+        "endpoint": "emergency.print_emergency_report",
+        "kind": "page"
+      },
+      {
+        "endpoint": "emergency.print_prescription",
+        "kind": "page"
+      },
+      {
+        "endpoint": "emergency.queue",
+        "kind": "page"
+      },
+      {
+        "endpoint": "emergency.radiology_results",
+        "kind": "page"
+      }
+    ],
+    "finance": [
+      {
+        "endpoint": "finance.archive_visit",
+        "kind": "page"
+      },
+      {
+        "endpoint": "finance.invoices",
+        "kind": "page"
+      },
+      {
+        "endpoint": "finance.post_gl",
+        "kind": "page"
+      }
+    ],
+    "lab": [
+      {
+        "endpoint": "lab.api_fhir_lab_diagnostic_report",
+        "kind": "api"
+      },
+      {
+        "endpoint": "lab.api_fhir_lab_observation",
+        "kind": "api"
+      },
+      {
+        "endpoint": "lab.worklist_claim",
+        "kind": "page"
+      },
+      {
+        "endpoint": "lab.worklist_complete",
+        "kind": "page"
+      }
+    ],
+    "main": [
+      {
+        "endpoint": "main.api_search",
+        "kind": "api"
+      },
+      {
+        "endpoint": "main.health",
+        "kind": "page"
+      },
+      {
+        "endpoint": "main.settings",
+        "kind": "page"
+      }
+    ],
+    "manager": [
+      {
+        "endpoint": "manager.analytics",
+        "kind": "page"
+      },
+      {
+        "endpoint": "manager.departments",
+        "kind": "page"
+      },
+      {
+        "endpoint": "manager.financial_reports",
+        "kind": "page"
+      },
+      {
+        "endpoint": "manager.index",
+        "kind": "page"
+      },
+      {
+        "endpoint": "manager.kpi_dashboard",
+        "kind": "page"
+      },
+      {
+        "endpoint": "manager.seed_pricing",
+        "kind": "page"
+      },
+      {
+        "endpoint": "manager.staff",
+        "kind": "page"
+      }
+    ],
+    "medication": [
+      {
+        "endpoint": "medication.prescriptions",
+        "kind": "page"
+      }
+    ],
+    "nurse": [
+      {
+        "endpoint": "nurse.record_vital_signs",
+        "kind": "page"
+      },
+      {
+        "endpoint": "nurse.tasks",
+        "kind": "page"
+      },
+      {
+        "endpoint": "nurse.vitals",
+        "kind": "page"
+      },
+      {
+        "endpoint": "nurse.wards",
+        "kind": "page"
+      }
+    ],
+    "payment": [
+      {
+        "endpoint": "payment.payment_history",
+        "kind": "page"
+      },
+      {
+        "endpoint": "payment.payment_methods",
+        "kind": "page"
+      }
+    ],
+    "radiology": [
+      {
+        "endpoint": "radiology.api_fhir_imaging_study",
+        "kind": "api"
+      },
+      {
+        "endpoint": "radiology.api_fhir_radiology_diagnostic_report",
+        "kind": "api"
+      },
+      {
+        "endpoint": "radiology.api_fhir_radiology_observation",
+        "kind": "api"
+      },
+      {
+        "endpoint": "radiology.images",
+        "kind": "page"
+      },
+      {
+        "endpoint": "radiology.results",
+        "kind": "page"
+      },
+      {
+        "endpoint": "radiology.worklist_claim",
+        "kind": "page"
+      },
+      {
+        "endpoint": "radiology.worklist_complete",
+        "kind": "page"
+      }
+    ],
+    "reception": [
+      {
+        "endpoint": "reception.api_available_times",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.api_department_services",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.api_department_staff",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.api_doctors",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.api_fhir_appointment",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.api_fhir_encounter",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.api_fhir_organization",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.api_fhir_patient",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.api_fhir_practitioner",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.api_patient_queue_position",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.api_queue_status",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.api_queue_status_all",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.api_smart_patient_search",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.api_visit_pricing",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.approve_emergency_debt",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.approve_force_entry",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.call_next_patient",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.cancel_ticket",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.complete_treatment",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.end_visit",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.export_visits",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.index",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.payments",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.pos_charge",
+        "kind": "api"
+      },
+      {
+        "endpoint": "reception.print_invoice",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.print_prescription",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.save_queue_settings",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.skip_patient",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.start_treatment",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.transfer_visit",
+        "kind": "page"
+      },
+      {
+        "endpoint": "reception.view_visit",
+        "kind": "page"
+      }
+    ],
+    "super_admin": [
+      {
+        "endpoint": "super_admin.activate_department",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.activate_service",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.add_staff_to_department",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.api_ai_assistant",
+        "kind": "api"
+      },
+      {
+        "endpoint": "super_admin.api_audit_log",
+        "kind": "api"
+      },
+      {
+        "endpoint": "super_admin.api_recent_activities",
+        "kind": "api"
+      },
+      {
+        "endpoint": "super_admin.backup",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.create_backup",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.create_department",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.create_permission_simple",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.create_role_simple",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.create_service",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.deactivate_department",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.deactivate_service",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.delete_permission",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.delete_role",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.delete_user",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.download_export",
+        "kind": "api"
+      },
+      {
+        "endpoint": "super_admin.edit_permission",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.export_departments",
+        "kind": "api"
+      },
+      {
+        "endpoint": "super_admin.export_services",
+        "kind": "api"
+      },
+      {
+        "endpoint": "super_admin.export_system_data",
+        "kind": "api"
+      },
+      {
+        "endpoint": "super_admin.manage_role_permissions",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.remove_staff_from_department",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.reset_user_password",
+        "kind": "page"
+      },
+      {
+        "endpoint": "super_admin.system",
+        "kind": "page"
+      }
+    ]
+  },
+  "extra_details": [
+    {
+      "endpoint": "__health",
+      "paths": [
+        "/__health"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "__ping",
+      "paths": [
+        "/__ping"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "accountant.daily_audit_report",
+      "paths": [
+        "/accountant/audit/daily"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "accountant.debt_tracking_report",
+      "paths": [
+        "/accountant/audit/debts"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "accountant.index",
+      "paths": [
+        "/accountant/"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "accountant.monthly_audit_report",
+      "paths": [
+        "/accountant/audit/monthly"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "accountant.payment_documentation",
+      "paths": [
+        "/accountant/payment-documentation/<int:payment_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "accountant.receipt",
+      "paths": [
+        "/accountant/receipt/<int:payment_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "accountant.reports",
+      "paths": [
+        "/accountant/reports"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "auth._auth_ping",
+      "paths": [
+        "/auth/__ping"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "auth.change_password",
+      "paths": [
+        "/auth/change-password"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "auth.profile",
+      "paths": [
+        "/auth/profile"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "doctor.dashboard_for_doctor",
+      "paths": [
+        "/doctor/dashboard/<int:doctor_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "doctor.lab_results",
+      "paths": [
+        "/doctor/lab-results/<int:patient_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "doctor.medical_records",
+      "paths": [
+        "/doctor/medical-records"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "doctor.print_medical_report",
+      "paths": [
+        "/doctor/print-medical-report/<int:visit_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "doctor.print_prescription",
+      "paths": [
+        "/doctor/print-prescription/<int:prescription_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "doctor.radiology_results",
+      "paths": [
+        "/doctor/radiology-results/<int:patient_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "doctor.visit_summary",
+      "paths": [
+        "/doctor/visit-summary/<int:visit_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "doctor.visits",
+      "paths": [
+        "/doctor/visits"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "emergency.create_emergency_case",
+      "paths": [
+        "/emergency/cases/create"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "emergency.emergency_report",
+      "paths": [
+        "/emergency/emergency-report/<int:emergency_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "emergency.lab_results",
+      "paths": [
+        "/emergency/lab-results/<int:patient_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "emergency.patients",
+      "paths": [
+        "/emergency/patients"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "emergency.print_emergency_report",
+      "paths": [
+        "/emergency/print-emergency-report/<int:emergency_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "emergency.print_prescription",
+      "paths": [
+        "/emergency/print-prescription/<int:prescription_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "emergency.queue",
+      "paths": [
+        "/emergency/queue"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "emergency.radiology_results",
+      "paths": [
+        "/emergency/radiology-results/<int:patient_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "favicon",
+      "paths": [
+        "/favicon.ico"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "finance.archive_visit",
+      "paths": [
+        "/finance/visits/<int:visit_id>/archive"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "finance.invoices",
+      "paths": [
+        "/finance/invoices"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "finance.post_gl",
+      "paths": [
+        "/finance/post"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "lab.api_fhir_lab_diagnostic_report",
+      "paths": [
+        "/lab/api/fhir/diagnosticreport/lab/<int:result_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "lab.api_fhir_lab_observation",
+      "paths": [
+        "/lab/api/fhir/observation/lab/<int:result_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "lab.worklist_claim",
+      "paths": [
+        "/lab/worklist/claim/<int:request_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "lab.worklist_complete",
+      "paths": [
+        "/lab/worklist/complete/<int:request_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "list_routes",
+      "paths": [
+        "/__routes"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "main.api_search",
+      "paths": [
+        "/api/search"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "main.health",
+      "paths": [
+        "/health"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "main.settings",
+      "paths": [
+        "/settings"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "manager.analytics",
+      "paths": [
+        "/manager/analytics"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "manager.departments",
+      "paths": [
+        "/manager/departments"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "manager.financial_reports",
+      "paths": [
+        "/manager/financial-reports"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "manager.index",
+      "paths": [
+        "/manager/"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "manager.kpi_dashboard",
+      "paths": [
+        "/manager/kpi-dashboard"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "manager.seed_pricing",
+      "paths": [
+        "/manager/seed-pricing"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "manager.staff",
+      "paths": [
+        "/manager/staff"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "medication.prescriptions",
+      "paths": [
+        "/medication/prescriptions"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "nurse.record_vital_signs",
+      "paths": [
+        "/nurse/record-vital-signs/<int:patient_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "nurse.tasks",
+      "paths": [
+        "/nurse/tasks"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "nurse.vitals",
+      "paths": [
+        "/nurse/vitals"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "nurse.wards",
+      "paths": [
+        "/nurse/wards"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "payment.payment_history",
+      "paths": [
+        "/payment/payment/history"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "payment.payment_methods",
+      "paths": [
+        "/payment/payment/methods"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "radiology.api_fhir_imaging_study",
+      "paths": [
+        "/radiology/api/fhir/imagingstudy/<int:result_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "radiology.api_fhir_radiology_diagnostic_report",
+      "paths": [
+        "/radiology/api/fhir/diagnosticreport/radiology/<int:result_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "radiology.api_fhir_radiology_observation",
+      "paths": [
+        "/radiology/api/fhir/observation/radiology/<int:result_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "radiology.images",
+      "paths": [
+        "/radiology/images"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "radiology.results",
+      "paths": [
+        "/radiology/results"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "radiology.worklist_claim",
+      "paths": [
+        "/radiology/worklist/claim/<int:request_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "radiology.worklist_complete",
+      "paths": [
+        "/radiology/worklist/complete/<int:request_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "reception.api_available_times",
+      "paths": [
+        "/reception/api/available-times"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "reception.api_department_services",
+      "paths": [
+        "/reception/api/department-services"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.api_department_staff",
+      "paths": [
+        "/reception/api/department-staff"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.api_doctors",
+      "paths": [
+        "/reception/api/doctors"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.api_fhir_appointment",
+      "paths": [
+        "/reception/api/fhir/appointment/<int:appointment_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "reception.api_fhir_encounter",
+      "paths": [
+        "/reception/api/fhir/encounter/<int:visit_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "reception.api_fhir_organization",
+      "paths": [
+        "/reception/api/fhir/organization/<int:department_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "reception.api_fhir_patient",
+      "paths": [
+        "/reception/api/fhir/patient/<int:patient_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "reception.api_fhir_practitioner",
+      "paths": [
+        "/reception/api/fhir/practitioner/<int:user_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "reception.api_patient_queue_position",
+      "paths": [
+        "/reception/api/patient-queue-position/<int:patient_id>/<int:department_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "reception.api_queue_status",
+      "paths": [
+        "/reception/api/queue-status/<int:department_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "reception.api_queue_status_all",
+      "paths": [
+        "/reception/api/queue-status-all"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.api_smart_patient_search",
+      "paths": [
+        "/reception/api/smart-patient-search"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.api_visit_pricing",
+      "paths": [
+        "/reception/api/visit-pricing"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.approve_emergency_debt",
+      "paths": [
+        "/reception/queue/approve-emergency-debt/<int:ticket_id>"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.approve_force_entry",
+      "paths": [
+        "/reception/queue/approve-force-entry/<int:ticket_id>"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.call_next_patient",
+      "paths": [
+        "/reception/queue/call-next/<int:department_id>"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.cancel_ticket",
+      "paths": [
+        "/reception/queue/cancel-ticket/<int:ticket_id>"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.complete_treatment",
+      "paths": [
+        "/reception/queue/complete-treatment/<int:ticket_id>"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.end_visit",
+      "paths": [
+        "/reception/visits/<int:visit_id>/end"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.export_visits",
+      "paths": [
+        "/reception/export/visits"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.index",
+      "paths": [
+        "/reception/"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.payments",
+      "paths": [
+        "/reception/payments"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "reception.pos_charge",
+      "paths": [
+        "/reception/api/pos/charge"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.print_invoice",
+      "paths": [
+        "/reception/print_invoice/<int:invoice_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "reception.print_prescription",
+      "paths": [
+        "/reception/print_prescription/<int:prescription_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "reception.save_queue_settings",
+      "paths": [
+        "/reception/queue/save-settings/<int:department_id>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "reception.skip_patient",
+      "paths": [
+        "/reception/queue/skip-patient/<int:ticket_id>"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.start_treatment",
+      "paths": [
+        "/reception/queue/start-treatment/<int:ticket_id>"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.transfer_visit",
+      "paths": [
+        "/reception/visits/<int:visit_id>/transfer"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "reception.view_visit",
+      "paths": [
+        "/reception/view_visit/<int:visit_id>"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.activate_department",
+      "paths": [
+        "/super-admin/activate-department/<int:department_id>"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.activate_service",
+      "paths": [
+        "/super-admin/activate-service/<int:service_id>"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.add_staff_to_department",
+      "paths": [
+        "/super-admin/department-staff/<int:department_id>/add"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.api_ai_assistant",
+      "paths": [
+        "/super-admin/api/ai-assistant"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.api_audit_log",
+      "paths": [
+        "/super-admin/api/audit-log"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "super_admin.api_recent_activities",
+      "paths": [
+        "/super-admin/api/recent-activities"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.backup",
+      "paths": [
+        "/super-admin/backup"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.create_backup",
+      "paths": [
+        "/super-admin/backup/create"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.create_department",
+      "paths": [
+        "/super-admin/departments/create"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.create_permission_simple",
+      "paths": [
+        "/super-admin/create-permission-simple"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "super_admin.create_role_simple",
+      "paths": [
+        "/super-admin/create-role-simple"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "super_admin.create_service",
+      "paths": [
+        "/super-admin/services/create"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.deactivate_department",
+      "paths": [
+        "/super-admin/deactivate-department/<int:department_id>"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.deactivate_service",
+      "paths": [
+        "/super-admin/deactivate-service/<int:service_id>"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.delete_permission",
+      "paths": [
+        "/super-admin/permissions/<int:permission_id>/delete"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.delete_role",
+      "paths": [
+        "/super-admin/roles/<int:role_id>/delete"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.delete_user",
+      "paths": [
+        "/super-admin/users/<int:user_id>/delete"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.download_export",
+      "paths": [
+        "/super-admin/download-export/<filename>"
+      ],
+      "hardcoded_in_templates": false
+    },
+    {
+      "endpoint": "super_admin.edit_permission",
+      "paths": [
+        "/super-admin/permissions/<int:permission_id>/edit"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.export_departments",
+      "paths": [
+        "/super-admin/export-departments"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.export_services",
+      "paths": [
+        "/super-admin/export-services"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.export_system_data",
+      "paths": [
+        "/super-admin/export-data"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.manage_role_permissions",
+      "paths": [
+        "/super-admin/roles/<int:role_id>/permissions"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.remove_staff_from_department",
+      "paths": [
+        "/super-admin/department-staff/<int:department_id>/remove"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.reset_user_password",
+      "paths": [
+        "/super-admin/users/<int:user_id>/reset-password"
+      ],
+      "hardcoded_in_templates": true
+    },
+    {
+      "endpoint": "super_admin.system",
+      "paths": [
+        "/super-admin/system"
+      ],
+      "hardcoded_in_templates": true
+    }
+  ],
+  "fetch_tests_prepared": 40,
+  "fetch_results": [
+    {
+      "role": "accountant",
+      "endpoint": "booking.api_available_times",
+      "source": "booking/index.html",
+      "method_tested": "GET",
+      "path": "/booking/api/available-times?doctor_id=1&date=2025-12-11",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "doctor.api_patient_search",
+      "source": "doctor/patient_queue.html",
+      "method_tested": "GET",
+      "path": "/doctor/api/patient-search?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "doctor.save_visit_summary",
+      "source": "doctor/visit_summary.html",
+      "method_tested": "GET",
+      "path": "/doctor/save-visit-summary/6",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_treatment.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-treatment/6",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "OPTIONS",
+      "path": "/emergency/emergency-treatment/6",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "emergency.complete_visit",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-visits/6/complete",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "emergency.triage",
+      "source": "emergency/triage.html",
+      "method_tested": "GET",
+      "path": "/emergency/triage/6",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "emergency.list_emergency_cases",
+      "source": "emergency/view.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "manager.dashboard",
+      "source": "manager/dashboard.html",
+      "method_tested": "GET",
+      "path": "/manager/dashboard",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "manager.monitoring",
+      "source": "manager/monitoring.html",
+      "method_tested": "GET",
+      "path": "/manager/monitoring",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "radiology.tests",
+      "source": "radiology/radiology_report_form.html",
+      "method_tested": "GET",
+      "path": "/radiology/tests",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "reception/add_patient_to_queue.html",
+      "method_tested": "GET",
+      "path": "/reception/queue",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "reception.create_appointment",
+      "source": "reception/create_appointment.html",
+      "method_tested": "GET",
+      "path": "/reception/create_appointment",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "reception/create_visit.html",
+      "method_tested": "GET",
+      "path": "/reception/api/pos/charge",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "reception.view_patient",
+      "source": "reception/patients.html",
+      "method_tested": "GET",
+      "path": "/reception/view_patient/6?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "super_admin.update_branding",
+      "source": "super_admin/branding.html",
+      "method_tested": "GET",
+      "path": "/super-admin/branding/update",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "OPTIONS",
+      "path": "/super-admin/system/cleanup",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/recent-activities",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/ai-assistant",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "super_admin/departments.html",
+      "method_tested": "GET",
+      "path": "/super-admin/departments/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "super_admin/services.html",
+      "method_tested": "GET",
+      "path": "/super-admin/services/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "accountant",
+      "endpoint": null,
+      "source": "js/security.js",
+      "method_tested": "GET",
+      "path": "/super-admin/api/audit-log",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "booking.api_available_times",
+      "source": "booking/index.html",
+      "method_tested": "GET",
+      "path": "/booking/api/available-times?doctor_id=1&date=2025-12-11",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "doctor.api_patient_search",
+      "source": "doctor/patient_queue.html",
+      "method_tested": "GET",
+      "path": "/doctor/api/patient-search?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "doctor.save_visit_summary",
+      "source": "doctor/visit_summary.html",
+      "method_tested": "GET",
+      "path": "/doctor/save-visit-summary/1",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_treatment.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-treatment/1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "OPTIONS",
+      "path": "/emergency/emergency-treatment/1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "emergency.complete_visit",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-visits/1/complete",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "emergency.triage",
+      "source": "emergency/triage.html",
+      "method_tested": "GET",
+      "path": "/emergency/triage/1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "emergency.list_emergency_cases",
+      "source": "emergency/view.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "manager.dashboard",
+      "source": "manager/dashboard.html",
+      "method_tested": "GET",
+      "path": "/manager/dashboard",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "manager.monitoring",
+      "source": "manager/monitoring.html",
+      "method_tested": "GET",
+      "path": "/manager/monitoring",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "radiology.tests",
+      "source": "radiology/radiology_report_form.html",
+      "method_tested": "GET",
+      "path": "/radiology/tests",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "reception/add_patient_to_queue.html",
+      "method_tested": "GET",
+      "path": "/reception/queue",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "reception.create_appointment",
+      "source": "reception/create_appointment.html",
+      "method_tested": "GET",
+      "path": "/reception/create_appointment",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "reception/create_visit.html",
+      "method_tested": "GET",
+      "path": "/reception/api/pos/charge",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "reception.view_patient",
+      "source": "reception/patients.html",
+      "method_tested": "GET",
+      "path": "/reception/view_patient/1?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "super_admin.update_branding",
+      "source": "super_admin/branding.html",
+      "method_tested": "GET",
+      "path": "/super-admin/branding/update",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "OPTIONS",
+      "path": "/super-admin/system/cleanup",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/recent-activities",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/ai-assistant",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "super_admin/departments.html",
+      "method_tested": "GET",
+      "path": "/super-admin/departments/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "super_admin/services.html",
+      "method_tested": "GET",
+      "path": "/super-admin/services/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "doctor",
+      "endpoint": null,
+      "source": "js/security.js",
+      "method_tested": "GET",
+      "path": "/super-admin/api/audit-log",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "booking.api_available_times",
+      "source": "booking/index.html",
+      "method_tested": "GET",
+      "path": "/booking/api/available-times?doctor_id=1&date=2025-12-11",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "doctor.api_patient_search",
+      "source": "doctor/patient_queue.html",
+      "method_tested": "GET",
+      "path": "/doctor/api/patient-search?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "doctor.save_visit_summary",
+      "source": "doctor/visit_summary.html",
+      "method_tested": "GET",
+      "path": "/doctor/save-visit-summary/6",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_treatment.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-treatment/6",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "OPTIONS",
+      "path": "/emergency/emergency-treatment/6",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "emergency.complete_visit",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-visits/6/complete",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "emergency.triage",
+      "source": "emergency/triage.html",
+      "method_tested": "GET",
+      "path": "/emergency/triage/6",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "emergency.list_emergency_cases",
+      "source": "emergency/view.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "manager.dashboard",
+      "source": "manager/dashboard.html",
+      "method_tested": "GET",
+      "path": "/manager/dashboard",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "manager.monitoring",
+      "source": "manager/monitoring.html",
+      "method_tested": "GET",
+      "path": "/manager/monitoring",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "radiology.tests",
+      "source": "radiology/radiology_report_form.html",
+      "method_tested": "GET",
+      "path": "/radiology/tests",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "reception/add_patient_to_queue.html",
+      "method_tested": "GET",
+      "path": "/reception/queue",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "reception.create_appointment",
+      "source": "reception/create_appointment.html",
+      "method_tested": "GET",
+      "path": "/reception/create_appointment",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "reception/create_visit.html",
+      "method_tested": "GET",
+      "path": "/reception/api/pos/charge",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "reception.view_patient",
+      "source": "reception/patients.html",
+      "method_tested": "GET",
+      "path": "/reception/view_patient/6?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "super_admin.update_branding",
+      "source": "super_admin/branding.html",
+      "method_tested": "GET",
+      "path": "/super-admin/branding/update",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "OPTIONS",
+      "path": "/super-admin/system/cleanup",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/recent-activities",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/ai-assistant",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "super_admin/departments.html",
+      "method_tested": "GET",
+      "path": "/super-admin/departments/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "super_admin/services.html",
+      "method_tested": "GET",
+      "path": "/super-admin/services/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "admin",
+      "endpoint": null,
+      "source": "js/security.js",
+      "method_tested": "GET",
+      "path": "/super-admin/api/audit-log",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "booking.api_available_times",
+      "source": "booking/index.html",
+      "method_tested": "GET",
+      "path": "/booking/api/available-times?doctor_id=1&date=2025-12-11",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "doctor.api_patient_search",
+      "source": "doctor/patient_queue.html",
+      "method_tested": "GET",
+      "path": "/doctor/api/patient-search?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "doctor.save_visit_summary",
+      "source": "doctor/visit_summary.html",
+      "method_tested": "GET",
+      "path": "/doctor/save-visit-summary/6",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/6/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_treatment.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-treatment/6",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "OPTIONS",
+      "path": "/emergency/emergency-treatment/6",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "emergency.complete_visit",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-visits/6/complete",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "emergency.triage",
+      "source": "emergency/triage.html",
+      "method_tested": "GET",
+      "path": "/emergency/triage/6",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "emergency.list_emergency_cases",
+      "source": "emergency/view.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "manager.dashboard",
+      "source": "manager/dashboard.html",
+      "method_tested": "GET",
+      "path": "/manager/dashboard",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "manager.monitoring",
+      "source": "manager/monitoring.html",
+      "method_tested": "GET",
+      "path": "/manager/monitoring",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "radiology.tests",
+      "source": "radiology/radiology_report_form.html",
+      "method_tested": "GET",
+      "path": "/radiology/tests",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "reception/add_patient_to_queue.html",
+      "method_tested": "GET",
+      "path": "/reception/queue",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "reception.create_appointment",
+      "source": "reception/create_appointment.html",
+      "method_tested": "GET",
+      "path": "/reception/create_appointment",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "reception/create_visit.html",
+      "method_tested": "GET",
+      "path": "/reception/api/pos/charge",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "reception.view_patient",
+      "source": "reception/patients.html",
+      "method_tested": "GET",
+      "path": "/reception/view_patient/6?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "super_admin.update_branding",
+      "source": "super_admin/branding.html",
+      "method_tested": "GET",
+      "path": "/super-admin/branding/update",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "OPTIONS",
+      "path": "/super-admin/system/cleanup",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/recent-activities",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/ai-assistant",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "super_admin/departments.html",
+      "method_tested": "GET",
+      "path": "/super-admin/departments/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "super_admin/services.html",
+      "method_tested": "GET",
+      "path": "/super-admin/services/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "manager",
+      "endpoint": null,
+      "source": "js/security.js",
+      "method_tested": "GET",
+      "path": "/super-admin/api/audit-log",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "booking.api_available_times",
+      "source": "booking/index.html",
+      "method_tested": "GET",
+      "path": "/booking/api/available-times?doctor_id=1&date=2025-12-11",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "doctor.api_patient_search",
+      "source": "doctor/patient_queue.html",
+      "method_tested": "GET",
+      "path": "/doctor/api/patient-search?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "doctor.save_visit_summary",
+      "source": "doctor/visit_summary.html",
+      "method_tested": "GET",
+      "path": "/doctor/save-visit-summary/1",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_treatment.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-treatment/1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "OPTIONS",
+      "path": "/emergency/emergency-treatment/1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "emergency.complete_visit",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-visits/1/complete",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "emergency.triage",
+      "source": "emergency/triage.html",
+      "method_tested": "GET",
+      "path": "/emergency/triage/1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "emergency.list_emergency_cases",
+      "source": "emergency/view.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "manager.dashboard",
+      "source": "manager/dashboard.html",
+      "method_tested": "GET",
+      "path": "/manager/dashboard",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "manager.monitoring",
+      "source": "manager/monitoring.html",
+      "method_tested": "GET",
+      "path": "/manager/monitoring",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "radiology.tests",
+      "source": "radiology/radiology_report_form.html",
+      "method_tested": "GET",
+      "path": "/radiology/tests",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "reception/add_patient_to_queue.html",
+      "method_tested": "GET",
+      "path": "/reception/queue",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "reception.create_appointment",
+      "source": "reception/create_appointment.html",
+      "method_tested": "GET",
+      "path": "/reception/create_appointment",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "reception/create_visit.html",
+      "method_tested": "GET",
+      "path": "/reception/api/pos/charge",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "reception.view_patient",
+      "source": "reception/patients.html",
+      "method_tested": "GET",
+      "path": "/reception/view_patient/1?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "super_admin.update_branding",
+      "source": "super_admin/branding.html",
+      "method_tested": "GET",
+      "path": "/super-admin/branding/update",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "OPTIONS",
+      "path": "/super-admin/system/cleanup",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/recent-activities",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/ai-assistant",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "super_admin/departments.html",
+      "method_tested": "GET",
+      "path": "/super-admin/departments/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "super_admin/services.html",
+      "method_tested": "GET",
+      "path": "/super-admin/services/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "lab",
+      "endpoint": null,
+      "source": "js/security.js",
+      "method_tested": "GET",
+      "path": "/super-admin/api/audit-log",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "booking.api_available_times",
+      "source": "booking/index.html",
+      "method_tested": "GET",
+      "path": "/booking/api/available-times?doctor_id=1&date=2025-12-11",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "doctor.api_patient_search",
+      "source": "doctor/patient_queue.html",
+      "method_tested": "GET",
+      "path": "/doctor/api/patient-search?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "doctor.save_visit_summary",
+      "source": "doctor/visit_summary.html",
+      "method_tested": "GET",
+      "path": "/doctor/save-visit-summary/1",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_treatment.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-treatment/1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "OPTIONS",
+      "path": "/emergency/emergency-treatment/1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "emergency.complete_visit",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-visits/1/complete",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "emergency.triage",
+      "source": "emergency/triage.html",
+      "method_tested": "GET",
+      "path": "/emergency/triage/1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "emergency.list_emergency_cases",
+      "source": "emergency/view.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "manager.dashboard",
+      "source": "manager/dashboard.html",
+      "method_tested": "GET",
+      "path": "/manager/dashboard",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "manager.monitoring",
+      "source": "manager/monitoring.html",
+      "method_tested": "GET",
+      "path": "/manager/monitoring",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "radiology.tests",
+      "source": "radiology/radiology_report_form.html",
+      "method_tested": "GET",
+      "path": "/radiology/tests",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "reception/add_patient_to_queue.html",
+      "method_tested": "GET",
+      "path": "/reception/queue",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "reception.create_appointment",
+      "source": "reception/create_appointment.html",
+      "method_tested": "GET",
+      "path": "/reception/create_appointment",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "reception/create_visit.html",
+      "method_tested": "GET",
+      "path": "/reception/api/pos/charge",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "reception.view_patient",
+      "source": "reception/patients.html",
+      "method_tested": "GET",
+      "path": "/reception/view_patient/1?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "super_admin.update_branding",
+      "source": "super_admin/branding.html",
+      "method_tested": "GET",
+      "path": "/super-admin/branding/update",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "OPTIONS",
+      "path": "/super-admin/system/cleanup",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/recent-activities",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/ai-assistant",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "super_admin/departments.html",
+      "method_tested": "GET",
+      "path": "/super-admin/departments/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "super_admin/services.html",
+      "method_tested": "GET",
+      "path": "/super-admin/services/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "radiology",
+      "endpoint": null,
+      "source": "js/security.js",
+      "method_tested": "GET",
+      "path": "/super-admin/api/audit-log",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "booking.api_available_times",
+      "source": "booking/index.html",
+      "method_tested": "GET",
+      "path": "/booking/api/available-times?doctor_id=1&date=2025-12-11",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "doctor.api_patient_search",
+      "source": "doctor/patient_queue.html",
+      "method_tested": "GET",
+      "path": "/doctor/api/patient-search?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "doctor.save_visit_summary",
+      "source": "doctor/visit_summary.html",
+      "method_tested": "GET",
+      "path": "/doctor/save-visit-summary/1",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/dashboard.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "emergency.resolve_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/resolve",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "emergency.convert_emergency_case",
+      "source": "emergency/edit.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases/1/convert",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_treatment.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-treatment/1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "emergency.emergency_treatment",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "OPTIONS",
+      "path": "/emergency/emergency-treatment/1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "emergency.complete_visit",
+      "source": "emergency/emergency_visits.html",
+      "method_tested": "GET",
+      "path": "/emergency/emergency-visits/1/complete",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "emergency.triage",
+      "source": "emergency/triage.html",
+      "method_tested": "GET",
+      "path": "/emergency/triage/1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "emergency.list_emergency_cases",
+      "source": "emergency/view.html",
+      "method_tested": "GET",
+      "path": "/emergency/cases",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "manager.dashboard",
+      "source": "manager/dashboard.html",
+      "method_tested": "GET",
+      "path": "/manager/dashboard",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "manager.monitoring",
+      "source": "manager/monitoring.html",
+      "method_tested": "GET",
+      "path": "/manager/monitoring",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "radiology.tests",
+      "source": "radiology/radiology_report_form.html",
+      "method_tested": "GET",
+      "path": "/radiology/tests",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "reception/add_patient_to_queue.html",
+      "method_tested": "GET",
+      "path": "/reception/queue",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "reception.create_appointment",
+      "source": "reception/create_appointment.html",
+      "method_tested": "GET",
+      "path": "/reception/create_appointment",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "reception/create_visit.html",
+      "method_tested": "GET",
+      "path": "/reception/api/pos/charge",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "reception.view_patient",
+      "source": "reception/patients.html",
+      "method_tested": "GET",
+      "path": "/reception/view_patient/1?patient_id=1",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "super_admin.update_branding",
+      "source": "super_admin/branding.html",
+      "method_tested": "GET",
+      "path": "/super-admin/branding/update",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/export-data",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "OPTIONS",
+      "path": "/super-admin/system/cleanup",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/recent-activities",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "super_admin/dashboard.html",
+      "method_tested": "GET",
+      "path": "/super-admin/api/ai-assistant",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "super_admin/departments.html",
+      "method_tested": "GET",
+      "path": "/super-admin/departments/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "super_admin/services.html",
+      "method_tested": "GET",
+      "path": "/super-admin/services/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "super_admin/system_backup.html",
+      "method_tested": "GET",
+      "path": "/super-admin/backup/create",
+      "status_code": 405,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "super_admin.system_config",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/system-config",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": "super_admin.queue_settings",
+      "source": "super_admin/system_config.html",
+      "method_tested": "GET",
+      "path": "/super-admin/queue-settings",
+      "status_code": 200,
+      "ok": true
+    },
+    {
+      "role": "nurse",
+      "endpoint": null,
+      "source": "js/security.js",
+      "method_tested": "GET",
+      "path": "/super-admin/api/audit-log",
+      "status_code": 405,
+      "ok": true
+    }
+  ]
+}

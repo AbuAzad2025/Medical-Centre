@@ -3,7 +3,7 @@
 Medical System Medication Model
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
 
@@ -19,9 +19,10 @@ class Medication(db.Model):
     dosage_form = db.Column(db.String(100), nullable=False)  # tablet, syrup, injection, etc.
     strength = db.Column(db.String(100), nullable=False)  # 500mg, 10ml, etc.
     manufacturer = db.Column(db.String(200), nullable=True)
-    price = db.Column(db.Float, nullable=False, default=0.0)
+    price = db.Column(db.Numeric(12, 2), nullable=False, default=0.0)
     category = db.Column(db.String(100), nullable=True)  # antibiotic, painkiller, etc.
     description = db.Column(db.Text, nullable=True)
+    standard_instructions = db.Column(db.Text, nullable=True)
     side_effects = db.Column(db.Text, nullable=True)
     contraindications = db.Column(db.Text, nullable=True)
     drug_interactions = db.Column(db.Text, nullable=True)
@@ -31,8 +32,8 @@ class Medication(db.Model):
     minimum_stock = db.Column(db.Integer, default=10)
     expiry_date = db.Column(db.Date, nullable=True)
     batch_number = db.Column(db.String(50), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (
@@ -117,6 +118,7 @@ class Medication(db.Model):
             'price_display': self.get_price_display(),
             'category': self.category,
             'description': self.description,
+            'standard_instructions': self.standard_instructions,
             'side_effects': self.side_effects,
             'contraindications': self.contraindications,
             'drug_interactions': self.drug_interactions,
@@ -124,6 +126,14 @@ class Medication(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+
+    @property
+    def min_stock_level(self):
+        return self.minimum_stock
+
+    @min_stock_level.setter
+    def min_stock_level(self, value):
+        self.minimum_stock = int(value) if value is not None else self.minimum_stock
 
 class Prescription(db.Model):
     """نموذج الروشيتا"""
@@ -137,10 +147,10 @@ class Prescription(db.Model):
     prescription_number = db.Column(db.String(50), unique=True, nullable=False)
     diagnosis = db.Column(db.Text, nullable=True)
     notes = db.Column(db.Text, nullable=True)
-    total_cost = db.Column(db.Float, default=0.0)
+    total_cost = db.Column(db.Numeric(12, 2), default=0.0)
     status = db.Column(db.String(50), default='active')  # active, dispensed, cancelled
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (
@@ -158,6 +168,7 @@ class Prescription(db.Model):
     doctor = db.relationship('User', foreign_keys=[doctor_id])
     visit = db.relationship('Visit', foreign_keys=[visit_id])
     items = db.relationship('PrescriptionItem', back_populates='prescription', lazy='dynamic', cascade='all, delete-orphan')
+    dispense_logs = db.relationship('PrescriptionDispenseLog', back_populates='prescription', lazy='dynamic', cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<Prescription {self.prescription_number}>'
@@ -214,9 +225,9 @@ class PrescriptionItem(db.Model):
     quantity = db.Column(db.Integer, nullable=False, default=1)
     duration_days = db.Column(db.Integer, nullable=False, default=7)
     instructions = db.Column(db.Text, nullable=True)
-    unit_price = db.Column(db.Float, nullable=False)
-    total_price = db.Column(db.Float, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    unit_price = db.Column(db.Numeric(12, 2), nullable=False)
+    total_price = db.Column(db.Numeric(12, 2), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (
@@ -263,4 +274,31 @@ class PrescriptionItem(db.Model):
             'total_price': self.total_price,
             'total_price_display': self.get_total_price_display(),
             'created_at': self.created_at.isoformat()
+        }
+
+class PrescriptionDispenseLog(db.Model):
+    __tablename__ = 'prescription_dispense_logs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='CASCADE'), nullable=False, index=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
+    dispensed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    dispensed_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    notes = db.Column(db.Text, nullable=True)
+
+    prescription = db.relationship('Prescription', back_populates='dispense_logs', lazy='select')
+    patient = db.relationship('Patient', lazy='select')
+    visit = db.relationship('Visit', lazy='select')
+    dispenser = db.relationship('User', foreign_keys=[dispensed_by], lazy='select')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'prescription_id': self.prescription_id,
+            'patient_id': self.patient_id,
+            'visit_id': self.visit_id,
+            'dispensed_by': self.dispensed_by,
+            'dispensed_at': self.dispensed_at.isoformat() if self.dispensed_at else None,
+            'notes': self.notes
         }

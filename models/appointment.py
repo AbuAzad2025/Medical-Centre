@@ -1,7 +1,7 @@
 """
 نموذج الموعد - Appointment (نسخة نهائية)
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index
 from app_factory import db
 
@@ -20,8 +20,8 @@ class Appointment(db.Model):
     status = db.Column(db.String(20), default='SCHEDULED', index=True)  # SCHEDULED|CONFIRMED|CANCELLED|NO_SHOW|DONE
     notes = db.Column(db.Text, nullable=True)
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
     __table_args__ = (
         db.UniqueConstraint('patient_id', 'starts_at', name='uq_appointment_patient_time'),
@@ -35,3 +35,17 @@ class Appointment(db.Model):
 
     def __repr__(self) -> str:
         return f"<Appointment patient={self.patient_id} at={self.starts_at}>"
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "patient_id": self.patient_id,
+            "doctor_id": self.doctor_id,
+            "department_id": self.department_id,
+            "starts_at": self.starts_at.isoformat() if self.starts_at else None,
+            "ends_at": self.ends_at.isoformat() if self.ends_at else None,
+            "status": self.status,
+            "notes": self.notes,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }

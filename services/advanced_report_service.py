@@ -3,14 +3,14 @@
 Medical System Advanced Report Service
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import and_, or_, func, desc, asc, text
 from app_factory import db
 from models.patient import Patient
 from models.visit import Visit
 from models.appointment import Appointment
 from models.payment import Payment
-from models.invoice import Invoice
+from models.invoice import Invoice, InvoiceService
 from models.user import User
 from models.department import Department
 from models.lab_request import LabRequest
@@ -43,28 +43,47 @@ class AdvancedReportService:
             if department_id:
                 patients_query = patients_query.join(Visit).filter(Visit.department_id == department_id)
             
-            total_patients = patients_query.count()
-            new_patients = patients_query.filter(Patient.is_active == True).count()
+            patients = patients_query.all()
+            total_patients = len(patients)
+            new_patients = total_patients
             
-            # حسب الجنس
-            gender_stats = {}
-            for gender in ['M', 'F']:
-                count = patients_query.filter(Patient.gender == gender).count()
-                gender_stats[gender] = count
-            
-            # حسب العمر
-            age_groups = {
-                '0-18': patients_query.filter(Patient.age.between(0, 18)).count(),
-                '19-35': patients_query.filter(Patient.age.between(19, 35)).count(),
-                '36-50': patients_query.filter(Patient.age.between(36, 50)).count(),
-                '51-65': patients_query.filter(Patient.age.between(51, 65)).count(),
-                '65+': patients_query.filter(Patient.age > 65).count()
+            gender_stats = {
+                'M': sum(1 for p in patients if p.gender == 'M'),
+                'F': sum(1 for p in patients if p.gender == 'F')
             }
             
-            # حسب الحالة
+            def _age_years(birth_date):
+                if not birth_date:
+                    return None
+                today = datetime.now().date()
+                years = today.year - birth_date.year
+                if (today.month, today.day) < (birth_date.month, birth_date.day):
+                    years -= 1
+                return years
+            
+            ages = [ _age_years(p.birth_date) for p in patients ]
+            age_groups = {
+                '0-18': sum(1 for a in ages if a is not None and 0 <= a <= 18),
+                '19-35': sum(1 for a in ages if a is not None and 19 <= a <= 35),
+                '36-50': sum(1 for a in ages if a is not None and 36 <= a <= 50),
+                '51-65': sum(1 for a in ages if a is not None and 51 <= a <= 65),
+                '65+': sum(1 for a in ages if a is not None and a > 65),
+            }
+            
+            active_count = 0
+            for p in patients:
+                vcnt = Visit.query.filter(
+                    and_(
+                        Visit.patient_id == p.id,
+                        Visit.visit_date >= start_date.date(),
+                        Visit.visit_date <= end_date.date()
+                    )
+                ).count()
+                if vcnt > 0:
+                    active_count += 1
             status_stats = {
-                'active': patients_query.filter(Patient.is_active == True).count(),
-                'inactive': patients_query.filter(Patient.is_active == False).count()
+                'active': active_count,
+                'inactive': max(total_patients - active_count, 0)
             }
             
             return {
@@ -84,7 +103,7 @@ class AdvancedReportService:
             
         except Exception as e:
             logging.error(f"Error generating patient analytics: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في تحليل بيانات المرضى: {str(e)}'}
+            return {'success': False, 'message': 'تعذر تحليل بيانات المرضى حالياً'}
     
     @staticmethod
     def generate_visit_analytics(start_date=None, end_date=None, department_id=None):
@@ -110,21 +129,19 @@ class AdvancedReportService:
             
             # حسب الحالة
             status_stats = {}
-            for status in ['pending', 'completed', 'cancelled']:
+            for status in ['OPEN', 'COMPLETED', 'ARCHIVED']:
                 count = visits_query.filter(Visit.status == status).count()
                 status_stats[status] = count
             
             # حسب نوع الزيارة
             visit_type_stats = {}
-            for visit_type in ['consultation', 'follow_up', 'emergency', 'examination']:
+            for visit_type in ['CONSULTATION', 'FOLLOW_UP', 'EMERGENCY', 'REGULAR']:
                 count = visits_query.filter(Visit.visit_type == visit_type).count()
                 visit_type_stats[visit_type] = count
             
             # حسب الوجهة
             destination_stats = {}
-            for destination in ['doctor', 'lab', 'radiology', 'emergency']:
-                count = visits_query.filter(Visit.destination == destination).count()
-                destination_stats[destination] = count
+            # لا يوجد حقل destination في نموذج الزيارة الحالي؛ يتم تجاوز هذا القسم
             
             # حسب اليوم
             daily_stats = {}
@@ -150,7 +167,7 @@ class AdvancedReportService:
             
         except Exception as e:
             logging.error(f"Error generating visit analytics: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في تحليل بيانات الزيارات: {str(e)}'}
+            return {'success': False, 'message': 'تعذر تحليل بيانات الزيارات حالياً'}
     
     @staticmethod
     def generate_financial_analytics(start_date=None, end_date=None, department_id=None):
@@ -177,10 +194,10 @@ class AdvancedReportService:
             
             # حسب طريقة الدفع
             payment_method_stats = {}
-            for method in ['cash', 'card', 'insurance', 'bank_transfer']:
-                count = payments_query.filter(Payment.payment_method == method).count()
-                amount = payments_query.filter(Payment.payment_method == method).with_entities(func.sum(Payment.amount)).scalar() or 0
-                payment_method_stats[method] = {'count': count, 'amount': amount}
+            for method in ['CASH', 'CARD', 'INSURANCE', 'WIRE']:
+                count = payments_query.filter(Payment.method == method).count()
+                amount = payments_query.filter(Payment.method == method).with_entities(func.sum(Payment.amount)).scalar() or 0
+                payment_method_stats[method] = {'count': count, 'amount': float(amount)}
             
             # حسب اليوم
             daily_revenue = {}
@@ -208,7 +225,7 @@ class AdvancedReportService:
             total_invoices = invoices_query.count()
             total_invoice_amount = invoices_query.with_entities(func.sum(Invoice.total_amount)).scalar() or 0
             paid_invoices = invoices_query.filter(Invoice.status == 'PAID').count()
-            pending_invoices = invoices_query.filter(Invoice.status == 'PENDING').count()
+            pending_invoices = invoices_query.filter(Invoice.status.in_(['ISSUED','DRAFT'])).count()
             
             return {
                 'success': True,
@@ -234,7 +251,7 @@ class AdvancedReportService:
             
         except Exception as e:
             logging.error(f"Error generating financial analytics: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في تحليل البيانات المالية: {str(e)}'}
+            return {'success': False, 'message': 'تعذر تحليل البيانات المالية حالياً'}
     
     @staticmethod
     def generate_doctor_performance_analytics(start_date=None, end_date=None, doctor_id=None):
@@ -268,17 +285,17 @@ class AdvancedReportService:
                 appointments = Appointment.query.filter(
                     and_(
                         Appointment.doctor_id == doctor.id,
-                        Appointment.appointment_date >= start_date.date(),
-                        Appointment.appointment_date <= end_date.date()
+                        func.date(Appointment.starts_at) >= start_date.date(),
+                        func.date(Appointment.starts_at) <= end_date.date()
                     )
                 ).all()
                 
                 # الإحصائيات
                 total_visits = len(visits)
-                completed_visits = len([v for v in visits if v.status == 'completed'])
+                completed_visits = len([v for v in visits if v.status == 'COMPLETED'])
                 total_appointments = len(appointments)
-                completed_appointments = len([a for a in appointments if a.status == 'completed'])
-                cancelled_appointments = len([a for a in appointments if a.status == 'cancelled'])
+                completed_appointments = len([a for a in appointments if a.status == 'DONE'])
+                cancelled_appointments = len([a for a in appointments if a.status == 'CANCELLED'])
                 
                 # الإيرادات
                 total_revenue = sum(visit.total_amount for visit in visits if visit.total_amount)
@@ -317,7 +334,7 @@ class AdvancedReportService:
             
         except Exception as e:
             logging.error(f"Error generating doctor performance analytics: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في تحليل أداء الأطباء: {str(e)}'}
+            return {'success': False, 'message': 'تعذر تحليل أداء الأطباء حالياً'}
     
     @staticmethod
     def generate_department_analytics(start_date=None, end_date=None, department_id=None):
@@ -351,16 +368,16 @@ class AdvancedReportService:
                 appointments = Appointment.query.filter(
                     and_(
                         Appointment.department_id == department.id,
-                        Appointment.appointment_date >= start_date.date(),
-                        Appointment.appointment_date <= end_date.date()
+                        func.date(Appointment.starts_at) >= start_date.date(),
+                        func.date(Appointment.starts_at) <= end_date.date()
                     )
                 ).all()
                 
                 # الإحصائيات
                 total_visits = len(visits)
-                completed_visits = len([v for v in visits if v.status == 'completed'])
+                completed_visits = len([v for v in visits if v.status == 'COMPLETED'])
                 total_appointments = len(appointments)
-                completed_appointments = len([a for a in appointments if a.status == 'completed'])
+                completed_appointments = len([a for a in appointments if a.status == 'DONE'])
                 
                 # الإيرادات
                 total_revenue = sum(visit.total_amount for visit in visits if visit.total_amount)
@@ -397,7 +414,7 @@ class AdvancedReportService:
             
         except Exception as e:
             logging.error(f"Error generating department analytics: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في تحليل بيانات الأقسام: {str(e)}'}
+            return {'success': False, 'message': 'تعذر تحليل بيانات الأقسام حالياً'}
     
     @staticmethod
     def generate_system_usage_analytics(start_date=None, end_date=None):
@@ -461,13 +478,15 @@ class AdvancedReportService:
                 and_(
                     SystemLog.created_at >= start_date,
                     SystemLog.created_at <= end_date,
-                    SystemLog.level.in_(['info','warning'])
+                    SystemLog.log_level.in_(['INFO','WARNING'])
                 )
             ).count()
             
             return {
                 'success': True,
                 'analytics': {
+                    'total_users': total_users,
+                    'active_users': active_users,
                     'users': {
                         'total': total_users,
                         'active': active_users,
@@ -491,7 +510,7 @@ class AdvancedReportService:
             
         except Exception as e:
             logging.error(f"Error generating system usage analytics: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في تحليل استخدام النظام: {str(e)}'}
+            return {'success': False, 'message': 'تعذر تحليل استخدام النظام حالياً'}
     
     @staticmethod
     def generate_comprehensive_report(start_date=None, end_date=None, department_id=None):
@@ -524,12 +543,12 @@ class AdvancedReportService:
                     'start_date': start_date.isoformat(),
                     'end_date': end_date.isoformat()
                 },
-                'generated_at': datetime.utcnow().isoformat()
+                'generated_at': datetime.now(timezone.utc).isoformat()
             }
             
         except Exception as e:
             logging.error(f"Error generating comprehensive report: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في إنشاء التقرير الشامل: {str(e)}'}
+            return {'success': False, 'message': 'تعذر إنشاء التقرير الشامل حالياً'}
     
     @staticmethod
     def export_analytics(analytics_data, format='json'):
@@ -554,4 +573,4 @@ class AdvancedReportService:
                 
         except Exception as e:
             logging.error(f"Error exporting analytics: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في تصدير التحليلات: {str(e)}'}
+            return {'success': False, 'message': 'تعذر تصدير التحليلات حالياً'}

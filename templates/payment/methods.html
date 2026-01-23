@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}طرق الدفع{% endblock %}
+{% block content %}
+<div class="container">
+  <h2 class="mb-3">طرق الدفع</h2>
+  <ul class="list-group">
+    {% for m in methods or [] %}
+    <li class="list-group-item">{{ m }}</li>
+    {% else %}
+    <li class="list-group-item">لا طرق</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
+

@@ -3,7 +3,14 @@
 """
 import sys
 import logging
-from app_factory import create_app
+import os
+from dotenv import load_dotenv
+
+# تحميل متغيرات البيئة من .env
+load_dotenv()
+
+from app_factory import create_app, socketio
+import threading, time
 
 # إعداد logging
 logging.basicConfig(
@@ -24,14 +31,31 @@ if __name__ == '__main__':
         logger.info("✅ تم إنشاء التطبيق بنجاح")
         logger.info(f"📊 عدد المسارات المسجلة: {len(list(app.url_map.iter_rules()))}")
         logger.info(f"📦 عدد Blueprints: {len(app.blueprints)}")
-        logger.info("🌐 السيرفر يعمل على: http://127.0.0.1:5001")
+        logger.info("🌐 السيرفر يعمل على: http://127.0.0.1:5002")
         logger.info("=" * 60)
+
+        def _alerts_worker(flask_app):
+            with flask_app.app_context():
+                from services.notification_service import NotificationService
+            while True:
+                try:
+                    with flask_app.app_context():
+                        NotificationService.check_and_send_alerts()
+                        logger.info("⏰ تم تنفيذ مهمة التنبيهات المجدولة")
+                except Exception as e:
+                    logger.error(f"خطأ في مهمة التنبيهات المجدولة: {str(e)}")
+                time.sleep(3600)
+
+        t = threading.Thread(target=_alerts_worker, args=(app,), daemon=True)
+        t.start()
+        logger.info("🕒 تم تفعيل مهمة التنبيهات كل ساعة")
         
-        app.run(
+        socketio.run(
+            app,
             host='127.0.0.1',
-            port=5001,
+            port=5002,
             debug=True,
-            use_reloader=False  # لمنع إعادة التشغيل التلقائي
+            use_reloader=False
         )
         
     except Exception as e:

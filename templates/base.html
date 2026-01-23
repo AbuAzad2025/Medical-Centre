@@ -3,40 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}المركز الصحي المتخصص - نظام إدارة متطور{% endblock %}</title>
+    <title>{% block title %}{{ branding.organization_name if branding else 'المركز الصحي المتخصص' }} - نظام إدارة متطور{% endblock %}</title>
     
-    <!-- Meta Tags for SEO and Performance -->
-    <meta name="description" content="نظام إدارة المركز الصحي المتخصص - حلول طبية متطورة وذكية">
+    <meta name="description" content="نظام إدارة {{ branding.organization_name if branding else 'المركز الصحي المتخصص' }} - حلول طبية متطورة وذكية">
     <meta name="keywords" content="نظام طبي, إدارة مستشفى, مركز صحي, نظام ذكي">
-    <meta name="author" content="شركة ازاد للأنظمة الذكية">
+    <meta name="author" content="{{ developer_company or 'شركة ازاد للأنظمة الذكية' }}">
     <meta name="robots" content="index, follow">
     
-    <!-- Preconnect for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     
-    <!-- Google Fonts - Modern Typography -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Font Awesome Pro -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <!-- Bootstrap 5.3 with RTL -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     
-    <!-- AOS Animation Library -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
-    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-medical.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/performance.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/accessibility.css') }}">
     
-    <!-- Ensure everything is visible - NO hiding at all -->
     <style>
         /* Force everything to be visible immediately */
         body, * {
@@ -53,12 +46,19 @@
         }
     </style>
     
-    <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="app-env" content="{{ APP_ENV or 'development' }}">
+    <link rel="icon" href="{{ url_for('static', filename='img/azad_logo.png') }}" type="image/png">
     
-    <!-- Custom Styles -->
     <style>
         :root {
+            /* Luxury Gulf Theme */
+            --gulf-gold: #D4AF37;
+            --gulf-blue: #1B4D89;
+            --luxury-purple: #6B46C1;
+            --gradient-gulf: linear-gradient(135deg, #1B4D89 0%, #6B46C1 50%, #D4AF37 100%);
+            --gradient-luxury: linear-gradient(to right, #0a0e27, #1a1f3a);
+            
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             --info-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -75,6 +75,22 @@
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
+        /* Luxury Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gulf-blue); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gulf-gold); 
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -82,8 +98,8 @@
         }
         
         body {
-            font-family: 'Inter', 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Tajawal', 'Inter', 'Cairo', sans-serif;
+            background: #f8f9fa;
             min-height: 100vh;
             overflow-x: hidden;
         }
@@ -174,48 +190,85 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
         }
+        
+        .icon-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        
+        .card-modern:hover .icon-circle {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .sidebar.collapsed {
+            display: none;
+        }
+
+        /* Improved Tab Visibility */
+        .nav-pills .nav-link {
+            color: var(--gulf-blue) !important;
+            font-weight: 600;
+            background-color: rgba(255, 255, 255, 0.5);
+            margin: 0 5px;
+            border: 1px solid rgba(27, 77, 137, 0.1);
+        }
+        
+        .nav-pills .nav-link:hover {
+            background-color: rgba(27, 77, 137, 0.1);
+            color: var(--gulf-blue) !important;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--gulf-blue) !important;
+            color: #fff !important;
+            box-shadow: 0 4px 6px rgba(27, 77, 137, 0.2);
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Header -->
     {% include 'partials/_navbar.html' %}
 
-    <!-- Flash Messages -->
     {% include 'partials/_flash.html' %}
 
-    <!-- Main Content -->
     <div class="main-layout">
-        <!-- Smart Sidebar -->
         {% include 'partials/_sidebar.html' %}
         
-        <!-- Main Content -->
         <main class="main-container">
             {% block content %}{% endblock %}
         </main>
     </div>
 
-    <!-- Footer -->
     {% include 'partials/_footer.html' %}
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/ScrollTrigger.min.js"></script>
-    <!-- Load app.js as module -->
+    <script src="{{ url_for('static', filename='adminlte/plugins/sweetalert2/sweetalert2.all.min.js') }}"></script>
+    <!-- Load app.js as ES Module (handles flash/csrf/dt/digits) -->
     <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/flash.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/csrf.js') }}"></script>
     <script src="{{ url_for('static', filename='js/performance.js') }}"></script>
     <script src="{{ url_for('static', filename='js/security.js') }}"></script>
     
-    <!-- Advanced JavaScript -->
     <script>
         // Disable AOS completely - show everything immediately
         document.addEventListener('DOMContentLoaded', function() {
+            try {
+                var envEl = document.querySelector('meta[name="app-env"]');
+                window.__ENV = (envEl && envEl.getAttribute('content')) || 'development';
+                if (window.__ENV === 'production') {
+                    console.debug = function(){};
+                    console.log = function(){};
+                }
+            } catch (e) {}
             // Force everything to be visible
             document.body.style.opacity = '1';
             document.body.style.visibility = 'visible';
@@ -228,23 +281,39 @@
             
             // Disable AOS completely
             if (typeof AOS !== 'undefined') {
-                // Don't initialize AOS at all
                 console.log('AOS disabled - all elements visible');
-            }
-            
-            // Remove all data-aos attributes to prevent any issues
-            document.querySelectorAll('[data-aos]').forEach(el => {
-                el.removeAttribute('data-aos');
-                el.style.opacity = '1';
-                el.style.visibility = 'visible';
-                el.style.transform = 'none';
-                el.style.pointerEvents = 'auto';
+                document.querySelectorAll('[data-aos]').forEach(el => {
+                    el.removeAttribute('data-aos');
+                    el.style.opacity = '1';
+                    el.style.visibility = 'visible';
+                    el.style.transform = 'none';
+                    el.style.pointerEvents = 'auto';
+                });
             } else {
-                // AOS not loaded, show elements anyway
                 document.querySelectorAll('[data-aos]').forEach(el => {
                     el.style.opacity = '1';
                     el.style.transform = 'none';
                 });
+            }
+
+            // Sidebar toggle accessibility
+            const sidebar = document.getElementById('appSidebar');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            if (sidebar && toggleBtn) {
+                try {
+                    const saved = localStorage.getItem('sidebarCollapsed');
+                    if (saved === '1') {
+                        sidebar.classList.add('collapsed');
+                        toggleBtn.setAttribute('aria-expanded', 'false');
+                    }
+                    toggleBtn.addEventListener('click', function() {
+                        const isCollapsed = sidebar.classList.toggle('collapsed');
+                        this.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+                        try { localStorage.setItem('sidebarCollapsed', isCollapsed ? '1' : '0'); } catch (e) {}
+                    });
+                } catch (e) {
+                    console.warn('Sidebar toggle init failed:', e);
+                }
             }
         });
         
@@ -270,6 +339,15 @@
                 }
             });
         });
+        
+        try {
+            var theme = localStorage.getItem('theme');
+            if (theme) document.documentElement.setAttribute('data-theme', theme);
+            var density = localStorage.getItem('ui_density');
+            if (density) document.documentElement.setAttribute('data-density', density);
+            var radius = localStorage.getItem('ui_radius');
+            if (radius) document.documentElement.setAttribute('data-radius', radius);
+        } catch (e) {}
         
         // Modern Loading Animation
         window.addEventListener('load', function() {
@@ -341,6 +419,44 @@
                     notification.remove();
                 }
             }, duration);
+        }
+        
+        // SweetAlert2 Confirm Helpers
+        function confirmNavigate(e, message) {
+            e.preventDefault();
+            const url = e.currentTarget.href;
+            Swal.fire({
+                title: 'تأكيد',
+                text: message,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم',
+                cancelButtonText: 'إلغاء'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
+            return false;
+        }
+
+        function confirmSubmit(e, message) {
+            e.preventDefault();
+            const form = e.currentTarget.form || e.currentTarget.closest('form');
+            if (!form) return false;
+            Swal.fire({
+                title: 'تأكيد',
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'نعم',
+                cancelButtonText: 'إلغاء'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+            return false;
         }
         
         // Advanced Table Features
@@ -456,14 +572,27 @@
             
             // Monitor API response times
             const originalFetch = window.fetch;
-            window.fetch = function(...args) {
+            if (!originalFetch.__csrfPerfPatched) {
+            window.fetch = function(input, init) {
                 const start = performance.now();
-                return originalFetch.apply(this, args).then(response => {
+                const headers = new Headers((init && init.headers) || {});
+                const tokenEl = document.querySelector('meta[name="csrf-token"]');
+                if (tokenEl && !headers.has('X-CSRFToken')) {
+                    const token = tokenEl.getAttribute('content') || tokenEl.content;
+                    if (token) headers.set('X-CSRFToken', token);
+                }
+                const newInit = Object.assign({}, init || {}, { headers });
+                return originalFetch.call(this, input, newInit).then(response => {
                     const end = performance.now();
+                    if (!window.__apiMetrics) { window.__apiMetrics = { calls: 0, time: 0 }; }
+                    window.__apiMetrics.calls += 1;
+                    window.__apiMetrics.time += (end - start);
                     console.log(`API call took ${(end - start).toFixed(2)}ms`);
                     return response;
                 });
             };
+            window.fetch.__csrfPerfPatched = true;
+            }
         }
         
         // Initialize everything when DOM is ready
@@ -496,6 +625,56 @@
             const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
             popoverTriggerList.map(function (popoverTriggerEl) {
                 return new bootstrap.Popover(popoverTriggerEl);
+            });
+
+            function enforceSafeLinks(){
+                document.querySelectorAll('a').forEach(function(a){
+                    var href = a.getAttribute('href') || '';
+                    var isPlaceholder = href === '#' || href.trim() === '';
+                    var isToggle = a.hasAttribute('data-bs-toggle');
+                    if (isPlaceholder) {
+                        a.setAttribute('href','javascript:void(0)');
+                        a.setAttribute('role','button');
+                        a.setAttribute('tabindex','0');
+                    }
+                    if (isPlaceholder || isToggle) {
+                        a.addEventListener('click', function(e){ e.preventDefault(); });
+                    }
+                    if (window.__ENV !== 'production' && isPlaceholder && !isToggle && !a.getAttribute('onclick')){
+                        try {
+                            var label = (a.textContent || a.getAttribute('aria-label') || '').trim();
+                            if (label) console.warn('Placeholder link detected:', label);
+                        } catch (e) {}
+                    }
+                });
+            }
+            enforceSafeLinks();
+
+            const tabSelectors = ['a[data-bs-toggle="tab"]', '.nav-link[data-bs-toggle="tab"]', 'button[data-bs-toggle="tab"]'];
+            document.querySelectorAll(tabSelectors.join(',')).forEach(function(tabLink){
+                tabLink.addEventListener('shown.bs.tab', function(ev){
+                    const targetSel = ev.target.getAttribute('href') || ev.target.getAttribute('data-bs-target');
+                    const pane = targetSel && document.querySelector(targetSel);
+                    if (pane) {
+                        // Adjust DataTables inside pane
+                        try {
+                            if (window.$ && window.$.fn && window.$.fn.DataTable) {
+                                pane.querySelectorAll('table[data-dt="1"]').forEach(function(tbl){
+                                    const dt = window.$(tbl).DataTable();
+                                    if (dt) dt.columns.adjust();
+                                });
+                            }
+                        } catch (e) {}
+                        // Lazy load content if data-load-url is present
+                        const url = pane.getAttribute('data-load-url');
+                        if (url && !pane.getAttribute('data-loaded')) {
+                            fetch(url, { method: 'GET', headers: { 'Accept': 'text/html' } })
+                                .then(r => r.text())
+                                .then(html => { pane.innerHTML = html; pane.setAttribute('data-loaded','1'); })
+                                .catch(()=>{});
+                        }
+                    }
+                });
             });
         });
         

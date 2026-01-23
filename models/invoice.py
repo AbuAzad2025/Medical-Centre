@@ -1,7 +1,7 @@
 """
 الفواتير - Invoice & InvoiceService (نسخة نهائية 1:* من الزيارة إلى الفواتير)
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
 
@@ -19,13 +19,14 @@ class Invoice(db.Model):
     total_amount = db.Column(db.Numeric(12, 2), default=0, nullable=False)
     paid_amount = db.Column(db.Numeric(12, 2), default=0, nullable=False)
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
     __table_args__ = (
         CheckConstraint("total_amount >= 0", name='chk_invoice_total_non_negative'),
         CheckConstraint("paid_amount >= 0", name='chk_invoice_paid_non_negative'),
         Index('idx_invoice_status', 'status'),
+        Index('idx_invoice_status_created', 'status', 'created_at'),
     )
 
     visit = db.relationship('Visit', back_populates='invoices', lazy='selectin')
@@ -41,6 +42,20 @@ class Invoice(db.Model):
 
     def __repr__(self) -> str:
         return f"<Invoice #{self.invoice_number or self.id}>"
+    
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "invoice_number": self.invoice_number,
+            "visit_id": self.visit_id,
+            "created_by": self.created_by,
+            "status": self.status,
+            "currency": self.currency,
+            "total_amount": float(self.total_amount or 0),
+            "paid_amount": float(self.paid_amount or 0),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
 
 
 class InvoiceService(db.Model):

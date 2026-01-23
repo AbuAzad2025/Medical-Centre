@@ -5,6 +5,7 @@
 from datetime import datetime
 from sqlalchemy import CheckConstraint, Index
 from app_factory import db
+from datetime import datetime, timezone
 
 
 class PaymentMethod:
@@ -42,10 +43,12 @@ class Payment(db.Model):
     status = db.Column(db.String(16), default=PaymentStatus.CONFIRMED, nullable=False, index=True)
     
     # مرجع خارجي (رقم قسيمة/تحويل/معاملة بطاقة)
-    reference = db.Column(db.String(64), nullable=True)
+    reference = db.Column(db.String(64), nullable=True, index=True)
     
     # رقم الإيصال
     receipt_number = db.Column(db.String(50), nullable=True, unique=True)
+    is_provisional = db.Column(db.Boolean, default=False, index=True)
+    provisional_reason = db.Column(db.Text, nullable=True)
     
     # ملاحظات
     notes = db.Column(db.Text, nullable=True)
@@ -59,9 +62,9 @@ class Payment(db.Model):
     cancellation_reason = db.Column(db.Text, nullable=True)
     
     # التواريخ
-    payment_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    payment_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     __table_args__ = (
         CheckConstraint("amount >= 0", name='chk_payment_amount_non_negative'),
@@ -111,6 +114,26 @@ class Payment(db.Model):
             'REFUNDED': 'مسترجع'
         }
         return status_map.get(self.status, self.status)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "patient_id": self.patient_id,
+            "visit_id": self.visit_id,
+            "invoice_id": self.invoice_id,
+            "method": self.method,
+            "amount": float(self.amount or 0),
+            "currency": self.currency,
+            "status": self.status,
+            "reference": self.reference,
+            "receipt_number": self.receipt_number,
+            "is_provisional": self.is_provisional,
+            "provisional_reason": self.provisional_reason,
+            "notes": self.notes,
+            "payment_date": self.payment_date.isoformat() if self.payment_date else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
     
     def can_be_cancelled(self):
         """هل يمكن إلغاء الدفع"""
@@ -121,8 +144,12 @@ class Payment(db.Model):
             return False, "الدفع مسترجع"
         
         # يمكن إلغاء الدفع خلال 24 ساعة
-        from datetime import timedelta
-        if datetime.utcnow() - self.created_at > timedelta(hours=24):
+        from datetime import timedelta, timezone
+        now = datetime.now(timezone.utc)
+        created = self.created_at if self.created_at else now
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=timezone.utc)
+        if (now - created) > timedelta(hours=24):
             return False, "تجاوز وقت الإلغاء (24 ساعة)"
         
         return True, "يمكن الإلغاء"
@@ -135,7 +162,8 @@ class Payment(db.Model):
         
         self.status = PaymentStatus.CANCELLED
         self.cancelled_by = user_id
-        self.cancelled_at = datetime.utcnow()
+        from datetime import timezone
+        self.cancelled_at = datetime.now(timezone.utc)
         self.cancellation_reason = reason
         
         return True, "تم الإلغاء بنجاح"

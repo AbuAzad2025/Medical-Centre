@@ -3,7 +3,7 @@
 Medical System Advanced Permissions Models
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
 
@@ -31,8 +31,8 @@ class ModulePermission(db.Model):
     can_manage_users = db.Column(db.Boolean, default=False)
     
     # التواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (
@@ -91,8 +91,8 @@ class DepartmentPermission(db.Model):
     can_manage_department_settings = db.Column(db.Boolean, default=False)
     
     # التواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (

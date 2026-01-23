@@ -343,11 +343,11 @@ class AIValidationService:
                 visits_count = db_session.query(Visit).filter_by(patient_id=patient_id).count()
                 
                 if visits_count > 0:
-                    warnings.append(f"⚠️ هذا المريض لديه {visits_count} زيارة مسجلة - سيتم حذفها جميعاً")
+                    warnings.append(f"هذا المريض لديه {visits_count} زيارة مسجلة وسيتم حذفها جميعاً")
             
         except Exception as e:
             logging.error(f"Validation error: {str(e)}")
-            warnings.append("⚠️ حدث خطأ أثناء التحقق - يرجى المراجعة اليدوية")
+            warnings.append("حدث خطأ أثناء التحقق ويرجى المراجعة اليدوية")
         
         is_valid = len(errors) == 0
         return is_valid, errors, warnings
@@ -358,23 +358,23 @@ class AIValidationService:
         message = ""
         
         if errors:
-            message += "🚫 **أخطاء يجب تصحيحها:**\n\n"
+            message += "أخطاء يجب تصحيحها:\n"
             for error in errors:
-                message += f"{error}\n"
+                message += f"خطأ: {error}\n"
             message += "\n"
         
         if warnings:
-            message += "⚠️ **تحذيرات (يمكن التجاوز):**\n\n"
+            message += "تحذيرات يمكن تجاوزها:\n"
             for warning in warnings:
-                message += f"{warning}\n"
+                message += f"تحذير: {warning}\n"
             message += "\n"
         
         if errors:
-            message += "❌ **لا يمكن حفظ البيانات حتى يتم تصحيح الأخطاء**"
+            message += "لا يمكن حفظ البيانات حتى يتم تصحيح الأخطاء"
         elif warnings:
-            message += "⚡ **يمكنك المتابعة ولكن يُنصح بمراجعة التحذيرات**"
+            message += "يمكنك المتابعة ولكن يفضل مراجعة التحذيرات"
         else:
-            message += "✅ **جميع البيانات صحيحة**"
+            message += "جميع البيانات صحيحة"
         
         return message
 

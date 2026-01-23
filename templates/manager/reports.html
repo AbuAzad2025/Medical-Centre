@@ -19,6 +19,10 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2">
+                                <a class="btn btn-outline-primary" href="{{ url_for('manager.reports_center') }}">
+                                    <i class="fas fa-chart-line me-1"></i>
+                                    مركز التقارير
+                                </a>
                                 <button class="btn btn-primary" onclick="generateReport()">
                                     <i class="fas fa-file-alt me-1"></i>
                                     إنشاء تقرير
@@ -621,48 +625,39 @@
 
 <script>
 function generateReport() {
-    // إنشاء تقرير جديد
-    alert('إنشاء تقرير جديد');
+    Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير جديد', icon: 'info' });
 }
 
 function exportAllReports() {
-    // تصدير جميع التقارير
-    alert('تصدير جميع التقارير');
+    Swal.fire({ title: 'تصدير', text: 'تصدير جميع التقارير', icon: 'info' });
 }
 
 function viewPatientReports() {
-    // عرض تقارير المرضى
-    alert('عرض تقارير المرضى');
+    Swal.fire({ title: 'عرض', text: 'عرض تقارير المرضى', icon: 'info' });
 }
 
 function viewFinancialReports() {
-    // عرض التقارير المالية
-    alert('عرض التقارير المالية');
+    Swal.fire({ title: 'عرض', text: 'عرض التقارير المالية', icon: 'info' });
 }
 
 function viewDoctorReports() {
-    // عرض تقارير الأطباء
-    alert('عرض تقارير الأطباء');
+    Swal.fire({ title: 'عرض', text: 'عرض تقارير الأطباء', icon: 'info' });
 }
 
 function viewAnalyticalReports() {
-    // عرض التقارير التحليلية
-    alert('عرض التقارير التحليلية');
+    Swal.fire({ title: 'عرض', text: 'عرض التقارير التحليلية', icon: 'info' });
 }
 
 function generateDailyReport() {
-    // إنشاء تقرير يومي
-    alert('إنشاء تقرير يومي');
+    Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير يومي', icon: 'info' });
 }
 
 function generateWeeklyReport() {
-    // إنشاء تقرير أسبوعي
-    alert('إنشاء تقرير أسبوعي');
+    Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير أسبوعي', icon: 'info' });
 }
 
 function generateMonthlyReport() {
-    // إنشاء تقرير شهري
-    alert('إنشاء تقرير شهري');
+    Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير شهري', icon: 'info' });
 }
 
 function generateCustomReport() {
@@ -676,11 +671,11 @@ function generateCustomReport() {
     }
     
     if (!reportData.report_type || !reportData.date_from || !reportData.date_to) {
-        alert('يرجى ملء جميع الحقول المطلوبة');
+        Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى ملء جميع الحقول المطلوبة', icon: 'warning' });
         return;
     }
     
-    alert('إنشاء تقرير مخصص: ' + JSON.stringify(reportData));
+    Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير مخصص: ' + JSON.stringify(reportData), icon: 'info' });
 }
 
 function filterReports(filter) {
@@ -707,25 +702,26 @@ function filterReports(filter) {
 }
 
 function viewReport(reportId) {
-    // عرض التقرير
-    alert('عرض التقرير: ' + reportId);
+    Swal.fire({ title: 'عرض تقرير', text: 'عرض التقرير: ' + reportId, icon: 'info' });
 }
 
 function downloadReport(reportId) {
-    // تحميل التقرير
-    alert('تحميل التقرير: ' + reportId);
+    Swal.fire({ title: 'تحميل', text: 'تحميل التقرير: ' + reportId, icon: 'info' });
 }
 
 function shareReport(reportId) {
-    // مشاركة التقرير
-    alert('مشاركة التقرير: ' + reportId);
+    Swal.fire({ title: 'مشاركة', text: 'مشاركة التقرير: ' + reportId, icon: 'info' });
 }
 
 function deleteReport(reportId) {
-    // حذف التقرير
-    if (confirm('هل تريد حذف هذا التقرير؟')) {
-        alert('تم حذف التقرير: ' + reportId);
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل تريد حذف هذا التقرير؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم حذف التقرير: ' + reportId, icon: 'success' }); } });
 }
 
 // إضافة تأثيرات تفاعلية

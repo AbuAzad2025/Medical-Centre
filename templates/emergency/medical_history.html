@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}السجل الطبي للطوارئ{% endblock %}
+{% block content %}
+<div class="container">
+  <h2 class="mb-3">السجل الطبي للحالة #{{ emergency.id }}</h2>
+  <div class="card shadow-sm"><div class="card-body">
+    <div>الشكوى الرئيسية: {{ emergency.chief_complaint }}</div>
+    <div>التشخيص: {{ emergency.diagnosis }}</div>
+    <div>ملاحظات العلاج: {{ emergency.treatment_notes }}</div>
+  </div></div>
+</div>
+{% endblock %}
+

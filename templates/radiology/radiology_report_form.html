@@ -1,374 +1,102 @@
 {% extends "base.html" %}
 
-{% block title %}إدخال تقرير الأشعة{% endblock %}
+{% block title %}تقرير الأشعة{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="medical-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="medical-title">
-                    <i class="fas fa-x-ray me-2"></i>
-                    إدخال تقرير الأشعة
-                </h1>
-                <p class="medical-subtitle">إدخال تقرير فحص الأشعة</p>
-            </div>
-            <div class="header-actions">
-                <a href="{{ url_for('radiology.dashboard') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-right me-1"></i>
-                    العودة للوحة التحكم
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Patient Information -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-user me-2"></i>
-                        معلومات المريض
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <strong>الاسم:</strong> {{ radiology_scan.patient.full_name }}
-                        </div>
-                        <div class="col-md-3">
-                            <strong>العمر:</strong> {{ radiology_scan.patient.age }} سنة
-                        </div>
-                        <div class="col-md-3">
-                            <strong>رقم الهوية:</strong> {{ radiology_scan.patient.id_number }}
-                        </div>
-                        <div class="col-md-3">
-                            <strong>رقم الهاتف:</strong> {{ radiology_scan.patient.phone }}
-                        </div>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-1 text-primary"><i class="fas fa-x-ray me-2"></i>تقرير الأشعة</h2>
+                        <div class="text-muted">عرض نتائج الأشعة وطباعة التقرير</div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Radiology Scan Information -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-camera me-2"></i>
-                        معلومات الفحص
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <strong>نوع الفحص:</strong> {{ radiology_scan.scan_type }}
-                        </div>
-                        <div class="col-md-4">
-                            <strong>تاريخ الطلب:</strong> {{ radiology_scan.request_date.strftime('%Y-%m-%d') }}
-                        </div>
-                        <div class="col-md-4">
-                            <strong>الطبيب:</strong> {{ radiology_scan.doctor.full_name if radiology_scan.doctor else 'غير محدد' }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Radiology Report Form -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-file-medical me-2"></i>
-                        تقرير الأشعة
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" id="radiologyReportForm" enctype="multipart/form-data">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <input type="hidden" name="radiology_scan_id" value="{{ radiology_scan.id }}">
-                        
-                        <!-- Technical Details -->
-                        <div class="row">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">
-                                    <i class="fas fa-cog me-2"></i>
-                                    التفاصيل التقنية
-                                </h6>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">تاريخ الفحص <span class="required">*</span></label>
-                                    <input type="date" name="scan_date" class="form-control" value="{{ radiology_scan.scan_date.strftime('%Y-%m-%d') if radiology_scan.scan_date else '' }}" required>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">وقت الفحص</label>
-                                    <input type="time" name="scan_time" class="form-control" value="{{ radiology_scan.scan_time.strftime('%H:%M') if radiology_scan.scan_time else '' }}">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">الفني المسؤول</label>
-                                    <input type="text" name="technician" class="form-control" value="{{ radiology_scan.technician or '' }}">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">نوع الجهاز</label>
-                                    <input type="text" name="machine_type" class="form-control" value="{{ radiology_scan.machine_type or '' }}">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">إعدادات الفحص</label>
-                                    <input type="text" name="scan_settings" class="form-control" value="{{ radiology_scan.scan_settings or '' }}">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Clinical Information -->
-                        <div class="row">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">
-                                    <i class="fas fa-stethoscope me-2"></i>
-                                    المعلومات السريرية
-                                </h6>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">السبب السريري</label>
-                                    <textarea name="clinical_indication" class="form-control" rows="3" placeholder="السبب السريري للفحص">{{ radiology_scan.clinical_indication or '' }}</textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Findings -->
-                        <div class="row">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">
-                                    <i class="fas fa-search me-2"></i>
-                                    النتائج
-                                </h6>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">الوصف التقني <span class="required">*</span></label>
-                                    <textarea name="technical_description" class="form-control" rows="4" placeholder="الوصف التقني للفحص" required>{{ radiology_scan.technical_description or '' }}</textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">النتائج <span class="required">*</span></label>
-                                    <textarea name="findings" class="form-control" rows="4" placeholder="نتائج الفحص" required>{{ radiology_scan.findings or '' }}</textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">الاستنتاج <span class="required">*</span></label>
-                                    <textarea name="conclusion" class="form-control" rows="3" placeholder="الاستنتاج والتوصيات" required>{{ radiology_scan.conclusion or '' }}</textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Image Upload -->
-                        <div class="row">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">
-                                    <i class="fas fa-image me-2"></i>
-                                    الصور
-                                </h6>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">رفع الصور</label>
-                                    <input type="file" name="images" class="form-control" multiple accept="image/*">
-                                    <small class="form-text text-muted">يمكن رفع عدة صور في نفس الوقت</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Existing Images -->
-                        {% if radiology_scan.images %}
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">الصور الموجودة</label>
-                                    <div class="row">
-                                        {% for image in radiology_scan.images %}
-                                        <div class="col-md-3 mb-2">
-                                            <img src="{{ url_for('static', filename='uploads/radiology/' + image.filename) }}" class="img-thumbnail" style="width: 100%; height: 150px; object-fit: cover;">
-                                            <button type="button" class="btn btn-danger btn-sm mt-1" onclick="deleteImage({{ image.id }})">
-                                                <i class="fas fa-trash"></i> حذف
-                                            </button>
-                                        </div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="d-flex gap-2">
+                        {% if radiology_request %}
+                        <a class="btn btn-outline-primary" href="{{ url_for('radiology.worklist_request', request_id=radiology_request.id) }}">فتح الطلب</a>
+                        <a class="btn btn-primary" href="{{ url_for('radiology.print_report', radiology_scan_id=(radiology_result.id if radiology_result else radiology_request.id)) }}">طباعة التقرير</a>
                         {% endif %}
+                        <a class="btn btn-secondary" href="{{ url_for('radiology.dashboard') }}">العودة</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                        <!-- Quality Control -->
-                        <div class="row">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">
-                                    <i class="fas fa-shield-alt me-2"></i>
-                                    ضبط الجودة
-                                </h6>
-                            </div>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">اختيار الطلب</h6>
+                </div>
+                <div class="card-body">
+                    <form method="GET">
+                        <div class="mb-3">
+                            <label class="form-label">طلبات حديثة</label>
+                            <select class="form-select" name="request_id">
+                                <option value="">آخر طلب</option>
+                                {% for r in recent_requests or [] %}
+                                <option value="{{ r.id }}" {% if radiology_request and r.id == radiology_request.id %}selected{% endif %}>
+                                    #{{ r.request_number or r.id }} - {{ r.patient.full_name if r.patient else r.patient_id }} - {{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '' }}
+                                </option>
+                                {% endfor %}
+                            </select>
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">جودة الصورة</label>
-                                    <select name="image_quality" class="form-select">
-                                        <option value="excellent" {% if radiology_scan.image_quality == 'excellent' %}selected{% endif %}>ممتازة</option>
-                                        <option value="good" {% if radiology_scan.image_quality == 'good' %}selected{% endif %}>جيدة</option>
-                                        <option value="fair" {% if radiology_scan.image_quality == 'fair' %}selected{% endif %}>متوسطة</option>
-                                        <option value="poor" {% if radiology_scan.image_quality == 'poor' %}selected{% endif %}>ضعيفة</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">حالة التقرير</label>
-                                    <select name="report_status" class="form-select">
-                                        <option value="pending" {% if radiology_scan.report_status == 'pending' %}selected{% endif %}>معلق</option>
-                                        <option value="completed" {% if radiology_scan.report_status == 'completed' %}selected{% endif %}>مكتمل</option>
-                                        <option value="reviewed" {% if radiology_scan.report_status == 'reviewed' %}selected{% endif %}>مراجع</option>
-                                        <option value="approved" {% if radiology_scan.report_status == 'approved' %}selected{% endif %}>معتمد</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">تاريخ إكمال التقرير</label>
-                                    <input type="date" name="completion_date" class="form-control" value="{{ radiology_scan.completion_date.strftime('%Y-%m-%d') if radiology_scan.completion_date else '' }}">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Additional Notes -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group mb-3">
-                                    <label class="form-label">ملاحظات إضافية</label>
-                                    <textarea name="additional_notes" class="form-control" rows="3" placeholder="ملاحظات إضافية">{{ radiology_scan.additional_notes or '' }}</textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Submit Buttons -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-end gap-2">
-                                    <button type="button" class="btn btn-secondary" onclick="history.back()">
-                                        <i class="fas fa-times me-1"></i>
-                                        إلغاء
-                                    </button>
-                                    <button type="submit" class="btn btn-success">
-                                        <i class="fas fa-save me-1"></i>
-                                        حفظ التقرير
-                                    </button>
-                                    <button type="button" class="btn btn-primary" onclick="printReport()">
-                                        <i class="fas fa-print me-1"></i>
-                                        طباعة التقرير
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        <button class="btn btn-outline-primary w-100" type="submit">عرض</button>
                     </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">تفاصيل التقرير</h6>
+                </div>
+                <div class="card-body">
+                    {% if radiology_request %}
+                    <div class="row g-3">
+                        <div class="col-md-6"><strong>رقم الطلب:</strong> {{ radiology_request.request_number or radiology_request.id }}</div>
+                        <div class="col-md-6"><strong>الحالة:</strong> <span class="badge bg-info">{{ radiology_request.status }}</span></div>
+                        <div class="col-md-6"><strong>المريض:</strong> {{ radiology_request.patient.full_name if radiology_request.patient else radiology_request.patient_id }}</div>
+                        <div class="col-md-6"><strong>الهاتف:</strong> {{ radiology_request.patient.phone if radiology_request.patient else '-' }}</div>
+                        <div class="col-md-6"><strong>نوع الفحص:</strong> {{ radiology_request.modality or '-' }}</div>
+                        <div class="col-md-6"><strong>منطقة الفحص:</strong> {{ radiology_request.body_part or '-' }}</div>
+                        <div class="col-md-6"><strong>تاريخ الطلب:</strong> {{ radiology_request.created_at.strftime('%Y-%m-%d') if radiology_request.created_at else today }}</div>
+                        <div class="col-md-6"><strong>الطبيب الطالب:</strong> {{ radiology_request.requester.full_name if radiology_request.requester else 'غير محدد' }}</div>
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                        <strong>Study UID:</strong> {{ radiology_result.study_uid if radiology_result and radiology_result.study_uid else '-' }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>رابط PACS:</strong> {{ radiology_result.pacs_url if radiology_result and radiology_result.pacs_url else '-' }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>الحالة التشخيصية:</strong> {{ radiology_result.status if radiology_result else 'PENDING' }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>حرج:</strong> {{ 'نعم' if radiology_result and radiology_result.is_critical else 'لا' }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>النتائج:</strong>
+                        <div class="border rounded p-2 mt-2">{{ radiology_result.findings if radiology_result and radiology_result.findings else 'لا توجد نتائج' }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <strong>الانطباع:</strong>
+                        <div class="border rounded p-2 mt-2">{{ radiology_result.impression if radiology_result and radiology_result.impression else 'لا يوجد انطباع' }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <strong>التوصيات:</strong>
+                        <div class="border rounded p-2 mt-2">{{ radiology_result.notes if radiology_result and radiology_result.notes else 'لا توجد توصيات' }}</div>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted">لا توجد طلبات لعرضها</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-// Delete image
-function deleteImage(imageId) {
-    if (confirm('هل أنت متأكد من حذف هذه الصورة؟')) {
-        fetch('{{ url_for("radiology.delete_image") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
-            },
-            body: JSON.stringify({image_id: imageId})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('حدث خطأ: ' + data.message);
-            }
-        });
-    }
-}
-
-// Print report
-function printReport() {
-    window.open('{{ url_for("radiology.print_report", radiology_scan_id=radiology_scan.id) }}', '_blank');
-}
-
-// Form submission
-document.getElementById('radiologyReportForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    fetch('{{ url_for("radiology.save_report") }}', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('تم حفظ التقرير بنجاح!');
-            window.location.href = '{{ url_for("radiology.dashboard") }}';
-        } else {
-            alert('حدث خطأ: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('حدث خطأ في الاتصال');
-    });
-});
-</script>
 {% endblock %}

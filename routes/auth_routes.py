@@ -3,13 +3,14 @@
 Medical System Authentication Routes
 """
 
-from flask import Blueprint, request, jsonify, session, redirect, url_for, flash, render_template
+from flask import Blueprint, request, jsonify, session, redirect, url_for, flash, render_template, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_wtf.csrf import generate_csrf, validate_csrf
 from models.user import User
 from models.permissions import Role
 from werkzeug.security import check_password_hash
 import logging
+from datetime import datetime, timedelta, timezone
 
 # إنشاء Blueprint للمصادقة
 auth_bp = Blueprint('auth', __name__)
@@ -22,18 +23,16 @@ def _auth_ping():
 def login():
     """تسجيل الدخول"""
     if request.method == 'GET':
-        # عرض صفحة تسجيل الدخول
-        return render_template('auth/login.html')
+        # عرض صفحة تسجيل الدخول مع ضبط CSRF cookie
+        token = generate_csrf()
+        from flask import make_response
+        resp = make_response(render_template('auth/login.html'))
+        secure = current_app.config.get('SESSION_COOKIE_SECURE', True)
+        resp.set_cookie('csrf_token', token, samesite='Lax', secure=secure)
+        return resp
     
     if request.method == 'POST':
         try:
-            # التحقق من CSRF token
-            try:
-                validate_csrf(request.form.get('csrf_token'))
-            except Exception as csrf_error:
-                logging.warning(f"CSRF validation failed: {csrf_error}")
-                flash('خطأ في التحقق من الأمان. يرجى إعادة المحاولة.', 'error')
-                return render_template('auth/login.html')
             
             # التحقق من نوع الطلب
             is_ajax = request.headers.get('Content-Type') == 'application/json' or request.is_json
@@ -42,9 +41,21 @@ def login():
                 data = request.get_json()
             else:
                 data = request.form
+
+            csrf_enabled = current_app.config.get('WTF_CSRF_ENABLED', True)
+            if csrf_enabled:
+                token = (request.headers.get('X-CSRFToken') or request.headers.get('X-CSRF-Token') or data.get('csrf_token') or request.cookies.get('csrf_token'))
+                try:
+                    validate_csrf(token)
+                except Exception:
+                    msg = 'جلسة غير صالحة، يرجى تحديث الصفحة والمحاولة مرة أخرى'
+                    if is_ajax:
+                        return jsonify({'success': False, 'message': msg}), 400
+                    flash(msg, 'error')
+                    return render_template('auth/login.html'), 400
             
-            username = data.get('username')
-            password = data.get('password')
+            username = (data.get('username') or '').strip()
+            password = (data.get('password') or '').strip()
             
             if not username or not password:
                 if is_ajax:
@@ -58,21 +69,104 @@ def login():
             
             # البحث عن المستخدم
             user = User.query.filter_by(username=username).first()
-            logging.info(f"Login attempt for username: {username}. User found: {user is not None}")
-            
-            if user:
-                password_check = user.check_password(password)
-                logging.info(f"Password check for {username}: {password_check}")
-                logging.info(f"User is_active: {user.is_active}")
+
+            try:
+                from models.system_config import SystemConfig
+                from models.audit_trail import LoginAttempt, AuditTrail
+                from app_factory import db
+
+                def _get_int_setting(key, default):
+                    row = SystemConfig.query.filter_by(config_key=key).first()
+                    if not row:
+                        return default
+                    try:
+                        return int(row.get_value())
+                    except Exception:
+                        return default
+
+                max_attempts = _get_int_setting('max_login_attempts', 5)
+                window_minutes = _get_int_setting('login_attempt_window_minutes', 15)
+                lockout_minutes = _get_int_setting('login_lockout_minutes', 15)
+
+                now = datetime.now(timezone.utc)
+                window_start = now - timedelta(minutes=window_minutes)
+
+                recent_failed_count = LoginAttempt.query.filter(
+                    LoginAttempt.username == username,
+                    LoginAttempt.success == False,
+                    LoginAttempt.created_at >= window_start
+                ).count()
+
+                if recent_failed_count >= max_attempts:
+                    last_failed = LoginAttempt.query.filter(
+                        LoginAttempt.username == username,
+                        LoginAttempt.success == False
+                    ).order_by(LoginAttempt.created_at.desc()).first()
+                    if last_failed:
+                        lock_until = last_failed.created_at + timedelta(minutes=lockout_minutes)
+                        if lock_until.tzinfo is None:
+                            lock_until = lock_until.replace(tzinfo=timezone.utc)
+                        if now < lock_until:
+                            try:
+                                db.session.add(AuditTrail(
+                                    entity_type='system',
+                                    entity_id=0,
+                                    action='login_blocked',
+                                    user_id=(user.id if user else None),
+                                    user_ip=request.remote_addr,
+                                    user_agent=request.headers.get('User-Agent'),
+                                    description='تم حظر محاولة تسجيل دخول بسبب تجاوز الحد',
+                                    notes=f'username={username}'
+                                ))
+                                db.session.commit()
+                            except Exception:
+                                db.session.rollback()
+
+                            msg = 'تم تجميد تسجيل الدخول مؤقتاً بسبب محاولات فاشلة متكررة. حاول لاحقاً.'
+                            if is_ajax:
+                                return jsonify({'success': False, 'message': msg}), 429
+                            flash(msg, 'error')
+                            return render_template('auth/login.html'), 429
+            except Exception:
+                pass
             
             if user and user.check_password(password):
                 if user.is_active:
-                    login_user(user, remember=True)
-                    logging.info(f"User {user.username} logged in successfully. Role: {user.role}")
+                    try:
+                        from models.audit_trail import LoginAttempt, AuditTrail
+                        from app_factory import db
+                        now = datetime.now(timezone.utc)
+                        user.last_login = now
+                        db.session.add(LoginAttempt(
+                            username=username,
+                            user_id=user.id,
+                            success=True,
+                            user_ip=request.remote_addr,
+                            user_agent=request.headers.get('User-Agent'),
+                            created_at=now
+                        ))
+                        db.session.add(AuditTrail(
+                            entity_type='user',
+                            entity_id=user.id,
+                            action='login',
+                            user_id=user.id,
+                            user_ip=request.remote_addr,
+                            user_agent=request.headers.get('User-Agent'),
+                            description='تسجيل دخول'
+                        ))
+                        db.session.commit()
+                    except Exception:
+                        try:
+                            from app_factory import db
+                            db.session.rollback()
+                        except Exception:
+                            pass
+
+                    remember_flag = str((data.get('remember') or '')).lower() in {'1', 'true', 'on', 'yes'}
+                    login_user(user, remember=remember_flag)
                     
                     # تحديد الصفحة المناسبة حسب الدور
                     redirect_url = get_redirect_url_by_role(user.role)
-                    logging.info(f"Redirecting to: {redirect_url}")
                     
                     if is_ajax:
                         return jsonify({
@@ -88,7 +182,6 @@ def login():
                             }
                         })
                     else:
-                        logging.info(f"Performing redirect to {redirect_url}")
                         return redirect(redirect_url)
                 else:
                     if is_ajax:
@@ -100,6 +193,35 @@ def login():
                         flash('حساب المستخدم غير مفعل', 'error')
                         return render_template('auth/login.html')
             else:
+                try:
+                    from models.audit_trail import LoginAttempt, AuditTrail
+                    from app_factory import db
+                    now = datetime.now(timezone.utc)
+                    db.session.add(LoginAttempt(
+                        username=username,
+                        user_id=(user.id if user else None),
+                        success=False,
+                        user_ip=request.remote_addr,
+                        user_agent=request.headers.get('User-Agent'),
+                        created_at=now
+                    ))
+                    db.session.add(AuditTrail(
+                        entity_type='system',
+                        entity_id=0,
+                        action='login_failed',
+                        user_id=(user.id if user else None),
+                        user_ip=request.remote_addr,
+                        user_agent=request.headers.get('User-Agent'),
+                        description='فشل تسجيل دخول',
+                        notes=f'username={username}'
+                    ))
+                    db.session.commit()
+                except Exception:
+                    try:
+                        from app_factory import db
+                        db.session.rollback()
+                    except Exception:
+                        pass
                 if is_ajax:
                     return jsonify({
                         'success': False,
@@ -127,27 +249,79 @@ def login():
 @login_required
 def logout():
     """تسجيل الخروج"""
+    try:
+        from models.audit_trail import AuditTrail
+        from app_factory import db
+        if current_user and getattr(current_user, 'is_authenticated', False):
+            db.session.add(AuditTrail(
+                entity_type='user',
+                entity_id=current_user.id,
+                action='logout',
+                user_id=current_user.id,
+                user_ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                description='تسجيل خروج'
+            ))
+            db.session.commit()
+    except Exception:
+        try:
+            from app_factory import db
+            db.session.rollback()
+        except Exception:
+            pass
     logout_user()
     return redirect(url_for('auth.login'))
 
-@auth_bp.route('/profile')
+@auth_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
     """ملف المستخدم الشخصي"""
-    return jsonify({
-        'success': True,
-        'user': {
-            'id': current_user.id,
-            'username': current_user.username,
-            'full_name': current_user.full_name,
-            'email': current_user.email,
-            'phone': current_user.phone,
-            'role': current_user.role,
-            'department': current_user.department,
-            'is_active': current_user.is_active,
-            'created_at': current_user.created_at.isoformat()
-        }
-    })
+    if request.method == 'POST':
+        try:
+            user = current_user
+            user.full_name = request.form.get('full_name')
+            user.phone = request.form.get('phone')
+            user.email = request.form.get('email')
+            
+            # معالجة التوقيع الرقمي (صورة)
+            if 'signature' in request.files:
+                file = request.files['signature']
+                if file and file.filename != '':
+                    import base64
+                    file_content = file.read()
+                    encoded_string = base64.b64encode(file_content).decode('utf-8')
+                    user.digital_signature = f"data:{file.mimetype};base64,{encoded_string}"
+            
+            # معالجة كلمة المرور إذا تم تقديمها
+            new_password = request.form.get('new_password')
+            if new_password:
+                user.set_password(new_password)
+                
+            from app_factory import db
+            db.session.commit()
+            flash('تم تحديث الملف الشخصي بنجاح', 'success')
+            return redirect(url_for('auth.profile'))
+            
+        except Exception as e:
+            logging.error(f"Profile update error: {str(e)}")
+            flash('حدث خطأ أثناء تحديث الملف الشخصي', 'error')
+    
+    login_attempts = []
+    failed_attempts = []
+    try:
+        from models.audit_trail import LoginAttempt
+        login_attempts = LoginAttempt.query.filter(
+            LoginAttempt.user_id == current_user.id,
+            LoginAttempt.success == True
+        ).order_by(LoginAttempt.created_at.desc()).limit(10).all()
+        failed_attempts = LoginAttempt.query.filter(
+            LoginAttempt.username == current_user.username,
+            LoginAttempt.success == False
+        ).order_by(LoginAttempt.created_at.desc()).limit(10).all()
+    except Exception:
+        pass
+
+    return render_template('auth/profile.html', user=current_user, login_attempts=login_attempts, failed_attempts=failed_attempts)
 
 @auth_bp.route('/change-password', methods=['POST'])
 @login_required
@@ -205,6 +379,8 @@ def get_redirect_url_by_role(role):
         'emergency': '/emergency/dashboard',
         'nurse': '/nurse/dashboard',
         'accountant': '/accountant/dashboard',
-        'medication': '/medication/dashboard'  # إضافة medication
+        'medication': '/medication/dashboard',  # إضافة medication
+        'pharmacist': '/medication/dashboard',
+        'patient': '/booking/dashboard'
     }
     return role_urls.get(role, '/super-admin/dashboard')

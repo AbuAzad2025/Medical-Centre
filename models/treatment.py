@@ -3,7 +3,7 @@
 Medical System Treatment Model
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
 
@@ -46,8 +46,8 @@ class Treatment(db.Model):
     status = db.Column(db.String(50), default='pending')  # pending, completed, follow_up
     
     # التواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (
@@ -60,7 +60,7 @@ class Treatment(db.Model):
     )
     
     # العلاقات
-    visit = db.relationship('Visit', back_populates='treatments')
+    visit = db.relationship('Visit', backref=db.backref('treatments', lazy='selectin'))
     doctor = db.relationship('User', foreign_keys=[doctor_id])
     
     def __repr__(self):

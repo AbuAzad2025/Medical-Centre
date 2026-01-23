@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}تفاصيل الموعد - الاستقبال{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-1 text-primary">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            تفاصيل الموعد
+                        </h2>
+                        <div class="text-muted">#{{ appointment.id }}</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-secondary" href="{{ url_for('reception.appointments') }}">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            رجوع
+                        </a>
+                        <a class="btn btn-warning" href="{{ url_for('reception.edit_appointment', appointment_id=appointment.id) }}">
+                            <i class="fas fa-edit me-1"></i>
+                            تعديل
+                        </a>
+                        <form method="POST" action="{{ url_for('reception.checkin_appointment', appointment_id=appointment.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-info" type="submit">
+                                <i class="fas fa-sign-in-alt me-1"></i>
+                                تحويل إلى زيارة
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">معلومات الموعد</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="text-muted small">المريض</div>
+                            <div class="fw-bold">{{ appointment.patient.full_name if appointment.patient else 'غير محدد' }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">الهاتف</div>
+                            <div class="fw-bold">{{ appointment.patient.phone if appointment.patient and appointment.patient.phone else '-' }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">القسم</div>
+                            <div class="fw-bold">{{ appointment.department.name_ar if appointment.department and appointment.department.name_ar else (appointment.department.name if appointment.department else '-') }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">الطبيب</div>
+                            <div class="fw-bold">{{ appointment.doctor.full_name if appointment.doctor else '-' }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">التاريخ والوقت</div>
+                            <div class="fw-bold">{{ appointment.starts_at.strftime('%Y-%m-%d %H:%M') if appointment.starts_at else '-' }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">الحالة</div>
+                            <div class="fw-bold">{{ appointment.status }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">نوع الموعد</div>
+                            <div class="fw-bold">{{ appt_type or '-' }}</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="text-muted small">الأعراض</div>
+                            <div class="fw-bold">{{ symptoms or '-' }}</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="text-muted small">ملاحظات</div>
+                            <div class="fw-bold" style="white-space: pre-line;">{{ base_notes or '-' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">إجراءات</h6>
+                </div>
+                <div class="card-body d-grid gap-2">
+                    <button class="btn btn-success" type="button" onclick="confirmAppointment({{ appointment.id }})">تأكيد الموعد</button>
+                    <button class="btn btn-outline-secondary" type="button" onclick="noShowAppointment({{ appointment.id }})">لم يحضر</button>
+                    <button class="btn btn-danger" type="button" onclick="cancelAppointment({{ appointment.id }})">إلغاء الموعد</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmAppointment(appointmentId) {
+    Swal.fire({
+        title: 'تأكيد الموعد',
+        text: 'هل تريد تأكيد هذا الموعد؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'تأكيد',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (!res.isConfirmed) return;
+        fetch(`/reception/appointments/${appointmentId}/confirm`, { method: 'POST', headers: { 'Accept': 'application/json' } })
+            .then(r => r.json().then(j => ({ ok: r.ok, j })))
+            .then(({ ok, j }) => {
+                if (!ok || !j.success) throw new Error(j.message || 'حدث خطأ');
+                location.reload();
+            })
+            .catch(err => Swal.fire({ title: 'خطأ', text: err.message || 'حدث خطأ', icon: 'error' }));
+    });
+}
+
+function cancelAppointment(appointmentId) {
+    Swal.fire({
+        title: 'إلغاء الموعد',
+        text: 'هل تريد إلغاء هذا الموعد؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'إلغاء',
+        cancelButtonText: 'تراجع'
+    }).then((res) => {
+        if (!res.isConfirmed) return;
+        fetch(`/reception/appointments/${appointmentId}/cancel`, { method: 'POST', headers: { 'Accept': 'application/json' } })
+            .then(r => r.json().then(j => ({ ok: r.ok, j })))
+            .then(({ ok, j }) => {
+                if (!ok || !j.success) throw new Error(j.message || 'حدث خطأ');
+                location.reload();
+            })
+            .catch(err => Swal.fire({ title: 'خطأ', text: err.message || 'حدث خطأ', icon: 'error' }));
+    });
+}
+
+function noShowAppointment(appointmentId) {
+    Swal.fire({
+        title: 'لم يحضر',
+        text: 'تأكيد وضع الموعد كـ لم يحضر؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'تأكيد',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (!res.isConfirmed) return;
+        fetch(`/reception/appointments/${appointmentId}/no-show`, { method: 'POST', headers: { 'Accept': 'application/json' } })
+            .then(r => r.json().then(j => ({ ok: r.ok, j })))
+            .then(({ ok, j }) => {
+                if (!ok || !j.success) throw new Error(j.message || 'حدث خطأ');
+                location.reload();
+            })
+            .catch(err => Swal.fire({ title: 'خطأ', text: err.message || 'حدث خطأ', icon: 'error' }));
+    });
+}
+</script>
+{% endblock %}
+

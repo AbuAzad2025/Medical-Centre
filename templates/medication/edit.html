@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}تعديل دواء{% endblock %}
+{% block content %}
+<div class="container">
+  <h2 class="mb-3">تعديل دواء</h2>
+  <form method="post" action="{{ url_for('medication.edit_medication', medication_id=medication.id) }}" class="card p-3 shadow-sm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="row g-3">
+      <div class="col-md-6"><label class="form-label">الاسم التجاري</label><input name="trade_name" class="form-control" value="{{ medication.trade_name }}"></div>
+      <div class="col-md-6"><label class="form-label">الاسم العلمي</label><input name="scientific_name" class="form-control" value="{{ medication.scientific_name }}"></div>
+      <div class="col-md-6"><label class="form-label">الاسم العام (Generic)</label><input name="generic_name" class="form-control" value="{{ medication.generic_name }}"></div>
+      <div class="col-md-6"><label class="form-label">الشركة المصنعة</label><input name="manufacturer" class="form-control" value="{{ medication.manufacturer }}"></div>
+      <div class="col-md-4"><label class="form-label">الفئة</label><input name="category" class="form-control" value="{{ medication.category }}"></div>
+      <div class="col-md-4"><label class="form-label">الشكل</label><input name="dosage_form" class="form-control" value="{{ medication.dosage_form }}"></div>
+      <div class="col-md-4"><label class="form-label">العيار</label><input name="strength" class="form-control" value="{{ medication.strength }}"></div>
+      <div class="col-md-4"><label class="form-label">المخزون</label><input name="stock_quantity" type="number" class="form-control" value="{{ medication.stock_quantity }}"></div>
+      <div class="col-md-4"><label class="form-label">حد المخزون الأدنى</label><input name="minimum_stock" type="number" class="form-control" value="{{ medication.minimum_stock }}"></div>
+      <div class="col-md-4"><label class="form-label">السعر</label><input name="price" type="number" step="0.01" class="form-control" value="{{ medication.price }}"></div>
+      <div class="col-md-6"><label class="form-label">رقم التشغيلة</label><input name="batch_number" class="form-control" value="{{ medication.batch_number }}"></div>
+      <div class="col-md-6"><label class="form-label">تاريخ الانتهاء</label><input name="expiry_date" type="date" class="form-control" value="{{ medication.expiry_date.isoformat() if medication.expiry_date else '' }}"></div>
+      <div class="col-12"><label class="form-label">تعليمات قياسية</label><textarea name="standard_instructions" class="form-control" rows="2">{{ medication.standard_instructions or '' }}</textarea></div>
+      <div class="col-12"><label class="form-label">الوصف</label><textarea name="description" class="form-control" rows="3">{{ medication.description or '' }}</textarea></div>
+    </div>
+    <button class="btn btn-primary mt-3" type="submit">حفظ</button>
+  </form>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}أتمتة الصيانة{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary"><i class="fas fa-cogs me-2"></i>أتمتة الصيانة</h2>
+            <div class="text-muted">إعدادات التشغيل الآلي والتنظيف</div>
+          </div>
+          <a class="btn btn-secondary" href="{{ url_for('super_admin.dashboard') }}">العودة</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">تنظيف تلقائي</label>
+          <select id="auto_cleanup" class="form-select">
+            <option value="true" {% if settings.auto_cleanup %}selected{% endif %}>مفعل</option>
+            <option value="false" {% if not settings.auto_cleanup %}selected{% endif %}>معطل</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">أيام التنظيف</label>
+          <input id="cleanup_days" type="number" class="form-control" value="{{ settings.cleanup_days or 30 }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">احتفاظ السجلات</label>
+          <input id="log_retention_days" type="number" class="form-control" value="{{ settings.log_retention_days or 90 }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">نسخ احتياطي تلقائي</label>
+          <select id="auto_backup" class="form-select">
+            <option value="true" {% if settings.auto_backup %}selected{% endif %}>مفعل</option>
+            <option value="false" {% if not settings.auto_backup %}selected{% endif %}>معطل</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary mt-3" id="saveAutomation">حفظ الإعدادات</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const saveBtn = document.getElementById('saveAutomation');
+if (saveBtn) {
+  saveBtn.addEventListener('click', async () => {
+    const payload = {
+      auto_cleanup: document.getElementById('auto_cleanup').value === 'true',
+      cleanup_days: parseInt(document.getElementById('cleanup_days').value || '30', 10),
+      log_retention_days: parseInt(document.getElementById('log_retention_days').value || '90', 10),
+      auto_backup: document.getElementById('auto_backup').value === 'true'
+    };
+    const r = await fetch('{{ url_for("super_admin.maintenance_automation") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await r.json().catch(() => ({}));
+    if (data.success) {
+      alert('تم حفظ الإعدادات');
+    } else {
+      alert('تعذر الحفظ');
+    }
+  });
+}
+</script>
+{% endblock %}

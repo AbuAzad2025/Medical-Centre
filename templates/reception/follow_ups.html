@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}المتابعات - الاستقبال{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary">
+              <i class="fas fa-calendar-check me-2"></i>
+              المتابعات
+            </h2>
+            <div class="text-muted">طلبات متابعة صادرة من الطبيب للجدولة عبر الاستقبال</div>
+          </div>
+          <div>
+            <a class="btn btn-secondary" href="{{ url_for('reception.dashboard') }}">
+              <i class="fas fa-arrow-right me-1"></i>
+              رجوع
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form method="GET" class="row g-3 mb-3">
+    <div class="col-md-5">
+      <label class="form-label">البحث</label>
+      <input class="form-control" name="search" value="{{ search or '' }}" placeholder="اسم، هاتف، هوية">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">الحالة</label>
+      <select class="form-control" name="status">
+        <option value="">الكل</option>
+        <option value="PENDING" {% if selected_status == 'PENDING' %}selected{% endif %}>معلّق</option>
+        <option value="SCHEDULED" {% if selected_status == 'SCHEDULED' %}selected{% endif %}>مجدول</option>
+        <option value="DONE" {% if selected_status == 'DONE' %}selected{% endif %}>مكتمل</option>
+        <option value="CANCELLED" {% if selected_status == 'CANCELLED' %}selected{% endif %}>ملغي</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">تاريخ المتابعة</label>
+      <input type="date" class="form-control" name="date" value="{{ selected_date or '' }}">
+    </div>
+    <div class="col-md-1 d-flex align-items-end">
+      <button class="btn btn-primary w-100" type="submit"><i class="fas fa-filter"></i></button>
+    </div>
+  </form>
+
+  <div class="card shadow">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">قائمة المتابعات ({{ followups|length }})</h6>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>المريض</th>
+              <th>الهاتف</th>
+              <th>الطبيب</th>
+              <th>تاريخ مقترح</th>
+              <th>الحالة</th>
+              <th style="min-width: 260px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in followups %}
+              <tr>
+                <td>{{ f.id }}</td>
+                <td>{{ f.patient.full_name if f.patient else '-' }}</td>
+                <td>{{ f.patient.phone if f.patient and f.patient.phone else '-' }}</td>
+                <td>{{ f.doctor.full_name if f.doctor else '-' }}</td>
+                <td>{{ f.suggested_date.strftime('%Y-%m-%d') if f.suggested_date else '-' }}</td>
+                <td>
+                  {% if f.status == 'PENDING' %}
+                    <span class="badge bg-warning text-dark">معلّق</span>
+                  {% elif f.status == 'SCHEDULED' %}
+                    <span class="badge bg-success">مجدول</span>
+                  {% elif f.status == 'DONE' %}
+                    <span class="badge bg-info text-dark">مكتمل</span>
+                  {% elif f.status == 'CANCELLED' %}
+                    <span class="badge bg-secondary">ملغي</span>
+                  {% else %}
+                    <span class="badge bg-light text-dark">{{ f.status }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  {% set dept_id = (f.source_visit.department_id if f.source_visit else (f.doctor.department_id if f.doctor else None)) %}
+                  <div class="btn-group">
+                    {% if f.patient %}
+                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('reception.view_patient', patient_id=f.patient.id) }}">
+                      <i class="fas fa-user me-1"></i> ملف المريض
+                    </a>
+                    {% endif %}
+                    {% if f.status == 'PENDING' %}
+                    <a class="btn btn-sm btn-primary" href="{{ url_for('reception.create_appointment', patient_id=f.patient_id, doctor_id=f.doctor_id, department_id=dept_id, date=(f.suggested_date.strftime('%Y-%m-%d') if f.suggested_date else ''), type='follow_up', follow_up_id=f.id) }}">
+                      <i class="fas fa-calendar-plus me-1"></i> جدولة موعد
+                    </a>
+                    {% elif f.status == 'SCHEDULED' and f.appointment_id %}
+                    <a class="btn btn-sm btn-outline-success" href="{{ url_for('reception.view_appointment', appointment_id=f.appointment_id) }}">
+                      <i class="fas fa-eye me-1"></i> عرض الموعد
+                    </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="7" class="text-center text-muted">لا توجد متابعات</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

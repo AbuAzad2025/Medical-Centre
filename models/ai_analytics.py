@@ -3,7 +3,7 @@
 Medical System AI Analytics Model
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from app_factory import db
 
 class AIRecommendation(db.Model):
@@ -23,7 +23,7 @@ class AIRecommendation(db.Model):
     accepted_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     accepted_at = db.Column(db.DateTime, nullable=True)
     feedback = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # العلاقات
     patient = db.relationship('Patient', backref='ai_recommendations')
@@ -103,8 +103,8 @@ class DiseasePattern(db.Model):
     severity_level = db.Column(db.String(50), nullable=True)
     treatment_protocols = db.Column(db.Text, nullable=True)  # JSON format
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     def __repr__(self):
         return f'<DiseasePattern {self.disease_name}>'
@@ -166,7 +166,7 @@ class PerformanceAnalytics(db.Model):
     period_start = db.Column(db.DateTime, nullable=False)
     period_end = db.Column(db.DateTime, nullable=False)
     additional_data = db.Column(db.Text, nullable=True)  # JSON format
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # العلاقات
     doctor = db.relationship('User', backref='performance_analytics')
@@ -245,7 +245,7 @@ class PatientInsight(db.Model):
     is_acknowledged = db.Column(db.Boolean, default=False)
     acknowledged_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     acknowledged_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # العلاقات
     patient = db.relationship('Patient', backref='patient_insights')

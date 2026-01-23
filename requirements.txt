@@ -5,6 +5,8 @@ Flask-Migrate==4.0.5
 Flask-Mail==0.9.1
 Flask-WTF==1.1.1
 Flask-CORS==4.0.0
+Flask-SocketIO==5.3.6
+simple-websocket==1.0.0
 Werkzeug==2.3.7
 SQLAlchemy==2.0.21
 python-dateutil==2.8.2
@@ -15,3 +17,4 @@ python-dotenv==1.0.0
 gunicorn==21.2.0
 requests==2.31.0
 qrcode[pil]==7.4.2
+psycopg2-binary==2.9.9

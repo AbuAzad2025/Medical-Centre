@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{% if reagent %}تعديل مادة{% else %}إضافة مادة{% endif %}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary">
+              <i class="fas fa-flask me-2"></i>
+              {% if reagent %}تعديل مادة{% else %}إضافة مادة{% endif %}
+            </h2>
+          </div>
+          <div>
+            <a class="btn btn-secondary" href="{{ url_for('lab.reagents') }}"><i class="fas fa-arrow-left me-1"></i>رجوع</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow">
+    <div class="card-body">
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">الاسم</label>
+            <input class="form-control" name="name" value="{{ reagent.name if reagent else '' }}" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">المورد</label>
+            <input class="form-control" name="supplier" value="{{ reagent.supplier if reagent else '' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">رقم التشغيلة</label>
+            <input class="form-control" name="lot_number" value="{{ reagent.lot_number if reagent else '' }}">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">الوحدة</label>
+            <input class="form-control" name="unit" value="{{ reagent.unit if reagent else '' }}">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">المخزون</label>
+            <input class="form-control" type="number" name="stock_quantity" value="{{ reagent.stock_quantity if reagent else 0 }}">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">الحد الأدنى</label>
+            <input class="form-control" type="number" name="minimum_stock" value="{{ reagent.minimum_stock if reagent else 0 }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">تاريخ الصلاحية</label>
+            <input class="form-control" type="date" name="expiry_date" value="{{ reagent.expiry_date.strftime('%Y-%m-%d') if reagent and reagent.expiry_date else '' }}">
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {% if not reagent or reagent.is_active %}checked{% endif %}>
+              <label class="form-check-label" for="is_active">مفعل</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">ملاحظات</label>
+            <textarea class="form-control" name="notes" rows="3">{{ reagent.notes if reagent and reagent.notes else '' }}</textarea>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-3">
+          <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

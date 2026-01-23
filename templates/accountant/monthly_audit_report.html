@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}تقرير تدقيق شهري{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0 text-success">تقرير التدقيق الشهري</h2>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('accountant.dashboard') }}" class="btn btn-secondary">رجوع</a>
+                        <a href="{{ url_for('accountant.export_audit_report', report_type='monthly') }}?format=json&year={{ report.period.year }}&month={{ report.period.month }}" class="btn btn-info">تصدير JSON</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">الفترة</div>
+                <div class="card-body">
+                    <div class="mb-2"><strong>السنة:</strong> {{ report.period.year }}</div>
+                    <div class="mb-2"><strong>الشهر:</strong> {{ report.period.month }}</div>
+                    <div class="mb-2"><strong>من:</strong> {{ report.period.start_date }}</div>
+                    <div class="mb-2"><strong>إلى:</strong> {{ report.period.end_date }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">ملخص</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2"><strong>إجمالي الزيارات:</strong> {{ report.summary.total_visits }}</div>
+                        <div class="col-md-3 mb-2"><strong>إجمالي الإيرادات:</strong> {{ "%.2f"|format(report.summary.total_revenue) }}</div>
+                        <div class="col-md-3 mb-2"><strong>معدل التحصيل %:</strong> {{ report.summary.collection_rate }}</div>
+                        <div class="col-md-3 mb-2"><strong>نسبة الدفع القسري %:</strong> {{ report.summary.force_payment_percentage }}</div>
+                        <div class="col-md-3 mb-2"><strong>التنبيهات:</strong> {{ report.summary.alerts_count }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">الزيارات الشهرية</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>إجمالي:</strong> {{ report.visits.total }}</div>
+                        <div class="col-md-3"><strong>متوسط يومي:</strong> {{ report.visits.avg_per_day }}</div>
+                    </div>
+                    <h6>حسب الحالة</h6>
+                    <table class="table">
+                        <thead><tr><th>الحالة</th><th>عدد</th></tr></thead>
+                        <tbody>
+                            <tr><td>OPEN</td><td>{{ report.visits.by_status.OPEN }}</td></tr>
+                            <tr><td>IN_PROGRESS</td><td>{{ report.visits.by_status.IN_PROGRESS }}</td></tr>
+                            <tr><td>COMPLETED</td><td>{{ report.visits.by_status.COMPLETED }}</td></tr>
+                            <tr><td>ARCHIVED</td><td>{{ report.visits.by_status.ARCHIVED }}</td></tr>
+                        </tbody>
+                    </table>
+                    <h6 class="mt-3">حسب طريقة الدفع</h6>
+                    <table class="table">
+                        <thead><tr><th>الطريقة</th><th>عدد</th></tr></thead>
+                        <tbody>
+                            <tr><td>نقداً</td><td>{{ report.visits.by_payment_method.cash }}</td></tr>
+                            <tr><td>بطاقة</td><td>{{ report.visits.by_payment_method.visa }}</td></tr>
+                            <tr><td>تأمين</td><td>{{ report.visits.by_payment_method.insurance }}</td></tr>
+                            <tr><td>قسري</td><td>{{ report.visits.by_payment_method.force }}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">الإحصائيات المالية</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4"><strong>إجمالي الإيرادات:</strong> {{ "%.2f"|format(report.financial.total_revenue) }}</div>
+                        <div class="col-md-4"><strong>نقداً:</strong> {{ "%.2f"|format(report.financial.cash_revenue) }}</div>
+                        <div class="col-md-4"><strong>بطاقة:</strong> {{ "%.2f"|format(report.financial.card_revenue) }}</div>
+                        <div class="col-md-4"><strong>تأمين:</strong> {{ "%.2f"|format(report.financial.insurance_revenue) }}</div>
+                        <div class="col-md-4"><strong>عدد العمليات:</strong> {{ report.financial.total_transactions }}</div>
+                        <div class="col-md-4"><strong>متوسط العملية:</strong> {{ "%.2f"|format(report.financial.avg_transaction) }}</div>
+                        <div class="col-md-4"><strong>متوسط يومي:</strong> {{ "%.2f"|format(report.financial.avg_daily_revenue) }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">الدفع القسري</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>عدد:</strong> {{ report.force_payments.total }}</div>
+                        <div class="col-md-3"><strong>معتمد:</strong> {{ report.force_payments.approved }}</div>
+                        <div class="col-md-3"><strong>مرفوض:</strong> {{ report.force_payments.rejected }}</div>
+                        <div class="col-md-3"><strong>قيد الانتظار:</strong> {{ report.force_payments.pending }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4"><strong>نسبة الزيارات %:</strong> {{ report.force_payments.percentage_of_visits }}</div>
+                        <div class="col-md-4"><strong>معدل الموافقة %:</strong> {{ report.force_payments.approval_rate }}</div>
+                        <div class="col-md-4"><strong>إجمالي المبلغ:</strong> {{ "%.2f"|format(report.force_payments.total_amount) }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">تحليل التأمين</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>عدد الزيارات:</strong> {{ report.insurance.total_visits }}</div>
+                        <div class="col-md-3"><strong>نسبة %:</strong> {{ report.insurance.percentage_of_visits }}</div>
+                        <div class="col-md-3"><strong>فاتورة التأمين:</strong> {{ "%.2f"|format(report.insurance.total_billed_to_insurance) }}</div>
+                        <div class="col-md-3"><strong>حصة المريض:</strong> {{ "%.2f"|format(report.insurance.total_patient_share) }}</div>
+                        <div class="col-md-3"><strong>محصل من المريض:</strong> {{ "%.2f"|format(report.insurance.patient_share_collected) }}</div>
+                        <div class="col-md-3"><strong>متبقي على المريض:</strong> {{ "%.2f"|format(report.insurance.patient_share_pending) }}</div>
+                        <div class="col-md-3"><strong>نسبة تحصيل الحصة %:</strong> {{ report.insurance.collection_rate }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">مؤشرات الأداء</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>معدل التحصيل %:</strong> {{ report.kpis.collection_rate }}</div>
+                        <div class="col-md-3"><strong>نسبة الدفع القسري %:</strong> {{ report.kpis.force_payment_percentage }}</div>
+                        <div class="col-md-3"><strong>متوسط قيمة الزيارة:</strong> {{ "%.2f"|format(report.kpis.avg_visit_value) }}</div>
+                        <div class="col-md-3"><strong>معدل الزيارات المكتملة %:</strong> {{ report.kpis.completed_visits_rate }}</div>
+                        <div class="col-md-3"><strong>تحصيل حصة المريض %:</strong> {{ report.kpis.patient_share_collection_rate }}</div>
+                    </div>
+                    <h6>التنبيهات</h6>
+                    <table class="table">
+                        <thead><tr><th>KPI</th><th>القيمة</th><th>الحد</th><th>رسالة</th></tr></thead>
+                        <tbody>
+                            {% for alert in report.kpi_alerts %}
+                            <tr>
+                                <td>{{ alert.kpi }}</td>
+                                <td>{{ alert.value }}</td>
+                                <td>{{ alert.threshold }}</td>
+                                <td>{{ alert.message }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">تحليل الديون</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4"><strong>عدد الديون:</strong> {{ report.debts.total_debts }}</div>
+                        <div class="col-md-4"><strong>إجمالي المبلغ:</strong> {{ "%.2f"|format(report.debts.total_amount) }}</div>
+                        <div class="col-md-4"><strong>أقدم دين:</strong> {{ report.debts.oldest_debt or '—' }}</div>
+                    </div>
+                    <h6>حسب السبب</h6>
+                    <table class="table">
+                        <thead><tr><th>السبب</th><th>عدد</th></tr></thead>
+                        <tbody>
+                            {% for reason, count in report.debts.by_reason.items() %}
+                            <tr>
+                                <td>{{ reason }}</td>
+                                <td>{{ count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

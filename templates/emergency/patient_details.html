@@ -140,6 +140,7 @@
                         
                         {% if emergency.status == 'TRIAGE' %}
                             <form method="POST" action="{{ url_for('emergency.start_treatment', emergency_id=emergency.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-success w-100">
                                     <i class="fas fa-play me-2"></i>بدء العلاج
                                 </button>
@@ -166,7 +167,8 @@
                         
                         {% if emergency.status == 'OBSERVATION' %}
                             <form method="POST" action="{{ url_for('emergency.end_treatment', emergency_id=emergency.id) }}" class="d-inline">
-                                <button type="submit" class="btn btn-danger w-100" onclick="return confirm('هل أنت متأكد من إنهاء العلاج؟')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-danger w-100" onclick="return confirmSubmit(event, 'هل أنت متأكد من إنهاء العلاج؟')">
                                     <i class="fas fa-stop me-2"></i>إنهاء العلاج
                                 </button>
                             </form>
@@ -349,9 +351,8 @@
                                     <table class="table table-sm">
                                         <thead>
                                             <tr>
-                                                <th>اسم الفحص</th>
-                                                <th>الوصف</th>
-                                                <th>الأولوية</th>
+                                                <th>رقم الطلب</th>
+                                                <th>الملاحظات</th>
                                                 <th>الحالة</th>
                                                 <th>التاريخ</th>
                                             </tr>
@@ -359,22 +360,17 @@
                                         <tbody>
                                             {% for lab in lab_requests %}
                                             <tr>
-                                                <td>{{ lab.test_name }}</td>
-                                                <td>{{ lab.test_description }}</td>
+                                                <td>{{ lab.request_number or lab.id }}</td>
+                                                <td>{{ lab.notes or '-' }}</td>
                                                 <td>
-                                                    {% if lab.urgency == 'urgent' %}
-                                                        <span class="badge badge-danger">عاجل</span>
-                                                    {% elif lab.urgency == 'high' %}
-                                                        <span class="badge badge-warning">عالي</span>
-                                                    {% else %}
-                                                        <span class="badge badge-info">عادي</span>
-                                                    {% endif %}
-                                                </td>
-                                                <td>
-                                                    {% if lab.status == 'PENDING' %}
-                                                        <span class="badge badge-warning">معلق</span>
-                                                    {% elif lab.status == 'COMPLETED' %}
+                                                    {% if lab.status == 'REQUESTED' %}
+                                                        <span class="badge badge-warning">مطلوب</span>
+                                                    {% elif lab.status == 'IN_PROGRESS' %}
+                                                        <span class="badge badge-info">قيد التنفيذ</span>
+                                                    {% elif lab.status == 'DONE' %}
                                                         <span class="badge badge-success">مكتمل</span>
+                                                    {% elif lab.status == 'CANCELLED' %}
+                                                        <span class="badge badge-danger">ملغي</span>
                                                     {% else %}
                                                         <span class="badge badge-secondary">{{ lab.status }}</span>
                                                     {% endif %}
@@ -406,9 +402,8 @@
                                     <table class="table table-sm">
                                         <thead>
                                             <tr>
-                                                <th>اسم الفحص</th>
-                                                <th>الوصف</th>
-                                                <th>الأولوية</th>
+                                                <th>نوع الفحص</th>
+                                                <th>منطقة الفحص</th>
                                                 <th>الحالة</th>
                                                 <th>التاريخ</th>
                                             </tr>
@@ -416,22 +411,17 @@
                                         <tbody>
                                             {% for radiology in radiology_requests %}
                                             <tr>
-                                                <td>{{ radiology.test_name }}</td>
-                                                <td>{{ radiology.test_description }}</td>
+                                                <td>{{ radiology.modality or '-' }}</td>
+                                                <td>{{ radiology.body_part or '-' }}</td>
                                                 <td>
-                                                    {% if radiology.urgency == 'urgent' %}
-                                                        <span class="badge badge-danger">عاجل</span>
-                                                    {% elif radiology.urgency == 'high' %}
-                                                        <span class="badge badge-warning">عالي</span>
-                                                    {% else %}
-                                                        <span class="badge badge-info">عادي</span>
-                                                    {% endif %}
-                                                </td>
-                                                <td>
-                                                    {% if radiology.status == 'PENDING' %}
-                                                        <span class="badge badge-warning">معلق</span>
-                                                    {% elif radiology.status == 'COMPLETED' %}
+                                                    {% if radiology.status == 'REQUESTED' %}
+                                                        <span class="badge badge-warning">مطلوب</span>
+                                                    {% elif radiology.status == 'IN_PROGRESS' %}
+                                                        <span class="badge badge-info">قيد التنفيذ</span>
+                                                    {% elif radiology.status == 'DONE' %}
                                                         <span class="badge badge-success">مكتمل</span>
+                                                    {% elif radiology.status == 'CANCELLED' %}
+                                                        <span class="badge badge-danger">ملغي</span>
                                                     {% else %}
                                                         <span class="badge badge-secondary">{{ radiology.status }}</span>
                                                     {% endif %}

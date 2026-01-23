@@ -4,7 +4,7 @@ Medical System Payment Forms
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, FloatField, DateField, TextAreaField
+from wtforms import StringField, SelectField, DecimalField, DateField, TextAreaField
 from wtforms.validators import DataRequired, Length, Optional, NumberRange
 from wtforms.widgets import TextArea
 
@@ -18,7 +18,7 @@ class PaymentForm(FlaskForm):
         render_kw={'class': 'form-control'}
     )
     
-    amount = FloatField(
+    amount = DecimalField(
         'المبلغ',
         validators=[DataRequired(message='المبلغ مطلوب'), NumberRange(min=0.01)],
         render_kw={'class': 'form-control', 'placeholder': 'أدخل المبلغ'}
@@ -27,11 +27,11 @@ class PaymentForm(FlaskForm):
     payment_method = SelectField(
         'طريقة الدفع',
         choices=[
-            ('cash', 'نقدي'),
-            ('card', 'بطاقة ائتمان'),
-            ('bank_transfer', 'تحويل بنكي'),
-            ('insurance', 'تأمين صحي'),
-            ('other', 'أخرى')
+            ('CASH', 'نقدي'),
+            ('CARD', 'بطاقة'),
+            ('WIRE', 'تحويل'),
+            ('INSURANCE', 'تأمين'),
+            ('FORCE', 'قسري')
         ],
         validators=[DataRequired(message='طريقة الدفع مطلوبة')],
         render_kw={'class': 'form-control'}
@@ -68,11 +68,11 @@ class PaymentSearchForm(FlaskForm):
         'طريقة الدفع',
         choices=[
             ('', 'جميع الطرق'),
-            ('cash', 'نقدي'),
-            ('card', 'بطاقة ائتمان'),
-            ('bank_transfer', 'تحويل بنكي'),
-            ('insurance', 'تأمين صحي'),
-            ('other', 'أخرى')
+            ('CASH', 'نقدي'),
+            ('CARD', 'بطاقة'),
+            ('WIRE', 'تحويل'),
+            ('INSURANCE', 'تأمين'),
+            ('FORCE', 'قسري')
         ],
         validators=[Optional()],
         render_kw={'class': 'form-control'}
@@ -82,10 +82,10 @@ class PaymentSearchForm(FlaskForm):
         'الحالة',
         choices=[
             ('', 'جميع الحالات'),
-            ('pending', 'معلق'),
-            ('completed', 'مكتمل'),
-            ('failed', 'فشل'),
-            ('refunded', 'مسترد')
+            ('PENDING', 'معلق'),
+            ('CONFIRMED', 'مؤكد'),
+            ('CANCELLED', 'ملغي'),
+            ('REFUNDED', 'مسترد')
         ],
         validators=[Optional()],
         render_kw={'class': 'form-control'}
@@ -103,13 +103,13 @@ class PaymentSearchForm(FlaskForm):
         render_kw={'class': 'form-control'}
     )
     
-    amount_from = FloatField(
+    amount_from = DecimalField(
         'المبلغ من',
         validators=[Optional(), NumberRange(min=0)],
         render_kw={'class': 'form-control', 'placeholder': 'المبلغ من'}
     )
     
-    amount_to = FloatField(
+    amount_to = DecimalField(
         'المبلغ إلى',
         validators=[Optional(), NumberRange(min=0)],
         render_kw={'class': 'form-control', 'placeholder': 'المبلغ إلى'}

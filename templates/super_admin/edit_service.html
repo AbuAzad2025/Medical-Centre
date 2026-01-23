@@ -24,7 +24,7 @@
                                     اسم الخدمة *
                                 </label>
                                 <input type="text" class="form-control" id="name" name="name" 
-                                       value="{{ service.name }}" required>
+                                       value="{{ service.name_ar or '' }}" required>
                             </div>
                             
                             <div class="col-md-6 mb-3">
@@ -33,10 +33,49 @@
                                     الاسم بالإنجليزية
                                 </label>
                                 <input type="text" class="form-control" id="name_en" name="name_en" 
-                                       value="{{ service.name_en or '' }}">
+                                       value="{{ service.name or '' }}">
                             </div>
                         </div>
                         
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="category" class="form-label">
+                                    <i class="fas fa-layer-group text-primary me-2"></i>
+                                    التصنيف
+                                </label>
+                                <select class="form-control" id="category" name="category">
+                                    <option value="general" {% if service.category == 'general' %}selected{% endif %}>عام</option>
+                                    <option value="doctor" {% if service.category == 'doctor' %}selected{% endif %}>أطباء</option>
+                                    <option value="lab" {% if service.category == 'lab' %}selected{% endif %}>مختبر</option>
+                                    <option value="radiology" {% if service.category == 'radiology' %}selected{% endif %}>أشعة</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="department_id" class="form-label">
+                                    <i class="fas fa-building text-info me-2"></i>
+                                    القسم
+                                </label>
+                                <select class="form-control" id="department_id" name="department_id">
+                                    <option value="">اختر القسم...</option>
+                                    {% for department in departments %}
+                                    <option value="{{ department.id }}" {% if service.department_id == department.id %}selected{% endif %}>{{ department.name_ar }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="currency" class="form-label">
+                                    <i class="fas fa-money-bill text-success me-2"></i>
+                                    العملة
+                                </label>
+                                <select class="form-control" id="currency" name="currency">
+                                    <option value="شيكل" {% if service.currency == 'شيكل' %}selected{% endif %}>شيكل</option>
+                                    <option value="ILS" {% if service.currency == 'ILS' %}selected{% endif %}>ILS</option>
+                                    <option value="USD" {% if service.currency == 'USD' %}selected{% endif %}>دولار</option>
+                                    <option value="EUR" {% if service.currency == 'EUR' %}selected{% endif %}>يورو</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="description" class="form-label">
@@ -69,6 +108,36 @@
                                     <label class="form-check-label" for="is_active">
                                         نشط
                                     </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="duration" class="form-label">
+                                    <i class="fas fa-clock text-muted me-2"></i>
+                                    المدة (دقيقة)
+                                </label>
+                                <input type="number" class="form-control" id="duration" name="duration" 
+                                       value="{{ service.duration or '' }}" min="1">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="max_daily" class="form-label">
+                                    <i class="fas fa-calendar-day text-muted me-2"></i>
+                                    الحد الأقصى اليومي
+                                </label>
+                                <input type="number" class="form-control" id="max_daily" name="max_daily" 
+                                       value="{{ service.max_daily or '' }}" min="1">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                                    خدمة مطلوبة
+                                </label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_required" name="is_required" 
+                                           {% if service.is_required %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_required">نعم</label>
                                 </div>
                             </div>
                         </div>

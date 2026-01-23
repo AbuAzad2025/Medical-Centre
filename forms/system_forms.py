@@ -4,7 +4,7 @@ Medical System System Forms
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectField, DateField, DateTimeField, IntegerField, FloatField, BooleanField, PasswordField, SubmitField
+from wtforms import StringField, TextAreaField, SelectField, DateField, DateTimeField, IntegerField, DecimalField, BooleanField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length, NumberRange, Optional, ValidationError, Email, EqualTo
 from .base_forms import FormBase, SearchFormBase, StatusMixin, DateRangeMixin, AuditMixin, NotificationMixin, FileUploadMixin
 
@@ -192,11 +192,11 @@ class FinancialAuditSearchForm(SearchFormBase, DateRangeMixin):
     ], validators=[Optional()])
     payment_method = SelectField('طريقة الدفع', choices=[
         ('', 'جميع الطرق'),
-        ('cash', 'نقدي'),
-        ('card', 'بطاقة ائتمان'),
-        ('bank_transfer', 'تحويل بنكي'),
-        ('insurance', 'تأمين'),
-        ('cheque', 'شيك')
+        ('CASH', 'نقدي'),
+        ('CARD', 'بطاقة ائتمان'),
+        ('WIRE', 'تحويل بنكي'),
+        ('INSURANCE', 'تأمين'),
+        ('FORCE', 'قسري')
     ], validators=[Optional()])
     payment_status = SelectField('حالة الدفع', choices=[
         ('', 'جميع الحالات'),
@@ -205,8 +205,8 @@ class FinancialAuditSearchForm(SearchFormBase, DateRangeMixin):
         ('PARTIAL', 'مدفوع جزئياً'),
         ('CANCELLED', 'ملغي')
     ], validators=[Optional()])
-    amount_from = FloatField('من مبلغ', validators=[Optional(), NumberRange(min=0, message='المبلغ يجب أن يكون أكبر من أو يساوي صفر')])
-    amount_to = FloatField('إلى مبلغ', validators=[Optional(), NumberRange(min=0, message='المبلغ يجب أن يكون أكبر من أو يساوي صفر')])
+    amount_from = DecimalField('من مبلغ', validators=[Optional(), NumberRange(min=0, message='المبلغ يجب أن يكون أكبر من أو يساوي صفر')])
+    amount_to = DecimalField('إلى مبلغ', validators=[Optional(), NumberRange(min=0, message='المبلغ يجب أن يكون أكبر من أو يساوي صفر')])
     patient_name = StringField('اسم المريض', validators=[Optional()])
     user_name = StringField('اسم المستخدم', validators=[Optional()])
 

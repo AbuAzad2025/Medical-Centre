@@ -35,47 +35,33 @@
                 </div>
                 <div class="card-body">
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="name" class="form-label">اسم الدواء *</label>
-                                    <input type="text" class="form-control" id="name" name="name" required>
+                                    <label for="trade_name" class="form-label">اسم الدواء التجاري *</label>
+                                    <input type="text" class="form-control" id="trade_name" name="trade_name" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="generic_name" class="form-label">الاسم العلمي</label>
+                                    <label for="scientific_name" class="form-label">الاسم العلمي *</label>
+                                    <input type="text" class="form-control" id="scientific_name" name="scientific_name" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="generic_name" class="form-label">الاسم العام (Generic)</label>
                                     <input type="text" class="form-control" id="generic_name" name="generic_name">
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="category" class="form-label">الفئة</label>
-                                    <select class="form-select" id="category" name="category">
-                                        <option value="">اختر الفئة</option>
-                                        <option value="antibiotic">مضاد حيوي</option>
-                                        <option value="painkiller">مسكن</option>
-                                        <option value="vitamin">فيتامين</option>
-                                        <option value="supplement">مكمل غذائي</option>
-                                        <option value="other">أخرى</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="dosage_form" class="form-label">شكل الجرعة</label>
-                                    <select class="form-select" id="dosage_form" name="dosage_form">
-                                        <option value="">اختر الشكل</option>
-                                        <option value="tablet">أقراص</option>
-                                        <option value="capsule">كبسولات</option>
-                                        <option value="syrup">شراب</option>
-                                        <option value="injection">حقن</option>
-                                        <option value="cream">كريم</option>
-                                        <option value="drops">قطرات</option>
-                                    </select>
+                                    <label for="manufacturer" class="form-label">الشركة المصنعة</label>
+                                    <input type="text" class="form-control" id="manufacturer" name="manufacturer">
                                 </div>
                             </div>
                         </div>
@@ -83,19 +69,14 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="strength" class="form-label">التركيز</label>
-                                    <input type="text" class="form-control" id="strength" name="strength" placeholder="مثال: 500mg">
+                                    <label for="dosage_form" class="form-label">شكل الجرعة *</label>
+                                    <input type="text" class="form-control" id="dosage_form" name="dosage_form" placeholder="tablet / syrup / injection" required>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="unit" class="form-label">الوحدة</label>
-                                    <select class="form-select" id="unit" name="unit">
-                                        <option value="mg">ملغ</option>
-                                        <option value="g">جرام</option>
-                                        <option value="ml">مل</option>
-                                        <option value="units">وحدات</option>
-                                    </select>
+                                    <label for="strength" class="form-label">التركيز *</label>
+                                    <input type="text" class="form-control" id="strength" name="strength" placeholder="500mg / 10ml" required>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -115,8 +96,8 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="min_stock_level" class="form-label">الحد الأدنى للمخزون</label>
-                                    <input type="number" class="form-control" id="min_stock_level" name="min_stock_level" min="0" value="10">
+                                    <label for="minimum_stock" class="form-label">الحد الأدنى للمخزون</label>
+                                    <input type="number" class="form-control" id="minimum_stock" name="minimum_stock" min="0" value="10">
                                 </div>
                             </div>
                         </div>
@@ -130,8 +111,23 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="supplier" class="form-label">المورد</label>
-                                    <input type="text" class="form-control" id="supplier" name="supplier">
+                                    <label for="batch_number" class="form-label">رقم التشغيلة</label>
+                                    <input type="text" class="form-control" id="batch_number" name="batch_number">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">الفئة</label>
+                                    <input type="text" class="form-control" id="category" name="category" placeholder="antibiotic / painkiller ...">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="standard_instructions" class="form-label">تعليمات قياسية</label>
+                                    <input type="text" class="form-control" id="standard_instructions" name="standard_instructions" placeholder="مثال: بعد الأكل / قبل النوم ...">
                                 </div>
                             </div>
                         </div>

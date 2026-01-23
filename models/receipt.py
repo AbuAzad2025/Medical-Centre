@@ -3,7 +3,7 @@
 Medical System Receipt Model
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
 import qrcode
@@ -21,21 +21,28 @@ class Receipt(db.Model):
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
     
     # تفاصيل الدفع
-    total_amount = db.Column(db.Float, nullable=False)  # المبلغ الإجمالي
-    paid_amount = db.Column(db.Float, nullable=False)  # المبلغ المدفوع
-    remaining_amount = db.Column(db.Float, default=0.0)  # المبلغ المتبقي
+    total_amount = db.Column(db.Numeric(12, 2), nullable=False)  # المبلغ الإجمالي
+    paid_amount = db.Column(db.Numeric(12, 2), nullable=False)  # المبلغ المدفوع
+    remaining_amount = db.Column(db.Numeric(12, 2), default=0.0)  # المبلغ المتبقي
     payment_method = db.Column(db.String(50), nullable=False)  # طريقة الدفع
     payment_status = db.Column(db.String(50), default='PAID')  # حالة الدفع
     
     # تفاصيل التأمين
     insurance_type = db.Column(db.String(100), nullable=True)  # نوع التأمين
-    insurance_coverage = db.Column(db.Float, default=0.0)  # نسبة التغطية
-    insurance_amount = db.Column(db.Float, default=0.0)  # مبلغ التأمين
-    patient_share = db.Column(db.Float, default=0.0)  # حصة المريض
+    insurance_coverage = db.Column(db.Numeric(5, 2), default=0.0)  # نسبة التغطية
+    insurance_amount = db.Column(db.Numeric(12, 2), default=0.0)  # مبلغ التأمين
+    patient_share = db.Column(db.Numeric(12, 2), default=0.0)  # حصة المريض
     
     # تفاصيل الدين (إن وجد)
     is_debt = db.Column(db.Boolean, default=False)  # هل هو دين
     debt_reason = db.Column(db.Text, nullable=True)  # سبب الدين
+
+    __table_args__ = (
+        CheckConstraint("total_amount >= 0", name='chk_receipt_total_non_negative'),
+        CheckConstraint("paid_amount >= 0", name='chk_receipt_paid_non_negative'),
+        CheckConstraint("remaining_amount >= 0", name='chk_receipt_remaining_non_negative'),
+        CheckConstraint("insurance_coverage >= 0 AND insurance_coverage <= 100", name='chk_receipt_coverage_percent'),
+    )
     debt_approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # من وافق على الدين
     debt_approved_at = db.Column(db.DateTime, nullable=True)  # وقت الموافقة
     
@@ -48,7 +55,7 @@ class Receipt(db.Model):
     qr_code = db.Column(db.Text, nullable=True)  # QR Code كـ base64
     
     # التواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     # Constraints and Indexes
@@ -82,7 +89,7 @@ class Receipt(db.Model):
         """توليد رقم سند القبض"""
         if not self.receipt_number:
             # تنسيق: RCP-YYYYMMDD-XXXX
-            date_str = datetime.utcnow().strftime('%Y%m%d')
+            date_str = datetime.now(timezone.utc).strftime('%Y%m%d')
             # البحث عن آخر رقم لهذا اليوم
             last_receipt = Receipt.query.filter(
                 Receipt.receipt_number.like(f'RCP-{date_str}-%')
@@ -139,7 +146,7 @@ class Receipt(db.Model):
     def mark_as_printed(self, user_id):
         """تسجيل الطباعة"""
         self.is_printed = True
-        self.printed_at = datetime.utcnow()
+        self.printed_at = datetime.now(timezone.utc)
         self.printed_by = user_id
     
     def to_dict(self):
@@ -197,9 +204,13 @@ class Receipt(db.Model):
             'card': 'بطاقة',
             'visa': 'فيزا',
             'mada': 'مدى',
-            'debt': 'دين'
+            'debt': 'دين',
+            'wire': 'تحويل',
+            'insurance': 'تأمين',
+            'force': 'قسري'
         }
-        return method_names.get(self.payment_method, self.payment_method)
+        key = (self.payment_method or '').lower()
+        return method_names.get(key, self.payment_method)
     
     def get_insurance_display(self):
         """عرض معلومات التأمين"""

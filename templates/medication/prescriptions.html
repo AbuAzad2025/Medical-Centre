@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}الروشتات{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-3">الروشتات</h2>
+  <div class="card"><div class="card-body">
+    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>#</th><th>المريض</th><th>الدواء</th><th>الجرعة</th><th>تاريخ</th></tr></thead><tbody>
+      {% for p in prescriptions or [] %}
+      <tr><td>{{ p.id }}</td><td>{{ p.visit.patient.full_name if p.visit and p.visit.patient else '' }}</td><td>{{ p.medication_name }}</td><td>{{ p.dosage }}</td><td>{{ p.created_at }}</td></tr>
+      {% else %}
+      <tr><td colspan="5" class="text-center">لا توجد روشتات</td></tr>
+      {% endfor %}
+    </tbody></table></div>
+  </div></div>
+</div>
+{% endblock %}
+

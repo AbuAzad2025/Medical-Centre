@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}مؤشرات الأداء{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-3">لوحة مؤشرات الأداء</h2>
+  <div class="row g-3">
+    <div class="col-md-6"><div class="card"><div class="card-body">تقرير الشهر: {{ report.report.month if report and report.report else '' }}</div></div></div>
+    <div class="col-md-6"><div class="card"><div class="card-body">الدفع القسري خلال 30 يوماً: {{ force_stats.total if force_stats else 0 }}</div></div></div>
+  </div>
+</div>
+{% endblock %}
+

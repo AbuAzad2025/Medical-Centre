@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}إنشاء موعد جديد - الاستقبال{% endblock %}
+{% block title %}{% if mode == 'edit' %}تعديل موعد - الاستقبال{% else %}إنشاء موعد جديد - الاستقبال{% endif %}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -13,7 +13,7 @@
                         <div class="col-md-8">
                             <h2 class="mb-1 text-primary">
                                 <i class="fas fa-calendar-plus me-2"></i>
-                                إنشاء موعد جديد
+                                {% if mode == 'edit' %}تعديل موعد{% else %}إنشاء موعد جديد{% endif %}
                             </h2>
                             <p class="text-muted mb-0">حجز موعد جديد للمريض</p>
                         </div>
@@ -43,8 +43,11 @@
                     <h6 class="m-0 font-weight-bold text-primary">معلومات الموعد</h6>
                 </div>
                 <div class="card-body">
-                    <form id="appointmentForm" method="POST" action="{{ url_for('reception.create_appointment') }}">
+                    <form id="appointmentForm" method="POST" action="{% if mode == 'edit' and appointment %}{{ url_for('reception.edit_appointment', appointment_id=appointment.id) }}{% else %}{{ url_for('reception.create_appointment') }}{% endif %}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {% if follow_up_id %}
+                        <input type="hidden" name="follow_up_id" value="{{ follow_up_id }}">
+                        {% endif %}
                         
                         <!-- Patient Selection -->
                         <div class="row mb-4">
@@ -68,7 +71,7 @@
                                     <select class="form-control" id="patient_id" name="patient_id" required>
                                         <option value="">اختر المريض</option>
                                         {% for patient in patients %}
-                                        <option value="{{ patient.id }}" 
+                                        <option value="{{ patient.id }}" {% if patient_id == patient.id %}selected{% endif %}
                                                 data-name="{{ patient.first_name }} {{ patient.last_name }}"
                                                 data-phone="{{ patient.phone }}"
                                                 data-national-id="{{ patient.national_id }}">
@@ -88,29 +91,46 @@
                         </div>
 
                         <div class="row">
+                            {% if current_user.is_authenticated and current_user.role in ['reception','manager'] %}
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="doctor_id" class="form-label">الطبيب</label>
-                                    <select class="form-control" id="doctor_id" name="doctor_id" required>
-                                        <option value="">اختر الطبيب</option>
-                                        {% for doctor in doctors %}
-                                        <option value="{{ doctor.id }}">{{ doctor.full_name }}</option>
+                                    <label for="department_id" class="form-label">القسم</label>
+                                    <select class="form-control" id="department_id" name="department_id" required>
+                                        <option value="">اختر القسم</option>
+                                        {% for dept in departments %}
+                                        <option value="{{ dept.id }}" {% if preset_department_id and preset_department_id == dept.id %}selected{% endif %}>{{ dept.name_ar or dept.name }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
+                                    <label for="doctor_id" class="form-label">الطبيب</label>
+                                    <select class="form-control" id="doctor_id" name="doctor_id" required>
+                                        <option value="">اختر الطبيب</option>
+                                        {% for doctor in doctors %}
+                                        <option value="{{ doctor.id }}" {% if preset_doctor_id and preset_doctor_id == doctor.id %}selected{% endif %}>{{ doctor.full_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="col-md-4">
+                                <div class="mb-3">
                                     <label for="appointment_date" class="form-label">تاريخ الموعد</label>
                                     <input type="date" class="form-control" id="appointment_date" name="appointment_date" 
-                                           required min="{{ today.strftime('%Y-%m-%d') if today else '' }}">
+                                           required min="{{ today.strftime('%Y-%m-%d') if today else '' }}" value="{{ preset_date or '' }}">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="appointment_time" class="form-label">وقت الموعد</label>
-                                    <input type="time" class="form-control" id="appointment_time" name="appointment_time" 
-                                           required>
+                                    <select class="form-control" id="appointment_time" name="appointment_time" required>
+                                        <option value="">اختر الوقت</option>
+                                        {% if preset_time %}
+                                            <option value="{{ preset_time }}" selected>{{ preset_time }}</option>
+                                        {% endif %}
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -121,10 +141,10 @@
                                     <label for="appointment_type" class="form-label">نوع الموعد</label>
                                     <select class="form-control" id="appointment_type" name="appointment_type" required>
                                         <option value="">اختر نوع الموعد</option>
-                                        <option value="first">زيارة أولى</option>
-                                        <option value="follow_up">متابعة</option>
-                                        <option value="consultation">استشارة</option>
-                                        <option value="emergency">طوارئ</option>
+                                        <option value="first" {% if preset_type == 'first' %}selected{% endif %}>زيارة أولى</option>
+                                        <option value="follow_up" {% if preset_type == 'follow_up' %}selected{% endif %}>متابعة</option>
+                                        <option value="consultation" {% if preset_type == 'consultation' %}selected{% endif %}>استشارة</option>
+                                        <option value="emergency" {% if preset_type == 'emergency' %}selected{% endif %}>طوارئ</option>
                                     </select>
                                 </div>
                             </div>
@@ -132,10 +152,10 @@
                                 <div class="mb-3">
                                     <label for="duration" class="form-label">مدة الموعد (دقائق)</label>
                                     <select class="form-control" id="duration" name="duration" required>
-                                        <option value="15">15 دقيقة</option>
-                                        <option value="30" selected>30 دقيقة</option>
-                                        <option value="45">45 دقيقة</option>
-                                        <option value="60">60 دقيقة</option>
+                                        <option value="15" {% if preset_duration == '15' %}selected{% endif %}>15 دقيقة</option>
+                                        <option value="30" {% if not preset_duration or preset_duration == '30' %}selected{% endif %}>30 دقيقة</option>
+                                        <option value="45" {% if preset_duration == '45' %}selected{% endif %}>45 دقيقة</option>
+                                        <option value="60" {% if preset_duration == '60' %}selected{% endif %}>60 دقيقة</option>
                                     </select>
                                 </div>
                             </div>
@@ -153,14 +173,14 @@
                                 <div class="mb-3">
                                     <label for="symptoms" class="form-label">الأعراض</label>
                                     <textarea class="form-control" id="symptoms" name="symptoms" 
-                                              rows="3" placeholder="أدخل الأعراض التي يشكو منها المريض"></textarea>
+                                              rows="3" placeholder="أدخل الأعراض التي يشكو منها المريض">{{ preset_symptoms or '' }}</textarea>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="notes" class="form-label">ملاحظات إضافية</label>
                                     <textarea class="form-control" id="notes" name="notes" 
-                                              rows="3" placeholder="أدخل أي ملاحظات إضافية"></textarea>
+                                              rows="3" placeholder="أدخل أي ملاحظات إضافية">{{ preset_notes or '' }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -295,13 +315,12 @@
 
 <script>
 function saveAppointment() {
-    // حفظ الموعد
     const form = document.getElementById('appointmentForm');
     const formData = new FormData(form);
     
     // التحقق من صحة البيانات
     if (!formData.get('patient_id') || !formData.get('doctor_id') || !formData.get('appointment_date') || !formData.get('appointment_time')) {
-        alert('يرجى ملء جميع الحقول المطلوبة');
+        Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى ملء جميع الحقول المطلوبة', icon: 'warning' });
         return;
     }
     
@@ -311,35 +330,27 @@ function saveAppointment() {
     today.setHours(0, 0, 0, 0);
     
     if (appointmentDate < today) {
-        alert('لا يمكن حجز موعد في تاريخ ماضي');
+        Swal.fire({ title: 'تاريخ غير صالح', text: 'لا يمكن حجز موعد في تاريخ ماضي', icon: 'error' });
         return;
     }
     
-    // إرسال البيانات
-    fetch('{{ url_for("reception.create_appointment") }}', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('تم حفظ الموعد بنجاح');
-            location.href = '{{ url_for("reception.appointments") }}';
-        } else {
-            alert('حدث خطأ في حفظ الموعد: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('حدث خطأ في حفظ الموعد');
-    });
+    form.submit();
 }
 
 function resetForm() {
     // إعادة تعيين النموذج
-    if (confirm('هل تريد إعادة تعيين النموذج؟')) {
-        document.getElementById('appointmentForm').reset();
-    }
+    Swal.fire({
+        title: 'إعادة تعيين',
+        text: 'هل تريد إعادة تعيين النموذج؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'تأكيد',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            document.getElementById('appointmentForm').reset();
+        }
+    });
 }
 
 // البحث عن المريض
@@ -379,6 +390,17 @@ document.getElementById('patient_search').addEventListener('input', function() {
     }
 });
 
+// ضبط اختيار المريض مسبقاً إن وُجد
+(function preselectPatient(){
+    const sel = document.getElementById('patient_id');
+    if (sel && sel.value) {
+        const opt = sel.selectedOptions[0];
+        if (opt) {
+            document.getElementById('patient_search').value = opt.dataset.name;
+        }
+    }
+})();
+
 function selectPatient(patientId, patientName) {
     document.getElementById('patient_id').value = patientId;
     document.getElementById('patient_search').value = patientName;
@@ -392,17 +414,15 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// تحديث قائمة الأطباء عند تغيير نوع الموعد
-document.getElementById('appointment_type').addEventListener('change', function() {
-    const appointmentType = this.value;
+function loadDoctors() {
+    const appointmentType = document.getElementById('appointment_type').value;
+    const departmentId = document.getElementById('department_id').value;
     const doctorSelect = document.getElementById('doctor_id');
-    
-    // إعادة تعيين قائمة الأطباء
     doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
-    
-    if (appointmentType) {
-        // جلب الأطباء المناسبين لنوع الموعد
-        fetch(`/api/doctors?appointment_type=${appointmentType}`)
+    const params = new URLSearchParams();
+    if (appointmentType) params.append('appointment_type', appointmentType);
+    if (departmentId) params.append('department_id', departmentId);
+    fetch(`/booking/api/available-doctors?${params.toString()}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -417,8 +437,11 @@ document.getElementById('appointment_type').addEventListener('change', function(
         .catch(error => {
             console.error('Error loading doctors:', error);
         });
-    }
-});
+}
+
+// حدّث الأطباء عند تغيير نوع الموعد أو القسم
+document.getElementById('appointment_type').addEventListener('change', loadDoctors);
+document.getElementById('department_id').addEventListener('change', loadDoctors);
 
 // تحديث وقت الموعد بناءً على الطبيب المحدد
 document.getElementById('doctor_id').addEventListener('change', function() {
@@ -427,7 +450,7 @@ document.getElementById('doctor_id').addEventListener('change', function() {
     
     if (doctorId && appointmentDate) {
         // جلب الأوقات المتاحة للطبيب في التاريخ المحدد
-        fetch(`/api/available-times?doctor_id=${doctorId}&date=${appointmentDate}`)
+        fetch(`/booking/api/available-times?doctor_id=${doctorId}&date=${appointmentDate}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -455,7 +478,7 @@ document.getElementById('appointment_date').addEventListener('change', function(
     
     if (doctorId && appointmentDate) {
         // جلب الأوقات المتاحة للطبيب في التاريخ المحدد
-        fetch(`/api/available-times?doctor_id=${doctorId}&date=${appointmentDate}`)
+        fetch(`/booking/api/available-times?doctor_id=${doctorId}&date=${appointmentDate}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -489,9 +512,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // تعيين الحد الأدنى للتاريخ إلى اليوم
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('appointment_date').min = today;
+    const isEdit = {{ 'true' if mode == 'edit' else 'false' }};
+    if (!isEdit) {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('appointment_date').min = today;
+    }
 });
 </script>
 {% endblock %}

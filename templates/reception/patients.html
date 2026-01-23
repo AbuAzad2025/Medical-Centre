@@ -4,17 +4,596 @@
 
 {% block content %}
 <div class="container-fluid">
+<div class="row mb-3">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">قائمة المرضى</h3>
+            {% if current_user.is_authenticated and current_user.role == 'reception' %}
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPatientModal">
+                <i class="fas fa-user-plus me-1"></i> إضافة مريض جديد
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="GET" class="row g-3 mb-3">
+        <div class="col-md-4">
+            <label for="search" class="form-label">البحث</label>
+            <input type="text" class="form-control" id="search" name="search" value="{{ search }}" placeholder="اسم، هاتف، هوية، رقم ملف">
+        </div>
+        <div class="col-md-3">
+            <label for="department_id" class="form-label">القسم</label>
+            <select class="form-control" id="department_id" name="department_id">
+                <option value="">جميع الأقسام</option>
+                {% for dept in departments %}
+                <option value="{{ dept.id }}" {% if selected_department == dept.id %}selected{% endif %}>{{ dept.name_ar }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 align-self-end">
+            <button type="submit" class="btn btn-secondary w-100">تطبيق</button>
+        </div>
+    </form>
+
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">قائمة المرضى</h3>
-                </div>
                 <div class="card-body">
-                    <p>صفحة قائمة المرضى قيد التطوير...</p>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الاسم</th>
+                                    <th>الهاتف</th>
+                                    <th>الهوية</th>
+                                    <th>الجنس</th>
+                                    <th>الحالة الاجتماعية</th>
+                                    <th>تاريخ الإضافة</th>
+                                    <th>إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patientsTableBody">
+                                {% for p in patients %}
+                                <tr>
+                                    <td>{{ p.id }}</td>
+                                    <td>{{ p.full_name }}</td>
+                                    <td>{{ p.phone or '-' }}</td>
+                                    <td>{{ p.national_id or '-' }}</td>
+                                    <td>{{ 'ذكر' if p.gender == 'M' else ('أنثى' if p.gender == 'F' else 'آخر') }}</td>
+                                    <td>
+                                        {% if p.marital_status == 'married' %}متزوج/ة{% elif p.marital_status == 'single' %}أعزب/غير متزوج{% elif p.marital_status == 'divorced' %}مطلق/ة{% elif p.marital_status == 'widowed' %}أرمل/ة{% else %}-{% endif %}
+                                    </td>
+                                    <td>{{ p.created_at.strftime('%Y-%m-%d') if p.created_at else '-' }}</td>
+                                    <td>
+                                        <a class="btn btn-sm btn-info me-1" href="{{ url_for('reception.view_patient', patient_id=p.id) }}">عرض</a>
+                                        <a class="btn btn-sm btn-warning me-1" href="{{ url_for('reception.edit_patient', patient_id=p.id) }}">تعديل</a>
+                                        <form method="POST" action="{{ url_for('reception.delete_patient', patient_id=p.id) }}" style="display:inline" onsubmit="return false;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="confirmDeletePatient(this)">حذف</button>
+                                        </form>
+                                        <a class="btn btn-sm btn-primary mt-1" href="{{ url_for('reception.create_appointment', patient_id=p.id) }}">حجز مسبق</a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center">لا توجد بيانات</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="addPatientModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">إضافة مريض جديد</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="patientFormModal" method="POST" action="{{ url_for('reception.add_patient') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label" for="national_id_modal">رقم الهوية الوطنية</label>
+                                <input class="form-control" id="national_id_modal" name="national_id">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="phone_modal">رقم الهاتف</label>
+                                <input class="form-control" id="phone_modal" name="phone" required>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-3">
+                                <label class="form-label" for="first_name_modal">الاسم الأول (عربي)</label>
+                                <input class="form-control" id="first_name_modal" name="first_name" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="last_name_modal">اسم العائلة (عربي)</label>
+                                <input class="form-control" id="last_name_modal" name="last_name" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="first_name_ar_modal">الاسم الأول (إنجليزي)</label>
+                                <input class="form-control" id="first_name_ar_modal" name="first_name_ar">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="last_name_ar_modal">اسم العائلة (إنجليزي)</label>
+                                <input class="form-control" id="last_name_ar_modal" name="last_name_ar">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label class="form-label" for="birth_date_modal">تاريخ الميلاد</label>
+                                <input type="date" class="form-control" id="birth_date_modal" name="birth_date">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="gender_modal">الجنس</label>
+                                <select class="form-control" id="gender_modal" name="gender">
+                                    <option value="">اختر الجنس</option>
+                                    <option value="M">ذكر</option>
+                                    <option value="F">أنثى</option>
+                                    <option value="Other">آخر</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="age_modal">العمر (سنوات)</label>
+                                <input type="number" class="form-control" id="age_modal" name="age" readonly>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label class="form-label" for="marital_status_modal">الحالة الاجتماعية</label>
+                                <select class="form-control" id="marital_status_modal" name="marital_status">
+                                    <option value="">اختر الحالة</option>
+                                    <option value="single">أعزب/غير متزوج</option>
+                                    <option value="married">متزوج/ة</option>
+                                    <option value="divorced">مطلّق/ة</option>
+                                    <option value="widowed">أرمل/ة</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mt-2" id="pregnancy_section_modal" style="display:none;">
+                            <div class="col-md-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="is_pregnant_modal" name="is_pregnant">
+                                    <label class="form-check-label" for="is_pregnant_modal">حامل حالياً</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="last_menstruation_date_modal">تاريخ آخر دورة</label>
+                                <input type="date" class="form-control" id="last_menstruation_date_modal" name="last_menstruation_date">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="pregnancy_weeks_modal">عمر الحمل (أسابيع)</label>
+                                <input type="number" class="form-control" id="pregnancy_weeks_modal" name="pregnancy_weeks" readonly>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="pregnancy_notes_modal">ملاحظات الحمل</label>
+                                <input class="form-control" id="pregnancy_notes_modal" name="pregnancy_notes">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <label class="form-label" for="address_modal">العنوان</label>
+                                <textarea class="form-control" id="address_modal" name="address" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <label class="form-label" for="notes_modal">ملاحظات</label>
+                                <textarea class="form-control" id="notes_modal" name="notes" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <label class="form-label" for="insurance_company_id_modal">جهة التأمين</label>
+                                <select class="form-control" id="insurance_company_id_modal" name="insurance_company_id">
+                                    <option value="">بدون</option>
+                                    {% for ic in insurance_companies %}
+                                    <option value="{{ ic.id }}">{{ ic.name_ar or ic.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="insurance_member_number_modal">رقم التأمين</label>
+                                <input class="form-control" id="insurance_member_number_modal" name="insurance_member_number">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <label class="form-label" for="admin_notes_modal">ملاحظات إدارية</label>
+                                <textarea class="form-control" id="admin_notes_modal" name="admin_notes" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                    <button type="button" class="btn btn-primary" id="savePatientModalBtn">حفظ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if mode == 'edit' and patient %}
+    <div class="modal fade" id="editPatientModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">تعديل بيانات المريض</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="patientFormEdit" method="POST" action="{{ url_for('reception.edit_patient', patient_id=patient.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label" for="national_id_edit">رقم الهوية الوطنية</label>
+                                <input class="form-control" id="national_id_edit" name="national_id" value="{{ patient.national_id or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="phone_edit">رقم الهاتف</label>
+                                <input class="form-control" id="phone_edit" name="phone" value="{{ patient.phone or '' }}" required>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-3">
+                                <label class="form-label" for="first_name_edit">الاسم الأول (عربي)</label>
+                                <input class="form-control" id="first_name_edit" name="first_name" value="{{ patient.first_name or '' }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="last_name_edit">اسم العائلة (عربي)</label>
+                                <input class="form-control" id="last_name_edit" name="last_name" value="{{ patient.last_name or '' }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="first_name_ar_edit">الاسم الأول (إنجليزي)</label>
+                                <input class="form-control" id="first_name_ar_edit" name="first_name_ar" value="{{ patient.first_name_ar or '' }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="last_name_ar_edit">اسم العائلة (إنجليزي)</label>
+                                <input class="form-control" id="last_name_ar_edit" name="last_name_ar" value="{{ patient.last_name_ar or '' }}">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label class="form-label" for="birth_date_edit">تاريخ الميلاد</label>
+                                <input type="date" class="form-control" id="birth_date_edit" name="birth_date" value="{{ patient.birth_date.strftime('%Y-%m-%d') if patient.birth_date else '' }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="gender_edit">الجنس</label>
+                                <select class="form-control" id="gender_edit" name="gender">
+                                    <option value="" {% if not patient.gender %}selected{% endif %}>اختر الجنس</option>
+                                    <option value="M" {% if patient.gender == 'M' %}selected{% endif %}>ذكر</option>
+                                    <option value="F" {% if patient.gender == 'F' %}selected{% endif %}>أنثى</option>
+                                    <option value="Other" {% if patient.gender == 'Other' %}selected{% endif %}>آخر</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="age_edit">العمر (سنوات)</label>
+                                <input type="number" class="form-control" id="age_edit" readonly>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <label class="form-label" for="marital_status_edit">الحالة الاجتماعية</label>
+                                <select class="form-control" id="marital_status_edit" name="marital_status">
+                                    <option value="" {% if not patient.marital_status %}selected{% endif %}>اختر الحالة</option>
+                                    <option value="single" {% if patient.marital_status == 'single' %}selected{% endif %}>أعزب/غير متزوج</option>
+                                    <option value="married" {% if patient.marital_status == 'married' %}selected{% endif %}>متزوج/ة</option>
+                                    <option value="divorced" {% if patient.marital_status == 'divorced' %}selected{% endif %}>مطلّق/ة</option>
+                                    <option value="widowed" {% if patient.marital_status == 'widowed' %}selected{% endif %}>أرمل/ة</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mt-2" id="pregnancy_section_edit" style="display:none;">
+                            <div class="col-md-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="is_pregnant_edit" name="is_pregnant" {% if patient.is_pregnant %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_pregnant_edit">حامل حالياً</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="last_menstruation_date_edit">تاريخ آخر دورة</label>
+                                <input type="date" class="form-control" id="last_menstruation_date_edit" name="last_menstruation_date" value="{{ patient.last_menstruation_date.strftime('%Y-%m-%d') if patient.last_menstruation_date else '' }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="pregnancy_weeks_edit">عمر الحمل (أسابيع)</label>
+                                <input type="number" class="form-control" id="pregnancy_weeks_edit" name="pregnancy_weeks" value="{{ patient.pregnancy_weeks or '' }}" readonly>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="pregnancy_notes_edit">ملاحظات الحمل</label>
+                                <input class="form-control" id="pregnancy_notes_edit" name="pregnancy_notes" value="{{ patient.pregnancy_notes or '' }}">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <label class="form-label" for="address_edit">العنوان</label>
+                                <textarea class="form-control" id="address_edit" name="address" rows="2">{{ patient.address or '' }}</textarea>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <label class="form-label" for="notes_edit">ملاحظات</label>
+                                <textarea class="form-control" id="notes_edit" name="notes" rows="2">{{ patient.notes or '' }}</textarea>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <label class="form-label" for="insurance_company_id_edit">جهة التأمين</label>
+                                <select class="form-control" id="insurance_company_id_edit" name="insurance_company_id">
+                                    <option value="">بدون</option>
+                                    {% for ic in insurance_companies %}
+                                    <option value="{{ ic.id }}" {% if patient.insurance_company_id == ic.id %}selected{% endif %}>{{ ic.name_ar or ic.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="insurance_member_number_edit">رقم التأمين</label>
+                                <input class="form-control" id="insurance_member_number_edit" name="insurance_member_number" value="{{ patient.insurance_member_number or '' }}">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <label class="form-label" for="admin_notes_edit">ملاحظات إدارية</label>
+                                <textarea class="form-control" id="admin_notes_edit" name="admin_notes" rows="2">{{ patient.admin_notes or '' }}</textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                    <button type="button" class="btn btn-primary" id="savePatientEditBtn">حفظ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let smartSearchTimer = null;
+(function() {
+    const input = document.getElementById('search');
+    const tbody = document.getElementById('patientsTableBody');
+    if (!input || !tbody) return;
+
+    const originalTbodyHtml = tbody.innerHTML;
+
+    const genderLabel = (g) => {
+        if (!g) return '-';
+        const gg = String(g).toUpperCase();
+        if (gg === 'M') return 'ذكر';
+        if (gg === 'F') return 'أنثى';
+        return 'آخر';
+    };
+
+    const buildActionsHtml = (id) => {
+        const viewUrl = `/reception/view_patient/${id}`;
+        const editUrl = `/reception/edit_patient/${id}`;
+        const createVisitUrl = `/reception/visits/create?patient_id=${id}`;
+        const apptUrl = `/reception/create_appointment?patient_id=${id}`;
+        return `
+            <a class="btn btn-sm btn-info me-1" href="${viewUrl}">عرض</a>
+            <a class="btn btn-sm btn-warning me-1" href="${editUrl}">تعديل</a>
+            <a class="btn btn-sm btn-success me-1" href="${createVisitUrl}">زيارة</a>
+            <a class="btn btn-sm btn-primary mt-1" href="${apptUrl}">حجز مسبق</a>
+        `;
+    };
+
+    const restore = () => {
+        tbody.innerHTML = originalTbodyHtml;
+    };
+
+    const renderResults = (patients) => {
+        if (!patients || !patients.length) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">لا توجد نتائج</td></tr>`;
+            return;
+        }
+        const rows = patients.map(p => {
+            const id = p.id ?? '-';
+            const name = p.full_name ?? '-';
+            const phone = p.phone ?? '-';
+            const nid = p.national_id ?? '-';
+            const gender = genderLabel(p.gender);
+            return `
+                <tr>
+                    <td>${id}</td>
+                    <td>${name}</td>
+                    <td>${phone}</td>
+                    <td>${nid}</td>
+                    <td>${gender}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>${id !== '-' ? buildActionsHtml(id) : ''}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = rows.join('');
+    };
+
+    input.addEventListener('input', function() {
+        const q = (this.value || '').trim();
+        if (smartSearchTimer) window.clearTimeout(smartSearchTimer);
+
+        if (q.length < 2) {
+            restore();
+            return;
+        }
+
+        smartSearchTimer = window.setTimeout(() => {
+            fetch(`/reception/api/smart-patient-search?q=${encodeURIComponent(q)}`, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(r => r.ok ? r.json() : Promise.reject(r))
+                .then(d => renderResults(d.patients || []))
+                .catch(() => {
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">خطأ في البحث</td></tr>`;
+                });
+        }, 250);
+    });
+})();
+
+function calcAgeModal() {
+    const v = document.getElementById('birth_date_modal').value;
+    if (!v) { document.getElementById('age_modal').value = ''; return; }
+    const b = new Date(v);
+    const t = new Date();
+    let age = t.getFullYear() - b.getFullYear();
+    const m = t.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && t.getDate() < b.getDate())) age--;
+    document.getElementById('age_modal').value = age;
+}
+function togglePregnancyModal() {
+    const g = document.getElementById('gender_modal');
+    const ms = document.getElementById('marital_status_modal');
+    const s = document.getElementById('pregnancy_section_modal');
+    
+    if (!g || !ms || !s) return;
+
+    const show = g.value === 'F' && ms.value === 'married';
+    s.style.display = show ? '' : 'none';
+    if (!show) {
+        const chk = document.getElementById('is_pregnant_modal'); if (chk) chk.checked = false;
+        const w = document.getElementById('pregnancy_weeks_modal'); if (w) w.value = '';
+        const d = document.getElementById('last_menstruation_date_modal'); if (d) d.value = '';
+        const n = document.getElementById('pregnancy_notes_modal'); if (n) n.value = '';
+    }
+}
+function calcPregnancyWeeksModal() {
+    const v = document.getElementById('last_menstruation_date_modal').value;
+    if (!v) { document.getElementById('pregnancy_weeks_modal').value = ''; return; }
+    const d = new Date(v);
+    const t = new Date();
+    const w = Math.floor((t - d) / (1000*60*60*24*7));
+    if (w >= 0) document.getElementById('pregnancy_weeks_modal').value = w;
+}
+document.getElementById('birth_date_modal')?.addEventListener('change', calcAgeModal);
+document.getElementById('gender_modal')?.addEventListener('change', togglePregnancyModal);
+document.getElementById('marital_status_modal')?.addEventListener('change', togglePregnancyModal);
+document.getElementById('last_menstruation_date_modal')?.addEventListener('change', calcPregnancyWeeksModal);
+document.getElementById('savePatientModalBtn')?.addEventListener('click', function() {
+    const form = document.getElementById('patientFormModal');
+    const fd = new FormData(form);
+    if (!fd.get('first_name') || !fd.get('last_name') || !fd.get('phone')) {
+        Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى ملء جميع الحقول المطلوبة', icon: 'warning' });
+        return;
+    }
+    fetch(form.action, { method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: fd })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                Swal.fire({ title: 'تم الحفظ', text: 'تم حفظ المريض بنجاح', icon: 'success' }).then(() => { location.reload(); });
+            } else {
+                Swal.fire({ title: 'خطأ', text: (d.message || 'تعذر حفظ المريض'), icon: 'error' });
+            }
+        })
+        .catch(e => Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ المريض', icon: 'error' }));
+});
+togglePregnancyModal();
+
+// فتح المودال تلقائياً إذا وُجد بارامتر show_add
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('show_add')) {
+        if (window.bootstrap && document.getElementById('addPatientModal')) {
+            const modal = new bootstrap.Modal(document.getElementById('addPatientModal'));
+            modal.show();
+        } else {
+            // fallback: زر يملك data-bs-target، نحاول تشغيله برمجياً
+            const btns = document.querySelectorAll('[data-bs-target="#addPatientModal"]');
+            if (btns.length) btns[0].click();
+        }
+    }
+    })();
+
+function calcAgeEdit() {
+    const v = document.getElementById('birth_date_edit')?.value;
+    if (!v) { const a = document.getElementById('age_edit'); if (a) a.value = ''; return; }
+    const b = new Date(v);
+    const t = new Date();
+    let age = t.getFullYear() - b.getFullYear();
+    const m = t.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && t.getDate() < b.getDate())) age -= 1;
+    const a = document.getElementById('age_edit');
+    if (a) a.value = age;
+}
+function togglePregnancyEdit() {
+    const g = document.getElementById('gender_edit')?.value;
+    const ms = document.getElementById('marital_status_edit')?.value;
+    const s = document.getElementById('pregnancy_section_edit');
+    const show = g === 'F' && ms === 'married';
+    if (s) s.style.display = show ? '' : 'none';
+    if (!show) {
+        const chk = document.getElementById('is_pregnant_edit'); if (chk) chk.checked = false;
+        const w = document.getElementById('pregnancy_weeks_edit'); if (w) w.value = '';
+        const d = document.getElementById('last_menstruation_date_edit'); if (d) d.value = '';
+        const n = document.getElementById('pregnancy_notes_edit'); if (n) n.value = '';
+    }
+}
+function calcPregnancyWeeksEdit() {
+    const v = document.getElementById('last_menstruation_date_edit')?.value;
+    if (!v) { const w = document.getElementById('pregnancy_weeks_edit'); if (w) w.value = ''; return; }
+    const d = new Date(v);
+    const t = new Date();
+    const w = Math.floor((t - d) / (1000*60*60*24*7));
+    if (w >= 0) { const ww = document.getElementById('pregnancy_weeks_edit'); if (ww) ww.value = w; }
+}
+document.getElementById('birth_date_edit')?.addEventListener('change', calcAgeEdit);
+document.getElementById('gender_edit')?.addEventListener('change', togglePregnancyEdit);
+document.getElementById('marital_status_edit')?.addEventListener('change', togglePregnancyEdit);
+document.getElementById('last_menstruation_date_edit')?.addEventListener('change', calcPregnancyWeeksEdit);
+document.getElementById('savePatientEditBtn')?.addEventListener('click', function() {
+    const form = document.getElementById('patientFormEdit');
+    if (!form) return;
+    const fd = new FormData(form);
+    if (!fd.get('first_name') || !fd.get('last_name') || !fd.get('phone')) {
+        Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى ملء جميع الحقول المطلوبة', icon: 'warning' });
+        return;
+    }
+    fetch(form.action, { method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: fd })
+        .then(r => r.ok ? r.json() : r.text().then(t => ({ success: false, message: t })))
+        .then(d => {
+            if (d.success) {
+                Swal.fire({ title: 'تم الحفظ', text: 'تم حفظ التعديلات بنجاح', icon: 'success' }).then(() => {
+                    location.href = '{{ url_for('reception.view_patient', patient_id=patient.id) if patient else url_for('reception.patients') }}';
+                });
+            } else {
+                Swal.fire({ title: 'خطأ', text: (d.message || 'تعذر حفظ التعديلات'), icon: 'error' });
+            }
+        })
+        .catch(e => Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ التعديلات', icon: 'error' }));
+});
+if ({{ 'true' if mode == 'edit' and patient else 'false' }}) {
+    if (window.bootstrap && document.getElementById('editPatientModal')) {
+        const modal = new bootstrap.Modal(document.getElementById('editPatientModal'));
+        modal.show();
+    }
+    togglePregnancyEdit();
+    calcAgeEdit();
+}
+</script>
+<script>
+function confirmDeletePatient(btn) {
+    const form = btn.closest('form');
+    if (!form) return;
+    Swal.fire({
+        title: 'حذف المريض',
+        text: 'هل أنت متأكد من حذف هذا المريض؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'حذف',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            form.submit();
+        }
+    });
+}
+</script>
 {% endblock %}

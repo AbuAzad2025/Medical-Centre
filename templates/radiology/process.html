@@ -1,33 +1,39 @@
 {% extends "base.html" %}
 
-{% block title %}معالجة الأشعة - {{ visit.patient.full_name }}{% endblock %}
+{% block title %}
+{% if radiology_request %}
+إدخال تقرير الأشعة - {{ radiology_request.patient.full_name }}
+{% else %}
+قائمة عمل الأشعة
+{% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
+    {% if radiology_request %}
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
                             <h2 class="mb-1 text-primary">
                                 <i class="fas fa-x-ray me-2"></i>
-                                معالجة فحص الأشعة
+                                إدخال تقرير الأشعة
                             </h2>
-                            <p class="text-muted mb-0">{{ visit.patient.full_name }} - رقم الزيارة: {{ visit.visit_id_number or visit.id }}</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <a href="{{ url_for('radiology.queue') }}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-right me-1"></i>
-                                    العودة للطابور
-                                </a>
-                                <button class="btn btn-primary" onclick="window.print()">
-                                    <i class="fas fa-print me-1"></i>
-                                    طباعة
-                                </button>
+                            <div class="text-muted">
+                                {{ radiology_request.patient.full_name }} — طلب رقم: {{ radiology_request.request_number or radiology_request.id }}
                             </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('radiology.worklist') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-right me-1"></i>
+                                العودة للطابور
+                            </a>
+                            <a href="{{ url_for('radiology.print_report', radiology_scan_id=radiology_request.id) }}" class="btn btn-primary" target="_blank">
+                                <i class="fas fa-print me-1"></i>
+                                طباعة
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -35,62 +41,52 @@
         </div>
     </div>
 
-    <!-- Radiology Processing Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3"><strong>الحالة:</strong> {{ radiology_request.status }}</div>
+                        <div class="col-md-3"><strong>تاريخ الطلب:</strong> {{ radiology_request.created_at.strftime('%Y-%m-%d %H:%M') if radiology_request.created_at else '-' }}</div>
+                        <div class="col-md-3"><strong>الزيارة:</strong> {{ radiology_request.visit_id }}</div>
+                        <div class="col-md-3"><strong>الطبيب:</strong> {{ radiology_request.requester.full_name if radiology_request.requester else 'غير محدد' }}</div>
+                    </div>
+                    {% if visit_summary %}
+                    <div class="mt-3">
+                        <strong>ملخص الزيارة:</strong>
+                        <div class="row mt-2">
+                            <div class="col-md-4"><strong>التشخيص:</strong> {{ visit_summary.diagnosis or '-' }}</div>
+                            <div class="col-md-4"><strong>الأعراض:</strong> {{ visit_summary.symptoms or '-' }}</div>
+                            <div class="col-md-4"><strong>خطة العلاج:</strong> {{ visit_summary.treatment_plan or '-' }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if radiology_request.notes %}
+                    <div class="mt-3">
+                        <strong>ملاحظات الطلب:</strong>
+                        <div class="text-muted">{{ radiology_request.notes }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12">
             <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-x-ray me-2"></i>
-                        نموذج معالجة الأشعة
-                    </h6>
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">التقرير والمرفقات</h6>
                 </div>
                 <div class="card-body">
-                    <form id="radiologyProcessForm">
-                        <!-- Patient Info -->
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="card border-left-info">
-                                    <div class="card-body">
-                                        <h6 class="text-info">بيانات المريض</h6>
-                                        <p><strong>الاسم:</strong> {{ visit.patient.full_name }}</p>
-                                        <p><strong>العمر:</strong> {{ visit.patient.age or 'غير محدد' }} سنة</p>
-                                        <p><strong>الجنس:</strong> {{ visit.patient.get_gender_display() }}</p>
-                                        <p><strong>رقم الزيارة:</strong> {{ visit.visit_id_number or visit.id }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card border-left-warning">
-                                    <div class="card-body">
-                                        <h6 class="text-warning">بيانات الفحص</h6>
-                                        <p><strong>الفني:</strong> {{ current_user.full_name }}</p>
-                                        <p><strong>التاريخ:</strong> {{ visit.visit_date.strftime('%Y-%m-%d') }}</p>
-                                        <p><strong>الوقت:</strong> {{ visit.visit_time.strftime('%H:%M') }}</p>
-                                        <p><strong>الطبيب الطالب:</strong> 
-                                            {% if visit.doctor %}
-                                                {{ visit.doctor.full_name }}
-                                            {% else %}
-                                                غير محدد
-                                            {% endif %}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Test Details -->
-                        <div class="row">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">تفاصيل الفحص</h6>
-                            </div>
-                        </div>
+                    <form method="post" action="{{ url_for('radiology.worklist_complete', request_id=radiology_request.id) }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="test_name">نوع الفحص</label>
-                                    <select class="form-control" id="test_name" name="test_name" required>
+                                    <select class="form-control" id="test_name" name="test_name">
                                         <option value="">اختر نوع الفحص</option>
                                         <option value="X-Ray Chest">أشعة الصدر</option>
                                         <option value="X-Ray Abdomen">أشعة البطن</option>
@@ -107,8 +103,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="body_part">جزء الجسم</label>
-                                    <input type="text" class="form-control" id="body_part" name="body_part" 
-                                           placeholder="أدخل جزء الجسم المفحوص">
+                                    <input type="text" class="form-control" id="body_part" name="body_part" value="{{ radiology_request.body_part or '' }}" placeholder="أدخل جزء الجسم المفحوص">
                                 </div>
                             </div>
                         </div>
@@ -117,55 +112,44 @@
                             <div class="col-12">
                                 <div class="form-group">
                                     <label for="description">وصف الفحص</label>
-                                    <textarea class="form-control" id="description" name="description" rows="3" 
-                                              placeholder="أدخل وصف الفحص المطلوب"></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Image Upload -->
-                        <div class="row">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">رفع الصور</h6>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label for="image_upload">رفع صور الأشعة</label>
-                                    <input type="file" class="form-control" id="image_upload" name="image_upload" 
-                                           multiple accept="image/*,.dcm,.pdf">
-                                    <small class="form-text text-muted">
-                                        يمكن رفع ملفات DICOM, JPG, PNG, PDF
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Results -->
-                        <div class="row">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">النتائج</h6>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label for="results">النتائج</label>
-                                    <textarea class="form-control" id="results" name="results" rows="4" 
-                                              placeholder="أدخل نتائج الفحص" required></textarea>
+                                    <textarea class="form-control" id="description" name="description" rows="3" placeholder="أدخل وصف الفحص المطلوب">{{ radiology_request.notes or '' }}</textarea>
                                 </div>
                             </div>
                         </div>
 
                         <div class="row">
-                            <div class="col-12">
+                            <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="findings">الملاحظات</label>
-                                    <textarea class="form-control" id="findings" name="findings" rows="4" 
-                                              placeholder="أدخل الملاحظات والنتائج التفصيلية"></textarea>
+                                    <label for="study_uid">Study UID</label>
+                                    <input type="text" class="form-control" id="study_uid" name="study_uid" value="{{ radiology_result.study_uid if radiology_result else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="pacs_url">رابط الدراسة (PACS)</label>
+                                    <input type="text" class="form-control" id="pacs_url" name="pacs_url" value="{{ radiology_result.pacs_url if radiology_result else '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label for="report_template">قالب التقرير</label>
+                                    <select class="form-control" id="report_template">
+                                        <option value="">بدون</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <div class="d-flex gap-2 w-100">
+                                    <button type="button" class="btn btn-outline-primary w-100" id="apply_template_btn">
+                                        <i class="fas fa-magic me-1"></i>
+                                        تطبيق القالب
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="manage_templates_btn" data-bs-toggle="modal" data-bs-target="#radiologyTemplatesModal" title="إدارة القوالب">
+                                        <i class="fas fa-sliders-h"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -173,99 +157,810 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label for="recommendations">التوصيات</label>
-                                    <textarea class="form-control" id="recommendations" name="recommendations" rows="3" 
-                                              placeholder="أدخل التوصيات الطبية"></textarea>
+                                    <label for="results">الخلاصة (Impression)</label>
+                                    <textarea class="form-control" id="results" name="results" rows="4" placeholder="أدخل خلاصة التقرير" required>{{ radiology_result.impression if radiology_result else '' }}</textarea>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Quality Control -->
                         <div class="row">
                             <div class="col-12">
-                                <h6 class="text-primary mb-3">مراقبة الجودة</h6>
+                                <div class="form-group">
+                                    <label for="findings">التفاصيل (Findings)</label>
+                                    <textarea class="form-control" id="findings" name="findings" rows="4" placeholder="أدخل النتائج التفصيلية">{{ radiology_result.findings if radiology_result else '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="recommendations">ملاحظات/توصيات</label>
+                                    <textarea class="form-control" id="recommendations" name="recommendations" rows="3" placeholder="أدخل ملاحظات أو توصيات">{{ radiology_result.notes if radiology_result else '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <strong>مساعد AI للأشعة</strong>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" id="ai_assist_btn">تشغيل</button>
+                                        </div>
+                                        <div id="ai_assist_output" class="text-muted small">لا توجد نتائج</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="image_quality">جودة الصورة</label>
-                                    <select class="form-control" id="image_quality" name="image_quality">
-                                        <option value="excellent">ممتازة</option>
-                                        <option value="good">جيدة</option>
-                                        <option value="fair">مقبولة</option>
-                                        <option value="poor">ضعيفة</option>
+                                    <label for="is_critical">نتيجة حرجة</label>
+                                    <select class="form-control" id="is_critical" name="is_critical">
+                                        <option value="0" {% if not radiology_result or not radiology_result.is_critical %}selected{% endif %}>لا</option>
+                                        <option value="1" {% if radiology_result and radiology_result.is_critical %}selected{% endif %}>نعم</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-8">
                                 <div class="form-group">
-                                    <label for="positioning">وضعية المريض</label>
-                                    <select class="form-control" id="positioning" name="positioning">
-                                        <option value="correct">صحيحة</option>
-                                        <option value="acceptable">مقبولة</option>
-                                        <option value="incorrect">غير صحيحة</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="exposure">التعرض</label>
-                                    <select class="form-control" id="exposure" name="exposure">
-                                        <option value="optimal">مثالي</option>
-                                        <option value="adequate">كافي</option>
-                                        <option value="overexposed">مفرط</option>
-                                        <option value="underexposed">ناقص</option>
-                                    </select>
+                                    <label for="report_macro">Macro</label>
+                                    <div class="d-flex gap-2">
+                                        <select class="form-control" id="report_macro">
+                                            <option value="">اختر</option>
+                                        </select>
+                                        <select class="form-control" id="macro_target" style="max-width: 200px;">
+                                            <option value="findings">Findings</option>
+                                            <option value="results">Impression</option>
+                                            <option value="recommendations">Recommendations</option>
+                                        </select>
+                                        <button type="button" class="btn btn-outline-primary" id="apply_macro_btn">إدراج</button>
+                                        <button type="button" class="btn btn-outline-secondary" id="manage_macros_btn" data-bs-toggle="modal" data-bs-target="#radiologyMacrosModal" title="إدارة الماكروز">
+                                            <i class="fas fa-sliders-h"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Action Buttons -->
-                        <div class="row mt-4">
-                            <div class="col-12 text-center">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-save me-1"></i>
-                                    حفظ النتائج
-                                </button>
-                                <a href="{{ url_for('radiology.queue') }}" class="btn btn-secondary btn-lg ml-2">
-                                    <i class="fas fa-arrow-right me-1"></i>
-                                    العودة للطابور
-                                </a>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="image_upload">رفع صور/ملفات</label>
+                                    <input type="file" class="form-control" id="image_upload" name="image_upload" multiple>
+                                </div>
                             </div>
+                        </div>
+
+                        {% if uploads and uploads|length > 0 %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-2">الملفات المرفوعة</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>الاسم</th>
+                                                <th style="width: 180px;">تاريخ الرفع</th>
+                                                <th class="text-end" style="width: 120px;">تحميل</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for f in uploads %}
+                                            <tr>
+                                                <td>{{ f.original_filename }}</td>
+                                                <td>{{ f.uploaded_at.strftime('%Y-%m-%d %H:%M') if f.uploaded_at else '-' }}</td>
+                                                <td class="text-end">
+                                                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('radiology.download_file', file_id=f.id) }}" target="_blank">تحميل</a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button type="submit" class="btn btn-primary" name="action" value="save">
+                                <i class="fas fa-save me-1"></i>
+                                حفظ
+                            </button>
+                            <button type="submit" class="btn btn-success" name="action" value="finalize">
+                                <i class="fas fa-check me-1"></i>
+                                اعتماد وإكمال
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-document.getElementById('radiologyProcessForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    fetch('{{ url_for("radiology.process_radiology", visit_id=visit.id) }}', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('تم حفظ نتائج الأشعة بنجاح');
-            // إعادة توجيه للطابور
-            window.location.href = '{{ url_for("radiology.queue") }}';
-        } else {
-            alert('خطأ: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('حدث خطأ في حفظ النتائج');
-    });
-});
-</script>
+    <div class="modal fade" id="radiologyTemplatesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">قوالب تقارير الأشعة</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-lg-5">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="mb-3">إضافة/تعديل قالب</h6>
+                                    <form id="radiologyTemplateForm">
+                                        <input type="hidden" id="tpl_id" name="id" value="">
+                                        <div class="mb-2">
+                                            <label class="form-label">الاسم</label>
+                                            <input type="text" class="form-control" id="tpl_name" name="name" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label">النوع (Modality)</label>
+                                            <select class="form-select" id="tpl_modality" name="modality" required>
+                                                <option value="XRAY">XRAY</option>
+                                                <option value="CT">CT</option>
+                                                <option value="MRI">MRI</option>
+                                                <option value="US">US</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label">Findings</label>
+                                            <textarea class="form-control" id="tpl_findings" name="findings" rows="5"></textarea>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label">Impression</label>
+                                            <textarea class="form-control" id="tpl_impression" name="impression" rows="4"></textarea>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label">Recommendations</label>
+                                            <textarea class="form-control" id="tpl_recommendations" name="recommendations" rows="3"></textarea>
+                                        </div>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="tpl_active" checked>
+                                            <label class="form-check-label" for="tpl_active">فعال</label>
+                                        </div>
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <button type="button" class="btn btn-light" id="tpl_reset_btn">تفريغ</button>
+                                            <button type="submit" class="btn btn-primary">حفظ</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0">القوالب</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="tpl_refresh_btn">تحديث</button>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped align-middle">
+                                            <thead>
+                                                <tr>
+                                                    <th>الاسم</th>
+                                                    <th style="width: 90px;">النوع</th>
+                                                    <th style="width: 70px;">فعال</th>
+                                                    <th class="text-end" style="width: 140px;">إجراءات</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tpl_table_body"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="text-muted small">يمكنك استخدام {{BODY_PART}} داخل النص ليتم استبدالها بمنطقة الفحص.</div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="radiologyMacrosModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">ماكروز تقارير الأشعة</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-lg-5">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="mb-3">إضافة/تعديل</h6>
+                                    <form id="radiologyMacroForm">
+                                        <input type="hidden" id="macro_id" value="">
+                                        <div class="mb-2">
+                                            <label class="form-label">الاسم</label>
+                                            <input type="text" class="form-control" id="macro_name" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label">النص</label>
+                                            <textarea class="form-control" id="macro_text" rows="5"></textarea>
+                                        </div>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="macro_active" checked>
+                                            <label class="form-check-label" for="macro_active">فعال</label>
+                                        </div>
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <button type="button" class="btn btn-light" id="macro_reset_btn">تفريغ</button>
+                                            <button type="submit" class="btn btn-primary">حفظ</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0">القائمة</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="macro_refresh_btn">تحديث</button>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped align-middle">
+                                            <thead>
+                                                <tr>
+                                                    <th>الاسم</th>
+                                                    <th style="width: 70px;">فعال</th>
+                                                    <th class="text-end" style="width: 140px;">إجراءات</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="macro_table_body"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const testNameEl = document.getElementById('test_name');
+            const bodyPartEl = document.getElementById('body_part');
+            const templateEl = document.getElementById('report_template');
+            const applyBtn = document.getElementById('apply_template_btn');
+            const manageBtn = document.getElementById('manage_templates_btn');
+            const findingsEl = document.getElementById('findings');
+            const impressionEl = document.getElementById('results');
+            const recommendationsEl = document.getElementById('recommendations');
+
+            if (!templateEl || !applyBtn || !findingsEl || !impressionEl || !recommendationsEl) {
+                return;
+            }
+
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+            const templatesModalEl = document.getElementById('radiologyTemplatesModal');
+            const macrosModalEl = document.getElementById('radiologyMacrosModal');
+            const tplForm = document.getElementById('radiologyTemplateForm');
+            const tplTableBody = document.getElementById('tpl_table_body');
+            const tplRefreshBtn = document.getElementById('tpl_refresh_btn');
+            const tplResetBtn = document.getElementById('tpl_reset_btn');
+            const tplIdEl = document.getElementById('tpl_id');
+            const tplNameEl = document.getElementById('tpl_name');
+            const tplModalityEl = document.getElementById('tpl_modality');
+            const tplFindingsEl = document.getElementById('tpl_findings');
+            const tplImpressionEl = document.getElementById('tpl_impression');
+            const tplRecommendationsEl = document.getElementById('tpl_recommendations');
+            const tplActiveEl = document.getElementById('tpl_active');
+
+            let templatesCache = [];
+            let macrosCache = [];
+
+            const macroSelectEl = document.getElementById('report_macro');
+            const macroTargetEl = document.getElementById('macro_target');
+            const applyMacroBtn = document.getElementById('apply_macro_btn');
+            const macroForm = document.getElementById('radiologyMacroForm');
+            const macroTableBody = document.getElementById('macro_table_body');
+            const macroRefreshBtn = document.getElementById('macro_refresh_btn');
+            const macroResetBtn = document.getElementById('macro_reset_btn');
+            const macroIdEl = document.getElementById('macro_id');
+            const macroNameEl = document.getElementById('macro_name');
+            const macroTextEl = document.getElementById('macro_text');
+            const macroActiveEl = document.getElementById('macro_active');
+            const aiAssistBtn = document.getElementById('ai_assist_btn');
+            const aiAssistOutput = document.getElementById('ai_assist_output');
+            const pacsUrlEl = document.getElementById('pacs_url');
+            const studyUidEl = document.getElementById('study_uid');
+
+            function guessTemplateFromTestName() {
+                const tn = (testNameEl && testNameEl.value ? String(testNameEl.value) : '').toLowerCase();
+                if (tn.includes('ct')) return 'CT';
+                if (tn.includes('mri')) return 'MRI';
+                if (tn.includes('x-ray') || tn.includes('xray')) return 'XRAY';
+                if (tn.includes('ultra') || tn.includes('u/s') || tn.includes('us')) return 'US';
+                return '';
+            }
+
+            function getBodyPart() {
+                const v = bodyPartEl && bodyPartEl.value ? String(bodyPartEl.value).trim() : '';
+                return v || '________';
+            }
+
+            async function runAiAssist() {
+                if (!aiAssistBtn || !aiAssistOutput) return;
+                aiAssistBtn.disabled = true;
+                aiAssistOutput.textContent = 'جاري التحليل...';
+                const payload = {
+                    modality: guessTemplateFromTestName(),
+                    body_part: getBodyPart(),
+                    impression: impressionEl ? impressionEl.value : '',
+                    study_uid: studyUidEl ? studyUidEl.value : '',
+                    pacs_url: pacsUrlEl ? pacsUrlEl.value : ''
+                };
+                const r = await fetch('{{ url_for("radiology.api_ai_assist") }}', {
+                    method: 'POST',
+                    headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                    body: JSON.stringify(payload)
+                });
+                const data = await r.json().catch(() => ({}));
+                aiAssistBtn.disabled = false;
+                if (!data || !data.success || !data.data) {
+                    aiAssistOutput.textContent = 'تعذر الحصول على توصيات حالياً';
+                    return;
+                }
+                const suggestions = data.data.suggestions || [];
+                const disclaimer = data.data.disclaimer || '';
+                const ref = data.data.external_ref || '';
+                const lines = [];
+                for (const s of suggestions) {
+                    lines.push('• ' + s);
+                }
+                if (disclaimer) {
+                    lines.push(disclaimer);
+                }
+                if (ref) {
+                    lines.push('مرجع: ' + ref);
+                }
+                aiAssistOutput.textContent = lines.join('\n');
+            }
+
+            async function fetchTemplates() {
+                const r = await fetch('{{ url_for("radiology.api_report_templates") }}', { method: 'GET' });
+                const data = await r.json().catch(() => ({}));
+                const arr = data && data.templates ? data.templates : [];
+                templatesCache = Array.isArray(arr) ? arr : [];
+                return templatesCache;
+            }
+
+            async function fetchMacros() {
+                const r = await fetch('{{ url_for("radiology.api_report_macros") }}', { method: 'GET' });
+                const data = await r.json().catch(() => ({}));
+                const arr = data && data.macros ? data.macros : [];
+                macrosCache = Array.isArray(arr) ? arr : [];
+                return macrosCache;
+            }
+
+            if (aiAssistBtn) {
+                aiAssistBtn.addEventListener('click', runAiAssist);
+            }
+
+            function fillTemplateSelect(templates) {
+                const selected = templateEl.value || '';
+                templateEl.innerHTML = '<option value="">بدون</option>';
+                const active = templates.filter(t => t && t.is_active !== false);
+                active.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t.id;
+                    opt.textContent = `${(t.modality || '').toUpperCase()} - ${t.name || ''}`.trim();
+                    templateEl.appendChild(opt);
+                });
+                if (selected) templateEl.value = selected;
+            }
+
+            function fillMacroSelect(macros) {
+                if (!macroSelectEl) return;
+                const selected = macroSelectEl.value || '';
+                macroSelectEl.innerHTML = '<option value="">اختر</option>';
+                const active = macros.filter(m => m && m.is_active !== false);
+                active.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = m.name || '';
+                    macroSelectEl.appendChild(opt);
+                });
+                if (selected) macroSelectEl.value = selected;
+            }
+
+            function replaceBodyPart(text, bodyPart) {
+                const src = String(text || '');
+                return src.split('{{BODY_PART}}').join(bodyPart);
+            }
+
+            function applyTemplateById(templateId) {
+                const tpl = templatesCache.find(t => t && t.id === templateId);
+                if (!tpl) return;
+                const bp = getBodyPart();
+
+                const hasAnyContent = Boolean(
+                    (findingsEl.value && findingsEl.value.trim()) ||
+                    (impressionEl.value && impressionEl.value.trim()) ||
+                    (recommendationsEl.value && recommendationsEl.value.trim())
+                );
+
+                if (hasAnyContent) {
+                    const ok = window.confirm('سيتم استبدال النص الحالي بالقالب المختار. متابعة؟');
+                    if (!ok) return;
+                }
+
+                findingsEl.value = replaceBodyPart(tpl.findings, bp);
+                impressionEl.value = replaceBodyPart(tpl.impression, bp);
+                recommendationsEl.value = replaceBodyPart(tpl.recommendations, bp);
+            }
+
+            function syncTemplateSelectionByModality() {
+                if (templateEl.value) return;
+                const guessed = guessTemplateFromTestName();
+                if (!guessed) return;
+                const match = templatesCache.find(t => t && (t.modality || '').toUpperCase() === guessed && t.is_active !== false);
+                if (match) templateEl.value = match.id;
+            }
+
+            function resetTemplateForm() {
+                tplIdEl.value = '';
+                tplNameEl.value = '';
+                tplModalityEl.value = guessTemplateFromTestName() || 'XRAY';
+                tplFindingsEl.value = '';
+                tplImpressionEl.value = '';
+                tplRecommendationsEl.value = '';
+                tplActiveEl.checked = true;
+            }
+
+            function renderTemplatesTable() {
+                if (!tplTableBody) return;
+                tplTableBody.innerHTML = '';
+                templatesCache.forEach(t => {
+                    if (!t || !t.id) return;
+                    const tr = document.createElement('tr');
+                    const active = t.is_active !== false;
+                    tr.innerHTML = `
+                        <td>${String(t.name || '')}</td>
+                        <td><span class="badge bg-light text-dark">${String((t.modality || '').toUpperCase())}</span></td>
+                        <td>${active ? '<span class="badge bg-success">نعم</span>' : '<span class="badge bg-secondary">لا</span>'}</td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${t.id}">تعديل</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${t.id}">حذف</button>
+                        </td>
+                    `;
+                    tplTableBody.appendChild(tr);
+                });
+            }
+
+            function resetMacroForm() {
+                if (!macroIdEl) return;
+                macroIdEl.value = '';
+                macroNameEl.value = '';
+                macroTextEl.value = '';
+                macroActiveEl.checked = true;
+            }
+
+            function renderMacrosTable() {
+                if (!macroTableBody) return;
+                macroTableBody.innerHTML = '';
+                macrosCache.forEach(m => {
+                    if (!m || !m.id) return;
+                    const tr = document.createElement('tr');
+                    const active = m.is_active !== false;
+                    tr.innerHTML = `
+                        <td>${String(m.name || '')}</td>
+                        <td>${active ? '<span class="badge bg-success">نعم</span>' : '<span class="badge bg-secondary">لا</span>'}</td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${m.id}">تعديل</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${m.id}">حذف</button>
+                        </td>
+                    `;
+                    macroTableBody.appendChild(tr);
+                });
+            }
+
+            async function refreshTemplatesUI() {
+                await fetchTemplates();
+                fillTemplateSelect(templatesCache);
+                renderTemplatesTable();
+                syncTemplateSelectionByModality();
+            }
+
+            async function refreshMacrosUI() {
+                await fetchMacros();
+                fillMacroSelect(macrosCache);
+                renderMacrosTable();
+            }
+
+            refreshTemplatesUI();
+            refreshMacrosUI();
+            if (testNameEl) {
+                testNameEl.addEventListener('change', function () {
+                    templateEl.value = '';
+                    syncTemplateSelectionByModality();
+                });
+            }
+
+            applyBtn.addEventListener('click', function () {
+                const id = templateEl.value;
+                if (!id) {
+                    window.alert('اختر قالباً أولاً');
+                    return;
+                }
+                applyTemplateById(id);
+            });
+
+            if (templatesModalEl) {
+                templatesModalEl.addEventListener('show.bs.modal', function () {
+                    resetTemplateForm();
+                    refreshTemplatesUI();
+                });
+            }
+
+            if (macrosModalEl) {
+                macrosModalEl.addEventListener('show.bs.modal', function () {
+                    resetMacroForm();
+                    refreshMacrosUI();
+                });
+            }
+            if (macroRefreshBtn) {
+                macroRefreshBtn.addEventListener('click', function () {
+                    refreshMacrosUI();
+                });
+            }
+            if (macroResetBtn) {
+                macroResetBtn.addEventListener('click', function () {
+                    resetMacroForm();
+                });
+            }
+            if (applyMacroBtn) {
+                applyMacroBtn.addEventListener('click', function () {
+                    const id = macroSelectEl ? macroSelectEl.value : '';
+                    if (!id) return;
+                    const m = macrosCache.find(x => x && x.id === id);
+                    if (!m) return;
+                    const target = macroTargetEl ? macroTargetEl.value : 'findings';
+                    const el = document.getElementById(target);
+                    if (!el) return;
+                    const current = el.value ? String(el.value) : '';
+                    const insert = String(m.text || '');
+                    el.value = current ? (current + "\n" + insert) : insert;
+                });
+            }
+
+            if (macroForm) {
+                macroForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    const payload = {
+                        id: macroIdEl.value || undefined,
+                        name: macroNameEl.value || '',
+                        text: macroTextEl.value || '',
+                        is_active: macroActiveEl.checked
+                    };
+                    const r = await fetch('{{ url_for("radiology.upsert_report_macro") }}', {
+                        method: 'POST',
+                        headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                        body: JSON.stringify(payload)
+                    });
+                    if (!r.ok) {
+                        window.alert('فشل الحفظ');
+                        return;
+                    }
+                    resetMacroForm();
+                    await refreshMacrosUI();
+                });
+            }
+            if (macroTableBody) {
+                macroTableBody.addEventListener('click', async function (e) {
+                    const btn = e.target && e.target.closest ? e.target.closest('button[data-action]') : null;
+                    if (!btn) return;
+                    const action = btn.getAttribute('data-action');
+                    const id = btn.getAttribute('data-id');
+                    const m = macrosCache.find(x => x && x.id === id);
+                    if (!m) return;
+                    if (action === 'edit') {
+                        macroIdEl.value = m.id;
+                        macroNameEl.value = m.name || '';
+                        macroTextEl.value = m.text || '';
+                        macroActiveEl.checked = m.is_active !== false;
+                    } else if (action === 'delete') {
+                        const ok = window.confirm('حذف الماكرو؟');
+                        if (!ok) return;
+                        const r = await fetch(`{{ url_for("radiology.delete_report_macro", macro_id="__M__") }}`.replace('__M__', encodeURIComponent(id)), {
+                            method: 'POST',
+                            headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
+                        });
+                        if (!r.ok) {
+                            window.alert('فشل الحذف');
+                            return;
+                        }
+                        await refreshMacrosUI();
+                    }
+                });
+            }
+            if (tplRefreshBtn) {
+                tplRefreshBtn.addEventListener('click', function () {
+                    refreshTemplatesUI();
+                });
+            }
+            if (tplResetBtn) {
+                tplResetBtn.addEventListener('click', function () {
+                    resetTemplateForm();
+                });
+            }
+            if (tplTableBody) {
+                tplTableBody.addEventListener('click', async function (e) {
+                    const btn = e.target && e.target.closest ? e.target.closest('button[data-action]') : null;
+                    if (!btn) return;
+                    const action = btn.getAttribute('data-action');
+                    const id = btn.getAttribute('data-id');
+                    const tpl = templatesCache.find(t => t && t.id === id);
+                    if (!tpl) return;
+                    if (action === 'edit') {
+                        tplIdEl.value = tpl.id;
+                        tplNameEl.value = tpl.name || '';
+                        tplModalityEl.value = (tpl.modality || 'XRAY').toUpperCase();
+                        tplFindingsEl.value = tpl.findings || '';
+                        tplImpressionEl.value = tpl.impression || '';
+                        tplRecommendationsEl.value = tpl.recommendations || '';
+                        tplActiveEl.checked = tpl.is_active !== false;
+                    } else if (action === 'delete') {
+                        const ok = window.confirm('حذف القالب؟');
+                        if (!ok) return;
+                        const r = await fetch(`{{ url_for("radiology.delete_report_template", template_id="__TPL__") }}`.replace('__TPL__', encodeURIComponent(id)), {
+                            method: 'POST',
+                            headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
+                        });
+                        if (!r.ok) {
+                            window.alert('فشل الحذف');
+                            return;
+                        }
+                        await refreshTemplatesUI();
+                    }
+                });
+            }
+            if (tplForm) {
+                tplForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    const payload = {
+                        id: tplIdEl.value || undefined,
+                        name: tplNameEl.value || '',
+                        modality: tplModalityEl.value || 'XRAY',
+                        findings: tplFindingsEl.value || '',
+                        impression: tplImpressionEl.value || '',
+                        recommendations: tplRecommendationsEl.value || '',
+                        is_active: tplActiveEl.checked
+                    };
+                    const r = await fetch('{{ url_for("radiology.upsert_report_template") }}', {
+                        method: 'POST',
+                        headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                        body: JSON.stringify(payload)
+                    });
+                    if (!r.ok) {
+                        window.alert('فشل الحفظ');
+                        return;
+                    }
+                    resetTemplateForm();
+                    await refreshTemplatesUI();
+                });
+            }
+        })();
+    </script>
+    {% else %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1 text-primary">
+                                <i class="fas fa-x-ray me-2"></i>
+                                قائمة عمل الأشعة
+                            </h2>
+                            <div class="text-muted">طلبات الأشعة حسب الحالة</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a class="btn btn-outline-primary" href="{{ url_for('radiology.worklist', status='REQUESTED') }}">قيد الطلب ({{ counts.requested if counts else 0 }})</a>
+                            <a class="btn btn-outline-warning" href="{{ url_for('radiology.worklist', status='IN_PROGRESS') }}">قيد التنفيذ ({{ counts.in_progress if counts else 0 }})</a>
+                            <a class="btn btn-outline-success" href="{{ url_for('radiology.worklist', status='DONE_TODAY') }}">مكتمل اليوم ({{ counts.done_today if counts else 0 }})</a>
+                            <a class="btn btn-secondary" href="{{ url_for('radiology.dashboard') }}">لوحة الأشعة</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>المريض</th>
+                                    <th>الزيارة</th>
+                                    <th>ملخص الزيارة</th>
+                                    <th>تاريخ الطلب</th>
+                                    <th>الحالة</th>
+                                    <th class="text-end">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if requests and requests|length > 0 %}
+                                    {% for r in requests %}
+                                    <tr>
+                                        <td>{{ r.request_number or r.id }}</td>
+                                        <td>{{ r.patient.full_name if r.patient else r.patient_id }}</td>
+                                        <td>{{ r.visit_id }}</td>
+                                        <td>
+                                            {% set v = (visits_by_id or {}).get(r.visit_id) %}
+                                            {% if v %}
+                                                <div class="small">
+                                                    {% if v.diagnosis %}
+                                                        <div><strong>التشخيص:</strong> {{ v.diagnosis }}</div>
+                                                    {% endif %}
+                                                    {% if v.symptoms %}
+                                                        <div><strong>الأعراض:</strong> {{ v.symptoms }}</div>
+                                                    {% endif %}
+                                                    {% if not v.diagnosis and not v.symptoms %}
+                                                        <span class="text-muted">—</span>
+                                                    {% endif %}
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '-' }}</td>
+                                        <td>
+                                            {% set st = (r.status or '').upper() %}
+                                            <span class="badge {% if st == 'REQUESTED' %}bg-info{% elif st == 'IN_PROGRESS' %}bg-warning{% elif st == 'DONE' %}bg-success{% else %}bg-secondary{% endif %}">
+                                                {% if st == 'REQUESTED' %}قيد الطلب{% elif st == 'IN_PROGRESS' %}قيد التنفيذ{% elif st == 'DONE' %}مكتمل{% else %}{{ st }}{% endif %}
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="d-inline-flex gap-2">
+                                                {% if st == 'REQUESTED' %}
+                                                <form method="post" action="{{ url_for('radiology.worklist_claim', request_id=r.id) }}">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="btn btn-sm btn-warning">استلام</button>
+                                                </form>
+                                                {% endif %}
+                                                <a class="btn btn-sm btn-primary" href="{{ url_for('radiology.worklist_request', request_id=r.id) }}">إدخال التقرير</a>
+                                                {% if st == 'DONE' %}
+                                                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('radiology.print_report', radiology_scan_id=r.id) }}" target="_blank">طباعة</a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-4">لا توجد طلبات</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

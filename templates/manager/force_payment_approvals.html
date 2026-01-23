@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}موافقات الدفع القسري{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-3">طلبات معلقة</h2>
+  <div class="card mb-4"><div class="card-body">
+    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>زيارة</th><th>مريض</th><th>السبب</th><th>إجراء</th></tr></thead><tbody>
+      {% for v in pending_approvals or [] %}
+      <tr>
+        <td>#{{ v.id }}</td><td>{{ v.patient.full_name if v.patient else '' }}</td><td>{{ v.force_payment_reason }}</td>
+        <td class="d-flex gap-2">
+          <form method="post" action="{{ url_for('manager.approve_force_payment', visit_id=v.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-success">موافقة</button></form>
+          <form method="post" action="{{ url_for('manager.reject_force_payment', visit_id=v.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input name="rejection_reason" class="form-control form-control-sm" placeholder="سبب" required><button class="btn btn-sm btn-danger ms-2">رفض</button></form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center">لا طلبات</td></tr>
+      {% endfor %}
+    </tbody></table></div>
+  </div></div>
+  <h2 class="mb-3">عمليات معتمدة</h2>
+  <div class="card"><div class="card-body">
+    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>زيارة</th><th>مريض</th><th>تاريخ</th></tr></thead><tbody>
+      {% for v in approved_payments or [] %}
+      <tr><td>#{{ v.id }}</td><td>{{ v.patient.full_name if v.patient else '' }}</td><td>{{ v.force_payment_approved_at }}</td></tr>
+      {% else %}
+      <tr><td colspan="3" class="text-center">لا عمليات</td></tr>
+      {% endfor %}
+    </tbody></table></div>
+  </div></div>
+</div>
+{% endblock %}
+

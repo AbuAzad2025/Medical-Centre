@@ -493,7 +493,8 @@
                         </a>
                         {% if emergency.status == 'active' %}
                         <form method="POST" action="{{ url_for('emergency.resolve_emergency_case', id=emergency.id) }}" style="display: inline;">
-                            <button type="submit" class="btn btn-outline-info btn-action" onclick="return confirm('هل أنت متأكد من حل هذه الحالة؟')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-outline-info btn-action" onclick="return confirmSubmit(event, 'هل أنت متأكد من حل هذه الحالة؟')">
                                 <i class="fas fa-check"></i> حل
                             </button>
                         </form>

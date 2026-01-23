@@ -73,6 +73,13 @@
                                        placeholder="أدخل رقم الهاتف">
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="doctor_room" class="form-label">غرفة الطبيب</label>
+                                <input type="text" class="form-control" id="doctor_room" name="doctor_room"
+                                       placeholder="مثال: 12">
+                            </div>
+                        </div>
 
                         <!-- Role and Department -->
                         <div class="row mb-4">
@@ -99,6 +106,28 @@
                                     <option value="{{ department.id }}">{{ department.name_ar or department.name }}</option>
                                     {% endfor %}
                                 </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4" id="doctorPricingSection" style="display:none;">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">تسعير الطبيب</h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="consultation_price" class="form-label">سعر الكشف الأولي</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="consultation_price" name="consultation_price" placeholder="مثال: 100.00">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="follow_up_price" class="form-label">سعر المراجعة</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="follow_up_price" name="follow_up_price" placeholder="مثال: 50.00">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="emergency_price" class="form-label">سعر الطوارئ</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="emergency_price" name="emergency_price" placeholder="مثال: 150.00">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="vip_price" class="form-label">سعر VIP</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="vip_price" name="vip_price" placeholder="مثال: 250.00">
                             </div>
                         </div>
 
@@ -310,9 +339,17 @@ document.getElementById('createUserForm').addEventListener('submit', function(e)
     
     if (password !== confirmPassword) {
         e.preventDefault();
-        alert('كلمات المرور غير متطابقة');
+        Swal.fire({ title: 'تحذير', text: 'كلمات المرور غير متطابقة', icon: 'warning' });
         return false;
     }
 });
+
+const roleSelect = document.getElementById('role');
+const doctorPricingSection = document.getElementById('doctorPricingSection');
+function toggleDoctorPricing() {
+    doctorPricingSection.style.display = roleSelect.value === 'doctor' ? '' : 'none';
+}
+roleSelect.addEventListener('change', toggleDoctorPricing);
+toggleDoctorPricing();
 </script>
 {% endblock %}

@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}تسويات مالية شهرية{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-handshake me-2"></i>تسويات مالية</h5>
+                    <a class="btn btn-outline-success btn-sm" href="{{ url_for('manager.settlements_export', mode=stats.mode, doctor_id=selected_doctor_id, department_id=selected_department_id, month=selected_month) }}"><i class="fas fa-file-csv"></i> تصدير CSV</a>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('manager.settlements') }}" class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label">النوع</label>
+                            <select class="form-control" name="mode">
+                                <option value="doctor" {% if stats.mode=='doctor' %}selected{% endif %}>طبيب</option>
+                                <option value="department" {% if stats.mode=='department' %}selected{% endif %}>قسم</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">الطبيب</label>
+                            <select class="form-control" name="doctor_id">
+                                <option value="">اختر الطبيب</option>
+                                {% for d in doctors %}
+                                <option value="{{ d.id }}" {% if selected_doctor_id==d.id %}selected{% endif %}>{{ d.full_name }}{% if d.department %} - {{ d.department.name_ar or d.department.name }}{% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">القسم</label>
+                            <select class="form-control" name="department_id">
+                                <option value="">اختر القسم</option>
+                                {% for dep in departments %}
+                                <option value="{{ dep.id }}" {% if selected_department_id==dep.id %}selected{% endif %}>{{ dep.name_ar or dep.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">الشهر</label>
+                            <input type="month" class="form-control" name="month" value="{{ selected_month or (stats.period_start.strftime('%Y-%m') if stats.period_start) }}">
+                        </div>
+                        <div class="col-md-2 align-self-end">
+                            <button class="btn btn-primary w-100"><i class="fas fa-filter"></i> تطبيق</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-xl-2 col-md-4 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">عدد الزيارات</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.count }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 mb-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">إجمالي المبلغ</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_amount|round(2) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 mb-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">مدفوع</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.paid_amount|round(2) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 mb-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">متبقي</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.remaining_amount|round(2) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 mb-3">
+            <div class="card border-left-dark shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">حصة الطبيب</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.doctor_fee_total|round(2) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 mb-3">
+            <div class="card border-left-secondary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">حصة المركز</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.service_share_total|round(2) }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h6 class="m-0">الفترة: {{ stats.period_start.strftime('%Y-%m-%d') }} إلى {{ stats.period_end.strftime('%Y-%m-%d') }}{% if stats.target_name %} | الهدف: {{ stats.target_name }}{% endif %}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>القسم</th>
+                                    <th>الطبيب</th>
+                                    <th>المريض</th>
+                                    <th>نوع الزيارة</th>
+                                    <th>الإجمالي</th>
+                                    <th>المدفوع</th>
+                                    <th>المتبقي</th>
+                                    <th>حصة الطبيب</th>
+                                    <th>حصة المركز</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for it in items %}
+                                {% set v = it.visit %}
+                                <tr>
+                                    <td>{{ v.visit_date.strftime('%Y-%m-%d') if v.visit_date else '-' }}</td>
+                                    <td>{{ v.department.name_ar if v.department else '-' }}</td>
+                                    <td>{{ v.doctor.full_name if v.doctor else '-' }}</td>
+                                    <td>{{ v.patient.full_name if v.patient else '-' }}</td>
+                                    <td>{{ v.visit_type }}</td>
+                                    <td>{{ '%.2f'|format(it.total) }}</td>
+                                    <td>{{ '%.2f'|format(it.paid) }}</td>
+                                    <td>{{ '%.2f'|format(it.remaining) }}</td>
+                                    <td>{{ '%.2f'|format(it.doctor_fee) }}</td>
+                                    <td>{{ '%.2f'|format(it.center_share) }}</td>
+                                </tr>
+                                {% endfor %}
+                                {% if not items %}
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted">لا توجد زيارات ضمن هذه الفترة</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

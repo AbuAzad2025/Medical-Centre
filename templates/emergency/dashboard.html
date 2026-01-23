@@ -23,7 +23,7 @@
                                     <i class="fas fa-heartbeat me-2"></i>
                                     طابور الطوارئ
                                 </a>
-                                <a href="{{ url_for('emergency.patient_queue') }}" class="btn btn-warning btn-lg">
+                                <a href="{{ url_for('emergency.emergency_visits') }}" class="btn btn-warning btn-lg">
                                     <i class="fas fa-users me-2"></i>
                                     إدارة الحالات
                                 </a>
@@ -35,9 +35,35 @@
         </div>
     </div>
 
-    <!-- Main content -->
-    <section class="content">
-        <div class="container-fluid">
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills mb-4" id="emergencyTabs" role="tablist" data-aos="fade-up">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
+                <i class="fas fa-home me-2"></i> نظرة عامة
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="cases-tab" data-bs-toggle="tab" data-bs-target="#cases" type="button" role="tab" aria-controls="cases" aria-selected="false">
+                <i class="fas fa-procedures me-2"></i> الحالات النشطة
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="intelligence-tab" data-bs-toggle="tab" data-bs-target="#intelligence" type="button" role="tab" aria-controls="intelligence" aria-selected="false">
+                <i class="fas fa-brain me-2"></i> الذكاء والتحليل
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="recommendations-tab" data-bs-toggle="tab" data-bs-target="#recommendations" type="button" role="tab" aria-controls="recommendations" aria-selected="false">
+                <i class="fas fa-lightbulb me-2"></i> التوصيات
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="emergencyTabsContent">
+        
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
             <!-- إحصائيات سريعة -->
             <div class="row" data-aos="fade-up" data-aos-delay="200">
                 <div class="col-lg-3 col-6">
@@ -109,10 +135,38 @@
                 </div>
             </div>
 
-            <!-- الحالات النشطة -->
-            <div class="row">
-                <div class="col-md-6">
+            <!-- أزرار الإجراءات -->
+            <div class="row mt-4">
+                <div class="col-12">
                     <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">إجراءات سريعة</h3>
+                        </div>
+                        <div class="card-body">
+                            <a href="{{ url_for('emergency.emergency_visits') }}" class="btn btn-danger btn-lg">
+                                <i class="fas fa-plus"></i> حالة طوارئ جديدة
+                            </a>
+                            <a href="{{ url_for('emergency.list_emergency_cases', status='active') }}" class="btn btn-warning btn-lg">
+                                <i class="fas fa-list"></i> الحالات النشطة
+                            </a>
+                            <a href="{{ url_for('emergency.list_emergency_cases', status='resolved') }}" class="btn btn-info btn-lg">
+                                <i class="fas fa-history"></i> تاريخ الطوارئ
+                            </a>
+                            <a href="{{ url_for('emergency.reports') }}" class="btn btn-success btn-lg">
+                                <i class="fas fa-chart-bar"></i> تقارير الطوارئ
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Cases Tab -->
+        <div class="tab-pane fade" id="cases" role="tabpanel" aria-labelledby="cases-tab">
+            <div class="row">
+                <!-- الحالات النشطة -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
                         <div class="card-header">
                             <h3 class="card-title">الحالات النشطة</h3>
                         </div>
@@ -168,8 +222,8 @@
                 </div>
 
                 <!-- الحالات تحتاج تسوية -->
-                <div class="col-md-6">
-                    <div class="card">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
                         <div class="card-header">
                             <h3 class="card-title">تحتاج تسوية</h3>
                         </div>
@@ -214,32 +268,10 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- أزرار الإجراءات -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">إجراءات سريعة</h3>
-                        </div>
-                        <div class="card-body">
-                            <a href="{{ url_for('emergency.emergency_visits') }}" class="btn btn-danger btn-lg">
-                                <i class="fas fa-plus"></i> حالة طوارئ جديدة
-                            </a>
-                            <a href="{{ url_for('emergency.active_cases') }}" class="btn btn-warning btn-lg">
-                                <i class="fas fa-list"></i> الحالات النشطة
-                            </a>
-                            <a href="{{ url_for('emergency.emergency_history') }}" class="btn btn-info btn-lg">
-                                <i class="fas fa-history"></i> تاريخ الطوارئ
-                            </a>
-                            <a href="{{ url_for('emergency.emergency_reports') }}" class="btn btn-success btn-lg">
-                                <i class="fas fa-chart-bar"></i> تقارير الطوارئ
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+        <!-- Intelligence Tab -->
+        <div class="tab-pane fade" id="intelligence" role="tabpanel" aria-labelledby="intelligence-tab">
             <!-- Emergency AI Triage Section -->
             {% if stats.emergency_ai_triage %}
             <div class="row mb-4">
@@ -486,6 +518,95 @@
             </div>
             {% endif %}
 
+            {% if stats.time_metrics %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-gradient-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-stopwatch me-2"></i>
+                                مؤشرات الزمن للحالات الحرجة
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h4 class="text-primary">{{ stats.time_metrics.avg_time_to_triage or 0 }} دقيقة</h4>
+                                        <p class="text-muted mb-0">من الدخول للتصنيف</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h4 class="text-success">{{ stats.time_metrics.avg_time_to_treatment or 0 }} دقيقة</h4>
+                                        <p class="text-muted mb-0">من الدخول للعلاج</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h4 class="text-warning">{{ stats.time_metrics.avg_length_of_stay or 0 }} دقيقة</h4>
+                                        <p class="text-muted mb-0">مدة البقاء</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if stats.protocols %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-gradient-secondary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-clipboard-list me-2"></i>
+                                بروتوكولات Stroke/MI/Trauma
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for p in stats.protocols %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <div class="fw-bold mb-2">{{ p.title }}</div>
+                                        <ul class="mb-0">
+                                            {% for s in p.steps %}
+                                            <li>{{ s }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if stats.ems_metrics %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-gradient-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-ambulance me-2"></i>
+                                تكامل EMS
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ stats.ems_metrics.ems_cases_7d or 0 }}</h4>
+                                <p class="text-muted mb-0">حالات محولة خلال 7 أيام</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Emergency Analytics Section -->
             {% if stats.emergency_analytics %}
             <div class="row mb-4">
@@ -529,7 +650,10 @@
                 </div>
             </div>
             {% endif %}
+        </div>
 
+        <!-- Recommendations Tab -->
+        <div class="tab-pane fade" id="recommendations" role="tabpanel" aria-labelledby="recommendations-tab">
             <!-- Smart Emergency Recommendations Section -->
             {% if stats.smart_emergency_recommendations %}
             <div class="row mb-4">
@@ -568,95 +692,121 @@
             </div>
             {% endif %}
         </div>
-    </section>
+    </div>
 </div>
 
 <script>
 // عرض الحالة
 function viewCase(caseId) {
     // يمكن إضافة منطق عرض تفاصيل الحالة هنا
-    alert('عرض تفاصيل الحالة رقم: ' + caseId);
+    Swal.fire({ title: 'عرض الحالة', text: 'عرض تفاصيل الحالة رقم: ' + caseId, icon: 'info' });
 }
 
 // تسوية الحالة
 function settleCase(caseId) {
-    if (confirm('هل أنت متأكد من تسوية هذه الحالة؟')) {
-        fetch(`{{ url_for('emergency.emergency_visits') }}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('تم تسوية الحالة بنجاح');
-                location.reload();
-            } else {
-                alert('خطأ: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ في تسوية الحالة');
-        });
-    }
+    Swal.fire({
+        title: 'تأكيد التسوية',
+        text: 'هل أنت متأكد من تسوية هذه الحالة؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'تسوية',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            fetch(`{{ url_for('emergency.resolve_emergency_case', id=0) }}`.replace('0', caseId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ title: 'تمت التسوية', text: 'تم تسوية الحالة بنجاح', icon: 'success' }).then(() => { location.reload(); });
+                } else {
+                    Swal.fire({ title: 'خطأ', text: (data.message || 'حدث خطأ في تسوية الحالة'), icon: 'error' });
+                }
+            })
+            .catch(error => {
+                Swal.fire({ title: 'خطأ', text: 'حدث خطأ في تسوية الحالة', icon: 'error' });
+            });
+        }
+    });
 }
 
 // تسوية حالة الطوارئ
 function settleEmergency(caseId) {
-    if (confirm('هل أنت متأكد من تسوية حالة الطوارئ هذه؟')) {
-        fetch(`{{ url_for('emergency.emergency_visits') }}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('تم تسوية حالة الطوارئ بنجاح');
-                location.reload();
-            } else {
-                alert('خطأ: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ في تسوية حالة الطوارئ');
-        });
-    }
+    Swal.fire({
+        title: 'تأكيد التسوية',
+        text: 'هل أنت متأكد من تسوية حالة الطوارئ هذه؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'تسوية',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            fetch(`{{ url_for('emergency.resolve_emergency_case', id=0) }}`.replace('0', caseId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ title: 'تمت التسوية', text: 'تم تسوية حالة الطوارئ بنجاح', icon: 'success' }).then(() => { location.reload(); });
+                } else {
+                    Swal.fire({ title: 'خطأ', text: (data.message || 'حدث خطأ في التسوية'), icon: 'error' });
+                }
+            })
+            .catch(error => {
+                Swal.fire({ title: 'خطأ', text: 'حدث خطأ في تسوية حالة الطوارئ', icon: 'error' });
+            });
+        }
+    });
 }
 
 // تحويل إلى زيارة عادية
 function convertToRegular(caseId) {
-    const newDestination = prompt('الوجهة الجديدة (doctor, lab, radiology):', 'doctor');
-    if (newDestination) {
-        fetch(`{{ url_for('emergency.emergency_visits') }}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                new_destination: newDestination
+    Swal.fire({
+        title: 'تحويل الحالة',
+        text: 'اختر الوجهة الجديدة للحالة',
+        icon: 'question',
+        input: 'select',
+        inputOptions: {
+            'doctor': 'الطبيب',
+            'lab': 'المختبر',
+            'radiology': 'الأشعة'
+        },
+        inputPlaceholder: 'اختر الوجهة',
+        showCancelButton: true,
+        confirmButtonText: 'تحويل',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (res.isConfirmed && res.value) {
+            const newDestination = res.value;
+            fetch(`{{ url_for('emergency.convert_emergency_case', id=0) }}`.replace('0', caseId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ new_destination: newDestination })
             })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('تم تحويل الحالة إلى زيارة عادية بنجاح');
-                location.reload();
-            } else {
-                alert('خطأ: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ في تحويل الحالة');
-        });
-    }
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ title: 'تم التحويل', text: 'تم تحويل الحالة إلى زيارة عادية بنجاح', icon: 'success' }).then(() => { location.reload(); });
+                } else {
+                    Swal.fire({ title: 'خطأ', text: (data.message || 'حدث خطأ في التحويل'), icon: 'error' });
+                }
+            })
+            .catch(error => {
+                Swal.fire({ title: 'خطأ', text: 'حدث خطأ في تحويل الحالة', icon: 'error' });
+            });
+        }
+    });
 }
 </script>
 {% endblock %}

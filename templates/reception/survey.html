@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استبيان رضا المرضى</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="mb-3 text-center">استبيان رضا المرضى</h3>
+                        {% if invalid %}
+                            <div class="alert alert-warning text-center">الرابط غير صالح</div>
+                        {% elif submitted %}
+                            <div class="alert alert-success text-center">شكراً لمشاركتك</div>
+                        {% else %}
+                            {% if error %}
+                                <div class="alert alert-danger text-center">{{ error }}</div>
+                            {% endif %}
+                            <form method="post">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="mb-3">
+                                    <label class="form-label">قيّم تجربتك من 1 إلى 5</label>
+                                    <div class="d-flex gap-2">
+                                        {% for v in range(1, 6) %}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="rating" id="rate{{ v }}" value="{{ v }}">
+                                            <label class="form-check-label" for="rate{{ v }}">{{ v }}</label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">ملاحظات إضافية</label>
+                                    <textarea class="form-control" name="comment" rows="3"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">إرسال</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

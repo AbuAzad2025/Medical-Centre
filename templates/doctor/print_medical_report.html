@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}طباعة تقرير طبي{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card">
+    <div class="card-body">
+      <h3 class="mb-3">تقرير طبي للزيارة #{{ visit.id }}</h3>
+      <div>المريض: {{ visit.patient.full_name if visit.patient else '' }}</div>
+      <div>التاريخ: {{ visit.visit_date }}</div>
+      <div>القسم: {{ visit.department.name_ar if visit.department else '' }}</div>
+      <div>الطبيب: {{ current_user.full_name }}</div>
+      <hr>
+      <div>التشخيص: {{ visit.medical_record.diagnosis if visit.medical_record else '' }}</div>
+      <div>الملاحظات: {{ visit.medical_record.notes if visit.medical_record else '' }}</div>
+      <hr>
+      <div class="mt-4">
+        <strong>التوقيع الرقمي للطبيب:</strong>
+        {% if current_user.digital_signature %}
+          <div class="mt-2">{{ current_user.digital_signature }}</div>
+        {% else %}
+          <div class="mt-2 text-muted">لا يوجد توقيع رقمي محفوظ</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

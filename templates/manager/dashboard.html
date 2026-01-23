@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-lg">
+            <div class="card card-modern">
                 <div class="card-body bg-gradient-warning text-white">
                     <div class="row align-items-center">
                         <div class="col-md-8">
@@ -18,12 +18,16 @@
                             <p class="mb-0 text-white-50 fs-5">مرحباً {{ current_user.full_name }} - إدارة شاملة للمركز الصحي والتحكم في الوحدات</p>
                         </div>
                         <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-light btn-lg" onclick="refreshDashboard()">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <button class="btn btn-light btn-lg btn-modern" onclick="refreshDashboard()">
                                     <i class="fas fa-sync-alt me-2"></i>
                                     تحديث
                                 </button>
-                                <button class="btn btn-warning btn-lg" onclick="exportReport()">
+                                <a class="btn btn-outline-light btn-lg btn-modern" href="{{ url_for('manager.self_service') }}">
+                                    <i class="fas fa-filter me-2"></i>
+                                    تحليلات ذاتية
+                                </a>
+                                <button class="btn btn-warning btn-lg btn-modern" onclick="exportReport()">
                                     <i class="fas fa-file-excel me-2"></i>
                                     تصدير تقرير
                                 </button>
@@ -35,776 +39,454 @@
         </div>
     </div>
 
-    <!-- Smart Analytics Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--warning-gradient); color: white;">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-line me-2"></i>
-                        التحليلات الذكية المتقدمة
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="text-center p-3">
-                                <i class="fas fa-users fa-3x text-primary mb-3 floating-animation"></i>
-                                <h6>إدارة الموظفين</h6>
-                                <p class="text-muted">مراقبة أداء الموظفين والإنتاجية</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center p-3">
-                                <i class="fas fa-chart-bar fa-3x text-success mb-3 floating-animation"></i>
-                                <h6>التقارير المالية</h6>
-                                <p class="text-muted">تحليل الإيرادات والمصروفات</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-center p-3">
-                                <i class="fas fa-cogs fa-3x text-warning mb-3 floating-animation"></i>
-                                <h6>إدارة النظام</h6>
-                                <p class="text-muted">مراقبة أداء النظام والصيانة</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-pills mb-4" id="managerTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
+                <i class="fas fa-home me-2"></i> نظرة عامة
+            </button>
+        </li>
+        {% if stats.smart_analytics %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab" aria-controls="analytics" aria-selected="false">
+                <i class="fas fa-chart-bar me-2"></i> التحليلات الذكية
+            </button>
+        </li>
+        {% endif %}
+        {% if stats.business_insights %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="insights-tab" data-bs-toggle="tab" data-bs-target="#insights" type="button" role="tab" aria-controls="insights" aria-selected="false">
+                <i class="fas fa-lightbulb me-2"></i> رؤى الأعمال
+            </button>
+        </li>
+        {% endif %}
+        {% if stats.performance_metrics %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button" role="tab" aria-controls="performance" aria-selected="false">
+                <i class="fas fa-tachometer-alt me-2"></i> مقاييس الأداء
+            </button>
+        </li>
+        {% endif %}
+        {% if stats.financial_forecasting %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="forecasting-tab" data-bs-toggle="tab" data-bs-target="#forecasting" type="button" role="tab" aria-controls="forecasting" aria-selected="false">
+                <i class="fas fa-chart-line me-2"></i> التوقعات المالية
+            </button>
+        </li>
+        {% endif %}
+        {% if stats.bi_insights %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="bi-tab" data-bs-toggle="tab" data-bs-target="#bi" type="button" role="tab" aria-controls="bi" aria-selected="false">
+                <i class="fas fa-project-diagram me-2"></i> BI و What-if
+            </button>
+        </li>
+        {% endif %}
+    </ul>
 
-    <!-- Advanced Management Section -->
-    {% if stats.smart_analytics %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-bar me-2"></i>
-                        التحليلات الذكية
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.smart_analytics.patient_growth_rate or 0 }}%</h4>
-                                <p class="text-muted mb-0">معدل نمو المرضى</p>
-                            </div>
+    <div class="tab-content" id="managerTabsContent">
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+            <!-- Smart Analytics Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header border-0" style="background: var(--warning-gradient); color: white;">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i>
+                                التحليلات الذكية المتقدمة
+                            </h5>
                         </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.smart_analytics.revenue_growth_rate or 0 }}%</h4>
-                                <p class="text-muted mb-0">معدل نمو الإيرادات</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.smart_analytics.avg_visit_duration or 0 }} دقيقة</h4>
-                                <p class="text-muted mb-0">متوسط مدة الزيارة</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.smart_analytics.completion_rate or 0 }}%</h4>
-                                <p class="text-muted mb-0">معدل الإنجاز</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <span class="badge bg-{{ 'success' if stats.smart_analytics.trend == 'growing' else 'warning' if stats.smart_analytics.trend == 'stable' else 'danger' }}">
-                            {{ 'نمو' if stats.smart_analytics.trend == 'growing' else 'مستقر' if stats.smart_analytics.trend == 'stable' else 'تراجع' }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Business Insights -->
-    {% if stats.business_insights %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-lightbulb me-2"></i>
-                        رؤى الأعمال
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% for insight in stats.business_insights %}
-                    <div class="alert alert-{{ 'info' if insight.type == 'peak_hours' else 'success' if insight.type == 'financial' else 'warning' if insight.type == 'staff' else 'primary' }} alert-dismissible fade show">
-                        <h6 class="alert-heading">
-                            <i class="fas fa-{{ 'clock' if insight.type == 'peak_hours' else 'dollar-sign' if insight.type == 'financial' else 'users' if insight.type == 'staff' else 'info-circle' }} me-2"></i>
-                            {{ insight.title }}
-                        </h6>
-                        <p class="mb-1">{{ insight.description }}</p>
-                        <small class="text-muted">التوصية: {{ insight.recommendation }}</small>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Performance Metrics -->
-    {% if stats.performance_metrics %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-info text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-tachometer-alt me-2"></i>
-                        مقاييس الأداء
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.performance_metrics.completion_rate }}%</h4>
-                                <p class="text-muted mb-0">معدل الإنجاز</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.performance_metrics.appointment_rate }}%</h4>
-                                <p class="text-muted mb-0">معدل المواعيد</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.performance_metrics.avg_wait_time }} دقيقة</h4>
-                                <p class="text-muted mb-0">متوسط وقت الانتظار</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.performance_metrics.overall_score }}%</h4>
-                                <p class="text-muted mb-0">النقاط الإجمالية</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Financial Forecasting -->
-    {% if stats.financial_forecasting %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-gradient-warning text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-line me-2"></i>
-                        التنبؤ المالي
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ stats.financial_forecasting.current_week_revenue or 0 }} ريال</h4>
-                                <p class="text-muted mb-0">إيرادات هذا الأسبوع</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ stats.financial_forecasting.growth_rate }}%</h4>
-                                <p class="text-muted mb-0">معدل النمو</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ stats.financial_forecasting.predicted_next_week or 0 }} ريال</h4>
-                                <p class="text-muted mb-0">التنبؤ للأسبوع القادم</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ stats.financial_forecasting.predicted_monthly or 0 }} ريال</h4>
-                                <p class="text-muted mb-0">التنبؤ الشهري</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <span class="badge bg-{{ 'success' if stats.financial_forecasting.trend == 'growing' else 'warning' if stats.financial_forecasting.trend == 'stable' else 'danger' }}">
-                            {{ 'نمو' if stats.financial_forecasting.trend == 'growing' else 'مستقر' if stats.financial_forecasting.trend == 'stable' else 'تراجع' }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                إجمالي المرضى
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_patients or 0 }}</div>
-                            <div class="text-xs text-success">
-                                <i class="fas fa-arrow-up me-1"></i>
-                                +{{ stats.new_patients_today or 0 }} اليوم
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                إجمالي الزيارات
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_visits or 0 }}</div>
-                            <div class="text-xs text-success">
-                                <i class="fas fa-arrow-up me-1"></i>
-                                {{ stats.visits_today or 0 }} اليوم
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                الإيرادات اليومية
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ "%.2f"|format(stats.today_revenue or 0) }} ₪</div>
-                            <div class="text-xs text-info">
-                                <i class="fas fa-arrow-up me-1"></i>
-                                {{ "%.2f"|format(stats.month_revenue or 0) }} ₪ الشهر
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                المستخدمين النشطين
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.active_users or 0 }}</div>
-                            <div class="text-xs text-warning">
-                                <i class="fas fa-users me-1"></i>
-                                من {{ stats.total_users or 0 }} إجمالي
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-bolt me-2"></i>
-                        إجراءات سريعة
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-2 mb-3">
-                            <a href="{{ url_for('manager.monitoring') }}" class="btn btn-primary btn-block">
-                                <i class="fas fa-eye me-2"></i>
-                                مراقبة النظام
-                            </a>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <a href="{{ url_for('manager.pricing') }}" class="btn btn-info btn-block">
-                                <i class="fas fa-dollar-sign me-2"></i>
-                                إدارة الأسعار
-                            </a>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <a href="{{ url_for('manager.unit_control') }}" class="btn btn-warning btn-block">
-                                <i class="fas fa-cogs me-2"></i>
-                                التحكم في الوحدات
-                            </a>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <a href="{{ url_for('manager.user_management') }}" class="btn btn-success btn-block">
-                                <i class="fas fa-users me-2"></i>
-                                إدارة المستخدمين
-                            </a>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <a href="{{ url_for('super_admin.reports') }}" class="btn btn-secondary btn-block">
-                                <i class="fas fa-chart-bar me-2"></i>
-                                التقارير
-                            </a>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <a href="{{ url_for('super_admin.system_config') }}" class="btn btn-dark btn-block">
-                                <i class="fas fa-cog me-2"></i>
-                                إعدادات النظام
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- System Overview -->
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">نظرة عامة على النظام</h6>
-                    <div class="dropdown no-arrow">
-                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown">
-                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right shadow">
-                            <a class="dropdown-item" href="#" onclick="refreshSystemStatus()">تحديث الحالة</a>
-                            <a class="dropdown-item" href="#" onclick="exportSystemLogs()">تصدير السجلات</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="system-status-item">
-                                <i class="fas fa-hospital text-success me-2"></i>
-                                <span>الاستقبال: <strong class="text-success">نشط</strong></span>
-                                <span class="badge bg-success ms-2">{{ stats.new_patients_today or 0 }} مريض جديد</span>
-                            </div>
-                            <div class="system-status-item">
-                                <i class="fas fa-user-md text-info me-2"></i>
-                                <span>العيادات: <strong class="text-info">نشط</strong></span>
-                                <span class="badge bg-info ms-2">{{ stats.completed_visits_today or 0 }} زيارة مكتملة</span>
-                            </div>
-                            <div class="system-status-item">
-                                <i class="fas fa-ambulance text-warning me-2"></i>
-                                <span>الطوارئ: <strong class="text-warning">جاهز</strong></span>
-                                <span class="badge bg-warning ms-2">0 حالة طوارئ</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="system-status-item">
-                                <i class="fas fa-flask text-primary me-2"></i>
-                                <span>المختبر: <strong class="text-primary">نشط</strong></span>
-                                <span class="badge bg-primary ms-2">0 طلب جديد</span>
-                            </div>
-                            <div class="system-status-item">
-                                <i class="fas fa-x-ray text-secondary me-2"></i>
-                                <span>الأشعة: <strong class="text-secondary">نشط</strong></span>
-                                <span class="badge bg-secondary ms-2">0 طلب جديد</span>
-                            </div>
-                            <div class="system-status-item">
-                                <i class="fas fa-calculator text-success me-2"></i>
-                                <span>المحاسبة: <strong class="text-success">نشط</strong></span>
-                                <span class="badge bg-success ms-2">{{ "%.2f"|format(stats.today_revenue or 0) }} ₪ اليوم</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">إحصائيات سريعة</h6>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>الزيارات المكتملة اليوم</span>
-                            <span class="font-weight-bold text-success">{{ stats.completed_visits_today or 0 }}</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>الزيارات المعلقة</span>
-                            <span class="font-weight-bold text-warning">{{ (stats.visits_today or 0) - (stats.completed_visits_today or 0) }}</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>معدل الإكمال</span>
-                            <span class="font-weight-bold text-info">
-                                {% if stats.visits_today and stats.visits_today > 0 %}
-                                    {{ "%.1f"|format((stats.completed_visits_today or 0) / stats.visits_today * 100) }}%
-                                {% else %}
-                                    0%
-                                {% endif %}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>حالة النظام</span>
-                            <span class="badge bg-success">مستقر</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Departments Overview -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">نظرة عامة على الأقسام</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        {% for department in stats.departments %}
-                        <div class="col-md-4 mb-3">
-                            <div class="card border-left-info">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="card-title">{{ department.name_ar or department.name }}</h6>
-                                            <p class="card-text text-muted">{{ department.description or 'لا يوجد وصف' }}</p>
-                                            <div class="d-flex gap-2">
-                                                <span class="badge bg-{{ 'success' if department.is_active else 'danger' }}">
-                                                    {{ 'نشط' if department.is_active else 'معطل' }}
-                                                </span>
-                                                <span class="badge bg-info">
-                                                    {{ department.current_patients or 0 }}/{{ department.capacity or 0 }} مريض
-                                                </span>
-                                            </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="text-center p-3">
+                                        <div class="icon-circle mx-auto bg-primary bg-opacity-10 mb-3" style="width: 80px; height: 80px;">
+                                            <i class="fas fa-users fa-3x text-primary floating-animation"></i>
                                         </div>
-                                        <div class="text-end">
-                                            <div class="h5 mb-0 text-primary">{{ department.current_patients or 0 }}</div>
-                                            <small class="text-muted">مرضى حالياً</small>
+                                        <h6>إدارة الموظفين</h6>
+                                        <p class="text-muted">مراقبة أداء الموظفين والإنتاجية</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center p-3">
+                                        <div class="icon-circle mx-auto bg-success bg-opacity-10 mb-3" style="width: 80px; height: 80px;">
+                                            <i class="fas fa-chart-bar fa-3x text-success floating-animation"></i>
                                         </div>
+                                        <h6>التقارير المالية</h6>
+                                        <p class="text-muted">تحليل الإيرادات والمصروفات</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center p-3">
+                                        <div class="icon-circle mx-auto bg-warning bg-opacity-10 mb-3" style="width: 80px; height: 80px;">
+                                            <i class="fas fa-cogs fa-3x text-warning floating-animation"></i>
+                                        </div>
+                                        <h6>إدارة النظام</h6>
+                                        <p class="text-muted">مراقبة أداء النظام والصيانة</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">إجمالي المرضى</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.total_patients or 0 }}</div>
+                                    <small class="text-muted">جدد اليوم: {{ stats.new_patients_today or 0 }}</small>
+                                </div>
+                                <div class="icon-circle bg-primary bg-opacity-10 text-primary">
+                                    <i class="fas fa-users fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">زيارات اليوم</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.visits_today or 0 }}</div>
+                                    <small class="text-muted">مؤرشفة اليوم: {{ stats.completed_visits_today or 0 }}</small>
+                                </div>
+                                <div class="icon-circle bg-success bg-opacity-10 text-success">
+                                    <i class="fas fa-calendar-day fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">إيراد اليوم</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ "%.2f"|format(stats.today_revenue or 0) }}</div>
+                                    <small class="text-muted">إيراد الشهر: {{ "%.2f"|format(stats.month_revenue or 0) }}</small>
+                                </div>
+                                <div class="icon-circle bg-warning bg-opacity-10 text-warning">
+                                    <i class="fas fa-wallet fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card card-modern h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase text-muted small fw-bold mb-2">موافقات معلّقة</div>
+                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.pending_force_payment_approvals or 0 }}</div>
+                                    <small class="text-muted">المستخدمون النشطون: {{ stats.active_users or 0 }}</small>
+                                </div>
+                                <div class="icon-circle bg-danger bg-opacity-10 text-danger">
+                                    <i class="fas fa-clipboard-check fa-2x"></i>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 mt-3">
+                                <a class="btn btn-sm btn-outline-secondary w-100" href="{{ url_for('manager.monitoring') }}">المراقبة</a>
+                                <a class="btn btn-sm btn-outline-primary w-100" href="{{ url_for('manager.kpi_dashboard') }}">مؤشرات الأداء</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-lg-7 mb-3">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-sitemap me-2 text-primary"></i>أداء الأقسام (آخر 30 يوم)</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-3">القسم</th>
+                                            <th style="width: 140px;">زيارات مفتوحة</th>
+                                            <th style="width: 140px;">مؤرشفة</th>
+                                            <th style="width: 170px;">متوسط الدقائق</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for r in (stats.department_performance or []) %}
+                                        <tr>
+                                            <td class="ps-3">{{ r.department_name }}</td>
+                                            <td>{{ r.open_visits }}</td>
+                                            <td>{{ r.archived_30d }}</td>
+                                            <td>{{ "%.1f"|format(r.avg_minutes_30d) }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="4" class="text-center text-muted py-4">لا بيانات</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5 mb-3">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-user-md me-2 text-success"></i>أفضل الأطباء (آخر 30 يوم)</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-3">الطبيب</th>
+                                            <th style="width: 120px;">مؤرشفة</th>
+                                            <th style="width: 160px;">متوسط الدقائق</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for r in (stats.doctor_performance or []) %}
+                                        <tr>
+                                            <td class="ps-3">
+                                                <a href="{{ url_for('doctor.dashboard_for_doctor', doctor_id=r.doctor_id) }}">{{ r.doctor_name }}</a>
+                                            </td>
+                                            <td>{{ r.archived_30d }}</td>
+                                            <td>{{ "%.1f"|format(r.avg_minutes_30d) }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="3" class="text-center text-muted py-4">لا بيانات</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Advanced Management Section -->
+        {% if stats.smart_analytics %}
+        <div class="tab-pane fade" id="analytics" role="tabpanel" aria-labelledby="analytics-tab">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header bg-gradient-primary text-white border-0">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                التحليلات الذكية
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-primary fw-bold">{{ stats.smart_analytics.patient_growth_rate or 0 }}%</h4>
+                                        <p class="text-muted mb-0">معدل نمو المرضى</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-success fw-bold">{{ stats.smart_analytics.revenue_growth_rate or 0 }}%</h4>
+                                        <p class="text-muted mb-0">معدل نمو الإيرادات</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-info fw-bold">{{ stats.smart_analytics.avg_visit_duration or 0 }} دقيقة</h4>
+                                        <p class="text-muted mb-0">متوسط مدة الزيارة</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-warning fw-bold">{{ stats.smart_analytics.completion_rate or 0 }}%</h4>
+                                        <p class="text-muted mb-0">معدل الإنجاز</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3 text-center">
+                                <span class="badge bg-{{ 'success' if stats.smart_analytics.trend == 'growing' else 'warning' if stats.smart_analytics.trend == 'stable' else 'danger' }} rounded-pill px-3 py-2">
+                                    {{ 'نمو' if stats.smart_analytics.trend == 'growing' else 'مستقر' if stats.smart_analytics.trend == 'stable' else 'تراجع' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Business Insights -->
+        {% if stats.business_insights %}
+        <div class="tab-pane fade" id="insights" role="tabpanel" aria-labelledby="insights-tab">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header bg-gradient-success text-white border-0">
+                            <h5 class="mb-0">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                رؤى الأعمال
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% for insight in stats.business_insights %}
+                            <div class="alert alert-{{ 'info' if insight.type == 'peak_hours' else 'success' if insight.type == 'financial' else 'warning' if insight.type == 'staff' else 'primary' }} alert-dismissible fade show border-0 shadow-sm mb-3">
+                                <h6 class="alert-heading fw-bold">
+                                    <i class="fas fa-{{ 'clock' if insight.type == 'peak_hours' else 'dollar-sign' if insight.type == 'financial' else 'users' if insight.type == 'staff' else 'info-circle' }} me-2"></i>
+                                    {{ insight.title }}
+                                </h6>
+                                <p class="mb-1">{{ insight.description }}</p>
+                                <small class="text-muted">التوصية: {{ insight.recommendation }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Performance Metrics -->
+        {% if stats.performance_metrics %}
+        <div class="tab-pane fade" id="performance" role="tabpanel" aria-labelledby="performance-tab">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header bg-gradient-info text-white border-0">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tachometer-alt me-2"></i>
+                                مقاييس الأداء
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-success fw-bold">{{ stats.performance_metrics.completion_rate }}%</h4>
+                                        <p class="text-muted mb-0">معدل الإنجاز</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-primary fw-bold">{{ stats.performance_metrics.appointment_rate }}%</h4>
+                                        <p class="text-muted mb-0">معدل المواعيد</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-warning fw-bold">{{ stats.performance_metrics.avg_wait_time }} دقيقة</h4>
+                                        <p class="text-muted mb-0">متوسط وقت الانتظار</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-info fw-bold">{{ stats.performance_metrics.overall_score }}%</h4>
+                                        <p class="text-muted mb-0">النقاط الإجمالية</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Financial Forecasting -->
+        {% if stats.financial_forecasting %}
+        <div class="tab-pane fade" id="forecasting" role="tabpanel" aria-labelledby="forecasting-tab">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-modern">
+                        <div class="card-header bg-gradient-dark text-white border-0">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i>
+                                التوقعات المالية
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p>محتوى التوقعات المالية...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if stats.bi_insights %}
+        <div class="tab-pane fade" id="bi" role="tabpanel" aria-labelledby="bi-tab">
+            <div class="row mb-4">
+                <div class="col-lg-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-gradient-dark text-white border-0">
+                            <h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>تحليلات المواعيد والزيارات</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2"><span>زيارات 30 يوم</span><strong>{{ stats.bi_insights.visits_30d or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>زيارات مكتملة</span><strong>{{ stats.bi_insights.completed_30d or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>مواعيد 30 يوم</span><strong>{{ stats.bi_insights.appointments_30d or 0 }}</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>معدل التحويل</span><strong>{{ stats.bi_insights.conversion_rate or 0 }}%</strong></div>
+                            <div class="d-flex justify-content-between mb-2"><span>عدم الحضور</span><strong>{{ stats.bi_insights.no_show_rate or 0 }}%</strong></div>
+                            <div class="d-flex justify-content-between"><span>الإلغاء</span><strong>{{ stats.bi_insights.cancel_rate or 0 }}%</strong></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-gradient-warning text-white border-0">
+                            <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>سيناريوهات What-if</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">إضافة طاقم</label>
+                                    <input type="number" class="form-control" id="what_if_staff" value="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">إضافة غرف</label>
+                                    <input type="number" class="form-control" id="what_if_rooms" value="0">
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-dark w-100 mb-3" id="runWhatIf">تنفيذ السيناريو</button>
+                            <div class="border rounded p-3">
+                                <div class="d-flex justify-content-between mb-2"><span>طاقة المعالجة</span><strong id="whatIfThroughput">-</strong></div>
+                                <div class="d-flex justify-content-between mb-2"><span>زمن الانتظار</span><strong id="whatIfWait">-</strong></div>
+                                <div class="d-flex justify-content-between"><span>إيراد متوقع</span><strong id="whatIfRevenue">-</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
+{% endblock %}
 
-<style>
-.system-status-item {
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #f8f9fa;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.system-status-item:last-child {
-    border-bottom: none;
-}
-
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df !important;
-}
-
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a !important;
-}
-
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc !important;
-}
-
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e !important;
-}
-
-.btn-block {
-    width: 100%;
-    padding: 0.75rem;
-    text-align: center;
-    text-decoration: none;
-    display: block;
-}
-
-.btn-block:hover {
-    text-decoration: none;
-    transform: translateY(-2px);
-    transition: all 0.3s ease;
-}
-</style>
-
+{% block extra_js %}
 <script>
-function refreshDashboard() {
-    location.reload();
-}
-
-function exportReport() {
-    // تصدير تقرير شامل
-    const reportData = {
-        total_patients: {{ stats.total_patients or 0 }},
-        total_visits: {{ stats.total_visits or 0 }},
-        today_revenue: {{ stats.today_revenue or 0 }},
-        active_users: {{ stats.active_users or 0 }},
-        date: new Date().toISOString().split('T')[0]
-    };
-    
-    // إنشاء ملف CSV
-    const csvContent = "data:text/csv;charset=utf-8," 
-        + "المؤشر,القيمة\n"
-        + "إجمالي المرضى," + reportData.total_patients + "\n"
-        + "إجمالي الزيارات," + reportData.total_visits + "\n"
-        + "الإيرادات اليومية," + reportData.today_revenue + "\n"
-        + "المستخدمين النشطين," + reportData.active_users + "\n"
-        + "التاريخ," + reportData.date;
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "manager_report_" + reportData.date + ".csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function refreshSystemStatus() {
-    // إعادة تحميل حالة النظام
-    location.reload();
-}
-
-function exportSystemLogs() {
-    // تصدير سجلات النظام
-    window.open('{{ url_for("super_admin.security_logs") }}?export=true', '_blank');
-}
-
-// تحديث تلقائي كل 5 دقائق
-setInterval(function() {
-    // تحديث الإحصائيات دون إعادة تحميل الصفحة
-    fetch('{{ url_for("manager.dashboard") }}?ajax=true')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // تحديث الإحصائيات في الصفحة
-                updateStatistics(data.stats);
-            }
-        })
-        .catch(error => {
-            console.error('Error updating statistics:', error);
+const runBtn = document.getElementById('runWhatIf');
+if (runBtn) {
+    runBtn.addEventListener('click', async () => {
+        const staff = parseInt(document.getElementById('what_if_staff').value || '0', 10);
+        const rooms = parseInt(document.getElementById('what_if_rooms').value || '0', 10);
+        const r = await fetch('{{ url_for("manager.api_what_if") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ add_staff: staff, add_rooms: rooms })
         });
-}, 300000); // 5 دقائق
-
-function updateStatistics(stats) {
-    // تحديث الإحصائيات في الصفحة
-    document.querySelector('.h5.mb-0.font-weight-bold.text-gray-800').textContent = stats.total_patients || 0;
-    // يمكن إضافة المزيد من التحديثات هنا
+        const data = await r.json().catch(() => ({}));
+        document.getElementById('whatIfThroughput').textContent = data.predicted_throughput ?? '-';
+        document.getElementById('whatIfWait').textContent = (data.predicted_wait_minutes ?? '-') + ' دقيقة';
+        document.getElementById('whatIfRevenue').textContent = data.predicted_revenue ?? '-';
+    });
 }
 </script>
-
-<!-- Smart Analytics Section -->
-{% if stats.smart_analytics %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-gradient-primary text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-chart-bar me-2"></i>
-                    التحليلات الذكية
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <h4 class="text-primary">{{ stats.smart_analytics.patient_growth_rate }}%</h4>
-                            <p class="text-muted mb-0">معدل نمو المرضى</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <h4 class="text-success">{{ stats.smart_analytics.revenue_growth_rate }}%</h4>
-                            <p class="text-muted mb-0">معدل نمو الإيرادات</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <h4 class="text-info">{{ stats.smart_analytics.avg_visit_duration }} دقيقة</h4>
-                            <p class="text-muted mb-0">متوسط مدة الزيارة</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <h4 class="text-warning">{{ stats.smart_analytics.completion_rate }}%</h4>
-                            <p class="text-muted mb-0">معدل الإنجاز</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <span class="badge bg-{{ 'success' if stats.smart_analytics.trend == 'growing' else 'warning' if stats.smart_analytics.trend == 'stable' else 'danger' }}">
-                        {{ 'نمو' if stats.smart_analytics.trend == 'growing' else 'مستقر' if stats.smart_analytics.trend == 'stable' else 'تراجع' }}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Business Insights Section -->
-{% if stats.business_insights %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-gradient-success text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-lightbulb me-2"></i>
-                    رؤى الأعمال
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <h4 class="text-success">{{ stats.business_insights.peak_hour or 'غير محدد' }}</h4>
-                            <p class="text-muted mb-0">ساعة الذروة</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <h4 class="text-info">{{ stats.business_insights.avg_daily_revenue or 0 }} د.ك</h4>
-                            <p class="text-muted mb-0">متوسط الإيراد اليومي</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <h4 class="text-warning">{{ stats.business_insights.staff_engagement_score or 0 }}%</h4>
-                            <p class="text-muted mb-0">معدل تفاعل الموظفين</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Performance Metrics Section -->
-{% if stats.performance_metrics %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-gradient-info text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    مقاييس الأداء
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <h4 class="text-primary">{{ stats.performance_metrics.department_efficiency or 0 }}%</h4>
-                            <p class="text-muted mb-0">كفاءة الأقسام</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <h4 class="text-success">{{ stats.performance_metrics.resource_utilization or 0 }}%</h4>
-                            <p class="text-muted mb-0">استخدام الموارد</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <h4 class="text-info">{{ stats.performance_metrics.doctor_productivity or 0 }}%</h4>
-                            <p class="text-muted mb-0">إنتاجية الأطباء</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <h4 class="text-warning">{{ stats.performance_metrics.overall_score or 0 }}%</h4>
-                            <p class="text-muted mb-0">النتيجة الإجمالية</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Financial Forecasting Section -->
-{% if stats.financial_forecasting %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-gradient-warning text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-chart-line me-2"></i>
-                    التنبؤ المالي
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <h4 class="text-success">{{ stats.financial_forecasting.predicted_revenue or 0 }} د.ك</h4>
-                            <p class="text-muted mb-0">الإيراد المتوقع</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <h4 class="text-info">{{ stats.financial_forecasting.growth_rate or 0 }}%</h4>
-                            <p class="text-muted mb-0">معدل النمو المتوقع</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="text-center">
-                            <h4 class="text-warning">{{ stats.financial_forecasting.confidence_level or 0 }}%</h4>
-                            <p class="text-muted mb-0">مستوى الثقة</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
 {% endblock %}

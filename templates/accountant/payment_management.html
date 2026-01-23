@@ -23,6 +23,14 @@
                                     <i class="fas fa-arrow-left me-1"></i>
                                     العودة للوحة التحكم
                                 </a>
+                                <a href="{{ url_for('accountant.daily_audit_report') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-calendar-day me-1"></i>
+                                    إقفال اليوم
+                                </a>
+                                <a href="{{ url_for('accountant.debt_tracking_report') }}" class="btn btn-outline-danger">
+                                    <i class="fas fa-hand-holding-usd me-1"></i>
+                                    الديون
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -39,11 +47,159 @@
                     <h6 class="m-0 font-weight-bold text-primary">إدارة المدفوعات</h6>
                 </div>
                 <div class="card-body">
-                    <div class="text-center py-5">
-                        <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">إدارة المدفوعات</h5>
-                        <p class="text-muted">ستظهر هنا تفاصيل إدارة المدفوعات</p>
+                    <form class="row g-2 align-items-end mb-3" method="GET" action="{{ url_for('accountant.financial') }}">
+                        <div class="col-md-9">
+                            <label class="form-label">بحث عن مريض (اسم/هاتف/رقم وطني/رقم ملف)</label>
+                            <input type="text" class="form-control" name="q" value="{{ q or '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary w-100">بحث</button>
+                        </div>
+                    </form>
+
+                    {% if patients and patients|length > 0 %}
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>الملف</th>
+                                    <th>الاسم</th>
+                                    <th>الهاتف</th>
+                                    <th>الهوية</th>
+                                    <th class="text-end" style="width: 170px;">إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in patients %}
+                                <tr>
+                                    <td>{{ p.id }}</td>
+                                    <td>{{ p.full_name }}</td>
+                                    <td>{{ p.phone or '-' }}</td>
+                                    <td>{{ p.national_id or '-' }}</td>
+                                    <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('accountant.financial') }}?patient_id={{ p.id }}">كشف الحساب</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
+                    {% endif %}
+
+                    {% if selected_patient and statement %}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-1">كشف حساب: {{ selected_patient.full_name }}</h5>
+                                            <div class="text-muted">هاتف: {{ selected_patient.phone or '-' }} | هوية: {{ selected_patient.national_id or '-' }}</div>
+                                        </div>
+                                        <a class="btn btn-outline-secondary" href="{{ url_for('accountant.financial') }}">تفريغ</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-2">
+                            <div class="info-box bg-light">
+                                <span class="info-box-icon"><i class="fas fa-file-invoice"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">إجمالي الفواتير</span>
+                                    <span class="info-box-number">{{ "%.2f"|format(statement.totals.total_billed) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <div class="info-box bg-light">
+                                <span class="info-box-icon"><i class="fas fa-coins"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">إجمالي المدفوع</span>
+                                    <span class="info-box-number">{{ "%.2f"|format(statement.totals.total_paid) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <div class="info-box bg-light">
+                                <span class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">المتبقي (زيارات غير مسددة)</span>
+                                    <span class="info-box-number">{{ "%.2f"|format(statement.totals.total_remaining) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-7 mb-3">
+                            <div class="card shadow-sm">
+                                <div class="card-header">الزيارات</div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>زيارة</th>
+                                                    <th>التاريخ</th>
+                                                    <th>القسم</th>
+                                                    <th class="text-end">الإجمالي</th>
+                                                    <th class="text-end">المدفوع</th>
+                                                    <th class="text-end">المتبقي</th>
+                                                    <th>حالة الدفع</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for v in statement.visits %}
+                                                <tr>
+                                                    <td>{{ v.visit_number or v.id }}</td>
+                                                    <td>{{ v.visit_date.strftime('%Y-%m-%d') if v.visit_date else (v.created_at.strftime('%Y-%m-%d') if v.created_at else '-') }}</td>
+                                                    <td>{{ v.department.name_ar if v.department else '-' }}</td>
+                                                    <td class="text-end">{{ "%.2f"|format(v.total_amount or 0) }}</td>
+                                                    <td class="text-end">{{ "%.2f"|format(v.paid_amount or 0) }}</td>
+                                                    <td class="text-end">{{ "%.2f"|format(v.remaining_amount or 0) }}</td>
+                                                    <td>{{ v.payment_status }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5 mb-3">
+                            <div class="card shadow-sm">
+                                <div class="card-header">المدفوعات (مؤكدة)</div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>التاريخ</th>
+                                                    <th>الطريقة</th>
+                                                    <th class="text-end">المبلغ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for pmt in statement.payments %}
+                                                <tr>
+                                                    <td>{{ pmt.id }}</td>
+                                                    <td>{{ pmt.payment_date.strftime('%Y-%m-%d') if pmt.payment_date else '-' }}</td>
+                                                    <td>{{ pmt.method_display }}</td>
+                                                    <td class="text-end">{{ "%.2f"|format(pmt.amount or 0) }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

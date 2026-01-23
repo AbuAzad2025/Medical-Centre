@@ -27,6 +27,9 @@
                                     <i class="fas fa-arrow-right me-1"></i>
                                     العودة
                                 </button>
+                                {% if qr_data_uri %}
+                                <img src="{{ qr_data_uri }}" alt="QR" style="height:96px; margin-right: 8px; border:1px solid #eee; border-radius:4px;" />
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -52,16 +55,21 @@
                             <h5 class="text-primary mb-3">معلومات المريض</h5>
                             <div class="row">
                                 <div class="col-md-3">
-                                    <strong>الاسم:</strong> {{ lab_request.patient.full_name }}
+                            <strong>الاسم:</strong> {{ lab_request.patient.full_name }}
                                 </div>
                                 <div class="col-md-3">
-                                    <strong>العمر:</strong> {{ lab_request.patient.age }} سنة
+                            <strong>العمر:</strong>
+                            {% if lab_request.patient.birth_date %}
+                                {{ moment().diff(moment(lab_request.patient.birth_date), 'years') }} سنة
+                            {% else %}
+                                غير محدد
+                            {% endif %}
                                 </div>
                                 <div class="col-md-3">
-                                    <strong>رقم الهوية:</strong> {{ lab_request.patient.id_number }}
+                            <strong>رقم الهوية:</strong> {{ lab_request.patient.national_id or 'غير محدد' }}
                                 </div>
                                 <div class="col-md-3">
-                                    <strong>رقم الهاتف:</strong> {{ lab_request.patient.phone }}
+                            <strong>رقم الهاتف:</strong> {{ lab_request.patient.phone or 'غير محدد' }}
                                 </div>
                             </div>
                         </div>
@@ -73,21 +81,28 @@
                             <h5 class="text-primary mb-3">معلومات طلب التحليل</h5>
                             <div class="row">
                                 <div class="col-md-4">
-                                    <strong>نوع التحليل:</strong> {{ lab_request.get_test_type_display() }}
+                            <strong>نوع التحليل:</strong>
+                            {% if lab_request.results and lab_request.results|length > 0 %}
+                                {{ lab_request.results[0].test_name }}
+                            {% else %}
+                                غير محدد
+                            {% endif %}
                                 </div>
                                 <div class="col-md-4">
-                                    <strong>تاريخ الطلب:</strong> {{ lab_request.created_at.strftime('%Y-%m-%d') }}
+                            <strong>تاريخ الطلب:</strong> {{ lab_request.created_at.strftime('%Y-%m-%d') }}
                                 </div>
                                 <div class="col-md-4">
-                                    <strong>الطبيب:</strong> {{ lab_request.doctor.full_name if lab_request.doctor else 'غير محدد' }}
+                            <strong>الطبيب:</strong> {{ lab_request.requester.full_name if lab_request.requester else 'غير محدد' }}
                                 </div>
                             </div>
                             <div class="row mt-3">
                                 <div class="col-md-6">
-                                    <strong>سبب التحليل:</strong> {{ lab_request.reason }}
+                            <strong>سبب التحليل:</strong> {{ lab_request.notes or 'غير محدد' }}
                                 </div>
                                 <div class="col-md-6">
-                                    <strong>الحالة:</strong> {{ lab_request.get_status_display() }}
+                            <strong>الحالة:</strong>
+                            {% set st = lab_request.status %}
+                            {% if st == 'REQUESTED' %} قيد الطلب {% elif st == 'IN_PROGRESS' %} قيد التنفيذ {% elif st == 'DONE' %} مكتمل {% elif st == 'CANCELLED' %} ملغي {% else %} {{ st }} {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -113,12 +128,12 @@
                                             {% for result in lab_request.results %}
                                             <tr>
                                                 <td>{{ result.test_name }}</td>
-                                                <td>{{ result.result_value }}</td>
+                                                <td>{{ result.value }}</td>
                                                 <td>{{ result.unit or '-' }}</td>
-                                                <td>{{ result.normal_range or '-' }}</td>
+                                                <td>{{ result.reference_range or '-' }}</td>
                                                 <td>
                                                     <span class="badge {% if result.status == 'normal' %}bg-success{% elif result.status == 'abnormal' %}bg-danger{% elif result.status == 'high' %}bg-warning{% elif result.status == 'low' %}bg-info{% else %}bg-secondary{% endif %}">
-                                                        {{ result.get_status_display() }}
+                                                        {% if result.status == 'PENDING' %} معلق {% elif result.status == 'READY' %} جاهز {% elif result.status == 'VALIDATED' %} مُعتمد {% else %} {{ result.status }} {% endif %}
                                                     </span>
                                                 </td>
                                             </tr>
@@ -141,7 +156,7 @@
                     <div class="row mb-4">
                         <div class="col-12">
                             <h5 class="text-primary mb-3">ملاحظات المختبر</h5>
-                            <p>{{ lab_request.lab_notes }}</p>
+                            <p>{{ lab_request.notes or '' }}</p>
                         </div>
                     </div>
                     {% endif %}
@@ -152,21 +167,28 @@
                             <h5 class="text-primary mb-3">معلومات ضبط الجودة</h5>
                             <div class="row">
                                 <div class="col-md-4">
-                                    <strong>تاريخ إجراء التحليل:</strong> {{ lab_request.test_date.strftime('%Y-%m-%d') if lab_request.test_date else 'غير محدد' }}
+                                    <strong>تاريخ إجراء التحليل:</strong> {{ lab_request.completed_at.strftime('%Y-%m-%d') if lab_request.completed_at else 'غير محدد' }}
                                 </div>
                                 <div class="col-md-4">
-                                    <strong>وقت إجراء التحليل:</strong> {{ lab_request.test_time.strftime('%H:%M') if lab_request.test_time else 'غير محدد' }}
+                                    <strong>وقت إجراء التحليل:</strong> {{ lab_request.completed_at.strftime('%H:%M') if lab_request.completed_at else 'غير محدد' }}
                                 </div>
                                 <div class="col-md-4">
-                                    <strong>الفني المسؤول:</strong> {{ lab_request.technician or 'غير محدد' }}
+                                    <strong>الفني المسؤول:</strong>
+                                    {% if lab_request.results and lab_request.results|length > 0 %}
+                                        {{ lab_request.results[0].performer.full_name if lab_request.results[0].performer else 'غير محدد' }}
+                                    {% else %}
+                                        غير محدد
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="row mt-3">
                                 <div class="col-md-6">
-                                    <strong>حالة التقرير:</strong> {{ lab_request.get_report_status_display() }}
+                                    <strong>حالة التقرير:</strong>
+                                    {% set st2 = lab_request.status %}
+                                    {% if st2 == 'REQUESTED' %} معلق {% elif st2 == 'IN_PROGRESS' %} قيد التنفيذ {% elif st2 == 'DONE' %} مكتمل {% elif st2 == 'CANCELLED' %} ملغي {% else %} {{ st2 }} {% endif %}
                                 </div>
                                 <div class="col-md-6">
-                                    <strong>تاريخ إكمال التقرير:</strong> {{ lab_request.completion_date.strftime('%Y-%m-%d') if lab_request.completion_date else 'غير محدد' }}
+                                    <strong>تاريخ إكمال التقرير:</strong> {{ lab_request.completed_at.strftime('%Y-%m-%d') if lab_request.completed_at else 'غير محدد' }}
                                 </div>
                             </div>
                         </div>
@@ -177,7 +199,7 @@
                         <div class="col-12">
                             <div class="text-center">
                                 <p class="text-muted">
-                                    <strong>تاريخ الطباعة:</strong> {{ today.strftime('%Y-%m-%d %H:%M') }}
+                            <strong>تاريخ الطباعة:</strong> {{ moment().format('YYYY-MM-DD HH:mm') }}
                                 </p>
                                 <p class="text-muted">
                                     <strong>مستشفى/عيادة طبية</strong><br>

@@ -3,7 +3,7 @@
 Medical System Advanced Notification Model
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint, func
 from app_factory import db
 import json
@@ -31,13 +31,21 @@ class Notification(db.Model):
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     
     # الحالة
-    is_read = db.Column(db.Boolean, default=False)
+    is_read = db.Column(db.Boolean, default=False, index=True)
     is_urgent = db.Column(db.Boolean, default=False)
     expires_at = db.Column(db.DateTime, nullable=True)
     
     # التوقيت
-    sent_at = db.Column(db.DateTime, default=datetime.utcnow)
+    sent_at = db.Column(db.DateTime, default=db.func.now(), index=True)
     read_at = db.Column(db.DateTime, nullable=True)
+
+    # Constraints and Indexes
+    __table_args__ = (
+        Index('idx_notif_recipient', 'recipient_id'),
+        Index('idx_notif_sender', 'sender_id'),
+        Index('idx_notif_created', 'sent_at'),
+        {'extend_existing': True}
+    )
     
     # العلاقات
     recipient = db.relationship('User', foreign_keys=[recipient_id], back_populates='notifications')
@@ -50,13 +58,15 @@ class Notification(db.Model):
     def mark_as_read(self):
         """تحديد الإشعار كمقروء"""
         self.is_read = True
-        self.read_at = datetime.utcnow()
+        from datetime import timezone, datetime as _dt
+        self.read_at = _dt.now(timezone.utc)
         db.session.commit()
     
     def is_expired(self):
         """التحقق من انتهاء صلاحية الإشعار"""
         if self.expires_at:
-            return datetime.utcnow() > self.expires_at
+            from datetime import timezone, datetime as _dt
+            return _dt.now(timezone.utc) > self.expires_at
         return False
     
     def to_dict(self):
@@ -92,8 +102,8 @@ class NotificationTemplate(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     is_system = db.Column(db.Boolean, default=False)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=db.func.now())
+    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
     
     # العلاقات
     creator = db.relationship('User', foreign_keys=[created_by], lazy='select')
@@ -172,8 +182,8 @@ class NotificationQueue(db.Model):
     error_message = db.Column(db.Text, nullable=True)
     retry_count = db.Column(db.Integer, default=0)
     max_retries = db.Column(db.Integer, default=3)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=db.func.now())
+    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
     
     # العلاقات
     user = db.relationship('User', backref='notification_queue')
@@ -251,7 +261,7 @@ class WhatsAppMessage(db.Model):
     delivered_at = db.Column(db.DateTime, nullable=True)
     failed_at = db.Column(db.DateTime, nullable=True)
     error_message = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     def __repr__(self):
         return f'<WhatsAppMessage {self.phone_number}>'
@@ -289,7 +299,7 @@ class EmailMessage(db.Model):
     delivered_at = db.Column(db.DateTime, nullable=True)
     failed_at = db.Column(db.DateTime, nullable=True)
     error_message = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     def __repr__(self):
         return f'<EmailMessage {self.recipient_email}>'

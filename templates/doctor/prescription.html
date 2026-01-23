@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% import 'macros/forms.html' as forms %}
+{% block title %}وصفة طبية{% endblock %}
+{% block content %}
+<div class="container">
+  <h2 class="mb-3">الوصفة للزيارة #{{ visit.id }}</h2>
+  <div class="card shadow-sm"><div class="card-body">
+    <p>المريض: {{ visit.patient.full_name if visit.patient else '' }}</p>
+    <p>القسم: {{ visit.department.name_ar if visit.department else '' }}</p>
+    <p>التشخيص: {{ visit.medical_record.diagnosis if visit.medical_record else '' }}</p>
+  </div></div>
+  {% if visit_prescriptions %}
+  <div class="card shadow-sm mt-3">
+    <div class="card-header">وصفات هذه الزيارة</div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>رقم الوصفة</th>
+              <th>عدد الأدوية</th>
+              <th>التاريخ</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in visit_prescriptions %}
+            <tr>
+              <td>{{ p.id }}</td>
+              <td>{{ p.prescription_number }}</td>
+              <td>{{ p.items.count() }}</td>
+              <td>{{ p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '' }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('doctor.print_prescription', prescription_id=p.id) }}" target="_blank">
+                  <i class="fas fa-print me-1"></i>طباعة
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  <div class="card mt-3">
+    <div class="card-header">إنشاء وصفة</div>
+    <div class="card-body">
+      <form method="post">
+        {{ forms.csrf() }}
+        <div class="row g-3 mb-2">
+          <div class="col-md-6">
+            <label class="form-label">قوالب الطبيب</label>
+            <select class="form-select" id="templateSelect">
+              <option value="">بدون قالب</option>
+              {% for t in doctor_templates or [] %}
+              <option value="{{ t.id }}">{{ t.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6 d-flex align-items-end">
+            <button type="button" class="btn btn-outline-secondary w-100" id="applyTemplateBtn">
+              <i class="fas fa-bolt me-1"></i>تطبيق القالب
+            </button>
+          </div>
+        </div>
+
+        <datalist id="medications_list">
+          {% for m in medications or [] %}
+          <option value="{{ m.id }}|{{ m.trade_name }}{% if m.generic_name %} ({{ m.generic_name }}){% endif %} — {{ m.scientific_name }} — {{ m.strength }} {{ m.dosage_form }}"></option>
+          {% endfor %}
+        </datalist>
+
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="table-responsive">
+              <table class="table table-sm align-middle" id="rxItemsTable">
+                <thead>
+                  <tr>
+                    <th style="min-width: 340px;">الدواء</th>
+                    <th style="min-width: 160px;">الجرعة</th>
+                    <th style="min-width: 160px;">التكرار</th>
+                    <th style="min-width: 120px;">المدة (أيام)</th>
+                    <th style="min-width: 100px;">الكمية</th>
+                    <th style="min-width: 200px;">تعليمات</th>
+                    <th style="width: 1%;"></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <button type="button" class="btn btn-outline-primary" id="addRxItemBtn">
+              <i class="fas fa-plus me-1"></i>إضافة دواء
+            </button>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">تعليمات إضافية (للوصفة كاملة)</label>
+            <textarea class="form-control" name="additional_notes" rows="3" placeholder="أي تعليمات عامة للصيدلية أو للمريض"></textarea>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">أدوية غير موجودة (اختياري)</label>
+            <textarea class="form-control" name="non_catalog_medications" rows="3" placeholder="اكتب أسماء الأدوية غير الموجودة لإشعار الصيدلية"></textarea>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-check mt-4">
+              <input class="form-check-input" type="checkbox" id="save_as_template" name="save_as_template">
+              <label class="form-check-label" for="save_as_template">حفظ كقالب للطبيب</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">اسم القالب (عند الحفظ)</label>
+            <input type="text" class="form-control" name="template_name" placeholder="مثال: نزلة برد">
+          </div>
+
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-prescription-bottle-alt me-1"></i>
+              حفظ الوصفة
+            </button>
+            <a href="{{ url_for('doctor.patient_details', visit_id=visit.id) }}" class="btn btn-secondary ms-2">رجوع</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const RX_TEMPLATES = {{ (doctor_templates or [])|tojson }};
+
+function parseMedicationRef(value) {
+  const v = (value || '').trim();
+  if (!v) return { id: '', label: '' };
+  if (v.includes('|')) {
+    const parts = v.split('|');
+    const id = (parts[0] || '').trim();
+    const label = (parts.slice(1).join('|') || '').trim();
+    return { id, label };
+  }
+  return { id: '', label: v };
+}
+
+function createRxRow(initial) {
+  const tbody = document.querySelector('#rxItemsTable tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>
+      <input type="text" class="form-control medication-ref" name="item_medication_ref[]" list="medications_list" placeholder="ابدأ بالكتابة للاختيار" required>
+      <input type="hidden" class="medication-id" name="item_medication_id[]">
+    </td>
+    <td><input type="text" class="form-control" name="item_dosage[]" placeholder="مثال: قرص واحد" required></td>
+    <td><input type="text" class="form-control" name="item_frequency[]" placeholder="مثال: مرتين يومياً" required></td>
+    <td><input type="number" min="1" class="form-control" name="item_duration_days[]" value="7" required></td>
+    <td><input type="number" min="1" class="form-control" name="item_quantity[]" value="1" required></td>
+    <td><input type="text" class="form-control" name="item_instructions[]" placeholder="قبل الطعام"></td>
+    <td class="text-end">
+      <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn"><i class="fas fa-times"></i></button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+
+  const refInput = tr.querySelector('.medication-ref');
+  const idInput = tr.querySelector('.medication-id');
+
+  refInput.addEventListener('input', function() {
+    const p = parseMedicationRef(this.value);
+    idInput.value = p.id || '';
+  });
+
+  tr.querySelector('.remove-item-btn').addEventListener('click', function() {
+    tr.remove();
+    ensureAtLeastOneRow();
+  });
+
+  if (initial) {
+    if (initial.medication_id) {
+      const label = initial.medication_label ? (initial.medication_id + '|' + initial.medication_label) : (String(initial.medication_id));
+      refInput.value = label;
+      idInput.value = String(initial.medication_id);
+    } else if (initial.medication_ref) {
+      refInput.value = initial.medication_ref;
+      const p = parseMedicationRef(initial.medication_ref);
+      idInput.value = p.id || '';
+    }
+    tr.querySelector('[name="item_dosage[]"]').value = initial.dosage || '';
+    tr.querySelector('[name="item_frequency[]"]').value = initial.frequency || '';
+    tr.querySelector('[name="item_duration_days[]"]').value = initial.duration_days || 7;
+    tr.querySelector('[name="item_quantity[]"]').value = initial.quantity || 1;
+    tr.querySelector('[name="item_instructions[]"]').value = initial.instructions || '';
+  }
+}
+
+function ensureAtLeastOneRow() {
+  const tbody = document.querySelector('#rxItemsTable tbody');
+  if (!tbody.children.length) createRxRow();
+}
+
+document.getElementById('addRxItemBtn').addEventListener('click', function() {
+  createRxRow();
+});
+
+document.getElementById('applyTemplateBtn').addEventListener('click', function() {
+  const tplId = (document.getElementById('templateSelect').value || '').trim();
+  if (!tplId) return;
+  const tpl = (RX_TEMPLATES || []).find(t => String(t.id) === String(tplId));
+  if (!tpl || !tpl.items) return;
+  const tbody = document.querySelector('#rxItemsTable tbody');
+  tbody.innerHTML = '';
+  (tpl.items || []).forEach(it => createRxRow(it));
+  ensureAtLeastOneRow();
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  ensureAtLeastOneRow();
+});
+</script>
+{% endblock %}

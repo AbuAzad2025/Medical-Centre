@@ -375,37 +375,53 @@ function filterLogs(level) {
 }
 
 function viewLogDetails(logId) {
-    // عرض تفاصيل السجل
-    alert('عرض تفاصيل السجل: ' + logId);
+    Swal.fire({ title: 'تفاصيل السجل', text: 'عرض تفاصيل السجل: ' + logId, icon: 'info' });
 }
 
 function blockIP() {
-    // حظر IP
-    const ip = prompt('أدخل عنوان IP للحظر:');
-    if (ip) {
-        if (confirm('هل تريد حظر هذا العنوان IP: ' + ip + '؟')) {
-            alert('تم حظر العنوان IP: ' + ip);
+    Swal.fire({
+        title: 'حظر IP',
+        input: 'text',
+        inputLabel: 'أدخل عنوان IP للحظر',
+        inputPlaceholder: 'مثال: 192.168.1.10',
+        showCancelButton: true,
+        confirmButtonText: 'حظر',
+        cancelButtonText: 'إلغاء',
+        inputValidator: (value) => {
+            if (!value) return 'يجب إدخال عنوان IP';
         }
-    }
+    }).then((res) => {
+        if (res.isConfirmed) {
+            const ip = res.value;
+            Swal.fire({ title: 'تم', text: 'تم حظر العنوان IP: ' + ip, icon: 'success' });
+        }
+    });
 }
 
 function resetFailedLogins() {
-    // إعادة تعيين محاولات الدخول الفاشلة
-    if (confirm('هل تريد إعادة تعيين جميع محاولات الدخول الفاشلة؟')) {
-        alert('تم إعادة تعيين محاولات الدخول الفاشلة');
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل تريد إعادة تعيين جميع محاولات الدخول الفاشلة؟',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم إعادة تعيين محاولات الدخول الفاشلة', icon: 'success' }); } });
 }
 
 function clearLogs() {
-    // مسح السجلات القديمة
-    if (confirm('هل تريد مسح السجلات القديمة (أكثر من 30 يوم)؟')) {
-        alert('تم مسح السجلات القديمة');
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل تريد مسح السجلات القديمة (أكثر من 30 يوم)؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، مسح',
+        cancelButtonText: 'إلغاء'
+    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم مسح السجلات القديمة', icon: 'success' }); } });
 }
 
 function exportSecurityReport() {
-    // تصدير تقرير الأمان
-    alert('تم تصدير تقرير الأمان');
+    Swal.fire({ title: 'تم', text: 'تم تصدير تقرير الأمان', icon: 'success' });
 }
 
 // إضافة تأثيرات تفاعلية

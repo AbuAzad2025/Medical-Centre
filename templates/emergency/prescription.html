@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}وصفة الطوارئ{% endblock %}
+{% block content %}
+<div class="container">
+  <h2 class="mb-3">الوصفة للحالة #{{ emergency.id }}</h2>
+  <form method="post" action="{{ url_for('emergency.prescription', emergency_id=emergency.id) }}" class="card p-3 shadow-sm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div id="meds">
+      <div class="row g-2 align-items-end mb-2">
+        <div class="col"><input class="form-control" name="medications[]" placeholder="الدواء"></div>
+        <div class="col"><input class="form-control" name="dosages[]" placeholder="الجرعة"></div>
+        <div class="col"><input class="form-control" name="frequencies[]" placeholder="التكرار"></div>
+        <div class="col"><input class="form-control" name="durations[]" placeholder="المدة"></div>
+        <div class="col"><input class="form-control" name="instructions[]" placeholder="تعليمات"></div>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">حفظ</button>
+  </form>
+</div>
+{% endblock %}
+

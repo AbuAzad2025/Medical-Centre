@@ -3,7 +3,7 @@
 Medical System Queue Management Model
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from app_factory import db
 import json
 
@@ -24,8 +24,9 @@ class QueueManagement(db.Model):
     
     # معلومات الدفع
     payment_status = db.Column(db.String(20), default='pending')  # pending, paid, partial, waived
-    payment_amount = db.Column(db.Float, default=0.0)
+    payment_amount = db.Column(db.Numeric(12, 2), default=0.0)
     payment_method = db.Column(db.String(50), nullable=True)
+    estimated_wait_time = db.Column(db.Integer, default=30)
     
     # معلومات الطوارئ
     is_emergency = db.Column(db.Boolean, default=False)
@@ -38,8 +39,8 @@ class QueueManagement(db.Model):
     force_entry_approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     
     # التوقيت
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    queued_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    queued_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     called_at = db.Column(db.DateTime, nullable=True)
     started_at = db.Column(db.DateTime, nullable=True)
     completed_at = db.Column(db.DateTime, nullable=True)
@@ -74,6 +75,7 @@ class QueueManagement(db.Model):
             'called': 'تم الاستدعاء',
             'in_progress': 'قيد التنفيذ',
             'completed': 'مكتمل',
+            'skipped': 'تم التخطي',
             'cancelled': 'ملغي'
         }
         return status_map.get(self.status, self.status)
@@ -130,16 +132,18 @@ class QueueSettings(db.Model):
     
     # إعدادات الدفع
     payment_required = db.Column(db.Boolean, default=True)
-    payment_amount = db.Column(db.Float, default=0.0)
+    payment_amount = db.Column(db.Numeric(12, 2), default=0.0)
     emergency_payment_waived = db.Column(db.Boolean, default=True)
+    allow_partial_payment = db.Column(db.Boolean, default=True)
+    allow_debt = db.Column(db.Boolean, default=False)
     
     # إعدادات الإشعارات
     auto_notifications = db.Column(db.Boolean, default=True)
     notification_interval = db.Column(db.Integer, default=15)  # بالدقائق
     
     # التوقيت
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # العلاقات
     department = db.relationship('Department', backref='queue_settings')
@@ -159,6 +163,8 @@ class QueueSettings(db.Model):
             'payment_required': self.payment_required,
             'payment_amount': self.payment_amount,
             'emergency_payment_waived': self.emergency_payment_waived,
+            'allow_partial_payment': self.allow_partial_payment,
+            'allow_debt': self.allow_debt,
             'auto_notifications': self.auto_notifications,
             'notification_interval': self.notification_interval,
             'created_at': self.created_at.isoformat() if self.created_at else None,

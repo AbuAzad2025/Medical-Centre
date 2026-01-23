@@ -128,7 +128,6 @@ document.getElementById('addStaffForm').addEventListener('submit', function(e) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
         },
         body: JSON.stringify({ user_id: userId })
     })
@@ -137,30 +136,40 @@ document.getElementById('addStaffForm').addEventListener('submit', function(e) {
         if (data.success) {
             location.reload();
         } else {
-            alert(data.message || 'حدث خطأ');
+            Swal.fire({ title: 'خطأ', text: (data.message || 'حدث خطأ'), icon: 'error' });
         }
-    });
+    })
+    .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
 });
 
 function removeFromDepartment(userId) {
-    if (confirm('هل أنت متأكد من إزالة هذا الموظف من القسم؟')) {
-        fetch(`/super-admin/department-staff/{{ department.id }}/remove`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({ user_id: userId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(data.message || 'حدث خطأ');
-            }
-        });
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل أنت متأكد من إزالة هذا الموظف من القسم؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، إزالة',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/super-admin/department-staff/{{ department.id }}/remove`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_id: userId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    Swal.fire({ title: 'خطأ', text: (data.message || 'حدث خطأ'), icon: 'error' });
+                }
+            })
+            .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
+        }
+    });
 }
 </script>
 {% endblock %}

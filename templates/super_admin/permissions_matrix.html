@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}مصفوفة الصلاحيات{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary"><i class="fas fa-th me-2"></i>مصفوفة الصلاحيات</h2>
+            <div class="text-muted">إدارة الصلاحيات لكل دور بشكل مركزي</div>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('super_admin.roles') }}" class="btn btn-outline-secondary">الأدوار</a>
+            <a href="{{ url_for('super_admin.dashboard') }}" class="btn btn-secondary">رجوع</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form method="POST" class="card border-0 shadow-sm">
+    <div class="card-body">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="min-width: 320px;">الصلاحية</th>
+              {% for r in roles %}
+                <th class="text-center" style="min-width: 140px;">{{ r.display_name or r.name_ar or r.name }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% set last_cat = None %}
+            {% for p in permissions %}
+              {% if last_cat != p.category %}
+                {% set last_cat = p.category %}
+                <tr class="table-secondary">
+                  <td colspan="{{ 1 + (roles|length) }}">
+                    <strong>{{ p.category.value if p.category else '' }}</strong>
+                  </td>
+                </tr>
+              {% endif %}
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ p.name }}</div>
+                  <div class="text-muted small">{{ p.description or '' }}</div>
+                </td>
+                {% for r in roles %}
+                  <td class="text-center">
+                    <input type="checkbox"
+                           class="form-check-input"
+                           name="role_{{ r.id }}_permissions"
+                           value="{{ p.id }}"
+                           {% if matrix.get(r.id) and p.id in matrix.get(r.id) %}checked{% endif %}>
+                  </td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary">حفظ</button>
+        <a href="{{ url_for('super_admin.dashboard') }}" class="btn btn-outline-secondary">إلغاء</a>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

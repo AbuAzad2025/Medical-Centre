@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}تقارير الاستعلامات الأسبوعية{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">تقارير الاستعلامات الأسبوعية</h2>
+    <a href="{{ url_for('finance.slow_queries') }}" class="btn btn-secondary">العودة</a>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>الفترة</th>
+              <th>تاريخ الإنشاء</th>
+              <th>المنشئ</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in reports or [] %}
+            <tr>
+              <td>{{ r.id }}</td>
+              <td>{{ r.period_start.strftime('%Y-%m-%d') if r.period_start else '-' }} → {{ r.period_end.strftime('%Y-%m-%d') if r.period_end else '-' }}</td>
+              <td>{{ r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '-' }}</td>
+              <td>{{ r.creator.full_name if r.creator else '-' }}</td>
+              <td class="text-end">
+                <a href="{{ url_for('finance.slow_queries_weekly_detail', report_id=r.id) }}" class="btn btn-sm btn-outline-primary">عرض</a>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center">لا توجد تقارير</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

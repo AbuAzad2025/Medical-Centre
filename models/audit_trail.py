@@ -3,7 +3,7 @@
 Medical System Audit Trail Models
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
 
@@ -31,12 +31,12 @@ class AuditTrail(db.Model):
     notes = db.Column(db.Text, nullable=True)
     
     # التواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=db.func.now())
     
     # Constraints and Indexes
     __table_args__ = (
-        CheckConstraint("entity_type IN ('user', 'patient', 'visit', 'appointment', 'payment', 'invoice', 'lab_test', 'radiology_test', 'notification', 'role', 'department')", name='chk_entity_type'),
-        CheckConstraint("action IN ('create', 'update', 'delete', 'view', 'login', 'logout', 'export', 'import', 'backup', 'restore')", name='chk_action'),
+        CheckConstraint("entity_type IN ('system', 'user', 'patient', 'visit', 'appointment', 'payment', 'invoice', 'lab_test', 'radiology_test', 'notification', 'role', 'department')", name='chk_entity_type'),
+        CheckConstraint("action IN ('create', 'update', 'delete', 'view', 'login', 'logout', 'export', 'import', 'backup', 'restore', 'security', 'login_failed', 'login_blocked', 'force_logout', 'permission_denied', 'unauthorized_access')", name='chk_action'),
         Index('idx_audit_entity', 'entity_type', 'entity_id'),
         Index('idx_audit_user', 'user_id'),
         Index('idx_audit_action', 'action'),
@@ -91,7 +91,7 @@ class SystemLog(db.Model):
     related_entity_id = db.Column(db.Integer, nullable=True)
     
     # التواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=db.func.now())
     
     # Constraints and Indexes
     __table_args__ = (
@@ -126,6 +126,44 @@ class SystemLog(db.Model):
         }
 
 
+class SlowQueryReport(db.Model):
+    __tablename__ = 'slow_query_reports'
+
+    id = db.Column(db.Integer, primary_key=True)
+    period_start = db.Column(db.DateTime, nullable=False)
+    period_end = db.Column(db.DateTime, nullable=False)
+    reset_time = db.Column(db.DateTime, nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    created_at = db.Column(db.DateTime, default=db.func.now(), nullable=False, index=True)
+
+    __table_args__ = (
+        Index('idx_slow_query_report_period', 'period_start', 'period_end'),
+        Index('idx_slow_query_report_created', 'created_at'),
+    )
+
+    creator = db.relationship('User', foreign_keys=[created_by], lazy='select')
+    entries = db.relationship('SlowQueryEntry', back_populates='report', lazy='selectin', cascade='all, delete-orphan')
+
+
+class SlowQueryEntry(db.Model):
+    __tablename__ = 'slow_query_entries'
+
+    id = db.Column(db.Integer, primary_key=True)
+    report_id = db.Column(db.Integer, db.ForeignKey('slow_query_reports.id', ondelete='CASCADE'), nullable=False, index=True)
+    query = db.Column(db.Text, nullable=False)
+    calls = db.Column(db.Integer, default=0, nullable=False)
+    total_time = db.Column(db.Numeric(12, 2), default=0, nullable=False)
+    mean_time = db.Column(db.Numeric(12, 2), default=0, nullable=False)
+    rows = db.Column(db.Integer, default=0, nullable=False)
+
+    __table_args__ = (
+        Index('idx_slow_query_entry_report', 'report_id'),
+        Index('idx_slow_query_entry_mean', 'mean_time'),
+    )
+
+    report = db.relationship('SlowQueryReport', back_populates='entries', lazy='select')
+
+
 class SecurityEvent(db.Model):
     """نموذج أحداث الأمان"""
     
@@ -154,7 +192,7 @@ class SecurityEvent(db.Model):
     resolution_notes = db.Column(db.Text, nullable=True)
     
     # التواريخ
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Constraints and Indexes
     __table_args__ = (
@@ -178,9 +216,24 @@ class SecurityEvent(db.Model):
         """حل الحدث الأمني"""
         self.is_resolved = True
         self.resolved_by = resolved_by_user_id
-        self.resolved_at = datetime.utcnow()
+        from datetime import timezone, datetime as _dt
+        self.resolved_at = _dt.now(timezone.utc)
         self.resolution_notes = resolution_notes
         db.session.commit()
+
+
+class LoginAttempt(db.Model):
+    __tablename__ = 'login_attempts'
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
+    success = db.Column(db.Boolean, default=False, nullable=False, index=True)
+    user_ip = db.Column(db.String(45), nullable=True, index=True)
+    user_agent = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+
+    user = db.relationship('User', foreign_keys=[user_id], lazy='select')
     
     def to_dict(self):
         """تحويل إلى قاموس"""

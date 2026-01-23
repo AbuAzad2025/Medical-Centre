@@ -3,8 +3,8 @@
 Medical System Report Management Service
 """
 
-from datetime import datetime, timedelta
-from sqlalchemy import and_, or_, func, desc, asc
+from datetime import datetime, timedelta, timezone
+from sqlalchemy import and_, or_, func, desc, asc, text
 from app_factory import db
 from models.patient import Patient
 from models.visit import Visit
@@ -12,7 +12,7 @@ from models.appointment import Appointment
 from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from models.payment import Payment
-from models.invoice import Invoice
+from models.invoice import Invoice, InvoiceService
 from models.user import User
 from models.department import Department
 import logging
@@ -52,14 +52,14 @@ class ReportService:
                 visits_query = visits_query.filter(Visit.department_id == department_id)
             
             total_visits = visits_query.count()
-            completed_visits = visits_query.filter(Visit.status == 'completed').count()
-            pending_visits = visits_query.filter(Visit.status == 'pending').count()
+            completed_visits = visits_query.filter(Visit.status == 'COMPLETED').count()
+            pending_visits = visits_query.filter(Visit.status == 'OPEN').count()
             
             # إحصائيات المواعيد
             appointments_query = Appointment.query.filter(
                 and_(
-                    Appointment.appointment_date >= start_date.date(),
-                    Appointment.appointment_date <= end_date.date()
+                    func.date(Appointment.starts_at) >= start_date.date(),
+                    func.date(Appointment.starts_at) <= end_date.date()
                 )
             )
             
@@ -67,8 +67,8 @@ class ReportService:
                 appointments_query = appointments_query.filter(Appointment.department_id == department_id)
             
             total_appointments = appointments_query.count()
-            completed_appointments = appointments_query.filter(Appointment.status == 'completed').count()
-            cancelled_appointments = appointments_query.filter(Appointment.status == 'cancelled').count()
+            completed_appointments = appointments_query.filter(Appointment.status == 'DONE').count()
+            cancelled_appointments = appointments_query.filter(Appointment.status == 'CANCELLED').count()
             
             # الإحصائيات المالية
             payments_query = Payment.query.filter(
@@ -82,8 +82,8 @@ class ReportService:
                 payments_query = payments_query.join(Visit).filter(Visit.department_id == department_id)
             
             total_revenue = payments_query.with_entities(func.sum(Payment.amount)).scalar() or 0
-            cash_payments = payments_query.filter(Payment.payment_method == 'cash').with_entities(func.sum(Payment.amount)).scalar() or 0
-            insurance_payments = payments_query.filter(Payment.payment_method == 'insurance').with_entities(func.sum(Payment.amount)).scalar() or 0
+            cash_payments = payments_query.filter(Payment.method == 'CASH').with_entities(func.sum(Payment.amount)).scalar() or 0
+            insurance_payments = payments_query.filter(Payment.method == 'INSURANCE').with_entities(func.sum(Payment.amount)).scalar() or 0
             
             return {
                 'success': True,
@@ -112,13 +112,13 @@ class ReportService:
             
         except Exception as e:
             logging.error(f"Error getting dashboard summary: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في الحصول على ملخص لوحة التحكم: {str(e)}'}
+            return {'success': False, 'message': 'تعذر جلب ملخص لوحة التحكم حالياً'}
     
     @staticmethod
     def get_patient_report(patient_id, start_date=None, end_date=None):
         """تقرير المريض"""
         try:
-            patient = Patient.query.get(patient_id)
+            patient = db.session.get(Patient, patient_id)
             if not patient:
                 return {'success': False, 'message': 'المريض غير موجود'}
             
@@ -126,7 +126,7 @@ class ReportService:
             if not start_date:
                 start_date = datetime.now() - timedelta(days=30)
             if not end_date:
-                end_date = datetime.now()
+                end_date = datetime.now() + timedelta(days=1)
             
             # الزيارات
             visits = Visit.query.filter(
@@ -141,10 +141,10 @@ class ReportService:
             appointments = Appointment.query.filter(
                 and_(
                     Appointment.patient_id == patient_id,
-                    Appointment.appointment_date >= start_date.date(),
-                    Appointment.appointment_date <= end_date.date()
+                    func.date(Appointment.starts_at) >= start_date.date(),
+                    func.date(Appointment.starts_at) <= end_date.date()
                 )
-            ).order_by(Appointment.appointment_date.desc()).all()
+            ).order_by(Appointment.starts_at.desc()).all()
             
             # المدفوعات
             payments = Payment.query.filter(
@@ -181,13 +181,13 @@ class ReportService:
             
         except Exception as e:
             logging.error(f"Error getting patient report: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في الحصول على تقرير المريض: {str(e)}'}
+            return {'success': False, 'message': 'تعذر جلب تقرير المريض حالياً'}
     
     @staticmethod
     def get_department_report(department_id, start_date=None, end_date=None):
         """تقرير القسم"""
         try:
-            department = Department.query.get(department_id)
+            department = db.session.get(Department, department_id)
             if not department:
                 return {'success': False, 'message': 'القسم غير موجود'}
             
@@ -195,7 +195,7 @@ class ReportService:
             if not start_date:
                 start_date = datetime.now() - timedelta(days=30)
             if not end_date:
-                end_date = datetime.now()
+                end_date = datetime.now() + timedelta(days=1)
             
             # الزيارات
             visits = Visit.query.filter(
@@ -210,10 +210,10 @@ class ReportService:
             appointments = Appointment.query.filter(
                 and_(
                     Appointment.department_id == department_id,
-                    Appointment.appointment_date >= start_date.date(),
-                    Appointment.appointment_date <= end_date.date()
+                    func.date(Appointment.starts_at) >= start_date.date(),
+                    func.date(Appointment.starts_at) <= end_date.date()
                 )
-            ).order_by(Appointment.appointment_date.desc()).all()
+            ).order_by(Appointment.starts_at.desc()).all()
             
             # الأطباء
             doctors = User.query.filter(
@@ -226,12 +226,12 @@ class ReportService:
             
             # الإحصائيات
             total_visits = len(visits)
-            completed_visits = len([v for v in visits if v.status == 'completed'])
-            pending_visits = len([v for v in visits if v.status == 'pending'])
+            completed_visits = len([v for v in visits if v.status == 'COMPLETED'])
+            pending_visits = len([v for v in visits if v.status == 'OPEN'])
             
             total_appointments = len(appointments)
-            completed_appointments = len([a for a in appointments if a.status == 'completed'])
-            cancelled_appointments = len([a for a in appointments if a.status == 'cancelled'])
+            completed_appointments = len([a for a in appointments if a.status == 'DONE'])
+            cancelled_appointments = len([a for a in appointments if a.status == 'CANCELLED'])
             
             return {
                 'success': True,
@@ -255,7 +255,7 @@ class ReportService:
             
         except Exception as e:
             logging.error(f"Error getting department report: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في الحصول على تقرير القسم: {str(e)}'}
+            return {'success': False, 'message': 'تعذر جلب تقرير القسم حالياً'}
     
     @staticmethod
     def get_financial_report(start_date=None, end_date=None, department_id=None):
@@ -295,9 +295,9 @@ class ReportService:
             
             # الإحصائيات المالية
             total_revenue = sum(payment.amount for payment in payments)
-            cash_revenue = sum(p.amount for p in payments if p.payment_method == 'cash')
-            insurance_revenue = sum(p.amount for p in payments if p.payment_method == 'insurance')
-            card_revenue = sum(p.amount for p in payments if p.payment_method == 'card')
+            cash_revenue = sum(p.amount for p in payments if getattr(p, 'method', None) == 'CASH')
+            insurance_revenue = sum(p.amount for p in payments if getattr(p, 'method', None) == 'INSURANCE')
+            card_revenue = sum(p.amount for p in payments if getattr(p, 'method', None) == 'CARD')
             
             # حسب اليوم
             daily_revenue = {}
@@ -310,7 +310,7 @@ class ReportService:
             # حسب طريقة الدفع
             payment_methods = {}
             for payment in payments:
-                method = payment.payment_method
+                method = getattr(payment, 'method', None)
                 if method not in payment_methods:
                     payment_methods[method] = 0
                 payment_methods[method] += payment.amount
@@ -335,13 +335,13 @@ class ReportService:
             
         except Exception as e:
             logging.error(f"Error getting financial report: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في الحصول على التقرير المالي: {str(e)}'}
+            return {'success': False, 'message': 'تعذر جلب التقرير المالي حالياً'}
     
     @staticmethod
     def get_doctor_performance_report(doctor_id, start_date=None, end_date=None):
         """تقرير أداء الطبيب"""
         try:
-            doctor = User.query.get(doctor_id)
+            doctor = db.session.get(User, doctor_id)
             if not doctor or doctor.role != 'doctor':
                 return {'success': False, 'message': 'الطبيب غير موجود'}
             
@@ -349,7 +349,7 @@ class ReportService:
             if not start_date:
                 start_date = datetime.now() - timedelta(days=30)
             if not end_date:
-                end_date = datetime.now()
+                end_date = datetime.now() + timedelta(days=1)
             
             # الزيارات
             visits = Visit.query.filter(
@@ -364,19 +364,19 @@ class ReportService:
             appointments = Appointment.query.filter(
                 and_(
                     Appointment.doctor_id == doctor_id,
-                    Appointment.appointment_date >= start_date.date(),
-                    Appointment.appointment_date <= end_date.date()
+                    func.date(Appointment.starts_at) >= start_date.date(),
+                    func.date(Appointment.starts_at) <= end_date.date()
                 )
-            ).order_by(Appointment.appointment_date.desc()).all()
+            ).order_by(Appointment.starts_at.desc()).all()
             
             # الإحصائيات
             total_visits = len(visits)
-            completed_visits = len([v for v in visits if v.status == 'completed'])
-            pending_visits = len([v for v in visits if v.status == 'pending'])
+            completed_visits = len([v for v in visits if v.status == 'COMPLETED'])
+            pending_visits = len([v for v in visits if v.status in {'OPEN','IN_PROGRESS'}])
             
             total_appointments = len(appointments)
-            completed_appointments = len([a for a in appointments if a.status == 'completed'])
-            cancelled_appointments = len([a for a in appointments if a.status == 'cancelled'])
+            completed_appointments = len([a for a in appointments if a.status == 'DONE'])
+            cancelled_appointments = len([a for a in appointments if a.status == 'CANCELLED'])
             
             # الإيرادات
             total_revenue = sum(visit.total_amount for visit in visits if visit.total_amount)
@@ -405,7 +405,7 @@ class ReportService:
             
         except Exception as e:
             logging.error(f"Error getting doctor performance report: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في الحصول على تقرير أداء الطبيب: {str(e)}'}
+            return {'success': False, 'message': 'تعذر جلب تقرير أداء الطبيب حالياً'}
     
     @staticmethod
     def export_report(report_type, data, format='json'):
@@ -430,7 +430,7 @@ class ReportService:
                 
         except Exception as e:
             logging.error(f"Error exporting report: {str(e)}")
-            return {'success': False, 'message': f'حدث خطأ في تصدير التقرير: {str(e)}'}
+            return {'success': False, 'message': 'تعذر تصدير التقرير حالياً'}
     
     # ==================== تقارير التدقيق (الأسبوع الثاني) ====================
     
@@ -443,7 +443,7 @@ class ReportService:
         try:
             # تحديد التاريخ
             if not target_date:
-                target_date = datetime.now().date()
+                target_date = datetime.now(timezone.utc).date()
             elif isinstance(target_date, datetime):
                 target_date = target_date.date()
             
@@ -538,7 +538,7 @@ class ReportService:
             }
             
             # ========== 4. إحصائيات التأمين ==========
-            insurance_visits_today = [v for v in visits_today if v.payment_method == 'insurance']
+            insurance_visits_today = [v for v in visits_today if (getattr(v, 'payment_method', '') or '').lower() == 'insurance']
             
             total_insurance_amount = sum(float(v.insurance_amount or 0) for v in insurance_visits_today)
             total_patient_share = sum(float(v.patient_share or 0) for v in insurance_visits_today)
@@ -555,7 +555,7 @@ class ReportService:
             
             # تجميع حسب مزود التأمين
             for visit in insurance_visits_today:
-                provider = visit.insurance_provider or 'غير محدد'
+                provider = (visit.insurance_company.name_ar if getattr(visit, 'insurance_company', None) else None) or visit.insurance_provider or 'غير محدد'
                 if provider not in insurance_stats['by_provider']:
                     insurance_stats['by_provider'][provider] = {
                         'count': 0,
@@ -642,7 +642,7 @@ class ReportService:
             logging.error(f"Error generating daily audit report: {str(e)}", exc_info=True)
             return {
                 'success': False,
-                'message': f'حدث خطأ في إنشاء تقرير التدقيق اليومي: {str(e)}'
+                'message': 'تعذر إنشاء تقرير التدقيق اليومي حالياً'
             }
     
     @staticmethod
@@ -689,10 +689,10 @@ class ReportService:
                     'ARCHIVED': len([v for v in visits_month if v.status == 'ARCHIVED'])
                 },
                 'by_payment_method': {
-                    'cash': len([v for v in visits_month if v.payment_method == 'cash']),
-                    'visa': len([v for v in visits_month if v.payment_method in ['visa', 'card']]),
-                    'insurance': len([v for v in visits_month if v.payment_method == 'insurance']),
-                    'force': len([v for v in visits_month if v.payment_method == 'force' or v.is_force_payment])
+                    'cash': len([v for v in visits_month if (getattr(v, 'payment_method', '') or '').lower() == 'cash']),
+                    'visa': len([v for v in visits_month if (getattr(v, 'payment_method', '') or '').lower() in ['visa', 'card']]),
+                    'insurance': len([v for v in visits_month if (getattr(v, 'payment_method', '') or '').lower() == 'insurance']),
+                    'force': len([v for v in visits_month if (getattr(v, 'payment_method', '') or '').lower() == 'force' or v.is_force_payment])
                 },
                 'by_day': visits_by_day,
                 'avg_per_day': round(len(visits_month) / (end_date.day), 2)
@@ -749,7 +749,7 @@ class ReportService:
             }
             
             # ========== 4. تحليل التأمين ==========
-            insurance_visits_month = [v for v in visits_month if v.payment_method == 'insurance']
+            insurance_visits_month = [v for v in visits_month if (getattr(v, 'payment_method', '') or '').lower() == 'insurance']
             
             total_insurance_billed = sum(float(v.insurance_amount or 0) for v in insurance_visits_month)
             total_patient_share = sum(float(v.patient_share or 0) for v in insurance_visits_month)
@@ -840,7 +840,7 @@ class ReportService:
             logging.error(f"Error generating monthly audit report: {str(e)}", exc_info=True)
             return {
                 'success': False,
-                'message': f'حدث خطأ في إنشاء تقرير التدقيق الشهري: {str(e)}'
+                'message': 'تعذر إنشاء تقرير التدقيق الشهري حالياً'
             }
     
     @staticmethod
@@ -878,6 +878,10 @@ class ReportService:
                 debt_info = {
                     'visit_id': debt.id,
                     'patient_id': debt.patient_id,
+                    'patient_name': getattr(getattr(debt, 'patient', None), 'full_name', None),
+                    'patient_phone': getattr(getattr(debt, 'patient', None), 'phone', None),
+                    'visit_date': debt.visit_date.isoformat() if getattr(debt, 'visit_date', None) else None,
+                    'department_name': getattr(getattr(debt, 'department', None), 'name_ar', None),
                     'created_at': debt.created_at.isoformat(),
                     'age_days': age,
                     'total_amount': float(debt.total_amount or 0),
@@ -920,5 +924,83 @@ class ReportService:
             logging.error(f"Error generating debt tracking report: {str(e)}", exc_info=True)
             return {
                 'success': False,
-                'message': f'حدث خطأ في إنشاء تقرير تتبع الديون: {str(e)}'
+                'message': 'تعذر إنشاء تقرير تتبع الديون حالياً'
             }
+
+    @staticmethod
+    def get_slow_queries_report(limit=10):
+        try:
+            reset_time = None
+            try:
+                reset_time = db.session.execute(text("select reset_time from pg_stat_statements_info")).scalar()
+            except Exception:
+                reset_time = None
+
+            rows = db.session.execute(text("""
+                select
+                    query,
+                    calls,
+                    total_time,
+                    mean_time,
+                    rows
+                from pg_stat_statements
+                where query not ilike '%pg_stat_statements%'
+                order by mean_time desc
+                limit :limit
+            """), {'limit': int(limit)}).mappings().all()
+
+            queries = []
+            for r in rows:
+                queries.append({
+                    'query': r.get('query'),
+                    'calls': int(r.get('calls') or 0),
+                    'total_time': float(r.get('total_time') or 0),
+                    'mean_time': float(r.get('mean_time') or 0),
+                    'rows': int(r.get('rows') or 0)
+                })
+
+            return {
+                'success': True,
+                'reset_time': reset_time.isoformat() if reset_time else None,
+                'queries': queries
+            }
+        except Exception as e:
+            logging.error(f"Error generating slow queries report: {str(e)}")
+            return {
+                'success': False,
+                'message': 'تعذر إنشاء تقرير الاستعلامات البطيئة حالياً'
+            }
+
+    @staticmethod
+    def capture_weekly_slow_queries(limit=10, created_by=None):
+        try:
+            report = ReportService.get_slow_queries_report(limit=limit)
+            if not report or not report.get('success'):
+                return report
+            now = datetime.now(timezone.utc)
+            period_end = now
+            period_start = now - timedelta(days=7)
+            from models.audit_trail import SlowQueryReport, SlowQueryEntry
+            rq = SlowQueryReport(
+                period_start=period_start,
+                period_end=period_end,
+                reset_time=report.get('reset_time'),
+                created_by=created_by
+            )
+            db.session.add(rq)
+            db.session.flush()
+            for row in report.get('queries') or []:
+                db.session.add(SlowQueryEntry(
+                    report_id=rq.id,
+                    query=row.get('query') or '',
+                    calls=int(row.get('calls') or 0),
+                    total_time=row.get('total_time') or 0,
+                    mean_time=row.get('mean_time') or 0,
+                    rows=int(row.get('rows') or 0)
+                ))
+            db.session.commit()
+            return {'success': True, 'report_id': rq.id}
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error capturing weekly slow queries: {str(e)}")
+            return {'success': False, 'message': 'تعذر حفظ تقرير الاستعلامات الأسبوعي'}

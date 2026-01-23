@@ -193,16 +193,28 @@ document.getElementById('visitSummaryForm').addEventListener('submit', function(
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('تم حفظ ملخص الزيارة بنجاح');
-            // إعادة توجيه للطابور
-            window.location.href = '{{ url_for("doctor.patient_queue") }}';
+            Swal.fire({
+                title: 'تم',
+                text: 'تم حفظ ملخص الزيارة بنجاح',
+                icon: 'success'
+            }).then(() => {
+                window.location.href = '{{ url_for("doctor.patient_queue") }}';
+            });
         } else {
-            alert('خطأ: ' + data.message);
+            Swal.fire({
+                title: 'خطأ',
+                text: 'خطأ: ' + (data.message || ''),
+                icon: 'error'
+            });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('حدث خطأ في حفظ ملخص الزيارة');
+        Swal.fire({
+            title: 'خطأ',
+            text: 'حدث خطأ في حفظ ملخص الزيارة',
+            icon: 'error'
+        });
     });
 });
 </script>

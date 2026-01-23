@@ -12,9 +12,9 @@
                         <div>
                             <h2 class="mb-2">
                                 <i class="fas fa-building me-2"></i>
-                                {{ department.name }}
+                                {{ department.name_ar or department.name }}
                             </h2>
-                            <p class="mb-0 text-white-50">{{ department.name_en or '' }}</p>
+                            <p class="mb-0 text-white-50">{{ department.name or '' }}</p>
                         </div>
                         <div>
                             <a href="{{ url_for('super_admin.edit_department', department_id=department.id) }}" class="btn btn-warning btn-lg me-2">
@@ -160,39 +160,57 @@
 
 <script>
 function activateDepartment(deptId) {
-    if (confirm('هل أنت متأكد من تفعيل هذا القسم؟')) {
-        fetch(`/super-admin/activate-department/${deptId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            }
-        });
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل أنت متأكد من تفعيل هذا القسم؟',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/super-admin/activate-department/${deptId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
+        }
+    });
 }
 
 function deactivateDepartment(deptId) {
-    if (confirm('هل أنت متأكد من إلغاء تفعيل هذا القسم؟')) {
-        fetch(`/super-admin/deactivate-department/${deptId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            }
-        });
-    }
+    Swal.fire({
+        title: 'تأكيد',
+        text: 'هل أنت متأكد من إلغاء تفعيل هذا القسم؟',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/super-admin/deactivate-department/${deptId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
+        }
+    });
 }
 </script>
 {% endblock %}

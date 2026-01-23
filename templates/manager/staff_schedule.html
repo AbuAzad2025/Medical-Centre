@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}جداول عمل الموظفين{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>إدارة جداول العمل</div>
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('manager.staff_capacity') }}">تقرير الاستيعاب</a>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('manager.staff_schedule') }}" class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">الموظف</label>
+                    <select class="form-control" name="user_id" required>
+                        <option value="">اختر الموظف</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}" {% if selected_user_id == u.id %}selected{% endif %}>{{ u.full_name }} ({{ u.get_role_display() }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 align-self-end">
+                    <button class="btn btn-primary">عرض</button>
+                </div>
+            </form>
+
+            {% if selected_user_id %}
+            <form method="POST" action="{{ url_for('manager.staff_schedule') }}" class="row g-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="user_id" value="{{ selected_user_id }}">
+                <div class="col-md-3">
+                    <label class="form-label">اليوم</label>
+                    <select class="form-control" name="day_of_week" required>
+                        <option value="0">الأحد</option>
+                        <option value="1">الاثنين</option>
+                        <option value="2">الثلاثاء</option>
+                        <option value="3">الأربعاء</option>
+                        <option value="4">الخميس</option>
+                        <option value="5">الجمعة</option>
+                        <option value="6">السبت</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">من</label>
+                    <input type="time" class="form-control" name="start_time" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">إلى</label>
+                    <input type="time" class="form-control" name="end_time" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">نشط</label>
+                    <input type="checkbox" class="form-check-input" name="is_active" checked>
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-success">حفظ</button>
+                </div>
+            </form>
+
+            <hr>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>اليوم</th>
+                            <th>من</th>
+                            <th>إلى</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in schedules %}
+                        <tr>
+                            <td>{{ ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][s.day_of_week] }}</td>
+                            <td>{{ s.start_time.strftime('%H:%M') }}</td>
+                            <td>{{ s.end_time.strftime('%H:%M') }}</td>
+                            <td>{{ 'نشط' if s.is_active else 'غير نشط' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

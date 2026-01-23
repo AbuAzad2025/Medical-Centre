@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير الطوارئ - {{ emergency.patient.full_name if emergency.patient else 'غير محدد' }}</title>
+    <style>
+        @page { size: A4; margin: 1cm; }
+        body { font-family: 'Arial', sans-serif; font-size: 12px; line-height: 1.5; color: #333; margin: 0; padding: 0; }
+        .header { text-align: center; border-bottom: 3px solid #dc3545; padding-bottom: 20px; margin-bottom: 25px; }
+        .header h1 { color: #dc3545; margin: 0; font-size: 28px; }
+        .header h2 { color: #666; margin: 8px 0; font-size: 20px; }
+        .section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .section h3 { color: #dc3545; margin: 0 0 12px 0; font-size: 16px; border-bottom: 2px solid #dc3545; padding-bottom: 8px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .detail { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dotted #dc3545; }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; }
+        .sev-low { background: #e2f0d9; color: #2e7d32; }
+        .sev-mod { background: #fff3cd; color: #856404; }
+        .sev-high { background: #f8d7da; color: #721c24; }
+        .sev-critical { background: #dc3545; color: #fff; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 3px solid #dc3545; color: #666; font-size: 11px; }
+        .print-button { position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .print-button:hover { background: #c82333; }
+        @media print { .print-button { display: none; } body { font-size: 11px; } }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">طباعة التقرير</button>
+
+    <div class="header">
+        <h1>المركز الصحي المتخصص</h1>
+        <h2>تقرير حالة طوارئ</h2>
+    </div>
+
+    <div class="section">
+        <h3>معلومات الحالة</h3>
+        <div class="grid">
+            <div class="detail"><span><strong>رقم الحالة:</strong></span><span>{{ emergency.case_number }}</span></div>
+            <div class="detail"><span><strong>تاريخ الإنشاء:</strong></span><span>{{ emergency.created_at.strftime('%Y-%m-%d %H:%M') }}</span></div>
+            <div class="detail"><span><strong>تاريخ الإكمال:</strong></span><span>{{ emergency.completed_at.strftime('%Y-%m-%d %H:%M') if emergency.completed_at else 'غير مكتمل' }}</span></div>
+            <div class="detail"><span><strong>الحالة:</strong></span><span>{{ emergency.status }}</span></div>
+            <div class="detail"><span><strong>شدة الحالة:</strong></span>
+                <span>
+                    {% set sev = emergency.severity %}
+                    {% if sev == 'LOW' %}<span class="badge sev-low">منخفضة</span>
+                    {% elif sev == 'MODERATE' %}<span class="badge sev-mod">متوسطة</span>
+                    {% elif sev == 'HIGH' %}<span class="badge sev-high">مرتفعة</span>
+                    {% elif sev == 'CRITICAL' %}<span class="badge sev-critical">حرجة</span>
+                    {% else %}{{ sev }}{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" style="background:#f8d7da; border-color:#f5c6cb;">
+        <h3>الشكوى الرئيسية</h3>
+        <div>{{ emergency.chief_complaint }}</div>
+    </div>
+
+    <div class="section" style="background:#e8f5e9; border-color:#c3e6cb;">
+        <h3>ملاحظات الفرز</h3>
+        <div>{{ emergency.triage_notes or 'لا توجد ملاحظات' }}</div>
+    </div>
+
+    <div class="section" style="background:#fff3cd; border-color:#ffeeba;">
+        <h3>العلامات الحيوية</h3>
+        <div>{{ emergency.vital_signs or 'غير محدد' }}</div>
+    </div>
+
+    <div class="section" style="background:#d1ecf1; border-color:#bee5eb;">
+        <h3>بيانات المريض</h3>
+        <div class="grid">
+            <div class="detail"><span><strong>الاسم:</strong></span><span>{{ emergency.patient.full_name if emergency.patient else 'غير محدد' }}</span></div>
+            <div class="detail"><span><strong>رقم الهوية:</strong></span><span>{{ emergency.patient.national_id if emergency.patient else 'غير محدد' }}</span></div>
+            <div class="detail"><span><strong>تاريخ الميلاد:</strong></span><span>{{ emergency.patient.birth_date.strftime('%Y-%m-%d') if emergency.patient and emergency.patient.birth_date else 'غير محدد' }}</span></div>
+            <div class="detail"><span><strong>الهاتف:</strong></span><span>{{ emergency.patient.phone if emergency.patient else 'غير محدد' }}</span></div>
+            <div class="detail"><span><strong>القسم/الزيارة:</strong></span><span>{{ emergency.visit.department.name_ar if emergency.visit and emergency.visit.department else 'غير محدد' }}</span></div>
+            <div class="detail"><span><strong>الطبيب:</strong></span><span>{{ emergency.visit.doctor.full_name if emergency.visit and emergency.visit.doctor else 'غير محدد' }}</span></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>التشخيص</h3>
+        <div>{{ emergency.diagnosis or 'لم يتم تحديد التشخيص' }}</div>
+    </div>
+
+    <div class="section">
+        <h3>خطة العلاج</h3>
+        <div>{{ emergency.treatment_plan or 'لا توجد خطة علاج محددة' }}</div>
+    </div>
+
+    <div class="footer">
+        <p><strong>هذا التقرير صالح للاستخدام الطبي</strong></p>
+        <p>تاريخ الطباعة: {{ moment().format('YYYY-MM-DD HH:mm') }}</p>
+        <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else 'info@medical-center.com' }} | {{ branding.organization_phone if branding and branding.organization_phone else '+970-XX-XXXXXXX' }}</p>
+        <hr style="margin: 10px 0; border: 1px solid #ddd;">
+        <p style="font-size: 10px; color: #666; margin: 5px 0;">
+            <strong>تطوير:</strong> {{ developer_company or 'شركة أزاد للأنظمة الذكية' }} |
+            <strong>مطور:</strong> {{ developer_name or 'أحمد غنام' }}
+        </p>
+    </div>
+
+    <script>
+    window.onload = function() {
+        setTimeout(function() { window.print(); }, 800);
+    };
+    </script>
+</body>
+</html>
