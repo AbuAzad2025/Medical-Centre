@@ -1,0 +1,52 @@
+{% extends "dashboard_base.html" %}
+{% block title %}لوحة تحكم الأشعة{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card card-stat bg-primary">
+            <div class="icon-bg"><i class="fas fa-x-ray"></i></div>
+            <h6>طلبات اليوم</h6>
+            <h3>{{ total_requests }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-warning">
+            <div class="icon-bg"><i class="fas fa-hourglass-half"></i></div>
+            <h6>بانتظار التقرير</h6>
+            <h3>{{ pending_reports }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-success">
+            <div class="icon-bg"><i class="fas fa-check-circle"></i></div>
+            <h6>تمت الموافقة</h6>
+            <h3>{{ approved_count }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-info">
+            <div class="icon-bg"><i class="fas fa-images"></i></div>
+            <h6>جاهزة للتسليم</h6>
+            <h3>{{ ready_count }}</h3>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2"></i>طلبات الأشعة</h5></div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>#</th><th>المريض</th><th>نوع الأشعة</th><th>الحالة</th></tr></thead>
+            <tbody>
+            {% for req in rad_requests %}
+            <tr>
+                <td>{{ req.id }}</td>
+                <td>{{ req.visit.patient.full_name if req.visit and req.visit.patient else '-' }}</td>
+                <td>{{ req.test_name or req.test_type or '-' }}</td>
+                <td><span class="badge bg-{% if req.status=='APPROVED' %}success{% elif req.status=='REPORTED' %}primary{% else %}warning{% endif %}">{{ req.status or 'ORDERED' }}</span></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -250,6 +250,12 @@ def create_app(config_name: str | None = None) -> Flask:
             import models.emergency_status_history
             import models.lab_quality
             import models.lab_reagent
+            # New platform models (tenant, module, stock ledger)
+            # Use importlib to avoid shadowing local 'app' variable
+            import importlib
+            importlib.import_module('app.core.tenant.models')
+            importlib.import_module('app.core.module.models')
+            importlib.import_module('app.modules.workflows.stock_models')
         except Exception as e:
             app.logger.warning(f"Model import registration skipped: {e}")
 
@@ -464,8 +470,41 @@ def create_app(config_name: str | None = None) -> Flask:
     from routes.medication_routes import medication_bp
     from routes.payment_routes import payment_bp
     from routes.nurse_routes import nurse_bp
+    from app.modules.owner import owner_bp
+
+    # Module guards — must be added BEFORE register_blueprint, and only ONCE
+    def _guard_factory(module_name):
+        def _guard():
+            from flask import g, abort
+            tenant = getattr(g, 'current_tenant', None)
+            if tenant:
+                try:
+                    from app.core.module.validators import get_active_modules_for_tenant
+                    if module_name not in get_active_modules_for_tenant(tenant.id):
+                        abort(403, description=f"Module '{module_name}' is not activated for this tenant.")
+                except Exception:
+                    pass
+        return _guard
+
+    def _add_guard_once(bp, module_name):
+        if not getattr(bp, '_module_guard_added', False):
+            bp.before_request(_guard_factory(module_name))
+            bp._module_guard_added = True
+
+    _add_guard_once(reception_bp, "reception")
+    _add_guard_once(doctor_bp, "doctor")
+    _add_guard_once(lab_bp, "lab")
+    _add_guard_once(radiology_bp, "radiology")
+    _add_guard_once(emergency_bp, "emergency")
+    _add_guard_once(nurse_bp, "nursing")
+    _add_guard_once(finance_bp, "billing")
+    _add_guard_once(accountant_bp, "billing")
+    _add_guard_once(manager_bp, "reporting")
+    _add_guard_once(booking_bp, "appointments")
+    _add_guard_once(medication_bp, "pharmacy")
 
     app.register_blueprint(main_bp)
+    app.register_blueprint(owner_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(super_admin_bp, url_prefix='/super-admin')
     app.register_blueprint(reception_bp, url_prefix='/reception')
@@ -477,11 +516,39 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(accountant_bp, url_prefix='/accountant')
     app.register_blueprint(backup_bp, url_prefix='/backup')
     app.register_blueprint(manager_bp, url_prefix='/manager')
-    # app.register_blueprint(ai_bp, url_prefix='/ai')  # REMOVED - AI now in super_admin
     app.register_blueprint(booking_bp, url_prefix='/booking')
     app.register_blueprint(medication_bp, url_prefix='/medication')
     app.register_blueprint(payment_bp, url_prefix='/payment')
     app.register_blueprint(nurse_bp, url_prefix='/nurse')
+
+    # Tenant middleware — safe fallback if tables don't exist yet
+    @app.before_request
+    def _set_tenant_context():
+        try:
+            from app.core.tenant.middleware import set_tenant_context
+            set_tenant_context()
+        except Exception:
+            # Tenant tables may not exist yet (legacy boot or fresh DB)
+            pass
+
+    # Module-aware context processor for templates
+    @app.context_processor
+    def _inject_modules():
+        from flask import g
+        tenant = getattr(g, 'current_tenant', None)
+        if tenant:
+            try:
+                from app.core.module.validators import get_active_modules_for_tenant
+                mods = get_active_modules_for_tenant(tenant.id)
+                return {'enabled_modules': mods, 'current_tenant': tenant}
+            except Exception:
+                pass
+        return {'enabled_modules': set(), 'current_tenant': None}
+
+    # Security & audit middleware
+    from app.core.security_middleware import SecurityHeadersMiddleware, AuditLogMiddleware
+    SecurityHeadersMiddleware().init_app(app)
+    AuditLogMiddleware().init_app(app)
 
     # إعدادات لحل مشاكل 404
     app.url_map.strict_slashes = False
@@ -586,8 +653,7 @@ def create_app(config_name: str | None = None) -> Flask:
     def shutdown_session(exception=None):
         try:
             db.session.remove()
-            if hasattr(db, 'engine'):
-                db.engine.dispose()
+            # Do NOT dispose engine here — it destroys the connection pool
         except Exception:
             pass
 

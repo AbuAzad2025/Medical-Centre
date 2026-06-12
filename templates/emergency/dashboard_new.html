@@ -1,0 +1,53 @@
+{% extends "dashboard_base.html" %}
+{% block title %}لوحة تحكم الطوارئ{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card card-stat bg-danger">
+            <div class="icon-bg"><i class="fas fa-ambulance"></i></div>
+            <h6>حالات الطوارئ</h6>
+            <h3>{{ emergency_count }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-warning">
+            <div class="icon-bg"><i class="fas fa-exclamation-triangle"></i></div>
+            <h6>حرجة</h6>
+            <h3>{{ critical_count }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-success">
+            <div class="icon-bg"><i class="fas fa-check-circle"></i></div>
+            <h6>تمت المعالجة</h6>
+            <h3>{{ resolved_count }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-info">
+            <div class="icon-bg"><i class="fas fa-user-plus"></i></div>
+            <h6>تم التحويل لزيارة</h6>
+            <h3>{{ converted_count }}</h3>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2"></i>حالات الطوارئ النشطة</h5></div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>#</th><th>المريض</th><th>الأولوية</th><th>الحالة</th><th>الوقت</th></tr></thead>
+            <tbody>
+            {% for e in emergency_cases %}
+            <tr>
+                <td>{{ e.id }}</td>
+                <td>{{ e.patient.full_name if e.patient else '-' }}</td>
+                <td><span class="badge bg-{% if e.priority=='critical' %}danger{% elif e.priority=='high' %}warning{% else %}info{% endif %}">{{ e.priority or 'normal' }}</span></td>
+                <td>{{ e.status or 'NEW' }}</td>
+                <td class="text-muted small">{{ e.created_at.strftime('%H:%M') if e.created_at else '-' }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

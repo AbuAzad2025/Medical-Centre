@@ -185,6 +185,18 @@
 - super_admin.system
 - super_admin.system_maintenance
 
+### تصنيف غير المستخدمة ولماذا
+- API-only: مسارات تبدأ بـ /api أو اندبوينت يبدأ بـ api_، لا تحتاج قالب لأنها تُستهلك برمجيًا أو تكامل خارجي
+  - أمثلة: lab.api_fhir_lab_observation, radiology.api_fhir_radiology_observation, reception.api_queue_status
+- Action-only: مسارات POST/PUT/DELETE بلا GET، لا تحتاج قالب لأنها تُستدعى من فورم/زر
+  - أمثلة: reception.cancel_ticket, manager.update_service_api, super_admin.delete_user
+- صفحات تعمل كتحويل/مدخل: index/queue/health وغيرها غالبًا تعيد التوجيه داخليًا أو تُستخدم كمدخل للنظام
+  - أمثلة: doctor.index, lab.index, finance.index, emergency.queue
+- صفحات طباعة/تصدير: تُفتح غالبًا من زر أو رابط مباشر وتستخدم قوالب طباعة منفصلة
+  - أمثلة: emergency.print_prescription, reception.print_invoice, super_admin.download_export
+- صفحات موجود لها قوالب لكن غير مرتبطة في القوائم: يمكن ربطها في الواجهات إن رغبت
+  - أمثلة: accountant.invoices, accountant.reports, payment.payment_methods
+
 ### تفاصيل الاندبوينتس (كامل)
 لكل اندبوينت: المسارات، الطرق، الملفات، والاستخدام في القوالب.
 

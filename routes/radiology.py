@@ -478,7 +478,7 @@ def dashboard():
             'workflow_automation': workflow_automation,
             'predictive_insights': predictive_insights
         }
-        return render_template('radiology/dashboard.html', stats=stats)
+        return render_template('radiology/dashboard_new.html', stats=stats)
     
     except Exception as e:
         logging.error(f"Error in radiology dashboard: {str(e)}")
