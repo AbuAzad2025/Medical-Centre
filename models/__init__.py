@@ -3,8 +3,8 @@
 """
 # استيراد النماذج الأساسية لضمان تسجيل الجداول لدى SQLAlchemy
 from .department import Department
-from .user import User
-from .patient import Patient
+from .user import User, StaffWorkSchedule, StaffAbsence
+from .patient import Patient, PatientAllergy
 from .visit import Visit
 from .appointment import Appointment
 from .invoice import Invoice, InvoiceService
@@ -14,30 +14,130 @@ from .radiology_test import RadiologyResult
 from .insurance import InsuranceCompany, InsuranceClaim
 from .service import ServiceMaster
 from .pricing import ServicePrice, DoctorPricing, InsuranceProvider, PricingCatalog, TemporaryService
-from .payment import Payment, PaymentMethod
+from .payment import Payment, PaymentMethod, PaymentStatus
 from .medical_record import MedicalRecord
 from .medical_report import MedicalReport
-from .queue_management import QueueManagement
+from .queue_management import QueueManagement, QueueSettings
 from .patient_visit_counter import PatientVisitCounter
-from .audit_trail import AuditTrail, SystemLog, SecurityEvent
+from .audit_trail import AuditTrail, SystemLog, SecurityEvent, SlowQueryReport, LoginAttempt
 from .system_config import SystemConfig
-from .permissions import Permission, Role, RolePermission, UserPermission, AuditLog
-from .notification import Notification
+from .permissions import (Permission, Role, RolePermission, UserPermission, AuditLog,
+                           PermissionCategory, PermissionLevel,
+                           create_default_permissions, create_default_roles, assign_super_admin_permissions)
+from .notification import Notification, NotificationTemplate, NotificationQueue
 from .branding import BrandingSettings, SystemTheme
+from .patient_satisfaction import PatientSatisfactionSurvey
+from .emergency import EmergencyCase
+from .emergency_status_history import EmergencyStatusHistory
+from .drug_interaction import DrugInteraction
+from .follow_up import FollowUpRequest
+from .lab_reagent import LabReagent
+from .lab_quality import LabQualityControlEntry
+from .medication import Medication, Prescription, PrescriptionItem, PrescriptionDispenseLog
+from .nurse import Nurse, VitalSigns, MedicationAdministrationLog
+from .online_booking import OnlineBooking, PaymentTransaction
+from .patient_account import PatientAccount
+from .receipt import Receipt
+from .reporting import Report
+from .request_workflow import RequestWorkflow
+from .supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
+from .task_management import Task
+from .treatment import Treatment
+from .user_department_access import UserDepartmentAccess
+from .visit_transfer import VisitTransferLog
+from .whatsapp_integration import WhatsAppMessage
+from .workflow import WorkflowStep, PatientWorkflow, WorkflowTransfer
+from .backup import Backup, BackupLog
+from .file_management import FileUpload
+from .advanced_permissions import ModulePermission, DepartmentPermission
+from .ai_analytics import AIRecommendation, DiseasePattern, PerformanceAnalytics, PatientInsight
+from .pricing_management import PricingManagement, PricingRule
+from .icd_coding import ICD10Code, CPTCode, DRGCode, CodedDiagnosis, CodedProcedure
+from .emar import eMARAdministration, MedicationSchedule
+from .bed_management import Ward, Room, Bed, Admission, BedTransfer
+from .fhir_mapping import FHIRPatient, FHIRObservation, FHIREncounter, FHIRDocumentReference, FHIRAuditLog
+from .dicom_pacs import DICOMStudy, DICOMSeries, DICOMInstance, PACSConfiguration
+from .vaccination import Vaccine, Immunization, VaccinationSchedule
+from .problem_list import PatientProblem, AllergyIntolerance
+from .referral import Referral
+from .clinical_pathway import ClinicalPathway, ClinicalPathwayStep, PatientCarePlan, CarePlanTask
+from .or_management import SurgerySchedule, SurgeryChecklist
+from .medication_reconciliation import MedicationReconciliation
+from .cds_alert import CDSAlertRule, CDSFiredAlert
+from .barcode_tracking import BarcodeRegistry, BarcodeScanLog
+from .digital_signature import DigitalSignature, PasswordPolicy, SessionLog, EncryptedField
+from .population_health import DiseaseRegistry, PopulationHealthIndicator, QualityMeasure
+from .user_mfa import UserMFASettings, MFALoginAttempt
+from .nursing_assessment import NursingAssessment
+from .patient_education import PatientEducationMaterial, PatientEducationAssignment
+from .backup_restore import BackupRestoreLog
+from .telemedicine import TelemedicineAppointment
+from .sso_config import SSOConfiguration, SSOUserMapping
+from .ai_imaging import AIImagingAnalysis
+from .biometric_auth import BiometricCredential, BiometricAuthChallenge
+from .data_warehouse import DataWarehouseSync, DailyVisitSummary, MonthlyFinanceSummary
+from .what_if_scenario import WhatIfScenario
 
 __all__ = [
-    "Department", "User", "Patient", "Visit", "Appointment",
+    "Department", "User", "StaffWorkSchedule", "StaffAbsence",
+    "Patient", "PatientAllergy", "Visit", "Appointment",
     "Invoice", "InvoiceService",
     "LabRequest", "LabResult",
     "RadiologyRequest", "RadiologyResult",
     "InsuranceCompany", "InsuranceClaim",
     "ServiceMaster", "ServicePrice", "DoctorPricing", "InsuranceProvider", "PricingCatalog", "TemporaryService",
-    "Payment", "PaymentMethod",
+    "Payment", "PaymentMethod", "PaymentStatus",
     "MedicalRecord", "MedicalReport",
-    "QueueManagement", "PatientVisitCounter",
-    "AuditTrail", "SystemLog", "SecurityEvent",
+    "QueueManagement", "QueueSettings", "PatientVisitCounter",
+    "AuditTrail", "SystemLog", "SecurityEvent", "SlowQueryReport", "LoginAttempt",
     "SystemConfig",
     "Permission", "Role", "RolePermission", "UserPermission", "AuditLog",
-    "Notification",
+    "PermissionCategory", "PermissionLevel",
+    "create_default_permissions", "create_default_roles", "assign_super_admin_permissions",
+    "Notification", "NotificationTemplate", "NotificationQueue",
     "BrandingSettings", "SystemTheme",
+    "PatientSatisfactionSurvey",
+    "EmergencyCase", "EmergencyStatusHistory",
+    "DrugInteraction", "FollowUpRequest",
+    "LabReagent", "LabQualityControlEntry",
+    "Medication", "Prescription", "PrescriptionItem", "PrescriptionDispenseLog",
+    "Nurse", "VitalSigns", "MedicationAdministrationLog",
+    "OnlineBooking", "PaymentTransaction", "PatientAccount",
+    "Receipt",
+    "Report",
+    "RequestWorkflow", "MedicationSupplyRequest", "MedicationSupplyRequestItem",
+    "Task",
+    "Treatment",
+    "UserDepartmentAccess", "VisitTransferLog",
+    "WhatsAppMessage",
+    "WorkflowStep", "PatientWorkflow", "WorkflowTransfer",
+    "Backup", "BackupLog", "FileUpload",
+    "ModulePermission", "DepartmentPermission",
+    "AIRecommendation", "DiseasePattern", "PerformanceAnalytics", "PatientInsight",
+    "PricingManagement", "PricingRule",
+    "ICD10Code", "CPTCode", "DRGCode", "CodedDiagnosis", "CodedProcedure",
+    "eMARAdministration", "MedicationSchedule",
+    "Ward", "Room", "Bed", "Admission", "BedTransfer",
+    "FHIRPatient", "FHIRObservation", "FHIREncounter", "FHIRDocumentReference", "FHIRAuditLog",
+    "DICOMStudy", "DICOMSeries", "DICOMInstance", "PACSConfiguration",
+    "Vaccine", "Immunization", "VaccinationSchedule",
+    "PatientProblem", "AllergyIntolerance",
+    "Referral",
+    "ClinicalPathway", "ClinicalPathwayStep", "PatientCarePlan", "CarePlanTask",
+    "SurgerySchedule", "SurgeryChecklist",
+    "MedicationReconciliation",
+    "CDSAlertRule", "CDSFiredAlert",
+    "BarcodeRegistry", "BarcodeScanLog",
+    "DigitalSignature", "PasswordPolicy", "SessionLog", "EncryptedField",
+    "DiseaseRegistry", "PopulationHealthIndicator", "QualityMeasure",
+    "UserMFASettings", "MFALoginAttempt",
+    "NursingAssessment",
+    "PatientEducationMaterial", "PatientEducationAssignment",
+    "BackupRestoreLog",
+    "TelemedicineAppointment",
+    "SSOConfiguration", "SSOUserMapping",
+    "AIImagingAnalysis",
+    "BiometricCredential", "BiometricAuthChallenge",
+    "DataWarehouseSync", "DailyVisitSummary", "MonthlyFinanceSummary",
+    "WhatIfScenario",
 ]

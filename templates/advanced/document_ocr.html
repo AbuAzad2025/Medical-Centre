@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-file-earmark-text me-2"></i>التعرف على المستندات (OCR)</h4>
+  <div class="card shadow-sm" data-ocr>
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="ocrFile" class="form-label">اختر صورة أو ملف PDF</label>
+        <input type="file" class="form-control" id="ocrFile" accept="image/*,.pdf" title="اختر صورة للتعرف عليها">
+      </div>
+      <div data-ocr-progress class="text-muted mb-2"></div>
+      <div data-ocr-result class="bg-light p-3 rounded border font-monospace ocr-result-area" role="textbox" aria-label="نتيجة OCR">
+        النتيجة ستظهر هنا...
+      </div>
+      <div class="mt-2 small text-muted">
+        ملاحظة: يتم تحميل مكتبة Tesseract.js من CDN عند الحاجة. يدعم اللغة العربية والإنجليزية.
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+<script src="{{ url_for('static', filename='js/document_ocr.js') }}"></script>
+{% endblock %}

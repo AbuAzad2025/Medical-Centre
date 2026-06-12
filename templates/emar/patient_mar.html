@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}سجل الأدوية — {{ patient.full_name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">سجل الأدوية — {{ patient.full_name }}</h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>التاريخ/الوقت</th><th>الدواء</th><th>الجرعة</th><th>الحالة</th><th>الممرضة</th></tr></thead>
+        <tbody>
+        {% for a in administrations %}
+          <tr>
+            <td>{{ a.scheduled_time.strftime('%Y-%m-%d %H:%M') if a.scheduled_time else '-' }}</td>
+            <td>{{ a.medication.name if a.medication else '-' }}</td>
+            <td>{{ a.dose_given or '-' }}</td>
+            <td><span class="badge bg-{% if a.status=='GIVEN' %}success{% elif a.status=='MISSED' %}danger{% else %}warning{% endif %}">{{ a.status }}</span></td>
+            <td>{{ a.nurse.full_name if a.nurse else '-' }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted text-center">لا يوجد سجل</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

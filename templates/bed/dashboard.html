@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}إدارة الأسرة والأجنحة{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">إدارة الأسرة والأجنحة</h2>
+  <div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card text-center p-3"><h5>{{ total_beds }}</h5><span class="text-muted">إجمالي الأسرة</span></div></div>
+    <div class="col-md-3"><div class="card text-center p-3"><h5>{{ occupied_beds }}</h5><span class="text-muted">مشغول</span></div></div>
+    <div class="col-md-3"><div class="card text-center p-3"><h5>{{ available_beds }}</h5><span class="text-muted">متاح</span></div></div>
+    <div class="col-md-3"><div class="card text-center p-3"><h5>{{ occupancy_rate|round(1) }}%</h5><span class="text-muted">نسبة الإشغال</span></div></div>
+  </div>
+  <div class="card">
+    <div class="card-header d-flex justify-content-between">
+      <span>الأجنحة</span>
+      <a href="{{ url_for('bed.wards') }}" class="btn btn-sm btn-primary">عرض الكل</a>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for w in wards %}
+          <div class="col-md-4">
+            <div class="border rounded p-3">
+              <h6>{{ w.name }}</h6>
+              <div class="text-muted">السعة: {{ w.capacity }} — الطابق: {{ w.floor or '-' }}</div>
+              <div class="mt-2">
+                <span class="badge bg-primary">{{ w.rooms|length }} غرفة</span>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

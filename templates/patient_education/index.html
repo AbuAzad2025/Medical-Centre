@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="bi bi-book me-2"></i>المواد التعليمية للمرضى</h4>
+    <a href="{{ url_for('patient_education.new_material') }}" class="btn btn-success"><i class="bi bi-plus-lg"></i> مادة جديدة</a>
+  </div>
+  <div class="mb-3">
+    <div class="btn-group">
+      <a href="{{ url_for('patient_education.index') }}" class="btn btn-outline-secondary {% if not current_category %}active{% endif %}">الكل</a>
+      {% for cat in categories %}
+        <a href="{{ url_for('patient_education.index', category=cat) }}" class="btn btn-outline-secondary {% if current_category == cat %}active{% endif %}">{{ cat }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="row g-3">
+    {% for m in materials %}
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <span class="badge bg-info mb-2">{{ m.category }}</span>
+          <h5 class="card-title">{{ m.title }}</h5>
+          <p class="text-muted small">{{ m.content_text[:100] if m.content_text else '' }}...</p>
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted"><i class="bi bi-eye"></i> {{ m.view_count }}</small>
+            <a href="{{ url_for('patient_education.view_material', material_id=m.id) }}" class="btn btn-sm btn-primary">عرض</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center text-muted py-5">لا توجد مواد تعليمية</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

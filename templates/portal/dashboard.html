@@ -1,0 +1,60 @@
+{% extends "portal/base.html" %}
+{% block title %}الرئيسية{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="portal-card p-3 text-center">
+      <div class="text-muted mb-1">المواعيد القادمة</div>
+      <h3 class="text-primary">{{ upcoming_appointments|length }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="portal-card p-3 text-center">
+      <div class="text-muted mb-1">الفواتير المستحقة</div>
+      <h3 class="text-danger">{{ "{:,.0f}".format(total_due) }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="portal-card p-3 text-center">
+      <div class="text-muted mb-1">نتائج جديدة</div>
+      <h3 class="text-success">{{ unread_results }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="portal-card p-3 text-center">
+      <div class="text-muted mb-1">التطعيمات</div>
+      <h3 class="text-info">{{ immunizations|length }}</h3>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-3">
+  <div class="col-md-6">
+    <div class="portal-card p-3">
+      <h5 class="mb-3">الزيارات الأخيرة</h5>
+      {% for v in recent_visits[:5] %}
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span>زيارة #{{ v.id }}</span>
+          <span class="text-muted">{{ v.visit_date }}</span>
+        </div>
+      {% else %}
+        <p class="text-muted">لا يوجد زيارات</p>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="portal-card p-3">
+      <h5 class="mb-3">المواعيد القادمة</h5>
+      {% for a in upcoming_appointments[:5] %}
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span>{{ a.starts_at.strftime('%Y-%m-%d %H:%M') if a.starts_at else '' }}</span>
+          <span class="badge bg-primary">{{ a.status }}</span>
+        </div>
+      {% else %}
+        <p class="text-muted">لا يوجد مواعيد قادمة</p>
+      {% endfor %}
+      <a href="{{ url_for('portal.book_appointment') }}" class="btn btn-primary btn-sm mt-2">حجز موعد جديد</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

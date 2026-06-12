@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}التوقيعات الإلكترونية{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">التوقيعات الإلكترونية</h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>التاريخ</th><th>المستخدم</th><th>نوع المستند</th><th>الطريقة</th><th>صالح</th></tr></thead>
+        <tbody>
+        {% for s in signatures %}
+          <tr>
+            <td>{{ s.signed_at.strftime('%Y-%m-%d %H:%M') if s.signed_at else '-' }}</td>
+            <td>{{ s.user.full_name if s.user else '-' }}</td>
+            <td>{{ s.document_type }}</td>
+            <td>{{ s.signing_method }}</td>
+            <td>{% if s.is_valid %}<span class="badge bg-success">نعم</span>{% else %}<span class="badge bg-danger">لا</span>{% endif %}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted text-center">لا يوجد توقيعات</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

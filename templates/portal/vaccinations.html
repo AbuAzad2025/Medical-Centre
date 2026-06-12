@@ -1,0 +1,22 @@
+{% extends "portal/base.html" %}
+{% block title %}التطعيمات{% endblock %}
+{% block content %}
+<h4 class="mb-3">سجل التطعيمات</h4>
+<div class="portal-card p-3">
+  <table class="table table-hover">
+    <thead><tr><th>التاريخ</th><th>اللقاح</th><th>الجرعة</th><th>الحالة</th></tr></thead>
+    <tbody>
+    {% for i in immunizations %}
+      <tr>
+        <td>{{ i.administration_date or '-' }}</td>
+        <td>{{ i.vaccine.name if i.vaccine else '-' }}</td>
+        <td>{{ i.dose_number }}</td>
+        <td><span class="badge bg-success">{{ i.status }}</span></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="4" class="text-muted text-center">لا يوجد تطعيمات مسجلة</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

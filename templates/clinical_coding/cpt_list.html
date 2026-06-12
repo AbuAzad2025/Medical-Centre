@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-clipboard-data me-2"></i>أكواد CPT</h4>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="get" class="mb-3">
+        <div class="input-group">
+          <input type="text" class="form-control" name="q" value="{{ request.args.get('q','') }}" placeholder="بحث...">
+          <button class="btn btn-primary" type="submit" title="بحث" aria-label="بحث"><i class="bi bi-search"></i></button>
+        </div>
+      </form>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead><tr><th>الكود</th><th>الاسم</th><th>الفئة</th></tr></thead>
+          <tbody>
+            {% for c in codes %}
+            <tr><td><code>{{ c.code }}</code></td><td>{{ c.name }}</td><td>{{ c.category or '—' }}</td></tr>
+            {% else %}
+            <tr><td colspan="3" class="text-center text-muted">لا توجد نتائج</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

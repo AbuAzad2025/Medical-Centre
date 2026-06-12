@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}سجل التطعيمات — {{ patient.full_name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">سجل التطعيمات — {{ patient.full_name }}</h2>
+  <div class="card">
+    <div class="card-header">التطعيمات المُعطاة</div>
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>التاريخ</th><th>اللقاح</th><th>الجرعة</th><th>الموقع</th><th>الحالة</th></tr></thead>
+        <tbody>
+        {% for i in immunizations %}
+          <tr>
+            <td>{{ i.administration_date or '-' }}</td>
+            <td>{{ i.vaccine.name if i.vaccine else '-' }}</td>
+            <td>{{ i.dose_number }}</td>
+            <td>{{ i.administration_site or '-' }}</td>
+            <td><span class="badge bg-success">{{ i.status }}</span></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted text-center">لا يوجد تطعيمات</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% if upcoming %}
+  <div class="card mt-3">
+    <div class="card-header">المواعيد القادمة</div>
+    <div class="card-body">
+      <table class="table table-sm">
+        <thead><tr><th>اللقاح</th><th>الجرعة القادمة</th><th>تاريخ الاستحقاق</th></tr></thead>
+        <tbody>
+        {% for u in upcoming %}
+          <tr>
+            <td>{{ u.vaccine.name if u.vaccine else '-' }}</td>
+            <td>{{ u.dose_number + 1 }}</td>
+            <td>{{ u.next_due_date or '-' }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

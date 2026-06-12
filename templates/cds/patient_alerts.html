@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-exclamation-triangle me-2"></i>تنبيهات المريض</h4>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead><tr><th>التاريخ</th><th>النوع</th><th>الرسالة</th><th>الحالة</th></tr></thead>
+          <tbody>
+            {% for a in alerts %}
+            <tr>
+              <td>{{ a.created_at.strftime('%Y-%m-%d %H:%M') if a.created_at else '—' }}</td>
+              <td>{{ a.alert_type or '—' }}</td>
+              <td>{{ a.message or '—' }}</td>
+              <td>
+                {% if a.status == 'active' %}<span class="badge bg-danger">نشط</span>{% endif %}
+                {% if a.status == 'acknowledged' %}<span class="badge bg-warning">مُقر</span>{% endif %}
+                {% if a.status == 'resolved' %}<span class="badge bg-success">مُحل</span>{% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center text-muted">لا توجد تنبيهات</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

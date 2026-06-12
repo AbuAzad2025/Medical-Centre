@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}سجل الجلسات{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">سجل الجلسات والدخول</h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>المستخدم</th><th>IP</th><th>الجهاز</th><th>دخول</th><th>خروج</th><th>نشط</th></tr></thead>
+        <tbody>
+        {% for s in sessions %}
+          <tr>
+            <td>{{ s.user.full_name if s.user else '-' }}</td>
+            <td>{{ s.ip_address or '-' }}</td>
+            <td>{{ s.device_type or '-' }} / {{ s.browser or '-' }}</td>
+            <td>{{ s.login_at.strftime('%Y-%m-%d %H:%M') if s.login_at else '-' }}</td>
+            <td>{{ s.logout_at.strftime('%Y-%m-%d %H:%M') if s.logout_at else '-' }}</td>
+            <td>{% if s.is_active %}<span class="badge bg-success">نعم</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6" class="text-muted text-center">لا يوجد سجل</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-award me-2"></i>مؤشرات الجودة</h4>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead><tr><th>المؤشر</th><th>الهدف</th><th>الأداء</th><th>الحالة</th></tr></thead>
+          <tbody>
+            {% for m in measures %}
+            <tr>
+              <td>{{ m.name }}</td>
+              <td>{{ m.target_value or '—' }}</td>
+              <td>{{ m.actual_value or '—' }}</td>
+              <td>
+                {% if m.status == 'met' %}<span class="badge bg-success">محقق</span>{% endif %}
+                {% if m.status == 'not_met' %}<span class="badge bg-danger">غير محقق</span>{% endif %}
+                {% if m.status == 'pending' %}<span class="badge bg-secondary">معلق</span>{% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center text-muted">لا توجد مؤشرات</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-book me-2"></i>مادة تعليمية جديدة</h4>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="title" class="form-label">العنوان</label>
+          <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label for="category" class="form-label">التصنيف</label>
+            <select class="form-select" id="category" name="category">
+              <option value="medication">دواء</option><option value="disease">مرض</option>
+              <option value="procedure">إجراء</option><option value="lifestyle">نمط حياة</option>
+              <option value="nutrition">تغذية</option><option value="post_op">ما بعد الجراحة</option>
+              <option value="general" selected>عام</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="language" class="form-label">اللغة</label>
+            <select class="form-select" id="language" name="language"><option value="ar">العربية</option><option value="en">English</option></select>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="content_html" class="form-label">محتوى HTML</label>
+          <textarea class="form-control" id="content_html" name="content_html" rows="5"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="content_text" class="form-label">نص بديل</label>
+          <textarea class="form-control" id="content_text" name="content_text" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="file" class="form-label">ملف مرفق (PDF/صورة/فيديو)</label>
+          <input type="file" class="form-control" id="file" name="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.mp4,.webm">
+        </div>
+        <div class="d-grid">
+          <button type="submit" class="btn btn-success">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

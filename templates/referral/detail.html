@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}تفاصيل الإحالة{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">تفاصيل الإحالة #{{ referral.id }}</h2>
+  <div class="card">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6"><strong>المريض:</strong> {{ referral.patient.full_name if referral.patient else '-' }}</div>
+        <div class="col-md-6"><strong>الحالة:</strong> <span class="badge bg-primary">{{ referral.status }}</span></div>
+        <div class="col-md-6"><strong>الجهة المُحال إليها:</strong> {{ referral.receiving_facility or '-' }}</div>
+        <div class="col-md-6"><strong>الطبيب المستقبل:</strong> {{ referral.receiving_doctor_name or '-' }}</div>
+        <div class="col-md-6"><strong>التخصص:</strong> {{ referral.receiving_specialty or '-' }}</div>
+        <div class="col-md-6"><strong>الأولوية:</strong> <span class="badge bg-secondary">{{ referral.urgency }}</span></div>
+        <div class="col-md-12"><strong>سبب الإحالة:</strong> {{ referral.reason_for_referral or '-' }}</div>
+        <div class="col-md-12"><strong>الملخص السريري:</strong> {{ referral.clinical_summary or '-' }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

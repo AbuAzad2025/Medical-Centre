@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}سجل الأمراض{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">سجل الأمراض والأوبئة</h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>المريض</th><th>المرض</th><th>تاريخ البداية</th><th>النتيجة</th><th>إخطار</th></tr></thead>
+        <tbody>
+        {% for d in diseases %}
+          <tr>
+            <td>{{ d.patient.full_name if d.patient else '-' }}</td>
+            <td>{{ d.disease_name }}</td>
+            <td>{{ d.onset_date or '-' }}</td>
+            <td><span class="badge bg-secondary">{{ d.outcome or 'غير معروف' }}</span></td>
+            <td>{% if d.notification_sent %}<span class="badge bg-success">تم</span>{% else %}<span class="badge bg-warning">لم يتم</span>{% endif %}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted text-center">لا يوجد سجل</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

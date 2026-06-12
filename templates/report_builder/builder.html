@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}منشئ التقارير{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">منشئ التقارير المخصصة</h2>
+  <div class="card">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label" for="entitySelect">الكيان</label>
+          <select class="form-select" id="entitySelect" title="اختر الكيان">
+            <option value="">اختر الكيان</option>
+            {% for key, info in entities.items() %}
+              <option value="{{ key }}">{{ info.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="fieldsContainer">الحقول</label>
+          <div id="fieldsContainer" class="border rounded p-2 report-fields-box" role="group" aria-label="حقول التقرير المختارة"></div>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label" for="limitInput">الحد</label>
+          <input type="number" class="form-control" id="limitInput" value="100">
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+          <button class="btn btn-primary" onclick="generateReport()">توليد</button>
+        </div>
+      </div>
+      <div class="mt-3">
+        <div id="reportResult"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const entities = {{ entities|tojson }};
+document.getElementById('entitySelect').addEventListener('change', function() {
+  const key = this.value;
+  const container = document.getElementById('fieldsContainer');
+  container.innerHTML = '';
+  if (key && entities[key]) {
+    entities[key].fields.forEach(f => {
+      container.innerHTML += '<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" name="fields" value="'+f+'" checked><label class="form-check-label">'+f+'</label></div>';
+    });
+  }
+});
+function generateReport() {
+  const entity = document.getElementById('entitySelect').value;
+  const fields = Array.from(document.querySelectorAll('input[name="fields"]:checked')).map(cb => cb.value);
+  const limit = document.getElementById('limitInput').value;
+  fetch('{{ url_for('report_builder.preview') }}', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}'},
+    body: JSON.stringify({entity, fields, limit})
+  }).then(r => r.json()).then(data => {
+    const el = document.getElementById('reportResult');
+    if (!data.success) { el.innerHTML = '<div class="alert alert-danger">'+data.message+'</div>'; return; }
+    let html = '<table class="table table-sm table-bordered"><thead><tr>';
+    data.headers.forEach(h => html += '<th>'+h+'</th>');
+    html += '</tr></thead><tbody>';
+    data.rows.forEach(row => {
+      html += '<tr>'; data.headers.forEach(h => html += '<td>'+(row[h]||'')+'</td>'); html += '</tr>';
+    });
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  });
+}
+</script>
+{% endblock %}

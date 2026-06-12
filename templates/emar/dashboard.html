@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}eMAR — سجل الأدوية{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">eMAR <span class="text-muted">{{ today }}</span></h2>
+  <div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ pending|length }}</h5><span class="text-muted">معلقة</span></div></div>
+    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ given|length }}</h5><span class="text-muted">مُعطاة</span></div></div>
+    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ administrations|length }}</h5><span class="text-muted">الكل</span></div></div>
+  </div>
+  <div class="card">
+    <div class="card-header">الأدوية المعلقة</div>
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>المريض</th><th>الدواء</th><th>الوقت المجدول</th><th>الجرعة</th><th></th></tr></thead>
+        <tbody>
+        {% for a in pending %}
+          <tr>
+            <td>{{ a.patient.full_name if a.patient else '-' }}</td>
+            <td>{{ a.medication.name if a.medication else '-' }}</td>
+            <td>{{ a.scheduled_time.strftime('%H:%M') if a.scheduled_time else '-' }}</td>
+            <td>{{ a.dose_given or '-' }}</td>
+            <td>
+              <form method="post" action="{{ url_for('emar.administer', admin_id=a.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-success" type="submit">إعطاء</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted text-center">لا يوجد أدوية معلقة</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "portal/base.html" %}
+{% block title %}حجز موعد{% endblock %}
+{% block content %}
+<div class="portal-card p-4 mx-auto portal-card-centered">
+  <h4 class="mb-3">حجز موعد جديد</h4>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <label class="form-label" for="doctor_id">الطبيب</label>
+      <select class="form-select" name="doctor_id" id="doctor_id" required title="اختر الطبيب">
+        <option value="">اختر الطبيب</option>
+        {% for d in doctors %}<option value="{{ d.id }}">{{ d.full_name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="appointment_date">التاريخ</label>
+      <input type="date" class="form-control" name="appointment_date" id="appointment_date" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="appointment_time">الوقت</label>
+      <input type="time" class="form-control" name="appointment_time" id="appointment_time" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="reason">السبب / الملاحظات</label>
+      <textarea class="form-control" name="reason" id="reason" rows="2" placeholder="سبب الزيارة"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">تأكيد الحجز</button>
+    <a href="{{ url_for('portal.appointments') }}" class="btn btn-secondary">إلغاء</a>
+  </form>
+</div>
+{% endblock %}

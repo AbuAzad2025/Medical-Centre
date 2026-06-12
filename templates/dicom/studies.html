@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}دراسات الأشعة{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">دراسات الأشعة (DICOM)</h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>UID</th><th>المريض</th><th>التاريخ</th><th>النوع</th><th>الوصف</th><th>الحالة</th><th></th></tr></thead>
+        <tbody>
+        {% for s in studies %}
+          <tr>
+            <td><small>{{ s.study_instance_uid[:20] }}...</small></td>
+            <td>{{ s.patient.full_name if s.patient else '-' }}</td>
+            <td>{{ s.study_date or '-' }}</td>
+            <td><span class="badge bg-info">{{ s.modality }}</span></td>
+            <td>{{ s.study_description or '-' }}</td>
+            <td><span class="badge bg-secondary">{{ s.status }}</span></td>
+            <td>
+              <a href="{{ url_for('dicom.study_detail', study_id=s.id) }}" class="btn btn-sm btn-outline-primary">عرض</a>
+              <a href="{{ url_for('dicom.viewer', study_id=s.id) }}" class="btn btn-sm btn-outline-success">Viewer</a>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="7" class="text-muted text-center">لا يوجد دراسات</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

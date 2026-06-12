@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}الرقود{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">الرقود <span class="badge bg-secondary">{{ status }}</span></h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>المريض</th><th>نوع الدخول</th><th>تاريخ الدخول</th><th>السرير</th><th>الحالة</th></tr></thead>
+        <tbody>
+        {% for a in admissions %}
+          <tr>
+            <td>{{ a.patient.full_name if a.patient else '-' }}</td>
+            <td>{{ a.admission_type }}</td>
+            <td>{{ a.admission_datetime.strftime('%Y-%m-%d %H:%M') if a.admission_datetime else '-' }}</td>
+            <td>{{ a.bed.bed_number if a.bed else '-' }}</td>
+            <td><span class="badge bg-secondary">{{ a.status }}</span></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted text-center">لا يوجد رقود</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

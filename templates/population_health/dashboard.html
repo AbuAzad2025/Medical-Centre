@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}صحة المجتمع{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">لوحة صحة المجتمع</h2>
+  <div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ indicators|length }}</h5><span class="text-muted">المؤشرات</span></div></div>
+    <div class="col-md-4"><div class="card p-3 text-center"><h5>{{ quality_measures|length }}</h5><span class="text-muted">مقاييس الجودة</span></div></div>
+  </div>
+  <div class="card">
+    <div class="card-header">مقاييس الجودة</div>
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>الكود</th><th>المقياس</th><th>الهدف</th><th>القيمة الحالية</th><th>النوع</th></tr></thead>
+        <tbody>
+        {% for m in quality_measures %}
+          <tr>
+            <td>{{ m.measure_code }}</td>
+            <td>{{ m.measure_name }}</td>
+            <td>{{ m.target_value or '-' }}</td>
+            <td>{{ m.current_value or '-' }}</td>
+            <td><span class="badge bg-info">{{ m.measure_type }}</span></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted text-center">لا يوجد مقاييس</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

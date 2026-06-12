@@ -471,6 +471,31 @@ def create_app(config_name: str | None = None) -> Flask:
     from routes.payment_routes import payment_bp
     from routes.nurse_routes import nurse_bp
     from app.modules.owner import owner_bp
+    from routes.clinical_coding import clinical_coding_bp
+    from routes.bed_management_routes import bed_bp
+    from routes.or_management_routes import or_bp
+    from routes.emar_routes import emar_bp
+    from routes.vaccination_routes import vaccination_bp
+    from routes.referral_routes import referral_bp
+    from routes.clinical_pathway_routes import pathway_bp
+    from routes.cds_alert_routes import cds_bp
+    from routes.barcode_routes import barcode_bp
+    from routes.fhir_api_routes import fhir_bp
+    from routes.dicom_routes import dicom_bp
+    from routes.patient_portal import portal_bp
+    from routes.population_health_routes import pop_health_bp
+    from routes.custom_report_builder_routes import report_builder_bp
+    from routes.security_advanced_routes import security_bp
+    from routes.mfa_routes import mfa_bp
+    from routes.nursing_assessment_routes import nursing_assessment_bp
+    from routes.patient_education_routes import patient_education_bp
+    from routes.backup_restore_routes import backup_restore_bp
+    from routes.telemedicine_routes import telemedicine_bp
+    from routes.sso_routes import sso_bp
+    from routes.ai_imaging_routes import ai_imaging_bp
+    from routes.biometric_routes import biometric_bp
+    from routes.data_warehouse_routes import data_warehouse_bp
+    from routes.what_if_routes import what_if_bp
 
     # Module guards — must be added BEFORE register_blueprint, and only ONCE
     def _guard_factory(module_name):
@@ -520,6 +545,31 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(medication_bp, url_prefix='/medication')
     app.register_blueprint(payment_bp, url_prefix='/payment')
     app.register_blueprint(nurse_bp, url_prefix='/nurse')
+    app.register_blueprint(clinical_coding_bp, url_prefix='/clinical-coding')
+    app.register_blueprint(bed_bp, url_prefix='/bed')
+    app.register_blueprint(or_bp, url_prefix='/or')
+    app.register_blueprint(emar_bp, url_prefix='/emar')
+    app.register_blueprint(vaccination_bp, url_prefix='/vaccination')
+    app.register_blueprint(referral_bp, url_prefix='/referral')
+    app.register_blueprint(pathway_bp, url_prefix='/pathway')
+    app.register_blueprint(cds_bp, url_prefix='/cds')
+    app.register_blueprint(barcode_bp, url_prefix='/barcode')
+    app.register_blueprint(fhir_bp)
+    app.register_blueprint(dicom_bp, url_prefix='/dicom')
+    app.register_blueprint(portal_bp)
+    app.register_blueprint(pop_health_bp, url_prefix='/population-health')
+    app.register_blueprint(report_builder_bp, url_prefix='/report-builder')
+    app.register_blueprint(security_bp, url_prefix='/security')
+    app.register_blueprint(mfa_bp)
+    app.register_blueprint(nursing_assessment_bp)
+    app.register_blueprint(patient_education_bp)
+    app.register_blueprint(backup_restore_bp)
+    app.register_blueprint(telemedicine_bp)
+    app.register_blueprint(sso_bp)
+    app.register_blueprint(ai_imaging_bp)
+    app.register_blueprint(biometric_bp)
+    app.register_blueprint(data_warehouse_bp)
+    app.register_blueprint(what_if_bp)
 
     # Tenant middleware — safe fallback if tables don't exist yet
     @app.before_request
