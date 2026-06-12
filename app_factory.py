@@ -368,9 +368,11 @@ def create_app(config_name: str | None = None) -> Flask:
                             h.setLevel(lvl)
                 # تهيئة معلومات شركة البرمجة والمبرمج
                 defaults = [
-                    {"key": "developer_company", "value": "شركة البرمجة", "type": "string"},
-                    {"key": "developer_name", "value": "المبرمج", "type": "string"},
-                    {"key": "developer_logo_url", "value": "", "type": "string"}
+                    {"key": "developer_company", "value": "شركة آزاد للأنظمة الذكية", "type": "string"},
+                    {"key": "developer_name", "value": "المهندس أحمد غنام", "type": "string"},
+                    {"key": "developer_logo_url", "value": "", "type": "string"},
+                    {"key": "developer_mobile", "value": "+ --------", "type": "string"},
+                    {"key": "developer_location", "value": "رام الله - فلسطين", "type": "string"}
                 ]
                 for d in defaults:
                     if not SystemConfig.query.filter_by(config_key=d["key"]).first():
@@ -417,23 +419,37 @@ def create_app(config_name: str | None = None) -> Flask:
             now = time.time()
             if not cache or (now - cache.get('ts', 0) > 60):
                 branding = BrandingSettings.get_active_settings()
-                dev_company = None
-                dev_name = None
-                dev_logo = None
+                dev_company = None; dev_name = None; dev_logo = None
+                dev_mobile = None; dev_location = None
                 if _sa_inspect(db.engine).has_table("system_configs"):
                     dc = SystemConfig.query.filter_by(config_key="developer_company").first()
                     dn = SystemConfig.query.filter_by(config_key="developer_name").first()
                     dl = SystemConfig.query.filter_by(config_key="developer_logo_url").first()
+                    dm = SystemConfig.query.filter_by(config_key="developer_mobile").first()
+                    dloc = SystemConfig.query.filter_by(config_key="developer_location").first()
                     dev_company = dc.get_value() if dc else None
                     dev_name = dn.get_value() if dn else None
                     dev_logo = dl.get_value() if dl else None
+                    dev_mobile = dm.get_value() if dm else None
+                    dev_location = dloc.get_value() if dloc else None
                 if not dev_company:
-                    dev_company = "شركة ازاد للأنظمة الذكية"
+                    dev_company = "شركة آزاد للأنظمة الذكية"
                 if not dev_name:
-                    dev_name = "أحمد غنام"
+                    dev_name = "المهندس أحمد غنام"
+                if not dev_mobile:
+                    dev_mobile = "+ --------"
+                if not dev_location:
+                    dev_location = "رام الله - فلسطين"
                 app._branding_cache = {
                     'ts': now,
-                    'data': dict(branding=branding, developer_company=dev_company, developer_name=dev_name, developer_logo_url=dev_logo)
+                    'data': dict(
+                        branding=branding,
+                        developer_company=dev_company,
+                        developer_name=dev_name,
+                        developer_logo_url=dev_logo,
+                        developer_mobile=dev_mobile,
+                        developer_location=dev_location
+                    )
                 }
             return app._branding_cache['data']
         except Exception:
