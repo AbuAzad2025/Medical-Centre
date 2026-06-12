@@ -99,12 +99,13 @@
     .nav-link-luxury:hover i, .nav-link-luxury.active i {
         color: var(--luxury-gold);
     }
+    .sidebar-title { font-size: 1.1rem; }
 </style>
 
 {% if current_user.is_authenticated %}
 <aside class="luxury-sidebar" id="appSidebar" role="navigation" aria-label="القائمة الجانبية">
     <div class="sidebar-header">
-        <h5 class="text-white mb-0 fw-bold" style="font-size: 1.1rem;">لوحة التحكم</h5>
+        <h5 class="text-white mb-0 fw-bold sidebar-title">لوحة التحكم</h5>
         <span class="user-role-badge">{{ current_user.role }}</span>
     </div>
     
