@@ -256,7 +256,7 @@
         <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>العملاء</h6>
             <div class="d-flex gap-2">
-                <select class="form-select form-select-sm" style="width: 130px;" onchange="location.href='?status='+this.value">
+                <select class="form-select form-select-sm w-auto" title="حالة العميل" onchange="location.href='?status='+this.value">
                     <option value="">كل الحالات</option>
                     <option value="active" {% if filter_status == 'active' %}selected{% endif %}>نشط</option>
                     <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>معلق</option>
@@ -313,13 +313,15 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script type="application/json" id="chart-data">{{ {'months': chart_months, 'tenantGrowth': chart_tenant_growth, 'mrrTrend': chart_mrr_trend, 'statusLabels': chart_status_labels, 'statusData': chart_status_data, 'ticketLabels': chart_ticket_labels, 'ticketData': chart_ticket_data, 'churnSpark': chart_churn_spark, 'userSpark': chart_user_spark}|tojson }}</script>
 <script>
     Chart.defaults.font.family = "'Segoe UI', 'Tahoma', sans-serif";
     Chart.defaults.color = '#6c757d';
 
-    const months = {{ chart_months|tojson }};
-    const tenantGrowth = {{ chart_tenant_growth|tojson }};
-    const mrrTrend = {{ chart_mrr_trend|tojson }};
+    const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+    const months = chartData.months;
+    const tenantGrowth = chartData.tenantGrowth;
+    const mrrTrend = chartData.mrrTrend;
 
     // Main chart: Tenant growth + MRR
     new Chart(document.getElementById('mainChart'), {
@@ -362,9 +364,9 @@
     new Chart(document.getElementById('statusChart'), {
         type: 'doughnut',
         data: {
-            labels: {{ chart_status_labels|tojson }},
+            labels: chartData.statusLabels,
             datasets: [{
-                data: {{ chart_status_data|tojson }},
+                data: chartData.statusData,
                 backgroundColor: ['#198754', '#ffc107', '#dc3545', '#6c757d', '#0dcaf0']
             }]
         },
@@ -379,10 +381,10 @@
     new Chart(document.getElementById('ticketChart'), {
         type: 'bar',
         data: {
-            labels: {{ chart_ticket_labels|tojson }},
+            labels: chartData.ticketLabels,
             datasets: [{
                 label: 'التذاكر',
-                data: {{ chart_ticket_data|tojson }},
+                data: chartData.ticketData,
                 backgroundColor: ['#dc3545', '#0d6efd', '#ffc107', '#198754']
             }]
         },
@@ -399,7 +401,7 @@
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: data.map((_, i) => i),
+                labels: data.map(function(_, i) { return i; }),
                 datasets: [{ data: data, borderColor: color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 }]
             },
             options: {
@@ -412,7 +414,7 @@
     }
     sparkline('sparkTenants', tenantGrowth, '#0d6efd');
     sparkline('sparkMRR', mrrTrend, '#198754');
-    sparkline('sparkChurn', {{ chart_churn_spark|tojson }}, '#dc3545');
-    sparkline('sparkUsers', {{ chart_user_spark|tojson }}, '#0dcaf0');
+    sparkline('sparkChurn', chartData.churnSpark, '#dc3545');
+    sparkline('sparkUsers', chartData.userSpark, '#0dcaf0');
 </script>
 {% endblock %}
