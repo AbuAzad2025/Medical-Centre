@@ -50,7 +50,7 @@ def upgrade():
         sa.Column('stock_quantity', sa.Integer(), nullable=False, server_default='0'),
         sa.Column('minimum_stock', sa.Integer(), nullable=False, server_default='0'),
         sa.Column('expiry_date', sa.Date(), nullable=True),
-        sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('1')),
+        sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('true')),
         sa.Column('notes', sa.Text(), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),

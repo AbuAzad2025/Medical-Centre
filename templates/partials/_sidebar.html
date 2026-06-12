@@ -6,8 +6,13 @@
         overflow-y: auto;
         padding-bottom: 2rem;
         box-shadow: 4px 0 15px rgba(0,0,0,0.3);
-        scrollbar-width: thin;
-        scrollbar-color: var(--luxury-gold) #1a1f3a;
+    }
+
+    @supports (scrollbar-width: thin) {
+        .luxury-sidebar {
+            scrollbar-width: thin;
+            scrollbar-color: var(--luxury-gold) #1a1f3a;
+        }
     }
     
     .luxury-sidebar::-webkit-scrollbar {

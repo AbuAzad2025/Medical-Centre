@@ -66,7 +66,7 @@ def upgrade():
         sa.Column('medication_b_id', sa.Integer(), sa.ForeignKey('medications.id', ondelete='CASCADE'), nullable=False),
         sa.Column('severity', sa.String(length=16), nullable=False, server_default='MODERATE'),
         sa.Column('description', sa.Text(), nullable=True),
-        sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('1')),
+        sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('true')),
         sa.Column('created_by', sa.Integer(), sa.ForeignKey('users.id', ondelete='SET NULL'), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
