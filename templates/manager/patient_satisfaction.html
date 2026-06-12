@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}رضا المرضى{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h4 class="mb-3"><i class="fas fa-smile me-2 text-warning"></i>لوحة رضا المرضى</h4>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h2>{{ total }}</h2>
+                    <small>استبيانات</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h2>{{ avg_score }}</h2>
+                    <small>متوسط الرضا (1-10)</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h2>{{ avg_recommend }}</h2>
+                    <small>متوسط التوصية (1-10)</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-{{ 'success' if nps >= 50 else 'warning' if nps >= 0 else 'danger' }} text-white">
+                <div class="card-body text-center">
+                    <h2>{{ nps }}</h2>
+                    <small>NPS Score</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">آخر الاستبيانات</div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead><tr><th>التاريخ</th><th>الزيارة</th><th>الرضا</th><th>التوصية</th><th>ملاحظات</th></tr></thead>
+                <tbody>
+                {% for s in surveys %}
+                <tr>
+                    <td class="small">{{ s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else '-' }}</td>
+                    <td>{{ s.visit_id }}</td>
+                    <td>{{ s.overall_satisfaction }}</td>
+                    <td>{{ s.recommend_likelihood }}</td>
+                    <td class="small">{{ s.comments or '-' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-muted text-center">لا استبيانات</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
