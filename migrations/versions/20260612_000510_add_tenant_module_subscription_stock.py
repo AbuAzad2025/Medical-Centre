@@ -15,7 +15,22 @@ depends_on = None
 
 
 def upgrade():
-    # tenants
+    # subscription_plans (must exist before tenants FK references it)
+    op.create_table(
+        'subscription_plans',
+        sa.Column('id', sa.Integer(), primary_key=True),
+        sa.Column('name', sa.String(100), nullable=False),
+        sa.Column('name_ar', sa.String(100), nullable=True),
+        sa.Column('billing_type', sa.Enum('PERPETUAL','MONTHLY','YEARLY', name='subscriptiontype'), nullable=False),
+        sa.Column('base_price', sa.Numeric(12, 2), nullable=False),
+        sa.Column('currency', sa.String(3), server_default='SAR', nullable=False),
+        sa.Column('is_active', sa.Boolean(), server_default=sa.text('true'), nullable=False),
+        sa.Column('modules_included', sa.Text(), nullable=True),
+        sa.Column('created_at', sa.DateTime(), nullable=False),
+        sa.Column('updated_at', sa.DateTime(), nullable=False),
+    )
+
+    # tenants (with inline FK to subscription_plans for SQLite compatibility)
     op.create_table(
         'tenants',
         sa.Column('id', sa.Integer(), primary_key=True),
@@ -33,36 +48,18 @@ def upgrade():
         sa.Column('subscription_start', sa.Date(), nullable=True),
         sa.Column('subscription_end', sa.Date(), nullable=True),
         sa.Column('grace_period_end', sa.Date(), nullable=True),
-        sa.Column('plan_id', sa.Integer(), nullable=True),
+        sa.Column('plan_id', sa.Integer(), sa.ForeignKey('subscription_plans.id'), nullable=True),
         sa.Column('logo_url', sa.String(255), nullable=True),
         sa.Column('primary_color', sa.String(7), server_default='#0d6efd', nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
     )
 
-    # subscription_plans
-    op.create_table(
-        'subscription_plans',
-        sa.Column('id', sa.Integer(), primary_key=True),
-        sa.Column('name', sa.String(100), nullable=False),
-        sa.Column('name_ar', sa.String(100), nullable=True),
-        sa.Column('billing_type', sa.Enum('PERPETUAL','MONTHLY','YEARLY', name='subscriptiontype'), nullable=False),
-        sa.Column('base_price', sa.Numeric(12, 2), nullable=False),
-        sa.Column('currency', sa.String(3), server_default='SAR', nullable=False),
-        sa.Column('is_active', sa.Boolean(), server_default='true', nullable=False),
-        sa.Column('modules_included', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(), nullable=False),
-        sa.Column('updated_at', sa.DateTime(), nullable=False),
-    )
-
-    # Add FK from tenants to subscription_plans
-    op.create_foreign_key('fk_tenants_plan', 'tenants', 'subscription_plans', ['plan_id'], ['id'])
-
     # tenant_subscription_history
     op.create_table(
         'tenant_subscription_history',
         sa.Column('id', sa.Integer(), primary_key=True),
-        sa.Column('tenant_id', sa.Integer(), nullable=False, index=True),
+        sa.Column('tenant_id', sa.Integer(), sa.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=False, index=True),
         sa.Column('action', sa.String(50), nullable=False),
         sa.Column('old_plan_id', sa.Integer(), nullable=True),
         sa.Column('new_plan_id', sa.Integer(), nullable=True),
@@ -71,7 +68,6 @@ def upgrade():
         sa.Column('notes', sa.Text(), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),
     )
-    op.create_foreign_key('fk_tsh_tenant', 'tenant_subscription_history', 'tenants', ['tenant_id'], ['id'], ondelete='CASCADE')
 
     # module_definitions
     op.create_table(
@@ -81,7 +77,7 @@ def upgrade():
         sa.Column('name_ar', sa.String(100), nullable=False),
         sa.Column('category', sa.String(50), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
-        sa.Column('is_active', sa.Boolean(), server_default='true', nullable=False),
+        sa.Column('is_active', sa.Boolean(), server_default=sa.text('true'), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=False),
     )
 
@@ -89,9 +85,9 @@ def upgrade():
     op.create_table(
         'tenant_modules',
         sa.Column('id', sa.Integer(), primary_key=True),
-        sa.Column('tenant_id', sa.Integer(), nullable=False, index=True),
+        sa.Column('tenant_id', sa.Integer(), sa.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=False, index=True),
         sa.Column('module_name', sa.String(50), nullable=False, index=True),
-        sa.Column('is_active', sa.Boolean(), server_default='false', nullable=False),
+        sa.Column('is_active', sa.Boolean(), server_default=sa.text('false'), nullable=False),
         sa.Column('activated_at', sa.DateTime(), nullable=True),
         sa.Column('deactivated_at', sa.DateTime(), nullable=True),
         sa.Column('activated_by', sa.Integer(), nullable=True),
@@ -99,7 +95,6 @@ def upgrade():
         sa.Column('updated_at', sa.DateTime(), nullable=False),
         sa.UniqueConstraint('tenant_id', 'module_name', name='uq_tenant_module'),
     )
-    op.create_foreign_key('fk_tm_tenant', 'tenant_modules', 'tenants', ['tenant_id'], ['id'], ondelete='CASCADE')
 
     # stock_movements
     op.create_table(

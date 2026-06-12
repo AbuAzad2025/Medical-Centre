@@ -1433,3 +1433,9 @@ UnboundLocalError: cannot access local variable 'Patient' where it is not associ
 2026-06-12 23:51:37 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:397]
 2026-06-12 23:52:08 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:397]
 2026-06-12 23:53:23 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:397]
+2026-06-13 00:18:37 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: (sqlite3.OperationalError) unable to open database file
+(Background on this error at: https://sqlalche.me/e/20/e3q8) [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:400]
+2026-06-13 00:19:38 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: (sqlite3.OperationalError) unable to open database file
+(Background on this error at: https://sqlalche.me/e/20/e3q8) [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:400]
+2026-06-13 00:20:15 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: (sqlite3.OperationalError) unable to open database file
+(Background on this error at: https://sqlalche.me/e/20/e3q8) [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:400]
