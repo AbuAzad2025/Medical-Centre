@@ -18,7 +18,7 @@ depends_on = None
 
 def upgrade():
     with op.batch_alter_table('radiology_results', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('is_critical', sa.Boolean(), nullable=False, server_default=sa.text('0')))
+        batch_op.add_column(sa.Column('is_critical', sa.Boolean(), nullable=False, server_default=sa.text('false')))
         batch_op.create_index(batch_op.f('ix_radiology_results_is_critical'), ['is_critical'], unique=False)
 
 

@@ -34,7 +34,7 @@ def upgrade():
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('username', sa.String(length=80), nullable=False),
         sa.Column('user_id', sa.Integer(), nullable=True),
-        sa.Column('success', sa.Boolean(), nullable=False, server_default=sa.text('0')),
+        sa.Column('success', sa.Boolean(), nullable=False, server_default=sa.text('false')),
         sa.Column('user_ip', sa.String(length=45), nullable=True),
         sa.Column('user_agent', sa.Text(), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),

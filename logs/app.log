@@ -1428,3 +1428,8 @@ UnboundLocalError: cannot access local variable 'Patient' where it is not associ
 2026-06-12 09:30:18 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:391]
 2026-06-12 09:30:41 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:391]
 2026-06-12 09:32:21 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: Error creating backref 'allergies' on relationship 'AllergyIntolerance.patient': property of that name exists on mapper 'Mapper[Patient(patients)]' [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:394]
+2026-06-12 23:49:16 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:397]
+2026-06-12 23:49:40 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:397]
+2026-06-12 23:51:37 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:397]
+2026-06-12 23:52:08 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:397]
+2026-06-12 23:53:23 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:397]

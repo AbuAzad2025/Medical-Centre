@@ -39,7 +39,7 @@ def upgrade():
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('user_id', sa.Integer(), nullable=False),
         sa.Column('department_id', sa.Integer(), nullable=False),
-        sa.Column('can_access', sa.Boolean(), nullable=False, server_default=sa.text('1')),
+        sa.Column('can_access', sa.Boolean(), nullable=False, server_default=sa.text('true')),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(['department_id'], ['departments.id'], ondelete='CASCADE'),
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
@@ -103,7 +103,7 @@ def upgrade():
     with op.batch_alter_table('radiology_results', schema=None) as batch_op:
         batch_op.add_column(sa.Column('reviewed_by', sa.Integer(), nullable=True))
         batch_op.add_column(sa.Column('reviewed_at', sa.DateTime(), nullable=True))
-        batch_op.add_column(sa.Column('revised_after_review', sa.Boolean(), nullable=False, server_default=sa.text('0')))
+        batch_op.add_column(sa.Column('revised_after_review', sa.Boolean(), nullable=False, server_default=sa.text('false')))
         batch_op.create_index(batch_op.f('ix_radiology_results_reviewed_by'), ['reviewed_by'], unique=False)
         batch_op.create_index(batch_op.f('ix_radiology_results_reviewed_at'), ['reviewed_at'], unique=False)
         batch_op.create_index(batch_op.f('ix_radiology_results_revised_after_review'), ['revised_after_review'], unique=False)
