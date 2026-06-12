@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}تخصيص المنصة{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col"><h4><i class="fas fa-paint-brush me-2 text-primary"></i>تخصيص هوية المنصة</h4></div>
+        <div class="col-auto">
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{{ url_for('owner.owner_branding') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">اسم المنصة</label>
+                        <input type="text" name="platform_name" class="form-control" value="{{ branding.platform_name or 'آزاد' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">الاسم بالإنجليزية</label>
+                        <input type="text" name="platform_name_en" class="form-control" value="{{ branding.platform_name_en or 'Azad' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">اللون الرئيسي</label>
+                        <input type="color" name="primary_color" class="form-control form-control-color" value="{{ branding.primary_color or '#1a1f3a' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">اللون الثانوي</label>
+                        <input type="color" name="secondary_color" class="form-control form-control-color" value="{{ branding.secondary_color or '#D4AF37' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">شعار المنصة (URL)</label>
+                        <input type="url" name="logo_url" class="form-control" value="{{ branding.logo_url or '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">فافيكون (URL)</label>
+                        <input type="url" name="favicon_url" class="form-control" value="{{ branding.favicon_url or '' }}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">وصف المنصة (Meta Description)</label>
+                        <textarea name="meta_description" class="form-control" rows="2">{{ branding.meta_description or '' }}</textarea>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> حفظ التخصيص</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

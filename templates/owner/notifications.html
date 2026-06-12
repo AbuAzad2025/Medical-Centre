@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}إشعارات المنصة{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col"><h4><i class="fas fa-bell me-2 text-warning"></i>قواعد الإشعارات</h4></div>
+        <div class="col-auto">
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+        </div>
+    </div>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header fw-bold">قاعدة جديدة</div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('owner.owner_create_notification') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label class="form-label">الحدث</label>
+                            <select name="event_type" class="form-select">
+                                <option value="subscription_expiry">انتهاء الاشتراك</option>
+                                <option value="trial_ending">انتهاء التجربة</option>
+                                <option value="high_resource">استهلاك عالي</option>
+                                <option value="ticket_new">تذكرة جديدة</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">القناة</label>
+                            <select name="channel" class="form-select">
+                                <option value="email">بريد إلكتروني</option>
+                                <option value="webhook">Webhook</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">الوجهة</label>
+                            <input type="text" name="target" class="form-control" placeholder="email@domain.com أو URL" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">العنوان (اختياري)</label>
+                            <input type="text" name="template_subject" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">المحتوى (اختياري)</label>
+                            <textarea name="template_body" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" name="is_active" class="form-check-input" checked>
+                            <label class="form-check-label">نشط</label>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">إضافة</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header fw-bold">القواعد الحالية</div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead><tr><th>الحدث</th><th>القناة</th><th>الوجهة</th><th>الحالة</th><th>تاريخ الإنشاء</th></tr></thead>
+                        <tbody>
+                        {% for r in rules %}
+                        <tr>
+                            <td class="small">{{ r.event_type }}</td>
+                            <td class="small">{{ r.channel }}</td>
+                            <td class="small text-truncate" style="max-width: 200px;">{{ r.target }}</td>
+                            <td><span class="badge bg-{{ 'success' if r.is_active else 'secondary' }}">{{ 'نشط' if r.is_active else 'معطل' }}</span></td>
+                            <td class="small text-muted">{{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '-' }}</td>
+                        </tr>
+                        {% else %}<tr><td colspan="5" class="text-muted text-center py-3">لا قواعد</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
