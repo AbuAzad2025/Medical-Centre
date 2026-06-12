@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}خريطة الأسنان - {{ patient.full_name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h4><i class="fas fa-tooth me-2 text-primary"></i>خريطة الأسنان — {{ patient.full_name }}</h4>
+            <small class="text-muted">FDI numbering | اضغط على السن لتغيير حالته</small>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('doctor.patient_details', visit_id=visit_id) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> العودة
+            </a>
+            <button class="btn btn-sm btn-primary" onclick="saveChart()">
+                <i class="fas fa-save me-1"></i> حفظ
+            </button>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex flex-wrap gap-2 small">
+                {% for key, info in states.items() %}
+                <span class="badge" style="background:{{ info.color }};color:#fff;">{{ info.label }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Dental Chart SVG -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body position-relative" id="chartContainer" style="min-height:500px;">
+                    <svg id="dentalSvg" viewBox="0 0 600 500" class="w-100 h-100">
+                        <!-- Upper Right (1x) and Upper Left (2x) -->
+                        <g id="upper" transform="translate(50,30)">
+                            {% for tooth in upper_teeth %}
+                            <g class="tooth-group" data-fdi="{{ tooth.fdi }}"
+                               transform="translate({{ tooth.x }}, {{ tooth.y }})"
+                               onclick="openToothModal('{{ tooth.fdi }}')"
+                               style="cursor:pointer;">
+                                <rect x="0" y="0" width="32" height="32" rx="4"
+                                      fill="{{ tooth.color }}" stroke="#fff" stroke-width="1"/>
+                                <text x="16" y="21" text-anchor="middle" font-size="12" fill="white" font-weight="bold">{{ tooth.fdi }}</text>
+                                {% if tooth.state != 'sound' %}
+                                <circle cx="28" cy="4" r="3" fill="white"/>
+                                {% endif %}
+                            </g>
+                            {% endfor %}
+                        </g>
+                        <!-- Lower Right (4x) and Lower Left (3x) -->
+                        <g id="lower" transform="translate(50,260)">
+                            {% for tooth in lower_teeth %}
+                            <g class="tooth-group" data-fdi="{{ tooth.fdi }}"
+                               transform="translate({{ tooth.x }}, {{ tooth.y }})"
+                               onclick="openToothModal('{{ tooth.fdi }}')"
+                               style="cursor:pointer;">
+                                <rect x="0" y="0" width="32" height="32" rx="4"
+                                      fill="{{ tooth.color }}" stroke="#fff" stroke-width="1"/>
+                                <text x="16" y="21" text-anchor="middle" font-size="12" fill="white" font-weight="bold">{{ tooth.fdi }}</text>
+                                {% if tooth.state != 'sound' %}
+                                <circle cx="28" cy="4" r="3" fill="white"/>
+                                {% endif %}
+                            </g>
+                            {% endfor %}
+                        </g>
+                        <!-- Labels -->
+                        <text x="300" y="20" text-anchor="middle" font-size="12" fill="#6b7280">الفك العلوي</text>
+                        <text x="300" y="490" text-anchor="middle" font-size="12" fill="#6b7280">الفك السفلي</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Panel -->
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-edit me-1"></i> تعديل السن
+                </div>
+                <div class="card-body" id="toothEditor" style="display:none;">
+                    <h6 class="mb-3">السن <span id="selectedFdi" class="badge bg-dark"></span></h6>
+                    <div class="mb-3">
+                        <label class="form-label">الحالة</label>
+                        <select class="form-select form-select-sm" id="toothStateSelect">
+                            {% for key, info in states.items() %}
+                            <option value="{{ key }}">{{ info.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الأسطح (اختياري)</label>
+                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_occlusal" value="occlusal"><label class="form-check-label">علوي</label></div>
+                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_buccal" value="buccal"><label class="form-check-label">وجهي</label></div>
+                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_lingual" value="lingual"><label class="form-check-label">لساني</label></div>
+                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_mesial" value="mesial"><label class="form-check-label">قريب</label></div>
+                        <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="s_distal" value="distal"><label class="form-check-label">بعيد</label></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ملاحظات</label>
+                        <textarea class="form-control form-control-sm" id="toothNotes" rows="2"></textarea>
+                    </div>
+                    <button class="btn btn-sm btn-success w-100" onclick="applyToothState()">
+                        <i class="fas fa-check me-1"></i> تطبيق
+                    </button>
+                </div>
+                <div class="card-body text-muted text-center" id="toothEditorEmpty">
+                    <i class="fas fa-hand-pointer fa-2x mb-2"></i><br>
+                    اضغط على سن في الخريطة لتعديله
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-clipboard-list me-1"></i> ملخص
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush small" id="summaryList">
+                        <!-- populated by JS -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const STATES = {{ states_json | safe }};
+let selectedFdi = null;
+let teethData = {{ teeth_json | safe }};
+
+function openToothModal(fdi) {
+    selectedFdi = fdi;
+    document.getElementById('selectedFdi').textContent = fdi;
+    const tooth = teethData[fdi] || {state:'sound', surfaces:{}, notes:''};
+    document.getElementById('toothStateSelect').value = tooth.state;
+    document.getElementById('toothNotes').value = tooth.notes || '';
+    ['occlusal','buccal','lingual','mesial','distal'].forEach(s => {
+        document.getElementById('s_' + s).checked = !!(tooth.surfaces && tooth.surfaces[s]);
+    });
+    document.getElementById('toothEditor').style.display = 'block';
+    document.getElementById('toothEditorEmpty').style.display = 'none';
+}
+
+function applyToothState() {
+    if (!selectedFdi) return;
+    const state = document.getElementById('toothStateSelect').value;
+    const notes = document.getElementById('toothNotes').value;
+    const surfaces = {};
+    ['occlusal','buccal','lingual','mesial','distal'].forEach(s => {
+        if (document.getElementById('s_' + s).checked) surfaces[s] = state;
+    });
+    teethData[selectedFdi] = {state, surfaces, notes};
+    updateSvgTooth(selectedFdi, state);
+    updateSummary();
+}
+
+function updateSvgTooth(fdi, state) {
+    const group = document.querySelector(`.tooth-group[data-fdi="${fdi}"]`);
+    if (!group) return;
+    const rect = group.querySelector('rect');
+    const dot = group.querySelector('circle');
+    const color = STATES[state]?.color || '#10b981';
+    rect.setAttribute('fill', color);
+    if (state === 'sound') {
+        if (dot) dot.remove();
+    } else {
+        if (!dot) {
+            const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+            c.setAttribute('cx','28'); c.setAttribute('cy','4'); c.setAttribute('r','3');
+            c.setAttribute('fill','white');
+            group.appendChild(c);
+        }
+    }
+}
+
+function updateSummary() {
+    const counts = {};
+    Object.values(teethData).forEach(t => { counts[t.state] = (counts[t.state]||0)+1; });
+    const list = document.getElementById('summaryList');
+    list.innerHTML = '';
+    for (const [key, info] of Object.entries(STATES)) {
+        const cnt = counts[key] || 0;
+        if (cnt > 0) {
+            list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><span class="badge me-1" style="background:${info.color}">&nbsp;</span>${info.label}</span>
+                <span class="badge bg-secondary">${cnt}</span>
+            </li>`;
+        }
+    }
+    if (list.innerHTML === '') list.innerHTML = '<li class="list-group-item text-muted">لا يوجد أسنان معدلة</li>';
+}
+
+function saveChart() {
+    fetch('{{ url_for("doctor.save_dental_chart") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}'},
+        body: JSON.stringify({patient_id: {{ patient.id }}, visit_id: {{ visit_id or 'null' }}, teeth: teethData, notes: ''})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) alert('تم الحفظ');
+        else alert('خطأ: ' + data.message);
+    })
+    .catch(() => alert('خطأ في الاتصال'));
+}
+
+updateSummary();
+</script>
+{% endblock %}
