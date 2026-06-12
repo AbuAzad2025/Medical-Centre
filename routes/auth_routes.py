@@ -370,7 +370,7 @@ def get_redirect_url_by_role(role):
     # استخدام خدمة التحكم في الوصول للحصول على المسار الصحيح
     role_urls = {
         'super_admin': '/super-admin/dashboard',
-        'admin': '/super-admin/dashboard',  # إضافة admin
+        'admin': '/manager/dashboard',  # admin redirects to manager dashboard
         'manager': '/manager/dashboard',
         'reception': '/reception/dashboard',
         'doctor': '/doctor/dashboard',

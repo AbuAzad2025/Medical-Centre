@@ -54,7 +54,7 @@ def owner_dashboard():
     active_today = sum(1 for t in all_tenants if t.is_active_and_paid())
     expired_count = sum(1 for t in all_tenants if t.status == TenantStatus.EXPIRED)
     suspended_count = sum(1 for t in all_tenants if t.status == TenantStatus.SUSPENDED)
-    trial_count = sum(1 for t in all_tenants if t.status == TenantStatus.TRIAL)
+    trial_count = sum(1 for t in all_tenants if t.status == TenantStatus.PENDING)
 
     # MRR/ARR
     mrr = 0.0
@@ -77,12 +77,12 @@ def owner_dashboard():
     expiring_trials = 0
     if trial_count > 0:
         thirty_days_ago = date.today() - timedelta(days=30)
-        old_trials = [t for t in all_tenants if t.status == TenantStatus.TRIAL and t.created_at and t.created_at.date() < thirty_days_ago]
+        old_trials = [t for t in all_tenants if t.status == TenantStatus.PENDING and t.created_at and t.created_at.date() < thirty_days_ago]
         converted = [t for t in old_trials if t.plan_id]
         conversion_rate = round((len(converted) / max(len(old_trials), 1)) * 100, 1)
         # Expiring this week
         next_week = date.today() + timedelta(days=7)
-        expiring_trials = sum(1 for t in all_tenants if t.status == TenantStatus.TRIAL and t.subscription_end and t.subscription_end <= next_week)
+        expiring_trials = sum(1 for t in all_tenants if t.status == TenantStatus.PENDING and t.subscription_end and t.subscription_end <= next_week)
 
     # Filter
     filter_status = request.args.get('status', '')
@@ -133,7 +133,7 @@ def owner_dashboard():
         sum(1 for t in all_tenants if t.status == TenantStatus.PENDING),
         sum(1 for t in all_tenants if t.status == TenantStatus.EXPIRED),
         sum(1 for t in all_tenants if t.status == TenantStatus.SUSPENDED),
-        sum(1 for t in all_tenants if t.status == TenantStatus.TRIAL),
+        sum(1 for t in all_tenants if t.status == TenantStatus.PENDING),
     ]
 
     # Support tickets summary for chart
