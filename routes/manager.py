@@ -1678,4 +1678,146 @@ def kpi_dashboard():
         flash('حدث خطأ في تحميل لوحة المؤشرات', 'error')
         return redirect(url_for('manager.dashboard'))
 
+@manager_bp.route('/budget', methods=['GET', 'POST'])
+@login_required
+@role_required('manager', 'admin', 'super_admin')
+def budget_dashboard():
+    """إدارة الميزانية - Budget vs Actual"""
+    from models.budget import Budget
+    today = date.today()
+    year = int(request.args.get('year', today.year))
+    month = int(request.args.get('month', today.month))
 
+    if request.method == 'POST':
+        dept_id = request.form.get('department_id')
+        dept_id = int(dept_id) if dept_id else None
+        b = Budget.get_or_create(year, month, dept_id, current_user.id)
+        b.revenue_target = Decimal(request.form.get('revenue_target', 0))
+        b.visits_target = int(request.form.get('visits_target', 0))
+        b.new_patients_target = int(request.form.get('new_patients_target', 0))
+        b.expenses_target = Decimal(request.form.get('expenses_target', 0))
+        b.notes = request.form.get('notes', '')
+        db.session.commit()
+        flash('تم حفظ الميزانية', 'success')
+        return redirect(url_for('manager.budget_dashboard', year=year, month=month))
+
+    start = date(year, month, 1)
+    if month == 12:
+        end = date(year + 1, 1, 1)
+    else:
+        end = date(year, month + 1, 1)
+
+    actual_revenue = db.session.query(func.sum(Payment.amount)).filter(
+        Payment.payment_date >= start, Payment.payment_date < end,
+        Payment.status.in_(['COMPLETED', 'PAID'])
+    ).scalar() or 0
+
+    actual_visits = Visit.query.filter(Visit.visit_date >= start, Visit.visit_date < end).count()
+    actual_new_patients = Patient.query.filter(Patient.created_at >= start, Patient.created_at < end).count()
+
+    budgets = Budget.query.filter_by(year=year, month=month).all()
+    dept_budgets = {b.department_id: b for b in budgets}
+
+    return render_template('manager/budget.html',
+                           year=year, month=month,
+                           actual_revenue=float(actual_revenue),
+                           actual_visits=actual_visits,
+                           actual_new_patients=actual_new_patients,
+                           dept_budgets=dept_budgets,
+                           departments=Department.query.all())
+
+
+@manager_bp.route('/monthly-comparison')
+@login_required
+@role_required('manager', 'admin', 'super_admin')
+def monthly_comparison():
+    """مقارنة شهرية - MoM / YoY"""
+    today = date.today()
+    months = []
+    for i in range(5, -1, -1):
+        m = today.month - i
+        y = today.year
+        while m <= 0:
+            m += 12
+            y -= 1
+        start = date(y, m, 1)
+        if m == 12:
+            end = date(y + 1, 1, 1)
+        else:
+            end = date(y, m + 1, 1)
+
+        rev = db.session.query(func.sum(Payment.amount)).filter(
+            Payment.payment_date >= start, Payment.payment_date < end
+        ).scalar() or 0
+        vis = Visit.query.filter(Visit.visit_date >= start, Visit.visit_date < end).count()
+        newp = Patient.query.filter(Patient.created_at >= start, Patient.created_at < end).count()
+
+        months.append({'label': f"{y}-{m:02d}", 'revenue': float(rev), 'visits': vis, 'new_patients': newp})
+
+    for i in range(1, len(months)):
+        prev = months[i - 1]
+        curr = months[i]
+        curr['revenue_growth'] = round(((curr['revenue'] - prev['revenue']) / (prev['revenue'] or 1)) * 100, 1)
+        curr['visits_growth'] = round(((curr['visits'] - prev['visits']) / (prev['visits'] or 1)) * 100, 1)
+
+    return render_template('manager/monthly_comparison.html', months=months)
+
+
+@manager_bp.route('/drill-down/<report_type>')
+@login_required
+@role_required('manager', 'admin', 'super_admin')
+def drill_down(report_type):
+    """تقارير drill-down"""
+    today = date.today()
+    start = request.args.get('start', today.strftime('%Y-%m-%d'))
+    end = request.args.get('end', today.strftime('%Y-%m-%d'))
+    dept_id = request.args.get('department_id')
+    try:
+        start_dt = datetime.strptime(start, '%Y-%m-%d').date()
+        end_dt = datetime.strptime(end, '%Y-%m-%d').date()
+    except ValueError:
+        start_dt = end_dt = today
+
+    if report_type == 'visits':
+        title = 'تفاصيل الزيارات'
+        q = Visit.query.filter(Visit.visit_date >= start_dt, Visit.visit_date <= end_dt)
+        if dept_id:
+            q = q.filter_by(department_id=int(dept_id))
+        results = q.order_by(Visit.visit_date.desc()).limit(200).all()
+    elif report_type == 'revenue':
+        title = 'تفاصيل الإيرادات'
+        q = Payment.query.filter(Payment.payment_date >= start_dt, Payment.payment_date <= end_dt)
+        results = q.order_by(Payment.payment_date.desc()).limit(200).all()
+    elif report_type == 'patients':
+        title = 'المرضى الجدد'
+        results = Patient.query.filter(Patient.created_at >= start_dt, Patient.created_at <= end_dt).order_by(Patient.created_at.desc()).limit(200).all()
+    else:
+        flash('نوع التقرير غير معروف', 'error')
+        return redirect(url_for('manager.dashboard'))
+
+    return render_template('manager/drill_down.html', report_type=report_type, title=title,
+                           results=results, start=start, end=end, departments=Department.query.all())
+
+
+@manager_bp.route('/patient-satisfaction')
+@login_required
+@role_required('manager', 'admin', 'super_admin')
+def patient_satisfaction_dashboard():
+    """لوحة رضا المرضى"""
+    try:
+        from models.patient_satisfaction import PatientSatisfactionSurvey
+        surveys = PatientSatisfactionSurvey.query.order_by(PatientSatisfactionSurvey.created_at.desc()).limit(100).all()
+        total = len(surveys) if surveys else 0
+        if total > 0:
+            avg_score = sum(float(s.overall_satisfaction or 0) for s in surveys) / total
+            avg_recommend = sum(float(s.recommend_likelihood or 0) for s in surveys) / total
+            promoters = sum(1 for s in surveys if float(s.recommend_likelihood or 0) >= 9)
+            detractors = sum(1 for s in surveys if float(s.recommend_likelihood or 0) <= 6)
+            nps = round(((promoters - detractors) / total) * 100, 1)
+        else:
+            avg_score = avg_recommend = nps = 0
+        return render_template('manager/patient_satisfaction.html', surveys=surveys, total=total,
+                               avg_score=round(avg_score, 1), avg_recommend=round(avg_recommend, 1), nps=nps)
+    except Exception:
+        return render_template('manager/patient_satisfaction.html', surveys=[], total=0,
+                               avg_score=0, avg_recommend=0, nps=0)

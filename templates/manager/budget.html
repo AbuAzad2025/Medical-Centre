@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}إدارة الميزانية{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col"><h4><i class="fas fa-wallet me-2 text-success"></i>إدارة الميزانية — {{ year }}/{{ "%02d"|format(month) }}</h4></div>
+        <div class="col-auto">
+            <form class="d-flex gap-2" method="get">
+                <select name="month" class="form-select form-select-sm">
+                    {% for m in range(1,13) %}<option value="{{ m }}"{% if m==month %} selected{% endif %}>{{ m }}</option>{% endfor %}
+                </select>
+                <input type="number" name="year" class="form-control form-control-sm" value="{{ year }}" style="width:80px;">
+                <button class="btn btn-sm btn-primary" type="submit"><i class="fas fa-filter"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Actuals vs Budget Summary -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="text-muted">الإيرادات</h6>
+                    <h4>{{ "%.0f"|format(actual_revenue) }} <small class="text-muted">/ {{ "%.0f"|format(dept_budgets.get(None, {}).revenue_target|default(0)|float) }} ₪</small></h4>
+                    {% set target = (dept_budgets.get(None, {}).revenue_target|default(0)|float) or 1 %}
+                    {% set pct = (actual_revenue / target * 100)|round %}
+                    <div class="progress"><div class="progress-bar bg-{{ 'success' if pct>=100 else 'warning' if pct>=70 else 'danger' }}" style="width:{{ pct }}%">{{ pct }}%</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="text-muted">الزيارات</h6>
+                    <h4>{{ actual_visits }} <small class="text-muted">/ {{ dept_budgets.get(None, {}).visits_target|default(0) }}</small></h4>
+                    {% set vt = (dept_budgets.get(None, {}).visits_target|default(0)) or 1 %}
+                    {% set vp = (actual_visits / vt * 100)|round %}
+                    <div class="progress"><div class="progress-bar bg-{{ 'success' if vp>=100 else 'warning' if vp>=70 else 'danger' }}" style="width:{{ vp }}%">{{ vp }}%</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="text-muted">مرضى جدد</h6>
+                    <h4>{{ actual_new_patients }} <small class="text-muted">/ {{ dept_budgets.get(None, {}).new_patients_target|default(0) }}</small></h4>
+                    {% set nt = (dept_budgets.get(None, {}).new_patients_target|default(0)) or 1 %}
+                    {% set np = (actual_new_patients / nt * 100)|round %}
+                    <div class="progress"><div class="progress-bar bg-{{ 'success' if np>=100 else 'warning' if np>=70 else 'danger' }}" style="width:{{ np }}%">{{ np }}%</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Set Budget Form -->
+    <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-edit me-1"></i> تحديد الميزانية</div>
+        <div class="card-body">
+            <form method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">القسم (اختياري)</label>
+                        <select name="department_id" class="form-select">
+                            <option value="">كل الأقسام</option>
+                            {% for d in departments %}<option value="{{ d.id }}">{{ d.name_ar or d.name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2"><label class="form-label">هدف الإيرادات</label><input type="number" step="0.01" name="revenue_target" class="form-control" value="{{ dept_budgets.get(None, {}).revenue_target|default(0)|float }}"></div>
+                    <div class="col-md-2"><label class="form-label">هدف الزيارات</label><input type="number" name="visits_target" class="form-control" value="{{ dept_budgets.get(None, {}).visits_target|default(0) }}"></div>
+                    <div class="col-md-2"><label class="form-label">هدف مرضى جدد</label><input type="number" name="new_patients_target" class="form-control" value="{{ dept_budgets.get(None, {}).new_patients_target|default(0) }}"></div>
+                    <div class="col-md-2"><label class="form-label">هدف المصروفات</label><input type="number" step="0.01" name="expenses_target" class="form-control" value="{{ dept_budgets.get(None, {}).expenses_target|default(0)|float }}"></div>
+                    <div class="col-md-1 d-flex align-items-end"><button type="submit" class="btn btn-success w-100"><i class="fas fa-save"></i></button></div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

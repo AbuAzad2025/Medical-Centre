@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}المقارنة الشهرية{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h4 class="mb-3"><i class="fas fa-chart-line me-2 text-primary"></i>المقارنة الشهرية (آخر 6 أشهر)</h4>
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr><th>الشهر</th><th>الإيرادات</th><th>نمو الإيرادات</th><th>الزيارات</th><th>نمو الزيارات</th><th>مرضى جدد</th></tr>
+                </thead>
+                <tbody>
+                {% for m in months %}
+                <tr>
+                    <td><strong>{{ m.label }}</strong></td>
+                    <td>{{ "%.0f"|format(m.revenue) }} ₪</td>
+                    <td>
+                        {% if m.revenue_growth is defined %}
+                        <span class="badge bg-{{ 'success' if m.revenue_growth > 0 else 'danger' }}">
+                            <i class="fas fa-arrow-{{ 'up' if m.revenue_growth > 0 else 'down' }}"></i> {{ m.revenue_growth }}%
+                        </span>
+                        {% else %}<span class="text-muted">—</span>{% endif %}
+                    </td>
+                    <td>{{ m.visits }}</td>
+                    <td>
+                        {% if m.visits_growth is defined %}
+                        <span class="badge bg-{{ 'success' if m.visits_growth > 0 else 'danger' }}">
+                            <i class="fas fa-arrow-{{ 'up' if m.visits_growth > 0 else 'down' }}"></i> {{ m.visits_growth }}%
+                        </span>
+                        {% else %}<span class="text-muted">—</span>{% endif %}
+                    </td>
+                    <td>{{ m.new_patients }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

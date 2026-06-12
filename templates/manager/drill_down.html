@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col"><h4><i class="fas fa-search-plus me-2 text-primary"></i>{{ title }}</h4></div>
+        <div class="col-auto">
+            <form class="d-flex gap-2" method="get">
+                <input type="date" name="start" class="form-control form-control-sm" value="{{ start }}">
+                <input type="date" name="end" class="form-control form-control-sm" value="{{ end }}">
+                <select name="department_id" class="form-select form-select-sm">
+                    <option value="">كل الأقسام</option>
+                    {% for d in departments %}<option value="{{ d.id }}" {% if request.args.get('department_id')|int == d.id %}selected{% endif %}>{{ d.name_ar or d.name }}</option>{% endfor %}
+                </select>
+                <button class="btn btn-sm btn-primary" type="submit">تطبيق</button>
+            </form>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead>
+                    {% if report_type == 'visits' %}
+                    <tr><th>#</th><th>المريض</th><th>القسم</th><th>الطبيب</th><th>التاريخ</th><th>الحالة</th></tr>
+                    {% elif report_type == 'revenue' %}
+                    <tr><th>#</th><th>الزيارة</th><th>المبلغ</th><th>الطريقة</th><th>التاريخ</th></tr>
+                    {% elif report_type == 'patients' %}
+                    <tr><th>#</th><th>الاسم</th><th>الجنس</th><th>التاريخ</th></tr>
+                    {% endif %}
+                </thead>
+                <tbody>
+                {% for r in results %}
+                <tr>
+                    {% if report_type == 'visits' %}
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.patient.full_name if r.patient else '-' }}</td>
+                    <td>{{ r.department.name_ar if r.department else '-' }}</td>
+                    <td>{{ r.doctor.full_name if r.doctor else '-' }}</td>
+                    <td>{{ r.visit_date }}</td>
+                    <td><span class="badge bg-{{ 'success' if r.status=='COMPLETED' else 'primary' if r.status=='IN_PROGRESS' else 'secondary' }}">{{ r.status }}</span></td>
+                    {% elif report_type == 'revenue' %}
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.visit_id }}</td>
+                    <td>{{ "%.2f"|format(r.amount|float) }} ₪</td>
+                    <td>{{ r.method }}</td>
+                    <td>{{ r.payment_date }}</td>
+                    {% elif report_type == 'patients' %}
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.full_name }}</td>
+                    <td>{{ r.gender or '-' }}</td>
+                    <td>{{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '-' }}</td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-muted text-center">لا نتائج</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
