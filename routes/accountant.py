@@ -76,6 +76,32 @@ def dashboard():
         erp_integration = get_erp_integration_status()
         margin_analytics = get_margin_analytics()
 
+        # تحليل العملات المتعددة
+        currency_breakdown = {}
+        try:
+            from services.currency_service import CurrencyConverter
+            today_currencies = db.session.query(
+                Payment.currency,
+                db.func.count(Payment.id).label('count'),
+                db.func.sum(Payment.amount).label('total')
+            ).filter(
+                func.date(Payment.created_at) == today,
+                Payment.currency.isnot(None)
+            ).group_by(Payment.currency).all()
+            for cur, cnt, total in today_currencies:
+                converted = 0
+                if cur and cur != 'ILS' and total:
+                    rate = CurrencyConverter.get_rate(cur, 'ILS')
+                    if rate:
+                        converted = float(CurrencyConverter.convert(float(total or 0), cur, 'ILS'))
+                currency_breakdown[cur or 'ILS'] = {
+                    'count': int(cnt or 0),
+                    'original': float(total or 0),
+                    'converted': converted if cur != 'ILS' else float(total or 0)
+                }
+        except Exception:
+            currency_breakdown = {}
+
         recent_transactions = []
         try:
             recent = Payment.query.order_by(Payment.created_at.desc()).limit(10).all()
@@ -131,7 +157,8 @@ def dashboard():
             'smart_recommendations': smart_recommendations,
             'revenue_cycle': revenue_cycle,
             'erp_integration': erp_integration,
-            'margin_analytics': margin_analytics
+            'margin_analytics': margin_analytics,
+            'currency_breakdown': currency_breakdown
         }
         
         return render_template('accountant/dashboard_new.html', stats=stats, recent_transactions=recent_transactions, debt_alerts=debt_alerts)

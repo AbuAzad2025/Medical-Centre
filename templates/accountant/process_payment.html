@@ -20,15 +20,24 @@
         <div class="card-body">
           <form method="post" action="{{ url_for('payment.process_payment', visit_id=visit.id) }}">
             {{ forms.csrf() }}
-            <div class="mb-3">
-              <label class="form-label">طريقة الدفع</label>
-              <select class="form-select" name="payment_method" required>
-                <option value="">اختر</option>
-                <option value="CASH">نقداً</option>
-                <option value="CARD">بطاقة</option>
-                <option value="INSURANCE">تأمين</option>
-                <option value="WIRE">تحويل بنكي</option>
-              </select>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">طريقة الدفع</label>
+                <select class="form-select" name="payment_method" required>
+                  <option value="">اختر</option>
+                  <option value="CASH">نقداً</option>
+                  <option value="CARD">بطاقة</option>
+                  <option value="INSURANCE">تأمين</option>
+                  <option value="WIRE">تحويل بنكي</option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">العملة</label>
+                <select class="form-select" name="payment_currency" id="paymentCurrencySelect" required title="العملة">
+                  {% for code, info in currencies.items() %}<option value="{{ code }}" {{ 'selected' if code == base_currency else '' }}>{{ info.flag }} {{ code }} — {{ info.name }}</option>{% endfor %}
+                </select>
+                <div id="exchangeRateInfo" class="small text-muted mt-1 d-none"></div>
+              </div>
             </div>
             <div class="row">
               <div class="col-md-4 mb-3">
@@ -97,8 +106,8 @@
             </div>
             <div class="mb-3">
               <label class="form-label">المبلغ المدفوع</label>
-              <input type="number" class="form-control" name="paid_amount" min="0" step="0.01" max="{{ visit.remaining_amount or 0 }}" value="{{ visit.remaining_amount if visit and visit.remaining_amount > 0 else 0 }}" placeholder="أدخل المبلغ">
-              <small class="text-muted">المتبقي: {{ "%.2f"|format(visit.remaining_amount or 0) }} ₪</small>
+              <input type="number" class="form-control" name="paid_amount" id="paidAmountInput" min="0" step="0.01" max="{{ visit.remaining_amount or 0 }}" value="{{ visit.remaining_amount if visit and visit.remaining_amount > 0 else 0 }}" placeholder="أدخل المبلغ">
+              <small class="text-muted">المتبقي: <span id="remainingDisplay">{{ "%.2f"|format(visit.remaining_amount or 0) }}</span> <span id="baseCurrencyLabel">{{ base_currency }}</span></small>
             </div>
             <div class="d-flex gap-2">
               <button type="submit" class="btn btn-primary">تأكيد الدفع</button>
@@ -110,4 +119,39 @@
     </div>
   </div>
 </div>
+
+{% include 'partials/_exchange_rate_modal.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const baseCurrency = '{{ base_currency }}';
+  const currencySelect = document.getElementById('paymentCurrencySelect');
+  const rateInfo = document.getElementById('exchangeRateInfo');
+  const remainingDisplay = document.getElementById('remainingDisplay');
+  const baseLabel = document.getElementById('baseCurrencyLabel');
+
+  async function checkRate() {
+    const from = currencySelect.value;
+    if (from === baseCurrency) {
+      rateInfo.classList.add('d-none');
+      baseLabel.textContent = baseCurrency;
+      return;
+    }
+    try {
+      const r = await fetch(`/reception/api/check-rate?from=${from}&to=${baseCurrency}`);
+      const d = await r.json();
+      if (d.available) {
+        rateInfo.classList.remove('d-none');
+        rateInfo.innerHTML = `<i class="fas fa-check text-success me-1"></i>سعر الصرف: 1 ${from} = ${d.rate.toFixed(4)} ${baseCurrency}`;
+      } else {
+        rateInfo.classList.remove('d-none');
+        rateInfo.innerHTML = `<i class="fas fa-exclamation-triangle text-warning me-1"></i>سعر الصرف غير متوفر — سيتم طلبه عند التأكيد`;
+      }
+    } catch(e) { rateInfo.classList.add('d-none'); }
+  }
+
+  currencySelect.addEventListener('change', checkRate);
+  checkRate();
+</script>
 {% endblock %}

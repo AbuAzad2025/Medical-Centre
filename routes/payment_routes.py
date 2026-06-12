@@ -115,6 +115,19 @@ def process_payment(visit_id):
 
             paid_amount = request.form.get('paid_amount') or request.form.get('amount') or '0'
             amount_value = float(paid_amount or 0)
+            payment_currency = (request.form.get('payment_currency') or 'ILS').strip().upper()
+            base_currency = 'ILS'  # العملة الأساسية للنظام
+            converted_amount = amount_value
+            if payment_currency != base_currency and amount_value > 0:
+                from services.currency_service import CurrencyConverter
+                rate = CurrencyConverter.get_rate(payment_currency, base_currency)
+                if rate is not None:
+                    converted_amount = float(CurrencyConverter.convert(amount_value, payment_currency, base_currency))
+                else:
+                    if _wants_json():
+                        return jsonify({'success': False, 'message': f'سعر صرف {payment_currency}→{base_currency} غير متوفر'}), 400
+                    flash(f'سعر صرف {payment_currency}→{base_currency} غير متوفر — يرجى إدخال السعر أولاً', 'error')
+                    return redirect(url_for('payment.process_payment', visit_id=visit_id))
             is_debt = (request.form.get('is_debt') == 'on')
             debt_reason = (request.form.get('debt_reason') or '').strip()
             accept_responsibility = (request.form.get('accept_responsibility') == 'on')
@@ -244,6 +257,7 @@ def process_payment(visit_id):
                 patient_id=visit.patient_id,
                 visit_id=visit_id,
                 amount=amount_value,
+                currency=payment_currency,
                 method=method_value,
                 status=PaymentStatus.CONFIRMED,
                 notes=request.form.get('payment_notes') or request.form.get('notes'),
@@ -322,7 +336,12 @@ def process_payment(visit_id):
         insurance_companies = InsuranceCompany.query.filter_by(is_active=True).order_by(InsuranceCompany.name.asc()).all()
     except Exception:
         insurance_companies = []
-    return render_template('accountant/process_payment.html', visit=visit, insurance_companies=insurance_companies)
+    from models.exchange_rate import CurrencySettings
+    return render_template('accountant/process_payment.html',
+                           visit=visit,
+                           insurance_companies=insurance_companies,
+                           currencies=CurrencySettings.get_all(),
+                           base_currency='ILS')
 
 @payment_bp.route('/history')
 @login_required
