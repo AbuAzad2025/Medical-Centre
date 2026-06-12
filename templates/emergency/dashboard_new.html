@@ -131,11 +131,7 @@
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle text-warning me-2"></i>تنبيهات</h6></div>
         <div class="card-body">
-          {% if stats.ems_metrics.active_transports %}
-          <ul class="list-group list-group-flush">
-            {% for t in stats.ems_metrics.active_transports %}<li class="list-group-item px-0"><i class="fas fa-ambulance text-danger me-2"></i>نقل نشط #{{ t.id or '' }} — {{ t.status or '' }}</li>{% endfor %}
-          </ul>
-          {% else %}<p class="text-muted text-center my-3">لا توجد تنبيهات حالية</p>{% endif %}
+          {% if stats.ems_metrics.active_transports %}<div class="list-group list-group-flush">{% for t in stats.ems_metrics.active_transports %}<div class="list-group-item px-0"><i class="fas fa-ambulance text-danger me-2"></i>نقل نشط #{{ t.id or '' }} — {{ t.status or '' }}</div>{% endfor %}</div>{% else %}<p class="text-muted text-center my-3">لا توجد تنبيهات حالية</p>{% endif %}
         </div>
       </div>
     </div>
