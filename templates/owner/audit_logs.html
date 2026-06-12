@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}سجل التدقيق{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col"><h4><i class="fas fa-clipboard-list me-2 text-dark"></i>سجل تدقيق المنصة</h4></div>
+        <div class="col-auto d-flex gap-2">
+            <select class="form-select form-select-sm" style="width: 140px;" onchange="location.href='?entity_type='+this.value">
+                <option value="">كل الأنواع</option>
+                <option value="tenant" {% if entity_type == 'tenant' %}selected{% endif %}>عميل</option>
+                <option value="plan" {% if entity_type == 'plan' %}selected{% endif %}>خطة</option>
+                <option value="system" {% if entity_type == 'system' %}selected{% endif %}>نظام</option>
+                <option value="notification" {% if entity_type == 'notification' %}selected{% endif %}>إشعار</option>
+                <option value="ticket" {% if entity_type == 'ticket' %}selected{% endif %}>تذكرة</option>
+            </select>
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+        </div>
+    </div>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr><th>#</th><th>الإجراء</th><th>النوع</th><th>ID</th><th>التفاصيل</th><th>IP</th><th>الوقت</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.id }}</td>
+                            <td><span class="badge bg-secondary">{{ log.action }}</span></td>
+                            <td class="small">{{ log.entity_type }}</td>
+                            <td class="small">{{ log.entity_id or '-' }}</td>
+                            <td class="small text-muted" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ log.details or '-' }}</td>
+                            <td class="small text-muted">{{ log.ip_address or '-' }}</td>
+                            <td class="small text-muted">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '-' }}</td>
+                        </tr>
+                        {% else %}<tr><td colspan="7" class="text-muted text-center py-4">لا سجلات</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,91 +1,137 @@
 {% extends "base.html" %}
 {% block title %}لوحة تحكم المنصة — شركة آزاد{% endblock %}
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid py-3">
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-gradient-dark text-white border-0" style="background: linear-gradient(135deg, #1a1f3a 0%, #2c3e50 100%);">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h3 class="mb-1"><i class="fas fa-globe me-2 text-warning"></i>لوحة تحكم المنصة</h3>
-                            <p class="mb-0 text-white-50">شركة آزاد للأنظمة الذكية — إدارة المنصة والعملاء</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <a href="{{ url_for('owner.owner_create_tenant') }}" class="btn btn-warning btn-sm me-2"><i class="fas fa-plus me-1"></i> عميل جديد</a>
-                            <a href="{{ url_for('owner.owner_plans') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-tags me-1"></i> الخطط</a>
-                        </div>
+            <div class="card border-0 text-white" style="background: linear-gradient(135deg, #1a1f3a 0%, #2c3e50 100%);">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1"><i class="fas fa-globe me-2 text-warning"></i>لوحة تحكم المنصة</h3>
+                        <p class="mb-0 opacity-75">شركة آزاد للأنظمة الذكية — إدارة المنصة والعملاء</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('owner.owner_create_tenant') }}" class="btn btn-warning btn-sm"><i class="fas fa-plus me-1"></i> عميل جديد</a>
+                        <a href="{{ url_for('owner.owner_plans') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-tags me-1"></i> الخطط</a>
+                        <a href="{{ url_for('owner.owner_support_tickets') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-headset me-1"></i> الدعم</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SaaS KPI Cards -->
+    <!-- KPI Cards -->
     <div class="row g-3 mb-4">
         <div class="col-xl-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
                         <div>
-                            <h6 class="text-muted text-uppercase small">إجمالي العملاء</h6>
-                            <h3 class="mb-0">{{ tenant_count }}</h3>
+                            <h6 class="text-muted text-uppercase small mb-1">إجمالي العملاء</h6>
+                            <h3 class="mb-0 fw-bold">{{ tenant_count }}</h3>
                         </div>
                         <div class="bg-primary bg-opacity-10 p-3 rounded"><i class="fas fa-building text-primary fa-lg"></i></div>
                     </div>
-                    <div class="mt-2 small">
-                        <span class="text-success"><i class="fas fa-arrow-up"></i> {{ active_today }}</span> <span class="text-muted">نشط ومدفوع</span>
+                    <div class="d-flex align-items-center small">
+                        <span class="text-success fw-bold me-2"><i class="fas fa-arrow-up"></i> {{ active_today }}</span>
+                        <span class="text-muted">نشط ومدفوع</span>
                     </div>
+                    <canvas id="sparkTenants" height="40" class="mt-2"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
                         <div>
-                            <h6 class="text-muted text-uppercase small">MRR (الإيرادات الشهرية)</h6>
-                            <h3 class="mb-0">{{ "%.0f"|format(mrr) }} <small class="fs-6 text-muted">{{ currency }}</small></h3>
+                            <h6 class="text-muted text-uppercase small mb-1">MRR (شهري)</h6>
+                            <h3 class="mb-0 fw-bold">{{ "%.0f"|format(mrr) }} <small class="fs-6 text-muted">{{ currency }}</small></h3>
                         </div>
                         <div class="bg-success bg-opacity-10 p-3 rounded"><i class="fas fa-coins text-success fa-lg"></i></div>
                     </div>
-                    <div class="mt-2 small">
-                        <span class="text-muted">ARR:</span> <strong>{{ "%.0f"|format(arr) }} {{ currency }}</strong>
+                    <div class="d-flex align-items-center small">
+                        <span class="text-muted me-2">ARR:</span>
+                        <strong class="text-dark">{{ "%.0f"|format(arr) }} {{ currency }}</strong>
                     </div>
+                    <canvas id="sparkMRR" height="40" class="mt-2"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
                         <div>
-                            <h6 class="text-muted text-uppercase small">نسبة الاستبقاء (Churn)</h6>
-                            <h3 class="mb-0">{{ churn_rate }}%</h3>
+                            <h6 class="text-muted text-uppercase small mb-1">نسبة الاستبقاء</h6>
+                            <h3 class="mb-0 fw-bold">{{ churn_rate }}%</h3>
                         </div>
                         <div class="bg-{{ 'success' if churn_rate < 5 else 'warning' if churn_rate < 10 else 'danger' }} bg-opacity-10 p-3 rounded">
                             <i class="fas fa-chart-pie text-{{ 'success' if churn_rate < 5 else 'warning' if churn_rate < 10 else 'danger' }} fa-lg"></i>
                         </div>
                     </div>
-                    <div class="mt-2 small">
-                        <span class="text-muted">انتهى اشتراك:</span> <strong class="text-danger">{{ expired_count }}</strong>
+                    <div class="d-flex align-items-center small">
+                        <span class="text-muted me-2">منتهي:</span>
+                        <strong class="text-danger">{{ expired_count }}</strong>
                     </div>
+                    <canvas id="sparkChurn" height="40" class="mt-2"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
                         <div>
-                            <h6 class="text-muted text-uppercase small">المستخدمون عبر المنصة</h6>
-                            <h3 class="mb-0">{{ total_users_all }}</h3>
+                            <h6 class="text-muted text-uppercase small mb-1">المستخدمون</h6>
+                            <h3 class="mb-0 fw-bold">{{ total_users_all }}</h3>
                         </div>
                         <div class="bg-info bg-opacity-10 p-3 rounded"><i class="fas fa-users text-info fa-lg"></i></div>
                     </div>
-                    <div class="mt-2 small">
-                        <span class="text-muted">متوسط/عميل:</span> <strong>{{ avg_users_per_tenant|round(1) }}</strong>
+                    <div class="d-flex align-items-center small">
+                        <span class="text-muted me-2">متوسط/عميل:</span>
+                        <strong class="text-dark">{{ avg_users_per_tenant|round(1) }}</strong>
+                    </div>
+                    <canvas id="sparkUsers" height="40" class="mt-2"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>نمو العملاء و MRR</h6>
+                    <span class="badge bg-light text-dark border">آخر 6 أشهر</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="mainChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-bottom">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie text-success me-2"></i>حالة العملاء</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="statusChart" height="180"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-bottom">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-headset text-info me-2"></i>تذاكر الدعم</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="ticketChart" height="180"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -94,9 +140,9 @@
 
     <!-- Alerts & Quick Actions -->
     <div class="row g-3 mb-4">
-        <div class="col-md-8">
+        <div class="col-md-6">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-between align-items-center">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
                     <h6 class="mb-0 fw-bold"><i class="fas fa-bell text-warning me-2"></i>تنبيهات المنصة</h6>
                     <span class="badge bg-danger">{{ alerts|length }}</span>
                 </div>
@@ -107,7 +153,7 @@
                         <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                             <div>
                                 <span class="badge bg-{{ alert.color }} me-2">{{ alert.type }}</span>
-                                <span>{{ alert.message }}</span>
+                                <span class="small">{{ alert.message }}</span>
                             </div>
                             <small class="text-muted">{{ alert.tenant or 'عام' }}</small>
                         </div>
@@ -119,18 +165,87 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-bottom-0">
+                <div class="card-header bg-white border-bottom">
                     <h6 class="mb-0 fw-bold"><i class="fas fa-bolt text-primary me-2"></i>إجراءات سريعة</h6>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ url_for('owner.owner_create_tenant') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i> إنشاء عميل جديد</a>
-                        <a href="{{ url_for('owner.owner_plans') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-tags me-1"></i> إدارة الخطط</a>
+                        <a href="{{ url_for('owner.owner_create_tenant') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i> عميل جديد</a>
+                        <a href="{{ url_for('owner.owner_plans') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-tags me-1"></i> الخطط</a>
                         <a href="{{ url_for('owner.owner_announcements') }}" class="btn btn-outline-success btn-sm"><i class="fas fa-bullhorn me-1"></i> إعلان عام</a>
-                        <a href="{{ url_for('super_admin.system_backup') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-database me-1"></i> نسخ احتياطي</a>
+                        <a href="{{ url_for('owner.owner_support_tickets') }}" class="btn btn-outline-info btn-sm"><i class="fas fa-headset me-1"></i> الدعم</a>
+                        <a href="{{ url_for('owner.owner_audit_logs') }}" class="btn btn-outline-dark btn-sm"><i class="fas fa-clipboard-list me-1"></i> سجل التدقيق</a>
+                        <a href="{{ url_for('owner.owner_resource_usage') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-server me-1"></i> الموارد</a>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-calendar-alt text-success me-2"></i>التجارب النشطة</h6>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="fw-bold text-primary">{{ trial_count }}</h2>
+                    <p class="text-muted small">عميل في فترة تجريبية</p>
+                    <hr>
+                    <div class="small text-start">
+                        <div class="d-flex justify-content-between"><span>معدل التحويل</span><strong>{{ conversion_rate }}%</strong></div>
+                        <div class="d-flex justify-content-between"><span>ينتهي هذا الأسبوع</span><strong class="text-warning">{{ expiring_trials }}</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Audit + Resource Preview -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-clipboard-list text-dark me-2"></i>آخر الأحداث</h6>
+                    <a href="{{ url_for('owner.owner_audit_logs') }}" class="small text-decoration-none">الكل</a>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>الإجراء</th><th>النوع</th><th>الوقت</th></tr></thead>
+                        <tbody>
+                        {% for log in recent_logs %}
+                        <tr>
+                            <td><span class="badge bg-secondary">{{ log.action }}</span></td>
+                            <td class="small">{{ log.entity_type }}</td>
+                            <td class="small text-muted">{{ log.created_at.strftime('%m-%d %H:%M') if log.created_at else '-' }}</td>
+                        </tr>
+                        {% else %}<tr><td colspan="3" class="text-muted text-center py-3">لا سجلات</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-server text-secondary me-2"></i>أعلى استهلاك موارد</h6>
+                    <a href="{{ url_for('owner.owner_resource_usage') }}" class="small text-decoration-none">الكل</a>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>العميل</th><th>قاعدة بيانات</th><th>تخزين</th><th>API</th></tr></thead>
+                        <tbody>
+                        {% for r in top_resources %}
+                        <tr>
+                            <td class="small fw-bold">{{ r.tenant.name if r.tenant else '-' }}</td>
+                            <td class="small">{{ r.db_size_mb }} MB</td>
+                            <td class="small">{{ r.storage_mb }} MB</td>
+                            <td class="small">{{ r.api_calls_24h }}</td>
+                        </tr>
+                        {% else %}<tr><td colspan="4" class="text-muted text-center py-3">لا بيانات</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -138,15 +253,16 @@
 
     <!-- Tenants Table -->
     <div class="card border-0 shadow-sm">
-        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>قائمة العملاء (Tenants)</h6>
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>العملاء</h6>
             <div class="d-flex gap-2">
-                <select class="form-select form-select-sm" style="width: 120px;" onchange="location.href='?status='+this.value">
+                <select class="form-select form-select-sm" style="width: 130px;" onchange="location.href='?status='+this.value">
                     <option value="">كل الحالات</option>
                     <option value="active" {% if filter_status == 'active' %}selected{% endif %}>نشط</option>
                     <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>معلق</option>
                     <option value="expired" {% if filter_status == 'expired' %}selected{% endif %}>منتهي</option>
                     <option value="suspended" {% if filter_status == 'suspended' %}selected{% endif %}>موقوف</option>
+                    <option value="trial" {% if filter_status == 'trial' %}selected{% endif %}>تجريبي</option>
                 </select>
             </div>
         </div>
@@ -154,15 +270,7 @@
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
-                        <tr>
-                            <th>#</th>
-                            <th>الاسم</th>
-                            <th>الخطة</th>
-                            <th>المستخدمون</th>
-                            <th>الحالة</th>
-                            <th>الاشتراك</th>
-                            <th>الإجراءات</th>
-                        </tr>
+                        <tr><th>#</th><th>الاسم</th><th>الخطة</th><th>المستخدمون</th><th>الحالة</th><th>الاشتراك</th><th>الإجراءات</th></tr>
                     </thead>
                     <tbody>
                         {% for t in tenants %}
@@ -170,21 +278,16 @@
                             <td>{{ t.id }}</td>
                             <td>
                                 <div class="fw-bold">{{ t.name }}</div>
-                                <div class="small text-muted">{{ t.slug }} — {{ t.domain or t.subdomain or '-' }}</div>
+                                <div class="small text-muted">{{ t.slug }}</div>
                             </td>
                             <td>{{ t.plan.name if t.plan else '-' }}</td>
                             <td>{{ t.users|length }}</td>
                             <td>
-                                {% set status_map = {'active': 'success', 'pending': 'warning', 'expired': 'danger', 'suspended': 'secondary', 'deleted': 'dark'} %}
+                                {% set status_map = {'active': 'success', 'pending': 'warning', 'expired': 'danger', 'suspended': 'secondary', 'trial': 'info'} %}
                                 <span class="badge bg-{{ status_map.get(t.status.value, 'secondary') }}">{{ t.status.value }}</span>
                             </td>
                             <td>
-                                {% if t.subscription_end %}
-                                <div class="small">حتى: {{ t.subscription_end.strftime('%Y-%m-%d') }}</div>
-                                {% if t.grace_period_end and t.status.value == 'active' %}
-                                <div class="small text-warning">فترة سماح حتى: {{ t.grace_period_end.strftime('%Y-%m-%d') }}</div>
-                                {% endif %}
-                                {% else %}<span class="text-muted">غير محدد</span>{% endif %}
+                                {% if t.subscription_end %}<div class="small">{{ t.subscription_end.strftime('%Y-%m-%d') }}</div>{% else %}<span class="text-muted">غير محدد</span>{% endif %}
                             </td>
                             <td>
                                 <div class="d-flex gap-1">
@@ -198,8 +301,7 @@
                                 </div>
                             </td>
                         </tr>
-                        {% else %}
-                        <tr><td colspan="7" class="text-muted text-center py-4">لا يوجد عملاء</td></tr>
+                        {% else %}<tr><td colspan="7" class="text-muted text-center py-4">لا يوجد عملاء</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -207,4 +309,110 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    Chart.defaults.font.family = "'Segoe UI', 'Tahoma', sans-serif";
+    Chart.defaults.color = '#6c757d';
+
+    const months = {{ chart_months|tojson }};
+    const tenantGrowth = {{ chart_tenant_growth|tojson }};
+    const mrrTrend = {{ chart_mrr_trend|tojson }};
+
+    // Main chart: Tenant growth + MRR
+    new Chart(document.getElementById('mainChart'), {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'العملاء',
+                    data: tenantGrowth,
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'MRR',
+                    data: mrrTrend,
+                    borderColor: '#198754',
+                    backgroundColor: 'rgba(25, 135, 84, 0.05)',
+                    fill: false,
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { position: 'top' } },
+            scales: {
+                y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'العملاء' } },
+                y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'MRR' }, grid: { drawOnChartArea: false } }
+            }
+        }
+    });
+
+    // Status distribution
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: {{ chart_status_labels|tojson }},
+            datasets: [{
+                data: {{ chart_status_data|tojson }},
+                backgroundColor: ['#198754', '#ffc107', '#dc3545', '#6c757d', '#0dcaf0']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+            cutout: '65%'
+        }
+    });
+
+    // Tickets chart
+    new Chart(document.getElementById('ticketChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ chart_ticket_labels|tojson }},
+            datasets: [{
+                label: 'التذاكر',
+                data: {{ chart_ticket_data|tojson }},
+                backgroundColor: ['#dc3545', '#0d6efd', '#ffc107', '#198754']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // Sparklines
+    function sparkline(id, data, color) {
+        const ctx = document.getElementById(id).getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map((_, i) => i),
+                datasets: [{ data: data, borderColor: color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: { x: { display: false }, y: { display: false } }
+            }
+        });
+    }
+    sparkline('sparkTenants', tenantGrowth, '#0d6efd');
+    sparkline('sparkMRR', mrrTrend, '#198754');
+    sparkline('sparkChurn', {{ chart_churn_spark|tojson }}, '#dc3545');
+    sparkline('sparkUsers', {{ chart_user_spark|tojson }}, '#0dcaf0');
+</script>
 {% endblock %}
