@@ -221,6 +221,7 @@ def create_app(config_name: str | None = None) -> Flask:
             import models.notification
             import models.branding
             import models.dental
+            import models.cash_register
             import models.nurse
             import models.queue_management
             import models.pricing_management
