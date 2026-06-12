@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}تفاصيل العميل — {{ tenant.name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col"><h4><i class="fas fa-building me-2 text-primary"></i>{{ tenant.name }}</h4></div>
+        <div class="col-auto">
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+        </div>
+    </div>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header fw-bold">معلومات العميل</div>
+                <div class="card-body">
+                    <p><strong>الاسم:</strong> {{ tenant.name }}</p>
+                    <p><strong>الاسم العربي:</strong> {{ tenant.name_ar or '-' }}</p>
+                    <p><strong>Slug:</strong> {{ tenant.slug }}</p>
+                    <p><strong>Domain:</strong> {{ tenant.domain or '-' }}</p>
+                    <p><strong>Subdomain:</strong> {{ tenant.subdomain or '-' }}</p>
+                    <p><strong>البريد:</strong> {{ tenant.contact_email }}</p>
+                    <p><strong>الهاتف:</strong> {{ tenant.contact_phone or '-' }}</p>
+                    <p><strong>الرقم الضريبي:</strong> {{ tenant.tax_number or '-' }}</p>
+                    <p><strong>طريقة التخزين:</strong> {{ tenant.storage_mode.value }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header fw-bold">الاشتراك</div>
+                <div class="card-body">
+                    <p><strong>النوع:</strong> {{ tenant.subscription_type.value if tenant.subscription_type else '-' }}</p>
+                    <p><strong>الخطة:</strong> {{ tenant.plan.name if tenant.plan else '-' }}</p>
+                    <p><strong>بداية:</strong> {{ tenant.subscription_start or '-' }}</p>
+                    <p><strong>نهاية:</strong> {{ tenant.subscription_end or '-' }}</p>
+                    <p><strong>فترة سماح:</strong> {{ tenant.grace_period_end or '-' }}</p>
+                    <p><strong>الحالة:</strong> <span class="badge bg-{{ 'success' if tenant.status.value=='active' else 'warning' if tenant.status.value=='pending' else 'danger' }}">{{ tenant.status.value }}</span></p>
+                    <p><strong>نشط ومدفوع:</strong> {{ 'نعم' if tenant.is_active_and_paid() else 'لا' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header fw-bold">إحصائيات</div>
+                <div class="card-body">
+                    <p><strong>المستخدمون:</strong> {{ tenant.users|length }}</p>
+                    <p><strong>الوحدات النشطة:</strong> {{ active_modules|length }}</p>
+                    <p><strong>تاريخ الإنشاء:</strong> {{ tenant.created_at.strftime('%Y-%m-%d') if tenant.created_at else '-' }}</p>
+                    <hr>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('owner.owner_renew_tenant', tenant_id=tenant.id) }}" class="btn btn-success btn-sm">تجديد الاشتراك</a>
+                        {% if tenant.status.value != 'suspended' %}
+                        <a href="{{ url_for('owner.owner_suspend_tenant', tenant_id=tenant.id) }}" class="btn btn-warning btn-sm" onclick="return confirm('تأكيد الإيقاف؟')">إيقاف مؤقت</a>
+                        {% else %}
+                        <a href="{{ url_for('owner.owner_activate_tenant', tenant_id=tenant.id) }}" class="btn btn-success btn-sm">تفعيل</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-3 mt-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header fw-bold">المستخدمون</div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>#</th><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th></tr></thead>
+                        <tbody>
+                        {% for u in tenant.users %}
+                        <tr><td>{{ u.id }}</td><td>{{ u.full_name or '-' }}</td><td>{{ u.username }}</td><td>{{ u.role }}</td></tr>
+                        {% else %}<tr><td colspan="4" class="text-muted text-center">لا مستخدمين</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header fw-bold">الوحدات النشطة</div>
+                <div class="card-body">
+                    {% for m in active_modules %}
+                    <span class="badge bg-primary me-1 mb-1">{{ m }}</span>
+                    {% else %}<span class="text-muted">لا وحدات</span>{% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
