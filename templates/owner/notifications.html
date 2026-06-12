@@ -17,7 +17,7 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
                             <label class="form-label">الحدث</label>
-                            <select name="event_type" class="form-select">
+                            <select name="event_type" class="form-select" title="نوع الحدث">
                                 <option value="subscription_expiry">انتهاء الاشتراك</option>
                                 <option value="trial_ending">انتهاء التجربة</option>
                                 <option value="high_resource">استهلاك عالي</option>
@@ -26,7 +26,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">القناة</label>
-                            <select name="channel" class="form-select">
+                            <select name="channel" class="form-select" title="قناة الإشعار">
                                 <option value="email">بريد إلكتروني</option>
                                 <option value="webhook">Webhook</option>
                             </select>
@@ -37,11 +37,11 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">العنوان (اختياري)</label>
-                            <input type="text" name="template_subject" class="form-control">
+                            <input type="text" name="template_subject" class="form-control" title="عنوان الرسالة" placeholder="عنوان الرسالة">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">المحتوى (اختياري)</label>
-                            <textarea name="template_body" class="form-control" rows="3"></textarea>
+                            <textarea name="template_body" class="form-control" rows="3" title="محتوى الرسالة" placeholder="محتوى الرسالة"></textarea>
                         </div>
                         <div class="mb-3 form-check">
                             <input type="checkbox" name="is_active" class="form-check-input" checked>
@@ -63,7 +63,7 @@
                         <tr>
                             <td class="small">{{ r.event_type }}</td>
                             <td class="small">{{ r.channel }}</td>
-                            <td class="small text-truncate" style="max-width: 200px;">{{ r.target }}</td>
+                            <td class="small text-truncate" style="max-width:200px;">{{ r.target }}</td>
                             <td><span class="badge bg-{{ 'success' if r.is_active else 'secondary' }}">{{ 'نشط' if r.is_active else 'معطل' }}</span></td>
                             <td class="small text-muted">{{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '-' }}</td>
                         </tr>

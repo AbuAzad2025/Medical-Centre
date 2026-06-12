@@ -5,7 +5,7 @@
     <div class="row mb-3 align-items-center">
         <div class="col"><h4><i class="fas fa-headset me-2 text-info"></i>تذاكر الدعم</h4></div>
         <div class="col-auto d-flex gap-2">
-            <select class="form-select form-select-sm" style="width: 130px;" onchange="location.href='?status='+this.value">
+            <select class="form-select form-select-sm w-auto" title="حالة التذكرة" onchange="location.href='?status='+this.value">
                 <option value="">الكل</option>
                 <option value="open" {% if status_filter == 'open' %}selected{% endif %}>مفتوحة</option>
                 <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>قيد المعالجة</option>
@@ -34,7 +34,7 @@
                             <td>
                                 <form method="post" action="{{ url_for('owner.owner_update_ticket', ticket_id=t.id) }}" class="d-flex gap-1">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <select name="status" class="form-select form-select-sm" style="width: 100px;">
+                                    <select name="status" class="form-select form-select-sm w-auto" title="تحديث الحالة">
                                         <option value="open" {% if t.status=='open' %}selected{% endif %}>مفتوحة</option>
                                         <option value="in_progress" {% if t.status=='in_progress' %}selected{% endif %}>قيد المعالجة</option>
                                         <option value="resolved" {% if t.status=='resolved' %}selected{% endif %}>محلولة</option>

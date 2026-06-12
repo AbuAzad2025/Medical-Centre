@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block title %}سجل التدقيق{% endblock %}
 {% block content %}
+<style>.cell-truncate { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }</style>
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
         <div class="col"><h4><i class="fas fa-clipboard-list me-2 text-dark"></i>سجل تدقيق المنصة</h4></div>
         <div class="col-auto d-flex gap-2">
-            <select class="form-select form-select-sm" style="width: 140px;" onchange="location.href='?entity_type='+this.value">
+            <select class="form-select form-select-sm w-auto" title="نوع الكيان" onchange="location.href='?entity_type='+this.value">
                 <option value="">كل الأنواع</option>
                 <option value="tenant" {% if entity_type == 'tenant' %}selected{% endif %}>عميل</option>
                 <option value="plan" {% if entity_type == 'plan' %}selected{% endif %}>خطة</option>
@@ -30,7 +31,7 @@
                             <td><span class="badge bg-secondary">{{ log.action }}</span></td>
                             <td class="small">{{ log.entity_type }}</td>
                             <td class="small">{{ log.entity_id or '-' }}</td>
-                            <td class="small text-muted" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ log.details or '-' }}</td>
+                            <td class="small text-muted cell-truncate">{{ log.details or '-' }}</td>
                             <td class="small text-muted">{{ log.ip_address or '-' }}</td>
                             <td class="small text-muted">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '-' }}</td>
                         </tr>
