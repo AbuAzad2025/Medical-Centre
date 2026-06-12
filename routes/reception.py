@@ -3987,6 +3987,8 @@ def add_patient_to_queue_auto(visit_id, department_id, doctor_id=None):
 
         is_emergency = bool(getattr(visit, 'is_emergency', False)) or str(getattr(visit, 'visit_type', '') or '').upper() == 'EMERGENCY'
         emergency_reason = (getattr(visit, 'symptoms', None) or '').strip() if is_emergency else None
+        is_force_payment = bool(getattr(visit, 'is_force_payment', False))
+        force_payment_reason = (getattr(visit, 'force_payment_reason', None) or '').strip() if is_force_payment else None
         
         # إضافة المريض للطابور
         result = queue_service.add_patient_to_queue(
@@ -3997,6 +3999,8 @@ def add_patient_to_queue_auto(visit_id, department_id, doctor_id=None):
             queue_type='normal',
             is_emergency=is_emergency,
             emergency_reason=emergency_reason,
+            force_entry=is_force_payment,
+            force_entry_reason=force_payment_reason,
             payment_status=visit.payment_status
         )
         
