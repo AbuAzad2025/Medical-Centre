@@ -1,52 +1,260 @@
-{% extends "dashboard_base.html" %}
+{% extends "base.html" %}
 {% block title %}لوحة تحكم الأشعة{% endblock %}
 {% block content %}
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card card-stat bg-primary">
-            <div class="icon-bg"><i class="fas fa-x-ray"></i></div>
-            <h6>طلبات اليوم</h6>
-            <h3>{{ total_requests }}</h3>
+<style>
+  .rad-gradient { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); }
+  .cell-truncate-sm { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prog-thin { height: 8px; }
+</style>
+<div class="container-fluid py-3">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 text-white rad-gradient">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h3 class="mb-1"><i class="fas fa-x-ray me-2 text-info"></i>قسم الأشعة</h3>
+            <p class="mb-0 opacity-75">إدارة الطلبات والتقارير ومراقبة الجودة</p>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('radiology.requests') }}" class="btn btn-info btn-sm"><i class="fas fa-list me-1"></i> الطلبات</a>
+            <a href="{{ url_for('radiology.reports') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-file-alt me-1"></i> التقارير</a>
+            <a href="{{ url_for('radiology.quality') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-chart-line me-1"></i> الجودة</a>
+          </div>
         </div>
+      </div>
     </div>
-    <div class="col-md-3">
-        <div class="card card-stat bg-warning">
-            <div class="icon-bg"><i class="fas fa-hourglass-half"></i></div>
-            <h6>بانتظار التقرير</h6>
-            <h3>{{ pending_reports }}</h3>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h6 class="text-muted text-uppercase small mb-1">طلبات اليوم</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.today_requests or 0 }}</h3>
+            </div>
+            <div class="bg-primary bg-opacity-10 p-3 rounded"><i class="fas fa-x-ray text-primary fa-lg"></i></div>
+          </div>
+          <div class="small text-muted">معلقة: <strong class="text-warning">{{ stats.pending_requests or 0 }}</strong></div>
+          <canvas id="sparkToday" height="40" class="mt-2"></canvas>
         </div>
+      </div>
     </div>
-    <div class="col-md-3">
-        <div class="card card-stat bg-success">
-            <div class="icon-bg"><i class="fas fa-check-circle"></i></div>
-            <h6>تمت الموافقة</h6>
-            <h3>{{ approved_count }}</h3>
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h6 class="text-muted text-uppercase small mb-1">مكتملة اليوم</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.completed_today or 0 }}</h3>
+            </div>
+            <div class="bg-success bg-opacity-10 p-3 rounded"><i class="fas fa-check-circle text-success fa-lg"></i></div>
+          </div>
+          <div class="small text-muted">معدل الإنجاز: <strong class="text-success">{{ stats.smart_analytics.completion_rate or 0 }}%</strong></div>
+          <canvas id="sparkCompleted" height="40" class="mt-2"></canvas>
         </div>
+      </div>
     </div>
-    <div class="col-md-3">
-        <div class="card card-stat bg-info">
-            <div class="icon-bg"><i class="fas fa-images"></i></div>
-            <h6>جاهزة للتسليم</h6>
-            <h3>{{ ready_count }}</h3>
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h6 class="text-muted text-uppercase small mb-1">وقت المعالجة</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.smart_analytics.avg_processing_time or 0 }} <small class="fs-6 text-muted">س</small></h3>
+            </div>
+            <div class="bg-info bg-opacity-10 p-3 rounded"><i class="fas fa-clock text-info fa-lg"></i></div>
+          </div>
+          <div class="small text-muted">الكفاءة: <strong class="text-dark">{{ stats.smart_analytics.efficiency_score or 0 }}/100</strong></div>
+          <canvas id="sparkTime" height="40" class="mt-2"></canvas>
         </div>
+      </div>
     </div>
-</div>
-<div class="card">
-    <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2"></i>طلبات الأشعة</h5></div>
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead><tr><th>#</th><th>المريض</th><th>نوع الأشعة</th><th>الحالة</th></tr></thead>
-            <tbody>
-            {% for req in rad_requests %}
-            <tr>
-                <td>{{ req.id }}</td>
-                <td>{{ req.visit.patient.full_name if req.visit and req.visit.patient else '-' }}</td>
-                <td>{{ req.test_name or req.test_type or '-' }}</td>
-                <td><span class="badge bg-{% if req.status=='APPROVED' %}success{% elif req.status=='REPORTED' %}primary{% else %}warning{% endif %}">{{ req.status or 'ORDERED' }}</span></td>
-            </tr>
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h6 class="text-muted text-uppercase small mb-1">جودة التقارير</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.quality_assurance.quality_score or 100 }}%</h3>
+            </div>
+            <div class="bg-warning bg-opacity-10 p-3 rounded"><i class="fas fa-shield-alt text-warning fa-lg"></i></div>
+          </div>
+          <div class="small text-muted">حرجة: <strong class="text-danger">{{ stats.report_analysis.critical_reports or 0 }}</strong></div>
+          <canvas id="sparkQuality" height="40" class="mt-2"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>أداء الأشعة — طلبات وإنجاز</h6></div>
+        <div class="card-body"><canvas id="radMainChart" height="260"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie text-success me-2"></i>حالة المعدات</h6></div>
+            <div class="card-body"><canvas id="equipmentChart" height="180"></canvas></div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-brain text-info me-2"></i>التنبؤ بالطلبات</h6></div>
+            <div class="card-body text-center">
+              <h2 class="fw-bold text-primary">{{ stats.predictive_insights.predicted_demand or 0 }}</h2>
+              <p class="text-muted small">طلب متوقع هذا الأسبوع</p>
+              <div class="small text-start mt-2">
+                <div class="d-flex justify-content-between"><span>أسبوعي</span><strong>{{ stats.predictive_insights.weekly_requests or 0 }}</strong></div>
+                <div class="d-flex justify-content-between"><span>شهري</span><strong>{{ stats.predictive_insights.monthly_requests or 0 }}</strong></div>
+                <div class="d-flex justify-content-between"><span>معدل النمو</span><strong class="{{ 'text-success' if (stats.predictive_insights.growth_rate or 0) > 0 else 'text-danger' }}">{{ stats.predictive_insights.growth_rate or 0 }}%</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alerts & Quick Actions -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i>اقتراحات التحسين</h6></div>
+        <div class="card-body">
+          {% if stats.imaging_optimization.optimization_suggestions %}
+          <ul class="list-group list-group-flush">
+            {% for s in stats.imaging_optimization.optimization_suggestions %}
+            <li class="list-group-item px-0"><i class="fas fa-angle-left text-warning me-2"></i>{{ s }}</li>
             {% endfor %}
-            </tbody>
-        </table>
+          </ul>
+          {% else %}
+          <p class="text-muted text-center my-3">لا توجد اقتراحات حالياً — الأداء ممتاز</p>
+          {% endif %}
+        </div>
+      </div>
     </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-bolt text-primary me-2"></i>إجراءات سريعة</h6></div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <a href="{{ url_for('radiology.requests') }}" class="btn btn-primary btn-sm"><i class="fas fa-list me-1"></i> عرض الطلبات</a>
+            <a href="{{ url_for('radiology.reports') }}" class="btn btn-success btn-sm"><i class="fas fa-file-alt me-1"></i> كتابة تقرير</a>
+            <a href="{{ url_for('radiology.quality') }}" class="btn btn-info btn-sm"><i class="fas fa-chart-bar me-1"></i> تقرير الجودة</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-cogs text-secondary me-2"></i>أتمتة سير العمل</h6></div>
+        <div class="card-body text-center">
+          <h2 class="fw-bold text-primary">{{ stats.workflow_automation.automation_rate or 0 }}%</h2>
+          <p class="text-muted small">نسبة الأتمتة</p>
+          <div class="progress mb-2 prog-thin" title="نسبة الأتمتة">
+            <div class="progress-bar bg-primary" role="progressbar" title="نسبة الأتمتة" aria-valuenow="{{ stats.workflow_automation.automation_rate or 0 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ stats.workflow_automation.automation_rate or 0 }}%"></div>
+          </div>
+          <div class="small text-muted">وقت موفر: <strong>{{ stats.workflow_automation.time_saved or 0 }} س</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Requests Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+      <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>آخر طلبات الأشعة</h6>
+      <a href="{{ url_for('radiology.requests') }}" class="small text-decoration-none">الكل</a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr><th>#</th><th>المريض</th><th>الفحص</th><th>النوع</th><th>الحالة</th><th>الأولوية</th><th>الوقت</th><th>الإجراءات</th></tr>
+          </thead>
+          <tbody>
+            {% for req in recent_requests %}
+            <tr>
+              <td>{{ req.id }}</td>
+              <td>
+                <div class="fw-bold">{{ req.visit.patient.full_name if req.visit and req.visit.patient else '-' }}</div>
+                <div class="small text-muted">{{ req.visit.patient.medical_record_number if req.visit and req.visit.patient else '' }}</div>
+              </td>
+              <td class="cell-truncate-sm">{{ req.test_name or req.test_type or '-' }}</td>
+              <td><span class="badge bg-secondary">{{ req.modality or '-' }}</span></td>
+              <td><span class="badge bg-{% if req.status=='DONE' %}success{% elif req.status=='IN_PROGRESS' %}primary{% elif req.status=='REQUESTED' %}warning{% else %}secondary{% endif %}">{{ req.status or 'REQUESTED' }}</span></td>
+              <td><span class="badge bg-{% if req.priority=='URGENT' %}danger{% elif req.priority=='HIGH' %}warning{% else %}info{% endif %}">{{ req.priority or 'NORMAL' }}</span></td>
+              <td class="small text-muted">{{ req.created_at.strftime('%Y-%m-%d %H:%M') if req.created_at else '-' }}</td>
+              <td>
+                <div class="d-flex gap-1">
+                  <a href="{{ url_for('radiology.reports', request_id=req.id) }}" class="btn btn-sm btn-outline-primary" title="تقرير"><i class="fas fa-file-alt"></i></a>
+                  {% if req.status != 'DONE' %}
+                  <a href="{{ url_for('radiology.tests') }}" class="btn btn-sm btn-outline-success" title="إجراء"><i class="fas fa-play"></i></a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% else %}<tr><td colspan="8" class="text-muted text-center py-4">لا توجد طلبات</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script type="application/json" id="rad-chart-data">{{ {
+  'spark': [stats.today_requests or 0, stats.completed_today or 0, stats.pending_requests or 0, stats.requested_count or 0],
+  'equipment': [stats.equipment_status.operational or 0, stats.equipment_status.maintenance or 0],
+  'mainData': [stats.requested_count or 0, stats.in_progress_count or 0, stats.done_today_count or 0, stats.predictive_insights.weekly_requests or 0, stats.predictive_insights.monthly_requests or 0]
+}|tojson }}</script>
+<script>
+  const d = JSON.parse(document.getElementById('rad-chart-data').textContent);
+
+  function spark(id, data, color) {
+    new Chart(document.getElementById(id).getContext('2d'), {
+      type: 'line',
+      data: { labels: data.map(function(_, i){ return i; }), datasets: [{ data: data, borderColor: color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
+    });
+  }
+  spark('sparkToday', d.spark, '#0d6efd');
+  spark('sparkCompleted', [d.spark[1], d.spark[1]+1, d.spark[1]-1, d.spark[1]+2], '#198754');
+  spark('sparkTime', [d.spark[2], d.spark[2]-1, d.spark[2]+1, d.spark[2]], '#0dcaf0');
+  spark('sparkQuality', [d.spark[3], d.spark[3]+1, d.spark[3], d.spark[3]+2], '#ffc107');
+
+  new Chart(document.getElementById('radMainChart'), {
+    type: 'bar',
+    data: {
+      labels: ['مطلوبة', 'قيد العمل', 'مكتملة', 'أسبوعي', 'شهري'],
+      datasets: [{
+        label: 'الطلبات',
+        data: d.mainData,
+        backgroundColor: ['#0d6efd', '#ffc107', '#198754', '#6f42c1', '#0dcaf0']
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+  });
+
+  new Chart(document.getElementById('equipmentChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['تعمل', 'صيانة'],
+      datasets: [{ data: d.equipment, backgroundColor: ['#198754', '#ffc107'] }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }, cutout: '65%' }
+  });
+</script>
 {% endblock %}

@@ -134,11 +134,11 @@ def dashboard():
             'margin_analytics': margin_analytics
         }
         
-        return render_template('accountant/dashboard.html', stats=stats, recent_transactions=recent_transactions, debt_alerts=debt_alerts)
+        return render_template('accountant/dashboard_new.html', stats=stats, recent_transactions=recent_transactions, debt_alerts=debt_alerts)
     except Exception as e:
         logging.error(f"Error in accountant dashboard: {str(e)}")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
-        return render_template('accountant/dashboard.html', stats={}, recent_transactions=[], debt_alerts={})
+        return render_template('accountant/dashboard_new.html', stats={}, recent_transactions=[], debt_alerts={})
 
 @accountant_bp.route('/open-invoices')
 @login_required

@@ -463,6 +463,7 @@ def dashboard():
         report_analysis = get_radiology_report_analysis()
         workflow_automation = get_radiology_workflow_automation()
         predictive_insights = get_radiology_predictive_insights()
+        recent_requests = RadiologyRequest.query.order_by(RadiologyRequest.created_at.desc()).limit(10).all()
         stats = {
             'today_requests': today_requests,
             'pending_requests': pending_requests,
@@ -478,7 +479,7 @@ def dashboard():
             'workflow_automation': workflow_automation,
             'predictive_insights': predictive_insights
         }
-        return render_template('radiology/dashboard_new.html', stats=stats)
+        return render_template('radiology/dashboard_new.html', stats=stats, recent_requests=recent_requests)
     
     except Exception as e:
         logging.error(f"Error in radiology dashboard: {str(e)}")
