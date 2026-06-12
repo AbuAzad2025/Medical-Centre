@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}إنشاء عميل جديد{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col"><h4><i class="fas fa-plus-circle me-2 text-success"></i>إنشاء عميل جديد (Tenant)</h4></div>
+        <div class="col-auto">
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{{ url_for('owner.owner_create_tenant') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">اسم المؤسسة</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">الاسم بالعربية</label>
+                        <input type="text" name="name_ar" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Slug (مُعرف فريد)</label>
+                        <input type="text" name="slug" class="form-control" required placeholder="company-name">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Domain</label>
+                        <input type="text" name="domain" class="form-control" placeholder="clinic.com">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Subdomain</label>
+                        <input type="text" name="subdomain" class="form-control" placeholder="clinic">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">بريد التواصل</label>
+                        <input type="email" name="contact_email" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">هاتف التواصل</label>
+                        <input type="tel" name="contact_phone" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">الرقم الضريبي</label>
+                        <input type="text" name="tax_number" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">الخطة</label>
+                        <select name="plan_id" class="form-select">
+                            <option value="">بدون خطة</option>
+                            {% for p in plans %}<option value="{{ p.id }}">{{ p.name }} — {{ p.base_price }} {{ p.currency }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">نوع الاشتراك</label>
+                        <select name="subscription_type" class="form-select">
+                            <option value="monthly">شهري</option>
+                            <option value="yearly">سنوي</option>
+                            <option value="perpetual">دائم</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">تاريخ انتهاء الاشتراك</label>
+                        <input type="date" name="subscription_end" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">فترة سماح (اختياري)</label>
+                        <input type="date" name="grace_period_end" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">طريقة التخزين</label>
+                        <select name="storage_mode" class="form-select">
+                            <option value="local">محلي</option>
+                            <option value="cloud">سحابي</option>
+                            <option value="hybrid">هجين</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> إنشاء العميل</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

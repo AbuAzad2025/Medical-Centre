@@ -158,6 +158,14 @@
                 <li><a href="{{ url_for('super_admin.security_logs') }}" class="nav-link-luxury {% if 'super_admin.security_logs' in request.endpoint %}active{% endif %}"><i class="fas fa-shield-alt"></i> <span>سجلات الأمان</span></a></li>
             </ul>
         </div>
+        <div class="nav-section">
+            <h6 class="nav-section-title">إدارة المنصة</h6>
+            <ul class="nav-list">
+                <li><a href="{{ url_for('owner.owner_dashboard') }}" class="nav-link-luxury {% if 'owner.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-globe"></i> <span>لوحة المنصة</span></a></li>
+                <li><a href="{{ url_for('owner.owner_plans') }}" class="nav-link-luxury {% if 'owner.plans' in request.endpoint %}active{% endif %}"><i class="fas fa-tags"></i> <span>خطط الاشتراك</span></a></li>
+                <li><a href="{{ url_for('owner.owner_announcements') }}" class="nav-link-luxury {% if 'owner.announcements' in request.endpoint %}active{% endif %}"><i class="fas fa-bullhorn"></i> <span>إعلانات المنصة</span></a></li>
+            </ul>
+        </div>
 
         {% elif current_user.role == 'manager' %}
         <div class="nav-section">
