@@ -121,6 +121,46 @@
     </div>
   </div>
 
+  <!-- Quality & Compliance -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">نسبة QC ناجح</div>
+          <h3 class="fw-bold text-success">{{ stats.quality_control.pass_rate or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="نسبة QC"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="نسبة QC" data-width="{{ stats.quality_control.pass_rate or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">دقة النتائج</div>
+          <h3 class="fw-bold text-primary">{{ stats.quality_control.result_accuracy or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="دقة النتائج"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="دقة النتائج" data-width="{{ stats.quality_control.result_accuracy or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">وقت التحويل (TAT)</div>
+          <h3 class="fw-bold text-info">{{ stats.test_optimization.avg_turnaround_minutes or 0 }} د</h3>
+          <div class="small text-muted">الهدف: <strong>&lt;60 د</strong></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">معدات نشطة</div>
+          <h3 class="fw-bold text-warning">{{ stats.equipment_monitoring.active_equipment or 0 }}</h3>
+          <div class="small text-muted">صيانة: <strong class="text-danger">{{ stats.equipment_monitoring.maintenance_count or 0 }}</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-3 mb-4">
     <div class="col-md-6">
       <div class="card border-0 shadow-sm h-100">

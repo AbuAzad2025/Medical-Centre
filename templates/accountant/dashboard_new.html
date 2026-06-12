@@ -125,6 +125,46 @@
     </div>
   </div>
 
+  <!-- Quality & Compliance -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">دقة الفواتير</div>
+          <h3 class="fw-bold text-success">{{ stats.smart_analytics.billing_accuracy or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="دقة الفواتير"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="دقة الفواتير" data-width="{{ stats.smart_analytics.billing_accuracy or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">امتثال التدقيق</div>
+          <h3 class="fw-bold text-primary">{{ stats.smart_analytics.audit_compliance or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="امتثال التدقيق"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="امتثال التدقيق" data-width="{{ stats.smart_analytics.audit_compliance or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">نسبة التحصيل</div>
+          <h3 class="fw-bold text-info">{{ stats.revenue_cycle.collection_rate or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="نسبة التحصيل"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="نسبة التحصيل" data-width="{{ stats.revenue_cycle.collection_rate or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">الصحة المالية</div>
+          <h3 class="fw-bold text-warning">{{ stats.financial_health.overall_score or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="الصحة المالية"><div class="progress-bar bg-warning progress-dynamic" role="progressbar" title="الصحة المالية" data-width="{{ stats.financial_health.overall_score or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-3 mb-4">
     <div class="col-md-6">
       <div class="card border-0 shadow-sm h-100">
