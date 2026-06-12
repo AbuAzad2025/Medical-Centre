@@ -24,7 +24,7 @@ def upgrade():
         sa.Column('sell_rate', sa.Numeric(18, 6), nullable=False),
         sa.Column('effective_date', sa.DateTime(), nullable=False),
         sa.Column('source', sa.String(50), nullable=False, server_default='MANUAL'),
-        sa.Column('is_active', sa.Boolean(), nullable=False, server_default='1'),
+        sa.Column('is_active', sa.Boolean(), nullable=False, server_default=sa.text('true')),
         sa.Column('notes', sa.Text(), nullable=True),
         sa.Column('created_by', sa.Integer(), sa.ForeignKey('users.id', ondelete='SET NULL'), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
