@@ -2532,3 +2532,92 @@ def dashboard_for_doctor(doctor_id):
         logging.error(f"Error in admin view doctor dashboard: {str(e)}")
         flash('حدث خطأ في عرض لوحة الطبيب', 'error')
         return redirect(url_for('main.dashboard'))
+
+
+@doctor_bp.route('/dental-chart/<int:patient_id>')
+@login_required
+@role_required('doctor', 'admin', 'manager')
+def dental_chart(patient_id):
+    """خريطة الأسنان التفاعلية"""
+    from models.patient import Patient
+    from models.dental import DentalChart, DentalTooth, TOOTH_STATES
+    import json
+
+    patient = db.session.get(Patient, patient_id)
+    if not patient:
+        flash('المريض غير موجود', 'error')
+        return redirect(url_for('doctor.patients'))
+
+    upper_right = [{'fdi': f'1{i}', 'x': i*38, 'y': 0} for i in range(8, 0, -1)]
+    upper_left = [{'fdi': f'2{i}', 'x': 160 + i*38, 'y': 0} for i in range(1, 9)]
+    lower_left = [{'fdi': f'3{i}', 'x': i*38, 'y': 0} for i in range(8, 0, -1)]
+    lower_right = [{'fdi': f'4{i}', 'x': 160 + i*38, 'y': 0} for i in range(1, 9)]
+
+    chart = DentalChart.query.filter_by(patient_id=patient_id).order_by(DentalChart.created_at.desc()).first()
+    teeth_map = {}
+    if chart:
+        for tooth in chart.teeth:
+            teeth_map[tooth.fdi_number] = {
+                'state': tooth.state,
+                'surfaces': tooth.surfaces or {},
+                'notes': tooth.notes or ''
+            }
+
+    def make_tooth_list(layout):
+        return [
+            {
+                'fdi': t['fdi'], 'x': t['x'], 'y': t['y'],
+                'state': teeth_map.get(t['fdi'], {}).get('state', 'sound'),
+                'color': TOOTH_STATES.get(teeth_map.get(t['fdi'], {}).get('state', 'sound'), {}).get('color', '#10b981')
+            }
+            for t in layout
+        ]
+
+    return render_template('doctor/dental_chart.html',
+                           patient=patient, visit_id=None,
+                           states=TOOTH_STATES, states_json=json.dumps(TOOTH_STATES),
+                           teeth_json=json.dumps(teeth_map),
+                           upper_teeth=make_tooth_list(upper_right + upper_left),
+                           lower_teeth=make_tooth_list(lower_left + lower_right))
+
+
+@doctor_bp.route('/dental-chart/save', methods=['POST'])
+@login_required
+@role_required('doctor', 'admin', 'manager')
+def save_dental_chart():
+    """حفظ خريطة الأسنان"""
+    from models.dental import DentalChart, DentalTooth
+    try:
+        data = request.get_json() or request.form
+        patient_id = int(data.get('patient_id'))
+        visit_id = data.get('visit_id')
+        teeth_data = data.get('teeth', {})
+        notes = data.get('notes', '')
+
+        chart = DentalChart(
+            patient_id=patient_id,
+            visit_id=int(visit_id) if visit_id else None,
+            doctor_id=current_user.id,
+            notes=notes
+        )
+        db.session.add(chart)
+        db.session.flush()
+
+        for fdi, info in teeth_data.items():
+            if info.get('state') == 'sound' and not info.get('notes') and not info.get('surfaces'):
+                continue
+            tooth = DentalTooth(
+                chart_id=chart.id,
+                fdi_number=str(fdi),
+                state=info.get('state', 'sound'),
+                surfaces=info.get('surfaces') or {},
+                notes=info.get('notes', '')
+            )
+            db.session.add(tooth)
+
+        db.session.commit()
+        return jsonify({'success': True, 'chart_id': chart.id})
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error saving dental chart: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
