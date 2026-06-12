@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}الأجنحة{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">الأجنحة</h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>الاسم</th><th>الكود</th><th>النوع</th><th>السعة</th><th>الطابق</th><th></th></tr></thead>
+        <tbody>
+        {% for w in wards %}
+          <tr>
+            <td>{{ w.name }}</td>
+            <td>{{ w.code }}</td>
+            <td><span class="badge bg-info">{{ w.ward_type }}</span></td>
+            <td>{{ w.capacity }}</td>
+            <td>{{ w.floor or '-' }}</td>
+            <td><a href="{{ url_for('bed.ward_detail', ward_id=w.id) }}" class="btn btn-sm btn-outline-primary">عرض</a></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6" class="text-muted text-center">لا يوجد أجنحة</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}تفاصيل الرقود{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">تفاصيل الرقود #{{ admission.id }}</h2>
+  <div class="card">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4"><strong>المريض:</strong> {{ admission.patient.full_name if admission.patient else '-' }}</div>
+        <div class="col-md-4"><strong>نوع الدخول:</strong> {{ admission.admission_type }}</div>
+        <div class="col-md-4"><strong>الحالة:</strong> <span class="badge bg-primary">{{ admission.status }}</span></div>
+        <div class="col-md-4"><strong>تاريخ الدخول:</strong> {{ admission.admission_datetime.strftime('%Y-%m-%d %H:%M') if admission.admission_datetime else '-' }}</div>
+        <div class="col-md-4"><strong>تاريخ الخروج:</strong> {{ admission.discharge_datetime.strftime('%Y-%m-%d %H:%M') if admission.discharge_datetime else '-' }}</div>
+        <div class="col-md-4"><strong>السرير:</strong> {{ admission.bed.bed_number if admission.bed else '-' }}</div>
+        <div class="col-md-12"><strong>التشخيص عند الدخول:</strong> {{ admission.admitting_diagnosis or '-' }}</div>
+        <div class="col-md-12"><strong>التشخيص عند الخروج:</strong> {{ admission.discharge_diagnosis or '-' }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

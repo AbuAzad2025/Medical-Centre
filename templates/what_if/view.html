@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4>{{ scenario.name }}</h4>
+  <span class="badge bg-info">{{ scenario.scenario_type }}</span>
+  <hr>
+  <div class="row g-4">
+    <div class="col-md-6">
+      <h5>الأساس</h5>
+      <ul class="list-group">
+        <li class="list-group-item d-flex justify-content-between"><span>الزيارات/يوم</span><strong>{{ scenario.baseline_visits_per_day or '—' }}</strong></li>
+        <li class="list-group-item d-flex justify-content-between"><span>متوسط الانتظار</span><strong>{{ scenario.baseline_avg_wait_minutes or '—' }} د</strong></li>
+        <li class="list-group-item d-flex justify-content-between"><span>الإيراد/يوم</span><strong>{{ scenario.baseline_revenue_per_day or '—' }}</strong></li>
+      </ul>
+    </div>
+    <div class="col-md-6">
+      <h5>التوقعات</h5>
+      <ul class="list-group">
+        <li class="list-group-item d-flex justify-content-between"><span>الزيارات/يوم</span><strong>{{ scenario.projected_visits_per_day or '—' }}</strong></li>
+        <li class="list-group-item d-flex justify-content-between"><span>متوسط الانتظار</span><strong>{{ scenario.projected_avg_wait_minutes or '—' }} د</strong></li>
+        <li class="list-group-item d-flex justify-content-between"><span>الإيراد/يوم</span><strong>{{ scenario.projected_revenue_per_day or '—' }}</strong></li>
+        <li class="list-group-item d-flex justify-content-between bg-success text-white"><span>زيادة القدرة</span><strong>{{ "%.1f"|format(scenario.projected_capacity_increase or 0) }}%</strong></li>
+      </ul>
+    </div>
+  </div>
+  {% if scenario.result_summary %}
+  <div class="mt-4">
+    <h5>الملخص</h5>
+    <div class="bg-light p-3 rounded">{{ scenario.result_summary }}</div>
+  </div>
+  {% endif %}
+  <a href="{{ url_for('what_if.index') }}" class="btn btn-secondary mt-3">رجوع</a>
+</div>
+{% endblock %}

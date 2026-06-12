@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}جدولة العمليات{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">جدولة العمليات <span class="badge bg-secondary">{{ status }}</span></h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>التاريخ</th><th>المريض</th><th>الإجراء</th><th>الغرفة</th><th>الجراح</th><th>الحالة</th><th></th></tr></thead>
+        <tbody>
+        {% for s in surgeries %}
+          <tr>
+            <td>{{ s.scheduled_date }} {{ s.scheduled_start_time or '' }}</td>
+            <td>{{ s.patient.full_name if s.patient else '-' }}</td>
+            <td>{{ s.procedure_name }}</td>
+            <td>{{ s.or_room or '-' }}</td>
+            <td>{{ s.surgeon.full_name if s.surgeon else '-' }}</td>
+            <td><span class="badge bg-{% if s.status=='COMPLETED' %}success{% elif s.status=='IN_PROGRESS' %}primary{% elif s.status=='CANCELLED' %}danger{% else %}warning{% endif %}">{{ s.status }}</span></td>
+            <td><a href="{{ url_for('or.surgery_detail', surgery_id=s.id) }}" class="btn btn-sm btn-outline-primary">عرض</a></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="7" class="text-muted text-center">لا يوجد عمليات مجدولة</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

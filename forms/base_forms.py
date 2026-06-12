@@ -153,7 +153,7 @@ class FileUploadMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # تحميل فئات الملفات
-        from models.unified_files import FileCategory
+        from models.file_management import FileCategory
         categories = FileCategory.query.filter_by(status='ACTIVE').all()
         self.file_category.choices = [('', 'اختر فئة الملف')] + [(c.id, c.name_ar) for c in categories]
 

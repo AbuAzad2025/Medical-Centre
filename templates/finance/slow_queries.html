@@ -9,6 +9,7 @@
     </div>
     <div class="d-flex gap-2">
       <form method="post" action="{{ url_for('finance.capture_slow_queries_weekly') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="limit" value="{{ limit }}">
         <button type="submit" class="btn btn-primary">حفظ تقرير أسبوعي</button>
       </form>
@@ -51,7 +52,7 @@
             {% for row in report.queries or [] %}
             <tr>
               <td>{{ loop.index }}</td>
-              <td style="max-width: 520px; white-space: pre-wrap;">{{ row.query }}</td>
+              <td class="slow-query-cell">{{ row.query }}</td>
               <td class="text-end">{{ row.calls }}</td>
               <td class="text-end">{{ "%.2f"|format(row.mean_time or 0) }}</td>
               <td class="text-end">{{ "%.2f"|format(row.total_time or 0) }}</td>

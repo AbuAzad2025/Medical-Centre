@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}التشخيصات المشفرة — {{ patient.full_name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">التشخيصات المشفرة — {{ patient.full_name }}</h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>التاريخ</th><th>الكود</th><th>النوع</th><th>الحالة</th><th>ملاحظات</th></tr></thead>
+        <tbody>
+        {% for d in diagnoses %}
+          <tr>
+            <td>{{ d.coded_at.strftime('%Y-%m-%d') if d.coded_at else '-' }}</td>
+            <td><code>{{ d.icd_code.code if d.icd_code else '-' }}</code></td>
+            <td><span class="badge bg-info">{{ d.diagnosis_type }}</span></td>
+            <td><span class="badge bg-secondary">{{ d.status }}</span></td>
+            <td>{{ d.notes or '-' }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted text-center">لا يوجد تشخيصات مشفرة</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

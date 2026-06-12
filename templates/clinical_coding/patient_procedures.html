@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-clipboard-plus me-2"></i>إجراءات المريض — {{ patient.full_name }}</h4>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead><tr><th>التاريخ</th><th>CPT</th><th>الوصف</th><th>الحالة</th></tr></thead>
+          <tbody>
+            {% for p in procedures %}
+            <tr>
+              <td>{{ p.created_at.strftime('%Y-%m-%d') if p.created_at else '—' }}</td>
+              <td><code>{{ p.cpt_code or '—' }}</code></td>
+              <td>{{ p.description or '—' }}</td>
+              <td>{{ p.status or '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center text-muted">لا توجد إجراءات مسجلة</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

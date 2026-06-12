@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}أكواد ICD-10{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">أكواد ICD-10</h2>
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-md-4"><input type="text" name="q" class="form-control" placeholder="بحث بالكود أو الوصف" value="{{ q }}"></div>
+    <div class="col-md-2"><button class="btn btn-primary" type="submit">بحث</button></div>
+  </form>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover table-sm">
+        <thead><tr><th>الكود</th><th>الفئة</th><th>الوصف</th><th>قابل للفوترة</th></tr></thead>
+        <tbody>
+        {% for c in codes %}
+          <tr>
+            <td><code>{{ c.code }}</code></td>
+            <td>{{ c.category }}</td>
+            <td>{{ c.description }}</td>
+            <td>{% if c.is_billable %}<span class="badge bg-success">نعم</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4" class="text-muted text-center">لا يوجد نتائج</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

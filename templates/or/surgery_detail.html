@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}تفاصيل العملية{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">تفاصيل العملية #{{ surgery.id }}</h2>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">معلومات العملية</div>
+        <div class="card-body">
+          <p><strong>المريض:</strong> {{ surgery.patient.full_name if surgery.patient else '-' }}</p>
+          <p><strong>الإجراء:</strong> {{ surgery.procedure_name }}</p>
+          <p><strong>التاريخ:</strong> {{ surgery.scheduled_date }} {{ surgery.scheduled_start_time or '' }}</p>
+          <p><strong>الغرفة:</strong> {{ surgery.or_room or '-' }}</p>
+          <p><strong>الحالة:</strong> <span class="badge bg-primary">{{ surgery.status }}</span></p>
+          <p><strong>الأولوية:</strong> {{ surgery.priority }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">الفريق الطبي</div>
+        <div class="card-body">
+          <p><strong>الجراح:</strong> {{ surgery.surgeon.full_name if surgery.surgeon else '-' }}</p>
+          <p><strong>المساعد:</strong> {{ surgery.assistant_surgeon_id or '-' }}</p>
+          <p><strong>التخدير:</strong> {{ surgery.anesthesiologist_id or '-' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% if checklist %}
+  <div class="card mt-3">
+    <div class="card-header">قائمة السلامة الجراحية (WHO)</div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <h6>Sign In</h6>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_in_patient_identity %}checked{% endif %} disabled aria-label="هوية المريض مؤكدة"><label>هوية المريض</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_in_site_marked %}checked{% endif %} disabled aria-label="الموقع مُعلم"><label>الموقع مُعلم</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_in_anesthesia_check %}checked{% endif %} disabled aria-label="فحص التخدير"><label>فحص التخدير</label></div>
+        </div>
+        <div class="col-md-4">
+          <h6>Time Out</h6>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.time_out_team_introduced %}checked{% endif %} disabled aria-label="تعارف الفريق"><label>تعارف الفريق</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.time_out_procedure %}checked{% endif %} disabled aria-label="تأكيد الإجراء"><label>تأكيد الإجراء</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.time_out_site %}checked{% endif %} disabled aria-label="تأكيد الموقع"><label>تأكيد الموقع</label></div>
+        </div>
+        <div class="col-md-4">
+          <h6>Sign Out</h6>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_out_procedure_recorded %}checked{% endif %} disabled aria-label="تسجيل الإجراء"><label>تسجيل الإجراء</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_out_specimen_labeled %}checked{% endif %} disabled aria-label="عينات مُعلمة"><label>عينات مُعلمة</label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

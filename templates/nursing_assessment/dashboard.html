@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-clipboard-pulse me-2"></i>لوحة تقييمات التمريض</h4>
+  <div class="row g-3 mb-4">
+    {% for s in stats %}
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="text-muted">{{ s.assessment_type }}</h6>
+          <h3>{{ s.count }}</h3>
+          <small>متوسط: {{ "%.1f"|format(s.avg_score or 0) }}</small>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead><tr><th>المريض</th><th>النوع</th><th>الدرجة</th><th>المخاطر</th><th>التاريخ</th></tr></thead>
+      <tbody>
+        {% for a in recent %}
+        <tr>
+          <td>{{ a.patient.full_name }}</td>
+          <td>{{ a.assessment_type }}</td>
+          <td>{{ a.total_score }}</td>
+          <td>{{ a.risk_level }}</td>
+          <td>{{ a.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

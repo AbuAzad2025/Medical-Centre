@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-fingerprint me-2"></i>المصادقة البيومترية</h4>
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">تسجيل بصمة / وجه جديدة</div>
+    <div class="card-body">
+      <p>اضغط الزر أدناه لتسجيل جهاز بيومتري جديد. يدعم النظام:</p>
+      <ul>
+        <li>Touch ID / Face ID (Apple)</li>
+        <li>Windows Hello (Fingerprint / PIN)</li>
+        <li>Security Keys (YubiKey, etc.)</li>
+        <li>Android Biometric</li>
+      </ul>
+      <button type="button" id="registerBtn" class="btn btn-success">
+        <i class="bi bi-fingerprint me-2"></i> تسجيل جهاز جديد
+      </button>
+      <div id="registerResult" class="mt-3"></div>
+    </div>
+  </div>
+  <h5>الأجهزة المُسجلة</h5>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead><tr><th>الجهاز</th><th>النوع</th><th>آخر استخدام</th><th></th></tr></thead>
+      <tbody>
+        {% for c in credentials %}
+        <tr>
+          <td>{{ c.device_name }}</td>
+          <td>{{ c.device_type }}</td>
+          <td>{{ c.last_used_at.strftime('%Y-%m-%d %H:%M') if c.last_used_at else '—' }}</td>
+          <td>
+            <form method="post" action="{{ url_for('biometric.remove_credential', cred_id=c.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد؟');">
+              <button type="submit" class="btn btn-sm btn-danger">حذف</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-center text-muted">لا توجد أجهزة مُسجلة</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+document.getElementById('registerBtn').addEventListener('click', async function() {
+  try {
+    const resp = await fetch('{{ url_for("biometric.register_challenge") }}', {method: 'POST'});
+    const data = await resp.json();
+    // Simplified: in production, use fido2 library
+    document.getElementById('registerResult').innerHTML = '<div class="alert alert-success">تم إرسال التحدي. أكمل التسجيل عبر المتصفح.</div>';
+  } catch(e) {
+    document.getElementById('registerResult').innerHTML = '<div class="alert alert-danger">خطأ: ' + e.message + '</div>';
+  }
+});
+</script>
+{% endblock %}

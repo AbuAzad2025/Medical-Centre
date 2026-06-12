@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-calculator me-2"></i>سيناريو What-If جديد</h4>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post">
+        <div class="mb-3">
+          <label for="name" class="form-label">اسم السيناريو</label>
+          <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-3">
+          <label for="scenario_type" class="form-label">نوع السيناريو</label>
+          <select class="form-select" id="scenario_type" name="scenario_type">
+            <option value="add_doctor">إضافة طبيب</option>
+            <option value="add_beds">إضافة أسرة</option>
+            <option value="extend_hours">تمديد ساعات العمل</option>
+            <option value="seasonal_surge">طفرة موسمية</option>
+            <option value="price_change">تغيير الأسعار</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="description" class="form-label">وصف</label>
+          <textarea class="form-control" id="description" name="description" rows="2"></textarea>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label for="baseline_visits_per_day" class="form-label">الزيارات/يوم (أساس)</label>
+            <input type="number" class="form-control" id="baseline_visits_per_day" name="baseline_visits_per_day" value="50">
+          </div>
+          <div class="col-md-4">
+            <label for="baseline_avg_wait_minutes" class="form-label">متوسط الانتظار (دقيقة)</label>
+            <input type="number" step="0.1" class="form-control" id="baseline_avg_wait_minutes" name="baseline_avg_wait_minutes" value="30">
+          </div>
+          <div class="col-md-4">
+            <label for="baseline_revenue_per_day" class="form-label">الإيراد/يوم (أساس)</label>
+            <input type="number" step="0.01" class="form-control" id="baseline_revenue_per_day" name="baseline_revenue_per_day" value="5000">
+          </div>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label for="param_change_percent" class="form-label">نسبة التغيير (%)</label>
+            <input type="number" step="0.1" class="form-control" id="param_change_percent" name="param_change_percent" placeholder="مثال: 10 أو -5">
+          </div>
+          <div class="col-md-6">
+            <label for="param_new_staff_count" class="form-label">عدد الأطباء الجدد</label>
+            <input type="number" class="form-control" id="param_new_staff_count" name="param_new_staff_count" placeholder="مثال: 2">
+          </div>
+          <div class="col-md-6">
+            <label for="param_new_bed_count" class="form-label">عدد الأسرة الجديدة</label>
+            <input type="number" class="form-control" id="param_new_bed_count" name="param_new_bed_count" placeholder="مثال: 5">
+          </div>
+          <div class="col-md-6">
+            <label for="param_department_id" class="form-label">القسم (اختياري)</label>
+            <select class="form-select" id="param_department_id" name="param_department_id">
+              <option value="">— الكل —</option>
+              {% for d in departments %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="d-grid">
+          <button type="submit" class="btn btn-primary">حساب التوقعات</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

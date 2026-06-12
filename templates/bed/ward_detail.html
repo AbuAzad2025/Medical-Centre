@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ ward.name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">{{ ward.name }} <span class="badge bg-secondary">{{ ward.code }}</span></h2>
+  <div class="card">
+    <div class="card-header">الغرف</div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for r in rooms %}
+          <div class="col-md-3">
+            <div class="border rounded p-3">
+              <h6>{{ r.name }}</h6>
+              <div class="text-muted">الكود: {{ r.code }} — النوع: {{ r.room_type }}</div>
+              <div class="mt-2"><span class="badge bg-primary">{{ r.beds|length }} سرير</span></div>
+              <a href="{{ url_for('bed.room_detail', room_id=r.id) }}" class="btn btn-sm btn-outline-primary mt-2">عرض الأسرة</a>
+            </div>
+          </div>
+        {% else %}
+          <p class="text-muted">لا يوجد غرف</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

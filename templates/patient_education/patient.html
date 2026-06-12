@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-book me-2"></i>المواد التعليمية — {{ patient.full_name }}</h4>
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white">إسناد مادة جديدة</div>
+    <div class="card-body">
+      <form method="post" action="{{ url_for('patient_education.assign_material') }}">
+        <input type="hidden" name="patient_id" value="{{ patient.id }}">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="material_id" class="form-label">المادة</label>
+            <select class="form-select" id="material_id" name="material_id" required>
+              {% for m in materials %}<option value="{{ m.id }}">{{ m.title }} ({{ m.category }})</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="notes" class="form-label">ملاحظات</label>
+            <input type="text" class="form-control" id="notes" name="notes">
+          </div>
+        </div>
+        <div class="d-grid mt-3">
+          <button type="submit" class="btn btn-success">إسناد</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <h5>المواد المُسنَدة</h5>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead><tr><th>المادة</th><th>الحالة</th><th>تاريخ المشاهدة</th><th>تاريخ الإكمال</th></tr></thead>
+      <tbody>
+        {% for a in assignments %}
+        <tr>
+          <td>{{ a.material.title }}</td>
+          <td>
+            {% if a.status == 'assigned' %}<span class="badge bg-secondary">مُسنَد</span>{% endif %}
+            {% if a.status == 'viewed' %}<span class="badge bg-info">مُشاهَد</span>{% endif %}
+            {% if a.status == 'completed' %}<span class="badge bg-success">مكتمل</span>{% endif %}
+          </td>
+          <td>{{ a.viewed_at.strftime('%Y-%m-%d %H:%M') if a.viewed_at else '—' }}</td>
+          <td>{{ a.completed_at.strftime('%Y-%m-%d %H:%M') if a.completed_at else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-center text-muted">لا توجد مواد مُسنَدة</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

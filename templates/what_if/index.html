@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="bi bi-calculator me-2"></i>سيناريوهات What-If</h4>
+    <a href="{{ url_for('what_if.new_scenario') }}" class="btn btn-success"><i class="bi bi-plus-lg"></i> سيناريو جديد</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead><tr><th>الاسم</th><th>النوع</th><th>الزيارات/يوم</th><th>الإيراد/يوم</th><th>الزيادة المتوقعة</th><th></th></tr></thead>
+      <tbody>
+        {% for s in scenarios %}
+        <tr>
+          <td>{{ s.name }}</td>
+          <td>{{ s.scenario_type }}</td>
+          <td>{{ s.projected_visits_per_day or '—' }}</td>
+          <td>{{ s.projected_revenue_per_day or '—' }}</td>
+          <td>{{ "%.1f"|format(s.projected_capacity_increase or 0) }}%</td>
+          <td><a href="{{ url_for('what_if.view_scenario', scenario_id=s.id) }}" class="btn btn-sm btn-outline-primary">عرض</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted">لا توجد سيناريوهات</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

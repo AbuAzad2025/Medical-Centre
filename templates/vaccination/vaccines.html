@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}اللقاحات{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">سجل اللقاحات</h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>الاسم</th><th>الكود</th><th>الشركة</th><th>الجرعات</th><th>الحالة</th></tr></thead>
+        <tbody>
+        {% for v in vaccines %}
+          <tr>
+            <td>{{ v.name }}</td>
+            <td>{{ v.code }}</td>
+            <td>{{ v.manufacturer or '-' }}</td>
+            <td>{{ v.doses_required }}</td>
+            <td><span class="badge bg-success">نشط</span></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted text-center">لا يوجد لقاحات</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

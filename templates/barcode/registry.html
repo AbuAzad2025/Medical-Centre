@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}سجل الباركود{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">سجل الباركود / QR</h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>الباركود</th><th>النوع</th><th>الكيان</th><th>تاريخ الإنشاء</th><th>مرات الطباعة</th></tr></thead>
+        <tbody>
+        {% for i in items %}
+          <tr>
+            <td><code>{{ i.barcode_value }}</code></td>
+            <td>{{ i.barcode_type }}</td>
+            <td>{{ i.entity_type }} #{{ i.entity_id }}</td>
+            <td>{{ i.created_at.strftime('%Y-%m-%d') if i.created_at else '-' }}</td>
+            <td>{{ i.print_count }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted text-center">لا يوجد سجل</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

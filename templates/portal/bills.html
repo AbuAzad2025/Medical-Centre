@@ -1,0 +1,45 @@
+{% extends "portal/base.html" %}
+{% block title %}الفواتير{% endblock %}
+{% block content %}
+<h4 class="mb-3">الفواتير والمدفوعات</h4>
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="portal-card p-3">
+      <h5>الفواتير</h5>
+      <table class="table table-sm">
+        <thead><tr><th>التاريخ</th><th>المبلغ</th><th>الحالة</th></tr></thead>
+        <tbody>
+        {% for i in invoices %}
+          <tr>
+            <td>{{ i.created_at.strftime('%Y-%m-%d') if i.created_at else '-' }}</td>
+            <td>{{ i.total_amount or 0 }}</td>
+            <td><span class="badge bg-secondary">{{ i.status }}</span></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="3" class="text-muted text-center">لا يوجد فواتير</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="portal-card p-3">
+      <h5>المدفوعات</h5>
+      <table class="table table-sm">
+        <thead><tr><th>التاريخ</th><th>المبلغ</th><th>الطريقة</th></tr></thead>
+        <tbody>
+        {% for p in payments %}
+          <tr>
+            <td>{{ p.payment_date or '-' }}</td>
+            <td>{{ p.amount or 0 }}</td>
+            <td>{{ p.payment_method or '-' }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="3" class="text-muted text-center">لا يوجد مدفوعات</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

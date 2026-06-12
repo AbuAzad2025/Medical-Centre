@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-globe me-2"></i>إعدادات SSO / LDAP</h4>
+  <div class="row g-4">
+    <div class="col-md-5">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">إضافة إعداد جديد</div>
+        <div class="card-body">
+          <form method="post">
+            <div class="mb-3">
+              <label for="name" class="form-label">الاسم</label>
+              <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+              <label for="provider_type" class="form-label">النوع</label>
+              <select class="form-select" id="provider_type" name="provider_type">
+                <option value="ldap">LDAP</option>
+                <option value="active_directory">Active Directory</option>
+                <option value="saml">SAML</option>
+                <option value="oauth2">OAuth2</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="server_url" class="form-label">عنوان السيرفر</label>
+              <input type="text" class="form-control" id="server_url" name="server_url" placeholder="ldaps://dc.example.com">
+            </div>
+            <div class="mb-3">
+              <label for="base_dn" class="form-label">Base DN</label>
+              <input type="text" class="form-control" id="base_dn" name="base_dn" placeholder="dc=example,dc=com">
+            </div>
+            <div class="mb-3">
+              <label for="bind_dn" class="form-label">Bind DN</label>
+              <input type="text" class="form-control" id="bind_dn" name="bind_dn">
+            </div>
+            <div class="mb-3">
+              <label for="bind_password" class="form-label">كلمة مرور Bind</label>
+              <input type="password" class="form-control" id="bind_password" name="bind_password">
+            </div>
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="auto_create_user" name="auto_create_user" checked>
+              <label class="form-check-label" for="auto_create_user">إنشاء مستخدم تلقائياً</label>
+            </div>
+            <div class="mb-3">
+              <label for="default_role" class="form-label">الدور الافتراضي</label>
+              <input type="text" class="form-control" id="default_role" name="default_role" value="user">
+            </div>
+            <div class="d-grid">
+              <button type="submit" class="btn btn-success">حفظ</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-7">
+      <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">الإعدادات الحالية</div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>الاسم</th><th>النوع</th><th>الحالة</th><th></th></tr></thead>
+            <tbody>
+              {% for c in configs %}
+              <tr>
+                <td>{{ c.name }}</td>
+                <td>{{ c.provider_type }}</td>
+                <td>{% if c.is_active %}<span class="badge bg-success">مفعّل</span>{% else %}<span class="badge bg-secondary">معطّل</span>{% endif %}</td>
+                <td>
+                  <form method="post" action="{{ url_for('sso.toggle', config_id=c.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">تبديل</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

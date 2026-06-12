@@ -34,14 +34,14 @@ class PermissionAssignmentForm(FormBase, StatusMixin):
     def load_dynamic_choices(self):
         """تحميل الخيارات الديناميكية"""
         # تحميل الأدوار
-        from models.unified_models import UnifiedRole
-        roles = UnifiedRole.query.filter_by(status='ACTIVE').all()
+        from models.permissions import Role
+        roles = Role.query.filter_by(is_active=True).all()
         self.role_id.choices = [(r.id, f"{r.name_ar} ({r.name})") for r in roles]
         
         # تحميل الصلاحيات
-        from models.unified_models import UnifiedPermission
-        permissions = UnifiedPermission.query.filter_by(status='ACTIVE').all()
-        self.permission_id.choices = [(p.id, f"{p.permission_name_ar} ({p.permission_name})") for p in permissions]
+        from models.permissions import Permission
+        permissions = Permission.query.filter_by(is_active=True).all()
+        self.permission_id.choices = [(p.id, p.name) for p in permissions]
         
         # تحميل المستخدمين
         from models.user import User
@@ -286,8 +286,8 @@ class UserRoleAssignmentForm(FormBase, StatusMixin):
         self.user_id.choices = [(u.id, f"{u.full_name} ({u.role})") for u in users]
         
         # تحميل الأدوار
-        from models.unified_models import UnifiedRole
-        roles = UnifiedRole.query.filter_by(status='ACTIVE').all()
+        from models.permissions import Role
+        roles = Role.query.filter_by(is_active=True).all()
         self.role_id.choices = [(r.id, f"{r.name_ar} ({r.name})") for r in roles]
         
         # تحميل المستخدمين للمُعيّن

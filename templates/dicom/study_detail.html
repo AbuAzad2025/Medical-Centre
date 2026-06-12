@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}تفاصيل الدراسة{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">تفاصيل الدراسة</h2>
+  <div class="card">
+    <div class="card-body">
+      <p><strong>UID:</strong> <code>{{ study.study_instance_uid }}</code></p>
+      <p><strong>المريض:</strong> {{ study.patient.full_name if study.patient else '-' }}</p>
+      <p><strong>التاريخ:</strong> {{ study.study_date or '-' }}</p>
+      <p><strong>النوع:</strong> <span class="badge bg-info">{{ study.modality }}</span></p>
+      <p><strong>الوصف:</strong> {{ study.study_description or '-' }}</p>
+      <p><strong>الحالة:</strong> <span class="badge bg-primary">{{ study.status }}</span></p>
+      <p><strong>عدد السلاسل:</strong> {{ study.series_count }} — <strong>عدد الصور:</strong> {{ study.instance_count }}</p>
+      <a href="{{ url_for('dicom.viewer', study_id=study.id) }}" class="btn btn-primary">فتح الـ Viewer</a>
+    </div>
+  </div>
+  <div class="card mt-3">
+    <div class="card-header">السلاسل</div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for s in series %}
+          <div class="col-md-4">
+            <div class="border rounded p-3">
+              <h6>سلسلة #{{ s.series_number or s.id }}</h6>
+              <p class="text-muted">{{ s.series_description or '-' }}</p>
+              <span class="badge bg-primary">{{ s.instance_count }} صورة</span>
+            </div>
+          </div>
+        {% else %}
+          <p class="text-muted">لا يوجد سلاسل</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

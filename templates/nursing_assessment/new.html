@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-clipboard-pulse me-2"></i>تقييم جديد — {{ assessment_type }}</h4>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post">
+        {% if assessment_type == 'braden' %}
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label" for="sensory">الإدراك الحسي</label>
+              <select class="form-select" id="sensory" name="sensory" aria-label="الإدراك الحسي"><option value="4" selected>4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="moisture">الرطوبة</label>
+              <select class="form-select" id="moisture" name="moisture" aria-label="الرطوبة"><option value="4" selected>4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="activity">النشاط</label>
+              <select class="form-select" id="activity" name="activity" aria-label="النشاط"><option value="4" selected>4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="mobility">الحركة</label>
+              <select class="form-select" id="mobility" name="mobility" aria-label="الحركة"><option value="4" selected>4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="nutrition">التغذية</label>
+              <select class="form-select" id="nutrition" name="nutrition" aria-label="التغذية"><option value="4" selected>4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="friction">الاحتكاك والقص</label>
+              <select class="form-select" id="friction" name="friction" aria-label="الاحتكاك والقص"><option value="3" selected>3</option><option value="2">2</option><option value="1">1</option></select>
+            </div>
+          </div>
+        {% elif assessment_type == 'glasgow' %}
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label" for="eye">فتح العين</label>
+              <select class="form-select" id="eye" name="eye" aria-label="فتح العين"><option value="4" selected>4 - تلقائي</option><option value="3">3 - عند نداء</option><option value="2">2 - عند ألم</option><option value="1">1 - لا يفتح</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="verbal">الاستجابة اللفظية</label>
+              <select class="form-select" id="verbal" name="verbal" aria-label="الاستجابة اللفظية"><option value="5" selected>5 - Oriented</option><option value="4">4 - Confused</option><option value="3">3 - Inappropriate</option><option value="2">2 - Incomprehensible</option><option value="1">1 - None</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="motor">الاستجابة الحركية</label>
+              <select class="form-select" id="motor" name="motor" aria-label="الاستجابة الحركية"><option value="6" selected>6 - Obeys commands</option><option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1 - None</option></select>
+            </div>
+          </div>
+        {% elif assessment_type == 'fall_risk' %}
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="history">تاريخ السقوط</label><select class="form-select" id="history" name="history" aria-label="تاريخ السقوط"><option value="0" selected>0 - لا</option><option value="25">25 - نعم</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="diagnosis">تشخيص ثانوي</label><select class="form-select" id="diagnosis" name="diagnosis" aria-label="تشخيص ثانوي"><option value="0" selected>0 - لا</option><option value="15">15 - نعم</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="aid">مساعدة المشي</label><select class="form-select" id="aid" name="aid" aria-label="مساعدة المشي"><option value="0" selected>0 - لا</option><option value="15">15 - نعم</option><option value="30">30 - يتكئ</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="iv">محلول وريدي</label><select class="form-select" id="iv" name="iv" aria-label="محلول وريدي"><option value="0" selected>0 - لا</option><option value="20">20 - نعم</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="gait">المشية</label><select class="form-select" id="gait" name="gait" aria-label="المشية"><option value="0" selected>0 - طبيعي</option><option value="10">10 - ضعيف</option><option value="20">20 - معاق</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="mental_fall">الحالة العقلية</label><select class="form-select" id="mental_fall" name="mental" aria-label="الحالة العقلية"><option value="0" selected>0 - Oriented</option><option value="15">15 - Overestimates</option></select></div>
+          </div>
+        {% elif assessment_type == 'pain_scale' %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="pain_score">درجة الألم (0-10)</label>
+              <input type="range" class="form-range" id="pain_score" name="pain_score" min="0" max="10" value="0" aria-label="درجة الألم من 0 إلى 10" oninput="document.getElementById('painVal').innerText=this.value">
+              <div class="text-center fs-3 text-danger" id="painVal">0</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="pain_location">موقع الألم</label>
+              <input type="text" class="form-control" id="pain_location" name="pain_location" placeholder="موقع الألم" aria-label="موقع الألم">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="pain_character">طبيعة الألم</label>
+              <select class="form-select" id="pain_character" name="pain_character" aria-label="طبيعة الألم">
+                <option value="حاد">حاد</option><option value="مزمن">مزمن</option><option value="نابض">نابض</option>
+                <option value="مؤلم">مؤلم</option><option value="مستمر">مستمر</option>
+              </select>
+            </div>
+          </div>
+        {% elif assessment_type == 'norton' %}
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="physical">الحالة البدنية</label><select class="form-select" id="physical" name="physical" aria-label="الحالة البدنية"><option value="4" selected>4 - جيد</option><option value="3">3</option><option value="2">2</option><option value="1">1 - سيء</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="mental_norton">الحالة العقلية</label><select class="form-select" id="mental_norton" name="mental" aria-label="الحالة العقلية"><option value="4" selected>4 - Oriented</option><option value="3">3</option><option value="2">2</option><option value="1">1 - Stupor</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="activity_norton">النشاط</label><select class="form-select" id="activity_norton" name="activity" aria-label="النشاط"><option value="4" selected>4 - Ambulant</option><option value="3">3</option><option value="2">2</option><option value="1">1 - Bed-bound</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="mobility_norton">الحركة</label><select class="form-select" id="mobility_norton" name="mobility" aria-label="الحركة"><option value="4" selected>4 - Full</option><option value="3">3</option><option value="2">2</option><option value="1">1 - Immobile</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="incontinence">سلس البول</label><select class="form-select" id="incontinence" name="incontinence" aria-label="سلس البول"><option value="4" selected>4 - لا</option><option value="3">3</option><option value="2">2</option><option value="1">1 - مزدوج</option></select></div>
+          </div>
+        {% endif %}
+        <div class="mt-3">
+          <label class="form-label" for="notes">ملاحظات</label>
+          <textarea class="form-control" id="notes" name="notes" rows="2" aria-label="ملاحظات"></textarea>
+        </div>
+        <div class="d-grid mt-3">
+          <button type="submit" class="btn btn-primary">حفظ التقييم</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

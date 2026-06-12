@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>التحقق الثنائي</h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted text-center">أدخل رمز التحقق من تطبيقك</p>
+          <form method="post">
+            <div class="mb-3">
+              <input type="text" class="form-control text-center fs-3" name="code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" placeholder="000000" required autofocus autocomplete="off" title="أدخل رمز TOTP المكون من 6 أرقام">
+            </div>
+            <div class="d-grid mb-3">
+              <button type="submit" class="btn btn-primary">تحقق</button>
+            </div>
+            <div class="mb-3">
+              <label for="backup_code" class="form-label small text-muted">أو أدخل رمز احتياطي</label>
+              <input type="text" class="form-control" name="backup_code" id="backup_code" maxlength="16" placeholder="رمز احتياطي" title="أدخل رمز احتياطي إذا فقدت الوصول">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

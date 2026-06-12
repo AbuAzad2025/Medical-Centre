@@ -1415,3 +1415,16 @@ Traceback (most recent call last):
 UnboundLocalError: cannot access local variable 'Patient' where it is not associated with a value
 2026-01-23 15:58:37 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\MED-2-7-2025\medical_system\app_factory.py:385]
 2026-01-23 15:58:44 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\MED-2-7-2025\medical_system\app_factory.py:385]
+2026-06-12 09:28:47 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:  database "medical_system" does not exist
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8) [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:394]
+2026-06-12 09:29:07 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:  database "medical_system" does not exist
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8) [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:394]
+2026-06-12 09:29:44 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:  database "medical_system" does not exist
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8) [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:394]
+2026-06-12 09:29:58 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:391]
+2026-06-12 09:30:18 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:391]
+2026-06-12 09:30:41 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:391]
+2026-06-12 09:32:21 | WARNING | app_factory | تخطّي تهيئة البيانات الافتراضية: Error creating backref 'allergies' on relationship 'AllergyIntolerance.patient': property of that name exists on mapper 'Mapper[Patient(patients)]' [in D:\Data\MED-2-7-2025\medical_system\app_factory.py:394]

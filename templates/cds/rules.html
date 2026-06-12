@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}قواعد التنبيهات السريرية{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">قواعد التنبيهات السريرية (CDS)</h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>القاعدة</th><th>النوع</th><th>الجهة المُشغلة</th><th>الخطورة</th><th>حظر</th><th>الحالة</th></tr></thead>
+        <tbody>
+        {% for r in rules %}
+          <tr>
+            <td>{{ r.rule_name }}</td>
+            <td><span class="badge bg-info">{{ r.rule_type }}</span></td>
+            <td>{{ r.trigger_entity_type }}</td>
+            <td><span class="badge bg-{% if r.min_severity=='CRITICAL' %}danger{% elif r.min_severity=='HIGH' %}warning{% else %}info{% endif %}">{{ r.min_severity }}</span></td>
+            <td>{% if r.is_blocking %}<span class="badge bg-danger">نعم</span>{% else %}<span class="badge bg-secondary">لا</span>{% endif %}</td>
+            <td>{% if r.is_active %}<span class="badge bg-success">نشط</span>{% else %}<span class="badge bg-secondary">معطل</span>{% endif %}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6" class="text-muted text-center">لا يوجد قواعد</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ room.name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">{{ room.name }} — {{ room.ward.name }}</h2>
+  <div class="card">
+    <div class="card-header">الأسرة</div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for b in beds %}
+          <div class="col-md-2">
+            <div class="border rounded p-3 text-center {% if b.status == 'OCCUPIED' %}bg-danger text-white{% elif b.status == 'AVAILABLE' %}bg-success text-white{% else %}bg-warning{% endif %}">
+              <h5>{{ b.bed_number }}</h5>
+              <small>{{ b.status }}</small>
+              {% if b.current_patient %}<div class="mt-1 small">{{ b.current_patient.full_name }}</div>{% endif %}
+            </div>
+          </div>
+        {% else %}
+          <p class="text-muted">لا يوجد أسرة</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

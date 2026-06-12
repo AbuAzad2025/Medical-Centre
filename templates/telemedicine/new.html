@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-camera-video me-2"></i>موعد عن بعد جديد</h4>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="patient_id" class="form-label">المريض</label>
+            <select class="form-select" id="patient_id" name="patient_id" required>
+              {% for p in patients %}<option value="{{ p.id }}">{{ p.full_name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="doctor_id" class="form-label">الطبيب</label>
+            <select class="form-select" id="doctor_id" name="doctor_id" required>
+              {% for d in doctors %}<option value="{{ d.id }}">{{ d.full_name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="scheduled_start" class="form-label">بداية الموعد</label>
+            <input type="datetime-local" class="form-control" id="scheduled_start" name="scheduled_start" required>
+          </div>
+          <div class="col-md-6">
+            <label for="scheduled_end" class="form-label">نهاية الموعد</label>
+            <input type="datetime-local" class="form-control" id="scheduled_end" name="scheduled_end">
+          </div>
+          <div class="col-md-6">
+            <label for="meeting_provider" class="form-label">منصة الاجتماع</label>
+            <select class="form-select" id="meeting_provider" name="meeting_provider">
+              <option value="jitsi">Jitsi Meet (مجاني)</option>
+              <option value="zoom">Zoom</option>
+              <option value="teams">Microsoft Teams</option>
+              <option value="custom">رابط مخصص</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label for="chief_complaint" class="form-label">الشكوى الرئيسية</label>
+            <textarea class="form-control" id="chief_complaint" name="chief_complaint" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="d-grid mt-3">
+          <button type="submit" class="btn btn-success">إنشاء الموعد</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

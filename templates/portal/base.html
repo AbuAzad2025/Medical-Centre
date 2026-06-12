@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/static/img/icon-192x192.png">
+  <link rel="stylesheet" href="/static/css/bootstrap.rtl.min.css">
+  <title>{% block title %}بوابة المريض{% endblock %} — Azad Medical</title>
+  <style>
+    :root { --primary:#0d6efd; }
+    body{background:#f7f9fc;font-family:'Segoe UI',sans-serif}
+    .portal-navbar{background:linear-gradient(135deg,#0d6efd,#0b5ed7);padding:.75rem 1rem;color:#fff}
+    .portal-navbar a{color:#fff;text-decoration:none}
+    .portal-sidebar{background:#fff;border-left:1px solid #e2e8f0;min-height:100vh}
+    .portal-sidebar .nav-link{color:#475569;border-radius:.5rem;margin:.25rem .5rem}
+    .portal-sidebar .nav-link.active{background:var(--primary);color:#fff}
+    .portal-card{background:#fff;border-radius:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06);border:none}
+  </style>
+</head>
+<body>
+<nav class="portal-navbar d-flex justify-content-between align-items-center">
+  <a href="{{ url_for('portal.dashboard') }}"><strong>Azad Medical</strong> — بوابة المريض</a>
+  <div class="d-flex gap-3 align-items-center">
+    <span>{{ current_user.full_name }}</span>
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-light">خروج</a>
+  </div>
+</nav>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-lg-2 portal-sidebar py-3">
+      <nav class="nav flex-column">
+        <a class="nav-link {% if request.endpoint == 'portal.dashboard' %}active{% endif %}" href="{{ url_for('portal.dashboard') }}">الرئيسية</a>
+        <a class="nav-link {% if request.endpoint == 'portal.appointments' %}active{% endif %}" href="{{ url_for('portal.appointments') }}">المواعيد</a>
+        <a class="nav-link {% if request.endpoint == 'portal.medical_records' %}active{% endif %}" href="{{ url_for('portal.medical_records') }}">السجل الطبي</a>
+        <a class="nav-link {% if request.endpoint == 'portal.prescriptions' %}active{% endif %}" href="{{ url_for('portal.prescriptions') }}">الوصفات</a>
+        <a class="nav-link {% if request.endpoint == 'portal.lab_results' %}active{% endif %}" href="{{ url_for('portal.lab_results') }}">المختبر</a>
+        <a class="nav-link {% if request.endpoint == 'portal.radiology_results' %}active{% endif %}" href="{{ url_for('portal.radiology_results') }}">الأشعة</a>
+        <a class="nav-link {% if request.endpoint == 'portal.bills' %}active{% endif %}" href="{{ url_for('portal.bills') }}">الفواتير</a>
+        <a class="nav-link {% if request.endpoint == 'portal.vaccinations' %}active{% endif %}" href="{{ url_for('portal.vaccinations') }}">التطعيمات</a>
+        <a class="nav-link {% if request.endpoint == 'portal.feedback' %}active{% endif %}" href="{{ url_for('portal.feedback') }}">التقييم</a>
+      </nav>
+    </div>
+    <div class="col-lg-10 py-4">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script>
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/service-worker.js'); }
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

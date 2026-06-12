@@ -1,0 +1,21 @@
+{% extends "portal/base.html" %}
+{% block title %}السجل الطبي{% endblock %}
+{% block content %}
+<h4 class="mb-3">السجل الطبي</h4>
+<div class="portal-card p-3">
+  <table class="table table-hover">
+    <thead><tr><th>التاريخ</th><th>التشخيص</th><th>الملاحظات</th></tr></thead>
+    <tbody>
+    {% for r in records %}
+      <tr>
+        <td>{{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '-' }}</td>
+        <td>{{ r.diagnosis or '-' }}</td>
+        <td>{{ r.notes or '-' }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="3" class="text-muted text-center">لا يوجد سجلات</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

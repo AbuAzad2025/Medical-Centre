@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4><i class="bi bi-clipboard-pulse me-2"></i>تفاصيل التقييم — {{ assessment.assessment_type }}</h4>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6"><strong>المريض:</strong> {{ assessment.patient.full_name }}</div>
+        <div class="col-md-6"><strong>الممرض:</strong> {{ assessment.nurse.full_name if assessment.nurse else '—' }}</div>
+        <div class="col-md-6"><strong>التاريخ:</strong> {{ assessment.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+        <div class="col-md-6"><strong>النوع:</strong> {{ assessment.assessment_type }}</div>
+        <div class="col-md-6"><strong>الدرجة:</strong> <span class="badge bg-info fs-5">{{ assessment.total_score }}</span></div>
+        <div class="col-md-6"><strong>المخاطر:</strong>
+          {% if assessment.risk_level == 'low' %}<span class="badge bg-success">منخفض</span>{% endif %}
+          {% if assessment.risk_level == 'moderate' %}<span class="badge bg-warning">متوسط</span>{% endif %}
+          {% if assessment.risk_level == 'high' %}<span class="badge bg-danger">عالي</span>{% endif %}
+          {% if assessment.risk_level == 'severe' %}<span class="badge bg-dark">حرج</span>{% endif %}
+        </div>
+      </div>
+      {% if assessment.notes %}
+      <hr>
+      <p><strong>ملاحظات:</strong></p>
+      <div class="bg-light p-3 rounded">{{ assessment.notes }}</div>
+      {% endif %}
+    </div>
+  </div>
+  <a href="{{ url_for('nursing_assessment.patient_assessments', patient_id=assessment.patient_id) }}" class="btn btn-secondary mt-3">رجوع</a>
+</div>
+{% endblock %}

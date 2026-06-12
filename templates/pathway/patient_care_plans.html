@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}خطط الرعاية — {{ patient.full_name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">خطط الرعاية — {{ patient.full_name }}</h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>الخطة</th><th>تاريخ البدء</th><th>النهاية المتوقعة</th><th>الحالة</th><th>التقدم</th></tr></thead>
+        <tbody>
+        {% for p in plans %}
+          <tr>
+            <td>{{ p.plan_name }}</td>
+            <td>{{ p.start_date or '-' }}</td>
+            <td>{{ p.target_end_date or '-' }}</td>
+            <td><span class="badge bg-{% if p.status=='COMPLETED' %}success{% elif p.status=='ACTIVE' %}primary{% else %}secondary{% endif %}">{{ p.status }}</span></td>
+            <td>
+              <div class="progress h-10px">
+                <div class="progress-bar" data-width="{{ p.progress_percentage }}"></div>
+              </div>
+              <small>{{ p.progress_percentage }}%</small>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted text-center">لا يوجد خطط رعاية</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}الإحالات{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">الإحالات <span class="badge bg-secondary">{{ status }}</span></h2>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead><tr><th>التاريخ</th><th>المريض</th><th>الجهة المُحال إليها</th><th>التخصص</th><th>الأولوية</th><th>الحالة</th><th></th></tr></thead>
+        <tbody>
+        {% for r in referrals %}
+          <tr>
+            <td>{{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '-' }}</td>
+            <td>{{ r.patient.full_name if r.patient else '-' }}</td>
+            <td>{{ r.receiving_facility or '-' }}</td>
+            <td>{{ r.receiving_specialty or '-' }}</td>
+            <td><span class="badge bg-{% if r.urgency=='URGENT' %}danger{% elif r.urgency=='STAT' %}dark{% else %}info{% endif %}">{{ r.urgency }}</span></td>
+            <td><span class="badge bg-secondary">{{ r.status }}</span></td>
+            <td><a href="{{ url_for('referral.detail', referral_id=r.id) }}" class="btn btn-sm btn-outline-primary">عرض</a></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="7" class="text-muted text-center">لا يوجد إحالات</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

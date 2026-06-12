@@ -4,14 +4,14 @@
 * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .card, .btn, .alert, .badge {
   will-change: auto;
-  transform: translateZ(0);
   -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 :root{
@@ -100,6 +100,7 @@ body {
 }
 .bg-glass {
   background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(10px);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-md);
@@ -232,6 +233,7 @@ h6 { font-size: 1.125rem !important; }
   background: rgba(255, 255, 255, 0.9);
   font-size: 0.875rem;
   transition: var(--transition);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(5px);
 }
 
@@ -254,6 +256,7 @@ h6 { font-size: 1.125rem !important; }
   padding: 1rem 1.5rem;
   border-radius: var(--radius);
   border: none;
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow);
   margin-bottom: 1rem;
@@ -331,6 +334,7 @@ table {
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(10px);
 }
 
@@ -373,6 +377,7 @@ tr:last-child td {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(10px);
   overflow: hidden;
   transition: var(--transition);
@@ -413,6 +418,7 @@ tr:last-child td {
   padding: 1.5rem;
   text-align: center;
   box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(10px);
   transition: var(--transition);
   position: relative;
@@ -530,6 +536,7 @@ tr:last-child td {
 /* تأثيرات متقدمة */
 .glass-effect {
   background: var(--card-glass);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(10px);
   border: 1px solid var(--border);
 }
@@ -600,4 +607,41 @@ tr:last-child td {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
   }
+}
+
+/* Utility classes to replace inline styles (a11y + maintainability) */
+.max-w-500 { max-width: 500px; }
+.max-w-600 { max-width: 600px; }
+.min-h-80  { min-height: 80px; }
+.min-h-500 { min-height: 500px; }
+.h-10px    { height: 10px; }
+.dicom-preview-container {
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+.portal-card-centered {
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.report-fields-box {
+  min-height: 80px;
+}
+.slow-query-cell {
+  max-width: 520px;
+  white-space: pre-wrap;
+}
+.ocr-result-area {
+  min-height: 100px;
+  white-space: pre-wrap;
+}
+.table-scroll-300 {
+  max-height: 300px;
+  overflow: auto;
+}
+.qr-code-img {
+  max-width: 250px;
 }

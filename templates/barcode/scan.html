@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}مسح الباركود{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4">مسح الباركود / QR</h2>
+  <div class="card p-4 mx-auto max-w-500">
+    <div class="mb-3">
+      <label class="form-label">أدخل الباركود</label>
+      <input type="text" id="barcodeInput" class="form-control form-control-lg" placeholder="Scan barcode here..." autofocus>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">الإجراء</label>
+      <select id="scanAction" class="form-select" title="اختر إجراء المسح">
+        <option value="VERIFY">تحقق</option>
+        <option value="ADMINISTER">إعطاء دواء</option>
+        <option value="DISPENSE">صرف</option>
+        <option value="COLLECT">جمع عينة</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-lg" onclick="submitScan()">تأكيد</button>
+    <div id="scanResult" class="mt-3"></div>
+  </div>
+</div>
+<script>
+function submitScan() {
+  const barcode = document.getElementById('barcodeInput').value;
+  const action = document.getElementById('scanAction').value;
+  fetch('{{ url_for('barcode.api_scan') }}', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}'},
+    body: JSON.stringify({barcode: barcode, action: action})
+  }).then(r => r.json()).then(data => {
+    const el = document.getElementById('scanResult');
+    if (data.success) {
+      el.innerHTML = '<div class="alert alert-success">'+data.entity_type+' #'+data.entity_id+'</div>';
+    } else {
+      el.innerHTML = '<div class="alert alert-danger">'+data.message+'</div>';
+    }
+  });
+}
+document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') submitScan();
+});
+</script>
+{% endblock %}
