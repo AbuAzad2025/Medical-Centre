@@ -119,20 +119,22 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(), nullable=False, index=True),
     )
 
-    # Add tenant_id to users
-    op.add_column('users', sa.Column('tenant_id', sa.Integer(), nullable=True, index=True))
-    op.create_foreign_key('fk_users_tenant', 'users', 'tenants', ['tenant_id'], ['id'], ondelete='CASCADE')
-    op.create_unique_constraint('uq_user_tenant_username', 'users', ['tenant_id', 'username'])
-    op.create_unique_constraint('uq_user_tenant_email', 'users', ['tenant_id', 'email'])
-    # Drop old unique constraints (global) if they exist — they break multi-tenancy
-    # Note: these may not exist in all installations; wrap in try or use batch_alter_table
+    # Add tenant_id to users (SQLite-safe via batch_alter_table)
+    with op.batch_alter_table('users', schema=None) as batch_op:
+        batch_op.add_column(sa.Column('tenant_id', sa.Integer(), nullable=True))
+        batch_op.create_index('ix_users_tenant_id', ['tenant_id'])
+        batch_op.create_foreign_key('fk_users_tenant', 'tenants', ['tenant_id'], ['id'], ondelete='CASCADE')
+        batch_op.create_unique_constraint('uq_user_tenant_username', ['tenant_id', 'username'])
+        batch_op.create_unique_constraint('uq_user_tenant_email', ['tenant_id', 'email'])
 
 
 def downgrade():
-    op.drop_constraint('fk_users_tenant', 'users', type_='foreignkey')
-    op.drop_constraint('uq_user_tenant_username', 'users', type_='unique')
-    op.drop_constraint('uq_user_tenant_email', 'users', type_='unique')
-    op.drop_column('users', 'tenant_id')
+    with op.batch_alter_table('users', schema=None) as batch_op:
+        batch_op.drop_constraint('fk_users_tenant', type_='foreignkey')
+        batch_op.drop_constraint('uq_user_tenant_username', type_='unique')
+        batch_op.drop_constraint('uq_user_tenant_email', type_='unique')
+        batch_op.drop_index('ix_users_tenant_id')
+        batch_op.drop_column('tenant_id')
 
     op.drop_table('stock_movements')
     op.drop_table('tenant_modules')
