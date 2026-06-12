@@ -1,0 +1,29 @@
+<!-- Exchange Rate Modal — يظهر للاستقبال عند غياب سعر الصرف -->
+<div class="modal fade" id="exchangeRateModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title"><i class="fas fa-coins me-2"></i>سعر الصرف غير متوفر</h5>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning">
+          <i class="fas fa-info-circle me-1"></i>
+          لا يوجد سعر صرف مسجل لـ <strong id="modalFromCurrency">-</strong> → <strong id="modalToCurrency">-</strong>.<br>
+          يرجى إدخال السعر يدوياً لإكمال العملية.
+        </div>
+        <form id="manualRateForm">
+          <input type="hidden" id="modalFrom" name="from_currency">
+          <input type="hidden" id="modalTo" name="to_currency">
+          <div class="mb-3">
+            <label class="form-label fw-bold">سعر الصرف (1 <span id="labelFrom">-</span> = ? <span id="labelTo">-</span>)</label>
+            <input type="number" step="0.000001" class="form-control form-control-lg" id="manualRateInput" name="rate" required placeholder="مثال: 3.75">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+        <button type="button" class="btn btn-primary" id="confirmRateBtn"><i class="fas fa-check me-1"></i> تأكيد السعر</button>
+      </div>
+    </div>
+  </div>
+</div>
