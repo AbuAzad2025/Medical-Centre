@@ -1,6 +1,15 @@
 {% extends "dashboard_base.html" %}
 {% block title %}لوحة تحكم الاستقبال{% endblock %}
 {% block content %}
+<div class="row mb-3">
+    <div class="col-12 d-flex flex-wrap gap-2">
+        <a href="{{ url_for('reception.create_visit') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> زيارة جديدة</a>
+        <a href="{{ url_for('reception.queue_management') }}" class="btn btn-success"><i class="fas fa-list-ol me-1"></i> الطابور</a>
+        <a href="{{ url_for('reception.appointments') }}" class="btn btn-info"><i class="fas fa-calendar me-1"></i> المواعيد</a>
+        <a href="{{ url_for('reception.cash_register') }}" class="btn btn-warning"><i class="fas fa-cash-register me-1"></i> الصندوق</a>
+        <a href="{{ url_for('reception.patients') }}" class="btn btn-secondary"><i class="fas fa-users me-1"></i> المرضى</a>
+    </div>
+</div>
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <div class="card card-stat bg-primary">

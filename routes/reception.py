@@ -4107,3 +4107,51 @@ def survey(token):
     except Exception as e:
         logging.error(f"Error handling survey: {str(e)}")
         return render_template('reception/survey.html', invalid=True)
+
+@reception_bp.route('/cash-register')
+@login_required
+@role_required('reception', 'super_admin', 'manager')
+def cash_register():
+    """سجل الصندوق اليومي"""
+    from models.cash_register import CashRegister
+    from models.payment import Payment
+    reg = CashRegister.get_or_create_today(current_user.id)
+    today = db.func.current_date()
+    # Calculate expected from payments
+    payments = Payment.query.filter(
+        db.func.date(Payment.created_at) == today,
+        Payment.status.in_(['COMPLETED', 'PAID'])
+    ).all()
+    exp_cash = sum(float(p.amount or 0) for p in payments if p.method == 'cash')
+    exp_card = sum(float(p.amount or 0) for p in payments if p.method == 'card')
+    exp_ins = sum(float(p.amount or 0) for p in payments if p.method == 'insurance')
+    reg.expected_cash = exp_cash
+    reg.expected_card = exp_card
+    reg.expected_insurance = exp_ins
+    reg.expected_total = exp_cash + exp_card + exp_ins
+    db.session.commit()
+    return render_template('reception/cash_register.html', register=reg, payments=payments)
+
+
+@reception_bp.route('/daily-close', methods=['GET', 'POST'])
+@login_required
+@role_required('reception', 'super_admin', 'manager')
+def daily_close():
+    """إغلاق اليومية"""
+    from models.cash_register import CashRegister
+    reg = CashRegister.get_or_create_today(current_user.id)
+    if request.method == 'POST':
+        reg.actual_cash = float(request.form.get('actual_cash', 0))
+        reg.actual_card = float(request.form.get('actual_card', 0))
+        reg.actual_insurance = float(request.form.get('actual_insurance', 0))
+        reg.actual_total = (reg.actual_cash or 0) + (reg.actual_card or 0) + (reg.actual_insurance or 0)
+        reg.variance = (reg.actual_total or 0) - (float(reg.expected_total or 0))
+        reg.is_closed = True
+        reg.is_open = False
+        reg.closed_at = datetime.now(timezone.utc)
+        db.session.commit()
+        flash('تم إغلاق اليومية بنجاح', 'success')
+        return redirect(url_for('reception.cash_register'))
+    return render_template('reception/daily_close.html', register=reg)
+
+
