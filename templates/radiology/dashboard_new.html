@@ -124,6 +124,46 @@
     </div>
   </div>
 
+  <!-- Quality & Compliance -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">دقة التقارير</div>
+          <h3 class="fw-bold text-success">{{ stats.quality_assurance.report_accuracy or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="دقة التقارير"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="دقة التقارير" data-width="{{ stats.quality_assurance.report_accuracy or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">جودة الصور</div>
+          <h3 class="fw-bold text-primary">{{ stats.quality_assurance.image_quality_score or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="جودة الصور"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="جودة الصور" data-width="{{ stats.quality_assurance.image_quality_score or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">الامتثال الإشعاعي</div>
+          <h3 class="fw-bold text-info">{{ stats.quality_assurance.radiation_compliance or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="الامتثال الإشعاعي"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="الامتثال الإشعاعي" data-width="{{ stats.quality_assurance.radiation_compliance or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">معدات نشطة</div>
+          <h3 class="fw-bold text-warning">{{ stats.equipment_status.active_equipment or 0 }}</h3>
+          <div class="small text-muted">صيانة: <strong class="text-danger">{{ stats.equipment_status.maintenance_count or 0 }}</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Alerts & Quick Actions -->
   <div class="row g-3 mb-4">
     <div class="col-md-6">

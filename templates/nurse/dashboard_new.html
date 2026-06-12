@@ -127,6 +127,46 @@
     </div>
   </div>
 
+  <!-- Quality & Compliance -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">دقة الأدوية</div>
+          <h3 class="fw-bold text-success">{{ stats.medication_management.accuracy_score or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="دقة الأدوية"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="دقة الأدوية" data-width="{{ stats.medication_management.accuracy_score or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">امتثال العلامات الحيوية</div>
+          <h3 class="fw-bold text-primary">{{ stats.vital_signs_monitoring.monitoring_score or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="امتثال العلامات"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="امتثال العلامات" data-width="{{ stats.vital_signs_monitoring.monitoring_score or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">درجة السلامة</div>
+          <h3 class="fw-bold text-info">{{ stats.quality_indicators.safety_score or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="درجة السلامة"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="درجة السلامة" data-width="{{ stats.quality_indicators.safety_score or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase mb-2">الامتثال البروتوكولي</div>
+          <h3 class="fw-bold text-warning">{{ stats.nursing_protocols.compliance_rate or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="الامتثال البروتوكولي"><div class="progress-bar bg-warning progress-dynamic" role="progressbar" title="الامتثال البروتوكولي" data-width="{{ stats.nursing_protocols.compliance_rate or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-3 mb-4">
     <div class="col-md-6">
       <div class="card border-0 shadow-sm h-100">

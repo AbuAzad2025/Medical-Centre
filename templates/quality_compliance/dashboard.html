@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}جودة والامتثال{% endblock %}
+{% block content %}
+<style>
+  .qc-gradient { background: linear-gradient(135deg, #1a1a3a 0%, #2a2a5a 50%, #3a3a7a 100%); }
+  .prog-thin { height: 8px; }
+</style>
+<div class="container-fluid py-3">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 text-white qc-gradient">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h3 class="mb-1"><i class="fas fa-shield-alt me-2 text-warning"></i>إدارة الجودة والامتثال</h3>
+            <p class="mb-0 opacity-75">مؤشرات الجودة عبر الأقسام — سجل التدقيق — الحوادث</p>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('quality.audits') }}" class="btn btn-light btn-sm"><i class="fas fa-clipboard-list me-1"></i> سجل التدقيق</a>
+            <a href="{{ url_for('quality.incidents') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-exclamation-triangle me-1"></i> الحوادث</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h6 class="text-muted text-uppercase small mb-1">سجلات التدقيق</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.total_audits or 0 }}</h3>
+            </div>
+            <div class="bg-primary bg-opacity-10 p-3 rounded"><i class="fas fa-clipboard-list text-primary fa-lg"></i></div>
+          </div>
+          <div class="small text-muted">اليوم: <strong>{{ stats.audits_today or 0 }}</strong> | هذا الأسبوع: <strong>{{ stats.audits_week or 0 }}</strong></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h6 class="text-muted text-uppercase small mb-1">أحداث أمنية</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.security_events or 0 }}</h3>
+            </div>
+            <div class="bg-danger bg-opacity-10 p-3 rounded"><i class="fas fa-exclamation-triangle text-danger fa-lg"></i></div>
+          </div>
+          <div class="small text-muted">محاولات دخول فاشلة + وصول غير مصرح</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h6 class="text-muted text-uppercase small mb-1">جودة المختبر</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.lab_quality or 0 }}%</h3>
+            </div>
+            <div class="bg-success bg-opacity-10 p-3 rounded"><i class="fas fa-vial text-success fa-lg"></i></div>
+          </div>
+          <div class="progress mb-2 prog-thin" title="جودة المختبر"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="جودة المختبر" data-width="{{ stats.lab_quality or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h6 class="text-muted text-uppercase small mb-1">جودة الأشعة</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.rad_quality or 0 }}%</h3>
+            </div>
+            <div class="bg-info bg-opacity-10 p-3 rounded"><i class="fas fa-x-ray text-info fa-lg"></i></div>
+          </div>
+          <div class="progress mb-2 prog-thin" title="جودة الأشعة"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="جودة الأشعة" data-width="{{ stats.rad_quality or 0 }}"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>نشاط الأقسام — آخر 7 أيام</h6></div>
+        <div class="card-body"><canvas id="qcMainChart" height="260"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-hospital text-success me-2"></i>جودة الزيارات</h6></div>
+            <div class="card-body text-center">
+              <h2 class="fw-bold text-success">{{ stats.visit_quality or 0 }}%</h2>
+              <div class="progress mb-2 prog-thin" title="جودة الزيارات"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="جودة الزيارات" data-width="{{ stats.visit_quality or 0 }}"></div></div>
+              <p class="text-muted small mb-0">نسبة الزيارات المكتملة من إجمالي الزيارات اليوم</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-ambulance text-danger me-2"></i>جودة الطوارئ</h6></div>
+            <div class="card-body text-center">
+              <h2 class="fw-bold text-danger">{{ stats.emergency_quality or 0 }}%</h2>
+              <div class="progress mb-2 prog-thin" title="جودة الطوارئ"><div class="progress-bar bg-danger progress-dynamic" role="progressbar" title="جودة الطوارئ" data-width="{{ stats.emergency_quality or 0 }}"></div></div>
+              <p class="text-muted small mb-0">نسبة الحالات المغلقة من إجمالي حالات اليوم</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Audits Table -->
+  <div class="row g-3">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+          <h6 class="mb-0 fw-bold"><i class="fas fa-history text-primary me-2"></i>آخر سجلات التدقيق</h6>
+          <a href="{{ url_for('quality.audits') }}" class="btn btn-sm btn-outline-primary">عرض الكل</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>التاريخ</th>
+                  <th>المستخدم</th>
+                  <th>الكيان</th>
+                  <th>الإجراء</th>
+                  <th>الوصف</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for a in recent_audits %}
+                <tr>
+                  <td class="small">{{ a.created_at|format_datetime if a.created_at else '-' }}</td>
+                  <td><span class="badge bg-secondary">{{ a.user.full_name if a.user else '—' }}</span></td>
+                  <td><span class="badge bg-light text-dark">{{ a.entity_type }}</span></td>
+                  <td><span class="badge bg-{{ 'success' if a.action in ('create','login') else 'warning' if a.action=='update' else 'danger' }}">{{ a.action }}</span></td>
+                  <td class="small cell-truncate-sm">{{ a.description or '—' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-muted py-3">لا توجد سجلات</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  fetch('{{ url_for("quality.api_quality_metrics") }}')
+    .then(r => r.json())
+    .then(d => {
+      new Chart(document.getElementById('qcMainChart'), {
+        type: 'line',
+        data: {
+          labels: d.labels,
+          datasets: [
+            { label: 'المختبر', data: d.lab, borderColor: '#198754', tension: 0.4, fill: false },
+            { label: 'الأشعة', data: d.radiology, borderColor: '#0d6efd', tension: 0.4, fill: false },
+            { label: 'الزيارات', data: d.visits, borderColor: '#ffc107', tension: 0.4, fill: false }
+          ]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }, scales: { y: { beginAtZero: true } } }
+      });
+    })
+    .catch(() => { document.getElementById('qcMainChart').parentNode.innerHTML = '<p class="text-muted text-center">تعذر تحميل البيانات</p>'; });
+  document.querySelectorAll('.progress-dynamic').forEach(function(el){ el.style.width = (parseFloat(el.dataset.width) || 0) + '%'; });
+</script>
+{% endblock %}
