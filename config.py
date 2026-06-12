@@ -3,6 +3,7 @@
 """
 import os
 from datetime import timedelta
+from sqlalchemy.pool import NullPool
 
 class Config:
     """الإعدادات الأساسية"""
@@ -16,20 +17,28 @@ class Config:
         # تم نقل قاعدة البيانات إلى المجلد الرئيسي للتجربة
         SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or 'sqlite:///medical_system.db'
     
-    # إعدادات PostgreSQL
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_size': 10,
-        'pool_pre_ping': True,
-        'pool_recycle': 300,
-        'pool_timeout': 20,
-        'max_overflow': 20,
-        'echo': False
-    }
+    if str(SQLALCHEMY_DATABASE_URI or '').startswith('sqlite'):
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'connect_args': {'timeout': 30, 'check_same_thread': False},
+            'poolclass': NullPool,
+        }
+    else:
+        # إعدادات PostgreSQL
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_size': 10,
+            'pool_pre_ping': True,
+            'pool_recycle': 300,
+            'pool_timeout': 20,
+            'max_overflow': 20,
+            'echo': False
+        }
 
     
     # إعدادات Flask
-    SERVER_NAME = '127.0.0.1:5001'
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+    # SERVER_NAME = '127.0.0.1:8080'
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    if not SECRET_KEY:
+        raise RuntimeError("SECRET_KEY environment variable is required. Set it before running the application.")
     
     # إعدادات الأداء
     JSON_SORT_KEYS = False
@@ -44,16 +53,17 @@ class Config:
     # إعدادات الجلسة
     PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SECURE = False  # True في الإنتاج مع HTTPS
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'false').lower() in ('true','on','1')
+    SESSION_COOKIE_SAMESITE = 'Lax'
     
     # إعدادات WTF
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = 3600
     
-    # إعدادات المستخدم الافتراضي
-    DEFAULT_ADMIN_USERNAME = os.environ.get('DEFAULT_ADMIN_USERNAME') or 'admin'
-    DEFAULT_ADMIN_PASSWORD = os.environ.get('DEFAULT_ADMIN_PASSWORD') or 'admin123'
-    DEFAULT_ADMIN_EMAIL = os.environ.get('DEFAULT_ADMIN_EMAIL') or 'admin@medical-center.com'
+    # إعدادات المستخدم الافتراضي — يجب توفيرها عبر environment variables
+    DEFAULT_ADMIN_USERNAME = os.environ.get('DEFAULT_ADMIN_USERNAME')
+    DEFAULT_ADMIN_PASSWORD = os.environ.get('DEFAULT_ADMIN_PASSWORD')
+    DEFAULT_ADMIN_EMAIL = os.environ.get('DEFAULT_ADMIN_EMAIL')
     DEFAULT_ADMIN_NAME = os.environ.get('DEFAULT_ADMIN_NAME') or 'مدير النظام'
     
     # إعدادات البريد الإلكتروني
@@ -111,9 +121,24 @@ class ProductionConfig(Config):
     LOG_TO_STDOUT = False
 
 
+class LocalConfig(Config):
+    """إعدادات التشغيل المحلي (SQLite) — للتطوير السريع فقط، لا تستخدم في الإنتاج"""
+    DEBUG = True
+    TESTING = False
+    SQLALCHEMY_DATABASE_URI = os.environ.get('LOCAL_DATABASE_URL') or 'sqlite:///local_medical_system.db'
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'connect_args': {'timeout': 30, 'check_same_thread': False},
+        'poolclass': NullPool,
+    }
+    SESSION_COOKIE_SECURE = False
+    WTF_CSRF_ENABLED = True
+    LOG_LEVEL = 'DEBUG'
+    LOG_TO_STDOUT = True
+
+
 class TestingConfig(Config):
     """إعدادات الاختبار"""
-    
+
     TESTING = True
     WTF_CSRF_ENABLED = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or 'sqlite:///:memory:'
@@ -122,7 +147,7 @@ class TestingConfig(Config):
         'poolclass': StaticPool,
         'connect_args': {'check_same_thread': False}
     }
-    
+
     # إعدادات الاختبار
     LOGIN_DISABLED = False
 
@@ -132,5 +157,6 @@ config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
     'testing': TestingConfig,
+    'local': LocalConfig,
     'default': DevelopmentConfig
 }

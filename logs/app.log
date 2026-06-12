@@ -1373,3 +1373,45 @@ Traceback (most recent call last):
     return getattr(obj, attribute)
 jinja2.exceptions.UndefinedError: 'queue_stats' is undefined
 2026-01-21 12:40:39 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\MED-2-7-2025\medical_system\app_factory.py:346]
+2026-01-23 13:17:01 | ERROR | app_factory | Exception on /reception/visits/create [GET] [in D:\MED-2-7-2025\medical_system\.venv\Lib\site-packages\flask\app.py:875]
+Traceback (most recent call last):
+  File "D:\MED-2-7-2025\medical_system\.venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "D:\MED-2-7-2025\medical_system\.venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "D:\MED-2-7-2025\medical_system\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "D:\MED-2-7-2025\medical_system\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\MED-2-7-2025\medical_system\.venv\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\MED-2-7-2025\medical_system\utils\decorators.py", line 219, in decorated_function
+    return f(*args, **kwargs)
+  File "D:\MED-2-7-2025\medical_system\routes\reception.py", line 1196, in create_visit
+    patients = Patient.query.all()
+               ^^^^^^^
+UnboundLocalError: cannot access local variable 'Patient' where it is not associated with a value
+2026-01-23 13:17:42 | ERROR | app_factory | Exception on /reception/visits/create [GET] [in D:\MED-2-7-2025\medical_system\.venv\Lib\site-packages\flask\app.py:875]
+Traceback (most recent call last):
+  File "D:\MED-2-7-2025\medical_system\.venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "D:\MED-2-7-2025\medical_system\.venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "D:\MED-2-7-2025\medical_system\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "D:\MED-2-7-2025\medical_system\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\MED-2-7-2025\medical_system\.venv\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\MED-2-7-2025\medical_system\utils\decorators.py", line 219, in decorated_function
+    return f(*args, **kwargs)
+  File "D:\MED-2-7-2025\medical_system\routes\reception.py", line 1196, in create_visit
+    patients = Patient.query.all()
+               ^^^^^^^
+UnboundLocalError: cannot access local variable 'Patient' where it is not associated with a value
+2026-01-23 15:58:37 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\MED-2-7-2025\medical_system\app_factory.py:385]
+2026-01-23 15:58:44 | INFO | app_factory | جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات. [in D:\MED-2-7-2025\medical_system\app_factory.py:385]

@@ -2,10 +2,38 @@
 
 {% block title %}طباعة نتائج التحاليل{% endblock %}
 
+{% block extra_css %}
+<style>
+.luxury-sidebar,
+.luxury-header,
+.luxury-footer,
+.flash-messages {
+    display: none !important;
+}
+
+.sidebar,
+.sidebar-modern,
+#appSidebar,
+.main-layout > aside,
+.main-layout aside {
+    display: none !important;
+}
+
+.main-layout {
+    display: block !important;
+}
+
+.main-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <!-- Print Header -->
-    <div class="row mb-4">
+<div class="print-page">
+    <div class="row mb-4 print-actions">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
@@ -38,72 +66,86 @@
         </div>
     </div>
 
-    <!-- Print Content -->
     <div class="row">
         <div class="col-12">
-            <div class="card shadow">
+            <div class="card shadow print-sheet">
                 <div class="card-body">
-                    <!-- Header -->
-                    <div class="text-center mb-4">
-                        <h3 class="text-primary">تقرير نتائج التحاليل</h3>
-                        <p class="text-muted">مستشفى/عيادة طبية</p>
+                    <div class="print-header">
+                        <div class="print-brand">
+                            <img src="{{ url_for('static', filename='img/azad_logo.png') }}" alt="Logo" class="brand-logo" />
+                        </div>
+                        <div class="print-header-main">
+                            <div class="print-organization">{{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}</div>
+                            <div class="print-title">تقرير نتائج التحاليل</div>
+                            <div class="print-subtitle">رقم الطلب: {{ lab_request.request_number or lab_request.id }}</div>
+                        </div>
+                        <div class="print-meta">
+                            {% if qr_data_uri %}
+                            <img src="{{ qr_data_uri }}" alt="QR" class="print-qr" />
+                            {% endif %}
+                            <div class="print-date">تاريخ الطباعة: {{ printed_at }}</div>
+                        </div>
                     </div>
 
-                    <!-- Patient Information -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="text-primary mb-3">معلومات المريض</h5>
-                            <div class="row">
-                                <div class="col-md-3">
-                            <strong>الاسم:</strong> {{ lab_request.patient.full_name }}
+                    <div class="print-section">
+                        <div class="section-title">معلومات المريض</div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">الاسم</div>
+                                <div class="info-value">{{ lab_request.patient.full_name }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">العمر</div>
+                                <div class="info-value">
+                                    {% if age_years is not none %}
+                                        {{ age_years }} سنة
+                                    {% else %}
+                                        غير محدد
+                                    {% endif %}
                                 </div>
-                                <div class="col-md-3">
-                            <strong>العمر:</strong>
-                            {% if lab_request.patient.birth_date %}
-                                {{ moment().diff(moment(lab_request.patient.birth_date), 'years') }} سنة
-                            {% else %}
-                                غير محدد
-                            {% endif %}
-                                </div>
-                                <div class="col-md-3">
-                            <strong>رقم الهوية:</strong> {{ lab_request.patient.national_id or 'غير محدد' }}
-                                </div>
-                                <div class="col-md-3">
-                            <strong>رقم الهاتف:</strong> {{ lab_request.patient.phone or 'غير محدد' }}
-                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">رقم الهوية</div>
+                                <div class="info-value">{{ lab_request.patient.national_id or 'غير محدد' }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">رقم الهاتف</div>
+                                <div class="info-value">{{ lab_request.patient.phone or 'غير محدد' }}</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Lab Request Information -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="text-primary mb-3">معلومات طلب التحليل</h5>
-                            <div class="row">
-                                <div class="col-md-4">
-                            <strong>نوع التحليل:</strong>
-                            {% if lab_request.results and lab_request.results|length > 0 %}
-                                {{ lab_request.results[0].test_name }}
-                            {% else %}
-                                غير محدد
-                            {% endif %}
-                                </div>
-                                <div class="col-md-4">
-                            <strong>تاريخ الطلب:</strong> {{ lab_request.created_at.strftime('%Y-%m-%d') }}
-                                </div>
-                                <div class="col-md-4">
-                            <strong>الطبيب:</strong> {{ lab_request.requester.full_name if lab_request.requester else 'غير محدد' }}
+                    <div class="print-section">
+                        <div class="section-title">معلومات طلب التحليل</div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">نوع التحليل</div>
+                                <div class="info-value">
+                                    {% if lab_request.results and lab_request.results|length > 0 %}
+                                        {{ lab_request.results[0].test_name }}
+                                    {% else %}
+                                        غير محدد
+                                    {% endif %}
                                 </div>
                             </div>
-                            <div class="row mt-3">
-                                <div class="col-md-6">
-                            <strong>سبب التحليل:</strong> {{ lab_request.notes or 'غير محدد' }}
+                            <div class="info-item">
+                                <div class="info-label">تاريخ الطلب</div>
+                                <div class="info-value">{{ lab_request.created_at.strftime('%Y-%m-%d') }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">الطبيب</div>
+                                <div class="info-value">{{ lab_request.requester.full_name if lab_request.requester else 'غير محدد' }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">الحالة</div>
+                                <div class="info-value">
+                                    {% set st = lab_request.status %}
+                                    {% if st == 'REQUESTED' %}قيد الطلب{% elif st == 'IN_PROGRESS' %}قيد التنفيذ{% elif st == 'DONE' %}مكتمل{% elif st == 'CANCELLED' %}ملغي{% else %}{{ st }}{% endif %}
                                 </div>
-                                <div class="col-md-6">
-                            <strong>الحالة:</strong>
-                            {% set st = lab_request.status %}
-                            {% if st == 'REQUESTED' %} قيد الطلب {% elif st == 'IN_PROGRESS' %} قيد التنفيذ {% elif st == 'DONE' %} مكتمل {% elif st == 'CANCELLED' %} ملغي {% else %} {{ st }} {% endif %}
-                                </div>
+                            </div>
+                            <div class="info-item info-wide">
+                                <div class="info-label">سبب التحليل</div>
+                                <div class="info-value">{{ lab_request.notes or 'غير محدد' }}</div>
                             </div>
                         </div>
                     </div>
@@ -111,10 +153,10 @@
                     <!-- Lab Results -->
                     <div class="row mb-4">
                         <div class="col-12">
-                            <h5 class="text-primary mb-3">نتائج التحاليل</h5>
+                            <div class="section-title">نتائج التحاليل</div>
                             {% if lab_request.results %}
                                 <div class="table-responsive">
-                                    <table class="table table-bordered">
+                                    <table class="table table-bordered print-table">
                                         <thead class="table-primary">
                                             <tr>
                                                 <th>اسم التحليل</th>
@@ -151,29 +193,27 @@
                         </div>
                     </div>
 
-                    <!-- Lab Notes -->
                     {% if lab_request.lab_notes %}
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="text-primary mb-3">ملاحظات المختبر</h5>
-                            <p>{{ lab_request.notes or '' }}</p>
-                        </div>
+                    <div class="print-section">
+                        <div class="section-title">ملاحظات المختبر</div>
+                        <div class="info-value">{{ lab_request.notes or '' }}</div>
                     </div>
                     {% endif %}
 
-                    <!-- Quality Control Information -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h5 class="text-primary mb-3">معلومات ضبط الجودة</h5>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <strong>تاريخ إجراء التحليل:</strong> {{ lab_request.completed_at.strftime('%Y-%m-%d') if lab_request.completed_at else 'غير محدد' }}
-                                </div>
-                                <div class="col-md-4">
-                                    <strong>وقت إجراء التحليل:</strong> {{ lab_request.completed_at.strftime('%H:%M') if lab_request.completed_at else 'غير محدد' }}
-                                </div>
-                                <div class="col-md-4">
-                                    <strong>الفني المسؤول:</strong>
+                    <div class="print-section">
+                        <div class="section-title">معلومات ضبط الجودة</div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">تاريخ إجراء التحليل</div>
+                                <div class="info-value">{{ lab_request.completed_at.strftime('%Y-%m-%d') if lab_request.completed_at else 'غير محدد' }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">وقت إجراء التحليل</div>
+                                <div class="info-value">{{ lab_request.completed_at.strftime('%H:%M') if lab_request.completed_at else 'غير محدد' }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">الفني المسؤول</div>
+                                <div class="info-value">
                                     {% if lab_request.results and lab_request.results|length > 0 %}
                                         {{ lab_request.results[0].performer.full_name if lab_request.results[0].performer else 'غير محدد' }}
                                     {% else %}
@@ -181,32 +221,39 @@
                                     {% endif %}
                                 </div>
                             </div>
-                            <div class="row mt-3">
-                                <div class="col-md-6">
-                                    <strong>حالة التقرير:</strong>
+                            <div class="info-item">
+                                <div class="info-label">حالة التقرير</div>
+                                <div class="info-value">
                                     {% set st2 = lab_request.status %}
-                                    {% if st2 == 'REQUESTED' %} معلق {% elif st2 == 'IN_PROGRESS' %} قيد التنفيذ {% elif st2 == 'DONE' %} مكتمل {% elif st2 == 'CANCELLED' %} ملغي {% else %} {{ st2 }} {% endif %}
+                                    {% if st2 == 'REQUESTED' %}معلق{% elif st2 == 'IN_PROGRESS' %}قيد التنفيذ{% elif st2 == 'DONE' %}مكتمل{% elif st2 == 'CANCELLED' %}ملغي{% else %}{{ st2 }}{% endif %}
                                 </div>
-                                <div class="col-md-6">
-                                    <strong>تاريخ إكمال التقرير:</strong> {{ lab_request.completed_at.strftime('%Y-%m-%d') if lab_request.completed_at else 'غير محدد' }}
-                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">تاريخ إكمال التقرير</div>
+                                <div class="info-value">{{ lab_request.completed_at.strftime('%Y-%m-%d') if lab_request.completed_at else 'غير محدد' }}</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Footer -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="text-center">
-                                <p class="text-muted">
-                            <strong>تاريخ الطباعة:</strong> {{ moment().format('YYYY-MM-DD HH:mm') }}
-                                </p>
-                                <p class="text-muted">
-                                    <strong>مستشفى/عيادة طبية</strong><br>
-                                    العنوان: [عنوان المستشفى/العيادة]<br>
-                                    الهاتف: [رقم الهاتف] | البريد الإلكتروني: [البريد الإلكتروني]
-                                </p>
-                            </div>
+                    <div class="print-footer">
+                        <div class="footer-block">
+                            <div class="footer-title">توقيع الفني</div>
+                            <div class="footer-line"></div>
+                        </div>
+                        <div class="footer-block">
+                            <div class="footer-title">توقيع الطبيب</div>
+                            <div class="footer-line"></div>
+                        </div>
+                        <div class="footer-block">
+                            <div class="footer-title">الختم</div>
+                            <div class="footer-line"></div>
+                        </div>
+                    </div>
+                    <div class="print-footer-meta">
+                        <div>{{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}</div>
+                        <div>
+                            {{ branding.address if branding and branding.address else 'العنوان غير محدد' }} |
+                            {{ branding.phone if branding and branding.phone else 'الهاتف غير محدد' }}
                         </div>
                     </div>
                 </div>
@@ -216,47 +263,236 @@
 </div>
 
 <style>
+.print-page {
+    max-width: 200mm;
+    margin: 10px auto;
+    background: #fff;
+    padding: 8mm;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
+    color: #111;
+}
+
+.print-page .card {
+    border-radius: 6px;
+}
+
+.print-sheet {
+    border: 1px solid #e5e7eb;
+}
+
+.print-header {
+    display: grid;
+    grid-template-columns: 90px 1fr 160px;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 16px;
+}
+
+.print-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brand-logo {
+    height: 64px;
+    width: 64px;
+    object-fit: contain;
+}
+
+.print-organization {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111;
+}
+
+.print-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.print-subtitle {
+    font-size: 12px;
+    color: #555;
+}
+
+.print-meta {
+    text-align: center;
+    font-size: 12px;
+    color: #444;
+}
+
+.print-qr {
+    height: 72px;
+    width: 72px;
+    object-fit: contain;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.print-section {
+    margin-bottom: 14px;
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #0f172a;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px 10px;
+}
+
+.info-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 6px 8px;
+    background: #fafafa;
+}
+
+.info-item.info-wide {
+    grid-column: span 2;
+}
+
+.info-label {
+    font-size: 11px;
+    color: #6b7280;
+    margin-bottom: 2px;
+}
+
+.info-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: #111;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.print-page .table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.print-page .table td,
+.print-page .table th {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+@page {
+    size: A4;
+    margin: 6mm;
+}
+
 @media print {
-    .btn {
+    body {
+        background: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .btn,
+    .card.border-0.shadow-sm,
+    .luxury-header,
+    .luxury-sidebar,
+    .luxury-footer,
+    .flash-messages,
+    .navbar-modern,
+    .print-page .mb-4:first-child {
         display: none !important;
     }
-    
+
     .card {
         border: none !important;
         box-shadow: none !important;
     }
-    
-    .container-fluid {
+
+    .print-page {
+        max-width: 200mm;
+        margin: 0 !important;
         padding: 0 !important;
+        box-shadow: none !important;
     }
-    
+
+    .main-layout,
+    .main-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+
     .row {
         margin: 0 !important;
     }
-    
+
     .col-12, .col-md-3, .col-md-4, .col-md-6, .col-md-8 {
         padding: 0 !important;
     }
-    
+
     .table {
-        font-size: 12px;
+        font-size: 10.5px;
     }
-    
+
     .badge {
-        font-size: 10px;
+        font-size: 9px;
+        white-space: normal;
     }
-    
+
     h1, h2, h3, h4, h5, h6 {
         color: #000 !important;
     }
-    
+
     .text-primary {
         color: #000 !important;
     }
-    
+
     .text-muted {
-        color: #666 !important;
+        color: #555 !important;
     }
+
+    .print-footer {
+        page-break-inside: avoid;
+    }
+
+    .print-footer-meta {
+        page-break-inside: avoid;
+    }
+}
+
+.print-footer {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.print-footer-meta {
+    text-align: center;
+    font-size: 11px;
+    color: #4b5563;
+    margin-top: 10px;
+}
+
+.footer-block {
+    text-align: center;
+}
+
+.footer-title {
+    font-size: 12px;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.footer-line {
+    border-bottom: 1px solid #9ca3af;
+    height: 24px;
 }
 </style>
 

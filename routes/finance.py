@@ -48,7 +48,7 @@ def dashboard():
             'locked_visits': locked_visits
         }
         
-        return render_template('finance/dashboard.html', stats=stats)
+        return render_template('billing/dashboard_new.html', stats=stats)
         
     except Exception as e:
         logging.error(f"Error loading finance dashboard: {str(e)}")

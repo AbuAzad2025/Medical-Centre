@@ -325,8 +325,8 @@ def dashboard():
         stats['medical_analytics'] = analytics
         stats['workflow_optimizations'] = optimizations
         
-        return render_template('doctor/dashboard.html', 
-                             stats=stats, 
+        return render_template('doctor/dashboard_new.html',
+                             stats=stats,
                              upcoming_patients=upcoming_patients,
                              viewing_doctor=None)
     except Exception as e:

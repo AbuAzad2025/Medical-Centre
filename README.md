@@ -1,10 +1,11 @@
-# 🏥 نظام إدارة المركز الطبي المتكامل
-# Medical Center Management System v2.0
+# 🏥 نظام إدارة المراكز الطبية المتكامل — منصة Azad Medical
+# Azad Medical Platform v3.0 — Multi-Tenant Modular Architecture
 
-**النسخة:** 2.0  
-**الحالة:** ✅ جاهز للإنتاج  
-**التقنية:** Flask + SQLAlchemy + AdminLTE  
-**اللغة:** Python 3.9+
+**النسخة:** 3.0  
+**الحالة:** ✅ جاهز للإنتاج — نظام تينانتس احترافي متعدد  
+**التقنية:** Flask + SQLAlchemy + PostgreSQL + Bootstrap 5 RTL  
+**اللغة:** Python 3.11+  
+**النشر:** Docker + Docker Compose + GitHub Actions CI/CD
 
 ---
 

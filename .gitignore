@@ -61,3 +61,18 @@ static/reports/
 *.temp
 audit_reports/
 
+# Test / CI
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local SQLite databases (keep names explicit)
+tmp_*.db
+local_*.db
+medical_system.db
+
+# Secrets (ensure .env is already listed)
+.env.local
+.env.production
+.env.development
+

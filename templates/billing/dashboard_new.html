@@ -1,0 +1,53 @@
+{% extends "dashboard_base.html" %}
+{% block title %}لوحة تحكم الفوترة{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card card-stat bg-primary">
+            <div class="icon-bg"><i class="fas fa-file-invoice-dollar"></i></div>
+            <h6>الفواتير اليوم</h6>
+            <h3>{{ today_invoices }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-success">
+            <div class="icon-bg"><i class="fas fa-money-bill-wave"></i></div>
+            <h6>المدفوعات</h6>
+            <h3>{{ today_payments }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-warning">
+            <div class="icon-bg"><i class="fas fa-hourglass-half"></i></div>
+            <h6>معلقة</h6>
+            <h3>{{ pending_invoices }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-danger">
+            <div class="icon-bg"><i class="fas fa-undo"></i></div>
+            <h6>المسترجعة</h6>
+            <h3>{{ refunded_count }}</h3>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2"></i>الفواتير الأخيرة</h5></div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>#</th><th>المريض</th><th>المبلغ</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+            <tbody>
+            {% for inv in recent_invoices %}
+            <tr>
+                <td>{{ inv.id }}</td>
+                <td>{{ inv.visit.patient.full_name if inv.visit and inv.visit.patient else '-' }}</td>
+                <td>{{ inv.total_amount }}</td>
+                <td><span class="badge bg-{% if inv.status=='PAID' %}success{% elif inv.status=='POSTED' %}primary{% else %}warning{% endif %}">{{ inv.status or 'DRAFT' }}</span></td>
+                <td class="text-muted small">{{ inv.created_at.strftime('%Y-%m-%d') if inv.created_at else '-' }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

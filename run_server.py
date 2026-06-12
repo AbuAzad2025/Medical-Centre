@@ -50,11 +50,14 @@ if __name__ == '__main__':
         t.start()
         logger.info("🕒 تم تفعيل مهمة التنبيهات كل ساعة")
         
+        host = os.environ.get('HOST', '127.0.0.1')
+        port = int(os.environ.get('PORT', '8080'))
+        debug = os.environ.get('FLASK_DEBUG', 'false').lower() in ('true', '1', 'on')
         socketio.run(
             app,
-            host='127.0.0.1',
-            port=5002,
-            debug=True,
+            host=host,
+            port=port,
+            debug=debug,
             use_reloader=False
         )
         

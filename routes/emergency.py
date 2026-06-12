@@ -259,7 +259,7 @@ def dashboard():
             'ems_metrics': get_ems_metrics()
         }
         
-        return render_template('emergency/dashboard.html', 
+        return render_template('emergency/dashboard_new.html', 
                              stats=stats, 
                              upcoming_cases=upcoming_cases)
     except Exception as e:

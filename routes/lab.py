@@ -3,7 +3,7 @@
 Medical System Laboratory Routes
 """
 
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, send_file
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, send_file, make_response
 from flask_login import login_required, current_user
 from utils.decorators import role_required
 from models.patient import Patient
@@ -101,7 +101,7 @@ def dashboard():
             'workflow_automation': workflow_automation,
             'predictive_insights': predictive_insights
         }
-        return render_template('lab/dashboard.html', stats=stats)
+        return render_template('lab/dashboard_new.html', stats=stats)
     
     except Exception as e:
         logging.error(f"Error in lab dashboard: {str(e)}")
@@ -492,12 +492,25 @@ def print_request(id: int):
         if not lab_request:
             flash('طلب المختبر غير موجود', 'error')
             return redirect(url_for('lab.requests'))
+        age_years = None
+        try:
+            if lab_request.patient and lab_request.patient.birth_date:
+                b = lab_request.patient.birth_date
+                today = date.today()
+                age_years = today.year - b.year - ((today.month, today.day) < (b.month, b.day))
+        except Exception:
+            age_years = None
         payload = f"LAB|{lab_request.id}|{lab_request.patient_id}|{lab_request.created_at.isoformat()}"
         img = qrcode.make(payload)
         buf = BytesIO()
         img.save(buf, format='PNG')
         qr_data_uri = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('utf-8')
-        return render_template('lab/lab_requests_results_print.html', lab_request=lab_request, qr_data_uri=qr_data_uri)
+        printed_at = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')
+        html = render_template('lab/lab_requests_results_print_standalone.html', lab_request=lab_request, qr_data_uri=qr_data_uri, age_years=age_years, printed_at=printed_at)
+        resp = make_response(html)
+        resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        resp.headers['Pragma'] = 'no-cache'
+        return resp
     except Exception as e:
         logging.error(f"Error printing lab request {id}: {str(e)}")
         flash('حدث خطأ في طباعة تقرير المختبر', 'error')

@@ -89,7 +89,7 @@ def dashboard():
         'smart_recommendations': smart_recommendations
     }
     
-    return render_template('reception/dashboard.html',
+    return render_template('reception/dashboard_new.html',
                          total_patients=total_patients,
                          today_visits=today_visits,
                          today_visits_list=today_visits_list,
@@ -794,7 +794,6 @@ def create_visit():
                         patient_notes_parts.append(f"سبب الدخول: {quick_reason}")
                     patient_notes = '\n'.join(patient_notes_parts) if patient_notes_parts else None
 
-                    from models.patient import Patient
                     patient = Patient(
                         first_name=first_name,
                         last_name=last_name,

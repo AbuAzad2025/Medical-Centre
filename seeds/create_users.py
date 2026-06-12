@@ -81,23 +81,10 @@ if __name__ == "__main__":
     else:
         admin_user = os.environ.get("ADMIN_USERNAME")
         admin_pass = os.environ.get("ADMIN_PASSWORD")
-        default_pass = os.environ.get("DEFAULT_PASSWORD") or "123456"
         if admin_user and admin_pass:
             users = [{"username": admin_user, "password": admin_pass, "role": "admin", "full_name": "Admin"}]
         else:
-            roles = [
-                ("super_admin", "super"),
-                ("admin", "admin"),
-                ("manager", "manager"),
-                ("reception", "reception"),
-                ("doctor", "doctor"),
-                ("lab", "lab"),
-                ("radiology", "radiology"),
-                ("nurse", "nurse"),
-                ("emergency", "emergency"),
-                ("accountant", "accountant"),
-                ("pharmacist", "pharmacist"),
-            ]
-            users = [{"username": uname, "password": default_pass, "role": role, "full_name": uname.capitalize()} for role, uname in roles]
+            print("ERROR: ADMIN_USERNAME and ADMIN_PASSWORD environment variables are required, or provide a USER_SEED_JSON file.", flush=True)
+            sys.exit(1)
     cnt = create_users(users)
     print(f"created: {cnt}")

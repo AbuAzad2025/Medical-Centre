@@ -12,8 +12,18 @@ class User(UserMixin, db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
+
+    username = db.Column(db.String(80), nullable=False, index=True)
+    email = db.Column(db.String(120), nullable=False, index=True)
+
+    # Composite unique per tenant + existing constraints
+    __table_args__ = (
+        db.UniqueConstraint('tenant_id', 'username', name='uq_user_tenant_username'),
+        db.UniqueConstraint('tenant_id', 'email', name='uq_user_tenant_email'),
+        CheckConstraint("length(username) >= 3", name='chk_user_username_len'),
+        Index('idx_user_role', 'role'),
+    )
     password_hash = db.Column(db.String(255), nullable=False)
     full_name = db.Column(db.String(120), nullable=False)
     role = db.Column(db.String(50), nullable=False, default='user')
@@ -36,10 +46,7 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=db.func.now(), nullable=False, index=True)
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now(), nullable=False, index=True)
 
-    __table_args__ = (
-        CheckConstraint("length(username) >= 3", name='chk_user_username_len'),
-        Index('idx_user_role', 'role'),
-    )
+    tenant = db.relationship('Tenant', back_populates='users', foreign_keys='User.tenant_id')
 
     department = db.relationship(
         'Department',
@@ -183,21 +190,6 @@ class User(UserMixin, db.Model):
         lazy='select'
     )
     
-
-    # علاقات الإشعارات
-    notifications = db.relationship(
-            'Notification',
-            foreign_keys='Notification.recipient_id',
-            back_populates='recipient',
-            lazy='selectin'
-        )
-
-    sent_notifications = db.relationship(
-            'Notification',
-            foreign_keys='Notification.sender_id',
-            back_populates='sender',
-            lazy='selectin'
-        )
 
     # علاقات إدارة الملفات
     uploaded_files = db.relationship(

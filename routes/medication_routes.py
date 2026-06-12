@@ -78,7 +78,7 @@ def dashboard():
             'smart_recommendations': smart_recommendations
         }
         
-        return render_template('medication/dashboard.html', stats=stats)
+        return render_template('pharmacy/dashboard_new.html', stats=stats)
     except Exception as e:
         logging.error(f"Error in medication dashboard: {str(e)}")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
