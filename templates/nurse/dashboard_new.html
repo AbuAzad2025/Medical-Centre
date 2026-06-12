@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block title %}لوحة تحكم التمريض{% endblock %}
+{% block content %}
+<style>
+  .nurse-gradient { background: linear-gradient(135deg, #1a3a2f 0%, #2d5a45 50%, #3a7a5f 100%); }
+  .cell-truncate-sm { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prog-thin { height: 8px; }
+</style>
+<div class="container-fluid py-3">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 text-white nurse-gradient">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h3 class="mb-1"><i class="fas fa-user-nurse me-2 text-light"></i>قسم التمريض</h3>
+            <p class="mb-0 opacity-75">رعاية المرضى والعلامات الحيوية وإدارة الأدوية</p>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('nurse.patients') }}" class="btn btn-light btn-sm"><i class="fas fa-heartbeat me-1"></i> رعاية المرضى</a>
+            <a href="{{ url_for('nurse.medications') }}" class="btn btn-warning btn-sm"><i class="fas fa-pills me-1"></i> الأدوية</a>
+            <a href="{{ url_for('nurse.vital_signs') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-stethoscope me-1"></i> العلامات الحيوية</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h6 class="text-muted text-uppercase small mb-1">المرضى اليوم</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.patients_today or 0 }}</h3>
+            </div>
+            <div class="bg-primary bg-opacity-10 p-3 rounded"><i class="fas fa-users text-primary fa-lg"></i></div>
+          </div>
+          <div class="small text-muted">إجمالي: <strong>{{ total_patients or 0 }}</strong></div>
+          <canvas id="sparkToday" height="40" class="mt-2"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h6 class="text-muted text-uppercase small mb-1">زيارات نشطة</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.active_visits or 0 }}</h3>
+            </div>
+            <div class="bg-success bg-opacity-10 p-3 rounded"><i class="fas fa-calendar-check text-success fa-lg"></i></div>
+          </div>
+          <div class="small text-muted">زيارات اليوم: <strong>{{ today_visits or 0 }}</strong></div>
+          <canvas id="sparkActive" height="40" class="mt-2"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h6 class="text-muted text-uppercase small mb-1">مهام معلقة</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.pending_tasks or 0 }}</h3>
+            </div>
+            <div class="bg-warning bg-opacity-10 p-3 rounded"><i class="fas fa-tasks text-warning fa-lg"></i></div>
+          </div>
+          <div class="small text-muted">أدوية ناقصة: <strong class="text-danger">{{ stats.medications_needed or 0 }}</strong></div>
+          <canvas id="sparkTasks" height="40" class="mt-2"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h6 class="text-muted text-uppercase small mb-1">كفاءة التمريض</h6>
+              <h3 class="mb-0 fw-bold">{{ stats.smart_analytics.efficiency_score or 0 }}%</h3>
+            </div>
+            <div class="bg-info bg-opacity-10 p-3 rounded"><i class="fas fa-chart-line text-info fa-lg"></i></div>
+          </div>
+          <div class="small text-muted">مهام مكتملة: <strong>{{ stats.smart_analytics.completed_tasks or 0 }}</strong></div>
+          <canvas id="sparkEff" height="40" class="mt-2"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>أداء التمريض — مؤشرات رئيسية</h6></div>
+        <div class="card-body"><canvas id="nurseMainChart" height="260"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-heartbeat text-danger me-2"></i>العلامات الحيوية</h6></div>
+            <div class="card-body">
+              <div class="small text-start">
+                <div class="d-flex justify-content-between mb-1"><span>إجمالي القياسات</span><strong>{{ stats.vital_signs_monitoring.total_vital_signs or 0 }}</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>شاذة</span><strong class="text-warning">{{ stats.vital_signs_monitoring.abnormal_vital_signs or 0 }}</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>حرجة</span><strong class="text-danger">{{ stats.vital_signs_monitoring.critical_alerts or 0 }}</strong></div>
+                <div class="d-flex justify-content-between"><span>الدرجة</span><strong class="text-success">{{ stats.vital_signs_monitoring.monitoring_score or 0 }}%</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-brain text-info me-2"></i>تنبؤ الأعمال</h6></div>
+            <div class="card-body">
+              <div class="small text-start">
+                <div class="d-flex justify-content-between mb-1"><span>أسبوعي</span><strong>{{ stats.predictive_insights.weekly_tasks or 0 }}</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>شهري</span><strong>{{ stats.predictive_insights.monthly_tasks or 0 }}</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>معدل النمو</span><strong class="{{ 'text-success' if (stats.predictive_insights.growth_rate or 0) > 0 else 'text-danger' }}">{{ stats.predictive_insights.growth_rate or 0 }}%</strong></div>
+                <div class="d-flex justify-content-between"><span>دقة التنبؤ</span><strong>{{ stats.predictive_insights.workload_forecast_accuracy or 0 }}%</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle text-warning me-2"></i>تنبيهات السلامة</h6></div>
+        <div class="card-body">
+          {% if safety_alerts and safety_alerts.vitals_alerts_count %}
+          <ul class="list-group list-group-flush">
+            {% for a in safety_alerts.vitals_alerts %}<li class="list-group-item px-0 d-flex justify-content-between"><span><i class="fas fa-heartbeat text-danger me-2"></i>{{ a.patient_name }}</span><a href="{{ a.url }}" class="small">فحص</a></li>{% endfor %}
+          </ul>
+          {% else %}<p class="text-muted text-center my-3">لا توجد تنبيهات حرجة حالياً</p>{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-bolt text-primary me-2"></i>إجراءات سريعة</h6></div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <a href="{{ url_for('nurse.vital_signs') }}" class="btn btn-danger btn-sm"><i class="fas fa-heartbeat me-1"></i> قياس حيوي</a>
+            <a href="{{ url_for('nurse.medication_administration') }}" class="btn btn-success btn-sm"><i class="fas fa-pills me-1"></i> إعطاء دواء</a>
+            <a href="{{ url_for('nurse.tasks') }}" class="btn btn-primary btn-sm"><i class="fas fa-tasks me-1"></i> المهام</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-cogs text-secondary me-2"></i>أتمتة سير العمل</h6></div>
+        <div class="card-body text-center">
+          <h2 class="fw-bold text-primary">{{ stats.workflow_automation.automation_score or 0 }}%</h2>
+          <p class="text-muted small">درجة الأتمتة</p>
+          <div class="progress mb-2 prog-thin" title="درجة الأتمتة">
+            <div class="progress-bar bg-primary" role="progressbar" title="درجة الأتمتة" aria-valuenow="{{ stats.workflow_automation.automation_score or 0 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ stats.workflow_automation.automation_score or 0 }}%"></div>
+          </div>
+          <div class="small text-muted">وقت المعالجة: <strong>{{ stats.workflow_automation.avg_processing_time or 0 }} د</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+      <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>الزيارات النشطة</h6>
+      <a href="{{ url_for('nurse.patient_care') }}" class="small text-decoration-none">الكل</a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr><th>#</th><th>المريض</th><th>القسم</th><th>الحالة</th><th>الوقت</th><th>الإجراءات</th></tr>
+          </thead>
+          <tbody>
+            {% for v in active_visits_list %}
+            <tr>
+              <td>{{ v.id }}</td>
+              <td>
+                <div class="fw-bold">{{ v.patient.full_name if v.patient else '-' }}</div>
+                <div class="small text-muted">{{ v.patient.medical_record_number if v.patient else '' }}</div>
+              </td>
+              <td>{{ v.department.name if v.department else '-' }}</td>
+              <td><span class="badge bg-{% if v.status=='IN_PROGRESS' %}primary{% elif v.status=='OPEN' %}warning{% else %}secondary{% endif %}">{{ v.status or 'OPEN' }}</span></td>
+              <td class="small text-muted">{{ v.created_at.strftime('%Y-%m-%d %H:%M') if v.created_at else '-' }}</td>
+              <td>
+                <div class="d-flex gap-1">
+                  <a href="{{ url_for('nurse.vital_signs', visit_id=v.id) }}" class="btn btn-sm btn-outline-danger" title="حيوي"><i class="fas fa-heartbeat"></i></a>
+                  <a href="{{ url_for('nurse.medication_administration', visit_id=v.id) }}" class="btn btn-sm btn-outline-success" title="دواء"><i class="fas fa-pills"></i></a>
+                  <a href="{{ url_for('nurse.patient_monitoring', visit_id=v.id) }}" class="btn btn-sm btn-outline-primary" title="مراقبة"><i class="fas fa-eye"></i></a>
+                </div>
+              </td>
+            </tr>
+            {% else %}<tr><td colspan="6" class="text-muted text-center py-4">لا توجد زيارات نشطة</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script type="application/json" id="nurse-chart-data">{{ {
+  'spark': [stats.patients_today or 0, stats.active_visits or 0, stats.pending_tasks or 0, stats.smart_analytics.efficiency_score or 0],
+  'mainData': [stats.patients_today or 0, stats.active_visits or 0, stats.pending_tasks or 0, stats.medications_needed or 0, stats.smart_analytics.completed_tasks or 0]
+}|tojson }}</script>
+<script>
+  const d = JSON.parse(document.getElementById('nurse-chart-data').textContent);
+  function spark(id, data, color) {
+    new Chart(document.getElementById(id).getContext('2d'), {
+      type: 'line',
+      data: { labels: data.map(function(_, i){ return i; }), datasets: [{ data: data, borderColor: color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
+    });
+  }
+  spark('sparkToday', d.spark, '#0d6efd');
+  spark('sparkActive', [d.spark[1], d.spark[1]+1, d.spark[1]-1, d.spark[1]+2], '#198754');
+  spark('sparkTasks', [d.spark[2], d.spark[2]-1, d.spark[2]+1, d.spark[2]], '#ffc107');
+  spark('sparkEff', [d.spark[3], d.spark[3]+1, d.spark[3], d.spark[3]+2], '#0dcaf0');
+
+  new Chart(document.getElementById('nurseMainChart'), {
+    type: 'bar',
+    data: { labels: ['مرضى اليوم', 'زيارات نشطة', 'مهام معلقة', 'أدوية ناقصة', 'مهام مكتملة'], datasets: [{ label: 'العدد', data: d.mainData, backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#0dcaf0'] }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+  });
+</script>
+{% endblock %}

@@ -101,7 +101,8 @@ def dashboard():
             'workflow_automation': workflow_automation,
             'predictive_insights': predictive_insights
         }
-        return render_template('lab/dashboard_new.html', stats=stats)
+        recent_requests = LabRequest.query.order_by(LabRequest.created_at.desc()).limit(10).all()
+        return render_template('lab/dashboard_new.html', stats=stats, recent_requests=recent_requests)
     
     except Exception as e:
         logging.error(f"Error in lab dashboard: {str(e)}")

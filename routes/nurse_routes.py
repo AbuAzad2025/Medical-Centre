@@ -318,7 +318,7 @@ def dashboard():
         }
         
         return render_template(
-            'nurse/dashboard.html',
+            'nurse/dashboard_new.html',
             stats=stats,
             total_patients=total_patients,
             today_visits=today_visits,
