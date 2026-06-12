@@ -253,6 +253,7 @@ def create_app(config_name: str | None = None) -> Flask:
             import models.emergency_status_history
             import models.lab_quality
             import models.lab_reagent
+            import models.exchange_rate
             # New platform models (tenant, module, stock ledger)
             # Use importlib to avoid shadowing local 'app' variable
             import importlib
@@ -516,6 +517,7 @@ def create_app(config_name: str | None = None) -> Flask:
     from routes.data_warehouse_routes import data_warehouse_bp
     from routes.what_if_routes import what_if_bp
     from routes.quality_compliance import quality_bp
+    from routes.reception_currency import reception_currency_bp
 
     # Module guards — must be added BEFORE register_blueprint, and only ONCE
     def _guard_factory(module_name):
@@ -591,6 +593,7 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(data_warehouse_bp)
     app.register_blueprint(what_if_bp)
     app.register_blueprint(quality_bp, url_prefix='/quality')
+    app.register_blueprint(reception_currency_bp, url_prefix='/reception')
 
     # Tenant middleware — safe fallback if tables don't exist yet
     @app.before_request

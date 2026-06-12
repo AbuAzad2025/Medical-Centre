@@ -77,6 +77,7 @@ from .ai_imaging import AIImagingAnalysis
 from .biometric_auth import BiometricCredential, BiometricAuthChallenge
 from .data_warehouse import DataWarehouseSync, DailyVisitSummary, MonthlyFinanceSummary
 from .what_if_scenario import WhatIfScenario
+from .exchange_rate import ExchangeRate, CurrencySettings
 
 __all__ = [
     "Department", "User", "StaffWorkSchedule", "StaffAbsence",
@@ -140,4 +141,5 @@ __all__ = [
     "BiometricCredential", "BiometricAuthChallenge",
     "DataWarehouseSync", "DailyVisitSummary", "MonthlyFinanceSummary",
     "WhatIfScenario",
+    "ExchangeRate", "CurrencySettings",
 ]

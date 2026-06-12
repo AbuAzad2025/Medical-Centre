@@ -1821,3 +1821,84 @@ def patient_satisfaction_dashboard():
     except Exception:
         return render_template('manager/patient_satisfaction.html', surveys=[], total=0,
                                avg_score=0, avg_recommend=0, nps=0)
+
+
+@manager_bp.route('/exchange-rates', methods=['GET', 'POST'])
+@login_required
+@role_required('manager', 'admin', 'super_admin')
+def exchange_rates():
+    """إدارة أسعار الصرف"""
+    from models.exchange_rate import ExchangeRate, CurrencySettings
+    from services.currency_service import CurrencyConverter
+    from decimal import Decimal
+
+    if request.method == 'POST':
+        try:
+            from_currency = request.form.get('from_currency', '').strip().upper()
+            to_currency = request.form.get('to_currency', '').strip().upper()
+            sell_rate = request.form.get('sell_rate', '').strip()
+            buy_rate = request.form.get('buy_rate', '').strip() or sell_rate
+            notes = request.form.get('notes', '').strip()
+
+            if not from_currency or not to_currency or not sell_rate:
+                flash('جميع الحقول المطلوبة يجب تعبئتها', 'error')
+                return redirect(url_for('manager.exchange_rates'))
+
+            CurrencyConverter.ensure_manual_rate(
+                from_currency=from_currency,
+                to_currency=to_currency,
+                sell_rate=Decimal(sell_rate),
+                buy_rate=Decimal(buy_rate) if buy_rate else None,
+                user_id=current_user.id,
+            )
+            flash(f'تم تحديث سعر الصرف {from_currency} → {to_currency}', 'success')
+        except Exception as e:
+            logging.error(f"Error saving exchange rate: {e}")
+            flash('حدث خطأ أثناء حفظ سعر الصرف', 'error')
+        return redirect(url_for('manager.exchange_rates'))
+
+    active_rates = CurrencyConverter.get_all_active_rates()
+    missing_pairs = CurrencyConverter.get_missing_pairs()
+    currencies = CurrencySettings.get_all()
+    return render_template('manager/exchange_rates.html',
+                           rates=active_rates,
+                           missing_pairs=missing_pairs,
+                           currencies=currencies)
+
+
+@manager_bp.route('/exchange-rates/fetch-api', methods=['POST'])
+@login_required
+@role_required('manager', 'admin', 'super_admin')
+def fetch_api_exchange_rates():
+    """جلب أسعار الصرف من API خارجي"""
+    from models.exchange_rate import CurrencySettings
+    from services.currency_service import CurrencyConverter
+    base = request.form.get('base_currency', 'ILS').upper()
+    imported = 0
+    failed = 0
+    for code in CurrencySettings.SUPPORTED_CURRENCIES:
+        if code == base:
+            continue
+        try:
+            rate = CurrencyConverter.fetch_external_rate(base, code)
+            if rate:
+                imported += 1
+            else:
+                failed += 1
+        except Exception:
+            failed += 1
+    flash(f'تم جلب {imported} سعر صرف | فشل {failed}', 'info' if failed == 0 else 'warning')
+    return redirect(url_for('manager.exchange_rates'))
+
+
+@manager_bp.route('/exchange-rates/deactivate/<int:rate_id>', methods=['POST'])
+@login_required
+@role_required('manager', 'admin', 'super_admin')
+def deactivate_exchange_rate(rate_id):
+    """تعطيل سعر صرف"""
+    from models.exchange_rate import ExchangeRate
+    rate = ExchangeRate.query.get_or_404(rate_id)
+    rate.is_active = False
+    db.session.commit()
+    flash(f'تم تعطيل سعر {rate.from_currency} → {rate.to_currency}', 'success')
+    return redirect(url_for('manager.exchange_rates'))
