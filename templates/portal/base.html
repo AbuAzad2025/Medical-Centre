@@ -52,5 +52,18 @@
   if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/service-worker.js'); }
 </script>
 {% block scripts %}{% endblock %}
+<footer class="portal-footer" style="background:#f8fafc;color:#64748b;padding:1rem;font-size:.8rem;border-top:1px solid #e2e8f0;text-align:center;margin-top:auto;">
+    <strong>{{ developer_company or 'شركة آزاد للأنظمة الذكية' }}</strong>
+    <span class="mx-2">|</span>
+    <span>بإدارة {{ developer_name or 'المهندس أحمد غنام' }}</span>
+    <br>
+    <small>
+        <i class="fas fa-phone me-1"></i> {{ developer_mobile or '+ --------' }}
+        <span class="mx-2">|</span>
+        <i class="fas fa-map-marker-alt me-1"></i> {{ developer_location or 'رام الله - فلسطين' }}
+        <span class="mx-2">|</span>
+        &copy; {{ current_year or 2025 }} جميع الحقوق محفوظة
+    </small>
+</footer>
 </body>
 </html>

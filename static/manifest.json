@@ -1,6 +1,6 @@
 {
-  "name": "Azad Medical Platform",
-  "short_name": "AzadMed",
+  "name": "منصة آزاد الطبية",
+  "short_name": "آزاد مد",
   "description": "نظام المعلومات الصحية المتقدم",
   "start_url": "/",
   "display": "standalone",
