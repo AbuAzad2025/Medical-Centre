@@ -12,7 +12,7 @@ from app.modules.workflows.visit import VisitWorkflowService, VisitStatus
 from app.modules.workflows.lab import LabWorkflowService, LabOrderStatus
 from app.modules.workflows.radiology import RadiologyWorkflowService, RadiologyOrderStatus
 from app.modules.workflows.pharmacy import PharmacyStockService
-from app.modules.workflows.billing import BillingService, InvoiceStatus
+from app.modules.workflows.billing import _BillingServiceDeprecated as BillingService, InvoiceStatus
 from app.modules.workflows.appointment import AppointmentService, AppointmentStatus
 from models.visit import Visit
 from models.patient import Patient
