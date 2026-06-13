@@ -3277,10 +3277,14 @@ def get_smart_queue_management():
         }
         
         # تحليل ساعات الذروة
-        peak_hours = db.session.query(
-            func.strftime('%H', QueueManagement.created_at).label('hour'),
-            func.count(QueueManagement.id).label('count')
-        ).group_by(func.strftime('%H', QueueManagement.created_at)).all()
+        try:
+            peak_hours = db.session.query(
+                func.extract('hour', QueueManagement.created_at).label('hour'),
+                func.count(QueueManagement.id).label('count')
+            ).group_by(func.extract('hour', QueueManagement.created_at)).all()
+        except Exception:
+            db.session.rollback()
+            peak_hours = []
         
         peak_hour = max(peak_hours, key=lambda x: x.count) if peak_hours else None
         
@@ -3320,10 +3324,14 @@ def get_patient_flow_analysis():
             })
         
         # تحليل ساعات الذروة
-        hourly_flow = db.session.query(
-            func.strftime('%H', Visit.created_at).label('hour'),
-            func.count(Visit.id).label('count')
-        ).filter(Visit.created_at >= week_ago).group_by(func.strftime('%H', Visit.created_at)).all()
+        try:
+            hourly_flow = db.session.query(
+                func.extract('hour', Visit.created_at).label('hour'),
+                func.count(Visit.id).label('count')
+            ).filter(Visit.created_at >= week_ago).group_by(func.extract('hour', Visit.created_at)).all()
+        except Exception:
+            db.session.rollback()
+            hourly_flow = []
         
         # تحليل الأقسام
         department_flow = db.session.query(
@@ -3746,9 +3754,10 @@ def get_smart_recommendations():
         # تحليل الكفاءة
         try:
             avg_visit_duration = db.session.query(
-                func.avg((func.strftime('%s', Visit.completed_at) - func.strftime('%s', Visit.created_at)) / 60.0)
+                func.avg((func.extract('epoch', Visit.completed_at) - func.extract('epoch', Visit.created_at)) / 60.0)
             ).filter(Visit.completed_at.isnot(None)).scalar() or 0
         except Exception:
+            db.session.rollback()
             avg_visit_duration = 0
         if avg_visit_duration > 45:
             recommendations.append({

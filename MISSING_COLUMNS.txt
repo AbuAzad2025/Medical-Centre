@@ -1,0 +1,1 @@
+visits: is_tax_inclusive, tax_amount, tax_percent, triage_level

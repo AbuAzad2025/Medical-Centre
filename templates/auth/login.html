@@ -3,398 +3,168 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>تسجيل الدخول - {{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}</title>
+    <title>تسجيل الدخول - {{ branding.organization_name if branding else 'المركز الطبي' }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
-    <!-- Bootstrap 5.3 RTL -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* Background Animation */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            animation: float 20s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(1deg); }
-        }
-        
-        .login-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-            padding: 3rem;
-            width: 100%;
-            max-width: 450px;
-            position: relative;
-            z-index: 10;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: slideInUp 0.8s ease-out;
-        }
-        
-        .login-header {
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }
-        
-        .logo-container {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        }
-        
-        .logo-container i {
-            font-size: 2.5rem;
-            color: white;
-        }
-        
-        .login-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 0.5rem;
-        }
-        
-        .login-subtitle {
-            color: #718096;
-            font-size: 1rem;
-            font-weight: 400;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-        
-        .form-label {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-        
-        .input-group {
-            position: relative;
-        }
-        
-        .form-control {
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 1rem 3rem 1rem 3rem;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: #f8fafc;
-        }
-        
-        .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            background: white;
-        }
-
-        .toggle-password {
-            position: absolute;
-            right: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            border: none;
-            background: transparent;
-            color: #a0aec0;
-            padding: 0;
-            line-height: 1;
-            cursor: pointer;
-        }
-
-        .toggle-password:focus {
-            outline: none;
-            color: #667eea;
-        }
-
-        .caps-lock {
-            display: none;
-            font-size: 0.85rem;
-            color: #b7791f;
-            margin-top: 0.5rem;
-        }
-
-        .remember-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 0.75rem;
-        }
-        
-        .input-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #a0aec0;
-            font-size: 1.1rem;
-            z-index: 5;
-        }
-        
-        .btn-login {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border: none;
-            border-radius: 12px;
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: white;
-            width: 100%;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-login:active {
-            transform: translateY(0);
-        }
-        
-        .btn-login::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .btn-login:hover::before {
-            left: 100%;
-        }
-        
-        .forgot-password {
-            text-align: center;
-            margin-top: 1.5rem;
-        }
-        
-        .forgot-password a,
-        .forgot-password button {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-        
-        .forgot-password a:hover,
-        .forgot-password button:hover {
-            color: #764ba2;
-        }
-        
-        .security-badge {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 2rem;
-            padding: 1rem;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 12px;
-            color: #667eea;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-        
-        .security-badge i {
-            margin-left: 0.5rem;
-        }
-        
-        .footer {
-            position: absolute;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            text-align: center;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.9rem;
-        }
-        
-        .footer a {
-            color: rgba(255, 255, 255, 0.9);
-            text-decoration: none;
-            font-weight: 500;
-        }
-        
-        .footer a:hover {
-            color: white;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .login-container {
-                margin: 1rem;
-                padding: 2rem;
-            }
-            
-            .login-title {
-                font-size: 1.5rem;
-            }
-        }
-        
-        /* Loading Animation */
-        .loading {
-            display: none;
-        }
-        
-        .loading.show {
-            display: inline-block;
-        }
-        
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top: 2px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-left: 0.5rem;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+    <link href="{{ url_for('static', filename='css/medical-login.css') }}" rel="stylesheet">
 </head>
-<body>
-    <div class="login-container">
-        <div class="login-header">
-            <div class="logo-container">
-                <i class="fas fa-user-md"></i>
+<body class="medical-login-page">
+
+    <div class="medical-login-shell">
+        <div class="medical-hero">
+            <div class="palestine-ribbon" aria-hidden="true"></div>
+            <div class="medical-hero-brand">
+                <div class="azad-logo-mark">A</div>
+                <div class="azad-brand-text">
+                    <span class="azad-en">AZAD</span>
+                    <span class="azad-ar">شركة أزاد للأنظمة الذكية</span>
+                </div>
             </div>
-            <h1 class="login-title">{{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}</h1>
-            <p class="login-subtitle">نظام إدارة المستشفى المتطور</p>
+            <div class="medical-hero-content">
+                <h2 class="medical-hero-title">مرحباً بكم في<br><span class="accent">المركز الطبي</span></h2>
+                <p class="medical-hero-subtitle">نظام طبي متكامل وآمن يضع صحتكم<br>في قلب اهتمامنا</p>
+                <div class="medical-hero-visual">
+                    <div class="medical-visual-circle"><i class="fas fa-user-nurse"></i></div>
+                    <div class="heart-pulse" aria-hidden="true">
+                        <svg viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M0 30 H20 L25 10 L35 50 L45 20 L55 40 L65 5 L75 45 L85 25 L95 35 L120 30" stroke="rgba(11,111,174,0.25)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            <path d="M0 30 H20 L25 10 L35 50 L45 20 L55 40 L65 5 L75 45 L85 25 L95 35 L120 30" stroke="rgba(11,111,174,0.12)" stroke-width="4" fill="none" stroke-linecap="round" transform="translate(0,6)"/>
+                        </svg>
+                    </div>
+                    <div class="medical-visual-circle"><i class="fas fa-heart-pulse"></i></div>
+                </div>
+            </div>
+            <div class="medical-hero-bottom">
+                <div class="hero-icons-row">
+                    <div class="hero-icon-pill"><i class="fas fa-stethoscope"></i></div>
+                    <div class="hero-icon-pill"><i class="fas fa-heart"></i></div>
+                    <div class="hero-icon-pill"><i class="fas fa-users"></i></div>
+                </div>
+            </div>
         </div>
-        {% include 'partials/_flash.html' %}
-        
-        <form method="post" action="{{ url_for('auth.login') }}" id="loginForm" novalidate>
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            
-            <div class="form-group">
-                <label class="form-label" for="username">اسم المستخدم</label>
-                <div class="input-group">
-                    <i class="fas fa-user input-icon"></i>
-                    <input id="username" type="text" name="username" class="form-control" placeholder="أدخل اسم المستخدم" required autocomplete="username" autocapitalize="none" spellcheck="false">
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label" for="password">كلمة المرور</label>
-                <div class="input-group">
-                    <i class="fas fa-lock input-icon"></i>
-                    <input id="password" type="password" name="password" class="form-control" placeholder="أدخل كلمة المرور" required autocomplete="current-password">
-                    <button type="button" class="toggle-password" id="togglePassword" aria-label="إظهار كلمة المرور">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
-                <div class="caps-lock" id="capsLock">تنبيه: Caps Lock مفعّل</div>
-            </div>
 
-            <div class="remember-row">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="remember" name="remember" value="1">
-                    <label class="form-check-label" for="remember">تذكرني</label>
+        <div class="login-panel">
+            <div class="login-card">
+                <div class="login-card-header">
+                    <div class="medical-icon-badge">
+                        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="8" y="8" width="32" height="32" rx="8" fill="url(#grad)" opacity="0.15"/>
+                            <rect x="8" y="8" width="32" height="32" rx="8" stroke="url(#grad)" stroke-width="2"/>
+                            <path d="M24 16V32M16 24H32" stroke="url(#grad)" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M30 32C30 32 32 30 32 28C32 26 30 24 30 24C30 24 28 26 28 28C28 30 30 32 30 32Z" fill="url(#grad)" opacity="0.4"/>
+                            <defs><linearGradient id="grad" x1="8" y1="8" x2="40" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#0b6fae"/><stop offset="1" stop-color="#21a67a"/></linearGradient></defs>
+                        </svg>
+                    </div>
+                    <h1>تسجيل الدخول</h1>
+                    <div class="subtitle-wrap">
+                        <span class="line"></span>
+                        <span>نظام إدارة المركز الطبي</span>
+                        <span class="line"></span>
+                    </div>
                 </div>
-                <div class="forgot-password">
-                    <button type="button" class="btn btn-link p-0" onclick="Swal.fire({ title: 'استعادة كلمة المرور', text: 'يرجى التواصل مع مدير النظام لإعادة تعيين كلمة المرور', icon: 'info' });">
-                        <i class="fas fa-key"></i> نسيت كلمة المرور؟
+
+                {% include 'partials/_flash.html' %}
+
+                <form class="login-form" method="post" action="{{ url_for('auth.login') }}" id="loginForm" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="form-field">
+                        <label for="username">اسم المستخدم</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-user field-icon"></i>
+                            <input id="username" type="text" name="username" placeholder="أدخل اسم المستخدم" required autocomplete="username" spellcheck="false">
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="password">كلمة المرور</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-lock field-icon"></i>
+                            <input id="password" type="password" name="password" placeholder="أدخل كلمة المرور" required autocomplete="current-password">
+                            <button type="button" class="toggle-password-btn" id="togglePassword" aria-label="إظهار كلمة المرور">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="caps-lock-alert" id="capsLock">تنبيه: Caps Lock مفعّل</div>
+                    </div>
+
+                    <div class="login-options">
+                        <label class="remember-wrap">
+                            <input type="checkbox" id="remember" name="remember" value="1">
+                            <span>تذكرني</span>
+                        </label>
+                        <button type="button" class="forgot-link" onclick="Swal.fire({ title: 'استعادة كلمة المرور', text: 'يرجى التواصل مع مدير النظام لإعادة تعيين كلمة المرور', icon: 'info' });">هل نسيت كلمة المرور؟</button>
+                    </div>
+
+                    <button type="submit" class="login-primary-btn" id="loginBtn">
+                        <span class="btn-text">تسجيل الدخول</span>
+                        <span class="login-loading" id="loginLoading">
+                            <span class="spinner"></span>
+                            <span>جاري التحقق...</span>
+                        </span>
+                        <i class="fas fa-sign-in-alt btn-icon"></i>
                     </button>
+
+                    <a href="https://wa.me/972562150193" target="_blank" rel="noopener" class="login-secondary-btn">
+                        <i class="fas fa-headset"></i>
+                        الدعم الفني والمساعدة
+                    </a>
+                </form>
+
+                <div class="security-note">
+                    <i class="fas fa-shield-check"></i>
+                    <span>بياناتك محمية وآمنة لدينا</span>
                 </div>
             </div>
-
-            <button type="submit" class="btn btn-login" id="loginBtn">
-                <span class="btn-text">تسجيل الدخول</span>
-                <span class="loading">
-                    <span class="spinner"></span>
-                    جاري التحقق...
-                </span>
-            </button>
-            
-        </form>
-        
-        <div class="security-badge">
-            <i class="fas fa-shield-alt"></i>
-            اتصال آمن ومشفر
         </div>
     </div>
-    
-    <div class="footer">
-        <p>&copy; {{ current_year or 2025 }} {{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}. جميع الحقوق محفوظة.</p>
-        <p>تطوير: <strong>{{ developer_company or 'شركة آزاد للأنظمة الذكية' }}</strong> — بإدارة {{ developer_name or 'المهندس أحمد غنام' }}</p>
 
-        <p><i class="fas fa-phone me-1"></i> {{ developer_mobile or '+ --------' }} &nbsp;|&nbsp; <i class="fas fa-map-marker-alt me-1"></i> {{ developer_location or 'رام الله - فلسطين' }}</p>
-    </div>
+    <footer class="login-footer">
+        <div class="footer-features">
+            <div class="footer-feature">
+                <div class="feat-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="feat-text">
+                    <h4>نظام طبي آمن وموثوق</h4>
+                    <p>لحماية بيانات المرضى والمستخدمين</p>
+                </div>
+            </div>
+            <div class="footer-feature">
+                <div class="feat-icon"><i class="fas fa-clipboard-list"></i></div>
+                <div class="feat-text">
+                    <h4>إدارة متكاملة</h4>
+                    <p>لجميع العمليات الطبية</p>
+                </div>
+            </div>
+            <div class="footer-feature">
+                <div class="feat-icon"><i class="fas fa-globe"></i></div>
+                <div class="feat-text">
+                    <h4>سهولة الوصول</h4>
+                    <p>من أي مكان وفي أي وقت</p>
+                </div>
+            </div>
+        </div>
+        <div class="azad-credit">
+            <p>تصميم وتنفيذ: <strong>شركة أزاد للأنظمة الذكية</strong> — إدارة المهندس أحمد غنام</p>
+            <div class="credit-links">
+                <a href="tel:0562150193"><i class="fas fa-phone"></i> 0562150193</a>
+                <a href="https://wa.me/972562150193" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> واتساب</a>
+            </div>
+        </div>
+    </footer>
 
-    <!-- Scripts -->
-    
     <script src="{{ url_for('static', filename='adminlte/plugins/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/security.js') }}"></script>
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             const btn = document.getElementById('loginBtn');
-            const btnText = btn.querySelector('.btn-text');
-            const loading = btn.querySelector('.loading');
-            
-            btnText.style.display = 'none';
+            const text = btn.querySelector('.btn-text');
+            const icon = btn.querySelector('.btn-icon');
+            const loading = document.getElementById('loginLoading');
+            text.style.display = 'none';
+            if (icon) icon.style.display = 'none';
             loading.classList.add('show');
             btn.disabled = true;
-        });
-        
-        // Add some interactive effects
-        document.querySelectorAll('.form-control').forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.02)';
-            });
-            
-            input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
-            });
         });
 
         const pwd = document.getElementById('password');
@@ -406,7 +176,6 @@
             this.setAttribute('aria-label', isPwd ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
             this.innerHTML = isPwd ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
         });
-
         pwd.addEventListener('keyup', function(e) {
             if (e.getModifierState && e.getModifierState('CapsLock')) {
                 caps.style.display = 'block';

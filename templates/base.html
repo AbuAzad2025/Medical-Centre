@@ -8,10 +8,14 @@
     <meta name="description" content="نظام إدارة {{ branding.organization_name if branding else 'المركز الصحي المتخصص' }} - حلول طبية متطورة وذكية">
     <meta name="keywords" content="نظام طبي, إدارة مستشفى, مركز صحي, نظام ذكي">
     <meta name="author" content="{{ developer_company or 'شركة آزاد للأنظمة الذكية' }}">
-    <meta name="robots" content="index, follow">
-
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
+    <meta name="robots" content="index, follow">
+
+
+
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
+
     <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +37,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/performance.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/accessibility.css') }}">
-    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/azad-modern.css') }}">
+
     <style>
         /* Force everything to be visible immediately */
         body, * {
@@ -110,6 +115,7 @@
         
         .glass-effect {
             background: var(--glass-bg);
+            -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--border-radius);
@@ -118,6 +124,7 @@
         
         .card-modern {
             background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: var(--border-radius);
@@ -183,6 +190,7 @@
         
         .sidebar-modern {
             background: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
             border-right: 1px solid rgba(255, 255, 255, 0.2);
             min-height: 100vh;
@@ -190,6 +198,7 @@
         
         .navbar-modern {
             background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
@@ -726,10 +735,10 @@
         }
     </script>
     
-<footer class="app-footer" style="background:#1a1f36;color:#94a3b8;padding:1rem 1.5rem;font-size:.85rem;border-top:1px solid #2d3748;margin-top:auto;">
+<footer class="app-footer">
         <div class="container-fluid d-flex flex-wrap justify-content-between align-items-center">
             <div>
-                <strong style="color:#e2e8f0;">{{ developer_company or 'شركة آزاد للأنظمة الذكية' }}</strong>
+                <strong class="footer-brand">{{ developer_company or 'شركة آزاد للأنظمة الذكية' }}</strong>
                 <span class="mx-2">|</span>
                 <span>بإدارة {{ developer_name or 'المهندس أحمد غنام' }}</span>
             </div>

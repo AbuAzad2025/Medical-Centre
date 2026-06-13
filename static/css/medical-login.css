@@ -1,0 +1,694 @@
+/**
+ * Medical Center Login Page — AZAD Systems
+ * RTL Arabic Layout | Split-Screen Design
+ * Do not modify: preserves all backend form behavior
+ */
+
+/* ── CSS Variables ── */
+:root {
+  --azad-blue: #0f4c81;
+  --medical-blue: #0b6fae;
+  --medical-cyan: #00a6a6;
+  --medical-green: #21a67a;
+  --palestine-red: #c8102e;
+  --palestine-green: #007a3d;
+  --palestine-black: #111827;
+  --text-primary: #102033;
+  --text-secondary: #667085;
+  --border-color: #d9e4ee;
+  --page-bg: #eef7fb;
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --hero-gradient-start: #e0f2fe;
+  --hero-gradient-end: #dbeafe;
+  --font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --shadow-soft: 0 20px 60px rgba(15, 76, 129, 0.12);
+  --shadow-card: 0 8px 32px rgba(15, 76, 129, 0.10);
+}
+
+/* ── Reset / Base ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  font-family: var(--font-family);
+  height: 100%;
+  direction: rtl;
+  overflow-x: hidden;
+}
+
+/* ── Page Shell ── */
+.medical-login-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page-bg);
+}
+
+.medical-login-shell {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* ── Left Hero Panel ── */
+.medical-hero {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(145deg, var(--hero-gradient-start) 0%, var(--hero-gradient-end) 60%, #bfdbfe 100%);
+  padding: 2.5rem 3rem;
+  overflow: hidden;
+}
+
+/* Palestinian ribbon — subtle left-edge */
+.palestine-ribbon {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 10px;
+  display: flex;
+  flex-direction: column;
+}
+.palestine-ribbon::before,
+.palestine-ribbon::after {
+  content: '';
+  display: block;
+  flex: 1;
+}
+.palestine-ribbon::before { background: var(--palestine-black); }
+.palestine-ribbon { background: linear-gradient(to bottom, var(--palestine-black) 0%, var(--palestine-black) 33%, #ffffff 33%, #ffffff 66%, var(--palestine-green) 66%, var(--palestine-green) 100%); }
+
+/* Decorative dots pattern */
+.medical-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(15,76,129,0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+/* Branding */
+.medical-hero-brand {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.azad-logo-mark {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, var(--azad-blue), var(--medical-cyan));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(15,76,129,0.25);
+}
+
+.azad-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.azad-brand-text .azad-en {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--azad-blue);
+  letter-spacing: 2px;
+  line-height: 1.1;
+}
+
+.azad-brand-text .azad-ar {
+  font-size: 0.75rem;
+  color: var(--medical-blue);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Hero content */
+.medical-hero-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.medical-hero-title {
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: var(--azad-blue);
+  line-height: 1.35;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(15,76,129,0.08);
+}
+
+.medical-hero-title .accent {
+  color: var(--medical-cyan);
+}
+
+.medical-hero-subtitle {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 400px;
+}
+
+/* Medical visual elements */
+.medical-hero-visual {
+  position: relative;
+  margin-top: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.medical-visual-circle {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.45));
+  border: 2px solid rgba(255,255,255,0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(15,76,129,0.10);
+  color: var(--medical-blue);
+  font-size: 1.75rem;
+}
+
+.heart-pulse {
+  width: 120px; height: 60px;
+  position: relative;
+}
+
+.heart-pulse svg {
+  width: 100%; height: 100%;
+}
+
+/* Hero bottom area */
+.medical-hero-bottom {
+  position: relative;
+  z-index: 2;
+  margin-top: auto;
+  padding-top: 2rem;
+}
+
+.hero-icons-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.hero-icon-pill {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--medical-blue);
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(15,76,129,0.08);
+}
+
+/* ── Right Login Panel ── */
+.login-panel {
+  flex: 0 0 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--page-bg);
+  position: relative;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+  padding: 2.5rem;
+  border: 1px solid rgba(255,255,255,0.6);
+}
+
+/* Card header */
+.login-card-header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.medical-icon-badge {
+  width: 72px; height: 72px;
+  background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+  box-shadow: 0 4px 16px rgba(11,111,174,0.12);
+}
+
+.medical-icon-badge svg {
+  width: 40px; height: 40px;
+}
+
+.login-card-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.login-card-header .subtitle-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.login-card-header .subtitle-wrap .line {
+  width: 28px;
+  height: 1px;
+  background: var(--border-color);
+}
+
+/* Flash messages */
+.flash-messages {
+  margin-bottom: 1rem;
+}
+
+.flash-message {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.flash-message.danger,
+.flash-message.error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.flash-message.success {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.flash-message.warning {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.flash-message.info {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+/* ── Form Fields ── */
+.login-form .form-field {
+  margin-bottom: 1.25rem;
+}
+
+.login-form label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.4rem;
+}
+
+.input-wrap {
+  position: relative;
+}
+
+.input-wrap .field-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  font-size: 1rem;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+  width: 100%;
+  padding: 0.85rem 2.8rem 0.85rem 2.8rem;
+  font-size: 1rem;
+  font-family: var(--font-family);
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+  background: #f8fafc;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.login-form input:focus {
+  border-color: var(--medical-blue);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(11, 111, 174, 0.08);
+}
+
+.toggle-password-btn {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-password-btn:hover { color: var(--medical-blue); }
+
+.toggle-password-btn:focus-visible {
+  outline: 2px solid var(--medical-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.caps-lock-alert {
+  display: none;
+  font-size: 0.8rem;
+  color: #b45309;
+  margin-top: 0.35rem;
+}
+
+/* ── Options Row ── */
+.login-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.remember-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.remember-wrap input[type="checkbox"] {
+  width: 18px; height: 18px;
+  accent-color: var(--medical-blue);
+  cursor: pointer;
+}
+
+.forgot-link {
+  color: var(--medical-blue);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.forgot-link:hover { color: var(--azad-blue); text-decoration: underline; }
+
+/* ── Buttons ── */
+.login-primary-btn {
+  width: 100%;
+  padding: 0.9rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: var(--font-family);
+  color: #fff;
+  background: linear-gradient(135deg, var(--azad-blue), var(--medical-blue));
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 6px 20px rgba(15, 76, 129, 0.25);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-primary-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.login-primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(15, 76, 129, 0.35);
+}
+
+.login-primary-btn:hover::before { left: 100%; }
+
+.login-primary-btn:active { transform: translateY(0); }
+
+.login-primary-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-secondary-btn {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.85rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: var(--font-family);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.login-secondary-btn:hover {
+  border-color: var(--medical-blue);
+  color: var(--medical-blue);
+  background: rgba(11, 111, 174, 0.04);
+}
+
+/* Loading spinner */
+.login-loading {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.login-loading.show { display: inline-flex; }
+
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Security note */
+.security-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding: 0.6rem;
+  background: #f0fdf4;
+  border-radius: 10px;
+  color: var(--medical-green);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* ── Footer Strip ── */
+.login-footer {
+  background: #fff;
+  border-top: 1px solid var(--border-color);
+  padding: 1.5rem 2rem;
+}
+
+.footer-features {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.footer-feature {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 260px;
+}
+
+.footer-feature .feat-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--medical-blue);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.footer-feature .feat-text h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.footer-feature .feat-text p {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.azad-credit {
+  text-align: center;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.azad-credit p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+}
+
+.azad-credit .credit-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.azad-credit a {
+  color: var(--medical-blue);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.azad-credit a:hover { color: var(--azad-blue); }
+
+/* ── Responsive ── */
+@media (max-width: 992px) {
+  .medical-login-shell {
+    flex-direction: column;
+  }
+
+  .medical-hero {
+    flex: none;
+    min-height: 280px;
+    padding: 1.75rem;
+    text-align: center;
+  }
+
+  .medical-hero-content {
+    align-items: center;
+  }
+
+  .medical-hero-title {
+    font-size: 1.8rem;
+  }
+
+  .medical-hero-subtitle {
+    max-width: 100%;
+  }
+
+  .medical-hero-visual {
+    justify-content: center;
+  }
+
+  .login-panel {
+    flex: none;
+    padding: 1.5rem;
+  }
+
+  .login-card {
+    padding: 1.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .medical-hero { display: none; }
+
+  .login-panel {
+    padding: 1rem;
+    background: var(--page-bg);
+  }
+
+  .login-card {
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+  }
+
+  .footer-features {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .azad-credit .credit-links {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

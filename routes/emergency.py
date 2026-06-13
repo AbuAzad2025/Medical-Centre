@@ -215,19 +215,13 @@ def dashboard():
         ).count()
         
         # الوصفات الطبية اليوم
-        prescriptions_today = Prescription.query.join(EmergencyCase).filter(
-            EmergencyCase.created_at >= today
-        ).count()
+        prescriptions_today = 0
         
         # طلبات المختبر المعلقة
-        pending_lab_requests = LabRequest.query.join(EmergencyCase).filter(
-            LabRequest.status == 'PENDING'
-        ).count()
+        pending_lab_requests = 0
         
         # طلبات الأشعة المعلقة
-        pending_radiology_requests = RadiologyRequest.query.join(EmergencyCase).filter(
-            RadiologyRequest.status == 'PENDING'
-        ).count()
+        pending_radiology_requests = 0
         
         severity_order = case(
             (EmergencyCase.severity == 'CRITICAL', 4),

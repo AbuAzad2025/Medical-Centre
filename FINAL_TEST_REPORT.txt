@@ -1,0 +1,17 @@
+COMPREHENSIVE SYSTEM TEST REPORT
+============================================================
+Timestamp: 2026-06-13 15:24:21.996895
+Passed: 11/11
+Failed: 0/11
+
+[OK] Admin        | OK -> http://127.0.0.1:8080/manager/dashboard
+[OK] Manager      | OK -> http://127.0.0.1:8080/manager/dashboard
+[OK] Super Admin  | OK -> http://127.0.0.1:8080/super-admin/dashboard
+[OK] Doctor       | OK -> http://127.0.0.1:8080/doctor/dashboard
+[OK] Nurse        | OK -> http://127.0.0.1:8080/nurse/dashboard
+[OK] Reception    | OK -> http://127.0.0.1:8080/reception/dashboard
+[OK] Emergency    | OK -> http://127.0.0.1:8080/emergency/dashboard
+[OK] Radiology    | OK -> http://127.0.0.1:8080/radiology/dashboard
+[OK] Lab          | OK -> http://127.0.0.1:8080/lab/dashboard
+[OK] Accountant   | OK -> http://127.0.0.1:8080/accountant/dashboard
+[OK] Pharmacist   | OK -> http://127.0.0.1:8080/medication/dashboard

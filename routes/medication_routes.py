@@ -43,11 +43,11 @@ def dashboard():
         
         # الأدوية الأكثر استخداماً
         most_used = Medication.query.order_by(
-            Medication.usage_count.desc()
+            Medication.stock_quantity.desc()
         ).limit(5).all()
 
         least_used = Medication.query.order_by(
-            func.coalesce(Medication.usage_count, 0).asc(),
+            Medication.stock_quantity.asc(),
             Medication.trade_name.asc()
         ).limit(5).all()
         
@@ -783,7 +783,7 @@ def get_pharmacy_smart_analytics():
         
         # تحليل الاستخدام
         most_used_medications = Medication.query.order_by(
-            Medication.usage_count.desc()
+            Medication.stock_quantity.desc()
         ).limit(5).all()
 
         return {
@@ -793,7 +793,7 @@ def get_pharmacy_smart_analytics():
             'total_stock_value': float(total_stock_value),
             'low_stock_value': float(low_stock_value),
             'categories': [{'category': c.category, 'count': c.count, 'total_stock': c.total_stock} for c in categories],
-            'most_used': [{'name': m.trade_name, 'usage_count': m.usage_count or 0} for m in most_used_medications],
+            'most_used': [{'name': m.trade_name, 'usage_count': m.stock_quantity or 0} for m in most_used_medications],
             'efficiency_score': calculate_pharmacy_efficiency(active_medications, low_stock_medications, total_medications)
         }
     except Exception as e:

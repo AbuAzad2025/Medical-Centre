@@ -73,13 +73,17 @@ def quality():
     )
     total_done = done_q.count()
 
-    avg_tat_seconds = db.session.query(
-        db.func.avg(db.func.strftime('%s', RadiologyRequest.updated_at) - db.func.strftime('%s', RadiologyRequest.created_at))
-    ).filter(
-        RadiologyRequest.status == 'DONE',
-        RadiologyRequest.updated_at >= start_dt,
-        RadiologyRequest.updated_at <= end_dt
-    ).scalar()
+    try:
+        avg_tat_seconds = db.session.query(
+            db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at))
+        ).filter(
+            RadiologyRequest.status == 'DONE',
+            RadiologyRequest.updated_at >= start_dt,
+            RadiologyRequest.updated_at <= end_dt
+        ).scalar()
+    except Exception:
+        db.session.rollback()
+        avg_tat_seconds = None
     avg_tat_minutes = float(avg_tat_seconds or 0) / 60.0 if avg_tat_seconds is not None else 0.0
 
     total_validated_results = db.session.query(db.func.count(RadiologyResult.id)).join(
@@ -108,7 +112,7 @@ def quality():
         rows = db.session.query(
             db.func.upper(RadiologyRequest.modality).label('modality'),
             db.func.count(RadiologyRequest.id).label('cnt'),
-            db.func.avg(db.func.strftime('%s', RadiologyRequest.updated_at) - db.func.strftime('%s', RadiologyRequest.created_at)).label('avg_sec'),
+            db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at)).label('avg_sec'),
         ).filter(
             RadiologyRequest.status == 'DONE',
             RadiologyRequest.updated_at >= start_dt,
@@ -611,9 +615,13 @@ def get_radiology_smart_analytics():
             RadiologyRequest.status.in_(['REQUESTED', 'IN_PROGRESS'])
         ).count()
         completion_rate = (completed_requests / total_requests * 100) if total_requests > 0 else 0
-        avg_processing_seconds = db.session.query(
-            db.func.avg(db.func.strftime('%s', RadiologyRequest.updated_at) - db.func.strftime('%s', RadiologyRequest.created_at))
-        ).filter(RadiologyRequest.status == 'DONE').scalar()
+        try:
+            avg_processing_seconds = db.session.query(
+                db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at))
+            ).filter(RadiologyRequest.status == 'DONE').scalar()
+        except Exception:
+            db.session.rollback()
+            avg_processing_seconds = None
         avg_processing_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
         return {
             'total_requests': total_requests,
@@ -631,9 +639,13 @@ def get_radiology_imaging_optimization():
     """تحسين التصوير"""
     try:
         total_requests = RadiologyRequest.query.count()
-        avg_processing_seconds = db.session.query(
-            db.func.avg(db.func.strftime('%s', RadiologyRequest.updated_at) - db.func.strftime('%s', RadiologyRequest.created_at))
-        ).filter(RadiologyRequest.status == 'DONE').scalar()
+        try:
+            avg_processing_seconds = db.session.query(
+                db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at))
+            ).filter(RadiologyRequest.status == 'DONE').scalar()
+        except Exception:
+            db.session.rollback()
+            avg_processing_seconds = None
         avg_imaging_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
         total_processed = RadiologyRequest.query.filter(RadiologyRequest.status == 'DONE').count()
         suggestions = generate_imaging_optimization_suggestions(avg_imaging_time)

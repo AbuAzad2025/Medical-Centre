@@ -1,0 +1,138 @@
+IntegrityError
+(psycopg2.errors.NotNullViolation) null value in column "prescription_number" of relation "prescriptions" violates not-null constraint
+DETAIL:  Failing row contains (5, 1, 1, null, null, null, null, 0.00, ACTIVE, 2026-06-13 15:18:38.978949, 2026-06-13 15:18:38.978954).
+
+[SQL: INSERT INTO prescriptions (patient_id, doctor_id, visit_id, prescription_number, diagnosis, notes, total_cost, status, created_at, updated_at) VALUES (%(patient_id)s, %(doctor_id)s, %(visit_id)s, %(prescription_number)s, %(diagnosis)s, %(notes)s, %(total_cost)s, %(status)s, %(created_at)s, %(updated_at)s) RETURNING prescriptions.id]
+[parameters: {'patient_id': 1, 'doctor_id': 1, 'visit_id': None, 'prescription_number': None, 'diagnosis': None, 'notes': None, 'total_cost': 0.0, 'status': 'ACTIVE', 'created_at': datetime.datetime(2026, 6, 13, 12, 18, 38, 978949, tzinfo=datetime.timezone.utc), 'updated_at': datetime.datetime(2026, 6, 13, 12, 18, 38, 978954, tzinfo=datetime.timezone.utc)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+Traceback (most recent call last):
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.NotNullViolation: null value in column "prescription_number" of relation "prescriptions" violates not-null constraint
+DETAIL:  Failing row contains (5, 1, 1, null, null, null, null, 0.00, ACTIVE, 2026-06-13 15:18:38.978949, 2026-06-13 15:18:38.978954).
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<string>", line 13, in <module>
+    db.session.commit()
+    ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\orm\scoping.py", line 597, in commit
+    return self._proxied.commit()
+           ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\orm\session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<string>", line 2, in commit
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\orm\session.py", line 1311, in commit
+    self._prepare_impl()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "<string>", line 2, in _prepare_impl
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\orm\session.py", line 1286, in _prepare_impl
+    self.session.flush()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\orm\session.py", line 4331, in flush
+    self._flush(objects)
+    ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\orm\session.py", line 4466, in _flush
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\orm\session.py", line 4427, in _flush
+    flush_context.execute()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\orm\unitofwork.py", line 466, in execute
+    rec.execute(self)
+    ~~~~~~~~~~~^^^^^^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\orm\unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.mapper,
+        ^^^^^^^^^^^^
+        uow.states_for_mapper_hierarchy(self.mapper, False, False),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        uow,
+        ^^^^
+    )
+    ^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\orm\persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        base_mapper,
+        ^^^^^^^^^^^^
+    ...<3 lines>...
+        insert,
+        ^^^^^^^
+    )
+    ^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\orm\persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+        statement,
+        params,
+        execution_options=execution_options,
+    )
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\azad1\AppData\Roaming\Python\Python314\site-packages\sqlalchemy\engine\default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.NotNullViolation) null value in column "prescription_number" of relation "prescriptions" violates not-null constraint
+DETAIL:  Failing row contains (5, 1, 1, null, null, null, null, 0.00, ACTIVE, 2026-06-13 15:18:38.978949, 2026-06-13 15:18:38.978954).
+
+[SQL: INSERT INTO prescriptions (patient_id, doctor_id, visit_id, prescription_number, diagnosis, notes, total_cost, status, created_at, updated_at) VALUES (%(patient_id)s, %(doctor_id)s, %(visit_id)s, %(prescription_number)s, %(diagnosis)s, %(notes)s, %(total_cost)s, %(status)s, %(created_at)s, %(updated_at)s) RETURNING prescriptions.id]
+[parameters: {'patient_id': 1, 'doctor_id': 1, 'visit_id': None, 'prescription_number': None, 'diagnosis': None, 'notes': None, 'total_cost': 0.0, 'status': 'ACTIVE', 'created_at': datetime.datetime(2026, 6, 13, 12, 18, 38, 978949, tzinfo=datetime.timezone.utc), 'updated_at': datetime.datetime(2026, 6, 13, 12, 18, 38, 978954, tzinfo=datetime.timezone.utc)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)

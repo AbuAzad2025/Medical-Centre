@@ -723,6 +723,19 @@ def create_app(config_name: str | None = None) -> Flask:
             return render_template_string(html)
         return jsonify(result)
 
+    # Root-level convenience redirects for commonly accessed modules
+    @app.route('/patients')
+    def _root_patients():
+        return redirect('/reception/patients')
+
+    @app.route('/visits')
+    def _root_visits():
+        return redirect('/reception/visits')
+
+    @app.route('/medications')
+    def _root_medications():
+        return redirect('/medication/dashboard')
+
     @app.teardown_appcontext
     def shutdown_session(exception=None):
         try:
