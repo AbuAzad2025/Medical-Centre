@@ -12,7 +12,6 @@ from models.patient import Patient
 from models.user import User
 from models.department import Department
 from models.lab_request import LabRequest
-from models.radiology_test import RadiologyTest
 from models.payment import Payment
 import logging
 import secrets

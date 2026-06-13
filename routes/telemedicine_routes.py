@@ -3,6 +3,7 @@ Telemedicine Routes
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
+from utils.decorators import role_required
 from app_factory import db
 from models import TelemedicineAppointment, Patient, User
 from datetime import datetime, timezone
@@ -24,6 +25,7 @@ def index():
 
 @telemedicine_bp.route('/new', methods=['GET', 'POST'])
 @login_required
+@role_required('doctor', 'reception', 'manager', 'super_admin')
 def new_appointment():
     if request.method == 'POST':
         patient_id = request.form.get('patient_id', type=int)

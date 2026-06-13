@@ -230,7 +230,7 @@ def can_modify_patient_data(f):
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
         
-        allowed_roles = ['reception']
+        allowed_roles = ['reception', 'doctor', 'nurse', 'manager', 'super_admin']
         if current_user.role not in allowed_roles:
             logger.warning(f"Patient data modification denied for user {current_user.id} ({current_user.role})")
             flash(_format_message('patient_modify_not_allowed'), 'error')

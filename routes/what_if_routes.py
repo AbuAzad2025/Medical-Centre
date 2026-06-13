@@ -3,6 +3,7 @@ What-If Scenario Routes
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
+from utils.decorators import manager_or_admin_only
 from app_factory import db
 from models import WhatIfScenario, Department
 from datetime import datetime, timezone
@@ -19,6 +20,7 @@ def index():
 
 @what_if_bp.route('/new', methods=['GET', 'POST'])
 @login_required
+@manager_or_admin_only
 def new_scenario():
     if request.method == 'POST':
         scenario = WhatIfScenario(
