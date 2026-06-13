@@ -13,7 +13,7 @@ dicom_bp = Blueprint('dicom', __name__)
 
 @dicom_bp.route('/studies')
 @login_required
-@role_required('radiologist', 'doctor', 'admin', 'manager')
+@role_required('radiology', 'doctor', 'admin', 'manager')
 def studies():
     patient_id = request.args.get('patient_id', type=int)
     modality = request.args.get('modality')
@@ -27,7 +27,7 @@ def studies():
 
 @dicom_bp.route('/study/<int:study_id>')
 @login_required
-@role_required('radiologist', 'doctor', 'admin', 'manager')
+@role_required('radiology', 'doctor', 'admin', 'manager')
 def study_detail(study_id):
     study = DICOMStudy.query.get_or_404(study_id)
     series = DICOMSeries.query.filter_by(study_id=study_id).all()
@@ -35,7 +35,7 @@ def study_detail(study_id):
 
 @dicom_bp.route('/viewer/<int:study_id>')
 @login_required
-@role_required('radiologist', 'doctor', 'admin', 'manager')
+@role_required('radiology', 'doctor', 'admin', 'manager')
 def viewer(study_id):
     study = DICOMStudy.query.get_or_404(study_id)
     series = DICOMSeries.query.filter_by(study_id=study_id).all()

@@ -95,7 +95,7 @@ def dashboard():
             try:
                 avg_sec = db.session.query(
                     func.avg(
-                        func.strftime('%s', func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at)) - func.strftime('%s', Visit.created_at)
+                        func.extract('epoch', func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at)) - func.extract('epoch', Visit.created_at)
                     )
                 ).filter(
                     Visit.department_id == dept_id,
@@ -104,6 +104,7 @@ def dashboard():
                     func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at).isnot(None)
                 ).scalar()
             except Exception:
+                db.session.rollback()
                 avg_sec = None
             department_performance.append({
                 'department_id': dept_id,
@@ -121,7 +122,7 @@ def dashboard():
                 User.full_name.label('doctor_name'),
                 func.count(Visit.id).label('archived_count'),
                 func.avg(
-                    func.strftime('%s', func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at)) - func.strftime('%s', Visit.created_at)
+                    func.extract('epoch', func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at)) - func.extract('epoch', Visit.created_at)
                 ).label('avg_sec')
             ).join(
                 Visit, Visit.doctor_id == User.id
@@ -138,6 +139,7 @@ def dashboard():
                     'avg_minutes_30d': float(r.avg_sec or 0) / 60.0
                 })
         except Exception:
+            db.session.rollback()
             doctor_performance = []
         
         # موافقات معلّقة (الدفع القسري/الإدخال بدون دفع)

@@ -1,0 +1,5 @@
+Login status: 302
+Login redirect: /lab/dashboard
+Dashboard status: 302
+Redirect to: /dashboard
+Follow redirect status: 302

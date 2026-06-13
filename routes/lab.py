@@ -179,14 +179,17 @@ def quality():
 
     total_done_requests = done_requests_q.count()
 
-    avg_tat_seconds = db.session.query(
-        db.func.avg(db.func.strftime('%s', LabRequest.completed_at) - db.func.strftime('%s', LabRequest.created_at))
-    ).filter(
-        LabRequest.status == 'DONE',
-        LabRequest.completed_at.isnot(None),
-        LabRequest.completed_at >= start_dt,
-        LabRequest.completed_at <= end_dt
-    ).scalar()
+    try:
+        avg_tat_seconds = db.session.query(
+            db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
+        ).filter(
+            LabRequest.status == 'DONE',
+            LabRequest.completed_at.isnot(None),
+        ).scalar()
+    except Exception:
+        db.session.rollback()
+        avg_tat_seconds = None
+    
     avg_tat_minutes = float(avg_tat_seconds or 0) / 60.0 if avg_tat_seconds is not None else 0.0
 
     total_validated_results = db.session.query(db.func.count(LabResult.id)).join(
@@ -236,7 +239,7 @@ def quality():
     try:
         rows = db.session.query(
             LabResult.test_code.label('test_code'),
-            db.func.avg(db.func.strftime('%s', LabRequest.completed_at) - db.func.strftime('%s', LabRequest.created_at)).label('avg_sec'),
+            db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at)).label('avg_sec'),
             db.func.count(db.func.distinct(LabRequest.id)).label('requests_count'),
         ).join(
             LabRequest, LabRequest.id == LabResult.request_id
@@ -246,7 +249,7 @@ def quality():
             LabRequest.completed_at >= start_dt,
             LabRequest.completed_at <= end_dt,
             LabResult.status == 'VALIDATED'
-        ).group_by(LabResult.test_code).order_by(db.func.avg(db.func.strftime('%s', LabRequest.completed_at) - db.func.strftime('%s', LabRequest.created_at)).desc()).limit(30).all()
+        ).group_by(LabResult.test_code).order_by(db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at)).desc()).limit(30).all()
         for r in rows:
             test_tat_rows.append({
                 'test_code': r.test_code,
@@ -526,9 +529,13 @@ def get_lab_smart_analytics():
             LabRequest.status.in_(['REQUESTED', 'RECEIVED', 'ANALYZING', 'REVIEWED', 'APPROVED', 'IN_PROGRESS'])
         ).count()
         completion_rate = (completed_requests / total_requests * 100) if total_requests > 0 else 0
-        avg_processing_seconds = db.session.query(
-            db.func.avg(db.func.strftime('%s', LabRequest.completed_at) - db.func.strftime('%s', LabRequest.created_at))
-        ).filter(LabRequest.status == 'DONE', LabRequest.completed_at.isnot(None)).scalar()
+        try:
+            avg_processing_seconds = db.session.query(
+                db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
+            ).filter(LabRequest.status == 'DONE', LabRequest.completed_at.isnot(None)).scalar()
+        except Exception:
+            db.session.rollback()
+            avg_processing_seconds = None
         avg_processing_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
         return {
             'total_requests': total_requests,
@@ -546,9 +553,13 @@ def get_lab_test_optimization():
     """تحسين الفحوصات"""
     try:
         total_requests = LabRequest.query.count()
-        avg_processing_seconds = db.session.query(
-            db.func.avg(db.func.strftime('%s', LabRequest.completed_at) - db.func.strftime('%s', LabRequest.created_at))
-        ).filter(LabRequest.status == 'DONE', LabRequest.completed_at.isnot(None)).scalar()
+        try:
+            avg_processing_seconds = db.session.query(
+                db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
+            ).filter(LabRequest.status == 'DONE', LabRequest.completed_at.isnot(None)).scalar()
+        except Exception:
+            db.session.rollback()
+            avg_processing_seconds = None
         avg_processing_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
         total_processed = LabRequest.query.filter(LabRequest.status == 'DONE').count()
         suggestions = generate_optimization_suggestions(avg_processing_time)

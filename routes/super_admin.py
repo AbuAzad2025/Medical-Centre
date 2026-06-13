@@ -2323,10 +2323,14 @@ def get_predictive_analytics():
         predicted_next_week = int(visits_this_week * (1 + growth_rate/100))
         
         # تحليل ساعات الذروة
-        peak_hours = db.session.query(
-            func.strftime('%H', Visit.created_at).label('hour'),
-            func.count(Visit.id).label('count')
-        ).group_by(func.strftime('%H', Visit.created_at)).all()
+        try:
+            peak_hours = db.session.query(
+                func.extract('hour', Visit.created_at).label('hour'),
+                func.count(Visit.id).label('count')
+            ).group_by(func.extract('hour', Visit.created_at)).all()
+        except Exception:
+            db.session.rollback()
+            peak_hours = []
         
         peak_hour = max(peak_hours, key=lambda x: x.count) if peak_hours else None
         
@@ -2449,10 +2453,14 @@ def get_performance_optimization():
         optimizations = []
         
         # تحليل ساعات الذروة
-        peak_hours = db.session.query(
-            func.strftime('%H', Visit.created_at).label('hour'),
-            func.count(Visit.id).label('count')
-        ).group_by(func.strftime('%H', Visit.created_at)).all()
+        try:
+            peak_hours = db.session.query(
+                func.extract('hour', Visit.created_at).label('hour'),
+                func.count(Visit.id).label('count')
+            ).group_by(func.extract('hour', Visit.created_at)).all()
+        except Exception:
+            db.session.rollback()
+            peak_hours = []
         
         if peak_hours:
             max_hour = max(peak_hours, key=lambda x: x.count)
