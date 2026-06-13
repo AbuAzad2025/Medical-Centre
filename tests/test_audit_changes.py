@@ -23,14 +23,22 @@ class TestInvoiceServiceImport:
 
     def test_invoice_service_imports_cleanly(self):
         with app.app_context():
-            from services.invoice_service import InvoiceService
-            assert InvoiceService is not None
+            from services.invoice_service import _InvoiceServiceDeprecated
+            assert _InvoiceServiceDeprecated is not None
 
     def test_radiology_test_class_does_not_exist(self):
         """RadiologyTest class should not exist in models.radiology_test."""
         with app.app_context():
             import models.radiology_test as rt_module
             assert not hasattr(rt_module, 'RadiologyTest')
+
+    def test_invoice_service_model_not_shadowed(self):
+        """The model InvoiceService must not be shadowed by the stale service class."""
+        with app.app_context():
+            from models.invoice import InvoiceService as ModelInvoiceService
+            from services.invoice_service import _InvoiceServiceDeprecated
+            assert ModelInvoiceService is not _InvoiceServiceDeprecated
+            assert ModelInvoiceService.__module__ == 'models.invoice'
 
     def test_radiology_result_class_exists(self):
         """RadiologyResult should be the actual class."""
@@ -194,18 +202,16 @@ class TestInvoiceServiceBrokenLogic:
 
     def test_service_create_invoice_would_crash(self):
         """
-        InvoiceService.create_invoice passes kwargs like patient_id,
+        _InvoiceServiceDeprecated.create_invoice passes kwargs like patient_id,
         issue_date, due_date, discount_amount, etc. to Invoice().
         None of these columns exist on the Invoice model.
         Calling this method would raise TypeError.
         """
         with app.app_context():
-            from services.invoice_service import InvoiceService
+            from services.invoice_service import _InvoiceServiceDeprecated
             from models.invoice import Invoice
-            # We don't actually call it because it would crash,
-            # but we document the incompatibility.
             import inspect
-            source = inspect.getsource(InvoiceService.create_invoice)
+            source = inspect.getsource(_InvoiceServiceDeprecated.create_invoice)
             # Check that the service references fields not on the model
             assert 'patient_id=' in source
             assert 'issue_date=' in source
@@ -213,9 +219,9 @@ class TestInvoiceServiceBrokenLogic:
 
     def test_service_process_payment_would_crash(self):
         with app.app_context():
-            from services.invoice_service import InvoiceService
+            from services.invoice_service import _InvoiceServiceDeprecated
             import inspect
-            source = inspect.getsource(InvoiceService.process_payment)
+            source = inspect.getsource(_InvoiceServiceDeprecated.process_payment)
             # References non-existent fields
             assert 'invoice.payment_method' in source
             assert 'invoice.updated_by' in source

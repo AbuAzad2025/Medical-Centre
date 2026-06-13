@@ -1,6 +1,8 @@
 """
-خدمة إدارة الفواتير - Invoice Management Service
-Medical System Invoice Management Service
+DEPRECATED - Stale invoice service module.
+This class is NOT used by any route or production code.
+The active billing logic lives in app/modules/workflows/billing.py (BillingService).
+Kept for reference only. Do not use — it references model fields that do not exist.
 """
 
 from datetime import datetime, timedelta, timezone
@@ -17,8 +19,8 @@ import logging
 import secrets
 import string
 
-class InvoiceService:
-    """خدمة إدارة الفواتير الموحدة"""
+class _InvoiceServiceDeprecated:
+    """خدمة إدارة الفواتير الموحدة - DEPRECATED, see module docstring"""
     
     @staticmethod
     def generate_invoice_number():
