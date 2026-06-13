@@ -194,6 +194,48 @@ class TestPaymentModelIntegrity:
             assert 'method' in cols
 
 
+class TestBillingServiceDeadCode:
+    """Verify app/modules/workflows/billing.py is stale dead code."""
+
+    def test_billing_service_deprecated_import(self):
+        with app.app_context():
+            from app.modules.workflows.billing import _BillingServiceDeprecated
+            assert _BillingServiceDeprecated is not None
+
+    def test_billing_service_references_invalid_fields(self):
+        with app.app_context():
+            from app.modules.workflows.billing import _BillingServiceDeprecated
+            import inspect
+            source = inspect.getsource(_BillingServiceDeprecated)
+            # References fields that don't exist on Payment model
+            assert 'payment_method=' in source
+            assert 'reference_number=' in source
+            assert 'posted_at' in source
+            assert 'posted_by' in source
+            # Refund uses negative amount (violates Payment amount >= 0 constraint)
+            assert 'amount=-' in source
+
+    def test_billing_service_no_production_imports(self):
+        import os
+        for root, dirs, files in os.walk('.'):
+            if any(skip in root for skip in ['venv', '__pycache__', '.git', 'node_modules', '.pytest_cache', 'tests']):
+                continue
+            for f in files:
+                if f.endswith('.py'):
+                    path = os.path.join(root, f)
+                    try:
+                        with open(path, 'r', encoding='utf-8') as file:
+                            content = file.read()
+                    except Exception:
+                        continue
+                    if 'BillingService' in content and 'billing' in content:
+                        # Normalize path for cross-platform comparison
+                        norm = path.replace(os.sep, '/')
+                        # Allow the module itself and the stale invoice_service reference
+                        if 'workflows/billing' not in norm and 'invoice_service' not in norm:
+                            raise AssertionError(f'Unexpected BillingService import in {path}')
+
+
 class TestInvoiceServiceBrokenLogic:
     """
     Document that services/invoice_service.py is non-functional
