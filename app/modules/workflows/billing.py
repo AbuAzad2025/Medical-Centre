@@ -1,5 +1,9 @@
 """
-BillingService — invoice posting, payments, refunds, credit notes
+DEPRECATED - Stale billing service module.
+This module is NOT imported by any production route or service.
+The active payment logic lives in routes/payment_routes.py and routes/reception.py.
+Kept for reference only. Do not use — it references model fields that do not exist
+and uses negative payment amounts which violate the Payment model constraint.
 """
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -16,8 +20,8 @@ class InvoiceStatus(str, Enum):
     REFUNDED = "refunded"
 
 
-class BillingService:
-    """All financial mutations MUST go through this service."""
+class _BillingServiceDeprecated:
+    """All financial mutations MUST go through this service. DEPRECATED."""
 
     @staticmethod
     def create_invoice(visit_id: int, items: list[dict], created_by: int) -> object:
