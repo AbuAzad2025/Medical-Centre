@@ -18,6 +18,8 @@ from models.patient import Patient
 from models.visit import Visit
 from models.payment import Payment, PaymentMethod, PaymentStatus
 from models.department import Department
+from models.invoice import Invoice, InvoiceService
+from decimal import Decimal
 
 app = create_app('testing')
 
@@ -64,7 +66,7 @@ class TestPaymentCreationAndBalances:
             )
             db.session.add(payment)
 
-            visit.paid_amount = float(visit.paid_amount or 0) + 100.00
+            visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + Decimal('100.00')
             if visit.remaining_amount <= 0:
                 visit.payment_status = 'PAID'
             else:
@@ -76,6 +78,8 @@ class TestPaymentCreationAndBalances:
             assert float(refreshed_visit.paid_amount) == 100.00
             assert refreshed_visit.payment_status == 'PARTIAL'
             assert float(refreshed_visit.remaining_amount) == 50.00
+            # Verify remaining_amount is a Decimal
+            assert isinstance(refreshed_visit.remaining_amount, Decimal)
 
             # Cleanup
             db.session.delete(payment)
@@ -115,7 +119,7 @@ class TestPaymentCreationAndBalances:
                 received_by=1
             )
             db.session.add(payment)
-            visit.paid_amount = float(visit.paid_amount or 0) + 200.00
+            visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + Decimal('200.00')
             if visit.remaining_amount <= 0:
                 visit.payment_status = 'PAID'
             db.session.commit()
@@ -155,8 +159,8 @@ class TestPaymentCreationAndBalances:
             db.session.add(visit)
             db.session.commit()
 
-            remaining = float(visit.remaining_amount or 0)  # Should be 50.00
-            proposed_amount = 75.00
+            remaining = visit.remaining_amount  # Should be 50.00 (Decimal)
+            proposed_amount = Decimal('75.00')
 
             # Simulate the route's overpayment check
             assert remaining > 0
@@ -196,6 +200,7 @@ class TestPaymentCreationAndBalances:
             assert refreshed.payment_status == 'DEBT'
             assert float(refreshed.paid_amount) == 0.00
             assert float(refreshed.remaining_amount) == 300.00
+            assert isinstance(refreshed.remaining_amount, Decimal)
 
             db.session.delete(visit)
             db.session.delete(patient)
@@ -307,6 +312,7 @@ class TestVisitBalanceConsistency:
 
             refreshed = db.session.get(Visit, visit.id)
             assert abs(float(refreshed.remaining_amount) - (500.00 - 125.50)) < 0.01
+            assert isinstance(refreshed.remaining_amount, Decimal)
 
             db.session.delete(visit)
             db.session.delete(patient)
@@ -407,3 +413,136 @@ class TestInvoiceCreationInReception:
             db.session.delete(patient)
             db.session.delete(dept)
             db.session.commit()
+
+
+class TestPaymentInvoiceLink:
+    """Verify payments are linked to the visit invoice."""
+
+    def test_payment_linked_to_existing_invoice(self):
+        with app.app_context():
+            dept = Department(name='TestDept9', name_ar='قسم 9', is_active=True)
+            db.session.add(dept)
+            db.session.flush()
+
+            patient = Patient(first_name='Test9', last_name='Patient', phone='0500000009', gender='male')
+            db.session.add(patient)
+            db.session.flush()
+
+            visit = Visit(
+                patient_id=patient.id,
+                department_id=dept.id,
+                total_amount=400.00,
+                paid_amount=0.00,
+                payment_status='PENDING'
+            )
+            db.session.add(visit)
+            db.session.commit()
+
+            # Create invoice (as reception.py does)
+            invoice = Invoice(
+                invoice_number=f"INV-{visit.id}-TEST",
+                visit_id=visit.id,
+                created_by=1,
+                status='ISSUED',
+                currency='ILS',
+                total_amount=visit.total_amount or 0,
+                paid_amount=visit.paid_amount or 0,
+            )
+            db.session.add(invoice)
+            db.session.flush()
+
+            # Create payment and link to invoice (simulating payment_routes.py logic)
+            payment = Payment(
+                patient_id=patient.id,
+                visit_id=visit.id,
+                amount=Decimal('150.00'),
+                currency='ILS',
+                method=PaymentMethod.CASH,
+                status=PaymentStatus.CONFIRMED,
+                payment_date=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
+                received_by=1
+            )
+            existing_invoice = Invoice.query.filter_by(visit_id=visit.id).order_by(Invoice.created_at.desc()).first()
+            if existing_invoice:
+                payment.invoice_id = existing_invoice.id
+            db.session.add(payment)
+
+            visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + Decimal('150.00')
+            if visit.remaining_amount <= 0:
+                visit.payment_status = 'PAID'
+            else:
+                visit.payment_status = 'PARTIAL'
+            db.session.commit()
+
+            refreshed_payment = db.session.get(Payment, payment.id)
+            assert refreshed_payment.invoice_id == invoice.id
+
+            db.session.delete(payment)
+            db.session.delete(invoice)
+            db.session.delete(visit)
+            db.session.delete(patient)
+            db.session.delete(dept)
+            db.session.commit()
+
+
+class TestPaymentRollbackSafety:
+    """Verify rollback on failure leaves balances unchanged."""
+
+    def test_rollback_leaves_paid_amount_unchanged(self):
+        with app.app_context():
+            dept = Department(name='TestDept10', name_ar='قسم 10', is_active=True)
+            db.session.add(dept)
+            db.session.flush()
+
+            patient = Patient(first_name='Test10', last_name='Patient', phone='0500000010', gender='female')
+            db.session.add(patient)
+            db.session.flush()
+
+            visit = Visit(
+                patient_id=patient.id,
+                department_id=dept.id,
+                total_amount=500.00,
+                paid_amount=100.00,
+                payment_status='PARTIAL'
+            )
+            db.session.add(visit)
+            db.session.commit()
+
+            original_paid = float(visit.paid_amount)
+            original_remaining = float(visit.remaining_amount)
+
+            # Simulate a payment that fails mid-transaction
+            payment = Payment(
+                patient_id=patient.id,
+                visit_id=visit.id,
+                amount=Decimal('200.00'),
+                currency='ILS',
+                method=PaymentMethod.CASH,
+                status=PaymentStatus.CONFIRMED,
+                payment_date=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
+                received_by=1
+            )
+            db.session.add(payment)
+            visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + Decimal('200.00')
+
+            # Simulate an error before commit
+            db.session.rollback()
+
+            refreshed = db.session.get(Visit, visit.id)
+            assert float(refreshed.paid_amount) == original_paid
+            assert float(refreshed.remaining_amount) == original_remaining
+
+            db.session.delete(visit)
+            db.session.delete(patient)
+            db.session.delete(dept)
+            db.session.commit()
+
+
+class TestPaymentRouteLocking:
+    """Verify row-level locking is present in payment route."""
+
+    def test_with_for_update_present_in_source(self):
+        with open('routes/payment_routes.py', 'r', encoding='utf-8') as f:
+            content = f.read()
+        assert 'with_for_update()' in content, "Missing row-level locking in payment route"
+        assert "db.session.query(Visit).filter_by(id=visit_id).with_for_update().first()" in content

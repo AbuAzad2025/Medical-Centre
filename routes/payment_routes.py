@@ -16,6 +16,7 @@ from services.gatekeeper_service import GatekeeperService
 from app_factory import db
 import logging
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 import json
 
 payment_bp = Blueprint('payment', __name__)
@@ -79,7 +80,7 @@ def process_payment(visit_id):
     """معالجة دفع"""
     
     
-    visit = db.session.get(Visit, visit_id)
+    visit = db.session.query(Visit).filter_by(id=visit_id).with_for_update().first()
     if not visit:
         abort(404)
     
@@ -113,8 +114,8 @@ def process_payment(visit_id):
             insurance_coverage_raw = (request.form.get('insurance_coverage') or '').strip()
             insurance_company_id = (request.form.get('insurance_company_id') or '').strip()
 
-            paid_amount = request.form.get('paid_amount') or request.form.get('amount') or '0'
-            amount_value = float(paid_amount or 0)
+            paid_amount_str = request.form.get('paid_amount') or request.form.get('amount') or '0'
+            amount_value = Decimal(paid_amount_str)
             payment_currency = (request.form.get('payment_currency') or 'ILS').strip().upper()
             base_currency = 'ILS'  # العملة الأساسية للنظام
             converted_amount = amount_value
@@ -122,7 +123,7 @@ def process_payment(visit_id):
                 from services.currency_service import CurrencyConverter
                 rate = CurrencyConverter.get_rate(payment_currency, base_currency)
                 if rate is not None:
-                    converted_amount = float(CurrencyConverter.convert(amount_value, payment_currency, base_currency))
+                    converted_amount = Decimal(str(CurrencyConverter.convert(amount_value, payment_currency, base_currency)))
                 else:
                     if _wants_json():
                         return jsonify({'success': False, 'message': f'سعر صرف {payment_currency}→{base_currency} غير متوفر'}), 400
@@ -197,7 +198,7 @@ def process_payment(visit_id):
             allow_partial = bool(allow_partial_global) and bool(allow_partial_dept)
             allow_debt = bool(allow_debt_global) and bool(allow_debt_dept)
 
-            remaining = float(visit.remaining_amount or 0)
+            remaining = visit.remaining_amount
             if amount_value > 0 and remaining <= 0:
                 if _wants_json():
                     return jsonify({'success': False, 'message': 'الزيارة مدفوعة بالكامل'}), 400
@@ -209,7 +210,7 @@ def process_payment(visit_id):
                 flash('المبلغ المدفوع يتجاوز المستحق', 'error')
                 return redirect(url_for('payment.process_payment', visit_id=visit_id))
 
-            if is_debt and float(visit.remaining_amount or 0) > 0:
+            if is_debt and visit.remaining_amount > 0:
                 if not accept_responsibility:
                     if _wants_json():
                         return jsonify({'success': False, 'message': 'يتطلب تحمل المسؤولية من الاستقبال'}), 400
@@ -231,13 +232,13 @@ def process_payment(visit_id):
                     return redirect(url_for('reception.view_visit', visit_id=visit_id))
                 return redirect(url_for('reception.print_receipt', visit_id=visit_id))
 
-            if amount_value < float(visit.remaining_amount or 0) and float(visit.remaining_amount or 0) > 0 and not allow_partial:
+            if amount_value < visit.remaining_amount and visit.remaining_amount > 0 and not allow_partial:
                 if _wants_json():
                     return jsonify({'success': False, 'message': 'الدفع الجزئي غير مسموح'}), 400
                 flash('الدفع الجزئي غير مسموح', 'error')
                 return redirect(url_for('payment.process_payment', visit_id=visit_id))
 
-            if amount_value <= 0 and float(visit.remaining_amount or 0) > 0:
+            if amount_value <= 0 and visit.remaining_amount > 0:
                 if not allow_debt:
                     if _wants_json():
                         return jsonify({'success': False, 'message': 'الدين غير مسموح'}), 400
@@ -268,9 +269,12 @@ def process_payment(visit_id):
                 payment.reference = payment_reference
             elif method_value == PaymentMethod.CARD and card_last_digits:
                 payment.reference = f"CARD-****{card_last_digits}"
+            existing_invoice = Invoice.query.filter_by(visit_id=visit.id).order_by(Invoice.created_at.desc()).first()
+            if existing_invoice:
+                payment.invoice_id = existing_invoice.id
             db.session.add(payment)
 
-            visit.paid_amount = float(visit.paid_amount or 0) + amount_value
+            visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + amount_value
             visit.payment_method = method_value or visit.payment_method
             if method_value == PaymentMethod.CARD:
                 if card_last_digits:

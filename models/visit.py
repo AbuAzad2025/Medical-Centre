@@ -128,8 +128,9 @@ class Visit(db.Model):
 
     @property
     def remaining_amount(self):
+        from decimal import Decimal
         """حساب المبلغ المتبقي"""
-        return float(self.total_amount or 0) - float(self.paid_amount or 0)
+        return Decimal(str(self.total_amount or 0)) - Decimal(str(self.paid_amount or 0))
     
     @property
     def is_fully_paid(self):
