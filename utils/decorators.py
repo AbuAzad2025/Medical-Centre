@@ -230,10 +230,30 @@ def can_modify_patient_data(f):
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
         
-        allowed_roles = ['reception', 'doctor', 'nurse', 'manager', 'super_admin']
+        allowed_roles = ['reception', 'manager', 'super_admin']
         if current_user.role not in allowed_roles:
             logger.warning(f"Patient data modification denied for user {current_user.id} ({current_user.role})")
             flash(_format_message('patient_modify_not_allowed'), 'error')
+            abort(403)
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def can_delete_patient(f):
+    """
+    ديكوريتر للتحقق من صلاحية حذف المريض - صلاحية إدارية صارمة
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash(_format_message('not_authenticated'), 'error')
+            return redirect(url_for('auth.login'))
+        
+        allowed_roles = ['manager', 'super_admin']
+        if current_user.role not in allowed_roles:
+            logger.warning(f"Patient deletion denied for user {current_user.id} ({current_user.role})")
+            flash(_format_message('patient_delete_not_allowed'), 'error')
             abort(403)
         
         return f(*args, **kwargs)

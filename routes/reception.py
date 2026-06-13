@@ -13,7 +13,7 @@ from models.department import Department
 from models.payment import Payment, PaymentMethod, PaymentStatus
 from models.queue_management import QueueManagement
 from services.gatekeeper_service import GatekeeperService
-from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data
+from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
 from app_factory import db
 import logging
 from services.access_control_service import AccessControlService
@@ -1780,7 +1780,7 @@ def edit_patient(patient_id):
 
 @reception_bp.route('/delete_patient/<int:patient_id>', methods=['POST'])
 @login_required
-@can_modify_patient_data
+@can_delete_patient
 def delete_patient(patient_id):
     patient = db.session.get(Patient, patient_id)
     if not patient:
