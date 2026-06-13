@@ -1758,6 +1758,7 @@ def analytics():
 
 # إدارة العلامة التجارية
 @super_admin_bp.route('/branding')
+@login_required
 @super_admin_required
 def branding():
     """إدارة العلامة التجارية والشعارات"""
@@ -1779,6 +1780,7 @@ def branding():
         return redirect(url_for('super_admin.dashboard'))
 
 @super_admin_bp.route('/branding/update', methods=['POST'])
+@login_required
 @super_admin_required
 def update_branding():
     """تحديث إعدادات العلامة التجارية"""
@@ -1824,6 +1826,7 @@ def update_branding():
 
 # إدارة المستخدمين المتقدمة
 @super_admin_bp.route('/users/ban/<int:user_id>')
+@login_required
 @super_admin_required
 def ban_user(user_id):
     """حظر مستخدم"""
@@ -1851,6 +1854,7 @@ def ban_user(user_id):
         return redirect(url_for('super_admin.users'))
 
 @super_admin_bp.route('/users/unban/<int:user_id>')
+@login_required
 @super_admin_required
 def unban_user(user_id):
     """إلغاء حظر مستخدم"""
@@ -1874,6 +1878,7 @@ def unban_user(user_id):
         return redirect(url_for('super_admin.users'))
 
 @super_admin_bp.route('/users/force-logout/<int:user_id>')
+@login_required
 @super_admin_required
 def force_logout_user(user_id):
     """إجبار مستخدم على تسجيل الخروج"""
@@ -1910,6 +1915,7 @@ def force_logout_user(user_id):
 
 # إدارة النظام المتقدمة
 @super_admin_bp.route('/system/maintenance')
+@login_required
 @super_admin_required
 def system_maintenance():
     """صيانة النظام"""
@@ -1939,6 +1945,7 @@ def system_maintenance():
         return redirect(url_for('super_admin.dashboard'))
 
 @super_admin_bp.route('/system/cleanup', methods=['POST'])
+@login_required
 @super_admin_required
 def system_cleanup():
     """تنظيف النظام"""
@@ -2104,6 +2111,7 @@ def get_last_backup_time():
 
 # مسارات مبسطة لإنشاء الأدوار والصلاحيات
 @super_admin_bp.route('/create-role-simple', methods=['POST'])
+@login_required
 @super_admin_required
 def create_role_simple():
     """إنشاء دور جديد (مبسط)"""
@@ -2134,6 +2142,7 @@ def create_role_simple():
         return redirect(url_for('super_admin.users'))
 
 @super_admin_bp.route('/create-permission-simple', methods=['POST'])
+@login_required
 @super_admin_required
 def create_permission_simple():
     """إنشاء صلاحية جديدة (مبسط)"""
@@ -2664,6 +2673,7 @@ def backup():
         return render_template('super_admin/system_backup.html', backups=[], stats={}, settings={})
 
 @super_admin_bp.route('/backup/settings', methods=['POST'])
+@login_required
 @super_admin_required
 def save_backup_settings():
     """حفظ إعدادات النسخ الاحتياطي العامة"""
@@ -2695,6 +2705,7 @@ def save_backup_settings():
         return jsonify({'success': False, 'message': 'تعذر حفظ إعدادات النسخ الاحتياطي حالياً'}), 500
 
 @super_admin_bp.route('/backup/create', methods=['POST'])
+@login_required
 @super_admin_required
 def create_backup():
     """إنشاء نسخة احتياطية"""
@@ -2786,6 +2797,7 @@ def create_backup():
         })
 
 @super_admin_bp.route('/backup/restore/<int:backup_id>', methods=['POST'])
+@login_required
 @super_admin_required
 def restore_backup(backup_id):
     """استعادة نسخة احتياطية"""
@@ -2814,6 +2826,7 @@ def restore_backup(backup_id):
         return jsonify({'success': False, 'message': 'تعذر استعادة النسخة الاحتياطية حالياً'}), 500
 
 @super_admin_bp.route('/backup/delete/<int:backup_id>', methods=['POST'])
+@login_required
 @super_admin_required
 def delete_backup(backup_id):
     """حذف نسخة احتياطية"""
@@ -2843,6 +2856,7 @@ def delete_backup(backup_id):
         return jsonify({'success': False, 'message': 'تعذر حذف النسخة الاحتياطية حالياً'}), 500
 
 @super_admin_bp.route('/backup/cancel/<int:backup_id>', methods=['POST'])
+@login_required
 @super_admin_required
 def cancel_backup(backup_id):
     """إلغاء (أو تحديث حالة) نسخة احتياطية عالقة"""
@@ -2869,6 +2883,7 @@ def cancel_backup(backup_id):
         return jsonify({'success': False, 'message': 'تعذر إلغاء النسخة الاحتياطية حالياً'}), 500
 
 @super_admin_bp.route('/backup/schedule', methods=['GET', 'POST'])
+@login_required
 @super_admin_required
 def backup_schedule():
     """إدارة جدولة النسخ الاحتياطي"""
@@ -2914,6 +2929,7 @@ def backup_schedule():
         return jsonify({'success': False, 'message': 'تعذر حفظ جدولة النسخ الاحتياطي حالياً'}), 500
 
 @super_admin_bp.route('/backup/report')
+@login_required
 @super_admin_required
 def backup_report():
     """عرض تقرير النسخ الاحتياطي"""
@@ -3041,6 +3057,7 @@ def data_warehouse_export():
         return jsonify({'success': False, 'message': 'تعذر تصدير المستودع'}), 500
 
 @super_admin_bp.route('/backup/export-logs')
+@login_required
 @super_admin_required
 def export_backup_logs():
     """تصدير سجلات النسخ الاحتياطي CSV"""
@@ -3078,6 +3095,7 @@ def export_backup_logs():
         return redirect(url_for('super_admin.backup'))
 
 @super_admin_bp.route('/backup/history')
+@login_required
 @super_admin_required
 def backup_history():
     """API للحصول على تاريخ النسخ الاحتياطي"""
@@ -3101,6 +3119,7 @@ def backup_history():
         return jsonify({'success': False, 'message': 'تعذر جلب سجل النسخ الاحتياطي حالياً'}), 500
 
 @super_admin_bp.route('/export-data', methods=['POST'])
+@login_required
 @super_admin_required
 def export_system_data():
     """تصدير بيانات النظام"""
@@ -3187,6 +3206,7 @@ def export_system_data():
         })
 
 @super_admin_bp.route('/download-export/<filename>')
+@login_required
 @super_admin_required
 def download_export(filename):
     """تحميل ملف التصدير"""
@@ -3207,6 +3227,7 @@ def download_export(filename):
         return redirect(url_for('super_admin.dashboard'))
 
 @super_admin_bp.route('/system-monitor')
+@login_required
 @super_admin_required
 def system_monitor():
     """مراقب النظام المتقدم"""
