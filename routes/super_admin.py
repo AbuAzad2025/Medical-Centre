@@ -1977,73 +1977,9 @@ def system_cleanup():
             flash('تم تنظيف الكاش', 'success')
         
         elif cleanup_type == 'seed_data':
-            from models.medication import PrescriptionItem, Prescription, Medication
-            from models.lab_request import LabResult, LabRequest
-            from models.radiology_test import RadiologyResult
-            from models.radiology_request import RadiologyRequest
-            from models.invoice import InvoiceService, Invoice
-            from models.payment import Payment
-            from models.queue_management import QueueManagement, QueueSettings
-            from models.emergency import EmergencyCase
-            from models.treatment import Treatment
-            from models.notification import Notification, NotificationQueue, NotificationTemplate
-            from models.ai_analytics import AIRecommendation, DiseasePattern, PerformanceAnalytics
-            from models.pricing import ServicePrice, DoctorPricing, PricingCatalog, TemporaryService, InsuranceProvider
-            from models.insurance import InsuranceCompany, InsuranceClaim
-            from models.service import ServiceMaster
-            from models.workflow import WorkflowStep, PatientWorkflow, WorkflowTransfer
-            from models.appointment import Appointment
-            from models.medical_record import MedicalRecord
-            from models.medical_report import MedicalReport
-            from models.receipt import Receipt
-            from models.visit import Visit
-            from models.department import Department
-            from models.user import User
-
-            def delq(Model):
-                return Model.query.delete(synchronize_session=False)
-
-            delq(PrescriptionItem)
-            delq(InvoiceService)
-            delq(LabResult)
-            delq(RadiologyResult)
-            delq(NotificationQueue)
-            delq(MedicalReport)
-            delq(Receipt)
-            delq(QueueManagement)
-            delq(WorkflowTransfer)
-            delq(PatientWorkflow)
-
-            delq(Prescription)
-            delq(LabRequest)
-            delq(RadiologyRequest)
-            delq(Payment)
-            delq(Invoice)
-            delq(EmergencyCase)
-            delq(Treatment)
-            delq(Notification)
-            delq(NotificationTemplate)
-            delq(AIRecommendation)
-            delq(DiseasePattern)
-            delq(PerformanceAnalytics)
-            delq(PricingCatalog)
-            delq(TemporaryService)
-            delq(ServicePrice)
-            delq(DoctorPricing)
-            delq(InsuranceClaim)
-            delq(InsuranceCompany)
-            delq(ServiceMaster)
-            delq(Appointment)
-            delq(Visit)
-            delq(MedicalRecord)
-            delq(QueueSettings)
-
-            User.query.filter(User.department_id.isnot(None)).update({User.department_id: None}, synchronize_session=False)
-            delq(Medication)
-            delq(Department)
-
-            db.session.commit()
-            flash('تم تنظيف بيانات البذور بنجاح (ما عدا المستخدمين)', 'success')
+            # SAFETY FIX: Destructive seed_data cleanup is disabled to prevent accidental production data loss.
+            flash('تم تعطيل ميزة تنظيف بيانات البذور (seed_data) لأسباب أمنية.', 'warning')
+            return redirect(url_for('super_admin.system_maintenance'))
         elif cleanup_type == 'harmonize':
             from services.pricing_service import PricingService
             r_all = PricingService.cleanup_all(max_keep_per_role=1)
