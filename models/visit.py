@@ -2,6 +2,7 @@
 نموذج الزيارة - Visit (نسخة نهائية موحّدة)
 """
 from datetime import datetime, timezone
+from decimal import Decimal
 from sqlalchemy import Index
 from app_factory import db
 
@@ -189,10 +190,11 @@ class Visit(db.Model):
     
     def calculate_insurance_amounts(self):
         """حساب مبالغ التأمين تلقائياً"""
-        if self.payment_method == 'insurance' and self.insurance_coverage_percentage:
-            coverage = float(self.insurance_coverage_percentage) / 100
-            self.insurance_amount = float(self.total_amount or 0) * coverage
-            self.patient_share = float(self.total_amount or 0) * (1 - coverage)
+        if str(self.payment_method or '').lower() == 'insurance' and self.insurance_coverage_percentage:
+            coverage = Decimal(str(self.insurance_coverage_percentage)) / Decimal('100')
+            total = Decimal(str(self.total_amount or 0))
+            self.insurance_amount = total * coverage
+            self.patient_share = total * (Decimal('1') - coverage)
     
     def __repr__(self) -> str:
         return f"<Visit #{self.visit_number or self.id} patient={self.patient_id}>"
@@ -206,8 +208,8 @@ class Visit(db.Model):
             "visit_number": self.visit_number,
             "status": self.status,
             "payment_status": self.payment_status,
-            "total_amount": float(self.total_amount or 0),
-            "paid_amount": float(self.paid_amount or 0),
+            "total_amount": str(Decimal(str(self.total_amount or 0)).quantize(Decimal('0.01'))),
+            "paid_amount": str(Decimal(str(self.paid_amount or 0)).quantize(Decimal('0.01'))),
             "currency": self.currency,
             "visit_type": self.visit_type,
             "visit_date": self.visit_date.isoformat() if self.visit_date else None,
@@ -217,8 +219,8 @@ class Visit(db.Model):
             "insurance_company_id": self.insurance_company_id,
             "is_emergency": self.is_emergency,
             "is_force_payment": self.is_force_payment,
-            "insurance_amount": float(self.insurance_amount or 0) if self.insurance_amount is not None else None,
-            "patient_share": float(self.patient_share or 0) if self.patient_share is not None else None,
+            "insurance_amount": str(Decimal(str(self.insurance_amount or 0)).quantize(Decimal('0.01'))) if self.insurance_amount is not None else None,
+            "patient_share": str(Decimal(str(self.patient_share or 0)).quantize(Decimal('0.01'))) if self.patient_share is not None else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,

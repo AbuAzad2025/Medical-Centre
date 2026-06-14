@@ -362,7 +362,7 @@ class GatekeeperService:
         
         # التحقق من المبلغ للدفع النقدي
         if payment_method.lower() == 'cash' and amount:
-            if float(amount) > GatekeeperService.MAX_CASH_AMOUNT:
+            if Decimal(str(amount)) > Decimal(str(GatekeeperService.MAX_CASH_AMOUNT)):
                 return False, f"المبلغ النقدي يتجاوز الحد المسموح ({GatekeeperService.MAX_CASH_AMOUNT} شيكل)"
         
         return True, "طريقة الدفع صالحة"

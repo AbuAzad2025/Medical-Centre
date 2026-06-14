@@ -286,6 +286,11 @@ def process_payment(visit_id):
                     visit.insurance_provider = insurance_provider
                 if insurance_policy_number:
                     visit.insurance_policy_number = insurance_policy_number
+                if insurance_coverage_raw:
+                    try:
+                        visit.insurance_coverage_percentage = Decimal(insurance_coverage_raw)
+                    except Exception:
+                        pass
                 if insurance_company_id and insurance_company_id.isdigit():
                     try:
                         from models.insurance import InsuranceCompany
@@ -296,6 +301,15 @@ def process_payment(visit_id):
                                 visit.insurance_provider = company.name_ar or company.name
                     except Exception:
                         pass
+                # حساب مبالغ التأمين وحصة المريض
+                visit.calculate_insurance_amounts()
+                # عند الدفع بالتأمين يجب أن يكون المبلغ مساوياً لحصة المريض
+                if visit.patient_share and amount_value > visit.patient_share:
+                    msg = f"المبلغ المدخل ({amount_value}) يتجاوز حصة المريض ({visit.patient_share})"
+                    if _wants_json():
+                        return jsonify({'success': False, 'message': msg}), 400
+                    flash(msg, 'error')
+                    return redirect(url_for('payment.process_payment', visit_id=visit_id))
             if is_force_payment:
                 visit.is_force_payment = True
                 if force_reason:
