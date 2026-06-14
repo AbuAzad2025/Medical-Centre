@@ -76,3 +76,9 @@ medical_system.db
 .env.production
 .env.development
 
+# Local Artifacts
+debug/
+scripts/manual_tests/
+reports/*.txt
+tem*
+
