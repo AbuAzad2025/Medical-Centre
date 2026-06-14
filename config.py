@@ -45,6 +45,14 @@ class Config:
     JSONIFY_PRETTYPRINT_REGULAR = False
     SEND_FILE_MAX_AGE_DEFAULT = 31536000  # سنة واحدة للكاش
     DEFAULT_CURRENCY = os.environ.get('DEFAULT_CURRENCY') or 'ILS'
+
+    # Deployment mode:
+    # - single_install: one standalone customer installation, no tenant enforcement.
+    # - saas: tenant resolution and module guards are enforced.
+    DEPLOYMENT_MODE = os.environ.get('DEPLOYMENT_MODE', 'single_install').strip().lower()
+    ENABLE_SAAS_MODE = DEPLOYMENT_MODE == 'saas' or os.environ.get('ENABLE_SAAS_MODE', 'false').lower() in ('true', 'on', '1')
+    TENANT_RESOLUTION_MODE = os.environ.get('TENANT_RESOLUTION_MODE', 'domain').strip().lower()
+    TENANT_BASE_DOMAIN = os.environ.get('TENANT_BASE_DOMAIN', '').strip().lower()
     
     # إعدادات قاعدة البيانات
     SQLALCHEMY_TRACK_MODIFICATIONS = False
