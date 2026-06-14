@@ -523,14 +523,21 @@ def create_app(config_name: str | None = None) -> Flask:
     def _guard_factory(module_name):
         def _guard():
             from flask import g, abort
+            from werkzeug.exceptions import HTTPException
+            if not app.config.get('ENABLE_SAAS_MODE', False):
+                return None
             tenant = getattr(g, 'current_tenant', None)
-            if tenant:
-                try:
-                    from app.core.module.validators import get_active_modules_for_tenant
-                    if module_name not in get_active_modules_for_tenant(tenant.id):
-                        abort(403, description=f"Module '{module_name}' is not activated for this tenant.")
-                except Exception:
-                    pass
+            if not tenant:
+                abort(403, description="Tenant context is required in SaaS mode.")
+            try:
+                from app.core.module.validators import get_active_modules_for_tenant
+                if module_name not in get_active_modules_for_tenant(tenant.id):
+                    abort(403, description=f"Module '{module_name}' is not activated for this tenant.")
+            except HTTPException:
+                raise
+            except Exception as exc:
+                app.logger.exception("Module guard failed for %s", module_name)
+                abort(403, description=str(exc))
         return _guard
 
     def _add_guard_once(bp, module_name):
@@ -601,8 +608,12 @@ def create_app(config_name: str | None = None) -> Flask:
         try:
             from app.core.tenant.middleware import set_tenant_context
             set_tenant_context()
-        except Exception:
-            # Tenant tables may not exist yet (legacy boot or fresh DB)
+        except Exception as exc:
+            if app.config.get('ENABLE_SAAS_MODE', False):
+                app.logger.exception("Tenant resolution failed")
+                from flask import abort
+                abort(403, description=str(exc))
+            # Tenant tables may not exist yet in standalone mode.
             pass
 
     # Module-aware context processor for templates
@@ -615,8 +626,10 @@ def create_app(config_name: str | None = None) -> Flask:
                 from app.core.module.validators import get_active_modules_for_tenant
                 mods = get_active_modules_for_tenant(tenant.id)
                 return {'enabled_modules': mods, 'current_tenant': tenant}
-            except Exception:
-                pass
+            except Exception as exc:
+                if app.config.get('ENABLE_SAAS_MODE', False):
+                    app.logger.exception("Module context injection failed")
+                    return {'enabled_modules': set(), 'current_tenant': tenant}
         return {'enabled_modules': set(), 'current_tenant': None}
 
     # Security & audit middleware

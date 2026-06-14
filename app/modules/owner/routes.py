@@ -2,7 +2,7 @@
 Owner Blueprint — platform admin routes (SaaS control plane)
 """
 from datetime import date, datetime, timedelta, timezone
-from flask import render_template, render_template_string, jsonify, request, flash, redirect, url_for
+from flask import current_app, render_template, render_template_string, jsonify, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from app.modules.owner import owner_bp
 from app.extensions import db
@@ -19,6 +19,16 @@ def _owner_guard():
     if current_user.role not in ('super_admin', 'admin', 'owner'):
         flash('غير مصرح', 'error')
         return redirect(url_for('main.dashboard'))
+    return None
+
+
+def _owner_api_guard():
+    if not current_user.is_authenticated:
+        return jsonify({"error": "authentication_required"}), 401
+    if current_user.role not in ('super_admin', 'admin', 'owner'):
+        return jsonify({"error": "owner_access_required"}), 403
+    if not current_app.config.get('ENABLE_SAAS_MODE', False):
+        return jsonify({"error": "saas_mode_disabled"}), 404
     return None
 
 
@@ -662,19 +672,31 @@ def owner_api_keys():
 # Existing API routes preserved
 # ─────────────────────────────────────────────
 @owner_bp.route("/api/tenants", methods=["GET"])
+@login_required
 def api_tenants():
+    guard = _owner_api_guard()
+    if guard:
+        return guard
     tenants = Tenant.query.all()
     return jsonify([{"id": t.id, "name": t.name, "slug": t.slug, "status": str(t.status)} for t in tenants])
 
 
 @owner_bp.route("/api/tenants/<int:tenant_id>/modules", methods=["GET"])
+@login_required
 def api_tenant_modules(tenant_id):
+    guard = _owner_api_guard()
+    if guard:
+        return guard
     active = get_active_modules_for_tenant(tenant_id)
     return jsonify({"tenant_id": tenant_id, "active_modules": list(active)})
 
 
 @owner_bp.route("/api/tenants/<int:tenant_id>/modules/<module_name>/activate", methods=["POST"])
+@login_required
 def api_activate_module(tenant_id, module_name):
+    guard = _owner_api_guard()
+    if guard:
+        return guard
     ok, err = can_activate_module(tenant_id, module_name)
     if not ok:
         return jsonify({"error": err}), 400
