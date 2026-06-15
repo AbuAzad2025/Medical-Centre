@@ -1338,3 +1338,214 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   opacity: 0.4;
   background: var(--surface-elevated) !important;
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   Mobile & Tablet Responsiveness
+   Ensures AZAD Medical works smoothly on all screen sizes.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Touch Target Sizes ── */
+.btn, .nav-link-luxury, .dropdown-item,
+.form-check-input, .page-link {
+  min-height: 44px;
+  min-width: 44px;
+}
+.btn-sm {
+  min-height: 36px;
+  min-width: 36px;
+}
+
+/* ── Prevent text zoom on iOS inputs ── */
+input, select, textarea {
+  font-size: 16px !important;
+}
+@media (min-width: 992px) {
+  input, select, textarea {
+    font-size: inherit !important;
+  }
+}
+
+/* ── Mobile Sidebar Enhancements ── */
+@media (max-width: 991.98px) {
+  .luxury-sidebar {
+    width: 280px;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -8px 0 40px rgba(0,0,0,0.25);
+  }
+  .luxury-sidebar.show {
+    transform: translateX(0);
+  }
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1035;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+  }
+  .sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  body.sidebar-open {
+    overflow: hidden;
+    touch-action: none;
+  }
+  .main-content {
+    margin-right: 0 !important;
+  }
+  .topbar {
+    padding: 0.5rem 0.75rem !important;
+  }
+}
+
+/* ── Mobile Cards ── */
+@media (max-width: 767.98px) {
+  .card {
+    border-radius: var(--radius-md) !important;
+  }
+  .card-body {
+    padding: 1rem !important;
+  }
+  .card-header {
+    padding: 0.85rem 1rem !important;
+  }
+  .card-stat {
+    padding: 1rem !important;
+  }
+  .stat-value {
+    font-size: 1.4rem !important;
+  }
+}
+
+/* ── Mobile Tables ── */
+@media (max-width: 767.98px) {
+  .table-responsive {
+    border-radius: var(--radius-md) !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table thead th {
+    font-size: 0.75rem !important;
+    padding: 0.6rem 0.5rem !important;
+    white-space: nowrap;
+  }
+  .table tbody td {
+    padding: 0.6rem 0.5rem !important;
+    font-size: 0.85rem !important;
+  }
+  .table .btn-sm {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+/* ── Mobile Forms ── */
+@media (max-width: 767.98px) {
+  .form-control, .form-select {
+    padding: 0.7rem 0.85rem !important;
+    min-height: 48px;
+  }
+  .form-label {
+    font-size: 0.85rem !important;
+  }
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filter-bar .form-control,
+  .filter-bar .form-select {
+    min-width: 100%;
+  }
+  .filter-bar .btn {
+    width: 100%;
+  }
+}
+
+/* ── Mobile Quick Actions ── */
+@media (max-width: 767.98px) {
+  .quick-actions {
+    gap: 0.4rem;
+  }
+  .quick-actions .btn {
+    flex: 1 1 calc(50% - 0.4rem);
+    justify-content: center;
+    font-size: 0.8rem;
+  }
+}
+
+/* ── Mobile Page Header ── */
+@media (max-width: 767.98px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem !important;
+  }
+  .page-header h2, .page-header h3 {
+    font-size: 1.05rem !important;
+  }
+}
+
+/* ── Mobile Patient/Queue Rows ── */
+@media (max-width: 767.98px) {
+  .patient-row, .queue-item {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+  .patient-row .actions, .queue-item .actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 0.25rem;
+  }
+}
+
+/* ── Mobile Pagination ── */
+@media (max-width: 767.98px) {
+  .pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .page-link {
+    padding: 0.35rem 0.6rem !important;
+    font-size: 0.8rem;
+  }
+}
+
+/* ── Tablet Adjustments ── */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .sidebar {
+    width: 240px;
+  }
+  .main-content {
+    margin-right: 240px !important;
+  }
+  .card-stat {
+    padding: 1.1rem !important;
+  }
+}
+
+/* ── Landscape Phone ── */
+@media (max-height: 500px) and (orientation: landscape) {
+  .luxury-sidebar {
+    padding-bottom: 4rem;
+  }
+  .sidebar-header {
+    padding: 0.5rem !important;
+  }
+  .nav-link-luxury {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.82rem;
+  }
+}
+
+/* ── Reduce motion for mobile battery ── */
+@media (max-width: 991.98px) and (prefers-reduced-motion: no-preference) {
+  .card, .btn, .nav-link-luxury {
+    transition-duration: 0.15s !important;
+  }
+}
