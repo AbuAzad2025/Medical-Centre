@@ -693,3 +693,120 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.85rem;
   margin: 0;
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   Phase 3 — Responsive, Print, Accessibility, Mobile
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Mobile Sidebar Fixes ── */
+@media (max-width: 991.98px) {
+  .luxury-sidebar {
+    position: fixed;
+    top: 0; right: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 1040;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+  }
+  .luxury-sidebar.show {
+    transform: translateX(0);
+  }
+  body.sidebar-open {
+    overflow: hidden;
+  }
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1035;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+  }
+  .sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* ── Print Styles ── */
+@media print {
+  .luxury-sidebar, .topbar, .sidebar, .sidebar-overlay,
+  .btn-print-hide, .page-loader {
+    display: none !important;
+  }
+  .main-content, .content-wrapper {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  body {
+    background: #fff !important;
+    font-size: 10pt !important;
+  }
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    break-inside: avoid;
+  }
+  .table {
+    font-size: 9pt !important;
+  }
+  a[href]:after {
+    content: none !important;
+  }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .page-loader { display: none !important; }
+}
+
+/* ── Focus Accessibility ── */
+a:focus-visible, button:focus-visible, .nav-link-luxury:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--azad-blue) !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}
+
+/* ── High Contrast Support ── */
+@media (prefers-contrast: more) {
+  .luxury-sidebar {
+    border-left: 2px solid #fff !important;
+  }
+  .nav-link-luxury.active {
+    border-right: 4px solid #fff !important;
+  }
+  .card {
+    border: 2px solid #000 !important;
+  }
+}
+
+/* ── RTL Mobile Scrollbar Fix ── */
+.luxury-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.luxury-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.luxury-sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.3);
+  border-radius: 10px;
+}
+
+/* ── Small screens table scroll ── */
+.table-responsive {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+}
+.table-responsive .table {
+  margin-bottom: 0;
+}
