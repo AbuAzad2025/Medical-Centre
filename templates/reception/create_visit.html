@@ -649,6 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         if (isLabOrRad) {
                             testSection.style.display = 'flex';
+                            document.getElementById('custom_services_section').style.display = 'block';
                             if ($('#selected_tests').hasClass('select2-hidden-accessible')) {
                                 $('#selected_tests').select2('destroy');
                             }
@@ -675,6 +676,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             });
                         } else {
                             testSection.style.display = 'none';
+                            document.getElementById('custom_services_section').style.display = 'none';
                             testsSelect.innerHTML = '';
                         }
                         calculateVisitCost();
@@ -704,6 +706,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const paymentMethod = document.getElementById('payment_method').value || 'CASH';
         const selectedTestIds = Array.from(testsSelect.selectedOptions).map(o => o.value);
 
+        // جمع الخدمات اليدوية
+        const customRows = document.querySelectorAll('.custom-service-row');
+        const customNames = [];
+        const customPrices = [];
+        customRows.forEach(row => {
+            const nameInput = row.querySelector('input[name="custom_service_name"]');
+            const priceInput = row.querySelector('input[name="custom_service_price"]');
+            if (nameInput && nameInput.value.trim()) {
+                customNames.push(nameInput.value.trim());
+                customPrices.push(priceInput ? priceInput.value : '0');
+            }
+        });
+
         if (departmentId) {
             const params = new URLSearchParams({
                 department_id: departmentId,
@@ -716,6 +731,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedTestIds.length > 0) {
                 params.set('test_ids', selectedTestIds.join(','));
             }
+            customNames.forEach((n, i) => {
+                params.append('custom_service_name', n);
+                params.append('custom_service_price', customPrices[i] || '0');
+            });
             fetch(`/reception/api/visit-pricing?${params.toString()}`)
                 .then(response => response.json())
                 .then(data => {
@@ -1009,6 +1028,49 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(e) {
         if (!patientSearch.contains(e.target) && !searchResults.contains(e.target)) {
             searchResults.style.display = 'none';
+        }
+    });
+
+    // ====== خدمات يدوية ======
+    let customServiceCounter = 0;
+
+    function addCustomServiceRow() {
+        customServiceCounter++;
+        const container = document.getElementById('custom_services_container');
+        const row = document.createElement('div');
+        row.className = 'row mb-2 custom-service-row align-items-end';
+        row.id = `custom_service_row_${customServiceCounter}`;
+        row.innerHTML = `
+            <div class="col-md-6">
+                <input type="text" class="form-control" name="custom_service_name" placeholder="اسم الخدمة / الفحص" required>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group">
+                    <input type="number" class="form-control custom-service-price" name="custom_service_price" placeholder="السعر" min="0" step="0.01" value="0" onchange="calculateVisitCost()">
+                    <span class="input-group-text">₪</span>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeCustomServiceRow('${row.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(row);
+    }
+
+    function removeCustomServiceRow(rowId) {
+        const row = document.getElementById(rowId);
+        if (row) {
+            row.remove();
+            calculateVisitCost();
+        }
+    }
+
+    // إضافة مستمعات حساب التكلفة للخدمات اليدوية
+    document.getElementById('custom_services_container').addEventListener('input', function(e) {
+        if (e.target.classList.contains('custom-service-price')) {
+            calculateVisitCost();
         }
     });
 });
