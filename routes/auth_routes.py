@@ -232,7 +232,10 @@ def login():
                     return render_template('auth/login.html')
                 
         except Exception as e:
-            logging.error(f"Login error: {str(e)}")
+            import traceback
+            logging.error(f"Login error: {str(e)}\n{traceback.format_exc()}")
+            if current_app.testing:
+                raise
             if is_ajax:
                 return jsonify({
                     'success': False,

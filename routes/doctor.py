@@ -2092,12 +2092,12 @@ def get_workflow_optimization():
         
         # تحليل أوقات الذروة
         peak_hours = db.session.query(
-            func.strftime('%H', Visit.visit_time).label('hour'),
+            func.extract('hour', Visit.visit_time).label('hour'),
             func.count(Visit.id).label('count')
         ).filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date >= datetime.now().date() - timedelta(days=30)
-        ).group_by(func.strftime('%H', Visit.visit_time)).all()
+        ).group_by(func.extract('hour', Visit.visit_time)).all()
         
         if peak_hours:
             max_hour = max(peak_hours, key=lambda x: x.count)

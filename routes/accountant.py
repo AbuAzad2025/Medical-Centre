@@ -507,9 +507,9 @@ def get_payment_optimization():
             ).group_by(func.extract('hour', Payment.created_at)).all()
         except Exception:
             payment_times = db.session.query(
-                func.strftime('%H', Payment.created_at).label('hour'),
+                func.extract('hour', Payment.created_at).label('hour'),
                 func.count(Payment.id).label('count')
-            ).group_by(func.strftime('%H', Payment.created_at)).all()
+            ).group_by(func.extract('hour', Payment.created_at)).all()
 
         # تحليل المدفوعات المتأخرة
         late_payments = Invoice.query.filter(

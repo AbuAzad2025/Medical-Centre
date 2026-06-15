@@ -441,9 +441,9 @@ class ReportService:
         يشمل جميع العمليات المالية والزيارات لليوم المحدد
         """
         try:
-            # تحديد التاريخ
+            # تحديد التاريخ — نستخدم قاعدة البيانات لتجنب اختلاف التوقيت
             if not target_date:
-                target_date = datetime.now(timezone.utc).date()
+                target_date = db.session.execute(func.current_date()).scalar()
             elif isinstance(target_date, datetime):
                 target_date = target_date.date()
             

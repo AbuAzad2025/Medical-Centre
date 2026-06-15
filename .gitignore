@@ -82,3 +82,12 @@ scripts/manual_tests/
 reports/*.txt
 tem*
 
+# Tests (not for production)
+tests/
+
+# Debug / dev scripts
+debug_*.py
+fix_*.py
+check_*.py
+test_*.py
+
