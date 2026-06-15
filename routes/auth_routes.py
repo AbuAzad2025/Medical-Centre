@@ -285,6 +285,19 @@ def profile():
             user.full_name = request.form.get('full_name')
             user.phone = request.form.get('phone')
             user.email = request.form.get('email')
+            user.doctor_room = request.form.get('doctor_room')
+            
+            # Update department
+            dept_id = request.form.get('department_id', type=int)
+            if dept_id:
+                user.department_id = dept_id
+            
+            # Update role with validation
+            valid_roles = ('doctor', 'nurse', 'accountant', 'reception', 'lab', 'radiology', 
+                           'manager', 'admin', 'super_admin', 'emergency', 'user')
+            new_role = request.form.get('role')
+            if new_role and new_role in valid_roles:
+                user.role = new_role
             
             # معالجة التوقيع الرقمي (صورة)
             if 'signature' in request.files:
@@ -324,7 +337,14 @@ def profile():
     except Exception:
         pass
 
-    return render_template('auth/profile.html', user=current_user, login_attempts=login_attempts, failed_attempts=failed_attempts)
+    departments = []
+    try:
+        from models.department import Department
+        departments = Department.query.filter_by(is_active=True).order_by(Department.name_ar).all()
+    except Exception:
+        pass
+    
+    return render_template('auth/profile.html', user=current_user, departments=departments, login_attempts=login_attempts, failed_attempts=failed_attempts)
 
 @auth_bp.route('/change-password', methods=['POST'])
 @login_required
