@@ -810,3 +810,122 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 .table-responsive .table {
   margin-bottom: 0;
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   Phase 4 — Toast Notifications, Button Loading, Final Polish
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Toast Notifications ── */
+.toast-container {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1060;
+}
+.toast {
+  border: none !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 8px 32px rgba(15, 76, 129, 0.15) !important;
+  font-size: 0.88rem;
+  min-width: 280px;
+}
+.toast-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  padding: 0.6rem 1rem !important;
+  font-weight: 700;
+}
+.toast-body {
+  padding: 0.75rem 1rem !important;
+}
+
+/* ── Button Loading State ── */
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 18px; height: 18px;
+  margin: -9px 0 0 -9px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: loaderSpin 0.7s linear infinite;
+}
+
+/* ── Status Pills (compact badges for tables/lists) ── */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.status-pill::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.status-pill.success { background: rgba(22, 163, 74, 0.1); color: #166534; }
+.status-pill.danger { background: rgba(220, 38, 38, 0.1); color: #991b1b; }
+.status-pill.warning { background: rgba(217, 119, 6, 0.1); color: #92400e; }
+.status-pill.info { background: rgba(14, 165, 233, 0.1); color: #075985; }
+.status-pill.pending { background: rgba(100, 116, 139, 0.1); color: #475569; }
+
+/* ── Section Divider ── */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
+}
+
+/* ── Data Highlight Row ── */
+.data-row-highlight {
+  background: linear-gradient(90deg, rgba(15, 76, 129, 0.03), transparent 80%) !important;
+}
+
+/* ── Tooltip ── */
+.custom-tooltip {
+  position: relative;
+}
+.custom-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%; left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: #fff;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  z-index: 1070;
+}
+.custom-tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+}

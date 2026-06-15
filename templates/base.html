@@ -246,6 +246,8 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="const sb=document.querySelector('.luxury-sidebar');if(sb){sb.classList.remove('show');}this.classList.remove('active');document.body.classList.remove('sidebar-open');"></div>
     {% include 'partials/_navbar.html' %}
 
     {% include 'partials/_flash.html' %}
