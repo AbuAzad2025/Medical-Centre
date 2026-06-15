@@ -1,36 +1,41 @@
 # خطة تحسين منطق وتجربة استخدام النظام الطبي
 
 **اسم الخطة:** Medical Center Workflow & UX Logic Improvement Plan  
-**الإصدار:** v3 - SaaS Tenant Modules & Cross-Module Integration Review  
+**الإصدار:** v4 - Full-System Ideal Architecture & Component Integration Roadmap  
 **التاريخ:** 2026-06-16  
 **أُعدت بواسطة:** GPT-5.5 Thinking  
-**النطاق:** تحليل وخطة تحسين منطقية/تشغيلية/UX للنظام الطبي كمنصة SaaS ديناميكية متعددة المستأجرين، تدعم بيع وحدات مستقلة أو باقات مركبة، بدون تعديل كود تنفيذي في هذه المرحلة.
+**النطاق:** تحليل وخطة تحسين شاملة لمكونات النظام الطبي كاملة: SaaS, Tenants, Modules, Backend, Frontend, Workflows, Permissions, Clinical, Lab, Radiology, Pharmacy, Billing, Reports, Files, Notifications, AI, Inventory, Patient Portal، بدون تعديل كود تنفيذي في هذه المرحلة.
 
 ---
 
 ## 0. الهدف التنفيذي
 
-الهدف من هذه الخطة هو تحويل النظام من مجموعة شاشات ووحدات منفصلة إلى منصة طبية SaaS ديناميكية، قابلة للبيع والتفعيل بأكثر من شكل:
+الهدف لم يعد فقط تحسين شاشة زيارة أو طابور، بل الوصول إلى **منصة طبية مثالية قابلة للبيع كوحدات مستقلة أو باقات مركبة**، مع تكامل كامل بين الباكند والفرونتند والأقسام والـ SaaS Tenants.
 
-- طبيب بعيادة خاصة.
-- عيادة صغيرة مع استقبال وطبيب وفوترة.
-- مختبر مستقل فقط.
-- مركز أشعة مستقل فقط.
-- صيدلية مستقلة فقط.
-- مركز طبي كامل بعدة أقسام.
-- مركز يحتوي بعض الأقسام فقط.
-- نظام كبير متعدد المستخدمين والأدوار تحت Tenant واحد.
-- منصة Cloud SaaS متعددة Tenants، مع تفعيل/تعطيل وحدات من لوحة مالك المنصة أو Super Admin.
+النظام يجب أن يدعم هذه السيناريوهات بدون كسر منطق العمل:
 
-المبدأ التشغيلي العام: **كل Tenant يجب أن يرى فقط الوحدات المفعلة له، وكل وحدة يجب أن تعمل في وضعين عند الحاجة: وضع مستقل standalone ووضع مدمج داخل مركز طبي كامل.**
+1. طبيب بعيادة خاصة.
+2. عيادة صغيرة باستقبال وطبيب وفوترة.
+3. مختبر مستقل فقط.
+4. مركز أشعة مستقل فقط.
+5. صيدلية مستقلة فقط.
+6. مركز طبي كامل بعدة أقسام.
+7. مركز يحتوي أقساماً محددة فقط.
+8. منصة SaaS متعددة Tenants مع تفعيل/تعطيل وحدات من Owner/Super Admin.
+9. نظام standalone غير SaaS عند الحاجة.
+
+المبدأ الحاكم:
+
+```text
+كل ميزة يجب أن تكون:
+tenant-aware + module-aware + role-aware + workflow-aware + frontend-aware
+```
 
 ---
 
-## 1. الملفات التي بُني عليها التحليل
+## 1. الملفات والمكونات التي تم فحصها
 
-تم بناء الخطة على قراءة وفحص ملفات فعلية من الريبو، منها:
-
-### SaaS / Tenant / Modules
+### SaaS / Platform
 
 - `app/core/tenant/models.py`
 - `app/core/tenant/middleware.py`
@@ -42,27 +47,52 @@
 - `app_factory.py`
 - `templates/partials/sidebar.html`
 
-### Backend / Models
+### Core Medical
 
 - `models/patient.py`
 - `models/visit.py`
 - `models/appointment.py`
+- `models/online_booking.py`
 - `models/department.py`
-- `models/queue_management.py`
+- `models/medical_record.py`
+- `models/workflow.py`
 - `models/request_workflow.py`
-- `models/lab_request.py`
-- `models/radiology_request.py`
+- `models/visit_transfer.py`
+
+### Departments
+
+- `models/queue_management.py`
 - `models/nurse.py`
 - `models/emergency.py`
-- `models/medical_record.py`
+- `models/lab_request.py`
+- `models/lab_quality.py`
+- `models/lab_reagent.py`
+- `models/radiology_request.py`
+- `models/radiology_test.py`
 - `models/medication.py`
+- `app/modules/workflows/stock_models.py`
+
+### Finance / Billing
+
 - `models/payment.py`
 - `models/invoice.py`
 - `models/service.py`
-- `models/user.py`
-- `models/visit_transfer.py`
+- `routes/payment_routes.py`
+- `services/gatekeeper_service.py`
 
-### Backend / Routes
+### Access / Security / Operations
+
+- `models/user.py`
+- `models/permissions.py`
+- `models/advanced_permissions.py`
+- `models/user_department_access.py`
+- `models/file_management.py`
+- `models/notification.py`
+- `models/reporting.py`
+- `models/ai_analytics.py`
+- `models/task_management.py`
+
+### Main Routes / Frontend
 
 - `routes/reception.py`
 - `routes/doctor.py`
@@ -71,390 +101,89 @@
 - `routes/radiology.py`
 - `routes/medication_routes.py`
 - `routes/payment_routes.py`
-
-### Services & Security
-
-- `services/queue_management_service.py`
-- `services/access_control_service.py`
-- `services/gatekeeper_service.py`
-- `utils/decorators.py`
-
-### Frontend / Templates
-
 - `templates/reception/create_visit.html`
 - `templates/partials/sidebar.html`
 
 ---
 
-## 2. فهم الهدف التجاري الصحيح
+## 2. التشخيص العام بعد التوسع
 
-النظام ليس منتجاً واحداً ثابتاً لمركز طبي كامل فقط. النظام يجب أن يكون **منصة منتجات طبية قابلة للتركيب**.
+النظام يحتوي على عدد كبير من المكونات القوية، لكنه يعاني من 4 مشاكل جذرية:
 
-يعني:
+### 2.1 تكرار نماذج workflow
+
+يوجد أكثر من اتجاه لإدارة سير العمل:
+
+- `Visit.status`
+- `QueueManagement.status`
+- `WorkflowStep / PatientWorkflow / WorkflowQueue`
+- `RequestWorkflow`
+- `LabRequest.status`
+- `RadiologyRequest.status`
+- `Prescription.status`
+- `OnlineBooking.status`
+- `Payment.status`
+- `Invoice.status`
+
+هذا ليس خطأ برمجي بسيط، بل سبب مباشر للتناقض المنطقي. يجب توحيدها تحت محرك أعلى اسمه:
 
 ```text
-Platform Owner / Super Admin
-  -> creates Tenant
-  -> selects plan / subscription
-  -> activates modules
-  -> tenant sees only activated modules
-  -> tenant workflows adapt to active module combination
+Workflow Orchestrator
 ```
 
-الأهم: لا يجوز أن تكون كل وحدة مفترضة أن كل الوحدات الأخرى موجودة. ولا يجوز أن يؤدي تعطيل وحدة إلى كسر وحدة أخرى. يجب أن يكون هناك تعريف واضح:
+ويبقي النماذج الحالية كجداول تنفيذية أو history، لا كمصادر قرار مستقلة.
 
-- ما الوحدة؟
-- ما قدراتها؟
-- ما اعتمادياتها؟
-- هل تعمل standalone؟
-- ما الشاشة الافتتاحية لها؟
-- ما الحد الأدنى للبيانات؟
-- هل تحتاج patient؟ visit؟ invoice؟ queue؟
-- هل تحتاج reception كاملة أم intake بسيط؟
+### 2.2 SaaS Modules موجودة لكن ليست مكتملة المنتج
+
+يوجد `Tenant`, `SubscriptionPlan`, `TenantModule`, `MODULE_REGISTRY`, وguards لبعض الوحدات. لكن:
+
+- بعض modules المتقدمة مسجلة كـ blueprints بدون module guard شامل.
+- `MODULE_REGISTRY` يفرض reception على lab/radiology/pharmacy، وهذا يمنع standalone sales.
+- الـ sidebar يخفي الروابط لكنه لا يكفي للحماية.
+- لا يوجد Product Profile واضح للـ Tenant.
+
+### 2.3 الصلاحيات موجودة لكنها غير موحدة مع modules الحديثة
+
+يوجد:
+
+- Role permissions.
+- ModulePermission.
+- DepartmentPermission.
+- UserDepartmentAccess.
+- AccessControlService.
+- decorators.
+
+لكن `ModulePermission` يستخدم قائمة modules قديمة مثل `accounting` ولا تغطي بشكل كامل `pharmacy`, `billing`, `nursing`, `appointments`, `inventory`, `portal`, `dicom`, `ai_imaging`, وغيرها. لذلك يجب بناء Authorization Matrix موحدة.
+
+### 2.4 البيانات التشغيلية لا تزال تحتاج tenant scoping صارم
+
+وجود `User.tenant_id` ليس كافياً. يجب أن تكون كل الجداول التشغيلية المهمة tenant-scoped أو مرتبطة بكيان tenant-scoped بشكل مضمون.
 
 ---
 
-## 3. الوضع الحالي لمنظومة SaaS والModules
+## 3. Product Profiles النهائية
 
-### 3.1 الموجود حالياً
+بدلاً من بيع النظام كوحدة واحدة، يجب التعامل معه كباقات منتج.
 
-يوجد أساس مهم وجيد:
-
-- `Tenant` يمثل العميل/المؤسسة.
-- `SubscriptionPlan` يمثل خطة الاشتراك.
-- `TenantModule` يحدد الوحدات النشطة لكل Tenant.
-- `MODULE_REGISTRY` مصدر مركزي لتعريف أسماء الوحدات ووصفها واعتمادياتها.
-- `get_active_modules_for_tenant()` يجلب الوحدات النشطة.
-- `app_factory.py` يضيف module guards قبل تسجيل بعض blueprints.
-- `templates/partials/sidebar.html` يعرض الروابط حسب `enabled_modules` والدور.
-- `owner/routes.py` يحتوي API لتفعيل وحدات Tenant.
-
-### 3.2 المشكلة الحالية
-
-رغم وجود الأساس، يوجد نقص تكاملي:
-
-1. `MODULE_REGISTRY` الحالي يجعل معظم الوحدات السريرية تتطلب `reception`، مثل doctor/lab/radiology/pharmacy/emergency/nursing/billing/appointments.
-2. هذا يخالف حالات بيع مختبر مستقل، أشعة مستقلة، أو صيدلية مستقلة.
-3. `app_factory.py` يضيف guards لبعض الوحدات فقط:
-   - reception
-   - doctor
-   - lab
-   - radiology
-   - emergency
-   - nursing
-   - billing
-   - reporting
-   - appointments
-   - pharmacy
-4. لكنه يسجل blueprints أخرى كثيرة بدون guard واضح:
-   - bed
-   - OR
-   - eMAR
-   - vaccination
-   - referral
-   - pathway
-   - CDS
-   - barcode
-   - FHIR
-   - DICOM
-   - portal
-   - population health
-   - report builder
-   - security
-   - MFA
-   - nursing assessment
-   - patient education
-   - backup restore
-   - telemedicine
-   - SSO
-   - AI imaging
-   - biometric
-   - data warehouse
-   - what-if
-   - quality
-5. الـ sidebar يخفي روابط حسب modules، لكن إخفاء الرابط لا يكفي. يجب منع الوصول backend أيضاً.
-6. بعض المسارات الجذرية مثل `/patients`, `/visits`, `/medications` تعمل redirects عامة ويجب أن تكون module-aware.
-
-### 3.3 الاستنتاج
-
-النظام لديه بذرة SaaS Modules جيدة، لكنها تحتاج طبقة أقوى اسمها:
-
-```text
-Product Profile + Module Capability + Workflow Adapter
-```
-
-بدون هذه الطبقة سيبقى السؤال: هل المختبر المستقل يحتاج reception؟ هل الصيدلية تحتاج patient visit؟ هل عيادة الطبيب تحتاج nurse؟ هل billing إجباري؟
+| Profile | الهدف | Modules الأساسية | Modules اختيارية | Dashboard |
+|---|---|---|---|---|
+| `PRIVATE_DOCTOR_CLINIC` | طبيب منفرد | doctor, clinic_intake | appointments, billing, prescription_print | `/doctor/dashboard` |
+| `SMALL_CLINIC` | عيادة صغيرة | reception, doctor | appointments, billing, reporting | `/reception/dashboard` |
+| `STANDALONE_LAB` | مختبر فقط | lab, lab_intake | billing, inventory, reporting, portal | `/lab/worklist` |
+| `STANDALONE_RADIOLOGY` | أشعة فقط | radiology, radiology_intake | dicom, ai_imaging, billing, reporting | `/radiology/worklist` |
+| `STANDALONE_PHARMACY` | صيدلية فقط | pharmacy, pharmacy_pos, inventory | billing, reporting | `/pharmacy/pos` |
+| `MULTI_DEPARTMENT_CENTER` | مركز كامل | reception, doctor, nursing, billing, queue | lab, radiology, pharmacy, emergency, appointments | `/reception/dashboard` أو `/manager/dashboard` |
+| `CUSTOM` | حسب الطلب | حسب التفعيل | حسب التفعيل | يحدد من إعدادات Tenant |
 
 ---
 
-## 4. Product Profiles المقترحة
+## 4. Module Registry المثالي
 
-بدلاً من تفعيل modules عشوائياً فقط، يجب تعريف باقات تشغيلية جاهزة. كل باقة تحدد الوحدات، الـ default dashboards، الـ workflows، والصلاحيات.
+### 4.1 المشكلة الحالية
 
-### 4.1 `PRIVATE_DOCTOR_CLINIC`
+`MODULE_REGISTRY` الحالي يعرف modules لكنه يستخدم `required_modules` فقط. هذا لا يكفي لمنصة ديناميكية.
 
-عيادة طبيب خاصة.
-
-Modules:
-
-```text
-reception_core أو clinic_intake
-doctor
-appointments optional
-billing optional
-pharmacy optional
-reporting basic
-```
-
-Workflow:
-
-```text
-Patient -> Clinic Intake -> Doctor -> Prescription/Follow-up -> Billing optional -> Completed
-```
-
-ملاحظات:
-
-- لا يحتاج nurse إجبارياً.
-- لا يحتاج lab/radiology داخلياً.
-- الطبيب يستطيع إنشاء طلب خارجي lab/radiology كـ referral/order print فقط.
-- واجهة الاستقبال تكون مختصرة جداً.
-
-### 4.2 `SMALL_CLINIC`
-
-عيادة صغيرة بعدة أطباء أو استقبال.
-
-Modules:
-
-```text
-reception
-doctor
-appointments
-billing
-reporting
-```
-
-Workflow:
-
-```text
-Reception -> Payment/Check-in -> Doctor -> Checkout
-```
-
-ملاحظات:
-
-- nurse اختياري.
-- lab/radiology اختياري كطلبات خارجية أو داخلية.
-
-### 4.3 `STANDALONE_LAB`
-
-مختبر مستقل فقط.
-
-Modules:
-
-```text
-lab
-lab_intake أو reception_lite
-billing optional
-reporting basic
-inventory optional
-```
-
-Workflow:
-
-```text
-Lab Intake -> Sample Collection -> Analysis -> Validation -> Report Delivery -> Billing optional
-```
-
-ملاحظات مهمة:
-
-- لا يجب إجبار `reception` الكامل.
-- يجب توفير شاشة `lab_intake` لإدخال مريض/طلب بدون زيارة طبيب.
-- يجب دعم walk-in lab order.
-- يمكن إنشاء `Patient` و`LabRequest` بدون Doctor Visit كامل.
-- إذا lab جزء من مركز، الطلب يأتي من doctor/reception.
-- إذا lab standalone، الطلب يأتي من lab intake أو إحالة خارجية.
-
-### 4.4 `STANDALONE_RADIOLOGY`
-
-مركز أشعة مستقل.
-
-Modules:
-
-```text
-radiology
-radiology_intake أو reception_lite
-billing optional
-reporting basic
-DICOM optional
-AI imaging optional
-```
-
-Workflow:
-
-```text
-Radiology Intake -> Imaging Queue -> Image Upload/DICOM -> Report -> Validation -> Delivery
-```
-
-ملاحظات:
-
-- لا يجب إجبار reception الكامل.
-- يجب دعم طلب خارجي من طبيب خارج النظام.
-- يجب وجود referring_doctor_name/referral_source.
-- DICOM/AI imaging يجب أن تكون modules مستقلة مربوطة بالأشعة.
-
-### 4.5 `STANDALONE_PHARMACY`
-
-صيدلية مستقلة فقط.
-
-Modules:
-
-```text
-pharmacy
-inventory
-billing/POS optional
-reporting basic
-```
-
-Workflow:
-
-```text
-Walk-in Sale / Prescription Upload -> Dispense -> Stock Ledger -> Receipt
-```
-
-ملاحظات:
-
-- لا تحتاج reception.
-- لا تحتاج Visit إجباري.
-- تحتاج `PharmacySale` أو `POSInvoice` مستقل.
-- `Prescription` يمكن أن يكون داخلياً أو خارجياً.
-- يجب دعم البيع المباشر، المرتجع، البدائل، batch/expiry، stock ledger.
-
-### 4.6 `MULTI_DEPARTMENT_CENTER`
-
-مركز طبي كامل.
-
-Modules:
-
-```text
-reception
-doctor
-nursing
-lab
-radiology
-pharmacy
-billing
-appointments
-emergency optional
-reporting
-inventory
-```
-
-Workflow:
-
-```text
-Reception -> Billing/Eligibility -> Triage -> Doctor -> Orders -> Departments -> Doctor Review -> Pharmacy/Checkout -> Archive
-```
-
-هنا reception إلزامية، لأنها نقطة تنظيم بين أكثر من وحدة سريرية.
-
-### 4.7 `CUSTOM_CENTER`
-
-Tenant يختار وحدات محددة.
-
-قواعد:
-
-- إذا أكثر من وحدة سريرية مفعلة داخل نفس Tenant، يُفضّل تفعيل `reception` أو `front_desk`.
-- إذا وحدة واحدة مستقلة فقط، لا تُفرض reception الكاملة.
-- إذا billing غير مفعلة، لا يجوز أن تكسر الطابور أو إنشاء الطلبات.
-- إذا appointments غير مفعلة، تختفي كل flows الخاصة بالمواعيد.
-- إذا doctor غير مفعلة، lab/radiology لا تنتظر doctor review داخلي بل تعتمد delivery workflow.
-
----
-
-## 5. التصحيح المقترح لمنظومة Modules
-
-### 5.1 المشكلة في `required_modules`
-
-حالياً `MODULE_REGISTRY` يجعل lab/radiology/pharmacy تعتمد على reception. هذا مناسب لمركز كامل لكنه غير مناسب لبيع standalone.
-
-### 5.2 الحل: فصل Module عن Capability
-
-بدلاً من:
-
-```text
-lab requires reception
-```
-
-نستخدم:
-
-```text
-lab requires one of:
-  - reception
-  - lab_intake
-  - standalone_intake
-```
-
-وبدلاً من أن تكون reception وحدة ضخمة، نفصل capability:
-
-```text
-patient_registry
-front_desk
-appointments
-billing
-queue
-clinical_orders
-```
-
-### 5.3 إضافة ProductProfile
-
-نموذج مقترح:
-
-```text
-ProductProfile
-  id
-  code
-  name
-  name_ar
-  description
-  default_modules_json
-  required_capabilities_json
-  default_dashboard
-  is_active
-```
-
-أمثلة:
-
-```text
-PRIVATE_DOCTOR_CLINIC
-STANDALONE_LAB
-STANDALONE_RADIOLOGY
-STANDALONE_PHARMACY
-SMALL_CLINIC
-MULTI_DEPARTMENT_CENTER
-CUSTOM
-```
-
-### 5.4 إضافة TenantProductProfile
-
-يمكن أن يكون داخل Tenant مباشرة:
-
-```text
-Tenant.product_profile_code
-```
-
-أو جدول مستقل للتاريخ:
-
-```text
-TenantProductProfileHistory
-  tenant_id
-  old_profile
-  new_profile
-  changed_by
-  changed_at
-```
-
-### 5.5 تعديل ModuleMeta
-
-بدل `required_modules` فقط:
+### 4.2 الشكل المقترح
 
 ```python
 @dataclass(frozen=True)
@@ -462,123 +191,679 @@ class ModuleMeta:
     name: str
     name_ar: str
     category: str
-    required_modules: tuple
+    required_modules: tuple[str, ...]
     required_any_of: tuple[tuple[str, ...], ...]
     capabilities: tuple[str, ...]
     standalone_allowed: bool
     default_route: str
+    route_prefixes: tuple[str, ...]
+    feature_flags: tuple[str, ...]
     description_ar: str
 ```
 
-مثال:
+### 4.3 مثال lab
 
 ```python
 "lab": ModuleMeta(
     name="lab",
+    name_ar="المختبر",
+    category="clinical",
     required_modules=(),
     required_any_of=(("reception", "lab_intake", "standalone_intake"),),
-    capabilities=("patient_lookup", "lab_order", "lab_result", "report_delivery"),
+    capabilities=("patient_lookup", "lab_order", "sample_collection", "result_entry", "result_validation", "report_delivery"),
     standalone_allowed=True,
-    default_route="/lab/dashboard",
+    default_route="/lab/worklist",
+    route_prefixes=("/lab",),
+    feature_flags=("allow_walkin_lab", "requires_payment_before_sample", "enable_lab_qc"),
+    description_ar="طلبات التحاليل والعينات والنتائج والجودة"
 )
 ```
 
-### 5.6 تعديل validator
+### 4.4 قواعد التفعيل
 
-بدل قاعدة واحدة:
+- لا تفرض reception على module standalone.
+- إذا Tenant profile = full center، reception/front_desk إلزامية.
+- إذا module يتطلب capability، يكفي وجود وحدة توفر هذا capability.
+- billing يجب أن يكون optional في workflow، لا hard dependency.
+- كل تفعيل/تعطيل module يجب أن يسجل `PlatformAuditLog`.
+
+---
+
+## 5. Component Map شامل
+
+### 5.1 Patient & Identity
+
+الموجود:
+
+- `Patient`
+- `PatientAllergy`
+- `PatientAccount`
+
+المطلوب:
+
+- `tenant_id` واضح.
+- emergency contact.
+- chronic conditions.
+- current medications.
+- blood type optional.
+- consent records.
+- patient merge/deduplication workflow.
+- global patient search داخل Tenant فقط.
+
+### 5.2 Appointments & Online Booking
+
+الموجود:
+
+- `Appointment`
+- `OnlineBooking`
+- `PaymentTransaction`
+
+المشكلة:
+
+- `Appointment` بسيط جداً.
+- `OnlineBooking` لديه status/payment status منفصلة عن Payment/Billing.
+- يجب وجود check-in service يحول online booking إلى appointment/visit بدون تكرار مريض.
+
+المطلوب:
 
 ```text
-If more than 2 clinical modules -> reception required
+Booking -> Appointment -> Check-in -> Visit/Order/Sale حسب profile
 ```
 
-تصبح:
+خدمة مقترحة:
 
 ```text
-If product_profile == MULTI_DEPARTMENT_CENTER -> reception/front_desk required
-If standalone module -> standalone_intake allowed
-If module has required_any_of -> at least one capability provider required
-If billing disabled -> module must use no-charge / external billing / local receipt mode
+AppointmentCheckinService
+OnlineBookingConversionService
+```
+
+### 5.3 Reception / Intake
+
+بدلاً من reception واحدة ضخمة:
+
+- `full_reception` للمراكز.
+- `clinic_intake` للطبيب.
+- `lab_intake` للمختبر.
+- `radiology_intake` للأشعة.
+- `pharmacy_customer_intake` للصيدلية.
+
+كل intake يستخدم Patient Registry لكن بواجهة مختلفة.
+
+### 5.4 Visit / Encounter
+
+الموجود:
+
+- `Visit` يحمل إداري + مالي + سريري.
+- `MedicalRecord` عام.
+
+المطلوب:
+
+- `Visit` يبقى shell إداري.
+- `ClinicalEncounter` للتوثيق السريري.
+- `TriageAssessment` للتمريض.
+- `VisitWorkflowEvent` للحالة.
+- `ClinicalOrder` للطلبات.
+
+### 5.5 Workflow & Queue
+
+الموجود:
+
+- `QueueManagement`
+- `WorkflowStep`
+- `PatientWorkflow`
+- `WorkflowQueue`
+- `RequestWorkflow`
+
+المطلوب:
+
+لا تحذف القديم فوراً. استخدم strategy:
+
+1. اجعل `WorkflowOrchestrator` يقرأ ويكتب events.
+2. اربط `QueueManagement` بالمحطات operational station.
+3. استخدم `PatientWorkflow` كـ configuration/template أو legacy history بعد مراجعة الاستخدام.
+4. وحد statuses.
+
+محرك مقترح:
+
+```text
+WorkflowOrchestrator
+  - create_case()
+  - transition()
+  - next_actions()
+  - current_owner()
+  - required_fields()
+  - emit_event()
+```
+
+### 5.6 Doctor / Clinical Workbench
+
+المطلوب:
+
+- شاشة طبيب موحدة: Patient Context + Timeline + Current Encounter + Orders + Prescription.
+- لا يظهر زر طلب مختبر/أشعة إلا إذا module enabled أو external referral enabled.
+- SOAP note structured.
+- diagnosis coding optional.
+- e-signature/doctor signature.
+- clinical close action.
+
+### 5.7 Nursing / Triage / eMAR
+
+الموجود:
+
+- `VitalSigns` بدون `visit_id`.
+- eMAR routes موجودة كـ blueprint.
+
+المطلوب:
+
+- `TriageAssessment.visit_id`.
+- abnormal vitals alerts.
+- nursing task queue.
+- eMAR لا يظهر إلا إذا nursing + pharmacy + inpatient/center profile.
+
+### 5.8 Lab
+
+الموجود:
+
+- LabRequest/LabResult.
+- Lab QC.
+- Lab Reagents.
+
+المطلوب:
+
+- standalone lab intake.
+- lab order/order items.
+- sample barcode.
+- sample collected/received/rejected.
+- QC linked to result validation.
+- reagent consumption linked to lab tests.
+- critical result notification to doctor or patient/referrer.
+- report delivery portal.
+
+### 5.9 Radiology
+
+المطلوب:
+
+- standalone radiology intake.
+- modality/body part/protocol.
+- DICOM optional module.
+- AI imaging optional module.
+- report draft/validate/sign.
+- external referrer support.
+- image/file attachments through FileService.
+
+### 5.10 Pharmacy
+
+الموجود:
+
+- Medication.
+- Prescription.
+- PrescriptionItem.
+- Dispense log.
+- StockMovement للأدوية.
+
+المطلوب:
+
+- standalone pharmacy POS.
+- sale without visit.
+- prescription from internal doctor or external upload.
+- stock ledger mandatory for every dispense/sale/return/adjustment.
+- batch/expiry alerts.
+- substitutions.
+- controlled medication permissions if needed.
+
+نماذج مقترحة:
+
+```text
+PharmacySale
+PharmacySaleItem
+PharmacyReturn
+MedicationSubstitution
+```
+
+### 5.11 Billing / Finance
+
+الموجود:
+
+- Payment.
+- Invoice.
+- InvoiceService.
+- GatekeeperService.
+- OnlineBooking PaymentTransaction.
+
+المشكلة:
+
+- حالات الدفع موزعة.
+- `receipt_number` لا يعني بالضرورة receipt printed.
+- billing قد يكون module disabled.
+
+المطلوب:
+
+```text
+BillingStateService
+ReceiptService
+InvoiceServiceLayer
+PaymentAllocationService
+```
+
+قواعد:
+
+- workflow لا يكسر عند عدم تفعيل billing.
+- payment state موحد بين visit/payment/invoice/booking.
+- debt/force/waiver لها approvals واضحة.
+- receipt issued/printed/voided منفصلة.
+
+### 5.12 Files / Attachments
+
+الموجود:
+
+- FileUpload.
+- FilePermission.
+- FileCategory.
+
+المشاكل:
+
+- hash يستخدم MD5.
+- `file_path` مخزن محلياً.
+- لا يظهر tenant_id.
+- related_entity_type محدود.
+
+المطلوب:
+
+- SHA-256.
+- tenant-aware storage path.
+- StorageProvider: local/cloud/hybrid.
+- malware scan hook.
+- signed download URLs.
+- attachment policies لكل module.
+- audit عند view/download.
+
+### 5.13 Notifications
+
+الموجود:
+
+- Notification.
+- NotificationTemplate.
+- NotificationQueue.
+- WhatsAppMessage.
+
+المطلوب:
+
+- Event-driven notifications.
+- Tenant notification settings.
+- Templates per tenant/profile.
+- Triggers:
+  - appointment confirmed.
+  - lab result ready.
+  - radiology report ready.
+  - payment due.
+  - low stock.
+  - critical result.
+  - subscription expiring.
+
+### 5.14 Reporting / Analytics
+
+الموجود:
+
+- Report.
+- ReportExecution.
+- ReportTemplate.
+- AIRecommendation.
+- PerformanceAnalytics.
+- PatientInsight.
+
+المطلوب:
+
+- report scope by tenant/module/role.
+- no cross-tenant reports except owner platform analytics.
+- report datasets defined centrally.
+- background execution for heavy reports.
+- export audit.
+- dashboards per product profile.
+- separate clinical analytics from financial analytics.
+
+### 5.15 Tasks / Projects
+
+الموجود:
+
+- Task.
+- TaskComment.
+- TaskAttachment.
+- Project.
+
+المطلوب:
+
+- tasks linked to workflow events.
+- auto-create tasks for pending approvals, critical lab, follow-up, low stock.
+- tenant-scoped tasks.
+- role-based task inbox.
+
+### 5.16 AI / Decision Support
+
+الموجود:
+
+- AIRecommendation.
+- DiseasePattern.
+- PatientInsight.
+
+المطلوب:
+
+- AI must be advisory only.
+- doctor acceptance/rejection audit.
+- source_data must be structured and tenant-safe.
+- no AI recommendations without sufficient context.
+- feature flag per tenant.
+- clinical disclaimers and validation.
+
+---
+
+## 6. Ideal Cross-System Architecture
+
+### 6.1 Core layers
+
+```text
+Presentation Layer
+  Templates / JS / Dynamic sidebar / Profile dashboards
+
+Application Services
+  VisitWorkflowService
+  WorkflowOrchestrator
+  FeatureGate
+  TenantScope
+  BillingStateService
+  OrderService
+  QueueService
+  NotificationService
+  ReportingService
+  FileService
+
+Domain Models
+  Patient, Visit, Encounter, Orders, Payments, Inventory, Reports
+
+Infrastructure
+  DB, Storage, Email/SMS/WhatsApp, DICOM, FHIR, Audit, Background Jobs
+```
+
+### 6.2 كل request يجب أن يحمل
+
+```text
+g.current_tenant
+g.tenant_id
+g.enabled_modules
+g.product_profile
+g.feature_flags
+g.user_scope
+```
+
+### 6.3 كل شاشة يجب أن تسأل
+
+```text
+هل module مفعلة؟
+هل feature مفعلة؟
+هل الدور مسموح؟
+هل workflow يسمح بهذا action؟
+ما data context المطلوبة؟
 ```
 
 ---
 
-## 6. Frontend + Backend Integration المطلوب
+## 7. Corrective Action Plan للوصول لنظام مثالي
 
-### 6.1 Backend guard لا يكفي للـ sidebar
+### Phase 0 — Full Route/Module Inventory
 
-يجب أن تكون الحماية في 3 طبقات:
+الهدف: لا يبقى أي route بلا module أو core classification.
 
-1. Route guard: يمنع الوصول لوحدة غير مفعلة.
-2. Template visibility: يخفي الروابط والأزرار غير المفعلة.
-3. Workflow guard: يمنع إنشاء خطوات تعتمد على وحدة غير مفعلة.
+Deliverables:
 
-مثال:
+```text
+docs/route-module-inventory.md
+core/module_route_map.py
+```
 
-إذا `lab` غير مفعلة:
+كل route يصنف:
 
-- لا يظهر زر طلب مختبر للطبيب.
-- لا يظهر tab المختبر في patient context.
-- لا يقبل backend إنشاء LabRequest.
-- لا تظهر إحصائيات lab في dashboard.
+- core
+- owner
+- auth
+- reception
+- doctor
+- lab
+- radiology
+- pharmacy
+- billing
+- reporting
+- inventory
+- portal
+- integration
+- admin
 
-### 6.2 كل زر Action يجب أن يمر عبر `FeatureGate`
+### Phase 1 — Unified FeatureGate
 
-مقترح:
+إنشاء:
+
+```text
+services/feature_gate_service.py
+```
+
+وظائف:
 
 ```python
-FeatureGate.is_enabled(tenant_id, "lab")
-FeatureGate.can_use(user, "lab.create_request")
-FeatureGate.require("pharmacy.dispense")
+module_enabled(tenant_id, module)
+feature_enabled(tenant_id, feature)
+require_module(module)
+require_feature(feature)
+can_use(user, action)
 ```
 
-وفي Jinja:
+وتوفير Jinja helpers:
 
-```jinja2
-{% if feature_enabled('lab') and can_use('lab.create_request') %}
-  <button>طلب تحليل</button>
-{% endif %}
+```text
+module_active()
+feature_enabled()
+can_use()
 ```
 
-### 6.3 Route registration
+### Phase 2 — Product Profiles
 
-حالياً يمكن إبقاء كل blueprints مسجلة، لكن يجب أن يكون كل blueprint guarded أو كل route guarded.
+إضافة:
 
-خطة أفضل:
-
-- `core` routes دائماً تعمل: auth, health, owner, super_admin, tenant select.
-- module routes تسجل مع guard موحد:
-
-```python
-register_module_blueprint(app, lab_bp, module="lab", prefix="/lab")
+```text
+Tenant.product_profile_code
+TenantModuleSetting
+TenantFeatureFlag
 ```
 
-ويطبق:
+وتحديث Owner UI:
 
-- tenant required إذا SaaS.
-- module active.
-- role allowed.
-- tenant subscription active.
+- عند إنشاء tenant يختار profile.
+- تظهر modules الافتراضية.
+- يظهر تحذير dependencies.
+- لا يسمح بتفعيل تركيبة غير منطقية.
+
+### Phase 3 — Tenant Scope Hardening
+
+- إضافة tenant_id للجداول التشغيلية الناقصة.
+- تطبيق query scope.
+- منع cross-tenant access.
+- Owner فقط يستطيع analytics متعددة tenants.
+
+### Phase 4 — Workflow Orchestrator
+
+- لا تعتمد على route لتقرير الحالة.
+- كل transition يسجل event.
+- ربط Queue/Visit/Order/Billing بالـ orchestrator.
+
+### Phase 5 — Billing Consistency
+
+- توحيد Payment/Invoice/Visit/Booking status.
+- Receipt service.
+- Debt/waiver/force approvals.
+- Billing optional mode.
+
+### Phase 6 — Orders Service
+
+- Unified clinical orders.
+- منع تكرار lab/radiology.
+- external referrals.
+- module-aware order creation.
+
+### Phase 7 — Department Workbenches
+
+- Reception wizard.
+- Doctor workbench.
+- Nurse triage workbench.
+- Lab worklist.
+- Radiology worklist.
+- Pharmacy POS/worklist.
+- Accountant dashboard.
+
+### Phase 8 — Portal / Booking / Notifications
+
+- Convert booking to patient/appointment/visit/order based on profile.
+- Patient portal scope.
+- Notification triggers.
+
+### Phase 9 — Files / Reports / Analytics
+
+- FileService with tenant storage policy.
+- Report scope engine.
+- Module dashboards.
+- AI governance.
+
+### Phase 10 — Quality & Inventory
+
+- Lab QC integration.
+- Reagent stock movements.
+- Medication stock ledger completeness.
+- Low stock alerts.
 
 ---
 
-## 7. Tenant Isolation المطلوب
+## 8. تحسينات تفصيلية لكل Profile
 
-### 7.1 الموجود
+### 8.1 Private Doctor Clinic
 
-`User` يحتوي `tenant_id`. و`Tenant` لديه علاقة users. لكن كثير من النماذج التشغيلية مثل Patient/Visit/Payment/LabRequest/RadiologyRequest يجب أن تكون tenant-scoped بوضوح.
+- شاشة واحدة للطبيب: اليوم، المواعيد، المرضى، كشف جديد.
+- لا طابور معقد إذا الطبيب وحده.
+- billing optional.
+- prescription print حتى بدون pharmacy module.
+- external lab/radiology referral print.
 
-### 7.2 المطلوب
+### 8.2 Standalone Lab
 
-كل جدول تشغيلي يجب أن يحتوي `tenant_id` أو يكون مرتبطاً بكيان يحتوي tenant_id بشكل مضمون.
+- `Lab Intake` بديل reception.
+- إنشاء مريض سريع أو external patient.
+- طلب تحاليل بدون زيارة طبيب.
+- barcode sample.
+- QC before validation.
+- report delivery by portal/WhatsApp/PDF.
+- billing optional.
 
-جداول يجب فحصها وإضافة tenant_id عند الحاجة:
+### 8.3 Standalone Radiology
+
+- radiology intake.
+- external referring doctor.
+- scheduling by modality.
+- DICOM optional.
+- AI imaging optional.
+- report signed and delivered.
+
+### 8.4 Standalone Pharmacy
+
+- pharmacy POS.
+- stock ledger mandatory.
+- sale without visit.
+- external prescription upload.
+- batch/expiry.
+- return/refund.
+- low stock and reorder.
+
+### 8.5 Full Center
+
+- reception controls patient entry.
+- triage configurable.
+- doctor orders internal departments.
+- departments return results.
+- doctor review.
+- pharmacy/checkout.
+- archive.
+
+---
+
+## 9. Frontend مثالي
+
+### 9.1 Dynamic Shell
+
+- Sidebar بحسب modules.
+- Topbar يعرض tenant/profile.
+- Empty state عند module disabled.
+- Upgrade CTA للـ owner/super_admin فقط.
+
+### 9.2 Shared Components
+
+```text
+_patient_context_panel.html
+_module_empty_state.html
+_workflow_next_actions.html
+_billing_status_badge.html
+_order_status_badge.html
+_attachment_panel.html
+_audit_timeline.html
+```
+
+### 9.3 كل صفحة يجب أن تحتوي
+
+- breadcrumb واضح.
+- patient/tenant context إذا متعلق بمريض.
+- next actions لا أزرار عشوائية.
+- validation قبل submit.
+- loading state.
+- empty state.
+- audit/info section للأحداث المهمة.
+
+---
+
+## 10. Backend Services النهائية المقترحة
+
+```text
+FeatureGateService
+TenantScopeService
+ProductProfileService
+ModuleActivationService
+WorkflowOrchestrator
+VisitWorkflowService
+QueueService
+OrderService
+BillingStateService
+ReceiptService
+ClinicalContextService
+PermissionScopeService
+AppointmentCheckinService
+OnlineBookingConversionService
+FileService
+NotificationService
+ReportScopeService
+InventoryLedgerService
+LabQualityService
+PharmacySaleService
+RadiologyWorkflowService
+AIRecommendationGovernanceService
+AuditEventService
+```
+
+---
+
+## 11. Database / Model Corrections
+
+### Must add or verify `tenant_id`
 
 ```text
 patients
 visits
 appointments
+online_bookings
 payments
 invoices
+invoice_services
 lab_requests
 lab_results
 radiology_requests
@@ -586,629 +871,140 @@ radiology_results
 prescriptions
 prescription_items
 medications
+stock_movements
 queue_management
+workflow_steps
+patient_workflows
+tasks
+reports
+file_uploads
+notifications
 service_master
 departments
-nurses
-vital_signs
-emergency_cases
-medical_records
-file_uploads
 ```
 
-### 7.3 قاعدة ذهبية
-
-لا يكفي أن يكون المستخدم له tenant_id. يجب أن تكون البيانات نفسها tenant-scoped.
-
-كل query يجب أن تمر عبر:
-
-```python
-TenantScope.query(Model)
-```
-
-أو global SQLAlchemy filter في SaaS mode.
-
-### 7.4 Tenant-aware context
-
-يجب أن يكون في كل request:
+### Must normalize statuses
 
 ```text
-g.current_tenant
-g.tenant_id
-g.enabled_modules
-g.product_profile
+VisitState
+QueueState
+OrderState
+BillingState
+AppointmentState
+BookingState
+PrescriptionState
+ReportExecutionState
+NotificationState
+TaskState
 ```
 
-ويجب أن تظهر في Jinja:
+### Must avoid generic strings where possible
 
-```text
-current_tenant
-enabled_modules
-product_profile
-feature_flags
-```
+- `related_entity_type` should be enum-like constants.
+- `module_name` must match `MODULE_REGISTRY` exactly.
+- `department_type` should replace name inference.
 
 ---
 
-## 8. Module Dependency Matrix المقترحة
+## 12. Security / Privacy / Compliance
 
-| Module | Standalone? | Requires in center mode | Requires in standalone mode | Notes |
-|---|---:|---|---|---|
-| reception | نعم | none | none | full front desk |
-| doctor | نعم جزئياً | reception/front_desk | clinic_intake | private doctor clinic |
-| lab | نعم | reception أو doctor orders | lab_intake | standalone lab must work |
-| radiology | نعم | reception أو doctor orders | radiology_intake | DICOM optional |
-| pharmacy | نعم | doctor prescription أو billing | pharmacy_pos | standalone pharmacy does not need visit |
-| nursing | لا غالباً | reception + doctor/emergency | not standalone | can be disabled in small clinic |
-| emergency | لا غالباً | reception/front_desk + triage | emergency_intake | standalone emergency rare |
-| billing | نعم | service lines | POS/invoice | must support disabled mode |
-| appointments | نعم | reception/doctor | clinic scheduling | optional |
-| reporting | نعم | any module | any module | report scope depends modules |
-| inventory | نعم | pharmacy/lab/radiology | stock-only | useful for pharmacy-only |
-| DICOM | لا | radiology | radiology | dependent on radiology |
-| AI imaging | لا | radiology | radiology | dependent on radiology |
-| eMAR | لا | nursing + pharmacy | none | inpatient/center only |
-| bed/OR | لا | center/hospital profile | none | not for small clinic by default |
-| FHIR/API | نعم | tenant subscription | tenant subscription | integration module |
+- No clinical details in finance dashboards.
+- No all-patient access for lab/radiology/pharmacy unless needed.
+- File download audit.
+- Report export audit.
+- AI recommendation acceptance audit.
+- Tenant isolation mandatory.
+- Module disabled routes return 403, not hidden only.
+- Sensitive settings encrypted.
+- API keys must not be stored as plain JSON in SystemConfig long term.
 
 ---
 
-## 9. Workflow Adapters حسب الباقة
+## 13. Final Ideal-System Checklist
 
-### 9.1 Center mode adapter
+### SaaS
 
-```text
-Reception creates Visit
-Visit enters Queue
-Nurse triage optional/required
-Doctor sees patient
-Orders go to internal Lab/Radiology/Pharmacy
-Billing closes visit
-```
+- [ ] Tenant profile exists.
+- [ ] Modules active per tenant.
+- [ ] Feature flags active per tenant.
+- [ ] Every route mapped to module/core.
+- [ ] Every module route guarded.
+- [ ] Sidebar and buttons match backend permissions.
 
-### 9.2 Standalone Lab adapter
+### Workflow
 
-```text
-Lab Intake creates Patient if needed
-Creates LabRequest directly
-Optional invoice/payment
-Sample collection queue
-Result entry
-Validation
-Report delivery
-```
+- [ ] One orchestrator controls transitions.
+- [ ] No duplicate status logic in routes.
+- [ ] Every transition has event.
+- [ ] Queue station known.
+- [ ] Next action clear in UI.
 
-لا ينتظر doctor داخلي. الطبيب المحيل يمكن أن يكون نصاً:
+### Clinical
 
-```text
-referring_doctor_name
-referring_clinic
-external_order_number
-```
+- [ ] Encounter structured.
+- [ ] Vitals linked to visit.
+- [ ] Allergies visible.
+- [ ] Orders module-aware.
+- [ ] Results review workflow clear.
 
-### 9.3 Standalone Radiology adapter
+### Finance
 
-```text
-Radiology Intake
-Create imaging request
-Schedule imaging
-Upload image/DICOM
-Draft report
-Validate report
-Deliver report
-```
+- [ ] Billing optional where allowed.
+- [ ] Receipt states clear.
+- [ ] Payment/Invoice/Visit states reconciled.
+- [ ] Debt/waiver approvals audited.
 
-### 9.4 Standalone Pharmacy adapter
+### Standalone Modules
 
-```text
-Walk-in customer or registered patient
-Prescription upload/manual entry optional
-Sale/dispense
-Stock deduction
-Receipt/POS
-```
+- [ ] Lab works without doctor/reception full.
+- [ ] Radiology works without doctor/reception full.
+- [ ] Pharmacy works without visit.
+- [ ] Private doctor works without lab/radiology/nursing.
 
-هنا لا يوجد `Visit` إجباري. يجب إنشاء نموذج:
+### Operations
 
-```text
-PharmacySale
-PharmacySaleItem
-StockLedger
-```
-
-أو استخدام invoice/payment بدون زيارة.
-
-### 9.5 Private Doctor adapter
-
-```text
-Clinic Intake or doctor creates appointment/visit
-Doctor encounter
-Prescription/Follow-up
-External lab/radiology referral optional
-Billing optional
-```
+- [ ] Files tenant-scoped and secure.
+- [ ] Notifications event-driven.
+- [ ] Reports scoped by tenant/role/module.
+- [ ] Inventory ledgers complete.
+- [ ] QC integrated.
+- [ ] AI advisory and audited.
 
 ---
 
-## 10. Backend Models إضافية مطلوبة لدعم SaaS Dynamic Modules
+## 14. الترتيب النهائي للتنفيذ
 
-### 10.1 `TenantFeatureFlag`
+ابدأ بهذا الترتيب، لأنه يمنع التكسير:
 
-```text
-id
-tenant_id
-feature_key
-is_enabled
-value_json
-updated_by
-updated_at
-```
-
-أمثلة:
-
-```text
-lab.requires_payment_before_sample
-doctor.requires_triage
-pharmacy.allow_walkin_sale
-radiology.enable_dicom
-billing.allow_debt
-```
-
-### 10.2 `TenantModuleSetting`
-
-```text
-id
-tenant_id
-module_name
-settings_json
-updated_by
-updated_at
-```
-
-أمثلة:
-
-```json
-{
-  "default_dashboard": "/lab/worklist",
-  "allow_external_referrals": true,
-  "require_patient_registration": false,
-  "enable_queue": true
-}
-```
-
-### 10.3 `TenantWorkflowProfile`
-
-```text
-tenant_id
-profile_code
-workflow_config_json
-```
-
-يحدد إن كان tenant:
-
-- standalone_lab
-- standalone_pharmacy
-- private_doctor
-- center
-
-### 10.4 `ModuleRouteMap`
-
-اختياري أو static registry:
-
-```text
-module_name
-route_prefix
-blueprint_name
-default_route
-guard_required
-```
-
-لتغطية كل blueprints وليس بعضها فقط.
+1. Route/module inventory.
+2. FeatureGate + module route guards.
+3. Product profiles + Tenant feature flags.
+4. Tenant scoping hardening.
+5. Status constants normalization.
+6. Billing state consistency.
+7. OrderService deduplication.
+8. WorkflowOrchestrator initial version.
+9. Standalone intake adapters.
+10. Reception/Doctor/Lab/Radiology/Pharmacy workbenches.
+11. Files/Notifications/Reports integration.
+12. Inventory/QC/AI governance.
 
 ---
 
-## 11. Frontend مطلوب حسب dynamic modules
+## 15. ملاحظة تنفيذية
 
-### 11.1 Sidebar
+هذه الوثيقة خطة تحليل وتحسين. لا تتضمن أي تعديل كود تنفيذي. التنفيذ يجب أن يتم بمراحل صغيرة، وكل مرحلة commit منفصل، مع عدم لمس `tests/*` أو `logs/*` إلا بقرار واضح ومنفصل.
 
-`templates/partials/sidebar.html` جيد كبداية، لكنه يحتاج:
-
-- استخدام `FeatureGate` لا مجرد `enabled_modules`.
-- إظهار product profile name.
-- إخفاء sub-features داخل module حسب settings.
-- عدم إظهار modules advanced إذا غير guarded backend.
-
-### 11.2 Dashboards ديناميكية
-
-كل Tenant يجب أن يرى dashboard مناسب للبروفايل:
-
-| Profile | Default dashboard |
-|---|---|
-| private doctor | `/doctor/dashboard` أو `/clinic/dashboard` |
-| standalone lab | `/lab/worklist` |
-| standalone radiology | `/radiology/worklist` |
-| standalone pharmacy | `/medication/dashboard` أو `/pharmacy/pos` |
-| small clinic | `/reception/dashboard` |
-| full center | `/reception/dashboard` أو `/manager/dashboard` |
-
-### 11.3 Empty states
-
-إذا وحدة غير مفعلة، لا تظهر صفحة مكسورة. تظهر رسالة:
+اقتراح أسماء commits لاحقة:
 
 ```text
-هذه الوحدة غير مفعلة ضمن اشتراكك. تواصل مع مالك المنصة لترقيتها.
+docs: add route-module inventory
+feat(core): add feature gate service
+feat(saas): add tenant product profiles
+feat(saas): enforce module guards across blueprints
+feat(workflow): add workflow orchestrator skeleton
+feat(billing): reconcile billing and receipt states
+feat(orders): centralize clinical order creation
+feat(lab): add standalone lab intake workflow
+feat(pharmacy): add standalone pharmacy sale workflow
 ```
-
-للـ owner/super_admin يظهر زر تفعيل.
-
-### 11.4 أزرار الطلبات
-
-في شاشة الطبيب:
-
-- زر طلب مختبر يظهر فقط إذا lab enabled أو external lab referrals enabled.
-- زر طلب أشعة يظهر فقط إذا radiology enabled أو external radiology referrals enabled.
-- زر وصفة يظهر إذا pharmacy enabled أو prescription print enabled.
-
-في standalone lab:
-
-- لا تظهر doctor consultation screens.
-- تظهر lab intake + sample + result فقط.
-
----
-
-## 12. Cross-Module Data Contracts
-
-يجب أن يكون لكل وحدة contract واضح.
-
-### 12.1 Reception -> Any module
-
-```text
-patient_id
-visit_id optional
-encounter_id optional
-source_module
-priority
-billing_clearance
-```
-
-### 12.2 Doctor -> Lab
-
-```text
-order_id
-visit_id
-patient_id
-ordered_by
-tests[]
-priority
-clinical_notes_summary
-```
-
-### 12.3 Standalone Lab Intake -> Lab
-
-```text
-patient_id optional initially
-external_patient_name allowed
-external_referrer
-requested_tests[]
-payment_mode
-```
-
-### 12.4 Doctor -> Pharmacy
-
-```text
-prescription_id
-patient_id
-visit_id
-items[]
-signed_by
-status=READY_TO_DISPENSE
-```
-
-### 12.5 Pharmacy standalone sale
-
-```text
-sale_id
-customer_name optional
-patient_id optional
-items[]
-payment
-stock_movements[]
-```
-
----
-
-## 13. Top Architecture Gaps بعد الفحص الديناميكي
-
-| Gap | Impact | Fix |
-|---|---|---|
-| standalone modules غير مدعومة بقواعد dependencies الحالية | يمنع بيع مختبر/أشعة/صيدلية وحدها | product profiles + standalone intake |
-| guards لا تغطي كل blueprints | وصول backend لوحدات غير مفعلة | centralized module route registration |
-| sidebar يخفي فقط links | لا يكفي للحماية | backend FeatureGate |
-| no product profile | tenant modules عشوائية بلا workflow | TenantWorkflowProfile |
-| no tenant module settings | نفس الوحدة لا تتكيف حسب العميل | TenantModuleSetting |
-| patient/visit assumptions في كل مكان | pharmacy/lab standalone قد تنكسر | data contracts allow visit optional by profile |
-| billing مفترض في بعض flows | tenant بلا billing يتعطل | Billing optional adapter |
-| reception مفروضة لكل clinical modules | يخالف standalone sales | intake capability بدل reception module |
-
----
-
-## 14. خطة تنفيذ SaaS Module Integration
-
-### Phase A — Inventory & Guard Coverage
-
-Actions:
-
-- بناء جدول بكل blueprints والمسارات.
-- ربط كل blueprint بـ module.
-- تحديد core routes التي لا تحتاج module.
-- إضافة guard لكل blueprints غير المغطاة.
-
-Validation:
-
-```powershell
-python -m flask routes
-```
-
-Expected output:
-
-- كل route له module أو core.
-
-### Phase B — Product Profiles
-
-Actions:
-
-- إضافة `ProductProfile` أو enum ثابت.
-- إضافة `product_profile_code` إلى Tenant.
-- ربط الخطط profiles.
-- owner UI عند إنشاء tenant يختار profile.
-
-Profiles:
-
-```text
-PRIVATE_DOCTOR_CLINIC
-STANDALONE_LAB
-STANDALONE_RADIOLOGY
-STANDALONE_PHARMACY
-SMALL_CLINIC
-MULTI_DEPARTMENT_CENTER
-CUSTOM
-```
-
-### Phase C — Module Dependency Refactor
-
-Actions:
-
-- تعديل `ModuleMeta` لدعم:
-  - `standalone_allowed`
-  - `required_any_of`
-  - `capabilities`
-  - `default_route`
-- تعديل `can_activate_module` حسب product profile.
-- عدم فرض reception على standalone lab/radiology/pharmacy.
-
-### Phase D — Standalone Intake
-
-Actions:
-
-إنشاء lightweight intake capabilities:
-
-```text
-clinic_intake
-lab_intake
-radiology_intake
-pharmacy_pos
-```
-
-يمكن تنفيذها كـ pages داخل نفس module بدلاً من modules منفصلة.
-
-### Phase E — Tenant Feature Flags
-
-Actions:
-
-- إضافة `TenantFeatureFlag`.
-- استخدامه في backend وfrontend.
-- دعم flags مثل:
-
-```text
-requires_triage
-billing_required_before_queue
-allow_walkin_lab
-allow_walkin_pharmacy_sale
-external_referrals_enabled
-```
-
-### Phase F — Frontend Dynamic UI
-
-Actions:
-
-- إضافة Jinja helpers:
-  - `feature_enabled(module_or_feature)`
-  - `module_active(module)`
-  - `tenant_profile()`
-- تحديث sidebar.
-- تحديث dashboards.
-- إخفاء buttons حسب features.
-
-### Phase G — Workflow Adapters
-
-Actions:
-
-- بناء adapter لكل profile:
-
-```python
-WorkflowAdapter.for_tenant(tenant).create_entry(...)
-WorkflowAdapter.for_tenant(tenant).next_actions(...)
-```
-
-Adapters:
-
-```text
-CenterWorkflowAdapter
-ClinicWorkflowAdapter
-StandaloneLabWorkflowAdapter
-StandaloneRadiologyWorkflowAdapter
-StandalonePharmacyWorkflowAdapter
-```
-
----
-
-## 15. الخطة الطبية الأصلية المختصرة باقية
-
-المشاكل الأصلية ما زالت صحيحة:
-
-- توحيد حالات الزيارة والطابور والطلبات.
-- فصل `create_visit` إلى services.
-- منع تكرار lab/radiology orders.
-- إضافة `TriageAssessment` مربوط بالزيارة.
-- إنشاء `ClinicalEncounter` منظم.
-- إصلاح الدفع/الإيصال/الطابور.
-- بناء `VisitWorkflowService`.
-- إعادة تصميم واجهة الاستقبال كـ wizard.
-- بناء patient context panel.
-- إصلاح صلاحيات الأدوار.
-
-لكن الآن يجب تنفيذها تحت قاعدة أهم:
-
-```text
-كل تحسين workflow يجب أن يكون tenant-aware وmodule-aware وprofile-aware.
-```
-
----
-
-## 16. ترتيب الأولويات الجديد
-
-### الأولوية 1 — SaaS/module safety
-
-قبل أي UX كبير:
-
-1. حصر كل routes وربطها بـ module.
-2. إضافة guards لكل module routes.
-3. إصلاح dependencies لتدعم standalone modules.
-4. إضافة product profile للـ Tenant.
-
-### الأولوية 2 — Workflow core
-
-1. `VisitWorkflowService`.
-2. `BillingStateService`.
-3. `OrderService`.
-4. `QueueService`.
-
-### الأولوية 3 — Standalone module flows
-
-1. standalone lab intake.
-2. standalone radiology intake.
-3. standalone pharmacy POS/sale.
-4. private doctor clinic intake.
-
-### الأولوية 4 — Full center UX
-
-1. reception wizard.
-2. triage integration.
-3. doctor workbench.
-4. lab/radiology/pharmacy worklists.
-5. dashboards.
-
----
-
-## 17. Checklist SaaS نهائي
-
-### Tenant
-
-- [ ] كل Tenant لديه product profile.
-- [ ] كل Tenant لديه modules مفعلة.
-- [ ] كل Tenant لديه feature flags.
-- [ ] كل Tenant لديه default dashboard.
-- [ ] كل Tenant لا يرى بيانات Tenant آخر.
-
-### Modules
-
-- [ ] كل module له registry entry.
-- [ ] كل module له default route.
-- [ ] كل module له backend guard.
-- [ ] كل module له sidebar visibility.
-- [ ] كل module له standalone/center behavior.
-
-### Standalone
-
-- [ ] المختبر يعمل بدون doctor/reception full.
-- [ ] الأشعة تعمل بدون doctor/reception full.
-- [ ] الصيدلية تعمل بدون patient visit.
-- [ ] عيادة الطبيب تعمل بدون lab/radiology/nursing.
-
-### Center
-
-- [ ] reception ينسق بين الأقسام.
-- [ ] queue يحدد المحطة الحالية.
-- [ ] doctor يطلب lab/radiology/pharmacy فقط إذا مفعلة.
-- [ ] billing لا يكسر flow إذا غير مفعلة.
-
-### Frontend
-
-- [ ] sidebar module-aware.
-- [ ] buttons feature-aware.
-- [ ] dashboards profile-aware.
-- [ ] empty states واضحة.
-- [ ] لا يوجد رابط ظاهر لمسار غير مسموح.
-
-### Backend
-
-- [ ] كل route guarded.
-- [ ] كل query tenant-scoped.
-- [ ] كل workflow service يقرأ product profile.
-- [ ] كل activation/deactivation يسجل audit.
-
----
-
-## 18. القرار النهائي الموصى به
-
-النظام يجب أن ينتقل من:
-
-```text
-Modules as pages
-```
-
-إلى:
-
-```text
-Modules as products + capabilities + workflows
-```
-
-أي أن الوحدة ليست مجرد رابط في sidebar، بل عقد تشغيلي كامل:
-
-- هل تعمل وحدها؟
-- ماذا تحتاج؟
-- كيف تبدأ؟
-- ما نموذج بياناتها الأدنى؟
-- ما dashboard الخاص بها؟
-- ما علاقتها بالفوترة والطابور والمريض؟
-- كيف تتصرف إذا كانت جزءاً من مركز كامل؟
-
-أفضل بداية تنفيذية:
-
-1. بناء route/module inventory.
-2. توسيع `MODULE_REGISTRY`.
-3. إضافة Product Profiles.
-4. تصحيح module validators.
-5. تغطية كل blueprints بال guards.
-6. بعدها نبدأ workflow/UX لكل profile.
-
----
-
-## 19. ملاحظة تنفيذية
-
-هذه الوثيقة خطة تحليل وتحسين. لا تتضمن أي تعديل كود تنفيذي. التنفيذ يجب أن يتم على مراحل صغيرة، وكل مرحلة يجب أن تكون قابلة للاختبار والرجوع عنها، مع تجنب تعديل ملفات `tests/*` أو `logs/*` إلا بقرار واضح ومنفصل.
-
-يجب أن يكون كل commit لاحقاً محدوداً وواضحاً:
-
-```text
-Phase SaaS-1: route module inventory and guard coverage
-Phase SaaS-2: product profiles and module registry expansion
-Phase SaaS-3: standalone intake adapters
-Phase Workflow-1: constants and state normalization
-Phase Workflow-2: billing gatekeeper consistency
-Phase Workflow-3: order creation deduplication
-Phase Workflow-4: triage visit binding
-Phase Workflow-5: workflow service initial integration
-```
-
-ولا يتم دمج أكثر من مرحلة في commit واحد.
