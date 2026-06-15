@@ -929,3 +929,378 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
   opacity: 1;
   visibility: visible;
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   Phase 5 — Universal Internal Page Polish (All Dashboards)
+   Applies to every internal page using Bootstrap components.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── List Group (queues, patients, tasks, notifications) ── */
+.list-group {
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle) !important;
+}
+.list-group-item {
+  border-color: var(--border-subtle) !important;
+  padding: 0.85rem 1.1rem !important;
+  transition: var(--transition-smooth);
+  font-size: 0.9rem;
+}
+.list-group-item:hover {
+  background: rgba(15, 76, 129, 0.025) !important;
+}
+.list-group-item.active {
+  background: linear-gradient(90deg, rgba(15, 76, 129, 0.08), transparent) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--azad-blue) !important;
+  font-weight: 700;
+  border-right: 3px solid var(--azad-blue) !important;
+}
+.list-group-item:first-child {
+  border-top-left-radius: var(--radius-lg) !important;
+  border-top-right-radius: var(--radius-lg) !important;
+}
+.list-group-item:last-child {
+  border-bottom-left-radius: var(--radius-lg) !important;
+  border-bottom-right-radius: var(--radius-lg) !important;
+}
+.list-group-flush {
+  border: none !important;
+}
+.list-group-flush .list-group-item {
+  border-right: none !important;
+  border-left: none !important;
+}
+
+/* ── Progress Bars ── */
+.progress {
+  height: 8px !important;
+  border-radius: 50px !important;
+  background: #e2e8f0 !important;
+  overflow: hidden;
+}
+.progress-bar {
+  border-radius: 50px !important;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 8px;
+}
+.progress-bar.bg-primary { background: linear-gradient(90deg, #0f4c81, #1a6db5) !important; }
+.progress-bar.bg-success { background: linear-gradient(90deg, #059669, #21a67a) !important; }
+.progress-bar.bg-info { background: linear-gradient(90deg, #0ea5e9, #00a6a6) !important; }
+.progress-bar.bg-warning { background: linear-gradient(90deg, #d97706, #f59e0b) !important; }
+.progress-bar.bg-danger { background: linear-gradient(90deg, #dc2626, #ef4444) !important; }
+
+/* ── Dropdown Menus ── */
+.dropdown-menu {
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 12px 40px rgba(15, 76, 129, 0.12) !important;
+  padding: 0.4rem !important;
+  font-size: 0.88rem;
+}
+.dropdown-item {
+  border-radius: var(--radius-sm) !important;
+  padding: 0.5rem 0.85rem !important;
+  transition: var(--transition-smooth);
+}
+.dropdown-item:hover {
+  background: rgba(15, 76, 129, 0.05) !important;
+  color: var(--azad-blue) !important;
+}
+.dropdown-item i {
+  width: 18px;
+  text-align: center;
+  opacity: 0.7;
+  margin-left: 0.4rem;
+}
+.dropdown-divider {
+  border-color: var(--border-subtle) !important;
+  margin: 0.4rem !important;
+}
+.dropdown-header {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary) !important;
+  padding: 0.4rem 0.85rem !important;
+}
+
+/* ── Modals ── */
+.modal-content {
+  border: none !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: 0 24px 60px rgba(15, 76, 129, 0.18) !important;
+}
+.modal-header {
+  background: linear-gradient(180deg, rgba(15,76,129,0.04), transparent);
+  border-bottom: 1px solid var(--border-subtle) !important;
+  padding: 1.1rem 1.5rem !important;
+}
+.modal-header .modal-title {
+  color: var(--azad-blue);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.modal-footer {
+  border-top: 1px solid var(--border-subtle) !important;
+  padding: 1rem 1.5rem !important;
+  gap: 0.5rem;
+}
+.modal-body {
+  padding: 1.5rem !important;
+}
+
+/* ── Nav Tabs ── */
+.nav-tabs {
+  border-bottom: 2px solid var(--border-subtle) !important;
+  gap: 0.25rem;
+}
+.nav-tabs .nav-link {
+  border: none !important;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
+  padding: 0.6rem 1.1rem !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600;
+  font-size: 0.88rem;
+  transition: var(--transition-smooth);
+  position: relative;
+}
+.nav-tabs .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: 1rem;
+  left: 1rem;
+  height: 2px;
+  background: var(--azad-blue);
+  transform: scaleX(0);
+  transition: transform 0.25s ease;
+}
+.nav-tabs .nav-link:hover {
+  color: var(--azad-blue) !important;
+  background: rgba(15, 76, 129, 0.03) !important;
+}
+.nav-tabs .nav-link.active {
+  color: var(--azad-blue) !important;
+  background: rgba(15, 76, 129, 0.04) !important;
+  font-weight: 700;
+}
+.nav-tabs .nav-link.active::after {
+  transform: scaleX(1);
+}
+
+/* ── Timeline / Activity Feed ── */
+.timeline {
+  position: relative;
+  padding-right: 1.5rem;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  right: 6px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--border-subtle), transparent);
+}
+.timeline-item {
+  position: relative;
+  padding-bottom: 1.25rem;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  top: 4px; right: -1.5rem;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--medical-cyan);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 3px rgba(0, 166, 166, 0.15);
+}
+.timeline-item.success::before { background: var(--medical-green); box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15); }
+.timeline-item.warning::before { background: var(--warning); box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15); }
+.timeline-item.danger::before { background: var(--danger); box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15); }
+.timeline-item.pending::before { background: var(--text-secondary); }
+.timeline-item .time {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.15rem;
+}
+.timeline-item .title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+.timeline-item .desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+/* ── Patient / Queue Card Row ── */
+.patient-row, .queue-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  transition: var(--transition-smooth);
+  margin-bottom: 0.5rem;
+}
+.patient-row:hover, .queue-item:hover {
+  background: rgba(15, 76, 129, 0.02);
+  border-color: rgba(15, 76, 129, 0.15);
+}
+.patient-row .avatar, .queue-item .avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--azad-blue), var(--medical-cyan));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+.patient-row .meta, .queue-item .meta {
+  flex: 1;
+  min-width: 0;
+}
+.patient-row .meta .name, .queue-item .meta .name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.patient-row .meta .detail, .queue-item .meta .detail {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+.patient-row .actions, .queue-item .actions {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+/* ── Quick Actions Bar ── */
+.quick-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+.quick-actions .btn {
+  border-radius: var(--radius-md) !important;
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem !important;
+}
+
+/* ── Stat Number Display ── */
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--azad-blue);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.stat-label {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Chart / Widget Containers ── */
+.chart-container, .widget-box {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  position: relative;
+}
+.chart-container .chart-title, .widget-box .widget-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.chart-container .chart-title i, .widget-box .widget-title i {
+  color: var(--medical-cyan);
+  font-size: 0.9rem;
+}
+
+/* ── Info / Summary Row ── */
+.info-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.info-row .info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.info-row .info-item i {
+  color: var(--medical-cyan);
+  opacity: 0.7;
+}
+.info-row .info-item strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* ── Filter / Search Bar ── */
+.filter-bar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+}
+.filter-bar .form-control, .filter-bar .form-select {
+  min-width: 160px;
+}
+
+/* ── Pagination ── */
+.pagination {
+  gap: 0.25rem;
+}
+.page-link {
+  border-radius: var(--radius-sm) !important;
+  border: 1px solid var(--border-subtle) !important;
+  color: var(--azad-blue) !important;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.75rem !important;
+  transition: var(--transition-smooth);
+}
+.page-link:hover {
+  background: rgba(15, 76, 129, 0.05) !important;
+  border-color: var(--azad-blue) !important;
+}
+.page-item.active .page-link {
+  background: linear-gradient(135deg, #0f4c81, #1a6db5) !important;
+  border-color: var(--azad-blue) !important;
+  color: #fff !important;
+}
+.page-item.disabled .page-link {
+  opacity: 0.4;
+  background: var(--surface-elevated) !important;
+}
