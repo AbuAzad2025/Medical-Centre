@@ -2257,7 +2257,7 @@ def api_department_staff():
     if current_user.role not in ['reception', 'super_admin', 'manager']:
         return jsonify({'error': 'ليس لديك الصلاحيات'}), 403
     
-    department_id = request.args.get('department_id')
+    department_id = request.args.get('department_id', type=int)
     if not department_id:
         return jsonify({'error': 'معرف القسم مطلوب'}), 400
     
@@ -2267,27 +2267,36 @@ def api_department_staff():
         if not department:
             return jsonify({'error': 'القسم غير موجود'}), 404
         
-        staff = []
-        
         dept_type = department.get_type()
         roles = ['doctor']
         if dept_type == 'lab':
-            roles = ['lab', 'technician']
+            roles = ['lab', 'technician', 'nurse']
         elif dept_type == 'radiology':
-            roles = ['radiology', 'technician']
+            roles = ['radiology', 'technician', 'nurse']
         elif dept_type == 'emergency':
             roles = ['emergency', 'doctor', 'nurse']
         
-        # جلب الموظفين المرتبطين بالقسم مباشرة OR الموظفين بدون قسم لكن دورهم يتناسب مع نوع القسم
+        # 1. موظفو القسم مباشرة بصرف النظر عن الدور
         from sqlalchemy import or_
-        staff = User.query.filter(
-            User.role.in_(roles) if len(roles) > 1 else (User.role == roles[0]),
-            User.is_active == True,
-            or_(
-                User.department_id == department_id,
-                User.department_id.is_(None)
-            )
+        direct_staff = User.query.filter(
+            User.department_id == department_id,
+            User.is_active == True
         ).all()
+        
+        # 2. موظفون بدون قسم ودورهم يناسب نوع القسم
+        unassigned = User.query.filter(
+            User.role.in_(roles),
+            User.is_active == True,
+            User.department_id.is_(None)
+        ).all()
+        
+        # دمج بدون تكرار
+        seen_ids = set()
+        staff = []
+        for p in direct_staff + unassigned:
+            if p.id not in seen_ids:
+                seen_ids.add(p.id)
+                staff.append(p)
         
         results = []
         for person in staff:
@@ -2480,12 +2489,21 @@ def api_department_services():
     if not dept:
         return jsonify({'error': 'القسم غير موجود'}), 404
     from models.service import ServiceMaster
+    from sqlalchemy import or_ as _or
     dt = dept.get_type()
     category = 'doctor' if dt == 'general' else dt
+    # أولاً: خدمات هذا القسم تحديداً
     services = ServiceMaster.query.filter(
         ServiceMaster.category == category,
-        ServiceMaster.is_active == True
-    ).all()
+        ServiceMaster.is_active == True,
+        ServiceMaster.department_id == department_id
+    ).order_by(ServiceMaster.name_ar).all()
+    # إذا لم توجد خدمات مرتبطة بالقسم، أرجع كل خدمات الفئة
+    if not services:
+        services = ServiceMaster.query.filter(
+            ServiceMaster.category == category,
+            ServiceMaster.is_active == True
+        ).order_by(ServiceMaster.name_ar).all()
     resp = {
         'category': category,
         'services': [

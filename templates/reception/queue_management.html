@@ -320,6 +320,42 @@
         </div>
     </div>
 </div>
+
+<!-- نافذة تحويل الزيارة -->
+<div class="modal fade" id="transferVisitModal" tabindex="-1" role="dialog" aria-labelledby="transferVisitModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transferVisitModalLabel"><i class="fas fa-exchange-alt me-2"></i>تحويل الزيارة لقسم آخر</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <form id="transferVisitForm">
+                <div class="modal-body">
+                    <input type="hidden" id="transfer_visit_id" name="visit_id">
+                    <div class="mb-3">
+                        <label for="transfer_department_id" class="form-label fw-bold">القسم الجديد <span class="text-danger">*</span></label>
+                        <select class="form-select" id="transfer_department_id" name="department_id" required>
+                            <option value="">اختر القسم...</option>
+                            {% for dept in all_departments %}
+                            <option value="{{ dept.id }}">{{ dept.name_ar }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transfer_doctor_id" class="form-label fw-bold">الطبيب/الموظف (اختياري)</label>
+                        <select class="form-select" id="transfer_doctor_id" name="doctor_id">
+                            <option value="">اختر بعد القسم...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-info"><i class="fas fa-exchange-alt me-1"></i> تحويل</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -434,8 +470,9 @@ function displayQueueStatusAll(status) {
                         ${t.status === 'called' ? `<button class="btn btn-outline-primary" onclick="startTreatment(${t.ticket_id})" title="بدء العلاج" aria-label="بدء العلاج"><i class='fas fa-play'></i> <span class='btn-label'>بدء</span></button>` : ''}
                         ${t.status === 'in_progress' ? `<button class="btn btn-outline-success" onclick="completeTreatment(${t.ticket_id})" title="إكمال العلاج" aria-label="إكمال العلاج"><i class='fas fa-check'></i> <span class='btn-label'>إكمال</span></button>` : ''}
                         <button class="btn btn-outline-danger" onclick="cancelTicket(${t.ticket_id})" title="إلغاء" aria-label="إلغاء التذكرة"><i class='fas fa-times'></i> <span class='btn-label'>إلغاء</span></button>
-                        ${t.visit_id ? `<a class="btn btn-outline-secondary" href="/reception/view_visit/${t.visit_id}" title="عرض الزيارة"><i class='fas fa-eye'></i></a>` : ''}
-                        ${t.visit_id ? `<a class="btn btn-outline-secondary" href="/reception/print_receipt/${t.visit_id}" title="طباعة السند"><i class='fas fa-print'></i></a>` : ''}
+                        ${t.visit_id ? `<a class="btn btn-outline-secondary" href="/reception/view_visit/${t.visit_id}" title="عرض الزيارة" aria-label="عرض الزيارة"><i class='fas fa-eye'></i> <span class='btn-label'>عرض</span></a>` : ''}
+                        ${t.visit_id ? `<a class="btn btn-outline-secondary" href="/reception/print_receipt/${t.visit_id}" title="طباعة السند" aria-label="طباعة السند"><i class='fas fa-print'></i> <span class='btn-label'>طباعة</span></a>` : ''}
+                        ${t.visit_id && t.status === 'waiting' ? `<button class="btn btn-outline-info" onclick="transferVisit(${t.visit_id})" title="تحويل لقسم آخر" aria-label="تحويل الزيارة"><i class='fas fa-exchange-alt'></i> <span class='btn-label'>تحويل</span></button>` : ''}
                     </div>
                 </td>
             </tr>
@@ -519,6 +556,52 @@ function cancelTicket(ticketId) {
     const modal = new bootstrap.Modal(document.getElementById('cancelTicketModal'));
     modal.show();
 }
+
+function transferVisit(visitId) {
+    document.getElementById('transfer_visit_id').value = visitId;
+    const deptSelect = document.getElementById('transfer_department_id');
+    const docSelect = document.getElementById('transfer_doctor_id');
+    deptSelect.addEventListener('change', function() {
+        const deptId = this.value;
+        if (!deptId) { docSelect.innerHTML = '<option value="">اختر بعد القسم...</option>'; return; }
+        fetch(`/reception/api/department-staff?department_id=${deptId}`)
+            .then(r => r.json())
+            .then(data => {
+                docSelect.innerHTML = '<option value="">بدون تحديد موظف</option>';
+                (data.staff || []).forEach(s => {
+                    const roleAr = {'doctor':'طبيب','nurse':'ممرض','lab':'فني مختبر','radiology':'فني أشعة','emergency':'طوارئ'}[s.role] || s.role;
+                    docSelect.innerHTML += `<option value="${s.id}">${s.full_name} - ${roleAr}</option>`;
+                });
+            });
+    }, {once: false});
+    const modal = new bootstrap.Modal(document.getElementById('transferVisitModal'));
+    modal.show();
+}
+
+document.getElementById('transferVisitForm') && document.getElementById('transferVisitForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const visitId = document.getElementById('transfer_visit_id').value;
+    const deptId = document.getElementById('transfer_department_id').value;
+    const docId = document.getElementById('transfer_doctor_id').value;
+    if (!deptId) { Swal.fire({title:'تنبيه', text:'يجب اختيار القسم', icon:'warning'}); return; }
+    const fd = new FormData();
+    fd.append('csrf_token', getCsrfToken());
+    fd.append('department_id', deptId);
+    if (docId) fd.append('doctor_id', docId);
+    fetch(`/reception/visits/${visitId}/transfer`, {method:'POST', body:fd})
+        .then(r => r.json())
+        .then(data => {
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('transferVisitModal'));
+            modal.hide();
+            if (data.success) {
+                Swal.fire({title:'تم', text:'تم تحويل الزيارة بنجاح', icon:'success', timer:2000, showConfirmButton:false});
+                updateQueueStatus();
+            } else {
+                Swal.fire({title:'خطأ', text: data.message || 'فشل التحويل', icon:'error'});
+            }
+        })
+        .catch(() => Swal.fire({title:'خطأ', text:'حدث خطأ في التحويل', icon:'error'}));
+});
 
 function returnToQueue(ticketId) {
     Swal.fire({
