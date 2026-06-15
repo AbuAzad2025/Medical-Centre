@@ -42,13 +42,20 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/azad-modern.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body style="background:#f1f5f9;">
     <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
-        <div class="brand">
-            <div class="logo-mark"><i class="fas fa-heart-pulse logo-icon"></i></div>
-            <span>{% if current_tenant %}{{ current_tenant.name }}{% else %}Medical Centre{% endif %}</span>
+        <div class="brand" style="display:flex; align-items:center; gap:0.6rem; padding:1.1rem 1.25rem; border-bottom:1px solid rgba(255,255,255,0.06);">
+            <div class="logo-mark" style="width:28px; height:28px; background:linear-gradient(135deg, var(--azad-blue), var(--medical-cyan)); border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                <i class="fas fa-hospital-alt" style="color:#fff; font-size:0.85rem;"></i>
+            </div>
+            <div style="line-height:1.2;">
+                <div style="color:#fff; font-weight:800; font-size:0.92rem; letter-spacing:-0.01em;">منصة ازاد الطبية</div>
+                <div style="color:rgba(148,163,184,0.7); font-size:0.65rem; letter-spacing:0.03em;">AZAD Medical Platform</div>
+            </div>
         </div>
+        <!-- Palestinian accent ribbon -->
+        <div class="palestine-ribbon"></div>
             {% include 'partials/sidebar.html' %}
     </nav>
 
