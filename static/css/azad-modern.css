@@ -1549,3 +1549,13 @@ input, select, textarea {
     transition-duration: 0.15s !important;
   }
 }
+
+/* ── Button Label (icon + text) ── */
+.btn-label {
+  margin-right: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.btn-lg .btn-label {
+  font-size: 0.95rem;
+}
