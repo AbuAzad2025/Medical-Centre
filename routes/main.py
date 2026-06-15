@@ -41,6 +41,20 @@ def dashboard():
 
 # تم نقل /profile إلى auth_routes.py
 
+@main_bp.route('/appointments')
+@login_required
+def appointments_redirect():
+    """إعادة توجيه المواعيد حسب الدور"""
+    role = current_user.role
+    if role == 'doctor':
+        return redirect(url_for('doctor.appointments'))
+    elif role == 'reception':
+        return redirect(url_for('reception.appointments'))
+    elif role == 'patient':
+        return redirect(url_for('portal.appointments'))
+    else:
+        return redirect(url_for('reception.appointments'))
+
 @main_bp.route('/settings')
 @login_required
 def settings():

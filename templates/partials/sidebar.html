@@ -1,3 +1,72 @@
-{# Dynamic sidebar — filters links by enabled_modules and user role #}
+{# Dynamic sidebar — filters links by enabled_modules AND user role #}
 {%- set mods = enabled_modules|default([]) %}
-<ul class="nav flex-column py-2"><li class="nav-item"><a class="nav-link {%- if request.path == '/' %}active{%- endif -%}" href="/"><i class="fas fa-home"></i> الرئيسية</a></li>{%- if 'reception' in mods or not current_tenant %}<li class="nav-item"><a class="nav-link {%- if request.path.startswith('/reception') %}active{%- endif -%}" href="/reception/dashboard"><i class="fas fa-user-plus"></i> الاستقبال</a></li>{%- endif -%}{%- if 'doctor' in mods or not current_tenant %}<li class="nav-item"><a class="nav-link {%- if request.path.startswith('/doctor') or request.path.startswith('/pathway') %}active{%- endif -%}" href="/doctor/dashboard"><i class="fas fa-user-md"></i> الأطباء</a></li>{%- endif -%}{%- if 'lab' in mods or not current_tenant %}<li class="nav-item"><a class="nav-link {%- if request.path.startswith('/lab') %}active{%- endif -%}" href="/lab/dashboard"><i class="fas fa-flask"></i> المختبر</a></li>{%- endif -%}{%- if 'radiology' in mods or not current_tenant %}<li class="nav-item"><a class="nav-link {%- if request.path.startswith('/radiology') or request.path.startswith('/dicom') %}active{%- endif -%}" href="/radiology/dashboard"><i class="fas fa-x-ray"></i> الأشعة</a></li>{%- endif -%}{%- if 'pharmacy' in mods or not current_tenant %}<li class="nav-item"><a class="nav-link {%- if request.path.startswith('/medication') or request.path.startswith('/medications') %}active{%- endif -%}" href="/medication/dashboard"><i class="fas fa-pills"></i> الصيدلية</a></li>{%- endif -%}{%- if 'emergency' in mods or not current_tenant %}<li class="nav-item"><a class="nav-link {%- if request.path.startswith('/emergency') %}active{%- endif -%}" href="/emergency/dashboard"><i class="fas fa-ambulance"></i> الطوارئ</a></li>{%- endif -%}{%- if 'nursing' in mods or not current_tenant %}<li class="nav-item"><a class="nav-link {%- if request.path.startswith('/nurse') or request.path.startswith('/emar') or request.path.startswith('/nursing') %}active{%- endif -%}" href="/nurse/dashboard"><i class="fas fa-user-nurse"></i> التمريض</a></li>{%- endif -%}{%- if 'billing' in mods or not current_tenant %}<li class="nav-item"><a class="nav-link {%- if request.path.startswith('/finance') or request.path.startswith('/payment') or request.path.startswith('/accountant') %}active{%- endif -%}" href="/finance/dashboard"><i class="fas fa-file-invoice-dollar"></i> الفوترة</a></li>{%- endif -%}{%- if 'appointments' in mods or not current_tenant %}<li class="nav-item"><a class="nav-link {%- if request.path.startswith('/appointments') %}active{%- endif -%}" href="/appointments"><i class="fas fa-calendar-alt"></i> المواعيد</a></li>{%- endif -%}{%- if 'reporting' in mods or not current_tenant %}<li class="nav-item"><a class="nav-link {%- if request.path.startswith('/reports') or request.path.startswith('/report-builder') %}active{%- endif -%}" href="/reports"><i class="fas fa-chart-bar"></i> التقارير</a></li>{%- endif -%}{%- if 'nursing' in mods or not current_tenant %}<li class="nav-item"><a class="nav-link {%- if request.path.startswith('/emar') %}active{%- endif -%}" href="/emar/dashboard"><i class="fas fa-clipboard-check"></i> eMAR</a></li>{%- endif -%}{%- if 'doctor' in mods or not current_tenant %}<li class="nav-item"><a class="nav-link {%- if request.path.startswith('/pathway') %}active{%- endif -%}" href="/pathway/pathways"><i class="fas fa-project-diagram"></i> خطط الرعاية</a></li>{%- endif -%}{%- if 'radiology' in mods or not current_tenant %}<li class="nav-item"><a class="nav-link {%- if request.path.startswith('/dicom') %}active{%- endif -%}" href="/dicom/studies"><i class="fas fa-images"></i> DICOM / PACS</a></li>{%- endif -%}{%- if current_user.is_authenticated and current_user.is_admin_user() %}<li class="nav-item mt-3"><span class="nav-link text-uppercase small text-muted">إدارة</span></li><li class="nav-item"><a class="nav-link {%- if request.path.startswith('/super-admin') %}active{%- endif -%}" href="/super-admin/dashboard"><i class="fas fa-cogs"></i> إعدادات النظام</a></li><li class="nav-item"><a class="nav-link {%- if request.path.startswith('/owner') %}active{%- endif -%}" href="/owner/dashboard"><i class="fas fa-crown"></i> منصة المالك</a></li><li class="nav-item"><a class="nav-link {%- if request.path.startswith('/population-health') %}active{%- endif -%}" href="/population-health/dashboard"><i class="fas fa-globe"></i> صحة السكان</a></li><li class="nav-item"><a class="nav-link {%- if request.path.startswith('/data-warehouse') %}active{%- endif -%}" href="/data-warehouse/"><i class="fas fa-database"></i> مستودع البيانات</a></li>{%- endif -%}</ul>
+{%- set role = current_user.role|default('') %}
+{%- set admin_roles = ['super_admin', 'admin', 'manager', 'owner'] %}
+<ul class="nav flex-column py-2">
+    <li class="nav-item"><a class="nav-link {%- if request.path == '/' %}active{%- endif -%}" href="/"><i class="fas fa-home"></i> الرئيسية</a></li>
+
+    {%- if 'reception' in mods or not current_tenant %}
+    {%- if role in ['reception', 'emergency', 'doctor', 'nurse'] or role in admin_roles %}
+    <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/reception') %}active{%- endif -%}" href="/reception/dashboard"><i class="fas fa-user-plus"></i> الاستقبال</a></li>
+    {%- endif %}{%- endif %}
+
+    {%- if 'doctor' in mods or not current_tenant %}
+    {%- if role in ['doctor', 'emergency', 'nurse'] or role in admin_roles %}
+    <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/doctor') or request.path.startswith('/pathway') %}active{%- endif -%}" href="/doctor/dashboard"><i class="fas fa-user-md"></i> الأطباء</a></li>
+    {%- endif %}{%- endif %}
+
+    {%- if 'lab' in mods or not current_tenant %}
+    {%- if role in ['lab'] or role in admin_roles %}
+    <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/lab') %}active{%- endif -%}" href="/lab/dashboard"><i class="fas fa-flask"></i> المختبر</a></li>
+    {%- endif %}{%- endif %}
+
+    {%- if 'radiology' in mods or not current_tenant %}
+    {%- if role in ['radiology'] or role in admin_roles %}
+    <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/radiology') or request.path.startswith('/dicom') %}active{%- endif -%}" href="/radiology/dashboard"><i class="fas fa-x-ray"></i> الأشعة</a></li>
+    {%- endif %}{%- endif %}
+
+    {%- if 'pharmacy' in mods or not current_tenant %}
+    {%- if role in ['pharmacist', 'doctor', 'nurse'] or role in admin_roles %}
+    <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/medication') or request.path.startswith('/medications') %}active{%- endif -%}" href="/medication/dashboard"><i class="fas fa-pills"></i> الصيدلية</a></li>
+    {%- endif %}{%- endif %}
+
+    {%- if 'emergency' in mods or not current_tenant %}
+    {%- if role in ['emergency', 'doctor'] or role in admin_roles %}
+    <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/emergency') %}active{%- endif -%}" href="/emergency/dashboard"><i class="fas fa-ambulance"></i> الطوارئ</a></li>
+    {%- endif %}{%- endif %}
+
+    {%- if 'nursing' in mods or not current_tenant %}
+    {%- if role in ['nurse', 'doctor'] or role in admin_roles %}
+    <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/nurse') or request.path.startswith('/emar') or request.path.startswith('/nursing') %}active{%- endif -%}" href="/nurse/dashboard"><i class="fas fa-user-nurse"></i> التمريض</a></li>
+    {%- endif %}{%- endif %}
+
+    {%- if 'billing' in mods or not current_tenant %}
+    {%- if role in ['accountant'] or role in admin_roles %}
+    <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/finance') or request.path.startswith('/payment') or request.path.startswith('/accountant') %}active{%- endif -%}" href="/finance/dashboard"><i class="fas fa-file-invoice-dollar"></i> الفوترة</a></li>
+    {%- endif %}{%- endif %}
+
+    {%- if 'appointments' in mods or not current_tenant %}
+    {%- if role in ['reception', 'doctor', 'nurse'] or role in admin_roles %}
+    <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/appointments') %}active{%- endif -%}" href="/appointments"><i class="fas fa-calendar-alt"></i> المواعيد</a></li>
+    {%- endif %}{%- endif %}
+
+    {%- if 'reporting' in mods or not current_tenant %}
+    {%- if role in ['accountant', 'manager'] or role in admin_roles %}
+    <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/reports') or request.path.startswith('/report-builder') %}active{%- endif -%}" href="/reports"><i class="fas fa-chart-bar"></i> التقارير</a></li>
+    {%- endif %}{%- endif %}
+
+    {%- if 'nursing' in mods or not current_tenant %}
+    {%- if role in ['nurse'] or role in admin_roles %}
+    <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/emar') %}active{%- endif -%}" href="/emar/dashboard"><i class="fas fa-clipboard-check"></i> eMAR</a></li>
+    {%- endif %}{%- endif %}
+
+    {%- if 'doctor' in mods or not current_tenant %}
+    {%- if role in ['doctor'] or role in admin_roles %}
+    <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/pathway') %}active{%- endif -%}" href="/pathway/pathways"><i class="fas fa-project-diagram"></i> خطط الرعاية</a></li>
+    {%- endif %}{%- endif %}
+
+    {%- if 'analytics' in mods or not current_tenant %}
+    {%- if role in admin_roles %}
+    <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/data-warehouse') %}active{%- endif -%}" href="/data-warehouse/"><i class="fas fa-database"></i> مستودع البيانات</a></li>
+    {%- endif %}{%- endif %}
+</ul>
