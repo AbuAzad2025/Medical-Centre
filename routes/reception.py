@@ -751,6 +751,53 @@ def create_visit():
             payment_method = (payment_method or '').lower()
             selected_tests = request.form.getlist('selected_tests')
             
+            # ========== خدمات يدوية غير مدرجة ==========
+            custom_service_names = request.form.getlist('custom_service_name')
+            custom_service_prices = request.form.getlist('custom_service_price')
+            custom_services_ids = []
+            if custom_service_names and department_id:
+                from models.service import ServiceMaster
+                dept_obj_for_custom = db.session.get(Department, int(department_id))
+                if dept_obj_for_custom:
+                    dept_type = dept_obj_for_custom.get_type()
+                    category = 'lab' if dept_type == 'lab' else ('radiology' if dept_type == 'radiology' else 'general')
+                    for idx, (cs_name, cs_price_raw) in enumerate(zip(custom_service_names, custom_service_prices)):
+                        name = (cs_name or '').strip()
+                        if not name:
+                            continue
+                        try:
+                            price = float(cs_price_raw or 0)
+                        except ValueError:
+                            price = 0.0
+                        # البحث عن خدمة بنفس الاسم في نفس القسم
+                        existing = ServiceMaster.query.filter(
+                            db.func.lower(ServiceMaster.name) == db.func.lower(name),
+                            ServiceMaster.department_id == int(department_id),
+                            ServiceMaster.is_active == True
+                        ).first()
+                        if existing:
+                            custom_services_ids.append(str(existing.id))
+                        else:
+                            import uuid
+                            code = f"CUSTOM-{int(department_id)}-{uuid.uuid4().hex[:6].upper()}"
+                            svc = ServiceMaster(
+                                code=code,
+                                name=name,
+                                name_ar=name,
+                                description=f"خدمة يدوية مضافة من الاستقبال بواسطة {current_user.full_name or current_user.username}",
+                                category=category,
+                                department_id=int(department_id),
+                                base_price=price,
+                                emergency_price=price,
+                                insurance_price=price,
+                                currency='ILS',
+                                is_active=True
+                            )
+                            db.session.add(svc)
+                            db.session.flush()
+                            custom_services_ids.append(str(svc.id))
+                selected_tests = selected_tests + custom_services_ids
+            
             # بيانات التأمين
             insurance_provider = request.form.get('insurance_provider', '')
             insurance_policy_number = request.form.get('insurance_policy_number', '')
@@ -2270,6 +2317,23 @@ def api_visit_pricing():
     
     try:
         dept = db.session.get(Department, department_id)
+        
+        # خدمات يدوية من الطلب
+        custom_names = request.args.getlist('custom_service_name')
+        custom_prices = request.args.getlist('custom_service_price')
+        custom_total = 0.0
+        custom_breakdown = []
+        for cname, cprice in zip(custom_names, custom_prices):
+            name = (cname or '').strip()
+            if not name:
+                continue
+            try:
+                price = float(cprice or 0)
+            except ValueError:
+                price = 0.0
+            custom_total += price
+            custom_breakdown.append({'item': f"(يدوي) {name}", 'cost': price})
+        
         if dept and test_ids_param and dept.get_type() in ['lab', 'radiology']:
             from models.service import ServiceMaster
             ids = [int(x) for x in test_ids_param.split(',') if x.isdigit()]
@@ -2280,6 +2344,9 @@ def api_visit_pricing():
                 price = float(s.insurance_price or s.base_price) if payment_method == 'insurance' else float(s.base_price or 0)
                 total += price
                 breakdown.append({'item': s.name_ar or s.name, 'cost': price})
+            # إضافة الخدمات اليدوية
+            total += custom_total
+            breakdown.extend(custom_breakdown)
             
             # تطبيق الضريبة
             tax_amount = 0
@@ -2298,6 +2365,11 @@ def api_visit_pricing():
         else:
             cost = calculate_visit_cost(department_id, doctor_id, visit_type, is_emergency, payment_method)
             pricing_details = get_pricing_details(department_id, doctor_id, visit_type, is_emergency, payment_method)
+            # إضافة الخدمات اليدوية
+            cost += custom_total
+            if pricing_details:
+                pricing_details['total'] = pricing_details.get('total', 0) + custom_total
+                pricing_details['breakdown'].extend(custom_breakdown)
             
             # تطبيق الضريبة
             if tax_type == 'inclusive':
