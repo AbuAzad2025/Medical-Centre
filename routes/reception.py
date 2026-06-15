@@ -12,6 +12,7 @@ from models.online_booking import OnlineBooking
 from models.department import Department
 from models.payment import Payment, PaymentMethod, PaymentStatus
 from models.queue_management import QueueManagement
+from models.patient_satisfaction import PatientSatisfactionSurvey
 from services.gatekeeper_service import GatekeeperService
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
 from app_factory import db
