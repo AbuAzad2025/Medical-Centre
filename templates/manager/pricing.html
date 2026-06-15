@@ -157,10 +157,10 @@
                                     </td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary" onclick='editService({{ service.id }}, {{ service|tojson }})' title="تعديل">
-                                            <i class="fas fa-edit"></i>
+                                            <i class="fas fa-edit"></i> <span class="btn-label">تعديل</span>
                                         </button>
                                         <button class="btn btn-sm btn-outline-danger" onclick="deleteService({{ service.id }})" title="حذف">
-                                            <i class="fas fa-trash"></i>
+                                            <i class="fas fa-trash"></i> <span class="btn-label">حذف</span>
                                         </button>
                                     </td>
                                 </tr>

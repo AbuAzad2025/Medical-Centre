@@ -113,7 +113,7 @@
                   <td class="small">{{ r.notes or '—' }}</td>
                   <td>
                     <form method="POST" action="{{ url_for('manager.deactivate_exchange_rate', rate_id=r.id) }}" class="d-inline" onsubmit="return confirm('تعطيل هذا السعر؟');">
-                      <button type="submit" class="btn btn-sm btn-outline-danger" title="تعطيل السعر" aria-label="تعطيل السعر"><i class="fas fa-ban"></i></button>
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="تعطيل السعر" aria-label="تعطيل السعر"><i class="fas fa-ban"></i> <span class="btn-label">منع</span></button>
                     </form>
                   </td>
                 </tr>

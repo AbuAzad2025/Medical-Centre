@@ -213,17 +213,17 @@
                 <td>
                     <div class="btn-group" role="group">
                         <a href="{{ url_for('backup.download_backup', backup_id=backup.id) }}" class="btn btn-sm btn-outline-success" title="تحميل">
-                            <i class="fas fa-download"></i>
+                            <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
                         </a>
                         <button class="btn btn-sm btn-outline-info" onclick="restoreBackup('{{ backup.id }}')" title="استعادة">
-                            <i class="fas fa-undo"></i>
+                            <i class="fas fa-undo"></i> <span class="btn-label">تراجع</span>
                         </button>
                         <button class="btn btn-sm btn-outline-danger" onclick="deleteBackup('{{ backup.id }}')" title="حذف">
-                            <i class="fas fa-trash"></i>
+                            <i class="fas fa-trash"></i> <span class="btn-label">حذف</span>
                         </button>
                         {% if backup.backup_status == 'FAILED' %}
                         <button class="btn btn-sm btn-outline-warning" onclick="retryBackup('{{ backup.backup_type }}')" title="إعادة المحاولة">
-                            <i class="fas fa-redo"></i>
+                            <i class="fas fa-redo"></i> <span class="btn-label">إعادة</span>
                         </button>
                         {% endif %}
                     </div>

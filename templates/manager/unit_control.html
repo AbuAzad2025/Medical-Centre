@@ -206,17 +206,17 @@
                                     <td>
                                         <div class="btn-group" role="group">
                                             <button class="btn btn-sm btn-outline-primary" onclick="viewUnitDetails('{{ unit.name }}')" title="تفاصيل">
-                                                <i class="fas fa-eye"></i>
+                                                <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
                                             </button>
                                             <button class="btn btn-sm btn-outline-{{ 'warning' if unit.status == 'active' else 'success' }}" 
                                                     onclick="toggleUnit('{{ unit.name }}')" title="{{ 'تعطيل' if unit.status == 'active' else 'تفعيل' }}">
-                                                <i class="fas fa-toggle-{{ 'on' if unit.status == 'active' else 'off' }}"></i>
+                                                <i class="fas fa-toggle-{{ 'on' if unit.status == 'active' else 'off' }}"></i> <span class="btn-label">زر</span>
                                             </button>
                                             <button class="btn btn-sm btn-outline-info" onclick="configureUnit('{{ unit.name }}')" title="إعدادات">
-                                                <i class="fas fa-cog"></i>
+                                                <i class="fas fa-cog"></i> <span class="btn-label">إعدادات</span>
                                             </button>
                                             <button class="btn btn-sm btn-outline-success" onclick="restartUnit('{{ unit.name }}')" title="إعادة تشغيل">
-                                                <i class="fas fa-redo"></i>
+                                                <i class="fas fa-redo"></i> <span class="btn-label">إعادة</span>
                                             </button>
                                         </div>
                                     </td>

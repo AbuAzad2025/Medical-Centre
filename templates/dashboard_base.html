@@ -71,7 +71,7 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="topbar">
-            <button class="btn btn-sm btn-light d-lg-none" aria-label="فتح القائمة" onclick="const sb=document.getElementById('sidebar');const ov=document.getElementById('sidebarOverlay');sb.classList.toggle('show');ov.classList.toggle('active');document.body.classList.toggle('sidebar-open');"><i class="fas fa-bars"></i></button>
+            <button class="btn btn-sm btn-light d-lg-none" aria-label="فتح القائمة" onclick="const sb=document.getElementById('sidebar');const ov=document.getElementById('sidebarOverlay');sb.classList.toggle('show');ov.classList.toggle('active');document.body.classList.toggle('sidebar-open');"><i class="fas fa-bars"></i> <span class="btn-label">القائمة</span></button>
             <div class="d-flex align-items-center gap-3">
                 <span class="text-muted small">{% if current_tenant %}{{ current_tenant.name }} — {% endif %}{{ current_user.get_role_display() if current_user.is_authenticated else '' }}</span>
                 <a href="/auth/logout" class="btn btn-sm btn-outline-danger"><i class="fas fa-sign-out-alt"></i> خروج</a>
