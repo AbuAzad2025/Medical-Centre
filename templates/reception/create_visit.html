@@ -626,7 +626,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const testSection = document.getElementById('test_selection_section');
     const testsSelect = document.getElementById('selected_tests');
 
-    departmentSelect.addEventListener('change', function() {
+    $('#department_id').on('change', function() {
         const departmentId = this.value;
         staffSelect.innerHTML = '<option value="">جاري التحميل...</option>';
 
@@ -809,9 +809,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('visit_type').addEventListener('change', calculateVisitCost);
     document.getElementById('tax_type').addEventListener('change', calculateVisitCost);
     document.getElementById('is_emergency').addEventListener('change', calculateVisitCost);
-    staffSelect.addEventListener('change', calculateVisitCost);
+    $('#staff_id').on('change', calculateVisitCost);
     document.getElementById('payment_method').addEventListener('change', calculateVisitCost);
-    testsSelect.addEventListener('change', calculateVisitCost);
+    $('#selected_tests').on('change', calculateVisitCost);
 
     // إدارة حقول الدفع الديناميكية
     const paymentMethod = document.getElementById('payment_method');
