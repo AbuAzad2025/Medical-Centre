@@ -514,3 +514,182 @@ h1, h2, h3, h4, h5, h6 {
   .sidebar, .topbar, .btn { display: none !important; }
   .main-content { margin: 0 !important; }
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   Phase 2 Enhancements — Tables, Forms, Alerts, Loader
+   Added after all existing rules to override safely.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Page Loader ── */
+.page-loader {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #f1f5f9;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.page-loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader-ring {
+  width: 48px; height: 48px;
+  border: 3px solid rgba(15, 76, 129, 0.1);
+  border-top-color: var(--azad-blue);
+  border-radius: 50%;
+  animation: loaderSpin 0.9s linear infinite;
+}
+@keyframes loaderSpin { to { transform: rotate(360deg); } }
+
+/* ── Enhanced Tables ── */
+.table {
+  border-collapse: separate !important;
+  border-spacing: 0;
+  font-size: 0.9rem;
+}
+.table thead th {
+  background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important;
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.85rem 1rem !important;
+  border-bottom: 2px solid var(--border-subtle) !important;
+  border-top: none !important;
+  white-space: nowrap;
+}
+.table tbody td {
+  padding: 0.75rem 1rem !important;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle) !important;
+  vertical-align: middle;
+}
+.table tbody tr {
+  transition: var(--transition-smooth);
+}
+.table tbody tr:hover {
+  background: rgba(15, 76, 129, 0.03) !important;
+}
+.table tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* ── Enhanced Forms ── */
+.form-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  margin-bottom: 0.4rem;
+}
+.form-control, .form-select {
+  border: 1.5px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 0.6rem 0.9rem !important;
+  font-size: 0.9rem;
+  transition: var(--transition-smooth);
+  background: var(--surface) !important;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--azad-blue-light) !important;
+  box-shadow: 0 0 0 4px rgba(15, 76, 129, 0.08) !important;
+  outline: none !important;
+}
+.form-control::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+.input-group .input-group-text {
+  background: var(--surface-elevated) !important;
+  border: 1.5px solid var(--border-subtle) !important;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0 !important;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+/* ── Enhanced Alerts ── */
+.alert {
+  border: none !important;
+  border-radius: var(--radius-md) !important;
+  padding: 1rem 1.25rem !important;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+.alert::before {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 4px;
+}
+.alert-success { background: rgba(22, 163, 74, 0.08) !important; color: #166534 !important; }
+.alert-success::before { background: var(--medical-green); }
+.alert-danger { background: rgba(220, 38, 38, 0.06) !important; color: #991b1b !important; }
+.alert-danger::before { background: var(--danger); }
+.alert-warning { background: rgba(217, 119, 6, 0.06) !important; color: #92400e !important; }
+.alert-warning::before { background: var(--warning); }
+.alert-info { background: rgba(14, 165, 233, 0.06) !important; color: #075985 !important; }
+.alert-info::before { background: var(--medical-cyan); }
+.alert-primary { background: rgba(15, 76, 129, 0.06) !important; color: var(--azad-blue) !important; }
+.alert-primary::before { background: var(--azad-blue); }
+
+/* ── Enhanced Page Header ── */
+.page-header {
+  background: linear-gradient(135deg, rgba(15, 76, 129, 0.04), rgba(0, 166, 166, 0.03));
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.page-header h2, .page-header h3, .page-header h1 {
+  color: var(--azad-blue);
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+.page-header .breadcrumb {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* ── Enhanced Badges ── */
+.badge {
+  font-weight: 600 !important;
+  font-size: 0.72rem !important;
+  padding: 0.35em 0.65em !important;
+  border-radius: 50px !important;
+  letter-spacing: 0.02em;
+}
+
+/* ── Smooth Content Fade-In ── */
+.main-content, .content-wrapper {
+  animation: fadeInUp 0.35s ease-out;
+}
+
+/* ── Empty State / Placeholder ── */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+}
+.empty-state i {
+  font-size: 3rem;
+  opacity: 0.15;
+  margin-bottom: 1rem;
+  display: block;
+}
+.empty-state h5 {
+  color: var(--text-primary);
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+.empty-state p {
+  font-size: 0.85rem;
+  margin: 0;
+}

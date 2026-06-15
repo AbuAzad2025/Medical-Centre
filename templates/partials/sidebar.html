@@ -69,4 +69,9 @@
     {%- if role in admin_roles %}
     <li class="nav-item"><a class="nav-link {%- if request.path.startswith('/data-warehouse') %}active{%- endif -%}" href="/data-warehouse/"><i class="fas fa-database"></i> مستودع البيانات</a></li>
     {%- endif %}{%- endif %}
+    <li class="nav-item mt-auto" style="margin-top:auto; border-top:1px solid rgba(255,255,255,0.04); padding-top:0.5rem;">
+        <span class="nav-link" style="color:rgba(148,163,184,0.4); font-size:0.6rem; cursor:default; pointer-events:none;">
+            <i class="fas fa-code" style="color:var(--medical-cyan); opacity:0.5;"></i> AZAD Medical Systems
+        </span>
+    </li>
 </ul>
