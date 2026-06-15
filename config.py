@@ -103,6 +103,9 @@ class DevelopmentConfig(Config):
     WTF_CSRF_ENABLED = True
     LOG_LEVEL = 'DEBUG'
     LOG_TO_STDOUT = True
+    # إعادة تحميل القوالب تلقائياً في التطوير حتى تظهر التعديلات دون إعادة تشغيل
+    TEMPLATES_AUTO_RELOAD = True
+    SEND_FILE_MAX_AGE_DEFAULT = 0
 
 
 class ProductionConfig(Config):
