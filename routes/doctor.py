@@ -403,6 +403,41 @@ def patient_queue():
         flash('حدث خطأ في تحميل طابور المرضى', 'error')
         return redirect(url_for('doctor.dashboard'))
 
+
+@doctor_bp.route('/call-patient/<int:visit_id>', methods=['POST'])
+@login_required
+@role_required('doctor', 'admin', 'manager')
+def call_patient(visit_id):
+    """استدعاء مريض محدد للعلاج"""
+    try:
+        visit = db.session.get(Visit, visit_id)
+        if not visit or visit.doctor_id != current_user.id:
+            flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
+            return redirect(url_for('doctor.patient_queue'))
+
+        from models.queue_management import QueueManagement
+        ticket = QueueManagement.query.filter_by(
+            visit_id=visit_id,
+            department_id=visit.department_id,
+            status='waiting'
+        ).order_by(QueueManagement.queued_at.desc()).first()
+
+        if not ticket:
+            flash('لا يوجد تذكرة طابور نشطة لهذا المريض', 'warning')
+            return redirect(url_for('doctor.patient_queue'))
+
+        ticket.status = 'called'
+        from datetime import datetime, timezone
+        ticket.called_at = datetime.now(timezone.utc)
+        db.session.commit()
+
+        flash(f'تم استدعاء المريض — التذكرة رقم {ticket.queue_number}', 'success')
+    except Exception as e:
+        logging.error(f"Error calling patient: {str(e)}")
+        flash('حدث خطأ أثناء استدعاء المريض', 'error')
+
+    return redirect(url_for('doctor.patient_queue'))
+
 @doctor_bp.route('/start-treatment/<int:visit_id>', methods=['POST'])
 @login_required
 @role_required('doctor', 'admin', 'manager')

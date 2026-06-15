@@ -208,12 +208,21 @@
                                         <td>
                                             <div class="btn-group" role="group">
                                                 {% if patient.status == 'OPEN' %}
-                                                    <form method="POST" action="{{ url_for('doctor.start_treatment', visit_id=patient.id) }}" class="d-inline">
-                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                        <button type="submit" class="btn btn-success btn-sm">
-                                                            <i class="fas fa-play me-1"></i>بدء
-                                                        </button>
-                                                    </form>
+                                                    {% if can_start_map.get(patient.id, False) %}
+                                                        <form method="POST" action="{{ url_for('doctor.start_treatment', visit_id=patient.id) }}" class="d-inline">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn btn-success btn-sm" title="بدء العلاج">
+                                                                <i class="fas fa-play me-1"></i> <span class="btn-label">بدء</span>
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <form method="POST" action="{{ url_for('doctor.call_patient', visit_id=patient.id) }}" class="d-inline">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn btn-warning btn-sm" title="استدعاء المريض">
+                                                                <i class="fas fa-bullhorn me-1"></i> <span class="btn-label">استدعاء</span>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
                                                 {% endif %}
                                                 
                                                 <a href="{{ url_for('doctor.patient_details', visit_id=patient.id) }}" class="btn btn-primary btn-sm">
