@@ -18,8 +18,8 @@ class SecurityHeadersMiddleware:
                 "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net unpkg.com code.jquery.com cdnjs.cloudflare.com; "
                 "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com cdnjs.cloudflare.com unpkg.com; "
                 "img-src 'self' data: blob:; "
-                "font-src 'self' fonts.gstatic.com fonts.googleapis.com; "
-                "connect-src 'self' cdn.jsdelivr.net;"
+                "font-src 'self' fonts.gstatic.com fonts.googleapis.com cdnjs.cloudflare.com data:; "
+                "connect-src 'self' cdn.jsdelivr.net cdnjs.cloudflare.com;"
             )
             # Prevent MIME sniffing
             response.headers['X-Content-Type-Options'] = 'nosniff'
