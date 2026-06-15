@@ -15,11 +15,11 @@ class SecurityHeadersMiddleware:
             # Content Security Policy
             response.headers['Content-Security-Policy'] = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
-                "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
-                "img-src 'self' data:; "
-                "font-src 'self'; "
-                "connect-src 'self';"
+                "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net unpkg.com; "
+                "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com cdnjs.cloudflare.com unpkg.com; "
+                "img-src 'self' data: blob:; "
+                "font-src 'self' fonts.gstatic.com; "
+                "connect-src 'self' cdn.jsdelivr.net;"
             )
             # Prevent MIME sniffing
             response.headers['X-Content-Type-Options'] = 'nosniff'
