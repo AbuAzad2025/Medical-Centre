@@ -118,6 +118,9 @@
         <a href="{{ url_for('main.dashboard') }}" class="luxury-brand">
             <img src="{{ branding.logo_path or url_for('static', filename='img/azad_logo.png') }}" alt="Logo">
             <span class="d-none d-md-block fw-bold">{{ branding.organization_name if branding else 'المركز الطبي' }}</span>
+            <span class="ms-2" style="font-size:0.75rem; opacity:0.7;" title="Palestinian Medical Platform">
+                <i class="fas fa-flag" style="color:var(--palestine-green);"></i>
+            </span>
         </a>
     </div>
 
@@ -150,6 +153,9 @@
             </button>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark-luxury shadow-lg mt-2">
                 <li><h6 class="dropdown-header text-warning fw-bold">{{ current_user.role|upper }}</h6></li>
+                <li><span class="dropdown-item-text text-muted" style="font-size:0.75rem; padding:0.25rem 1rem;">
+                    <i class="fas fa-hospital me-1" style="color:var(--medical-cyan); opacity:0.7;"></i> AZAD Medical
+                </span></li>
                 <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-user-circle me-2"></i>الملف الشخصي</a></li>
                 <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-cog me-2"></i>الإعدادات</a></li>
                 <li><hr class="dropdown-divider"></li>
