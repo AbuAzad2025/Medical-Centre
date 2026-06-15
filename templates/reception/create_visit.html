@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}إنشاء زيارة جديدة - الاستقبال{% endblock %}
 
@@ -165,6 +165,17 @@
                             </div>
                         </div>
 
+                        <div class="row mb-4" id="custom_services_section" style="display: none;">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label mb-0">خدمات / فحوصات إضافية يدوية</label>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addCustomServiceRow()">
+                                        <i class="fas fa-plus"></i> <span class="btn-label">إضافة خدمة</span>
+                                    </button>
+                                </div>
+                                <div id="custom_services_container"></div>
+                            </div>
+                        </div>
                         <!-- نوع الزيارة والتكلفة -->
                         <div class="row mb-4">
                             <div class="col-md-3">
