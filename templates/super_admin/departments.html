@@ -215,31 +215,31 @@
                                             <!-- عرض -->
                                             <button type="button" class="btn btn-info" 
                                                     onclick="viewDepartment({{ department.id }})" title="عرض التفاصيل">
-                                                <i class="fas fa-eye"></i>
+                                                <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
                                             </button>
                                             
                                             <!-- تعديل -->
                                             <button type="button" class="btn btn-primary" 
                                                     onclick="editDepartment({{ department.id }})" title="تعديل القسم">
-                                                <i class="fas fa-edit"></i>
+                                                <i class="fas fa-edit"></i> <span class="btn-label">تعديل</span>
                                             </button>
                                             
                                             <!-- الموظفين -->
                                             <button type="button" class="btn btn-success" 
                                                     onclick="manageStaff({{ department.id }})" title="إدارة الموظفين">
-                                                <i class="fas fa-users"></i>
+                                                <i class="fas fa-users"></i> <span class="btn-label">مستخدمين</span>
                                             </button>
                                             
                                             <!-- تفعيل/إلغاء -->
                                             {% if department.is_active %}
                                             <button type="button" class="btn btn-warning" 
                                                     onclick="deactivateDepartment({{ department.id }})" title="إلغاء التفعيل">
-                                                <i class="fas fa-times-circle"></i>
+                                                <i class="fas fa-times-circle"></i> <span class="btn-label">زر</span>
                                             </button>
                                             {% else %}
                                             <button type="button" class="btn btn-secondary" 
                                                     onclick="activateDepartment({{ department.id }})" title="تفعيل القسم">
-                                                <i class="fas fa-check-circle"></i>
+                                                <i class="fas fa-check-circle"></i> <span class="btn-label">تأكيد</span>
                                             </button>
                                             {% endif %}
                                         </div>

@@ -18,7 +18,7 @@
           <td>{{ p.created_at.strftime('%Y-%m-%d') if p.created_at else '' }}</td>
           <td class="text-end">
             <a class="btn btn-sm btn-outline-primary" href="{{ url_for('doctor.print_prescription', prescription_id=p.id) }}" target="_blank">
-              <i class="fas fa-print"></i>
+              <i class="fas fa-print"></i> <span class="btn-label">طباعة</span>
             </a>
           </td>
         </tr>

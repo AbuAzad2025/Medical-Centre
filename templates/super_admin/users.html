@@ -241,7 +241,7 @@
                                             <!-- تعديل -->
                                             <a href="{{ url_for('super_admin.edit_user', user_id=user.id) }}" 
                                                class="btn btn-primary" title="تعديل">
-                                                <i class="fas fa-edit"></i>
+                                                <i class="fas fa-edit"></i> <span class="btn-label">تعديل</span>
                                             </a>
                                             
                                             {% if user.role != 'super_admin' %}
@@ -250,13 +250,13 @@
                                                     <a href="{{ url_for('super_admin.ban_user', user_id=user.id) }}" 
                                                        class="btn btn-warning" title="حظر المستخدم"
                                                        onclick="return confirmNavigate(event, 'هل تريد حظر هذا المستخدم؟')">
-                                                        <i class="fas fa-ban"></i>
+                                                        <i class="fas fa-ban"></i> <span class="btn-label">منع</span>
                                                     </a>
                                                 {% else %}
                                                     <a href="{{ url_for('super_admin.unban_user', user_id=user.id) }}" 
                                                        class="btn btn-success" title="إلغاء الحظر"
                                                        onclick="return confirmNavigate(event, 'هل تريد إلغاء حظر هذا المستخدم؟')">
-                                                        <i class="fas fa-check-circle"></i>
+                                                        <i class="fas fa-check-circle"></i> <span class="btn-label">تأكيد</span>
                                                     </a>
                                                 {% endif %}
                                                 
@@ -264,17 +264,17 @@
                                                 <a href="{{ url_for('super_admin.force_logout_user', user_id=user.id) }}" 
                                                    class="btn btn-info" title="فرض تسجيل الخروج"
                                                    onclick="return confirmNavigate(event, 'هل تريد إجبار هذا المستخدم على تسجيل الخروج؟')">
-                                                    <i class="fas fa-sign-out-alt"></i>
+                                                    <i class="fas fa-sign-out-alt"></i> <span class="btn-label">خروج</span>
                                                 </a>
                                                 
                                                 <!-- حذف -->
                                                 <button type="button" class="btn btn-danger" title="حذف نهائي"
                                                    onclick="deleteUser({{ user.id }})">
-                                                    <i class="fas fa-trash-alt"></i>
+                                                    <i class="fas fa-trash-alt"></i> <span class="btn-label">حذف</span>
                                                 </button>
                                                 <button type="button" class="btn btn-secondary" title="إعادة تعيين كلمة المرور"
                                                    onclick="resetPassword({{ user.id }})">
-                                                    <i class="fas fa-key"></i>
+                                                    <i class="fas fa-key"></i> <span class="btn-label">زر</span>
                                                 </button>
                                             {% endif %}
                                         </div>
@@ -313,7 +313,7 @@
                                         </div>
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-ellipsis-v"></i>
+                                                <i class="fas fa-ellipsis-v"></i> <span class="btn-label">المزيد</span>
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li><a class="dropdown-item" href="{{ url_for('super_admin.roles') }}">
@@ -357,7 +357,7 @@
                                         </div>
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-ellipsis-v"></i>
+                                                <i class="fas fa-ellipsis-v"></i> <span class="btn-label">المزيد</span>
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li><a class="dropdown-item" href="{{ url_for('super_admin.permissions') }}">

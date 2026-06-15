@@ -816,10 +816,10 @@
                                             <td>
                                                 <div class="btn-group btn-group-sm">
                                                     <a href="{{ url_for('nurse.vital_signs', visit_id=visit.id) }}" class="btn btn-outline-primary">
-                                                        <i class="fas fa-heartbeat"></i>
+                                                        <i class="fas fa-heartbeat"></i> <span class="btn-label">نبض</span>
                                                     </a>
                                                     <a href="{{ url_for('nurse.medication_administration', visit_id=visit.id) }}" class="btn btn-outline-success">
-                                                        <i class="fas fa-pills"></i>
+                                                        <i class="fas fa-pills"></i> <span class="btn-label">أدوية</span>
                                                     </a>
                                                 </div>
                                             </td>
@@ -877,10 +877,10 @@
                                                 <td>
                                                     <div class="btn-group btn-group-sm">
                                                         <a href="{{ url_for('nurse.vital_signs', visit_id=visit.id) }}" class="btn btn-outline-primary">
-                                                            <i class="fas fa-heartbeat"></i>
+                                                            <i class="fas fa-heartbeat"></i> <span class="btn-label">نبض</span>
                                                         </a>
                                                         <a href="{{ url_for('nurse.patient_care') }}" class="btn btn-outline-success">
-                                                            <i class="fas fa-eye"></i>
+                                                            <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
                                                         </a>
                                                     </div>
                                                 </td>

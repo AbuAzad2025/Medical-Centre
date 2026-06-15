@@ -292,12 +292,12 @@
                             </td>
                             <td>
                                 <div class="d-flex gap-1">
-                                    <a href="{{ url_for('owner.owner_tenant_detail', tenant_id=t.id) }}" class="btn btn-sm btn-outline-primary" title="تفاصيل"><i class="fas fa-eye"></i></a>
-                                    <a href="{{ url_for('owner.owner_renew_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-success" title="تجديد"><i class="fas fa-redo"></i></a>
+                                    <a href="{{ url_for('owner.owner_tenant_detail', tenant_id=t.id) }}" class="btn btn-sm btn-outline-primary" title="تفاصيل"><i class="fas fa-eye"></i> <span class="btn-label">عرض</span></a>
+                                    <a href="{{ url_for('owner.owner_renew_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-success" title="تجديد"><i class="fas fa-redo"></i> <span class="btn-label">إعادة</span></a>
                                     {% if t.status.value != 'suspended' %}
-                                    <a href="{{ url_for('owner.owner_suspend_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-warning" title="إيقاف" onclick="return confirm('إيقاف العميل؟')"><i class="fas fa-pause"></i></a>
+                                    <a href="{{ url_for('owner.owner_suspend_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-warning" title="إيقاف" onclick="return confirm('إيقاف العميل؟')"><i class="fas fa-pause"></i> <span class="btn-label">إيقاف</span></a>
                                     {% else %}
-                                    <a href="{{ url_for('owner.owner_activate_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-success" title="تفعيل"><i class="fas fa-play"></i></a>
+                                    <a href="{{ url_for('owner.owner_activate_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-success" title="تفعيل"><i class="fas fa-play"></i> <span class="btn-label">تشغيل</span></a>
                                     {% endif %}
                                 </div>
                             </td>

@@ -222,9 +222,9 @@
               <td class="small text-muted">{{ req.created_at.strftime('%Y-%m-%d %H:%M') if req.created_at else '-' }}</td>
               <td>
                 <div class="d-flex gap-1">
-                  <a href="{{ url_for('lab.reports', request_id=req.id) }}" class="btn btn-sm btn-outline-primary" title="تقرير"><i class="fas fa-file-alt"></i></a>
+                  <a href="{{ url_for('lab.reports', request_id=req.id) }}" class="btn btn-sm btn-outline-primary" title="تقرير"><i class="fas fa-file-alt"></i> <span class="btn-label">زر</span></a>
                   {% if req.status != 'DONE' %}
-                  <a href="{{ url_for('lab.worklist_request', request_id=req.id) }}" class="btn btn-sm btn-outline-success" title="معالجة"><i class="fas fa-play"></i></a>
+                  <a href="{{ url_for('lab.worklist_request', request_id=req.id) }}" class="btn btn-sm btn-outline-success" title="معالجة"><i class="fas fa-play"></i> <span class="btn-label">تشغيل</span></a>
                   {% endif %}
                 </div>
               </td>

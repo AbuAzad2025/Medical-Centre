@@ -194,16 +194,16 @@
                                             <form method="post" action="{{ url_for('backup.restore_backup', backup_id=b.id) }}" onsubmit="return confirm('هل أنت متأكد من استعادة هذه النسخة؟ سيتم فقدان البيانات الحالية!');">
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <button class="btn btn-sm btn-outline-success" title="استعادة">
-                                                    <i class="fas fa-undo"></i>
+                                                    <i class="fas fa-undo"></i> <span class="btn-label">تراجع</span>
                                                 </button>
                                             </form>
                                             <a href="{{ url_for('backup.download_backup', backup_id=b.id) }}" class="btn btn-sm btn-outline-primary" title="تحميل">
-                                                <i class="fas fa-download"></i>
+                                                <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
                                             </a>
                                             <form method="post" action="{{ url_for('backup.delete_backup', backup_id=b.id) }}" onsubmit="return confirm('هل أنت متأكد من حذف هذه النسخة؟');">
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <button class="btn btn-sm btn-outline-danger" title="حذف">
-                                                    <i class="fas fa-trash"></i>
+                                                    <i class="fas fa-trash"></i> <span class="btn-label">حذف</span>
                                                 </button>
                                             </form>
                                         </div>

@@ -90,7 +90,7 @@
                   {% endif %}
                 </td>
                 <td class="text-end">
-                  <a class="btn btn-sm btn-outline-primary" href="{{ url_for('lab.edit_reagent', reagent_id=r.id) }}"><i class="fas fa-edit"></i></a>
+                  <a class="btn btn-sm btn-outline-primary" href="{{ url_for('lab.edit_reagent', reagent_id=r.id) }}"><i class="fas fa-edit"></i> <span class="btn-label">تعديل</span></a>
                 </td>
               </tr>
             {% else %}

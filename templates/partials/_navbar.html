@@ -112,9 +112,9 @@
 <header class="luxury-header d-flex align-items-center justify-content-between">
     <!-- Left Section: Toggle & Brand -->
     <div class="d-flex align-items-center">
-        <button class="btn btn-link text-white p-0 me-3 d-lg-none" id="sidebarToggle"
+        <button class="btn btn-link text-white p-0 me-3 d-lg-none" id="sidebarToggle" aria-label="فتح/إغلاق القائمة الجانبية"
             onclick="const sb=document.querySelector('.luxury-sidebar');const ov=document.getElementById('sidebarOverlay');if(sb){sb.classList.toggle('show');}if(ov){ov.classList.toggle('active');}document.body.classList.toggle('sidebar-open');">
-            <i class="fas fa-bars fa-lg" style="color: var(--luxury-gold);"></i>
+            <i class="fas fa-bars fa-lg" style="color: var(--luxury-gold);"></i> <span class="btn-label">القائمة</span>
         </button>
         <a href="{{ url_for('main.dashboard') }}" class="luxury-brand">
             <img src="{{ branding.logo_path or url_for('static', filename='img/azad_logo.png') }}" alt="Logo">
@@ -139,8 +139,7 @@
     {% if current_user.is_authenticated %}
     <div class="d-flex align-items-center gap-2">
         <!-- Notifications (Example) -->
-        <button type="button" class="btn btn-link position-relative p-1 text-white opacity-75 hover-opacity-100">
-            <i class="fas fa-bell"></i>
+        <button type="button" class="btn btn-link position-relative p-1 text-white opacity-75 hover-opacity-100" title="الإشعارات" aria-label="الإشعارات"><i class="fas fa-bell"></i> <span class="btn-label">إشعارات</span>
             <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="width: 8px; height: 8px;"></span>
         </button>
 
