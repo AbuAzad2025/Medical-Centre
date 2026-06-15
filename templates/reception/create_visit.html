@@ -126,7 +126,7 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="department_id" class="form-label">القسم الصحي <span class="text-danger">*</span></label>
-                                    <select class="form-control" id="department_id" name="department_id" required>
+                                    <select class="form-control select2-search" id="department_id" name="department_id" required>
                                         <option value="">اختر القسم...</option>
                                         {% for department in departments %}
                                         <option value="{{ department.id }}">{{ department.name_ar }}</option>
@@ -137,7 +137,7 @@
                             <div class="col-md-6" id="staff_container">
                                 <div class="mb-3">
                                     <label for="staff_id" class="form-label">الطبيب/الموظف</label>
-                                    <select class="form-control" id="staff_id" name="doctor_id">
+                                    <select class="form-control select2-search" id="staff_id" name="doctor_id">
                                         <option value="">اختر الطبيب/الموظف...</option>
                                     </select>
                                 </div>
@@ -148,7 +148,7 @@
                         <div class="row mb-4" id="test_selection_section" style="display: none;">
                             <div class="col-md-8">
                                 <div class="mb-3">
-                                    <label for="selected_tests" class="form-label">الفحوصات المطلوبة</label>
+                                    <label for="selected_tests" class="form-label" id="tests_section_label">الفحوصات والخدمات المطلوبة</label>
                                     <select class="form-control" id="selected_tests" name="selected_tests" multiple></select>
                                 </div>
                             </div>
@@ -634,19 +634,43 @@ document.addEventListener('DOMContentLoaded', function() {
                             .then(response => response.json())
                             .then(data => {
                                 staffSelect.innerHTML = '<option value="">اختر الطبيب/الموظف...</option>';
-                                if (data.staff) {
+                                if (data.staff && data.staff.length > 0) {
                                     data.staff.forEach(staff => {
                                         const option = document.createElement('option');
                                         option.value = staff.id;
-                                        option.textContent = `${staff.full_name} - ${staff.role}`;
+                                        const roleAr = {'doctor':'طبيب','nurse':'ممرض','lab':'فني مختبر','radiology':'فني أشعة','technician':'فني','emergency':'طوارئ'}[staff.role] || staff.role;
+                                        option.textContent = `${staff.full_name} - ${roleAr}`;
                                         staffSelect.appendChild(option);
                                     });
+                                } else {
+                                    staffSelect.innerHTML += '<option value="" disabled>لا يوجد موظفون في هذا القسم</option>';
                                 }
+                                // إعادة تهيئة Select2 للموظفين
+                                if ($('#staff_id').hasClass('select2-hidden-accessible')) {
+                                    $('#staff_id').select2('destroy');
+                                }
+                                $('#staff_id').select2({
+                                    placeholder: 'ابحث أو اختر الطبيب/الموظف...',
+                                    allowClear: true,
+                                    dir: 'rtl',
+                                    width: '100%',
+                                    language: {
+                                        noResults: function() { return 'لا توجد نتائج'; },
+                                        searching: function() { return 'جاري البحث...'; }
+                                    }
+                                });
                             })
                             .catch(error => {
                                 staffSelect.innerHTML = '<option value="">خطأ في التحميل</option>';
                             });
 
+                        // تحديث label الفحوصات حسب نوع القسم
+                        const testsLabel = document.getElementById('tests_section_label');
+                        if (testsLabel) {
+                            if (svc.category === 'lab') testsLabel.textContent = 'التحاليل المخبرية المطلوبة';
+                            else if (svc.category === 'radiology') testsLabel.textContent = 'صور الأشعة المطلوبة';
+                            else testsLabel.textContent = 'الخدمات المطلوبة';
+                        }
                         if (isLabOrRad) {
                             testSection.style.display = 'flex';
                             document.getElementById('custom_services_section').style.display = 'block';
@@ -1091,6 +1115,22 @@ $(document).ready(function() {
                 noResults: function() { return "لا توجد نتائج"; },
                 searching: function() { return "جاري البحث..."; }
             }
+        });
+    }
+    if ($("#department_id").length) {
+        $("#department_id").select2({
+            placeholder: "ابحث أو اختر القسم...",
+            allowClear: true,
+            dir: "rtl",
+            width: "100%",
+            language: {
+                noResults: function() { return "لا توجد نتائج"; },
+                searching: function() { return "جاري البحث..."; }
+            }
+        });
+        // إعادة ربط حدث change لأن select2 يعيد الـ DOM
+        $("#department_id").on("change", function() {
+            document.getElementById("department_id").dispatchEvent(new Event("change"));
         });
     }
 });
