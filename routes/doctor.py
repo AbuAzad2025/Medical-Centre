@@ -1599,15 +1599,93 @@ def prescriptions_history(patient_id):
 
 @doctor_bp.route('/lab-results/<int:patient_id>')
 @login_required
+@role_required('doctor', 'admin', 'manager')
 def lab_results(patient_id):
-    flash('عرض نتائج المختبر غير متاح للطبيب ضمن تقسيم المهام الجديد. يرجى تدوين الملاحظة إن لزم، ثم يقوم الاستقبال بإنشاء زيارة جديدة لقسم المختبر مع التكاليف المناسبة.', 'warning')
-    return redirect(url_for('doctor.patient_queue'))
+    """عرض نتائج المختبر للطبيب — للإطلاع فقط"""
+    try:
+        patient = db.session.get(Patient, patient_id)
+        if not patient:
+            flash('المريض غير موجود', 'error')
+            return redirect(url_for('doctor.patient_queue'))
+
+        lab_requests = LabRequest.query.filter(
+            LabRequest.patient_id == patient_id
+        ).order_by(desc(LabRequest.created_at)).all()
+
+        results = []
+        for req in lab_requests:
+            try:
+                from models.lab_request import LabResult
+                req_results = LabResult.query.filter(
+                    LabResult.request_id == req.id
+                ).order_by(desc(LabResult.created_at)).all()
+                for r in req_results:
+                    results.append({
+                        'test_name': getattr(r, 'test_name', None) or getattr(req, 'test_name', 'غير محدد'),
+                        'value': getattr(r, 'value', None),
+                        'unit': getattr(r, 'unit', None),
+                        'reference_range': getattr(r, 'reference_range', None),
+                        'status': getattr(r, 'status', 'PENDING'),
+                        'is_critical': getattr(r, 'is_critical', False),
+                        'recorded_at': getattr(r, 'created_at', None),
+                        'technician': getattr(r, 'recorded_by', None)
+                    })
+            except Exception:
+                pass
+
+        return render_template('doctor/lab_results.html',
+                             patient=patient,
+                             lab_requests=lab_requests,
+                             results=results)
+    except Exception as e:
+        logging.error(f"Error loading lab results: {str(e)}")
+        flash('حدث خطأ في تحميل نتائج المختبر', 'error')
+        return redirect(url_for('doctor.patient_queue'))
 
 @doctor_bp.route('/radiology-results/<int:patient_id>')
 @login_required
+@role_required('doctor', 'admin', 'manager')
 def radiology_results(patient_id):
-    flash('عرض نتائج الأشعة غير متاح للطبيب ضمن تقسيم المهام الجديد. يرجى تدوين الملاحظة إن لزم، ثم يقوم الاستقبال بإنشاء زيارة جديدة لقسم الأشعة مع التكاليف المناسبة.', 'warning')
-    return redirect(url_for('doctor.patient_queue'))
+    """عرض نتائج الأشعة للطبيب — للإطلاع فقط"""
+    try:
+        patient = db.session.get(Patient, patient_id)
+        if not patient:
+            flash('المريض غير موجود', 'error')
+            return redirect(url_for('doctor.patient_queue'))
+
+        rad_requests = RadiologyRequest.query.filter(
+            RadiologyRequest.patient_id == patient_id
+        ).order_by(desc(RadiologyRequest.created_at)).all()
+
+        results = []
+        for req in rad_requests:
+            try:
+                from models.radiology_test import RadiologyResult
+                req_results = RadiologyResult.query.filter(
+                    RadiologyResult.request_id == req.id
+                ).order_by(desc(RadiologyResult.created_at)).all()
+                for r in req_results:
+                    results.append({
+                        'modality': getattr(req, 'modality', 'غير محدد'),
+                        'body_part': getattr(req, 'body_part', 'غير محدد'),
+                        'findings': getattr(r, 'findings', None),
+                        'impression': getattr(r, 'impression', None),
+                        'status': getattr(r, 'status', 'PENDING'),
+                        'is_critical': getattr(r, 'is_critical', False),
+                        'recorded_at': getattr(r, 'created_at', None),
+                        'radiologist': getattr(r, 'recorded_by', None)
+                    })
+            except Exception:
+                pass
+
+        return render_template('doctor/radiology_results.html',
+                             patient=patient,
+                             rad_requests=rad_requests,
+                             results=results)
+    except Exception as e:
+        logging.error(f"Error loading radiology results: {str(e)}")
+        flash('حدث خطأ في تحميل نتائج الأشعة', 'error')
+        return redirect(url_for('doctor.patient_queue'))
 
 @doctor_bp.route('/print-prescription/<int:prescription_id>')
 @login_required
