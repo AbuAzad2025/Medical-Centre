@@ -54,12 +54,34 @@
 
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">القسم</label>
-                                <input type="text" class="form-control bg-light" value="{{ user.department.name_ar if user.department else 'غير محدد' }}" readonly>
+                                <select class="form-select" name="department_id" required>
+                                    <option value="" disabled {% if not user.department_id %}selected{% endif %}>اختر القسم</option>
+                                    {% for dept in departments %}
+                                    <option value="{{ dept.id }}" {% if user.department_id == dept.id %}selected{% endif %}>{{ dept.name_ar }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">الدور الوظيفي</label>
-                                <span class="badge bg-info fs-6 mt-2">{{ user.role }}</span>
+                                <select class="form-select" name="role" required>
+                                    <option value="doctor" {% if user.role == 'doctor' %}selected{% endif %}>طبيب</option>
+                                    <option value="nurse" {% if user.role == 'nurse' %}selected{% endif %}>ممرض</option>
+                                    <option value="accountant" {% if user.role == 'accountant' %}selected{% endif %}>محاسب</option>
+                                    <option value="reception" {% if user.role == 'reception' %}selected{% endif %}>موظف استقبال</option>
+                                    <option value="lab" {% if user.role == 'lab' %}selected{% endif %}>فني مختبر</option>
+                                    <option value="radiology" {% if user.role == 'radiology' %}selected{% endif %}>فني أشعة</option>
+                                    <option value="manager" {% if user.role == 'manager' %}selected{% endif %}>مدير</option>
+                                    <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>مدير النظام</option>
+                                    <option value="super_admin" {% if user.role == 'super_admin' %}selected{% endif %}>مدير أعلى</option>
+                                    <option value="emergency" {% if user.role == 'emergency' %}selected{% endif %}>طوارئ</option>
+                                    <option value="user" {% if user.role == 'user' %}selected{% endif %}>مستخدم</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">رقم الغرفة / العيادة</label>
+                                <input type="text" class="form-control" name="doctor_room" value="{{ user.doctor_room or '' }}" placeholder="مثال: غرفة 105">
                             </div>
 
                             <!-- الأمان -->
