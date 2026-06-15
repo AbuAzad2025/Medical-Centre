@@ -2277,10 +2277,16 @@ def api_department_staff():
             roles = ['radiology', 'technician']
         elif dept_type == 'emergency':
             roles = ['emergency', 'doctor', 'nurse']
+        
+        # جلب الموظفين المرتبطين بالقسم مباشرة OR الموظفين بدون قسم لكن دورهم يتناسب مع نوع القسم
+        from sqlalchemy import or_
         staff = User.query.filter(
             User.role.in_(roles) if len(roles) > 1 else (User.role == roles[0]),
-            User.department_id == department_id,
-            User.is_active == True
+            User.is_active == True,
+            or_(
+                User.department_id == department_id,
+                User.department_id.is_(None)
+            )
         ).all()
         
         results = []
