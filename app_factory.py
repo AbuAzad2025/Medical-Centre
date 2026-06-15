@@ -263,11 +263,7 @@ def create_app(config_name: str | None = None) -> Flask:
         except Exception as e:
             app.logger.warning(f"Model import registration skipped: {e}")
 
-        if app.testing:
-            try:
-                db.create_all()
-            except Exception as e:
-                app.logger.warning(f"Testing auto-create tables failed: {e}")
+        # Note: Tests call db.create_all() in their setUp, so we don't call it here
 
     login_manager.login_view = "auth.login"
     login_manager.login_message = "الرجاء تسجيل الدخول أولاً."

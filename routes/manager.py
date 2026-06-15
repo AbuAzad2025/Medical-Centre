@@ -939,9 +939,9 @@ def get_business_insights():
             ).group_by(func.extract('hour', Visit.visit_time)).all()
         except Exception:
             peak_hours = db.session.query(
-                func.strftime('%H', Visit.visit_time).label('hour'),
+                func.extract('hour', Visit.visit_time).label('hour'),
                 func.count(Visit.id).label('count')
-            ).group_by(func.strftime('%H', Visit.visit_time)).all()
+            ).group_by(func.extract('hour', Visit.visit_time)).all()
         
         if peak_hours:
             max_hour = max(peak_hours, key=lambda x: x.count)
@@ -1237,9 +1237,9 @@ def get_resource_optimization():
             ).group_by(func.extract('hour', Visit.visit_time)).all()
         except Exception:
             peak_hours = db.session.query(
-                func.strftime('%H', Visit.visit_time).label('hour'),
+                func.extract('hour', Visit.visit_time).label('hour'),
                 func.count(Visit.id).label('count')
-            ).group_by(func.strftime('%H', Visit.visit_time)).all()
+            ).group_by(func.extract('hour', Visit.visit_time)).all()
         
         if peak_hours:
             max_hour = max(peak_hours, key=lambda x: x.count)

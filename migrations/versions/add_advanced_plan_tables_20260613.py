@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '20260613_030000'
-down_revision = 'add_visit_tax_triage_columns'
+down_revision = 'add_visit_tax_triage_cols'
 branch_labels = None
 depends_on = None
 
@@ -35,6 +35,23 @@ def upgrade():
     )
     op.create_index('idx_medication_schedule_prescription_item', 'medication_schedules', ['prescription_item_id'])
     op.create_index('idx_medication_schedule_active', 'medication_schedules', ['is_active'])
+
+    # patient_care_plans (parent for care_plan_tasks)
+    op.create_table(
+        'patient_care_plans',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('patient_id', sa.Integer(), nullable=False),
+        sa.Column('plan_name', sa.String(200), nullable=False),
+        sa.Column('status', sa.String(30), server_default='ACTIVE', nullable=False),
+        sa.Column('created_by_id', sa.Integer(), nullable=True),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+        sa.ForeignKeyConstraint(['patient_id'], ['patients.id'], ondelete='CASCADE'),
+        sa.ForeignKeyConstraint(['created_by_id'], ['users.id'], ondelete='SET NULL'),
+        sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index('idx_pcp_patient', 'patient_care_plans', ['patient_id'])
+    op.create_index('idx_pcp_status', 'patient_care_plans', ['status'])
 
     # care_plan_tasks
     op.create_table(
@@ -76,6 +93,22 @@ def upgrade():
     )
     op.create_index('idx_dw_sync_name', 'data_warehouse_syncs', ['sync_name'])
     op.create_index('idx_dw_sync_status', 'data_warehouse_syncs', ['status'])
+
+    # dicom_series (parent for dicom_instances)
+    op.create_table(
+        'dicom_series',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('study_id', sa.Integer(), nullable=False),
+        sa.Column('series_instance_uid', sa.String(100), nullable=False),
+        sa.Column('series_number', sa.Integer(), nullable=True),
+        sa.Column('modality', sa.String(50), nullable=True),
+        sa.Column('body_part', sa.String(100), nullable=True),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('series_instance_uid')
+    )
+    op.create_index('idx_dicom_series_study', 'dicom_series', ['study_id'])
+    op.create_index('idx_dicom_series_uid', 'dicom_series', ['series_instance_uid'])
 
     # dicom_instances
     op.create_table(
@@ -131,6 +164,10 @@ def downgrade():
     op.drop_index('idx_dicom_instance_series', table_name='dicom_instances')
     op.drop_table('dicom_instances')
 
+    op.drop_index('idx_dicom_series_uid', table_name='dicom_series')
+    op.drop_index('idx_dicom_series_study', table_name='dicom_series')
+    op.drop_table('dicom_series')
+
     op.drop_index('idx_dw_sync_status', table_name='data_warehouse_syncs')
     op.drop_index('idx_dw_sync_name', table_name='data_warehouse_syncs')
     op.drop_table('data_warehouse_syncs')
@@ -139,6 +176,10 @@ def downgrade():
     op.drop_index('idx_care_plan_task_status', table_name='care_plan_tasks')
     op.drop_index('idx_care_plan_task_plan', table_name='care_plan_tasks')
     op.drop_table('care_plan_tasks')
+
+    op.drop_index('idx_pcp_status', table_name='patient_care_plans')
+    op.drop_index('idx_pcp_patient', table_name='patient_care_plans')
+    op.drop_table('patient_care_plans')
 
     op.drop_index('idx_medication_schedule_active', table_name='medication_schedules')
     op.drop_index('idx_medication_schedule_prescription_item', table_name='medication_schedules')

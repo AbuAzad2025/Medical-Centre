@@ -3625,9 +3625,9 @@ def get_patient_demand_forecast(hours_ahead=4, days_window=14):
             ).filter(Visit.created_at >= start_date).group_by(func.extract('hour', Visit.created_at)).all()
         except Exception:
             hourly = db.session.query(
-                func.strftime('%H', Visit.created_at).label('hour'),
+                func.extract('hour', Visit.created_at).label('hour'),
                 func.count(Visit.id).label('count')
-            ).filter(Visit.created_at >= start_date).group_by(func.strftime('%H', Visit.created_at)).all()
+            ).filter(Visit.created_at >= start_date).group_by(func.extract('hour', Visit.created_at)).all()
 
         avg_by_hour = {}
         for h in hourly:
