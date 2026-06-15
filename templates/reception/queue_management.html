@@ -429,11 +429,11 @@ function displayQueueStatusAll(status) {
                 <td>${t.called_at_display || '-'}</td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
-                        ${t.status === 'waiting' ? `<button class="btn btn-outline-warning" onclick="skipPatient(${t.ticket_id})" title="تخطي"><i class='fas fa-forward'></i></button>` : ''}
-                        ${t.status === 'called' || t.status === 'in_progress' || t.status === 'skipped' ? `<button class="btn btn-outline-secondary" onclick="returnToQueue(${t.ticket_id})" title="إرجاع للطابور"><i class='fas fa-rotate-left'></i></button>` : ''}
-                        ${t.status === 'called' ? `<button class="btn btn-outline-primary" onclick="startTreatment(${t.ticket_id})" title="بدء العلاج"><i class='fas fa-play'></i></button>` : ''}
-                        ${t.status === 'in_progress' ? `<button class="btn btn-outline-success" onclick="completeTreatment(${t.ticket_id})" title="إكمال العلاج"><i class='fas fa-check'></i></button>` : ''}
-                        <button class="btn btn-outline-danger" onclick="cancelTicket(${t.ticket_id})" title="إلغاء"><i class='fas fa-times'></i></button>
+                        ${t.status === 'waiting' ? `<button class="btn btn-outline-warning" onclick="skipPatient(${t.ticket_id})" title="تخطي" aria-label="تخطي المريض"><i class='fas fa-forward'></i> <span class='btn-label'>تخطي</span></button>` : ''}
+                        ${t.status === 'called' || t.status === 'in_progress' || t.status === 'skipped' ? `<button class="btn btn-outline-secondary" onclick="returnToQueue(${t.ticket_id})" title="إرجاع للطابور" aria-label="إرجاع للطابور"><i class='fas fa-rotate-left'></i> <span class='btn-label'>إرجاع</span></button>` : ''}
+                        ${t.status === 'called' ? `<button class="btn btn-outline-primary" onclick="startTreatment(${t.ticket_id})" title="بدء العلاج" aria-label="بدء العلاج"><i class='fas fa-play'></i> <span class='btn-label'>بدء</span></button>` : ''}
+                        ${t.status === 'in_progress' ? `<button class="btn btn-outline-success" onclick="completeTreatment(${t.ticket_id})" title="إكمال العلاج" aria-label="إكمال العلاج"><i class='fas fa-check'></i> <span class='btn-label'>إكمال</span></button>` : ''}
+                        <button class="btn btn-outline-danger" onclick="cancelTicket(${t.ticket_id})" title="إلغاء" aria-label="إلغاء التذكرة"><i class='fas fa-times'></i> <span class='btn-label'>إلغاء</span></button>
                         ${t.visit_id ? `<a class="btn btn-outline-secondary" href="/reception/view_visit/${t.visit_id}" title="عرض الزيارة"><i class='fas fa-eye'></i></a>` : ''}
                         ${t.visit_id ? `<a class="btn btn-outline-secondary" href="/reception/print_receipt/${t.visit_id}" title="طباعة السند"><i class='fas fa-print'></i></a>` : ''}
                     </div>
