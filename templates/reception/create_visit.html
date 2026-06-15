@@ -1128,10 +1128,7 @@ $(document).ready(function() {
                 searching: function() { return "جاري البحث..."; }
             }
         });
-        // إعادة ربط حدث change لأن select2 يعيد الـ DOM
-        $("#department_id").on("change", function() {
-            document.getElementById("department_id").dispatchEvent(new Event("change"));
-        });
+        // select2 يعيد توجيه change للعنصر الأصلي تلقائياً — لا حاجة لإعادة ربط
     }
 });
 </script>
