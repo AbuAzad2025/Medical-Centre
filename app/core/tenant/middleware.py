@@ -45,10 +45,13 @@ def resolve_tenant() -> Tenant | None:
     return None
 
 def set_tenant_context():
-    """Flask before_request handler."""
+    """Flask before_request handler — injects full tenant context."""
     if not current_app.config.get('ENABLE_SAAS_MODE', False):
         g.current_tenant = None
         g.tenant_id = None
+        g.enabled_modules = set()
+        g.product_profile = None
+        g.feature_flags = {}
         return
 
     tenant = resolve_tenant()
@@ -58,3 +61,16 @@ def set_tenant_context():
         raise TenantResolutionError("Tenant subscription expired or suspended.")
     g.current_tenant = tenant
     g.tenant_id = tenant.id if tenant else None
+
+    # Inject module/feature/profile context
+    if tenant:
+        from app.core.module.validators import get_active_modules_for_tenant
+        g.enabled_modules = get_active_modules_for_tenant(tenant.id)
+        g.product_profile = tenant.product_profile_code
+        from app.core.tenant.models import TenantFeatureFlag
+        flags = TenantFeatureFlag.query.filter_by(tenant_id=tenant.id, is_enabled=True).all()
+        g.feature_flags = {f.feature_key: True for f in flags}
+    else:
+        g.enabled_modules = set()
+        g.product_profile = None
+        g.feature_flags = {}

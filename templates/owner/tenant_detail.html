@@ -22,6 +22,7 @@
                     <p><strong>الهاتف:</strong> {{ tenant.contact_phone or '-' }}</p>
                     <p><strong>الرقم الضريبي:</strong> {{ tenant.tax_number or '-' }}</p>
                     <p><strong>طريقة التخزين:</strong> {{ tenant.storage_mode.value }}</p>
+                    <p><strong>نوع العيادة (Profile):</strong> {{ tenant.product_profile_code.value if tenant.product_profile_code else 'غير محدد' }}</p>
                 </div>
             </div>
         </div>
@@ -83,9 +84,32 @@
                     {% for m in active_modules %}
                     <span class="badge bg-primary me-1 mb-1">{{ m }}</span>
                     {% else %}<span class="text-muted">لا وحدات</span>{% endfor %}
+                    <hr>
+                    <small class="text-muted">جميع الوحدات المتاحة:</small>
+                    <div class="mt-1">
+                    {% for m in all_modules %}
+                        {% if m not in active_modules %}
+                        <span class="badge bg-secondary me-1 mb-1 opacity-50">{{ m }}</span>
+                        {% endif %}
+                    {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    {% if feature_flags %}
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header fw-bold"><i class="fas fa-flag me-1"></i>ميزات مفعلة</div>
+                <div class="card-body">
+                    {% for f in feature_flags %}
+                    <span class="badge bg-info me-1 mb-1">{{ f.feature_key }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

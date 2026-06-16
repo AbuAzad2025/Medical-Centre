@@ -49,6 +49,8 @@ class VitalSigns(db.Model):
     __tablename__ = 'vital_signs'
     
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
     nurse_id = db.Column(db.Integer, db.ForeignKey('nurses.id'), nullable=False)
     
@@ -83,6 +85,8 @@ class VitalSigns(db.Model):
         """تحويل إلى قاموس"""
         return {
             'id': self.id,
+            'tenant_id': self.tenant_id,
+            'visit_id': self.visit_id,
             'patient_id': self.patient_id,
             'nurse_id': self.nurse_id,
             'blood_pressure_systolic': self.blood_pressure_systolic,
@@ -102,6 +106,7 @@ class MedicationAdministrationLog(db.Model):
     __tablename__ = 'medication_administration_logs'
 
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='CASCADE'), nullable=False, index=True)
     prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='SET NULL'), nullable=True, index=True)
@@ -121,6 +126,7 @@ class MedicationAdministrationLog(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
+            'tenant_id': self.tenant_id,
             'patient_id': self.patient_id,
             'visit_id': self.visit_id,
             'prescription_id': self.prescription_id,

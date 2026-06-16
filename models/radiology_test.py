@@ -9,6 +9,7 @@ class RadiologyResult(db.Model):
     __tablename__ = 'radiology_results'
 
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     request_id = db.Column(db.Integer, db.ForeignKey('radiology_requests.id', ondelete='CASCADE'), nullable=False, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
     performed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)

@@ -13,6 +13,7 @@ class Report(db.Model):
     __tablename__ = 'reports'
     
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
     report_type = db.Column(db.String(50), nullable=False)  # financial, medical, operational, statistical

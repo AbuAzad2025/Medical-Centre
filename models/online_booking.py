@@ -14,6 +14,7 @@ class OnlineBooking(db.Model):
     __tablename__ = 'online_bookings'
     
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     booking_reference = db.Column(db.String(20), unique=True, nullable=False)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)
     

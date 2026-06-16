@@ -46,6 +46,16 @@
                         <input type="text" name="tax_number" class="form-control">
                     </div>
                     <div class="col-md-4">
+                        <label class="form-label">نوع العيادة (Profile)</label>
+                        <select name="product_profile" class="form-select" id="profileSelect">
+                            <option value="">بدون تحديد</option>
+                            {% for p in profiles %}
+                            <option value="{{ p.value }}">{{ p.value.replace('_', ' ').title() }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">تحديد الباقة يفعّل الوحدات الأساسية تلقائياً</small>
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label">الخطة</label>
                         <select name="plan_id" class="form-select">
                             <option value="">بدون خطة</option>

@@ -13,6 +13,7 @@ class QueueManagement(db.Model):
     __tablename__ = 'queue_management'
     
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=False)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)

@@ -13,6 +13,7 @@ class EmergencyCase(db.Model):
     __tablename__ = 'emergency_cases'
     
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
     case_number = db.Column(db.String(50), unique=True, nullable=False)

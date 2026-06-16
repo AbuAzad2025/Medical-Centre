@@ -2,6 +2,18 @@ from app_factory import create_app, db
 from models.user import User
 
 
+def _cleanup_db():
+    with app.app_context():
+        db.session.rollback()
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        if tables:
+            db.session.execute(db.text(f"TRUNCATE TABLE {', '.join(tables)} CASCADE"))
+        db.session.commit()
+        db.session.remove()
+
+
 def _create_app(mode="single_install"):
     app = create_app("testing")
     app.config["DEPLOYMENT_MODE"] = mode

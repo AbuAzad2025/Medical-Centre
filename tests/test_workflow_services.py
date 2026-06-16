@@ -26,8 +26,16 @@ def app():
     with app.app_context():
         db.create_all()
         yield app
+        db.session.rollback()
         db.session.remove()
-        db.drop_all()
+        db.engine.dispose()
+        db.session.rollback()
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        if tables:
+            db.session.execute(db.text(f"TRUNCATE TABLE {', '.join(tables)} CASCADE"))
+        db.session.commit()
 
 
 class TestVisitWorkflow:
@@ -75,6 +83,11 @@ class TestRadiologyWorkflow:
 class TestPharmacyStock:
     def test_stock_adjustment(self, app):
         with app.app_context():
+            user = User(username='pharm_user1', email='p1@test.com', full_name='Pharm User', role='pharmacy')
+            user.set_password('p')
+            db.session.add(user)
+            db.session.commit()
+
             med = Medication(trade_name="Paracetamol", scientific_name="Paracetamol", dosage_form="tablet", strength="500mg", stock_quantity=50, price=10.0)
             db.session.add(med)
             db.session.commit()
@@ -83,7 +96,7 @@ class TestPharmacyStock:
                 medication_id=med.id,
                 quantity_change=20,
                 movement_type="purchase",
-                performed_by=1,
+                performed_by=user.id,
             )
             db.session.commit()
 
@@ -91,6 +104,11 @@ class TestPharmacyStock:
 
     def test_stock_sale(self, app):
         with app.app_context():
+            user = User(username='pharm_user2', email='p2@test.com', full_name='Pharm User', role='pharmacy')
+            user.set_password('p')
+            db.session.add(user)
+            db.session.commit()
+
             med = Medication(trade_name="Ibuprofen", scientific_name="Ibuprofen", dosage_form="tablet", strength="400mg", stock_quantity=30, price=15.0)
             db.session.add(med)
             db.session.commit()
@@ -99,7 +117,7 @@ class TestPharmacyStock:
                 medication_id=med.id,
                 quantity_change=-5,
                 movement_type="sale",
-                performed_by=1,
+                performed_by=user.id,
             )
             db.session.commit()
 
@@ -107,6 +125,11 @@ class TestPharmacyStock:
 
     def test_insufficient_stock_raises(self, app):
         with app.app_context():
+            user = User(username='pharm_user3', email='p3@test.com', full_name='Pharm User', role='pharmacy')
+            user.set_password('p')
+            db.session.add(user)
+            db.session.commit()
+
             med = Medication(trade_name="Aspirin", scientific_name="Aspirin", dosage_form="tablet", strength="100mg", stock_quantity=3, price=5.0)
             db.session.add(med)
             db.session.commit()
@@ -116,7 +139,7 @@ class TestPharmacyStock:
                     medication_id=med.id,
                     quantity_change=-10,
                     movement_type="sale",
-                    performed_by=1,
+                    performed_by=user.id,
                 )
 
 

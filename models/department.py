@@ -11,6 +11,7 @@ class Department(db.Model):
     __tablename__ = 'departments'
 
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     name = db.Column(db.String(100), nullable=False, unique=True)   # EN
     name_ar = db.Column(db.String(100), nullable=False)             # AR
     description = db.Column(db.Text, nullable=True)

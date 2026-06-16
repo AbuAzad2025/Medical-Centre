@@ -14,7 +14,7 @@ class ModulePermission(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
-    module_name = db.Column(db.String(50), nullable=False)  # reception, doctor, lab, radiology, emergency, accounting
+    module_name = db.Column(db.String(50), nullable=False)  # reception, doctor, lab, radiology, emergency, accounting, admin, manager, pharmacy, billing, nursing, appointments, inventory, portal, dicom, ai_imaging
     
     # صلاحيات الوحدة
     can_view = db.Column(db.Boolean, default=False)
@@ -36,7 +36,7 @@ class ModulePermission(db.Model):
     
     # Constraints and Indexes
     __table_args__ = (
-        CheckConstraint("module_name IN ('reception', 'doctor', 'lab', 'radiology', 'emergency', 'accounting', 'admin', 'manager')", name='chk_module_name'),
+        CheckConstraint("module_name IN ('reception', 'doctor', 'lab', 'radiology', 'emergency', 'accounting', 'admin', 'manager', 'pharmacy', 'billing', 'nursing', 'appointments', 'inventory', 'portal', 'dicom', 'ai_imaging')", name='chk_module_name'),
         Index('idx_module_permission_role', 'role_id'),
         Index('idx_module_permission_module', 'module_name'),
         Index('idx_module_permission_created', 'created_at'),

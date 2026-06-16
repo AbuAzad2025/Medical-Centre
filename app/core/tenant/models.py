@@ -3,7 +3,7 @@ Tenant Models — multi-tenancy foundation
 """
 from datetime import datetime, timezone
 from app.extensions import db
-from app.shared.enums import SubscriptionType, TenantStatus, StorageMode
+from app.shared.enums import SubscriptionType, TenantStatus, StorageMode, ProductProfile
 
 class Tenant(db.Model):
     """Every customer/organization is a Tenant."""
@@ -21,6 +21,9 @@ class Tenant(db.Model):
 
     status = db.Column(db.Enum(TenantStatus), default=TenantStatus.PENDING, nullable=False)
     storage_mode = db.Column(db.Enum(StorageMode), default=StorageMode.LOCAL, nullable=False)
+
+    # Product Profile
+    product_profile_code = db.Column(db.Enum(ProductProfile), nullable=True, default=None)
 
     # Subscription
     subscription_type = db.Column(db.Enum(SubscriptionType), nullable=True)
@@ -147,6 +150,97 @@ class ResourceUsage(db.Model):
     active_users_24h = db.Column(db.Integer, default=0, nullable=False)
 
     tenant = db.relationship('Tenant', backref='resource_snapshots', lazy='select')
+
+
+class TenantFeatureFlag(db.Model):
+    """Per-tenant feature flags for fine-grained control."""
+    __tablename__ = 'tenant_feature_flags'
+
+    id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=False, index=True)
+    feature_key = db.Column(db.String(80), nullable=False, index=True)
+    is_enabled = db.Column(db.Boolean, default=False, nullable=False)
+    module_name = db.Column(db.String(50), nullable=True, index=True)
+
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint('tenant_id', 'feature_key', name='uq_tenant_feature'),
+    )
+
+    tenant = db.relationship('Tenant', backref='feature_flags', lazy='select')
+
+    def __repr__(self):
+        return f"<TenantFeatureFlag {self.tenant_id}:{self.feature_key}={self.is_enabled}>"
+
+
+class TenantModuleSetting(db.Model):
+    """Per-tenant module-level settings (JSON config)."""
+    __tablename__ = 'tenant_module_settings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=False, index=True)
+    module_name = db.Column(db.String(50), nullable=False, index=True)
+    settings_json = db.Column(db.Text, nullable=True)  # JSON blob for module config
+
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint('tenant_id', 'module_name', name='uq_tenant_module_setting'),
+    )
+
+    tenant = db.relationship('Tenant', backref='module_settings', lazy='select')
+
+
+PRODUCT_PROFILE_DEFAULTS: dict[str, dict] = {
+    "private_doctor_clinic": {
+        "modules": ["doctor", "appointments"],
+        "dashboard_route": "/doctor/dashboard",
+        "description_ar": "طبيب منفرد بعيادة خاصة",
+    },
+    "small_clinic": {
+        "modules": ["reception", "doctor", "billing", "appointments"],
+        "dashboard_route": "/reception/dashboard",
+        "description_ar": "عيادة صغيرة باستقبال وطبيب وفوترة",
+    },
+    "standalone_lab": {
+        "modules": ["lab", "billing", "reporting"],
+        "dashboard_route": "/lab/worklist",
+        "description_ar": "مختبر مستقل",
+    },
+    "standalone_radiology": {
+        "modules": ["radiology", "billing", "reporting"],
+        "dashboard_route": "/radiology/worklist",
+        "description_ar": "مركز أشعة مستقل",
+    },
+    "standalone_pharmacy": {
+        "modules": ["pharmacy", "inventory", "billing"],
+        "dashboard_route": "/pharmacy/pos",
+        "description_ar": "صيدلية مستقلة",
+    },
+    "multi_department_center": {
+        "modules": ["reception", "doctor", "nursing", "billing", "appointments", "queue", "lab", "radiology", "pharmacy", "emergency", "reporting", "inventory"],
+        "dashboard_route": "/reception/dashboard",
+        "description_ar": "مركز طبي كامل",
+    },
+    "custom": {
+        "modules": [],
+        "dashboard_route": "/",
+        "description_ar": "حسب الطلب",
+    },
+}
+
+
+def get_default_modules_for_profile(profile_code: str) -> list[str]:
+    profile = PRODUCT_PROFILE_DEFAULTS.get(profile_code)
+    return list(profile["modules"]) if profile else []
+
+
+def get_dashboard_for_profile(profile_code: str) -> str:
+    profile = PRODUCT_PROFILE_DEFAULTS.get(profile_code)
+    return profile["dashboard_route"] if profile else "/"
 
 
 class NotificationRule(db.Model):
