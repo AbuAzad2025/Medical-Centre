@@ -3,6 +3,7 @@ Data Warehouse / Analytics Summary Routes
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required
+from utils.decorators import handle_route_errors
 from app_factory import db
 from models import DataWarehouseSync, DailyVisitSummary, MonthlyFinanceSummary, Visit
 from sqlalchemy import func
@@ -13,6 +14,7 @@ data_warehouse_bp = Blueprint('data_warehouse', __name__)
 
 @data_warehouse_bp.route('/')
 @login_required
+@handle_route_errors
 def dashboard():
     syncs = DataWarehouseSync.query.order_by(DataWarehouseSync.created_at.desc()).limit(20).all()
     daily = DailyVisitSummary.query.order_by(DailyVisitSummary.date.desc()).limit(30).all()
@@ -24,6 +26,7 @@ def dashboard():
 
 @data_warehouse_bp.route('/sync', methods=['POST'])
 @login_required
+@handle_route_errors
 def sync():
     sync_name = request.form.get('sync_name', 'daily_visits_summary')
     sync_log = DataWarehouseSync(

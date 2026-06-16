@@ -412,6 +412,29 @@ def role_required_json(*roles):
         return decorated_function
     return decorator
 
+def handle_route_errors(f):
+    """
+    ديكوريتر للتعامل مع الأخطاء غير المتوقعة في Routes
+    يمنع 500 Internal Server Error الصامت — يسجل الخطأ ويعرض رسالة للمستخدم
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        from app_factory import db
+        try:
+            return f(*args, **kwargs)
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Unhandled error in {f.__name__}: {str(e)}")
+            if request.headers.get('Accept') and 'application/json' in request.headers.get('Accept', ''):
+                return jsonify({'success': False, 'message': 'حدث خطأ غير متوقع'}), 500
+            flash('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.', 'error')
+            referrer = request.headers.get('Referer')
+            if referrer:
+                return redirect(referrer)
+            return redirect(url_for('main.dashboard'))
+    return decorated_function
+
+
 def super_admin_only(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):

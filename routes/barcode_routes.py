@@ -3,7 +3,7 @@ Barcode / QR Code Tracking Routes
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
-from utils.decorators import role_required
+from utils.decorators import handle_route_errors, role_required
 from models.barcode_tracking import BarcodeRegistry, BarcodeScanLog
 from app_factory import db
 from datetime import datetime, timezone
@@ -13,11 +13,13 @@ barcode_bp = Blueprint('barcode', __name__)
 @barcode_bp.route('/scan')
 @login_required
 @role_required('nurse', 'pharmacist', 'lab_tech', 'admin')
+@handle_route_errors
 def scan_page():
     return render_template('barcode/scan.html')
 
 @barcode_bp.route('/api/scan', methods=['POST'])
 @login_required
+@handle_route_errors
 def api_scan():
     data = request.get_json()
     barcode_value = data.get('barcode') if data else request.form.get('barcode')
@@ -63,6 +65,7 @@ def api_scan():
 @barcode_bp.route('/registry')
 @login_required
 @role_required('admin', 'manager')
+@handle_route_errors
 def registry():
     entity_type = request.args.get('entity_type')
     query = BarcodeRegistry.query

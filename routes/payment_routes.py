@@ -274,7 +274,7 @@ def process_payment(visit_id):
                 payment.invoice_id = existing_invoice.id
             db.session.add(payment)
 
-            visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + amount_value
+            visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + converted_amount
             visit.payment_method = method_value or visit.payment_method
             if method_value == PaymentMethod.CARD:
                 if card_last_digits:
@@ -304,8 +304,8 @@ def process_payment(visit_id):
                 # حساب مبالغ التأمين وحصة المريض
                 visit.calculate_insurance_amounts()
                 # عند الدفع بالتأمين يجب أن يكون المبلغ مساوياً لحصة المريض
-                if visit.patient_share and amount_value > visit.patient_share:
-                    msg = f"المبلغ المدخل ({amount_value}) يتجاوز حصة المريض ({visit.patient_share})"
+                if visit.patient_share and converted_amount > visit.patient_share:
+                    msg = f"المبلغ المدخل ({converted_amount} {base_currency}) يتجاوز حصة المريض ({visit.patient_share} {base_currency})"
                     if _wants_json():
                         return jsonify({'success': False, 'message': msg}), 400
                     flash(msg, 'error')
@@ -318,7 +318,7 @@ def process_payment(visit_id):
                 visit.force_payment_approved_at = datetime.now(timezone.utc)
             if visit.remaining_amount <= 0:
                 visit.payment_status = 'PAID'
-            elif amount_value > 0:
+            elif converted_amount > 0:
                 visit.payment_status = 'PARTIAL'
             else:
                 visit.payment_status = visit.payment_status or 'PENDING'

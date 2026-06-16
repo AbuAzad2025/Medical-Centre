@@ -3,6 +3,7 @@ AI Imaging Analysis Routes
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
+from utils.decorators import handle_route_errors
 from app_factory import db
 from models import AIImagingAnalysis, DICOMStudy
 from datetime import datetime, timezone
@@ -13,6 +14,7 @@ ai_imaging_bp = Blueprint('ai_imaging', __name__)
 
 @ai_imaging_bp.route('/')
 @login_required
+@handle_route_errors
 def index():
     analyses = AIImagingAnalysis.query.order_by(AIImagingAnalysis.created_at.desc()).limit(50).all()
     return render_template('ai_imaging/index.html', analyses=analyses)
@@ -20,6 +22,7 @@ def index():
 
 @ai_imaging_bp.route('/request', methods=['POST'])
 @login_required
+@handle_route_errors
 def request_analysis():
     study_id = request.form.get('study_id', type=int)
     analysis_type = request.form.get('analysis_type', 'detection')
@@ -48,6 +51,7 @@ def request_analysis():
 
 @ai_imaging_bp.route('/<int:ai_id>/review', methods=['POST'])
 @login_required
+@handle_route_errors
 def review(ai_id):
     ai = AIImagingAnalysis.query.get_or_404(ai_id)
     ai.status = 'reviewed'

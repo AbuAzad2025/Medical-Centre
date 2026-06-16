@@ -3,7 +3,7 @@ What-If Scenario Routes
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
-from utils.decorators import manager_or_admin_only
+from utils.decorators import handle_route_errors, manager_or_admin_only
 from app_factory import db
 from models import WhatIfScenario, Department
 from datetime import datetime, timezone
@@ -13,6 +13,7 @@ what_if_bp = Blueprint('what_if', __name__)
 
 @what_if_bp.route('/')
 @login_required
+@handle_route_errors
 def index():
     scenarios = WhatIfScenario.query.order_by(WhatIfScenario.created_at.desc()).all()
     return render_template('what_if/index.html', scenarios=scenarios)
@@ -21,6 +22,7 @@ def index():
 @what_if_bp.route('/new', methods=['GET', 'POST'])
 @login_required
 @manager_or_admin_only
+@handle_route_errors
 def new_scenario():
     if request.method == 'POST':
         scenario = WhatIfScenario(
@@ -48,6 +50,7 @@ def new_scenario():
 
 @what_if_bp.route('/<int:scenario_id>')
 @login_required
+@handle_route_errors
 def view_scenario(scenario_id):
     scenario = WhatIfScenario.query.get_or_404(scenario_id)
     return render_template('what_if/view.html', scenario=scenario)

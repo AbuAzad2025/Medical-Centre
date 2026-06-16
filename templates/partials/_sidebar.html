@@ -107,6 +107,9 @@
     .sidebar-title { font-size: 1.1rem; }
 </style>
 
+{%- set mods = enabled_modules|default([]) %}
+{%- set is_saas = current_tenant is not none %}
+{%- set admin_roles = ['super_admin', 'admin', 'manager', 'owner'] %}
 {% if current_user.is_authenticated %}
 <aside class="luxury-sidebar" id="appSidebar" role="navigation" aria-label="القائمة الجانبية">
     <div class="sidebar-header">
@@ -180,6 +183,7 @@
         </div>
 
         {% elif current_user.role == 'manager' %}
+        {% if not is_saas or 'management' in mods %}
         <div class="nav-section">
             <h6 class="nav-section-title">الإدارة</h6>
             <ul class="nav-list">
@@ -201,8 +205,10 @@
                 <li><a href="{{ url_for('booking.index') }}" class="nav-link-luxury {% if 'booking.index' in request.endpoint %}active{% endif %}"><i class="fas fa-calendar-check"></i> <span>الحجز عن بعد</span></a></li>
             </ul>
         </div>
+        {% endif %}
 
         {% elif current_user.role == 'reception' %}
+        {% if not is_saas or 'reception' in mods %}
         <div class="nav-section">
             <h6 class="nav-section-title">الاستقبال</h6>
             <ul class="nav-list">
@@ -221,8 +227,10 @@
                 <li><a href="{{ url_for('booking.index') }}" class="nav-link-luxury {% if 'booking.index' in request.endpoint %}active{% endif %}"><i class="fas fa-calendar-check"></i> <span>الحجز عن بعد</span></a></li>
             </ul>
         </div>
+        {% endif %}
 
         {% elif current_user.role == 'doctor' %}
+        {% if not is_saas or 'doctor' in mods %}
         <div class="nav-section">
             <h6 class="nav-section-title">الطبيب</h6>
             <ul class="nav-list">
@@ -232,8 +240,10 @@
                 <li><a href="{{ url_for('doctor.prescriptions') }}" class="nav-link-luxury {% if 'doctor.prescriptions' in request.endpoint %}active{% endif %}"><i class="fas fa-file-prescription"></i> <span>الوصفات الطبية</span></a></li>
             </ul>
         </div>
+        {% endif %}
 
         {% elif current_user.role == 'emergency' %}
+        {% if not is_saas or 'emergency' in mods %}
         <div class="nav-section">
             <h6 class="nav-section-title">الطوارئ</h6>
             <ul class="nav-list">
@@ -243,8 +253,10 @@
                 <li><a href="{{ url_for('emergency.triage_list') }}" class="nav-link-luxury {% if 'emergency.triage_list' in request.endpoint %}active{% endif %}"><i class="fas fa-notes-medical"></i> <span>قائمة الفرز</span></a></li>
             </ul>
         </div>
+        {% endif %}
 
         {% elif current_user.role == 'lab' %}
+        {% if not is_saas or 'lab' in mods %}
         <div class="nav-section">
             <h6 class="nav-section-title">المختبر</h6>
             <ul class="nav-list">
@@ -256,8 +268,10 @@
                 <li><a href="{{ url_for('lab.reagents') }}" class="nav-link-luxury {% if 'lab.reagents' in request.endpoint %}active{% endif %}"><i class="fas fa-boxes"></i> <span>مواد المختبر</span></a></li>
             </ul>
         </div>
+        {% endif %}
 
         {% elif current_user.role == 'radiology' %}
+        {% if not is_saas or 'radiology' in mods %}
         <div class="nav-section">
             <h6 class="nav-section-title">الأشعة</h6>
             <ul class="nav-list">
@@ -268,8 +282,10 @@
                 <li><a href="{{ url_for('radiology.quality') }}" class="nav-link-luxury {% if 'radiology.quality' in request.endpoint %}active{% endif %}"><i class="fas fa-shield-alt"></i> <span>الجودة</span></a></li>
             </ul>
         </div>
+        {% endif %}
 
         {% elif current_user.role == 'accountant' %}
+        {% if not is_saas or 'billing' in mods %}
         <div class="nav-section">
             <h6 class="nav-section-title">المحاسبة</h6>
             <ul class="nav-list">
@@ -286,8 +302,10 @@
                 <li><a href="{{ url_for('finance.audit') }}" class="nav-link-luxury {% if 'finance.audit' in request.endpoint %}active{% endif %}"><i class="fas fa-search-dollar"></i> <span>التدقيق</span></a></li>
             </ul>
         </div>
+        {% endif %}
 
         {% elif current_user.role == 'pharmacist' %}
+        {% if not is_saas or 'pharmacy' in mods %}
         <div class="nav-section">
             <h6 class="nav-section-title">الصيدلية</h6>
             <ul class="nav-list">
@@ -299,8 +317,10 @@
                 <li><a href="{{ url_for('medication.consumption_report') }}" class="nav-link-luxury {% if 'medication.consumption_report' in request.endpoint %}active{% endif %}"><i class="fas fa-chart-line"></i> <span>تقرير الاستهلاك</span></a></li>
             </ul>
         </div>
+        {% endif %}
 
         {% elif current_user.role == 'nurse' %}
+        {% if not is_saas or 'nursing' in mods %}
         <div class="nav-section">
             <h6 class="nav-section-title">التمريض</h6>
             <ul class="nav-list">
@@ -312,6 +332,7 @@
                 <li><a href="{{ url_for('nurse.reports') }}" class="nav-link-luxury {% if 'nurse.reports' in request.endpoint %}active{% endif %}"><i class="fas fa-chart-bar"></i> <span>تقرير التمريض</span></a></li>
             </ul>
         </div>
+        {% endif %}
         {% endif %}
         
         <!-- Bottom Section (Logout) -->

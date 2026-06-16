@@ -1,10 +1,11 @@
 """
 Two-Factor Authentication Routes
 """
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session, jsonify
 from flask_login import login_required, current_user
 from app_factory import db
 from models import UserMFASettings, MFALoginAttempt
+from utils.decorators import handle_route_errors
 import pyotp
 import qrcode
 import qrcode.image.svg
@@ -20,6 +21,7 @@ mfa_bp = Blueprint('mfa', __name__)
 
 @mfa_bp.route('/setup', methods=['GET', 'POST'])
 @login_required
+@handle_route_errors
 def setup():
     mfa = UserMFASettings.query.filter_by(user_id=current_user.id).first()
     if not mfa:
@@ -73,6 +75,7 @@ def setup():
 
 
 @mfa_bp.route('/verify', methods=['GET', 'POST'])
+@handle_route_errors
 def verify():
     user_id = session.get('mfa_pending_user_id')
     if not user_id:
@@ -134,6 +137,7 @@ def verify():
 
 @mfa_bp.route('/status')
 @login_required
+@handle_route_errors
 def status():
     mfa = UserMFASettings.query.filter_by(user_id=current_user.id).first()
     return render_template('mfa/status.html', mfa=mfa)
@@ -141,6 +145,7 @@ def status():
 
 @mfa_bp.route('/disable', methods=['POST'])
 @login_required
+@handle_route_errors
 def disable():
     mfa = UserMFASettings.query.filter_by(user_id=current_user.id).first()
     if mfa:
@@ -154,6 +159,7 @@ def disable():
 
 
 @mfa_bp.route('/api/check', methods=['POST'])
+@handle_route_errors
 def api_check():
     """API endpoint for 2FA verification during login flow"""
     data = request.get_json() or {}
