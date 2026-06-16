@@ -827,15 +827,25 @@ def invoices():
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
     
+    page = request.args.get('page', 1, type=int)
+    per_page = 25
+    
     try:
-        visits = Visit.query.filter(
+        query = Visit.query.filter(
             Visit.payment_status.in_(['PENDING', 'PARTIAL', 'DEBT'])
-        ).order_by(Visit.created_at.desc()).limit(200).all()
+        ).order_by(Visit.created_at.desc())
+        
+        total = query.count()
+        pages = (total + per_page - 1) // per_page
+        
+        visits = query.offset((page - 1) * per_page).limit(per_page).all()
     except Exception as e:
         logging.error(f"Error loading pending visits: {str(e)}")
         visits = []
+        total = 0
+        pages = 0
 
-    return render_template('accountant/pending_payments.html', visits=visits)
+    return render_template('accountant/pending_payments.html', visits=visits, page=page, pages=pages, total=total)
 
 @accountant_bp.route('/reports')
 @login_required

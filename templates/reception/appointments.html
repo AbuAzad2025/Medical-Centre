@@ -127,7 +127,7 @@
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
+                        <div class="col ms-2">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                 إجمالي المواعيد
                             </div>
@@ -145,7 +145,7 @@
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
+                        <div class="col ms-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                                 مواعيد اليوم
                             </div>
@@ -163,7 +163,7 @@
             <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
+                        <div class="col ms-2">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                                 مؤكدة
                             </div>
@@ -181,7 +181,7 @@
             <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
+                        <div class="col ms-2">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                                 معلقة
                             </div>
@@ -359,26 +359,26 @@
                     <div class="row">
                         {% if current_user.is_authenticated and current_user.role in ['reception','manager'] %}
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-primary btn-block" onclick="createNewAppointment()">
+                            <button class="btn btn-primary w-100" onclick="createNewAppointment()">
                                 <i class="fas fa-plus me-2"></i>
                                 موعد جديد
                             </button>
                         </div>
                         {% endif %}
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-success btn-block" onclick="createNewVisit()">
+                            <button class="btn btn-success w-100" onclick="createNewVisit()">
                                 <i class="fas fa-hospital me-2"></i>
                                 زيارة جديدة
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-info btn-block" onclick="generateReport()">
+                            <button class="btn btn-info w-100" onclick="generateReport()">
                                 <i class="fas fa-chart-bar me-2"></i>
                                 تقرير المواعيد
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-warning btn-block" onclick="bulkActions()">
+                            <button class="btn btn-warning w-100" onclick="bulkActions()">
                                 <i class="fas fa-tasks me-2"></i>
                                 إجراءات جماعية
                             </button>

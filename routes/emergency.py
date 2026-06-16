@@ -269,6 +269,9 @@ def patient_queue():
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
     
+    page = request.args.get('page', 1, type=int)
+    per_page = 25
+    
     try:
         # جلب الحالات الطارئة مع تفاصيل إضافية
         severity_order = case(
@@ -278,13 +281,18 @@ def patient_queue():
             (EmergencyCase.severity == 'LOW', 1),
             else_=0
         )
-        emergencies = EmergencyCase.query.filter(
+        query = EmergencyCase.query.filter(
             EmergencyCase.status.in_(['WAITING', 'TRIAGE', 'RESUSCITATION', 'TREATMENT', 'OBSERVATION'])
-        ).order_by(severity_order.desc(), EmergencyCase.created_at).all()
+        ).order_by(severity_order.desc(), EmergencyCase.created_at)
+        
+        total = query.count()
+        pages = (total + per_page - 1) // per_page
+        
+        emergencies = query.offset((page - 1) * per_page).limit(per_page).all()
         
         # إحصائيات الطابور
         queue_stats = {
-            'total_cases': len(emergencies),
+            'total_cases': total,
             'triage_cases': len([e for e in emergencies if e.status in ['WAITING', 'TRIAGE', 'RESUSCITATION']]),
             'treatment_cases': len([e for e in emergencies if e.status == 'TREATMENT']),
             'observation_cases': len([e for e in emergencies if e.status == 'OBSERVATION']),
@@ -294,7 +302,8 @@ def patient_queue():
         
         return render_template('emergency/patient_queue.html', 
                              emergencies=emergencies, 
-                             queue_stats=queue_stats)
+                             queue_stats=queue_stats,
+                             page=page, pages=pages, total=total)
     except Exception as e:
         logging.error(f"Error loading emergency queue: {str(e)}")
         flash('حدث خطأ في تحميل طابور الطوارئ', 'error')

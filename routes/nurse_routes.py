@@ -1087,7 +1087,8 @@ def wards():
 @role_required('nurse', 'admin', 'manager')
 def tasks():
     """مهام التمريض"""
-    
+    page = request.args.get('page', 1, type=int)
+    per_page = 25
     
     try:
         from models.task_management import Task
@@ -1096,10 +1097,22 @@ def tasks():
             vq = vq.filter(Visit.department_id == current_user.department_id)
         active_visits = vq.limit(50).all()
         
-        # جلب مهام الممرضة
-        tasks = Task.query.filter_by(assigned_to=current_user.id).order_by(Task.created_at.desc()).all()
+        # جلب مهام الممرضة مع pagination
+        task_query = Task.query.filter_by(assigned_to=current_user.id).order_by(Task.created_at.desc())
         
-        return render_template('nurse/tasks.html', tasks=tasks, active_visits=active_visits, now=datetime.now(timezone.utc))
+        total = task_query.count()
+        pages = (total + per_page - 1) // per_page
+        
+        tasks = task_query.offset((page - 1) * per_page).limit(per_page).all()
+        
+    except Exception as e:
+        logging.error(f"Error loading nurse tasks: {str(e)}")
+        tasks = []
+        total = 0
+        pages = 0
+
+    return render_template('nurse/tasks.html', tasks=tasks, active_visits=active_visits, now=datetime.now(timezone.utc),
+                           page=page, pages=pages, total=total)
     except Exception as e:
         logging.error(f"Error loading nurse tasks: {str(e)}")
         flash('حدث خطأ في تحميل المهام', 'error')
