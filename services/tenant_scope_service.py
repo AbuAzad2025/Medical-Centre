@@ -1,7 +1,7 @@
 """
 TenantScopeService — enforce tenant data isolation in queries
 """
-from flask import g
+from flask import g, current_app
 from sqlalchemy import Column
 
 
@@ -12,6 +12,9 @@ class TenantScopeService:
         if tenant_id is not None:
             col = tenant_id_col if isinstance(tenant_id_col, str) else tenant_id_col.key
             return query.filter(getattr(query.model, col) == tenant_id)
+        if current_app.config.get('ENABLE_SAAS_MODE', False):
+            from flask import abort
+            abort(403, description="Tenant context required in SaaS mode")
         return query
 
     @staticmethod

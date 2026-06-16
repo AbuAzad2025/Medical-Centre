@@ -226,8 +226,8 @@
               <td class="small text-muted">{{ case.created_at.strftime('%Y-%m-%d %H:%M') if case.created_at else '-' }}</td>
               <td>
                 <div class="d-flex gap-1">
-                  <a href="{{ url_for('emergency.case_detail', case_id=case.id) }}" class="btn btn-sm btn-outline-primary" title="تفاصيل"><i class="fas fa-eye"></i> <span class="btn-label">عرض</span></a>
-                  <a href="{{ url_for('emergency.treat_case', case_id=case.id) }}" class="btn btn-sm btn-outline-success" title="معالجة"><i class="fas fa-user-md"></i> <span class="btn-label">طبيب</span></a>
+                  <a href="{{ url_for('emergency.view_emergency_case', id=case.id) }}" class="btn btn-sm btn-outline-primary" title="تفاصيل"><i class="fas fa-eye"></i> <span class="btn-label">عرض</span></a>
+                  <a href="{{ url_for('emergency.treatment', emergency_id=case.id) }}" class="btn btn-sm btn-outline-success" title="معالجة"><i class="fas fa-user-md"></i> <span class="btn-label">طبيب</span></a>
                 </div>
               </td>
             </tr>

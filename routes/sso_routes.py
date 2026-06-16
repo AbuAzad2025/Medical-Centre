@@ -6,7 +6,7 @@ from flask_login import login_required
 from app_factory import db
 from models import SSOConfiguration
 
-sso_bp = Blueprint('sso', __name__, url_prefix='/sso')
+sso_bp = Blueprint('sso', __name__)
 
 
 @sso_bp.route('/config', methods=['GET', 'POST'])

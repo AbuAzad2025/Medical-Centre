@@ -8,7 +8,7 @@ from models import NursingAssessment, Patient, Visit
 from sqlalchemy import func
 from datetime import datetime, timezone
 
-nursing_assessment_bp = Blueprint('nursing_assessment', __name__, url_prefix='/nursing-assessment')
+nursing_assessment_bp = Blueprint('nursing_assessment', __name__)
 
 
 @nursing_assessment_bp.route('/patient/<int:patient_id>')

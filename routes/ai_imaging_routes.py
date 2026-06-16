@@ -8,7 +8,7 @@ from models import AIImagingAnalysis, DICOMStudy
 from datetime import datetime, timezone
 import random
 
-ai_imaging_bp = Blueprint('ai_imaging', __name__, url_prefix='/ai-imaging')
+ai_imaging_bp = Blueprint('ai_imaging', __name__)
 
 
 @ai_imaging_bp.route('/')
