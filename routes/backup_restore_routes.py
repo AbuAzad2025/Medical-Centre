@@ -8,7 +8,7 @@ from models import BackupRestoreLog, Backup
 import json
 from datetime import datetime, timezone
 
-backup_restore_bp = Blueprint('backup_restore', __name__, url_prefix='/backup-restore')
+backup_restore_bp = Blueprint('backup_restore', __name__)
 
 
 @backup_restore_bp.route('/', methods=['GET', 'POST'])

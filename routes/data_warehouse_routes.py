@@ -8,7 +8,7 @@ from models import DataWarehouseSync, DailyVisitSummary, MonthlyFinanceSummary, 
 from sqlalchemy import func
 from datetime import datetime, timezone
 
-data_warehouse_bp = Blueprint('data_warehouse', __name__, url_prefix='/data-warehouse')
+data_warehouse_bp = Blueprint('data_warehouse', __name__)
 
 
 @data_warehouse_bp.route('/')

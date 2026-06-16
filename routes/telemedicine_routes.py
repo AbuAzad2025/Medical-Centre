@@ -9,7 +9,7 @@ from models import TelemedicineAppointment, Patient, User
 from datetime import datetime, timezone
 import secrets
 
-telemedicine_bp = Blueprint('telemedicine', __name__, url_prefix='/telemedicine')
+telemedicine_bp = Blueprint('telemedicine', __name__)
 
 
 @telemedicine_bp.route('/')

@@ -8,7 +8,7 @@ from models import BiometricCredential, BiometricAuthChallenge
 from datetime import datetime, timezone, timedelta
 import secrets
 
-biometric_bp = Blueprint('biometric', __name__, url_prefix='/biometric')
+biometric_bp = Blueprint('biometric', __name__)
 
 
 @biometric_bp.route('/')

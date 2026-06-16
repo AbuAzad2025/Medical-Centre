@@ -20,7 +20,7 @@ from models.branding import BrandingSettings
 from app_factory import db
 from datetime import datetime, date, timezone
 
-portal_bp = Blueprint('portal', __name__, url_prefix='/portal')
+portal_bp = Blueprint('portal', __name__)
 
 def _get_patient_from_user():
     """Get patient record linked to current user"""

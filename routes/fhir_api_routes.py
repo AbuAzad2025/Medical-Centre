@@ -14,7 +14,7 @@ from app_factory import db
 import json, uuid
 from datetime import datetime, timezone
 
-fhir_bp = Blueprint('fhir', __name__, url_prefix='/api/fhir')
+fhir_bp = Blueprint('fhir', __name__)
 
 def _log_fhir_access(action, resource_type, resource_id=None, request_body=None, response_status=200):
     log = FHIRAuditLog(

@@ -4261,3 +4261,47 @@ def daily_close():
     return render_template('reception/daily_close.html', register=reg)
 
 
+@reception_bp.route('/edit_visit/<int:visit_id>', methods=['GET', 'POST'])
+@login_required
+def edit_visit(visit_id):
+    if current_user.role not in ['reception', 'manager']:
+        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    visit = db.session.get(Visit, visit_id)
+    if not visit:
+        flash('الزيارة غير موجودة', 'error')
+        return redirect(url_for('reception.queue_management'))
+
+    if request.method == 'POST':
+        try:
+            department_id = request.form.get('department_id')
+            doctor_id = request.form.get('doctor_id')
+            visit_type = request.form.get('visit_type', 'REGULAR')
+            symptoms = request.form.get('symptoms', '')
+            notes = request.form.get('notes', '')
+            payment_method = request.form.get('payment_method', 'CASH')
+
+            if department_id:
+                visit.department_id = int(department_id)
+            if doctor_id:
+                visit.doctor_id = int(doctor_id)
+            visit.visit_type = visit_type
+            visit.symptoms = symptoms
+            visit.notes = notes
+            visit.payment_method = payment_method
+
+            db.session.commit()
+            flash('تم تعديل الزيارة بنجاح', 'success')
+            return redirect(url_for('reception.view_visit', visit_id=visit.id))
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error editing visit: {str(e)}")
+            flash('حدث خطأ أثناء تعديل الزيارة', 'error')
+            return redirect(url_for('reception.edit_visit', visit_id=visit_id))
+
+    departments = Department.query.filter_by(is_active=True).order_by(Department.name).all()
+    doctors = User.query.filter(User.role.in_(['doctor', 'emergency']), User.is_active == True).order_by(User.full_name).all()
+    return render_template('reception/edit_visit.html', visit=visit, departments=departments, doctors=doctors)
+
+

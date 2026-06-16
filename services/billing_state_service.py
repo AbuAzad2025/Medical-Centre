@@ -15,7 +15,7 @@ class BillingStateService:
         from models.invoice import Invoice
         payments = Payment.query.filter_by(visit_id=visit.id).all()
         invoices = Invoice.query.filter_by(visit_id=visit.id).all()
-        total_paid = sum(float(p.amount or 0) for p in payments if p.status == 'completed')
+        total_paid = sum(float(p.amount or 0) for p in payments if p.status == 'CONFIRMED')
         total_invoiced = sum(float(i.total or 0) for i in invoices)
         if total_paid <= 0 and total_invoiced <= 0:
             return BillingState.PENDING
