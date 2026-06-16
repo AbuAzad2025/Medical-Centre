@@ -961,14 +961,24 @@ def security_logs():
 @super_admin_required
 def audit_trail():
     """سجل التدقيق"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 25
+    
     try:
         from models.audit_trail import AuditTrail
-        audit_logs = AuditTrail.query.order_by(AuditTrail.created_at.desc()).limit(100).all()
-        return render_template('super_admin/audit_trail.html', audit_logs=audit_logs)
+        query = AuditTrail.query.order_by(AuditTrail.created_at.desc())
+        
+        total = query.count()
+        pages = (total + per_page - 1) // per_page
+        
+        audit_logs = query.offset((page - 1) * per_page).limit(per_page).all()
     except Exception as e:
         logging.error(f"Audit trail error: {str(e)}")
-        flash('حدث خطأ في تحميل سجل التدقيق', 'error')
-        return redirect(url_for('super_admin.dashboard'))
+        audit_logs = []
+        total = 0
+        pages = 0
+
+    return render_template('super_admin/audit_trail.html', audit_logs=audit_logs, page=page, pages=pages, total=total)
 
 @super_admin_bp.route('/performance')
 @login_required
@@ -1162,23 +1172,36 @@ def delete_permission(permission_id):
         logging.error(f"Delete permission error: {str(e)}")
         flash('حدث خطأ في حذف الصلاحية', 'error')
         return redirect(url_for('super_admin.permissions'))
-
 @super_admin_bp.route('/departments')
 @login_required
 @super_admin_required
 def departments():
     """إدارة الأقسام"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 25
+    
     try:
         from models.department import Department
         from models.user import User
-        departments = Department.query.all()
+        query = Department.query.order_by(Department.name)
+        
+        total = query.count()
+        pages = (total + per_page - 1) // per_page
+        
+        departments = query.offset((page - 1) * per_page).limit(per_page).all()
         total_doctors = User.query.filter_by(role='doctor').count()
         total_staff = User.query.count()
-        return render_template('super_admin/departments.html', departments=departments, total_doctors=total_doctors, total_staff=total_staff)
     except Exception as e:
         logging.error(f"Departments error: {str(e)}")
-        return render_template('super_admin/departments.html', departments=[], total_doctors=0, total_staff=0)
+        departments = []
+        total = 0
+        pages = 0
+        total_doctors = 0
+        total_staff = 0
 
+    return render_template('super_admin/departments.html', departments=departments, 
+total_doctors=total_doctors, total_staff=total_staff,
+                           page=page, pages=pages, total=total)
 @super_admin_bp.route('/departments/create', methods=['POST'])
 @login_required
 @super_admin_required

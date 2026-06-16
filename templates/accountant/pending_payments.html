@@ -41,7 +41,7 @@
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
+                        <div class="col ms-2">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                 إجمالي الفواتير</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ visits|length }}</div>
@@ -57,7 +57,7 @@
             <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
+                        <div class="col ms-2">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                                 المبلغ الإجمالي</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
@@ -75,7 +75,7 @@
             <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
+                        <div class="col ms-2">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                                 المدفوع</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
@@ -93,7 +93,7 @@
             <div class="card border-left-danger shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
+                        <div class="col ms-2">
                             <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
                                 المتبقي</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
@@ -181,6 +181,18 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="text-muted small">عرض {{ visits|length }} عنصر</div>
+                        <div class="btn-group">
+                            <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
+                               href="{{ url_for('accountant.pending_payments', page=page-1) }}">السابق</a>
+                            <span class="btn btn-outline-secondary">Page {{ page }} of {{ pages if pages > 0 else 1 }}</span>
+                            <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
+                               href="{{ url_for('accountant.pending_payments', page=page+1) }}">التالي</a>
+                        </div>
                     </div>
                 </div>
             </div>

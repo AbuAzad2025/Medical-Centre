@@ -335,6 +335,8 @@ def patients():
     # البحث والفلترة
     search = request.args.get('search', '')
     department_id = request.args.get('department_id', type=int)
+    page = request.args.get('page', 1, type=int)
+    per_page = 25
     
     query = Patient.query
     
@@ -360,7 +362,11 @@ def patients():
     
     if department_id:
         query = query.join(Visit, Visit.patient_id == Patient.id).filter(Visit.department_id == department_id).distinct()
-    patients = query.all()
+    
+    total = query.count()
+    pages = (total + per_page - 1) // per_page
+    
+    patients = query.offset((page - 1) * per_page).limit(per_page).all()
     departments = Department.query.all()
     from models.insurance import InsuranceCompany
     insurance_companies = InsuranceCompany.query.filter_by(is_active=True).order_by(InsuranceCompany.name.asc()).all()
@@ -370,7 +376,8 @@ def patients():
                          departments=departments,
                          insurance_companies=insurance_companies,
                          search=search,
-                         selected_department=department_id)
+                         selected_department=department_id,
+                         page=page, pages=pages, total=total)
 
 @reception_bp.route('/add_patient', methods=['GET', 'POST'])
 @login_required

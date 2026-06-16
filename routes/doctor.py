@@ -340,17 +340,24 @@ def dashboard():
 def patient_queue():
     """طابور المرضى للطبيب - إدارة متقدمة"""
     
+    page = request.args.get('page', 1, type=int)
+    per_page = 25
     
     try:
         # جلب المرضى المخصصين للطبيب مع تفاصيل إضافية
-        patients = Visit.query.filter(
+        query = Visit.query.filter(
             Visit.doctor_id == current_user.id,
             Visit.status.in_(['OPEN', 'IN_PROGRESS'])
-        ).order_by(Visit.visit_time).all()
+        ).order_by(Visit.visit_time)
+        
+        total = query.count()
+        pages = (total + per_page - 1) // per_page
+        
+        patients = query.offset((page - 1) * per_page).limit(per_page).all()
         
         # إحصائيات الطابور
         queue_stats = {
-            'total_patients': len(patients),
+            'total_patients': total,
             'ready_patients': len([p for p in patients if p.status == 'OPEN']),
             'in_progress': len([p for p in patients if p.status == 'IN_PROGRESS']),
             'average_wait_time': 15
@@ -397,7 +404,10 @@ def patient_queue():
                              patients=patients, 
                              queue_stats=queue_stats,
                              linked_requests=linked_requests,
-                             can_start_map=can_start_map)
+                             can_start_map=can_start_map,
+                             page=page,
+                             pages=pages,
+                             total=total)
     except Exception as e:
         logging.error(f"Error loading patient queue: {str(e)}")
         flash('حدث خطأ في تحميل طابور المرضى', 'error')

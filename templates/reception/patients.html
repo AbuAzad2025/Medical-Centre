@@ -82,6 +82,18 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="text-muted small">عرض {{ total }} مريض</div>
+                        <div class="btn-group">
+                            <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
+                               href="{{ url_for('reception.patients', page=page-1) }}">السابق</a>
+                            <span class="btn btn-outline-secondary">Page {{ page }} of {{ pages if pages > 0 else 1 }}</span>
+                            <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
+                               href="{{ url_for('reception.patients', page=page+1) }}">التالي</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
