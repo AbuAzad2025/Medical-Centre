@@ -3,6 +3,7 @@ Patient Education Materials Routes
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory
 from flask_login import login_required, current_user
+from utils.decorators import handle_route_errors
 from app_factory import db
 from models import PatientEducationMaterial, PatientEducationAssignment, Patient
 import os
@@ -22,6 +23,7 @@ def allowed_file(filename):
 
 @patient_education_bp.route('/')
 @login_required
+@handle_route_errors
 def index():
     category = request.args.get('category', '')
     query = PatientEducationMaterial.query
@@ -35,6 +37,7 @@ def index():
 
 @patient_education_bp.route('/material/<int:material_id>')
 @login_required
+@handle_route_errors
 def view_material(material_id):
     material = PatientEducationMaterial.query.get_or_404(material_id)
     material.view_count += 1
@@ -46,6 +49,7 @@ def view_material(material_id):
 
 @patient_education_bp.route('/new', methods=['GET', 'POST'])
 @login_required
+@handle_route_errors
 def new_material():
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
@@ -81,6 +85,7 @@ def new_material():
 
 @patient_education_bp.route('/edit/<int:material_id>', methods=['GET', 'POST'])
 @login_required
+@handle_route_errors
 def edit_material(material_id):
     material = PatientEducationMaterial.query.get_or_404(material_id)
     if request.method == 'POST':
@@ -108,6 +113,7 @@ def edit_material(material_id):
 
 @patient_education_bp.route('/assign', methods=['POST'])
 @login_required
+@handle_route_errors
 def assign_material():
     patient_id = request.form.get('patient_id', type=int)
     material_id = request.form.get('material_id', type=int)
@@ -131,6 +137,7 @@ def assign_material():
 
 @patient_education_bp.route('/patient/<int:patient_id>')
 @login_required
+@handle_route_errors
 def patient_materials(patient_id):
     patient = Patient.query.get_or_404(patient_id)
     assignments = PatientEducationAssignment.query.filter_by(patient_id=patient_id).order_by(

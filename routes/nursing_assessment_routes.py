@@ -3,6 +3,7 @@ Nursing Assessment Routes (Braden, Glasgow, Fall Risk, Pain, Norton)
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
+from utils.decorators import handle_route_errors
 from app_factory import db
 from models import NursingAssessment, Patient, Visit
 from sqlalchemy import func
@@ -13,6 +14,7 @@ nursing_assessment_bp = Blueprint('nursing_assessment', __name__)
 
 @nursing_assessment_bp.route('/patient/<int:patient_id>')
 @login_required
+@handle_route_errors
 def patient_assessments(patient_id):
     patient = Patient.query.get_or_404(patient_id)
     assessments = NursingAssessment.query.filter_by(patient_id=patient_id).order_by(NursingAssessment.created_at.desc()).all()
@@ -21,6 +23,7 @@ def patient_assessments(patient_id):
 
 @nursing_assessment_bp.route('/new/<int:patient_id>', methods=['GET', 'POST'])
 @login_required
+@handle_route_errors
 def new_assessment(patient_id):
     patient = Patient.query.get_or_404(patient_id)
     assessment_type = request.args.get('type', 'braden')
@@ -125,6 +128,7 @@ def new_assessment(patient_id):
 
 @nursing_assessment_bp.route('/view/<int:assessment_id>')
 @login_required
+@handle_route_errors
 def view_assessment(assessment_id):
     assessment = NursingAssessment.query.get_or_404(assessment_id)
     return render_template('nursing_assessment/view.html', assessment=assessment)
@@ -132,6 +136,7 @@ def view_assessment(assessment_id):
 
 @nursing_assessment_bp.route('/dashboard')
 @login_required
+@handle_route_errors
 def dashboard():
     """Dashboard showing recent assessments across all patients"""
     recent = NursingAssessment.query.order_by(NursingAssessment.created_at.desc()).limit(50).all()

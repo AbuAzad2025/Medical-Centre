@@ -3,8 +3,8 @@ Advanced Security Routes
 Digital signatures, password policy, session management, encryption
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
+from utils.decorators import handle_route_errors, role_required
 from flask_login import login_required, current_user
-from utils.decorators import role_required
 from models.digital_signature import DigitalSignature, PasswordPolicy, SessionLog, EncryptedField
 from models.user import User
 from app_factory import db
@@ -14,6 +14,7 @@ security_bp = Blueprint('security', __name__)
 @security_bp.route('/signatures')
 @login_required
 @role_required('admin', 'manager', 'doctor')
+@handle_route_errors
 def signatures():
     user_id = request.args.get('user_id', type=int)
     query = DigitalSignature.query
@@ -25,6 +26,7 @@ def signatures():
 @security_bp.route('/sessions')
 @login_required
 @role_required('admin', 'manager')
+@handle_route_errors
 def sessions():
     items = SessionLog.query.order_by(SessionLog.login_at.desc()).limit(200).all()
     return render_template('security/sessions.html', sessions=items)
@@ -32,6 +34,7 @@ def sessions():
 @security_bp.route('/password-policy')
 @login_required
 @role_required('admin')
+@handle_route_errors
 def password_policy():
     policy = PasswordPolicy.query.filter_by(is_active=True).first()
     return render_template('security/password_policy.html', policy=policy)

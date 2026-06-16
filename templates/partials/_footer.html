@@ -121,6 +121,17 @@
         <!-- Developer Credit -->
         <div class="luxury-footer-developer">
             تطوير: {{ developer_company or 'شركة أزاد للأنظمة الذكية' }}
+            {% if developer_name %} | {{ developer_name }}{% endif %}
+        </div>
+
+        <!-- Contact -->
+        <div class="luxury-footer-links" style="margin-top: -15px;">
+            {% if developer_mobile %}
+                <span class="luxury-footer-link"><i class="fas fa-phone me-1"></i> {{ developer_mobile }}</span>
+            {% endif %}
+            {% if developer_location %}
+                <span class="luxury-footer-link"><i class="fas fa-map-marker-alt me-1"></i> {{ developer_location }}</span>
+            {% endif %}
         </div>
 
         <!-- Links -->

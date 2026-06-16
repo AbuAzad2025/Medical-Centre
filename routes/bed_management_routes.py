@@ -3,7 +3,7 @@ Bed Management Routes — Ward, Room, Bed, Admission, Transfer
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
-from utils.decorators import role_required
+from utils.decorators import handle_route_errors, role_required
 from models.bed_management import Ward, Room, Bed, Admission, BedTransfer
 from models.patient import Patient
 from models.user import User
@@ -16,6 +16,7 @@ bed_bp = Blueprint('bed', __name__)
 @bed_bp.route('/dashboard')
 @login_required
 @role_required('nurse', 'admin', 'manager', 'receptionist')
+@handle_route_errors
 def dashboard():
     wards = Ward.query.filter_by(is_active=True).all()
     total_beds = Bed.query.filter_by(is_active=True).count()
@@ -31,6 +32,7 @@ def dashboard():
 @bed_bp.route('/wards')
 @login_required
 @role_required('nurse', 'admin', 'manager')
+@handle_route_errors
 def wards():
     items = Ward.query.filter_by(is_active=True).order_by(Ward.name).all()
     return render_template('bed/wards.html', wards=items)
@@ -38,6 +40,7 @@ def wards():
 @bed_bp.route('/ward/<int:ward_id>')
 @login_required
 @role_required('nurse', 'admin', 'manager')
+@handle_route_errors
 def ward_detail(ward_id):
     ward = Ward.query.get_or_404(ward_id)
     rooms = Room.query.filter_by(ward_id=ward_id, is_active=True).all()
@@ -46,6 +49,7 @@ def ward_detail(ward_id):
 @bed_bp.route('/room/<int:room_id>')
 @login_required
 @role_required('nurse', 'admin', 'manager')
+@handle_route_errors
 def room_detail(room_id):
     room = Room.query.get_or_404(room_id)
     beds = Bed.query.filter_by(room_id=room_id, is_active=True).all()
@@ -54,6 +58,7 @@ def room_detail(room_id):
 @bed_bp.route('/admissions')
 @login_required
 @role_required('nurse', 'admin', 'manager', 'receptionist')
+@handle_route_errors
 def admissions():
     status = request.args.get('status', 'ADMITTED')
     items = Admission.query.filter_by(status=status, is_active=True).order_by(
@@ -64,12 +69,14 @@ def admissions():
 @bed_bp.route('/admission/<int:admission_id>')
 @login_required
 @role_required('nurse', 'admin', 'manager')
+@handle_route_errors
 def admission_detail(admission_id):
     admission = Admission.query.get_or_404(admission_id)
     return render_template('bed/admission_detail.html', admission=admission)
 
 @bed_bp.route('/api/available-beds')
 @login_required
+@handle_route_errors
 def api_available_beds():
     ward_id = request.args.get('ward_id', type=int)
     query = Bed.query.filter_by(status='AVAILABLE', is_active=True)
@@ -81,6 +88,7 @@ def api_available_beds():
 
 @bed_bp.route('/api/bed-status')
 @login_required
+@handle_route_errors
 def api_bed_status():
     beds = Bed.query.filter_by(is_active=True).all()
     return jsonify([{'id': b.id, 'number': b.bed_number, 'status': b.status,

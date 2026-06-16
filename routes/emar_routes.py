@@ -3,7 +3,7 @@ eMAR — Electronic Medication Administration Record Routes
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
-from utils.decorators import role_required
+from utils.decorators import handle_route_errors, role_required
 from models.emar import eMARAdministration, MedicationSchedule
 from models.patient import Patient
 from models.medication import Prescription, PrescriptionItem
@@ -15,6 +15,7 @@ emar_bp = Blueprint('emar', __name__)
 @emar_bp.route('/dashboard')
 @login_required
 @role_required('nurse', 'admin', 'manager')
+@handle_route_errors
 def dashboard():
     today = date.today()
     administrations = eMARAdministration.query.filter(
@@ -29,6 +30,7 @@ def dashboard():
 @emar_bp.route('/patient/<int:patient_id>')
 @login_required
 @role_required('nurse', 'doctor', 'admin')
+@handle_route_errors
 def patient_mar(patient_id):
     patient = Patient.query.get_or_404(patient_id)
     administrations = eMARAdministration.query.filter_by(patient_id=patient_id).order_by(
@@ -40,6 +42,7 @@ def patient_mar(patient_id):
 @emar_bp.route('/administer/<int:admin_id>', methods=['POST'])
 @login_required
 @role_required('nurse', 'admin')
+@handle_route_errors
 def administer(admin_id):
     admin = eMARAdministration.query.get_or_404(admin_id)
     admin.status = 'GIVEN'

@@ -6,6 +6,7 @@ from flask_login import login_required, current_user
 from app_factory import db
 from models import BiometricCredential, BiometricAuthChallenge
 from datetime import datetime, timezone, timedelta
+from utils.decorators import handle_route_errors
 import secrets
 
 biometric_bp = Blueprint('biometric', __name__)
@@ -13,6 +14,7 @@ biometric_bp = Blueprint('biometric', __name__)
 
 @biometric_bp.route('/')
 @login_required
+@handle_route_errors
 def status():
     credentials = BiometricCredential.query.filter_by(user_id=current_user.id).all()
     return render_template('biometric/status.html', credentials=credentials)
@@ -20,6 +22,7 @@ def status():
 
 @biometric_bp.route('/register-challenge', methods=['POST'])
 @login_required
+@handle_route_errors
 def register_challenge():
     challenge = secrets.token_urlsafe(32)
     ch = BiometricAuthChallenge(
@@ -41,6 +44,7 @@ def register_challenge():
 
 @biometric_bp.route('/register-complete', methods=['POST'])
 @login_required
+@handle_route_errors
 def register_complete():
     data = request.get_json() or {}
     cred = BiometricCredential(
@@ -56,6 +60,7 @@ def register_complete():
 
 
 @biometric_bp.route('/authenticate-challenge', methods=['POST'])
+@handle_route_errors
 def authenticate_challenge():
     challenge = secrets.token_urlsafe(32)
     ch = BiometricAuthChallenge(
@@ -70,6 +75,7 @@ def authenticate_challenge():
 
 @biometric_bp.route('/remove/<int:cred_id>', methods=['POST'])
 @login_required
+@handle_route_errors
 def remove_credential(cred_id):
     cred = BiometricCredential.query.filter_by(id=cred_id, user_id=current_user.id).first_or_404()
     db.session.delete(cred)

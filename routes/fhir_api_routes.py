@@ -3,7 +3,7 @@ HL7 FHIR API Routes — Basic REST API for interoperability
 """
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
-from utils.decorators import role_required
+from utils.decorators import handle_route_errors, role_required
 from models.fhir_mapping import FHIRPatient, FHIRObservation, FHIREncounter, FHIRDocumentReference, FHIRAuditLog
 from models.patient import Patient
 from models.visit import Visit
@@ -32,6 +32,7 @@ def _log_fhir_access(action, resource_type, resource_id=None, request_body=None,
 @fhir_bp.route('/Patient', methods=['GET'])
 @login_required
 @role_required('admin', 'manager', 'doctor')
+@handle_route_errors
 def fhir_patients():
     patients = Patient.query.filter_by(status='ACTIVE').limit(100).all()
     _log_fhir_access('SEARCH', 'Patient')
@@ -51,6 +52,7 @@ def fhir_patients():
 @fhir_bp.route('/Patient/<int:patient_id>', methods=['GET'])
 @login_required
 @role_required('admin', 'manager', 'doctor')
+@handle_route_errors
 def fhir_patient(patient_id):
     patient = Patient.query.get_or_404(patient_id)
     _log_fhir_access('READ', 'Patient', str(patient_id))
@@ -68,6 +70,7 @@ def fhir_patient(patient_id):
 @fhir_bp.route('/Encounter', methods=['GET'])
 @login_required
 @role_required('admin', 'manager', 'doctor')
+@handle_route_errors
 def fhir_encounters():
     visits = Visit.query.order_by(Visit.created_at.desc()).limit(100).all()
     _log_fhir_access('SEARCH', 'Encounter')
@@ -88,6 +91,7 @@ def fhir_encounters():
 @fhir_bp.route('/Observation', methods=['GET'])
 @login_required
 @role_required('admin', 'manager', 'doctor')
+@handle_route_errors
 def fhir_observations():
     patient_id = request.args.get('patient', type=int)
     results = []

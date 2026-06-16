@@ -3,7 +3,7 @@ Clinical Coding Routes — ICD-10, CPT, DRG management
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
-from utils.decorators import role_required
+from utils.decorators import handle_route_errors, role_required
 from models.icd_coding import ICD10Code, CPTCode, DRGCode, CodedDiagnosis, CodedProcedure
 from models.patient import Patient
 from models.visit import Visit
@@ -17,6 +17,7 @@ clinical_coding_bp = Blueprint('clinical_coding', __name__)
 @clinical_coding_bp.route('/icd10')
 @login_required
 @role_required('doctor', 'admin', 'manager')
+@handle_route_errors
 def icd10_list():
     q = request.args.get('q', '').strip()
     query = ICD10Code.query.filter_by(is_active=True)
@@ -34,6 +35,7 @@ def icd10_list():
 @clinical_coding_bp.route('/icd10/<int:id>')
 @login_required
 @role_required('doctor', 'admin', 'manager')
+@handle_route_errors
 def icd10_detail(id):
     code = ICD10Code.query.get_or_404(id)
     return render_template('clinical_coding/icd10_detail.html', code=code)
@@ -41,6 +43,7 @@ def icd10_detail(id):
 @clinical_coding_bp.route('/cpt')
 @login_required
 @role_required('doctor', 'admin', 'manager')
+@handle_route_errors
 def cpt_list():
     q = request.args.get('q', '').strip()
     query = CPTCode.query.filter_by(is_active=True)
@@ -57,6 +60,7 @@ def cpt_list():
 @clinical_coding_bp.route('/drg')
 @login_required
 @role_required('admin', 'manager', 'accountant')
+@handle_route_errors
 def drg_list():
     q = request.args.get('q', '').strip()
     query = DRGCode.query.filter_by(is_active=True)
@@ -73,6 +77,7 @@ def drg_list():
 @clinical_coding_bp.route('/patient/<int:patient_id>/diagnoses')
 @login_required
 @role_required('doctor', 'nurse', 'admin', 'manager')
+@handle_route_errors
 def patient_diagnoses(patient_id):
     patient = Patient.query.get_or_404(patient_id)
     diagnoses = CodedDiagnosis.query.filter_by(patient_id=patient_id).order_by(
@@ -84,6 +89,7 @@ def patient_diagnoses(patient_id):
 @clinical_coding_bp.route('/patient/<int:patient_id>/procedures')
 @login_required
 @role_required('doctor', 'nurse', 'admin', 'manager')
+@handle_route_errors
 def patient_procedures(patient_id):
     patient = Patient.query.get_or_404(patient_id)
     procedures = CodedProcedure.query.filter_by(patient_id=patient_id).order_by(
@@ -94,6 +100,7 @@ def patient_procedures(patient_id):
 
 @clinical_coding_bp.route('/api/icd10/search')
 @login_required
+@handle_route_errors
 def api_icd10_search():
     q = request.args.get('q', '').strip()
     if len(q) < 2:
@@ -109,6 +116,7 @@ def api_icd10_search():
 
 @clinical_coding_bp.route('/api/cpt/search')
 @login_required
+@handle_route_errors
 def api_cpt_search():
     q = request.args.get('q', '').strip()
     if len(q) < 2:

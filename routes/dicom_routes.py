@@ -3,7 +3,7 @@ DICOM / PACS Routes
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
-from utils.decorators import role_required
+from utils.decorators import handle_route_errors, role_required
 from models.dicom_pacs import DICOMStudy, DICOMSeries, DICOMInstance, PACSConfiguration
 from models.patient import Patient
 from models.radiology_request import RadiologyRequest
@@ -14,6 +14,7 @@ dicom_bp = Blueprint('dicom', __name__)
 @dicom_bp.route('/studies')
 @login_required
 @role_required('radiology', 'doctor', 'admin', 'manager')
+@handle_route_errors
 def studies():
     patient_id = request.args.get('patient_id', type=int)
     modality = request.args.get('modality')
@@ -28,6 +29,7 @@ def studies():
 @dicom_bp.route('/study/<int:study_id>')
 @login_required
 @role_required('radiology', 'doctor', 'admin', 'manager')
+@handle_route_errors
 def study_detail(study_id):
     study = DICOMStudy.query.get_or_404(study_id)
     series = DICOMSeries.query.filter_by(study_id=study_id).all()
@@ -36,6 +38,7 @@ def study_detail(study_id):
 @dicom_bp.route('/viewer/<int:study_id>')
 @login_required
 @role_required('radiology', 'doctor', 'admin', 'manager')
+@handle_route_errors
 def viewer(study_id):
     study = DICOMStudy.query.get_or_404(study_id)
     series = DICOMSeries.query.filter_by(study_id=study_id).all()
@@ -43,6 +46,7 @@ def viewer(study_id):
 
 @dicom_bp.route('/api/studies/patient/<int:patient_id>')
 @login_required
+@handle_route_errors
 def api_patient_studies(patient_id):
     studies = DICOMStudy.query.filter_by(patient_id=patient_id).order_by(
         DICOMStudy.study_date.desc()

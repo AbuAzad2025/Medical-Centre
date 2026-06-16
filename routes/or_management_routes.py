@@ -3,7 +3,7 @@ Operating Room Management Routes
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
-from utils.decorators import role_required
+from utils.decorators import handle_route_errors, role_required
 from models.or_management import SurgerySchedule, SurgeryChecklist
 from models.patient import Patient
 from models.user import User
@@ -15,6 +15,7 @@ or_bp = Blueprint('or', __name__)
 @or_bp.route('/schedule')
 @login_required
 @role_required('doctor', 'nurse', 'admin', 'manager')
+@handle_route_errors
 def schedule():
     date = request.args.get('date')
     status = request.args.get('status', 'SCHEDULED')
@@ -34,6 +35,7 @@ def schedule():
 @or_bp.route('/surgery/<int:surgery_id>')
 @login_required
 @role_required('doctor', 'nurse', 'admin', 'manager')
+@handle_route_errors
 def surgery_detail(surgery_id):
     surgery = SurgerySchedule.query.get_or_404(surgery_id)
     checklist = SurgeryChecklist.query.filter_by(surgery_schedule_id=surgery_id).first()

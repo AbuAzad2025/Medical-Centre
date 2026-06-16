@@ -3,6 +3,7 @@ Backup Restore Routes
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
+from utils.decorators import handle_route_errors
 from app_factory import db
 from models import BackupRestoreLog, Backup
 import json
@@ -13,6 +14,7 @@ backup_restore_bp = Blueprint('backup_restore', __name__)
 
 @backup_restore_bp.route('/', methods=['GET', 'POST'])
 @login_required
+@handle_route_errors
 def index():
     if request.method == 'POST':
         backup_id = request.form.get('backup_id', type=int)
