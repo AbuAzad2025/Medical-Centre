@@ -13,6 +13,7 @@ class Medication(db.Model):
     __tablename__ = 'medications'
     
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     scientific_name = db.Column(db.String(200), nullable=False)
     trade_name = db.Column(db.String(200), nullable=False)
     generic_name = db.Column(db.String(200), nullable=True)
@@ -141,6 +142,7 @@ class Prescription(db.Model):
     __tablename__ = 'prescriptions'
     
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
     doctor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
@@ -219,6 +221,7 @@ class PrescriptionItem(db.Model):
     __tablename__ = 'prescription_items'
     
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id'), nullable=False)
     medication_id = db.Column(db.Integer, db.ForeignKey('medications.id'), nullable=False)
     dosage = db.Column(db.String(100), nullable=False)  # 1 tablet, 2 times daily
@@ -302,3 +305,58 @@ class PrescriptionDispenseLog(db.Model):
             'dispensed_at': self.dispensed_at.isoformat() if self.dispensed_at else None,
             'notes': self.notes
         }
+
+
+class PharmacySale(db.Model):
+    """Standalone pharmacy sale (no visit required)."""
+    __tablename__ = 'pharmacy_sales'
+
+    id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)
+    sale_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
+    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id'), nullable=True)
+    doctor_name = db.Column(db.String(200), nullable=True)
+    total_amount = db.Column(db.Numeric(12, 2), default=0, nullable=False)
+    status = db.Column(db.String(20), default='completed', index=True)
+    notes = db.Column(db.Text, nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    patient = db.relationship('Patient', backref='pharmacy_sales', lazy='select')
+    prescription = db.relationship('Prescription', backref='pharmacy_sales', lazy='select')
+    items = db.relationship('PharmacySaleItem', back_populates='sale', cascade='all, delete-orphan', lazy='selectin')
+
+
+class PharmacySaleItem(db.Model):
+    """Item in a pharmacy sale."""
+    __tablename__ = 'pharmacy_sale_items'
+
+    id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
+    sale_id = db.Column(db.Integer, db.ForeignKey('pharmacy_sales.id', ondelete='CASCADE'), nullable=False, index=True)
+    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id'), nullable=False)
+    medication_name = db.Column(db.String(200), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False, default=1)
+    unit_price = db.Column(db.Numeric(12, 2), nullable=False, default=0)
+    total_price = db.Column(db.Numeric(12, 2), nullable=False, default=0)
+    batch_number = db.Column(db.String(50), nullable=True)
+    expiry_date = db.Column(db.Date, nullable=True)
+
+    sale = db.relationship('PharmacySale', back_populates='items', lazy='select')
+    medication = db.relationship('Medication', lazy='select')
+
+
+class PharmacyReturn(db.Model):
+    """Pharmacy return/refund."""
+    __tablename__ = 'pharmacy_returns'
+
+    id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
+    sale_item_id = db.Column(db.Integer, db.ForeignKey('pharmacy_sale_items.id'), nullable=False)
+    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    reason = db.Column(db.String(200), nullable=False)
+    refund_amount = db.Column(db.Numeric(12, 2), nullable=False, default=0)
+    returned_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

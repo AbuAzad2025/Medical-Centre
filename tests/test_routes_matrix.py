@@ -28,6 +28,15 @@ class RoutesMatrixTestCase(unittest.TestCase):
         db.session.commit()
 
     def tearDown(self):
+        db.session.rollback()
+        # Use TRUNCATE TABLE instead of DROP SCHEMA to avoid enum type recreation issues
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        if tables:
+            db.session.execute(db.text(f"TRUNCATE TABLE {', '.join(tables)} CASCADE"))
+        db.session.commit()
+        db.engine.dispose()
         db.session.remove()
         self.ctx.pop()
 
@@ -97,6 +106,8 @@ class RoutesMatrixTestCase(unittest.TestCase):
             for r in post_rules:
                 path = self._sample_path(r)
                 resp = self.client.post(path, json={}, follow_redirects=False)
+                if resp.status_code >= 500:
+                    db.session.remove()
                 with self.subTest(role=role, path=path, code=resp.status_code):
                     self.assertIn(resp.status_code, accept)
 
@@ -111,16 +122,22 @@ class RoutesMatrixTestCase(unittest.TestCase):
             for r in put_rules:
                 path = self._sample_path(r)
                 resp = self.client.put(path, json={}, follow_redirects=False)
+                if resp.status_code >= 500:
+                    db.session.remove()
                 with self.subTest(method='PUT', role=role, path=path, code=resp.status_code):
                     self.assertIn(resp.status_code, accept)
             for r in patch_rules:
                 path = self._sample_path(r)
                 resp = self.client.patch(path, json={}, follow_redirects=False)
+                if resp.status_code >= 500:
+                    db.session.remove()
                 with self.subTest(method='PATCH', role=role, path=path, code=resp.status_code):
                     self.assertIn(resp.status_code, accept)
             for r in delete_rules:
                 path = self._sample_path(r)
                 resp = self.client.delete(path, follow_redirects=False)
+                if resp.status_code >= 500:
+                    db.session.remove()
                 with self.subTest(method='DELETE', role=role, path=path, code=resp.status_code):
                     self.assertIn(resp.status_code, accept)
 

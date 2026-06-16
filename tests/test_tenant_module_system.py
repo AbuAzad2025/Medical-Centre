@@ -25,8 +25,16 @@ def app():
     with app.app_context():
         db.create_all()
         yield app
+        db.session.rollback()
         db.session.remove()
-        db.drop_all()
+        db.engine.dispose()
+        db.session.rollback()
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        if tables:
+            db.session.execute(db.text(f"TRUNCATE TABLE {', '.join(tables)} CASCADE"))
+        db.session.commit()
 
 
 @pytest.fixture
@@ -108,8 +116,12 @@ def test_lab_workflow_state_machine(app):
 
 def test_stock_movement_model(app):
     with app.app_context():
+        from models.medication import Medication
+        med = Medication(trade_name="Test Med", scientific_name="Test", dosage_form="tablet", strength="500mg", stock_quantity=0, price=10.0)
+        db.session.add(med)
+        db.session.commit()
         sm = StockMovement(
-            medication_id=1,
+            medication_id=med.id,
             movement_type="purchase",
             quantity=100,
             before_quantity=0,

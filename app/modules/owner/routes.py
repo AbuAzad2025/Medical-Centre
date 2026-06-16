@@ -12,7 +12,7 @@ from app.core.tenant.models import (
 )
 from app.core.module.models import TenantModule
 from app.core.module.validators import can_activate_module, get_active_modules_for_tenant
-from app.shared.enums import TenantStatus, SubscriptionType, StorageMode
+from app.shared.enums import TenantStatus, SubscriptionType, StorageMode, ProductProfile
 
 
 def _owner_guard():
@@ -203,6 +203,7 @@ def owner_create_tenant():
     plans = SubscriptionPlan.query.all()
     if request.method == 'POST':
         try:
+            profile_code = request.form.get('product_profile', '').strip() or None
             t = Tenant(
                 slug=request.form.get('slug', '').strip(),
                 name=request.form.get('name', '').strip(),
@@ -212,6 +213,7 @@ def owner_create_tenant():
                 contact_email=request.form.get('contact_email', '').strip(),
                 contact_phone=request.form.get('contact_phone', '').strip() or None,
                 tax_number=request.form.get('tax_number', '').strip() or None,
+                product_profile_code=ProductProfile(profile_code) if profile_code else None,
                 plan_id=int(request.form.get('plan_id')) if request.form.get('plan_id') else None,
                 subscription_type=SubscriptionType(request.form.get('subscription_type', 'monthly')),
                 subscription_start=date.today(),
@@ -221,15 +223,27 @@ def owner_create_tenant():
                 status=TenantStatus.ACTIVE
             )
             db.session.add(t)
+            db.session.flush()
+
+            # Auto-activate default modules for the profile
+            if profile_code:
+                from app.core.tenant.models import get_default_modules_for_profile
+                default_modules = get_default_modules_for_profile(profile_code)
+                for mod_name in default_modules:
+                    from app.core.module.models import TenantModule
+                    tm = TenantModule(tenant_id=t.id, module_name=mod_name, is_active=True)
+                    db.session.add(tm)
+
             db.session.commit()
-            _log_action('CREATE_TENANT', 'tenant', t.id, f"Created tenant {t.name} ({t.slug})")
+            _log_action('CREATE_TENANT', 'tenant', t.id, f"Created tenant {t.name} ({t.slug}) profile={profile_code}")
             flash('تم إنشاء العميل بنجاح', 'success')
             return redirect(url_for('owner.owner_dashboard'))
         except Exception as e:
             db.session.rollback()
             flash(f'خطأ: {e}', 'error')
 
-    return render_template('owner/create_tenant.html', plans=plans)
+    from app.shared.enums import ProductProfile
+    return render_template('owner/create_tenant.html', plans=plans, profiles=list(ProductProfile))
 
 
 @owner_bp.route("/tenants/<int:tenant_id>")
@@ -241,9 +255,15 @@ def owner_tenant_detail(tenant_id):
 
     tenant = Tenant.query.get_or_404(tenant_id)
     active_modules = get_active_modules_for_tenant(tenant_id)
+    from app.core.tenant.models import TenantFeatureFlag
+    feature_flags = TenantFeatureFlag.query.filter_by(tenant_id=tenant_id, is_enabled=True).all()
+    from app.core.module.registry import MODULE_REGISTRY, get_all_module_names
+    all_modules = get_all_module_names()
     return render_template('owner/tenant_detail.html',
                            tenant=tenant,
-                           active_modules=list(active_modules))
+                           active_modules=list(active_modules),
+                           feature_flags=feature_flags,
+                           all_modules=all_modules)
 
 
 @owner_bp.route("/tenants/<int:tenant_id>/renew")
@@ -708,3 +728,61 @@ def api_activate_module(tenant_id, module_name):
     tm.activated_at = datetime.now(timezone.utc)
     db.session.commit()
     return jsonify({"status": "activated", "module": module_name})
+
+
+@owner_bp.route("/api/tenants/<int:tenant_id>/modules/<module_name>/deactivate", methods=["POST"])
+@login_required
+def api_deactivate_module(tenant_id, module_name):
+    guard = _owner_api_guard()
+    if guard:
+        return guard
+    tm = TenantModule.query.filter_by(tenant_id=tenant_id, module_name=module_name).first()
+    if tm:
+        tm.is_active = False
+        tm.deactivated_at = datetime.now(timezone.utc)
+        db.session.commit()
+        _log_action('DEACTIVATE_MODULE', 'module', tenant_id, f"Deactivated {module_name}")
+    return jsonify({"status": "deactivated", "module": module_name})
+
+
+@owner_bp.route("/api/tenants/<int:tenant_id>/profile", methods=["POST"])
+@login_required
+def api_update_profile(tenant_id):
+    guard = _owner_api_guard()
+    if guard:
+        return guard
+    tenant = Tenant.query.get_or_404(tenant_id)
+    profile_code = request.json.get("product_profile") or request.form.get("product_profile")
+    from app.shared.enums import ProductProfile
+    if profile_code and profile_code not in ProductProfile.__members__.values() and profile_code not in [e.value for e in ProductProfile]:
+        return jsonify({"error": "Invalid profile"}), 400
+    try:
+        tenant.product_profile_code = profile_code
+        db.session.commit()
+        _log_action('UPDATE_PROFILE', 'tenant', tenant_id, f"Profile -> {profile_code}")
+        return jsonify({"status": "updated", "profile": profile_code})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 400
+
+
+@owner_bp.route("/api/tenants/<int:tenant_id>/features/<feature_key>/toggle", methods=["POST"])
+@login_required
+def api_toggle_feature(tenant_id, feature_key):
+    guard = _owner_api_guard()
+    if guard:
+        return guard
+    from app.core.tenant.models import TenantFeatureFlag
+    flag = TenantFeatureFlag.query.filter_by(tenant_id=tenant_id, feature_key=feature_key).first()
+    if not flag:
+        flag = TenantFeatureFlag(tenant_id=tenant_id, feature_key=feature_key, is_enabled=True)
+        db.session.add(flag)
+    else:
+        flag.is_enabled = not flag.is_enabled
+    try:
+        db.session.commit()
+        _log_action('TOGGLE_FEATURE', 'feature', tenant_id, f"{feature_key}={flag.is_enabled}")
+        return jsonify({"status": "toggled", "feature": feature_key, "is_enabled": flag.is_enabled})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 400

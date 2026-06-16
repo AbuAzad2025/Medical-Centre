@@ -12,6 +12,7 @@ class WorkflowStep(db.Model):
     __tablename__ = 'workflow_steps'
     
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     name = db.Column(db.String(100), nullable=False)
     name_ar = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
@@ -48,6 +49,7 @@ class PatientWorkflow(db.Model):
     __tablename__ = 'patient_workflows'
     
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
     appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.id'), nullable=True)
@@ -279,3 +281,23 @@ class WorkflowQueue(db.Model):
             'started_at': self.started_at.isoformat() if self.started_at else None,
             'completed_at': self.completed_at.isoformat() if self.completed_at else None
         }
+
+
+class VisitWorkflowEvent(db.Model):
+    """Event log for visit state transitions."""
+    __tablename__ = 'visit_workflow_events'
+
+    id = db.Column(db.Integer, primary_key=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=False, index=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+    from_status = db.Column(db.String(50), nullable=True)
+    to_status = db.Column(db.String(50), nullable=False)
+    performed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    visit = db.relationship('Visit', backref='workflow_events')
+    performer = db.relationship('User', backref='workflow_events')
+
+    def __repr__(self):
+        return f'<VisitWorkflowEvent {self.id}: {self.from_status} -> {self.to_status}>'

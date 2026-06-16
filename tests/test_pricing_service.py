@@ -25,6 +25,15 @@ class PricingServiceTestCase(unittest.TestCase):
         db.session.commit()
 
     def tearDown(self):
+        db.session.rollback()
+        # Use TRUNCATE TABLE instead of DROP SCHEMA to avoid enum type recreation issues
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        if tables:
+            db.session.execute(db.text(f"TRUNCATE TABLE {', '.join(tables)} CASCADE"))
+        db.session.commit()
+        db.engine.dispose()
         db.session.remove()
         self.ctx.pop()
 
@@ -185,11 +194,15 @@ class PricingServiceTestCase(unittest.TestCase):
         db.session.commit()
         # طلب مختبر ونتيجة أشعة
         from models.lab_request import LabRequest
+        from models.radiology_request import RadiologyRequest
         from models.radiology_test import RadiologyResult
         lab_req = LabRequest(visit_id=v.id, patient_id=p.id)
         db.session.add(lab_req)
         db.session.commit()
-        rad_res = RadiologyResult(request_id=1, patient_id=p.id)  # request_id وهمي، غير مستخدم بالتسعير
+        rad_req = RadiologyRequest(visit_id=v.id, patient_id=p.id, status='COMPLETED')
+        db.session.add(rad_req)
+        db.session.commit()
+        rad_res = RadiologyResult(request_id=rad_req.id, patient_id=p.id)
         db.session.add(rad_res)
         db.session.commit()
         # حساب التكلفة

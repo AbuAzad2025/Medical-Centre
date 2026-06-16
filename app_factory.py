@@ -552,6 +552,31 @@ def create_app(config_name: str | None = None) -> Flask:
     _add_guard_once(manager_bp, "reporting")
     _add_guard_once(booking_bp, "appointments")
     _add_guard_once(medication_bp, "pharmacy")
+    # Additional module guards for orphan blueprints
+    _add_guard_once(payment_bp, "billing")
+    _add_guard_once(emar_bp, "nursing")
+    _add_guard_once(pathway_bp, "doctor")
+    _add_guard_once(report_builder_bp, "reporting")
+    _add_guard_once(data_warehouse_bp, "reporting")
+    _add_guard_once(pop_health_bp, "reporting")
+    _add_guard_once(quality_bp, "reporting")
+    _add_guard_once(what_if_bp, "reporting")
+    _add_guard_once(portal_bp, "portal")
+    _add_guard_once(dicom_bp, "radiology")
+    _add_guard_once(ai_imaging_bp, "ai_imaging")
+    _add_guard_once(barcode_bp, "inventory")
+    _add_guard_once(clinical_coding_bp, "doctor")
+    _add_guard_once(vaccination_bp, "doctor")
+    _add_guard_once(referral_bp, "doctor")
+    _add_guard_once(cds_bp, "doctor")
+    _add_guard_once(patient_education_bp, "doctor")
+    _add_guard_once(telemedicine_bp, "doctor")
+    _add_guard_once(bed_bp, "nursing")
+    _add_guard_once(or_bp, "nursing")
+    _add_guard_once(nursing_assessment_bp, "nursing")
+    _add_guard_once(sso_bp, "integration")
+    _add_guard_once(reception_currency_bp, "reception")
+    _add_guard_once(fhir_bp, "integration")
 
     app.register_blueprint(main_bp)
     app.register_blueprint(owner_bp)
@@ -621,12 +646,19 @@ def create_app(config_name: str | None = None) -> Flask:
             try:
                 from app.core.module.validators import get_active_modules_for_tenant
                 mods = get_active_modules_for_tenant(tenant.id)
-                return {'enabled_modules': mods, 'current_tenant': tenant}
+                return {
+                    'enabled_modules': mods,
+                    'current_tenant': tenant,
+                    'product_profile': getattr(tenant, 'product_profile_code', None),
+                    'feature_flags': getattr(g, 'feature_flags', {}),
+                    'module_active': lambda m: m in mods,
+                    'feature_enabled': lambda f: getattr(g, 'feature_flags', {}).get(f, False),
+                }
             except Exception as exc:
                 if app.config.get('ENABLE_SAAS_MODE', False):
                     app.logger.exception("Module context injection failed")
-                    return {'enabled_modules': set(), 'current_tenant': tenant}
-        return {'enabled_modules': set(), 'current_tenant': None}
+                    return {'enabled_modules': set(), 'current_tenant': tenant, 'product_profile': None, 'feature_flags': {}, 'module_active': lambda m: False, 'feature_enabled': lambda f: False}
+        return {'enabled_modules': set(), 'current_tenant': None, 'product_profile': None, 'feature_flags': {}, 'module_active': lambda m: False, 'feature_enabled': lambda f: False}
 
     # Security & audit middleware
     from app.core.security_middleware import SecurityHeadersMiddleware, AuditLogMiddleware

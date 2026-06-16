@@ -19,8 +19,15 @@ class BookingRoutesTestCase(unittest.TestCase):
         self.client = self.app.test_client()
 
     def tearDown(self):
+        db.session.rollback()
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        if tables:
+            db.session.execute(db.text(f"TRUNCATE TABLE {', '.join(tables)} CASCADE"))
+        db.session.commit()
+        db.engine.dispose()
         db.session.remove()
-        db.drop_all()
         self.ctx.pop()
 
     # صفحة الحجز قد تتأثر بقوالب عامة، نركز على واجهات API المضمونة

@@ -24,6 +24,25 @@ from decimal import Decimal
 app = create_app('testing')
 
 
+import pytest
+
+@pytest.fixture(autouse=True)
+def setup_payment_audit_db():
+    with app.app_context():
+        db.create_all()
+    yield
+    with app.app_context():
+        db.session.rollback()
+        # Truncate all tables instead of dropping schema to avoid enum type issues
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        if tables:
+            db.session.execute(db.text(f"TRUNCATE TABLE {', '.join(tables)} CASCADE"))
+        db.session.commit()
+        db.session.remove()
+
+
 class TestPaymentCreationAndBalances:
     """Verify payment creation correctly updates visit balances."""
 
@@ -62,7 +81,7 @@ class TestPaymentCreationAndBalances:
                 method=PaymentMethod.CASH,
                 status=PaymentStatus.CONFIRMED,
                 payment_date=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
-                received_by=1
+                received_by=None
             )
             db.session.add(payment)
 
@@ -116,7 +135,7 @@ class TestPaymentCreationAndBalances:
                 method=PaymentMethod.CASH,
                 status=PaymentStatus.CONFIRMED,
                 payment_date=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
-                received_by=1
+                received_by=None
             )
             db.session.add(payment)
             visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + Decimal('200.00')
@@ -234,7 +253,7 @@ class TestPaymentModelConstraint:
                 method=PaymentMethod.CASH,
                 status=PaymentStatus.CONFIRMED,
                 payment_date=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
-                received_by=1
+                received_by=None
             )
             db.session.add(payment)
 
@@ -379,7 +398,7 @@ class TestInvoiceCreationInReception:
             invoice = Invoice(
                 invoice_number=f"INV-{visit.id}-TEST",
                 visit_id=visit.id,
-                created_by=1,
+                created_by=None,
                 status='ISSUED',
                 currency='ILS',
                 total_amount=visit.total_amount or 0,
@@ -442,7 +461,7 @@ class TestPaymentInvoiceLink:
             invoice = Invoice(
                 invoice_number=f"INV-{visit.id}-TEST",
                 visit_id=visit.id,
-                created_by=1,
+                created_by=None,
                 status='ISSUED',
                 currency='ILS',
                 total_amount=visit.total_amount or 0,
@@ -460,7 +479,7 @@ class TestPaymentInvoiceLink:
                 method=PaymentMethod.CASH,
                 status=PaymentStatus.CONFIRMED,
                 payment_date=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
-                received_by=1
+                received_by=None
             )
             existing_invoice = Invoice.query.filter_by(visit_id=visit.id).order_by(Invoice.created_at.desc()).first()
             if existing_invoice:
@@ -520,7 +539,7 @@ class TestPaymentRollbackSafety:
                 method=PaymentMethod.CASH,
                 status=PaymentStatus.CONFIRMED,
                 payment_date=__import__('datetime').datetime.now(__import__('datetime').timezone.utc),
-                received_by=1
+                received_by=None
             )
             db.session.add(payment)
             visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + Decimal('200.00')
