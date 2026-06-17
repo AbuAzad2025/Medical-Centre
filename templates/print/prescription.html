@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>روشتة طبية - {{ prescription.patient.full_name }}</title>
     <style>
-        @page {
+@page {
             size: A4;
             margin: 1cm;
         }
-        
         body {
             font-family: 'Arial', sans-serif;
             font-size: 12px;
@@ -18,26 +17,22 @@
             margin: 0;
             padding: 0;
         }
-        
         .header {
             text-align: center;
             border-bottom: 3px solid #dc3545;
             padding-bottom: 20px;
             margin-bottom: 25px;
         }
-        
         .header h1 {
             color: #dc3545;
             margin: 0;
             font-size: 28px;
         }
-        
         .header h2 {
             color: #666;
             margin: 8px 0;
             font-size: 20px;
         }
-        
         .prescription-info {
             display: flex;
             justify-content: space-between;
@@ -46,12 +41,10 @@
             padding: 20px;
             border-radius: 8px;
         }
-        
         .prescription-info .info-section {
             flex: 1;
             margin: 0 15px;
         }
-        
         .prescription-info h3 {
             color: #dc3545;
             margin: 0 0 12px 0;
@@ -59,51 +52,43 @@
             border-bottom: 2px solid #dc3545;
             padding-bottom: 8px;
         }
-        
         .prescription-info p {
             margin: 6px 0;
             font-size: 12px;
         }
-        
         .patient-info {
             background: #f8d7da;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 25px;
         }
-        
         .patient-info h3 {
             color: #721c24;
             margin: 0 0 15px 0;
             font-size: 18px;
         }
-        
         .patient-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
-        
         .patient-details .detail {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px dotted #dc3545;
         }
-        
         .doctor-info {
             background: #d1ecf1;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 25px;
         }
-        
         .doctor-info h3 {
             color: #0c5460;
             margin: 0 0 15px 0;
             font-size: 18px;
         }
-        
         .medications-table {
             width: 100%;
             border-collapse: collapse;
@@ -113,7 +98,6 @@
             overflow: hidden;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        
         .medications-table th {
             background: #dc3545;
             color: white;
@@ -121,51 +105,42 @@
             text-align: center;
             font-weight: bold;
         }
-        
         .medications-table td {
             padding: 12px;
             text-align: center;
             border-bottom: 1px solid #dee2e6;
             vertical-align: top;
         }
-        
         .medications-table tr:nth-child(even) {
             background: #f8f9fa;
         }
-        
         .medications-table tr:hover {
             background: #f8d7da;
         }
-        
         .medication-name {
             font-weight: bold;
             color: #dc3545;
         }
-        
         .medication-dosage {
             font-size: 11px;
             color: #666;
         }
-        
         .medication-instructions {
             text-align: right;
             font-size: 11px;
             line-height: 1.4;
         }
-        
         .diagnosis-section {
             background: #fff3cd;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 25px;
         }
-        
         .diagnosis-section h3 {
             color: #856404;
             margin: 0 0 15px 0;
             font-size: 18px;
         }
-        
         .diagnosis-content {
             background: white;
             padding: 15px;
@@ -173,20 +148,17 @@
             border: 1px solid #ffeaa7;
             min-height: 80px;
         }
-        
         .instructions-section {
             background: #d4edda;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 25px;
         }
-        
         .instructions-section h3 {
             color: #155724;
             margin: 0 0 15px 0;
             font-size: 18px;
         }
-        
         .instructions-content {
             background: white;
             padding: 15px;
@@ -194,7 +166,6 @@
             border: 1px solid #c3e6cb;
             min-height: 80px;
         }
-        
         .signature-section {
             display: flex;
             justify-content: space-between;
@@ -202,23 +173,19 @@
             padding-top: 20px;
             border-top: 2px solid #dc3545;
         }
-        
         .signature-box {
             text-align: center;
             width: 200px;
         }
-        
         .signature-line {
             border-bottom: 1px solid #333;
             height: 40px;
             margin-bottom: 10px;
         }
-        
         .signature-label {
             font-size: 12px;
             color: #666;
         }
-        
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -227,7 +194,6 @@
             color: #666;
             font-size: 11px;
         }
-        
         .print-button {
             position: fixed;
             top: 20px;
@@ -241,16 +207,13 @@
             font-size: 14px;
             font-weight: bold;
         }
-        
         .print-button:hover {
             background: #c82333;
         }
-        
         @media print {
             .print-button {
                 display: none;
             }
-            
             body {
                 font-size: 11px;
             }
@@ -258,7 +221,7 @@
 </style>
 </head>
 <body>
-    <button class="print-button" onclick="window.print()">طباعة الروشتة</button>
+    <button class="print-button" data-action="print">طباعة الروشتة</button>
     
     <div class="header">
         <h1>المركز الصحي المتخصص</h1>
@@ -272,11 +235,11 @@
             <p><strong>تاريخ الإصدار:</strong> {{ prescription.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
             <p><strong>حالة الروشتة:</strong> 
                 {% if prescription.status == 'ACTIVE' %}
-                    <span style="color: green;">نشطة</span>
+                    <span class="text-success">نشطة</span>
                 {% elif prescription.status == 'COMPLETED' %}
-                    <span style="color: blue;">مكتملة</span>
+                    <span class="text-primary">مكتملة</span>
                 {% else %}
-                    <span style="color: orange;">معلقة</span>
+                    <span class="text-warning">معلقة</span>
                 {% endif %}
             </p>
         </div>
@@ -408,16 +371,12 @@
         <p><strong>هذه الروشتة صالحة لمدة 30 يوماً من تاريخ الإصدار</strong></p>
         <p>تاريخ الطباعة: {{ moment().format('YYYY-MM-DD HH:mm') }}</p>
         <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else 'info@medical-center.com' }} | {{ branding.organization_phone if branding and branding.organization_phone else '+970-XX-XXXXXXX' }}</p>
-        <hr style="margin: 10px 0; border: 1px solid #ddd;">
-        <p style="font-size: 10px; color: #666; margin: 5px 0;">
+        <hr class="my-2 border border-dark">
+        <p class="text-xs text-muted my-1">
             <strong>تطوير:</strong> {{ developer_company or 'شركة أزاد للأنظمة الذكية' }} | 
             <strong>مطور:</strong> {{ developer_name or 'أحمد غنام' }}
         </p>
     </div>
-    <script>
-    window.onload = function() {
-        setTimeout(function() { window.print(); }, 800);
-    };
-    </script>
+    <script src="{{ url_for('static', filename='js/pages/print/prescription.js') }}"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container-fluid py-4">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-down">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3 mb-0 text-gray-800 fw-bold">لوحة تحكم المحاسب</h1>
             <p class="text-muted">نظرة شاملة على الأداء المالي والعمليات المحاسبية</p>
@@ -19,7 +19,7 @@
     </div>
 
     <!-- Navigation Tabs -->
-    <ul class="nav nav-pills mb-4" id="accountantTabs" role="tablist" data-aos="fade-up">
+    <ul class="nav nav-pills mb-4" id="accountantTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active fw-bold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
                 <i class="fas fa-home me-2"></i> نظرة عامة
@@ -43,7 +43,7 @@
         <!-- Overview Tab -->
         <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
             <!-- Statistics Cards -->
-            <div class="row" data-aos="fade-up">
+            <div class="row">
                 <div class="col-xl-3 col-md-6 mb-4">
                     <div class="card card-modern h-100">
                         <div class="card-body">
@@ -114,7 +114,7 @@
             </div>
 
             {% if debt_alerts and (debt_alerts.overdue_60_count or debt_alerts.large_debts_count) %}
-            <div class="card card-modern mb-4" data-aos="fade-up">
+            <div class="card card-modern mb-4">
                 <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold"><i class="fas fa-hand-holding-usd me-2 text-danger"></i>تنبيهات الديون</h5>
                     <a class="btn btn-sm btn-outline-danger" href="{{ url_for('accountant.debt_tracking_report') }}">عرض تقرير الديون</a>
@@ -175,7 +175,7 @@
             {% endif %}
 
             <!-- Recent Transactions -->
-            <div class="card card-modern mb-4" data-aos="fade-up">
+            <div class="card card-modern mb-4">
                 <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>أحدث المعاملات</h5>
                     <button class="btn btn-sm btn-link text-decoration-none">عرض الكل</button>
@@ -238,7 +238,7 @@
                                                     <span>العيادات</span>
                                                     <span class="fw-bold">45%</span>
                                                 </div>
-                                                <div class="progress" style="height: 6px;">
+                                                <div class="progress h-6">
                                                     <div class="progress-bar bg-primary" role="progressbar" style="width: 45%"></div>
                                                 </div>
                                             </div>
@@ -249,7 +249,7 @@
                                                     <span>الصيدلية</span>
                                                     <span class="fw-bold">30%</span>
                                                 </div>
-                                                <div class="progress" style="height: 6px;">
+                                                <div class="progress h-6">
                                                     <div class="progress-bar bg-success" role="progressbar" style="width: 30%"></div>
                                                 </div>
                                             </div>
@@ -265,7 +265,7 @@
                                                     <span>الرواتب</span>
                                                     <span class="fw-bold">60%</span>
                                                 </div>
-                                                <div class="progress" style="height: 6px;">
+                                                <div class="progress h-6">
                                                     <div class="progress-bar bg-warning" role="progressbar" style="width: 60%"></div>
                                                 </div>
                                             </div>
@@ -276,7 +276,7 @@
                                                     <span>المستلزمات</span>
                                                     <span class="fw-bold">25%</span>
                                                 </div>
-                                                <div class="progress" style="height: 6px;">
+                                                <div class="progress h-6">
                                                     <div class="progress-bar bg-info" role="progressbar" style="width: 25%"></div>
                                                 </div>
                                             </div>
@@ -300,7 +300,7 @@
                                     <span class="text-muted">السيولة النقدية</span>
                                     <span class="text-success fw-bold">ممتاز</span>
                                 </div>
-                                <div class="progress" style="height: 8px;">
+                                <div class="progress h-8">
                                     <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
                                 </div>
                             </div>
@@ -309,7 +309,7 @@
                                     <span class="text-muted">نسبة الديون</span>
                                     <span class="text-primary fw-bold">منخفضة</span>
                                 </div>
-                                <div class="progress" style="height: 8px;">
+                                <div class="progress h-8">
                                     <div class="progress-bar bg-primary" role="progressbar" style="width: 15%"></div>
                                 </div>
                             </div>
@@ -318,7 +318,7 @@
                                     <span class="text-muted">معدل التحصيل</span>
                                     <span class="text-info fw-bold">جيد جداً</span>
                                 </div>
-                                <div class="progress" style="height: 8px;">
+                                <div class="progress h-8">
                                     <div class="progress-bar bg-info" role="progressbar" style="width: 78%"></div>
                                 </div>
                             </div>

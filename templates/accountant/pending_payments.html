@@ -23,7 +23,7 @@
                                     <i class="fas fa-arrow-right me-1"></i>
                                     العودة للوحة التحكم
                                 </a>
-                                <button class="btn btn-primary" onclick="refreshPage()">
+                                <button class="btn btn-primary" data-action="refresh-page">
                                     <i class="fas fa-sync me-1"></i>
                                     تحديث
                                 </button>
@@ -200,14 +200,5 @@
     </div>
 </div>
 
-<script>
-function refreshPage() {
-    location.reload();
-}
-
-// تحديث تلقائي كل 60 ثانية
-setInterval(function() {
-    // يمكن إضافة AJAX لتحديث الصفحة بدون إعادة تحميل
-}, 60000);
-</script>
+<script src="{{ url_for('static', filename='js/pages/accountant/pending_payments.js') }}"></script>
 {% endblock %}

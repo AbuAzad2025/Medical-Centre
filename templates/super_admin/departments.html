@@ -23,7 +23,7 @@
                                     <i class="fas fa-plus me-1"></i>
                                     إضافة قسم جديد
                                 </button>
-                                <button class="btn btn-success" onclick="exportDepartments()">
+                                <button class="btn btn-success" data-action="export-departments">
                                     <i class="fas fa-download me-1"></i>
                                     تصدير
                                 </button>
@@ -214,31 +214,31 @@
                                         <div class="btn-group btn-group-sm shadow-sm" role="group">
                                             <!-- عرض -->
                                             <button type="button" class="btn btn-info" 
-                                                    onclick="viewDepartment({{ department.id }})" title="عرض التفاصيل">
+                                                    data-action="viewDepartment" data-department-id="department.id" title="عرض التفاصيل">
                                                 <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
                                             </button>
                                             
                                             <!-- تعديل -->
                                             <button type="button" class="btn btn-primary" 
-                                                    onclick="editDepartment({{ department.id }})" title="تعديل القسم">
+                                                    data-action="editDepartment" data-department-id="department.id" title="تعديل القسم">
                                                 <i class="fas fa-edit"></i> <span class="btn-label">تعديل</span>
                                             </button>
                                             
                                             <!-- الموظفين -->
                                             <button type="button" class="btn btn-success" 
-                                                    onclick="manageStaff({{ department.id }})" title="إدارة الموظفين">
+                                                    data-action="manageStaff" data-department-id="department.id" title="إدارة الموظفين">
                                                 <i class="fas fa-users"></i> <span class="btn-label">مستخدمين</span>
                                             </button>
                                             
                                             <!-- تفعيل/إلغاء -->
                                             {% if department.is_active %}
                                             <button type="button" class="btn btn-warning" 
-                                                    onclick="deactivateDepartment({{ department.id }})" title="إلغاء التفعيل">
+                                                    data-action="deactivateDepartment" data-department-id="department.id" title="إلغاء التفعيل">
                                                 <i class="fas fa-times-circle"></i> <span class="btn-label">زر</span>
                                             </button>
                                             {% else %}
                                             <button type="button" class="btn btn-secondary" 
-                                                    onclick="activateDepartment({{ department.id }})" title="تفعيل القسم">
+                                                    data-action="activateDepartment" data-department-id="department.id" title="تفعيل القسم">
                                                 <i class="fas fa-check-circle"></i> <span class="btn-label">تأكيد</span>
                                             </button>
                                             {% endif %}
@@ -356,179 +356,39 @@
 </div>
 
 <style>
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df !important;
-}
-
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a !important;
-}
-
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc !important;
-}
-
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e !important;
-}
-
 .card {
     border: 1px solid #e3e6f0;
     border-radius: 0.35rem;
 }
-
 .card-header {
     background-color: #f8f9fc;
     border-bottom: 1px solid #e3e6f0;
 }
-
 .table th {
     background-color: #f8f9fc;
     border-color: #e3e6f0;
     font-weight: 600;
     color: #5a5c69;
 }
-
 .table td {
     vertical-align: middle;
 }
-
 .badge {
     font-size: 0.75em;
 }
-
 .btn-group .btn {
     margin-right: 2px;
 }
-
 .modal-content {
     border-radius: 0.35rem;
     border: none;
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
 }
-
 .form-control:focus {
     border-color: #4e73df;
     box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
 }
 </style>
 
-<script>
-// Search functionality
-document.getElementById('searchInput').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    const table = document.getElementById('departmentsTable');
-    const rows = table.getElementsByTagName('tr');
-    
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const text = row.textContent.toLowerCase();
-        if (text.includes(searchTerm)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    }
-});
-
-// Department management functions
-function viewDepartment(departmentId) {
-    // عرض تفاصيل القسم
-    window.open(`/super-admin/department/${departmentId}`, '_blank');
-}
-
-function editDepartment(departmentId) {
-    // تعديل القسم
-    window.location.href = `/super-admin/edit-department/${departmentId}`;
-}
-
-function manageStaff(departmentId) {
-    // إدارة موظفي القسم
-    window.location.href = `/super-admin/department-staff/${departmentId}`;
-}
-
-function activateDepartment(departmentId) {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل أنت متأكد من تفعيل هذا القسم؟',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`/super-admin/activate-department/${departmentId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    Swal.fire({ title: 'خطأ', text: 'حدث خطأ في تفعيل القسم', icon: 'error' });
-                }
-            })
-            .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
-        }
-    });
-}
-
-function deactivateDepartment(departmentId) {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل أنت متأكد من إلغاء تفعيل هذا القسم؟',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`/super-admin/deactivate-department/${departmentId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إلغاء تفعيل القسم', icon: 'error' });
-                }
-            })
-            .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
-        }
-    });
-}
-
-function exportDepartments() {
-    // تصدير الأقسام
-    window.open('/super-admin/export-departments', '_blank');
-}
-
-// Add department form
-document.getElementById('addDepartmentForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    fetch('/super-admin/departments/create', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إضافة القسم: ' + (data.message || ''), icon: 'error' });
-        }
-    })
-    .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
-});
-</script>
+<script src="{{ url_for('static', filename='js/pages/super_admin/departments.js') }}"></script>
 {% endblock %}

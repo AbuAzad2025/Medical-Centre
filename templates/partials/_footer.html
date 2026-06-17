@@ -1,5 +1,5 @@
 <style>
-    .luxury-footer {
+.luxury-footer {
         background: #0a0e27; /* Deep Blue/Black Background */
         color: rgba(255, 255, 255, 0.8);
         padding: 40px 20px;
@@ -8,7 +8,6 @@
         position: relative;
         overflow: hidden;
     }
-
     .luxury-footer::before {
         content: '';
         position: absolute;
@@ -19,24 +18,20 @@
         background: radial-gradient(circle at 50% 50%, rgba(27, 77, 137, 0.1), transparent 70%);
         pointer-events: none;
     }
-
     .luxury-footer-logo {
         margin-bottom: 20px;
         position: relative;
         z-index: 1;
     }
-
     .luxury-footer-logo img {
         max-height: 60px;
         transition: transform 0.3s ease;
         /* Ensure logo is visible on dark bg - brightness filter if needed */
         /* filter: brightness(0) invert(1); Use this if logo is black */
     }
-
     .luxury-footer-logo img:hover {
         transform: scale(1.05);
     }
-
     .luxury-footer-copyright {
         font-size: 1rem;
         margin-bottom: 10px;
@@ -44,7 +39,6 @@
         position: relative;
         z-index: 1;
     }
-
     .luxury-footer-developer {
         color: var(--gulf-gold);
         font-weight: 700;
@@ -53,7 +47,6 @@
         position: relative;
         z-index: 1;
     }
-
     .luxury-footer-links {
         display: flex;
         justify-content: center;
@@ -64,23 +57,19 @@
         position: relative;
         z-index: 1;
     }
-
     .luxury-footer-link {
         color: rgba(255, 255, 255, 0.7);
         text-decoration: none;
         transition: all 0.3s ease;
         position: relative;
     }
-
     .luxury-footer-link:hover {
         color: var(--gulf-gold);
         transform: translateY(-2px);
     }
-
     .luxury-footer-divider {
         color: rgba(255, 255, 255, 0.2);
     }
-
     .luxury-footer-security {
         color: var(--gulf-gold);
         font-size: 0.9rem;
@@ -95,7 +84,6 @@
         position: relative;
         z-index: 1;
     }
-
     .luxury-footer-security:hover {
         background: rgba(212, 175, 55, 0.2);
         box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
@@ -125,7 +113,7 @@
         </div>
 
         <!-- Contact -->
-        <div class="luxury-footer-links" style="margin-top: -15px;">
+        <div class="luxury-footer-links mt-neg-15">
             {% if developer_mobile %}
                 <span class="luxury-footer-link"><i class="fas fa-phone me-1"></i> {{ developer_mobile }}</span>
             {% endif %}

@@ -75,7 +75,7 @@
                         <td class="text-end">
                           <form method="post" action="{{ url_for('nurse.administer_medication', prescription_item_id=it.id) }}" class="d-inline-flex gap-2 justify-content-end">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <input type="text" name="notes" class="form-control form-control-sm" placeholder="ملاحظة (اختياري)" style="max-width: 220px;">
+                            <input type="text" name="notes" class="form-control form-control-sm max-w-220">
                             <button type="submit" class="btn btn-sm btn-success">تم التنفيذ</button>
                           </form>
                         </td>

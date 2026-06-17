@@ -20,7 +20,7 @@ from flask import abort
 class AccessControlService:
     """خدمة التحكم في الوصول المحسنة"""
     
-    # تعريف الصلاحيات لكل دور
+    # تعريف الصلاحيات لكل دور (soft-deprecated: use PermissionService.ROLE_PERMISSIONS)
     ROLE_PERMISSIONS = {
         'admin': [
             'manage_users', 'manage_departments', 'manage_roles',
@@ -329,32 +329,10 @@ class AccessControlService:
     
     @staticmethod
     def has_permission(user, permission_name):
-        """التحقق من وجود صلاحية للمستخدم"""
+        """التحقق من وجود صلاحية للمستخدم — delegates to PermissionService"""
         try:
-            if user is None:
-                return False
-            if isinstance(user, int):
-                user = db.session.get(User, user)
-            if not user:
-                return False
-            try:
-                from sqlalchemy import inspect
-                insp = inspect(db.engine)
-                if insp.has_table('roles') and insp.has_table('permissions') and insp.has_table('role_permissions'):
-                    from models.permissions import Role, Permission, RolePermission
-                    role = Role.query.filter_by(name=user.role, is_active=True).first()
-                    if role:
-                        perm = Permission.query.filter_by(name=permission_name, is_active=True).first()
-                        if perm:
-                            ok = RolePermission.query.filter_by(role_id=role.id, permission_id=perm.id).first()
-                            return ok is not None
-            except Exception:
-                pass
-            # التحقق من الصلاحيات المبنية على الدور
-            if user.role in AccessControlService.ROLE_PERMISSIONS:
-                return permission_name in AccessControlService.ROLE_PERMISSIONS[user.role]
-            return False
-            
+            from app.core.permission.service import PermissionService
+            return PermissionService.has_permission(user, permission_name)
         except Exception as e:
             logging.error(f"Error checking permission '{permission_name}': {e}")
             return False

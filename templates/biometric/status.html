@@ -42,15 +42,8 @@
   </div>
 </div>
 <script>
-document.getElementById('registerBtn').addEventListener('click', async function() {
-  try {
-    const resp = await fetch('{{ url_for("biometric.register_challenge") }}', {method: 'POST'});
-    const data = await resp.json();
-    // Simplified: in production, use fido2 library
-    document.getElementById('registerResult').innerHTML = '<div class="alert alert-success">تم إرسال التحدي. أكمل التسجيل عبر المتصفح.</div>';
-  } catch(e) {
-    document.getElementById('registerResult').innerHTML = '<div class="alert alert-danger">خطأ: ' + e.message + '</div>';
-  }
-});
-</script>
+        window.__M = window.__M || [];
+        __M0__='{{ url_for("biometric.register_challenge") }}';
+        </script>
+<script src="{{ url_for('static', filename='js/pages/biometric/status.js') }}"></script>
 {% endblock %}

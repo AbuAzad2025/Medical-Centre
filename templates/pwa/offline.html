@@ -6,17 +6,17 @@
   <title>غير متصل — Azad Medical</title>
   <link rel="stylesheet" href="/static/css/bootstrap.rtl.min.css">
   <style>
-    body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:#f7f9fc; font-family:'Segoe UI',sans-serif; }
+body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:#f7f9fc; font-family:'Segoe UI',sans-serif; }
     .offline-card { text-align:center; padding:2rem; }
     .offline-icon { font-size:4rem; color:#6c757d; margin-bottom:1rem; }
-  </style>
+</style>
 </head>
 <body>
   <div class="offline-card">
     <div class="offline-icon">📡</div>
     <h2>أنت غير متصل</h2>
     <p class="text-muted">يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.</p>
-    <button class="btn btn-primary" onclick="location.reload()">إعادة المحاولة</button>
+    <button class="btn btn-primary" data-action="reload">إعادة المحاولة</button>
   </div>
 </body>
 </html>

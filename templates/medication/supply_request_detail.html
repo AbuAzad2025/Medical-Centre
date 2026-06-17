@@ -29,7 +29,7 @@
         <div class="col-md-4"><strong>اعتماد:</strong> {{ req.approved_at|format_datetime }}</div>
       </div>
       {% if req.notes %}
-      <div class="mt-3"><strong>ملاحظات:</strong><div class="text-muted" style="white-space: pre-line;">{{ req.notes }}</div></div>
+      <div class="mt-3"><strong>ملاحظات:</strong><div class="text-muted" class="ws-pre-line">{{ req.notes }}</div></div>
       {% endif %}
     </div>
   </div>
@@ -78,10 +78,8 @@
 </div>
 
 <script>
-const csrfToken = "{{ csrf_token() }}";
-document.getElementById('approveBtn')?.addEventListener('click', async () => {
-  const res = await fetch('{{ url_for("medication.approve_supply_request", request_id=req.id) }}', { method: 'POST', headers: { 'X-CSRFToken': csrfToken } });
-  if (res.ok) location.reload();
-});
-</script>
+        window.__M = window.__M || [];
+        __M0__='{{ csrf_token() }}'; __M1__='{{ url_for("medication.approve_supply_request", request_id=req.id) }}';
+        </script>
+<script src="{{ url_for('static', filename='js/pages/medication/supply_request_detail.js') }}"></script>
 {% endblock %}

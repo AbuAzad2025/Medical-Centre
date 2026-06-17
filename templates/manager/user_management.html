@@ -19,11 +19,11 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2">
-                                <button class="btn btn-primary" onclick="addNewUser()">
+                                <button class="btn btn-primary" data-action="add-user">
                                     <i class="fas fa-user-plus me-1"></i>
                                     إضافة مستخدم
                                 </button>
-                                <button class="btn btn-success" onclick="exportUsers()">
+                                <button class="btn btn-success" data-action="export-users">
                                     <i class="fas fa-file-excel me-1"></i>
                                     تصدير المستخدمين
                                 </button>
@@ -123,10 +123,10 @@
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">قائمة المستخدمين</h6>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" onclick="filterUsers('all')">الكل</button>
-                        <button class="btn btn-sm btn-outline-success" onclick="filterUsers('active')">النشطين</button>
-                        <button class="btn btn-sm btn-outline-warning" onclick="filterUsers('inactive')">المعطلين</button>
-                        <button class="btn btn-sm btn-outline-info" onclick="filterUsers('admin')">المديرين</button>
+                        <button class="btn btn-sm btn-outline-primary" data-action="filter-users" data-value="all">الكل</button>
+                        <button class="btn btn-sm btn-outline-success" data-action="filter-users" data-value="active">النشطين</button>
+                        <button class="btn btn-sm btn-outline-warning" data-action="filter-users" data-value="inactive">المعطلين</button>
+                        <button class="btn btn-sm btn-outline-info" data-action="filter-users" data-value="admin">المديرين</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -192,21 +192,21 @@
                                     <td>{{ user.last_login|format_datetime if user.last_login else 'لم يسجل دخول' }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="viewUser({{ user.id }})" title="عرض">
+                                            <button class="btn btn-sm btn-outline-primary" data-action="viewUser" data-user-id="user.id" title="عرض">
                                                 <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-info" onclick="editUser({{ user.id }})" title="تعديل">
+                                            <button class="btn btn-sm btn-outline-info" data-action="editUser" data-user-id="user.id" title="تعديل">
                                                 <i class="fas fa-edit"></i> <span class="btn-label">تعديل</span>
                                             </button>
                                             <button class="btn btn-sm btn-outline-{{ 'warning' if user.is_active else 'success' }}" 
-                                                    onclick="toggleUser({{ user.id }})" title="{{ 'تعطيل' if user.is_active else 'تفعيل' }}">
+                                                    data-action="toggleUser" data-user-id="user.id" title="{{ 'تعطيل' if user.is_active else 'تفعيل' }}">
                                                 <i class="fas fa-toggle-{{ 'on' if user.is_active else 'off' }}"></i> <span class="btn-label">زر</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-secondary" onclick="resetPassword({{ user.id }})" title="إعادة تعيين كلمة المرور">
+                                            <button class="btn btn-sm btn-outline-secondary" data-action="resetPassword" data-user-id="user.id" title="إعادة تعيين كلمة المرور">
                                                 <i class="fas fa-key"></i> <span class="btn-label">زر</span>
                                             </button>
                                             {% if not user.is_admin %}
-                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteUser({{ user.id }})" title="حذف">
+                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteUser" data-user-id="user.id" title="حذف">
                                                 <i class="fas fa-trash"></i> <span class="btn-label">حذف</span>
                                             </button>
                                             {% endif %}
@@ -320,25 +320,25 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-primary w-100" onclick="bulkActivate()">
+                            <button class="btn btn-primary w-100" data-action="bulk-activate">
                                 <i class="fas fa-check me-2"></i>
                                 تفعيل المستخدمين
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-warning w-100" onclick="bulkDeactivate()">
+                            <button class="btn btn-warning w-100" data-action="bulk-deactivate">
                                 <i class="fas fa-pause me-2"></i>
                                 تعطيل المستخدمين
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-info w-100" onclick="bulkResetPassword()">
+                            <button class="btn btn-info w-100" data-action="bulk-reset-password">
                                 <i class="fas fa-key me-2"></i>
                                 إعادة تعيين كلمات المرور
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-success w-100" onclick="bulkExport()">
+                            <button class="btn btn-success w-100" data-action="bulk-export">
                                 <i class="fas fa-download me-2"></i>
                                 تصدير المستخدمين
                             </button>
@@ -351,28 +351,6 @@
 </div>
 
 <style>
-.avatar-sm {
-    width: 40px;
-    height: 40px;
-    font-size: 14px;
-}
-
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df !important;
-}
-
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a !important;
-}
-
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e !important;
-}
-
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc !important;
-}
-
 .role-stat-item {
     display: flex;
     align-items: center;
@@ -382,12 +360,10 @@
     background: #fff;
     transition: all 0.3s ease;
 }
-
 .role-stat-item:hover {
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
     transform: translateY(-2px);
 }
-
 .role-icon {
     width: 40px;
     height: 40px;
@@ -399,201 +375,29 @@
     margin-left: 1rem;
     font-size: 1.2rem;
 }
-
 .role-info h6 {
     margin: 0;
     font-size: 0.9rem;
     color: #5a5c69;
 }
-
 .role-count {
     font-size: 1.5rem;
     font-weight: bold;
     color: #5a5c69;
 }
-
-.btn-block {
-    width: 100%;
-    padding: 0.75rem;
-    text-align: center;
-    text-decoration: none;
-    display: block;
-}
-
 .btn-block:hover {
     text-decoration: none;
     transform: translateY(-2px);
     transition: all 0.3s ease;
 }
-
 #usersTable {
     font-size: 0.9rem;
 }
-
 .btn-group .btn {
     margin: 0 1px;
 }
 </style>
 
-<script>
-function addNewUser() {
-    Swal.fire({ title: 'إضافة مستخدم', text: 'إضافة مستخدم جديد', icon: 'info' });
-}
-
-function exportUsers() {
-    const csvContent = "data:text/csv;charset=utf-8," 
-        + "الاسم,اسم المستخدم,البريد الإلكتروني,الدور,القسم,الحالة,آخر دخول\n"
-        {% for user in users %}
-        + "{{ user.full_name or 'غير محدد' }},{{ user.username }},{{ user.email or 'غير محدد' }},{{ user.role }},{{ user.department.name if user.department else 'غير محدد' }},{{ 'نشط' if user.is_active else 'معطل' }},{{ user.last_login|format_datetime if user.last_login else 'لم يسجل دخول' }}\n"
-        {% endfor %};
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "users_" + new Date().toISOString().split('T')[0] + ".csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function viewUser(userId) {
-    Swal.fire({ title: 'عرض المستخدم', text: 'عرض تفاصيل المستخدم: ' + userId, icon: 'info' });
-}
-
-function editUser(userId) {
-    Swal.fire({ title: 'تعديل المستخدم', text: 'تعديل المستخدم: ' + userId, icon: 'info' });
-}
-
-function toggleUser(userId) {
-    Swal.fire({
-        title: 'تغيير الحالة',
-        text: 'هل تريد تغيير حالة هذا المستخدم؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'تأكيد',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم تغيير حالة المستخدم: ' + userId, icon: 'success' }).then(() => { location.reload(); });
-        }
-    });
-}
-
-function resetPassword(userId) {
-    Swal.fire({
-        title: 'إعادة تعيين كلمة المرور',
-        text: 'هل تريد إعادة تعيين كلمة مرور هذا المستخدم؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'تأكيد',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم إعادة تعيين كلمة المرور للمستخدم: ' + userId, icon: 'success' });
-        }
-    });
-}
-
-function deleteUser(userId) {
-    Swal.fire({
-        title: 'حذف المستخدم',
-        text: 'هل تريد حذف هذا المستخدم نهائياً؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'حذف',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم حذف المستخدم: ' + userId, icon: 'success' }).then(() => { location.reload(); });
-        }
-    });
-}
-
-function filterUsers(filter) {
-    const rows = document.querySelectorAll('#usersTable tbody tr');
-    
-    rows.forEach(row => {
-        if (filter === 'all') {
-            row.style.display = '';
-        } else if (filter === 'active') {
-            row.style.display = row.dataset.status === 'active' ? '' : 'none';
-        } else if (filter === 'inactive') {
-            row.style.display = row.dataset.status === 'inactive' ? '' : 'none';
-        } else if (filter === 'admin') {
-            row.style.display = row.dataset.admin === 'admin' ? '' : 'none';
-        }
-    });
-    
-    // تحديث أزرار التصفية
-    document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-info').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    event.target.classList.add('active');
-}
-
-function bulkActivate() {
-    Swal.fire({
-        title: 'تفعيل المستخدمين',
-        text: 'هل تريد تفعيل المستخدمين المحددين؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'تفعيل',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم تفعيل المستخدمين', icon: 'success' }).then(() => { location.reload(); });
-        }
-    });
-}
-
-function bulkDeactivate() {
-    Swal.fire({
-        title: 'تعطيل المستخدمين',
-        text: 'هل تريد تعطيل المستخدمين المحددين؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'تعطيل',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم تعطيل المستخدمين', icon: 'success' }).then(() => { location.reload(); });
-        }
-    });
-}
-
-function bulkResetPassword() {
-    Swal.fire({
-        title: 'إعادة تعيين كلمات المرور',
-        text: 'هل تريد إعادة تعيين كلمات مرور المستخدمين المحددين؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'تأكيد',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم إعادة تعيين كلمات المرور', icon: 'success' });
-        }
-    });
-}
-
-function bulkExport() {
-    // تصدير المستخدمين
-    exportUsers();
-}
-
-// إضافة تأثيرات تفاعلية
-document.addEventListener('DOMContentLoaded', function() {
-    // إضافة تأثير hover للصفوف
-    const rows = document.querySelectorAll('#usersTable tbody tr');
-    rows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-        });
-        row.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
-        });
-    });
-});
-</script>
+<script>window.__M=window.__M||[];__M0__={{ users|tojson }};</script>
+<script src="{{ url_for('static', filename='js/pages/manager/user_management.js') }}"></script>
 {% endblock %}

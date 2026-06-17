@@ -4,14 +4,13 @@
 
 {% block extra_css %}
 <style>
-    .form-container {
+.form-container {
         background: white;
         border-radius: 15px;
         box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         padding: 2rem;
         margin-bottom: 2rem;
     }
-    
     .form-header {
         background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
         color: white;
@@ -20,43 +19,36 @@
         margin-bottom: 2rem;
         text-align: center;
     }
-    
     .form-section {
         background: #f8f9fa;
         border-radius: 10px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
     }
-    
     .form-section h5 {
         color: #2c3e50;
         margin-bottom: 1rem;
         padding-bottom: 0.5rem;
         border-bottom: 2px solid #e74c3c;
     }
-    
     .form-group {
         margin-bottom: 1.5rem;
     }
-    
     .form-label {
         font-weight: 600;
         color: #2c3e50;
         margin-bottom: 0.5rem;
     }
-    
     .form-control {
         border: 2px solid #e9ecef;
         border-radius: 8px;
         padding: 0.75rem;
         transition: all 0.3s ease;
     }
-    
     .form-control:focus {
         border-color: #e74c3c;
         box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
     }
-    
     .btn-save {
         background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
         border: none;
@@ -65,22 +57,18 @@
         font-weight: 600;
         transition: all 0.3s ease;
     }
-    
     .btn-save:hover {
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
     }
-    
     .required {
         color: #e74c3c;
     }
-    
     .help-text {
         font-size: 0.875rem;
         color: #6c757d;
         margin-top: 0.25rem;
     }
-    
     .emergency-info {
         background: #f8d7da;
         border: 1px solid #f5c6cb;
@@ -88,18 +76,15 @@
         padding: 1rem;
         margin-bottom: 1rem;
     }
-    
     .emergency-info h6 {
         color: #721c24;
         margin-bottom: 0.5rem;
     }
-    
     .emergency-info p {
         color: #721c24;
         margin-bottom: 0;
         font-size: 0.875rem;
     }
-    
     .change-log {
         background: #fff3e0;
         border: 1px solid #ffcc02;
@@ -107,49 +92,41 @@
         padding: 1rem;
         margin-bottom: 1rem;
     }
-    
     .change-log h6 {
         color: #f57c00;
         margin-bottom: 0.5rem;
     }
-    
     .change-log p {
         color: #f57c00;
         margin-bottom: 0;
         font-size: 0.875rem;
     }
-    
     .priority-critical {
         background: #f8d7da;
         border: 2px solid #dc3545;
         color: #721c24;
     }
-    
     .priority-high {
         background: #fff3cd;
         border: 2px solid #ffc107;
         color: #856404;
     }
-    
     .priority-medium {
         background: #d1ecf1;
         border: 2px solid #17a2b8;
         color: #0c5460;
     }
-    
     .priority-low {
         background: #d4edda;
         border: 2px solid #28a745;
         color: #155724;
     }
-    
     .vital-signs {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 1rem;
         margin-top: 1rem;
     }
-    
     .vital-sign-item {
         background: white;
         border-radius: 8px;
@@ -157,14 +134,12 @@
         text-align: center;
         border: 1px solid #e9ecef;
     }
-    
     .vital-sign-value {
         font-size: 1.5rem;
         font-weight: bold;
         color: #e74c3c;
         margin-bottom: 0.25rem;
     }
-    
     .vital-sign-label {
         font-size: 0.875rem;
         color: #6c757d;
@@ -454,120 +429,8 @@
 
 {% block extra_js %}
 <script>
-    // حل حالة الطوارئ
-    function resolveEmergency() {
-        Swal.fire({
-            title: 'حل الحالة',
-            text: 'هل أنت متأكد من حل هذه الحالة؟',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'تأكيد',
-            cancelButtonText: 'إلغاء'
-        }).then((res) => {
-            if (res.isConfirmed) {
-                fetch('{{ url_for("emergency.resolve_emergency_case", id=emergency.id) }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({})
-                })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.success) {
-                        Swal.fire({ title: 'تم', text: 'تم حل الحالة بنجاح', icon: 'success' }).then(() => { location.reload(); });
-                    } else {
-                        Swal.fire({ title: 'خطأ', text: (d.message || 'حدث خطأ أثناء الحل'), icon: 'error' });
-                    }
-                })
-                .catch(() => Swal.fire({ title: 'خطأ', text: 'تعذر الاتصال بالخادم', icon: 'error' }));
-            }
-        });
-    }
-    
-    // نقل حالة الطوارئ
-    function transferEmergency() {
-        Swal.fire({
-            title: 'نقل الحالة',
-            text: 'أدخل ملاحظات النقل (اختياري)',
-            icon: 'question',
-            input: 'textarea',
-            inputPlaceholder: 'ملاحظات النقل',
-            showCancelButton: true,
-            confirmButtonText: 'نقل',
-            cancelButtonText: 'إلغاء'
-        }).then((res) => {
-            if (res.isConfirmed) {
-                const transferNotes = res.value || '';
-                fetch('{{ url_for("emergency.convert_emergency_case", id=emergency.id) }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ transfer_notes: transferNotes })
-                })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.success) {
-                        Swal.fire({ title: 'تم النقل', text: 'تم نقل الحالة بنجاح', icon: 'success' }).then(() => { location.reload(); });
-                    } else {
-                        Swal.fire({ title: 'خطأ', text: (d.message || 'حدث خطأ أثناء النقل'), icon: 'error' });
-                    }
-                })
-                .catch(() => Swal.fire({ title: 'خطأ', text: 'تعذر الاتصال بالخادم', icon: 'error' }));
-            }
-        });
-    }
-    
-    // التحقق من صحة البيانات
-    document.getElementById('emergencyForm').addEventListener('submit', function(e) {
-        const requiredFields = ['patient_id', 'doctor_id', 'emergency_date', 'emergency_time', 'chief_complaint'];
-        let isValid = true;
-        
-        requiredFields.forEach(field => {
-            const input = document.querySelector(`[name="${field}"]`);
-            if (!input.value.trim()) {
-                input.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                input.classList.remove('is-invalid');
-            }
-        });
-        
-        if (!isValid) {
-            e.preventDefault();
-            Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى ملء جميع الحقول المطلوبة', icon: 'warning' });
-        }
-    });
-    
-    // تتبع التغييرات
-    let originalData = {};
-    const form = document.getElementById('emergencyForm');
-    
-    // حفظ البيانات الأصلية
-    document.addEventListener('DOMContentLoaded', function() {
-        const inputs = form.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => {
-            originalData[input.name] = input.value;
-        });
-    });
-    
-    // التحقق من التغييرات
-    form.addEventListener('submit', function(e) {
-        let hasChanges = false;
-        const inputs = form.querySelectorAll('input, select, textarea');
-        
-        inputs.forEach(input => {
-            if (originalData[input.name] !== input.value) {
-                hasChanges = true;
-            }
-        });
-        
-        if (!hasChanges) {
-            e.preventDefault();
-            Swal.fire({ title: 'لا تغييرات', text: 'لم يتم إجراء أي تغييرات', icon: 'info' });
-            return false;
-        }
-    });
-</script>
+        window.__M = window.__M || [];
+        __M0__='{{ url_for("emergency.resolve_emergency_case", id=emergency.id) }}'; __M1__='{{ url_for("emergency.convert_emergency_case", id=emergency.id) }}';
+        </script>
+<script src="{{ url_for('static', filename='js/pages/emergency/edit.js') }}"></script>
 {% endblock %}

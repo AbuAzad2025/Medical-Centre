@@ -53,7 +53,7 @@
                   {% if b.can_be_cancelled() %}
                     <form method="POST" action="{{ url_for('booking.cancel_booking', booking_id=b.id) }}" class="d-inline">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                      <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirmSubmit(event, 'هل تريد إلغاء هذا الحجز؟')">إلغاء</button>
+                      <button type="submit" class="btn btn-sm btn-outline-danger" data-action="confirm-submit" data-message="هل تريد إلغاء هذا الحجز؟">إلغاء</button>
                     </form>
                   {% endif %}
                 </td>

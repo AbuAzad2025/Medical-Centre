@@ -2,9 +2,7 @@
 {% block title %}لوحة تحكم المختبر{% endblock %}
 {% block content %}
 <style>
-  .lab-gradient { background: linear-gradient(135deg, #1a3a2f 0%, #2d5a45 50%, #3a7a5f 100%); }
-  .cell-truncate-sm { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .prog-thin { height: 8px; }
+.lab-gradient { background: linear-gradient(135deg, #1a3a2f 0%, #2d5a45 50%, #3a7a5f 100%); }
 </style>
 <div class="container-fluid py-3">
   <div class="row mb-4">
@@ -241,36 +239,14 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script type="application/json" id="lab-chart-data">{{ {
+<script>
+        window.__M = window.__M || [];
+        __M0__={{ {
   'spark': [stats.today_requests or 0, stats.completed_today or 0, stats.pending_requests or 0, stats.requested_count or 0],
   'equipment': [stats.equipment_monitoring.operational or 0, stats.equipment_monitoring.maintenance or 0],
   'mainData': [stats.requested_count or 0, stats.in_progress_count or 0, stats.completed_today or 0, stats.predictive_insights.weekly_requests or 0, stats.predictive_insights.monthly_requests or 0]
-}|tojson }}</script>
-<script>
-  const d = JSON.parse(document.getElementById('lab-chart-data').textContent);
-  function spark(id, data, color) {
-    new Chart(document.getElementById(id).getContext('2d'), {
-      type: 'line',
-      data: { labels: data.map(function(_, i){ return i; }), datasets: [{ data: data, borderColor: color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
-    });
-  }
-  spark('sparkToday', d.spark, '#0d6efd');
-  spark('sparkCompleted', [d.spark[1], d.spark[1]+1, d.spark[1]-1, d.spark[1]+2], '#198754');
-  spark('sparkTime', [d.spark[2], d.spark[2]-1, d.spark[2]+1, d.spark[2]], '#0dcaf0');
-  spark('sparkQuality', [d.spark[3], d.spark[3]+1, d.spark[3], d.spark[3]+2], '#ffc107');
+}|tojson }};
+        </script>
+<script src="{{ url_for('static', filename='js/pages/lab/dashboard_new.js') }}"></script>
 
-  new Chart(document.getElementById('labMainChart'), {
-    type: 'bar',
-    data: { labels: ['مطلوبة', 'قيد العمل', 'مكتملة', 'أسبوعي', 'شهري'], datasets: [{ label: 'الطلبات', data: d.mainData, backgroundColor: ['#0d6efd', '#ffc107', '#198754', '#6f42c1', '#0dcaf0'] }] },
-    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-  });
-
-  new Chart(document.getElementById('equipmentChart'), {
-    type: 'doughnut',
-    data: { labels: ['تعمل', 'صيانة'], datasets: [{ data: d.equipment, backgroundColor: ['#198754', '#ffc107'] }] },
-    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }, cutout: '65%' }
-  });
-  document.querySelectorAll('.progress-dynamic').forEach(function(el){ el.style.width = (parseFloat(el.dataset.width) || 0) + '%'; });
-</script>
 {% endblock %}

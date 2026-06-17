@@ -349,22 +349,6 @@
 </div>
 
 <style>
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df !important;
-}
-
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a !important;
-}
-
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc !important;
-}
-
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e !important;
-}
-
 .theme-card {
     border: 1px solid #e3e6f0;
     border-radius: 0.35rem;
@@ -372,21 +356,17 @@
     background: #fff;
     transition: all 0.3s ease;
 }
-
 .theme-card:hover {
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
     transform: translateY(-2px);
 }
-
 .theme-preview {
     margin-bottom: 1rem;
 }
-
 .theme-colors {
     display: flex;
     gap: 0.5rem;
 }
-
 .color-swatch {
     width: 30px;
     height: 30px;
@@ -394,25 +374,21 @@
     border: 2px solid #fff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
 .theme-info h6 {
     margin: 0 0 0.5rem 0;
     color: #5a5c69;
 }
-
 .color-preview {
     display: flex;
     gap: 1rem;
     margin-top: 1rem;
 }
-
 .color-box {
     width: 60px;
     height: 60px;
     border-radius: 0.35rem;
     border: 1px solid #e3e6f0;
 }
-
 .logo-preview-large {
     text-align: center;
     padding: 1rem;
@@ -420,7 +396,6 @@
     border-radius: 0.35rem;
     background: #f8f9fc;
 }
-
 .preview-item {
     padding: 1rem;
     border: 1px solid #e3e6f0;
@@ -428,7 +403,6 @@
     background: #fff;
     margin-bottom: 1rem;
 }
-
 .preview-item h6 {
     margin: 0 0 1rem 0;
     color: #5a5c69;
@@ -436,82 +410,8 @@
 </style>
 
 <script>
-function saveBranding() {
-    // حفظ إعدادات العلامة التجارية
-    const form = document.getElementById('brandingForm');
-    const formData = new FormData(form);
-    
-    fetch('{{ url_for("super_admin.update_branding") }}', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            Swal.fire({ title: 'تم', text: 'تم حفظ إعدادات العلامة التجارية بنجاح', icon: 'success' }).then(() => location.reload());
-        } else {
-            Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ الإعدادات', icon: 'error' });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ الإعدادات', icon: 'error' });
-    });
-}
-
-function resetBranding() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد إعادة تعيين جميع إعدادات العلامة التجارية إلى القيم الافتراضية؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم، إعادة',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => { if (res.isConfirmed) { location.reload(); } });
-}
-
-function selectTheme(themeId) {
-    Swal.fire({ title: 'تم', text: 'تم اختيار الثيم: ' + themeId, icon: 'success' });
-}
-
-// تحديث معاينة الألوان عند تغييرها
-document.getElementById('primary_color').addEventListener('change', function() {
-    document.getElementById('primary-preview').style.backgroundColor = this.value;
-});
-
-document.getElementById('secondary_color').addEventListener('change', function() {
-    document.getElementById('secondary-preview').style.backgroundColor = this.value;
-});
-
-document.getElementById('accent_color').addEventListener('change', function() {
-    document.getElementById('accent-preview').style.backgroundColor = this.value;
-});
-
-// معاينة الشعار عند اختيار ملف جديد
-document.getElementById('logo_file').addEventListener('change', function() {
-    const file = this.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const logoPreview = document.querySelector('.logo-preview');
-            logoPreview.innerHTML = `<img src="${e.target.result}" alt="الشعار" class="img-thumbnail" style="max-height: 100px;">`;
-        };
-        reader.readAsDataURL(file);
-    }
-});
-
-// إضافة تأثيرات تفاعلية
-document.addEventListener('DOMContentLoaded', function() {
-    // إضافة تأثير hover للثيمات
-    const themeCards = document.querySelectorAll('.theme-card');
-    themeCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px)';
-        });
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    });
-});
+window.__M = window.__M || [];
+__M0__='{{ url_for("super_admin.update_branding") }}';
 </script>
+<script src="{{ url_for('static', filename='js/pages/super_admin/branding.js') }}"></script>
 {% endblock %}

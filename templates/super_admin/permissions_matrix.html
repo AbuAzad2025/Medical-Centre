@@ -28,9 +28,9 @@
         <table class="table table-bordered align-middle mb-0">
           <thead class="table-light">
             <tr>
-              <th style="min-width: 320px;">الصلاحية</th>
+              <th class="min-w-320">الصلاحية</th>
               {% for r in roles %}
-                <th class="text-center" style="min-width: 140px;">{{ r.display_name or r.name_ar or r.name }}</th>
+                <th class="text-center min-w-140">{{ r.display_name or r.name_ar or r.name }}</th>
               {% endfor %}
             </tr>
           </thead>

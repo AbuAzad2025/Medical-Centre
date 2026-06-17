@@ -25,7 +25,7 @@
                                     زيارة جديدة
                                 </a>
                                 {% endif %}
-                                <button class="btn btn-success" onclick="exportVisits()">
+                                <button class="btn btn-success" data-action="export-visits">
                                     <i class="fas fa-download me-1"></i>
                                     تصدير
                                 </button>
@@ -118,7 +118,7 @@
                         </div>
                     </div>
                     <div class="mt-3 d-flex gap-2">
-                        <form method="post" action="{{ url_for('reception.process_payment', visit_id=visit.id) }}" style="display:inline">
+                        <form method="post" action="{{ url_for('reception.process_payment', visit_id=visit.id) }}" class="d-inline">
                             {{ forms.csrf() }}
                             <button type="submit" class="btn btn-outline-success">
                                 <i class="fas fa-share-square me-1"></i> إرسال للمحاسبة
@@ -303,11 +303,11 @@
                                     <td>
                                         <div class="btn-group" role="group">
                                             <button type="button" class="btn btn-sm btn-outline-primary" 
-                                                    onclick="viewVisit({{ visit.id }})" title="عرض">
+                                                    data-action="viewVisit" data-visit-id="visit.id" title="عرض">
                                                 <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
                                             </button>
                                             {% if visit.payment_status == 'PENDING' %}
-                                            <form method="post" action="{{ url_for('reception.process_payment', visit_id=visit.id) }}" style="display:inline">
+                                            <form method="post" action="{{ url_for('reception.process_payment', visit_id=visit.id) }}" class="d-inline">
                                                 {{ forms.csrf() }}
                                                 <button type="submit" class="btn btn-sm btn-outline-success" title="إرسال للمحاسبة">
                                                     <i class="fas fa-share-square"></i> <span class="btn-label">زر</span>
@@ -315,18 +315,18 @@
                                             </form>
                                             {% elif visit.payment_status == 'PAID' and not visit.receipt_printed %}
                                             <button type="button" class="btn btn-sm btn-outline-success" 
-                                                    onclick="printReceipt({{ visit.id }})" title="طباعة الوصل">
+                                                    data-action="printReceipt" data-visit-id="visit.id" title="طباعة الوصل">
                                                 <i class="fas fa-print"></i> <span class="btn-label">طباعة</span>
                                             </button>
                                             {% endif %}
                                             {% if current_user.role in ['reception','manager','super_admin'] %}
                                             <button type="button" class="btn btn-sm btn-outline-dark" 
-                                                    onclick="openTransfer({{ visit.id }})" title="تحويل">
+                                                    data-action="openTransfer" data-visit-id="visit.id" title="تحويل">
                                                 <i class="fas fa-random"></i> <span class="btn-label">عشوائي</span>
                                             </button>
                                             {% endif %}
                                             {% if visit.status == 'COMPLETED' %}
-                                            <form method="POST" action="{{ url_for('reception.archive_visit', visit_id=visit.id) }}" style="display:inline">
+                                            <form method="POST" action="{{ url_for('reception.archive_visit', visit_id=visit.id) }}" class="d-inline">
                                                 {{ forms.csrf() }}
                                                 <button type="submit" class="btn btn-sm btn-outline-secondary" title="أرشفة">
                                                     <i class="fas fa-archive"></i> <span class="btn-label">أرشيف</span>
@@ -335,7 +335,7 @@
                                             {% endif %}
                                             {% if visit.status == 'OPEN' %}
                                             <button type="button" class="btn btn-sm btn-outline-warning" 
-                                                    onclick="editVisit({{ visit.id }})" title="تعديل">
+                                                    data-action="editVisit" data-visit-id="visit.id" title="تعديل">
                                                 <i class="fas fa-edit"></i> <span class="btn-label">تعديل</span>
                                             </button>
                                             {% endif %}
@@ -430,113 +430,26 @@
     font-weight: 600;
     color: #5a5c69;
 }
-
 .table td {
     vertical-align: middle;
 }
-
 .badge {
     font-size: 0.75em;
 }
-
 .btn-group .btn {
     margin-right: 2px;
 }
-
 .card {
     border: 1px solid #e3e6f0;
     border-radius: 0.35rem;
 }
-
 .card-header {
     background-color: #f8f9fc;
     border-bottom: 1px solid #e3e6f0;
 }
 </style>
 
-<script>
-{% if current_user.role in ['reception','manager'] %}
-function viewVisit(visitId) {
-    // عرض تفاصيل الزيارة
-    window.location.href = `/reception/view_visit/${visitId}`;
-}
+<script>window.__M=window.__M||[];__M0__={{ current_user.role|tojson }};</script>
+<script src="{{ url_for('static', filename='js/pages/reception/visits.js') }}"></script>
 
-function processPayment(visitId) {
-    // معالجة الدفع
-    window.location.href = `/payment/process/${visitId}`;
-}
-
-function printReceipt(visitId) {
-    // طباعة الوصل
-    window.open(`/reception/print_receipt/${visitId}`, '_blank');
-}
-
-function editVisit(visitId) {
-    // تعديل الزيارة
-    window.location.href = `/reception/edit_visit/${visitId}`;
-}
-
-function exportVisits() {
-    // تصدير الزيارات
-    const params = new URLSearchParams(window.location.search);
-    window.open(`/reception/export/visits?${params.toString()}`, '_blank');
-}
-
-// Auto-refresh every 30 seconds
-setInterval(function() {
-    if (document.visibilityState === 'visible') {
-        location.reload();
-    }
-}, 30000);
-
-function openTransfer(visitId) {
-    document.getElementById('transferVisitId').value = visitId;
-    document.getElementById('transferStatus').textContent = '';
-    const modal = new bootstrap.Modal(document.getElementById('transferVisitModal'));
-    modal.show();
-}
-
-document.getElementById('transferDepartment')?.addEventListener('change', function() {
-    const deptId = this.value;
-    const doctorSelect = document.getElementById('transferDoctor');
-    doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
-    if (!deptId) return;
-    fetch(`/reception/api/department-staff?department_id=${deptId}`)
-        .then(r => r.json())
-        .then(d => {
-            const staff = d.staff || [];
-            staff.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.id;
-                opt.textContent = s.full_name;
-                doctorSelect.appendChild(opt);
-            });
-        }).catch(() => {});
-});
-
-document.getElementById('confirmTransferBtn')?.addEventListener('click', function() {
-    const visitId = document.getElementById('transferVisitId').value;
-    const deptId = document.getElementById('transferDepartment').value;
-    const doctorId = document.getElementById('transferDoctor').value;
-    const statusEl = document.getElementById('transferStatus');
-    if (!deptId) { Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى اختيار القسم', icon: 'warning' }); return; }
-    fetch(`/reception/visits/${visitId}/transfer`, {
-        method: 'POST',
-        headers: { 'Accept': 'application/json' },
-        body: new URLSearchParams({ department_id: deptId, doctor_id: doctorId })
-    }).then(r => r.json()).then(d => {
-        if (d.success) { Swal.fire({ title: 'تم', text: 'تم تحويل الزيارة بنجاح', icon: 'success' }).then(() => { location.reload(); }); }
-        else { Swal.fire({ title: 'خطأ', text: (d.message || 'فشل التحويل'), icon: 'error' }); }
-    }).catch(() => { Swal.fire({ title: 'خطأ', text: 'خطأ اتصال', icon: 'error' }); });
-});
-
-document.getElementById('visitsTable')?.addEventListener('contextmenu', function(e) {
-    const row = e.target.closest('tr[data-visit-id]');
-    if (!row) return;
-    e.preventDefault();
-    const id = row.getAttribute('data-visit-id');
-    openTransfer(id);
-});
-{% endif %}
-</script>
 {% endblock %}

@@ -42,76 +42,8 @@
   </form>
 </div>
 <script>
-const presetDoctorId = {{ preset_doctor_id or 'null' }};
-const presetTime = {{ (preset_time|tojson) if preset_time else 'null' }};
-
-function loadDoctors(){
-  const dept = document.getElementById('department_id').value;
-  const url = '{{ url_for('booking.api_available_doctors') }}' + (dept ? ('?department_id='+dept) : '');
-  fetch(url).then(r=>r.json()).then(d=>{
-    const sel = document.getElementById('doctor_id');
-    const current = sel.value || (presetDoctorId ? String(presetDoctorId) : '');
-    sel.innerHTML = '<option value="">اختر الطبيب</option>';
-    (d.doctors||[]).forEach(x=>{
-      const o=document.createElement('option');
-      o.value=x.id;
-      o.textContent=x.full_name;
-      if (current && String(x.id) === String(current)) o.selected = true;
-      sel.appendChild(o);
-    });
-    loadTimes();
-  });
-}
-
-function loadTimes(){
-  const doc = document.getElementById('doctor_id').value;
-  const dt = document.getElementById('appointment_date').value;
-  const sel = document.getElementById('appointment_time');
-  if(!doc || !dt){
-    if (!sel.value) sel.innerHTML = '<option value="">اختر الوقت</option>';
-    return;
-  }
-  const url = '{{ url_for('booking.api_available_times') }}' + `?doctor_id=${doc}&date=${dt}`;
-  fetch(url).then(r=>r.json()).then(d=>{
-    const current = sel.value || presetTime || '';
-    sel.innerHTML = '<option value="">اختر الوقت</option>';
-    (d.available_times||[]).forEach(t=>{
-      const o=document.createElement('option');
-      o.value=t;
-      o.textContent=t;
-      if (current && String(t) === String(current)) o.selected = true;
-      sel.appendChild(o);
-    });
-  });
-}
-
-function loadSmartSlots(){
-  const doc = document.getElementById('doctor_id').value;
-  const dt = document.getElementById('appointment_date').value;
-  const hint = document.getElementById('smartSlotsHint');
-  if(!doc || !dt){
-    if (hint) hint.textContent = 'اختر الطبيب والتاريخ أولاً';
-    return;
-  }
-  const url = '{{ url_for('booking.api_smart_slots') }}' + `?doctor_id=${doc}&date=${dt}`;
-  fetch(url).then(r=>r.json()).then(d=>{
-    const list = d.suggested_times || [];
-    if (hint) hint.textContent = list.length ? ('الأوقات المقترحة: ' + list.join('، ')) : 'لا توجد أوقات مقترحة';
-    if (list.length) {
-      const sel = document.getElementById('appointment_time');
-      const current = sel.value;
-      if (!current) {
-        sel.value = list[0];
-      }
-    }
-  });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const dept = document.getElementById('department_id');
-  if (dept && dept.value) {
-    loadDoctors();
-  }
-});
-</script>
+        window.__M = window.__M || [];
+        __M0__={{ preset_doctor_id or 'null' }}; __M1__={{ (preset_time|tojson) if preset_time else 'null' }}; __M2__='{{ url_for('booking.api_available_doctors') }}'; __M3__='{{ url_for('booking.api_available_times') }}'; __M4__='{{ url_for('booking.api_smart_slots') }}';
+        </script>
+<script src="{{ url_for('static', filename='js/pages/booking/create.js') }}"></script>
 {% endblock %}

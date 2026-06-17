@@ -19,11 +19,11 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2">
-                                <button class="btn btn-primary" onclick="refreshAnalytics()">
+                                <button class="btn btn-primary" data-action="refresh-analytics">
                                     <i class="fas fa-sync-alt me-1"></i>
                                     تحديث
                                 </button>
-                                <button class="btn btn-success" onclick="exportAnalytics()">
+                                <button class="btn btn-success" data-action="export-analytics">
                                     <i class="fas fa-download me-1"></i>
                                     تصدير التحليلات
                                 </button>
@@ -390,28 +390,6 @@
 </div>
 
 <style>
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df !important;
-}
-
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a !important;
-}
-
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc !important;
-}
-
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e !important;
-}
-
-.avatar-sm {
-    width: 40px;
-    height: 40px;
-    font-size: 14px;
-}
-
 .metric-item {
     display: flex;
     align-items: center;
@@ -421,7 +399,6 @@
     margin-bottom: 1rem;
     background: #fff;
 }
-
 .metric-icon {
     width: 50px;
     height: 50px;
@@ -433,19 +410,16 @@
     color: white;
     font-size: 1.2rem;
 }
-
 .metric-info h6 {
     margin: 0;
     font-size: 0.9rem;
     color: #5a5c69;
 }
-
 .metric-value {
     font-size: 1.2rem;
     font-weight: bold;
     color: #5a5c69;
 }
-
 .stat-item {
     padding: 1rem;
     border: 1px solid #e3e6f0;
@@ -454,19 +428,16 @@
     background: #fff;
     text-align: center;
 }
-
 .stat-label {
     font-size: 0.9rem;
     color: #5a5c69;
     margin-bottom: 0.5rem;
 }
-
 .stat-value {
     font-size: 1.5rem;
     font-weight: bold;
     color: #5a5c69;
 }
-
 .health-item {
     display: flex;
     align-items: center;
@@ -476,7 +447,6 @@
     background: #fff;
     margin-bottom: 1rem;
 }
-
 .health-icon {
     width: 50px;
     height: 50px;
@@ -488,94 +458,17 @@
     color: white;
     font-size: 1.2rem;
 }
-
 .health-info h6 {
     margin: 0;
     font-size: 0.9rem;
     color: #5a5c69;
 }
-
 .health-status {
     font-size: 1rem;
     font-weight: bold;
 }
 </style>
 
-<script>
-function refreshAnalytics() {
-    location.reload();
-}
 
-function exportAnalytics() {
-    const csvContent = "data:text/csv;charset=utf-8," 
-        + "المؤشر,القيمة,التغيير\n"
-        + "إجمالي المستخدمين,1234,+12%\n"
-        + "النشاط اليومي,89%,+5%\n"
-        + "الأداء,95%,+2%\n"
-        + "الأخطاء,23,-15%\n";
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "analytics_" + new Date().toISOString().split('T')[0] + ".csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// إنشاء الرسوم البيانية
-document.addEventListener('DOMContentLoaded', function() {
-    // رسم بياني لاتجاهات الاستخدام
-    const usageCtx = document.getElementById('usageChart').getContext('2d');
-    new Chart(usageCtx, {
-        type: 'line',
-        data: {
-            labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
-            datasets: [{
-                label: 'المستخدمين النشطين',
-                data: [120, 150, 180, 200, 220, 250],
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'اتجاهات الاستخدام الشهرية'
-                }
-            }
-        }
-    });
-
-    // رسم بياني لتوزيع المستخدمين
-    const userDistCtx = document.getElementById('userDistributionChart').getContext('2d');
-    new Chart(userDistCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['الأطباء', 'الاستقبال', 'المختبر', 'الأشعة', 'المحاسبة'],
-            datasets: [{
-                data: [30, 25, 20, 15, 10],
-                backgroundColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(54, 162, 235)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(153, 102, 255)'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'توزيع المستخدمين حسب الدور'
-                }
-            }
-        }
-    });
-});
-</script>
+<script src="{{ url_for('static', filename='js/pages/super_admin/analytics.js') }}"></script>
 {% endblock %}

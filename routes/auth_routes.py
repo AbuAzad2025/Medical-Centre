@@ -4,6 +4,7 @@ Medical System Authentication Routes
 """
 
 from flask import Blueprint, request, jsonify, session, redirect, url_for, flash, render_template, current_app
+from flask.typing import ResponseReturnValue
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_wtf.csrf import generate_csrf, validate_csrf
 from models.user import User
@@ -11,16 +12,17 @@ from models.permissions import Role
 from werkzeug.security import check_password_hash
 import logging
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
 # إنشاء Blueprint للمصادقة
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.get("/__ping")
-def _auth_ping():
+def _auth_ping() -> ResponseReturnValue:
     return "auth ok", 200
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
-def login():
+def login() -> ResponseReturnValue:
     """تسجيل الدخول"""
     if request.method == 'GET':
         # عرض صفحة تسجيل الدخول مع ضبط CSRF cookie

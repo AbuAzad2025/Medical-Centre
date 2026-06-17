@@ -20,6 +20,7 @@ class Invoice(db.Model):
     total_amount = db.Column(db.Numeric(12, 2), default=0, nullable=False)
     paid_amount = db.Column(db.Numeric(12, 2), default=0, nullable=False)
 
+    posted_at = db.Column(db.DateTime, nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
@@ -54,6 +55,7 @@ class Invoice(db.Model):
             "currency": self.currency,
             "total_amount": float(self.total_amount or 0),
             "paid_amount": float(self.paid_amount or 0),
+            "posted_at": self.posted_at.isoformat() if self.posted_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

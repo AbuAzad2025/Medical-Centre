@@ -96,7 +96,7 @@
                     <span class="badge bg-secondary">غير مفعل</span>
                   {% endif %}
                 </td>
-                <td class="text-muted" style="white-space: pre-line;">{{ it.description or '' }}</td>
+                <td class="text-muted" class="ws-pre-line">{{ it.description or '' }}</td>
                 <td class="text-end">
                   <button class="btn btn-sm btn-outline-primary" type="button" onclick="toggleInteraction({{ it.id }})">
                     تبديل
@@ -114,10 +114,8 @@
 </div>
 
 <script>
-const csrfToken = "{{ csrf_token() }}";
-async function toggleInteraction(id) {
-  const res = await fetch(`/medication/interactions/${id}/toggle`, { method: 'POST', headers: { 'X-CSRFToken': csrfToken } });
-  if (res.ok) location.reload();
-}
-</script>
+        window.__M = window.__M || [];
+        __M0__='{{ csrf_token() }}';
+        </script>
+<script src="{{ url_for('static', filename='js/pages/medication/interactions.js') }}"></script>
 {% endblock %}

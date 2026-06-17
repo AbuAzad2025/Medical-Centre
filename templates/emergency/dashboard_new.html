@@ -2,9 +2,7 @@
 {% block title %}لوحة تحكم الطوارئ{% endblock %}
 {% block content %}
 <style>
-  .emg-gradient { background: linear-gradient(135deg, #3a0a0a 0%, #7a1a1a 50%, #a52a2a 100%); }
-  .cell-truncate-sm { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .prog-thin { height: 8px; }
+.emg-gradient { background: linear-gradient(135deg, #3a0a0a 0%, #7a1a1a 50%, #a52a2a 100%); }
 </style>
 <div class="container-fluid py-3">
   <div class="row mb-4">
@@ -243,28 +241,13 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script type="application/json" id="emg-chart-data">{{ {
+<script>
+        window.__M = window.__M || [];
+        __M0__={{ {
   'spark': [stats.today_emergencies or 0, stats.completed_today or 0, (stats.critical_cases or 0)+(stats.urgent_cases or 0), stats.active_emergencies or 0],
   'mainData': [stats.today_emergencies or 0, stats.active_emergencies or 0, stats.completed_today or 0, stats.urgent_cases or 0, stats.critical_cases or 0]
-}|tojson }}</script>
-<script>
-  const d = JSON.parse(document.getElementById('emg-chart-data').textContent);
-  function spark(id, data, color) {
-    new Chart(document.getElementById(id).getContext('2d'), {
-      type: 'line',
-      data: { labels: data.map(function(_, i){ return i; }), datasets: [{ data: data, borderColor: color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
-    });
-  }
-  spark('sparkToday', d.spark, '#dc3545');
-  spark('sparkCompleted', [d.spark[1], d.spark[1]+1, d.spark[1]-1, d.spark[1]+2], '#198754');
-  spark('sparkCritical', [d.spark[2], d.spark[2]-1, d.spark[2]+1, d.spark[2]], '#ffc107');
-  spark('sparkRx', [d.spark[3], d.spark[3]+1, d.spark[3], d.spark[3]+2], '#0dcaf0');
+}|tojson }};
+        </script>
+<script src="{{ url_for('static', filename='js/pages/emergency/dashboard_new.js') }}"></script>
 
-  new Chart(document.getElementById('emgMainChart'), {
-    type: 'bar',
-    data: { labels: ['اليوم', 'نشطة', 'مكتملة', 'عاجلة', 'حرجة'], datasets: [{ label: 'الحالات', data: d.mainData, backgroundColor: ['#dc3545', '#0d6efd', '#198754', '#ffc107', '#a52a2a'] }] },
-    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-  });
-</script>
 {% endblock %}

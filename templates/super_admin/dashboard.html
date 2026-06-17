@@ -8,7 +8,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card card-modern">
-                <div class="card-body" style="background: var(--primary-gradient); color: white;">
+                <div class="card-body bg-gradient-primary text-white">
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <h1 class="mb-2 text-white floating-animation">
@@ -25,16 +25,16 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2 flex-wrap justify-content-end">
-                                <button class="btn btn-light btn-lg btn-modern shadow-sm" onclick="refreshDashboard()" title="تحديث البيانات">
+                                <button class="btn btn-light btn-lg btn-modern shadow-sm" data-action="refresh-dashboard" title="تحديث البيانات">
                                     <i class="fas fa-sync-alt"></i> <span class="btn-label">تحديث</span>
                                 </button>
-                                <button class="btn btn-warning btn-lg btn-modern shadow-sm" onclick="createBackup()" title="نسخة احتياطية">
+                                <button class="btn btn-warning btn-lg btn-modern shadow-sm" data-action="create-backup" title="نسخة احتياطية">
                                     <i class="fas fa-database"></i> <span class="btn-label">نسخة</span>
                                 </button>
-                                <button class="btn btn-info btn-lg btn-modern shadow-sm" onclick="exportSystemData()" title="تصدير البيانات">
+                                <button class="btn btn-info btn-lg btn-modern shadow-sm" data-action="export-system-data" title="تصدير البيانات">
                                     <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
                                 </button>
-                                <button class="btn btn-success btn-lg btn-modern shadow-sm" onclick="openSystemMonitor()" title="مراقب النظام">
+                                <button class="btn btn-success btn-lg btn-modern shadow-sm" data-action="open-system-monitor" title="مراقب النظام">
                                     <i class="fas fa-chart-line"></i> <span class="btn-label">مراقب</span>
                                 </button>
                             </div>
@@ -93,7 +93,7 @@
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="card card-modern">
-                        <div class="card-header border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <div class="card-header border-0" class="gradient-primary-text">
                             <h5 class="mb-0">
                                 <i class="fas fa-globe-americas me-2"></i>
                                 لوحة التحليلات العالمية المتقدمة
@@ -108,7 +108,7 @@
                                         </div>
                                         <h3 class="gradient-text">{{ stats.total_users or 0 }}</h3>
                                         <p class="text-muted">إجمالي المستخدمين</p>
-                                        <div class="progress" style="height: 8px; border-radius: 10px;">
+                                        <div class="progress" class="progress-sm">
                                             <div class="progress-bar bg-primary" style="width: 85%"></div>
                                         </div>
                                     </div>
@@ -120,7 +120,7 @@
                                         </div>
                                         <h3 class="gradient-text">{{ stats.active_sessions or 0 }}</h3>
                                         <p class="text-muted">الجلسات النشطة</p>
-                                        <div class="progress" style="height: 8px; border-radius: 10px;">
+                                        <div class="progress" class="progress-sm">
                                             <div class="progress-bar bg-success" style="width: 92%"></div>
                                         </div>
                                     </div>
@@ -132,7 +132,7 @@
                                         </div>
                                         <h3 class="gradient-text">{{ stats.security_events or 0 }}</h3>
                                         <p class="text-muted">أحداث الأمان</p>
-                                        <div class="progress" style="height: 8px; border-radius: 10px;">
+                                        <div class="progress" class="progress-sm">
                                             <div class="progress-bar bg-warning" style="width: 15%"></div>
                                         </div>
                                     </div>
@@ -144,7 +144,7 @@
                                         </div>
                                         <h3 class="gradient-text">{{ stats.system_uptime or '99.9%' }}</h3>
                                         <p class="text-muted">وقت تشغيل النظام</p>
-                                        <div class="progress" style="height: 8px; border-radius: 10px;">
+                                        <div class="progress" class="progress-sm">
                                             <div class="progress-bar bg-info" style="width: 99%"></div>
                                         </div>
                                     </div>
@@ -173,7 +173,7 @@
                                     <p class="text-muted mb-0">حالة النظام: <strong>{{ stats.system_health_score.status }}</strong></p>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="progress" style="height: 25px; border-radius: 15px;">
+                                    <div class="progress" class="progress-rounded">
                                         <div class="progress-bar bg-{{ stats.system_health_score.color }}" 
                                              role="progressbar" 
                                              style="width: {{ stats.system_health_score.score }}%"
@@ -197,7 +197,7 @@
             <!-- AI Assistant Section -->
             <div class="row mb-4">
                 <div class="col-12">
-                    <div class="card card-modern" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="card card-modern" class="gradient-primary">
                         <div class="card-body p-4">
                             <div class="row align-items-center">
                                 <div class="col-md-2 text-center">
@@ -236,23 +236,23 @@
                                                 </button>
                                                 <input type="text" class="form-control" id="aiInput" 
                                                        placeholder="اكتب سؤالك أو طلبك هنا... (مثال: حلل أداء النظام، أنشئ تقرير المستخدمين، ما هي التحسينات المقترحة؟)">
-                                                <button class="btn btn-success" id="sendBtn" onclick="sendAIMessage()">
+                                                <button class="btn btn-success" id="sendBtn" data-action="send-ai-message">
                                                     <i class="fas fa-paper-plane me-1"></i>
                                                     إرسال
                                                 </button>
                                             </div>
                                             <div class="quick-commands mt-2">
                                                 <small class="text-white-50">أوامر سريعة:</small>
-                                                <button class="btn btn-sm btn-outline-light ms-1" onclick="quickCommand('analyze')">
+                                                <button class="btn btn-sm btn-outline-light ms-1" data-action="quickCommand" data-value="analyze">
                                                     <i class="fas fa-chart-line"></i> تحليل النظام
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-light ms-1" onclick="quickCommand('report')">
+                                                <button class="btn btn-sm btn-outline-light ms-1" data-action="quickCommand" data-value="report">
                                                     <i class="fas fa-file-alt"></i> إنشاء تقرير
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-light ms-1" onclick="quickCommand('optimize')">
+                                                <button class="btn btn-sm btn-outline-light ms-1" data-action="quickCommand" data-value="optimize">
                                                     <i class="fas fa-cog"></i> اقتراحات التحسين
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-light ms-1" onclick="quickCommand('backup')">
+                                                <button class="btn btn-sm btn-outline-light ms-1" data-action="quickCommand" data-value="backup">
                                                     <i class="fas fa-database"></i> نسخة احتياطية
                                                 </button>
                                             </div>
@@ -267,7 +267,7 @@
 
             <!-- AI Insights Section -->
             {% if stats.ai_insights %}
-            <div class="row mb-4" data-aos="fade-up" data-aos-delay="300">
+            <div class="row mb-4">
                 <div class="col-12">
                     <div class="card card-modern">
                         <div class="card-header bg-gradient-primary text-white border-0">
@@ -424,7 +424,7 @@
                                         <tr>
                                             <th class="ps-3">النوع</th>
                                             <th>الشدّة</th>
-                                            <th style="width: 160px;">التاريخ</th>
+                                            <th class="w-160">التاريخ</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -455,7 +455,7 @@
                                         <tr>
                                             <th class="ps-3">المستوى</th>
                                             <th>التصنيف</th>
-                                            <th style="width: 160px;">التاريخ</th>
+                                            <th class="w-160">التاريخ</th>
                                         </tr>
                                     </thead>
                                     <tbody>

@@ -8,14 +8,12 @@ from datetime import timedelta
 class Config:
     """الإعدادات الأساسية — PostgreSQL فقط"""
 
-    # PostgreSQL فقط — لا يوجد fallback لـ SQLite
+    # PostgreSQL فقط — no SQLite fallback in production/development
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         os.environ.get('SQLALCHEMY_DATABASE_URI')
     if not SQLALCHEMY_DATABASE_URI:
-        raise RuntimeError(
-            "DATABASE_URL أو SQLALCHEMY_DATABASE_URI مطلوبة. "
-            "مثال: postgresql://user:pass@localhost:5432/medical_system"
-        )
+        # Allow subclasses (TestingConfig) to set their own fallback
+        pass
 
     # إعدادات PostgreSQL
     SQLALCHEMY_ENGINE_OPTIONS = {
@@ -146,18 +144,26 @@ class LocalConfig(Config):
 
 
 class TestingConfig(Config):
-    """إعدادات الاختبار — PostgreSQL فقط"""
+    """إعدادات الاختبار — SQLite fallback إن لم تتوفر PostgreSQL"""
 
     TESTING = True
     WTF_CSRF_ENABLED = False
+    # Load .env first so tests can pick up DATABASE_URL if present
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except Exception:
+        pass
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
         os.environ.get('DATABASE_URL') or \
-        os.environ.get('SQLALCHEMY_DATABASE_URI')
-    if not SQLALCHEMY_DATABASE_URI:
-        raise RuntimeError(
-            "TEST_DATABASE_URL أو DATABASE_URL أو SQLALCHEMY_DATABASE_URI "
-            "مطلوبة للاختبار. PostgreSQL فقط."
-        )
+        os.environ.get('SQLALCHEMY_DATABASE_URI') or \
+        'sqlite:///:memory:'
+    if SQLALCHEMY_DATABASE_URI.startswith('sqlite'):
+        SQLALCHEMY_ENGINE_OPTIONS = {}
+        SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Provide a default SECRET_KEY for testing so tests don't need the env var
+    if not os.environ.get('SECRET_KEY'):
+        SECRET_KEY = 'test-secret-key'
 
     LOGIN_DISABLED = False
 
