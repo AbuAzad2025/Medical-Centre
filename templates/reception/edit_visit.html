@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}تعديل زيارة - الاستقبال{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h2 class="mb-1 text-primary"><i class="fas fa-edit me-2"></i>تعديل الزيارة</h2>
+              <p class="text-muted mb-0">رقم الزيارة: {{ visit.visit_number }} | المريض: {{ visit.patient.full_name if visit.patient else '-' }}</p>
+            </div>
+            <div class="col-md-4 text-end">
+              <a href="{{ url_for('reception.view_visit', visit_id=visit.id) }}" class="btn btn-secondary"><i class="fas fa-arrow-right me-1"></i> رجوع</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow">
+        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">معلومات الزيارة</h6></div>
+        <div class="card-body">
+          <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">المريض</label>
+                <input type="text" class="form-control" value="{{ visit.patient.full_name if visit.patient else '-' }}" readonly>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">رقم الزيارة</label>
+                <input type="text" class="form-control" value="{{ visit.visit_number or '-' }}" readonly>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">الحالة</label>
+                <input type="text" class="form-control" value="{{ visit.status }}" readonly>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">القسم</label>
+                <select name="department_id" class="form-select">
+                  {% for d in departments %}
+                  <option value="{{ d.id }}" {% if visit.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">الطبيب</label>
+                <select name="doctor_id" class="form-select">
+                  <option value="">-- اختر طبيب --</option>
+                  {% for doc in doctors %}
+                  <option value="{{ doc.id }}" {% if visit.doctor_id == doc.id %}selected{% endif %}>{{ doc.full_name or doc.username }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">نوع الزيارة</label>
+                <select name="visit_type" class="form-select">
+                  <option value="REGULAR" {% if visit.visit_type == 'REGULAR' %}selected{% endif %}>عادية</option>
+                  <option value="FOLLOW_UP" {% if visit.visit_type == 'FOLLOW_UP' %}selected{% endif %}>متابعة</option>
+                  <option value="CONSULTATION" {% if visit.visit_type == 'CONSULTATION' %}selected{% endif %}>استشارة</option>
+                  <option value="EMERGENCY" {% if visit.visit_type == 'EMERGENCY' %}selected{% endif %}>طوارئ</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">طريقة الدفع</label>
+                <select name="payment_method" class="form-select">
+                  <option value="CASH" {% if visit.payment_method == 'CASH' %}selected{% endif %}>نقداً</option>
+                  <option value="CARD" {% if visit.payment_method == 'CARD' %}selected{% endif %}>بطاقة</option>
+                  <option value="INSURANCE" {% if visit.payment_method == 'INSURANCE' %}selected{% endif %}>تأمين</option>
+                  <option value="FORCE" {% if visit.payment_method == 'FORCE' %}selected{% endif %}>قسري</option>
+                  <option value="WIRE" {% if visit.payment_method == 'WIRE' %}selected{% endif %}>تحويل</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">الحالة المالية</label>
+                <input type="text" class="form-control" value="{{ visit.payment_status }}" readonly>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">الأعراض</label>
+              <textarea name="symptoms" class="form-control" rows="3">{{ visit.symptoms or '' }}</textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">ملاحظات</label>
+              <textarea name="notes" class="form-control" rows="3">{{ visit.notes or '' }}</textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> حفظ التعديلات</button>
+              <a href="{{ url_for('reception.view_visit', visit_id=visit.id) }}" class="btn btn-secondary"><i class="fas fa-times me-1"></i> إلغاء</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

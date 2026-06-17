@@ -1,0 +1,7 @@
+{% macro order_status_badge(status, order_type='lab') %}
+{%- set colors = {'draft': 'secondary', 'ordered': 'primary', 'sample_collected': 'info', 'in_progress': 'warning', 'completed': 'success', 'reviewed': 'success', 'cancelled': 'danger'} %}
+{%- set labels = {'draft': 'مسودة', 'ordered': 'مطلوب', 'sample_collected': 'تم أخذ العينة', 'in_progress': 'قيد التنفيذ', 'completed': 'مكتمل', 'reviewed': 'تمت المراجعة', 'cancelled': 'ملغي'} %}
+<span class="badge bg-{{ colors.get(status, 'secondary') }}">
+    {{ labels.get(status, status) }}
+</span>
+{% endmacro %}

@@ -1,0 +1,14 @@
+{% macro module_empty_state(module_name, module_name_ar, icon='fas fa-cube') %}
+<div class="text-center py-5 my-4">
+    <div class="mb-3">
+        <i class="{{ icon }} fa-4x text-muted opacity-25"></i>
+    </div>
+    <h4 class="text-muted mb-2">وحدة {{ module_name_ar }} غير مفعلة</h4>
+    <p class="text-muted mb-3">هذه الوحدة غير متاحة في باقة خدمتك الحالية</p>
+    {% if current_user.role in ['super_admin', 'admin', 'owner'] %}
+    <a href="/owner/dashboard" class="btn btn-outline-primary btn-sm">
+        <i class="fas fa-crown"></i> ترقية الباقة
+    </a>
+    {% endif %}
+</div>
+{% endmacro %}
