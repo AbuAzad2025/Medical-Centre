@@ -4,8 +4,9 @@
 const CACHE_NAME = 'medical-system-v1';
 const urlsToCache = [
   '/',
-  '/static/css/app.css',
-  '/static/css/modern-medical.css',
+  '/static/css/core.css',
+  '/static/css/components.css',
+  '/static/css/layout.css',
   '/static/js/app.js',
   '/static/js/csrf.js',
   '/static/js/flash.js',

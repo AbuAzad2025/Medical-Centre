@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقرير الطوارئ - {{ emergency.patient.full_name if emergency.patient else 'غير محدد' }}</title>
     <style>
-        @page { size: A4; margin: 1cm; }
+@page { size: A4; margin: 1cm; }
         body { font-family: 'Arial', sans-serif; font-size: 12px; line-height: 1.5; color: #333; margin: 0; padding: 0; }
         .header { text-align: center; border-bottom: 3px solid #dc3545; padding-bottom: 20px; margin-bottom: 25px; }
         .header h1 { color: #dc3545; margin: 0; font-size: 28px; }
@@ -23,10 +23,10 @@
         .print-button { position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
         .print-button:hover { background: #c82333; }
         @media print { .print-button { display: none; } body { font-size: 11px; } }
-    </style>
+</style>
 </head>
 <body>
-    <button class="print-button" onclick="window.print()">طباعة التقرير</button>
+    <button class="print-button" data-action="print">طباعة التقرير</button>
 
     <div class="header">
         <h1>المركز الصحي المتخصص</h1>
@@ -53,22 +53,22 @@
         </div>
     </div>
 
-    <div class="section" style="background:#f8d7da; border-color:#f5c6cb;">
+    <div class="section" class="alert alert-danger text-center p-2 mb-0">
         <h3>الشكوى الرئيسية</h3>
         <div>{{ emergency.chief_complaint }}</div>
     </div>
 
-    <div class="section" style="background:#e8f5e9; border-color:#c3e6cb;">
+    <div class="section" class="alert alert-success text-center p-2 mb-0">
         <h3>ملاحظات الفرز</h3>
         <div>{{ emergency.triage_notes or 'لا توجد ملاحظات' }}</div>
     </div>
 
-    <div class="section" style="background:#fff3cd; border-color:#ffeeba;">
+    <div class="section" class="alert alert-warning text-center p-2 mb-0">
         <h3>العلامات الحيوية</h3>
         <div>{{ emergency.vital_signs or 'غير محدد' }}</div>
     </div>
 
-    <div class="section" style="background:#d1ecf1; border-color:#bee5eb;">
+    <div class="section" class="alert alert-info text-center p-2 mb-0">
         <h3>بيانات المريض</h3>
         <div class="grid">
             <div class="detail"><span><strong>الاسم:</strong></span><span>{{ emergency.patient.full_name if emergency.patient else 'غير محدد' }}</span></div>
@@ -94,17 +94,13 @@
         <p><strong>هذا التقرير صالح للاستخدام الطبي</strong></p>
         <p>تاريخ الطباعة: {{ moment().format('YYYY-MM-DD HH:mm') }}</p>
         <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else 'info@medical-center.com' }} | {{ branding.organization_phone if branding and branding.organization_phone else '+970-XX-XXXXXXX' }}</p>
-        <hr style="margin: 10px 0; border: 1px solid #ddd;">
-        <p style="font-size: 10px; color: #666; margin: 5px 0;">
+        <hr class="my-2 border border-dark">
+        <p class="text-xs text-muted my-1">
             <strong>تطوير:</strong> {{ developer_company or 'شركة أزاد للأنظمة الذكية' }} |
             <strong>مطور:</strong> {{ developer_name or 'أحمد غنام' }}
         </p>
     </div>
 
-    <script>
-    window.onload = function() {
-        setTimeout(function() { window.print(); }, 800);
-    };
-    </script>
+    <script src="{{ url_for('static', filename='js/pages/print/emergency_report.js') }}"></script>
 </body>
 </html>

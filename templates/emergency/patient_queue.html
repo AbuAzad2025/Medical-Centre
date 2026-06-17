@@ -23,7 +23,7 @@
                                     <i class="fas fa-arrow-left me-1"></i>
                                     العودة للوحة التحكم
                                 </a>
-                                <button class="btn btn-danger" onclick="refreshQueue()">
+                                <button class="btn btn-danger" data-action="refresh-queue">
                                     <i class="fas fa-sync me-1"></i>
                                     تحديث
                                 </button>
@@ -271,7 +271,7 @@
                                                 {% if emergency.status == 'OBSERVATION' %}
                                                     <form method="POST" action="{{ url_for('emergency.end_treatment', emergency_id=emergency.id) }}" class="d-inline">
                                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirmSubmit(event, 'هل أنت متأكد من إنهاء العلاج؟')">
+                                                        <button type="submit" class="btn btn-danger btn-sm" data-action="confirm-submit" data-message="هل أنت متأكد من إنهاء العلاج؟">
                                                             <i class="fas fa-stop me-1"></i>إنهاء
                                                         </button>
                                                     </form>
@@ -327,7 +327,7 @@
                             </a>
                         </div>
                         <div class="col-md-3 mb-2">
-                            <button class="btn btn-warning w-100" onclick="refreshQueue()">
+                            <button class="btn btn-warning w-100" data-action="refresh-queue">
                                 <i class="fas fa-sync me-2"></i>تحديث الطابور
                             </button>
                         </div>
@@ -348,55 +348,7 @@
     </div>
 </div>
 
-<script>
-function refreshQueue() {
-    location.reload();
-}
+<script src="{{ url_for('static', filename='js/pages/emergency/patient_queue.js') }}"></script>
 
-// Auto-refresh every 15 seconds for emergency cases
-setInterval(function() {
-    // Only refresh if there are emergency cases
-    const table = document.querySelector('table tbody');
-    if (table && table.children.length > 0) {
-        refreshQueue();
-    }
-}, 15000);
 
-// Add click handlers for better UX
-document.addEventListener('DOMContentLoaded', function() {
-    // Add hover effects to table rows
-    const rows = document.querySelectorAll('table tbody tr');
-    rows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-        });
-        row.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
-        });
-    });
-    
-    // Add loading states to buttons
-    const buttons = document.querySelectorAll('button[type="submit"]');
-    buttons.forEach(button => {
-        button.addEventListener('click', function() {
-            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>جاري المعالجة...';
-            this.disabled = true;
-        });
-    });
-    
-    // Highlight critical cases
-    const criticalRows = document.querySelectorAll('tr.table-danger');
-    criticalRows.forEach(row => {
-        row.style.animation = 'pulse 2s infinite';
-    });
-});
-</script>
-
-<style>
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.7; }
-    100% { opacity: 1; }
-}
-</style>
 {% endblock %}

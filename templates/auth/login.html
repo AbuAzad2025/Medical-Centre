@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>تسجيل الدخول - {{ branding.organization_name if branding else 'المركز الطبي' }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/medical-login.css') }}" rel="stylesheet">
 </head>
@@ -49,7 +49,7 @@
         <div class="login-panel">
             <div class="login-card">
                 <!-- Palestinian accent ribbon -->
-                <div class="palestine-ribbon" style="border-radius: var(--radius-lg) var(--radius-lg) 0 0;"></div>
+                <div class="palestine-ribbon rounded-top-lg"></div>
                 <div class="login-card-header">
                     <div class="medical-icon-badge">
                         <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -98,7 +98,7 @@
                             <input type="checkbox" id="remember" name="remember" value="1">
                             <span>تذكرني</span>
                         </label>
-                        <button type="button" class="forgot-link" onclick="Swal.fire({ title: 'استعادة كلمة المرور', text: 'يرجى التواصل مع مدير النظام لإعادة تعيين كلمة المرور', icon: 'info' });">هل نسيت كلمة المرور؟</button>
+                        <button type="button" class="forgot-link" data-action="forgot-password">هل نسيت كلمة المرور؟</button>
                     </div>
 
                     <button type="submit" class="login-primary-btn" id="loginBtn">
@@ -159,34 +159,6 @@
 
     <script src="{{ url_for('static', filename='adminlte/plugins/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/security.js') }}"></script>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            const btn = document.getElementById('loginBtn');
-            const text = btn.querySelector('.btn-text');
-            const icon = btn.querySelector('.btn-icon');
-            const loading = document.getElementById('loginLoading');
-            text.style.display = 'none';
-            if (icon) icon.style.display = 'none';
-            loading.classList.add('show');
-            btn.disabled = true;
-        });
-
-        const pwd = document.getElementById('password');
-        const toggle = document.getElementById('togglePassword');
-        const caps = document.getElementById('capsLock');
-        toggle.addEventListener('click', function() {
-            const isPwd = pwd.getAttribute('type') === 'password';
-            pwd.setAttribute('type', isPwd ? 'text' : 'password');
-            this.setAttribute('aria-label', isPwd ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
-            this.innerHTML = isPwd ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
-        });
-        pwd.addEventListener('keyup', function(e) {
-            if (e.getModifierState && e.getModifierState('CapsLock')) {
-                caps.style.display = 'block';
-            } else {
-                caps.style.display = 'none';
-            }
-        });
-    </script>
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
 </html>

@@ -7,6 +7,7 @@ from utils.decorators import handle_route_errors, role_required
 from models.dicom_pacs import DICOMStudy, DICOMSeries, DICOMInstance, PACSConfiguration
 from models.patient import Patient
 from models.radiology_request import RadiologyRequest
+from services.dicom_service import dicom_service
 from app_factory import db
 
 dicom_bp = Blueprint('dicom', __name__)

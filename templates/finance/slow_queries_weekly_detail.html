@@ -43,7 +43,7 @@
             {% for row in report.entries or [] %}
             <tr>
               <td>{{ loop.index }}</td>
-              <td style="max-width: 520px; white-space: pre-wrap;">{{ row.query }}</td>
+              <td class="max-w-520 text-pre-wrap">{{ row.query }}</td>
               <td class="text-end">{{ row.calls }}</td>
               <td class="text-end">{{ "%.2f"|format(row.mean_time or 0) }}</td>
               <td class="text-end">{{ "%.2f"|format(row.total_time or 0) }}</td>

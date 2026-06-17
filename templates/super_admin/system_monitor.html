@@ -7,7 +7,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-lg">
-                <div class="card-body" style="background: var(--primary-gradient); color: white;">
+                <div class="card-body bg-gradient-primary text-white">
                     <h1 class="mb-2">
                         <i class="fas fa-chart-line me-3"></i>
                         مراقب النظام المتقدم
@@ -21,7 +21,7 @@
     <!-- System Resources -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card border-0 shadow-lg" style="background: var(--primary-gradient); color: white;">
+            <div class="card border-0 shadow-lg bg-gradient-primary text-white">
                 <div class="card-body text-center">
                     <i class="fas fa-microchip fa-3x mb-3"></i>
                     <h3>{{ system_info.cpu_usage or '0' }}%</h3>
@@ -30,7 +30,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-lg" style="background: var(--success-gradient); color: white;">
+            <div class="card border-0 shadow-lg bg-gradient-success text-white">
                 <div class="card-body text-center">
                     <i class="fas fa-memory fa-3x mb-3"></i>
                     <h3>{{ system_info.memory_usage or '0' }}%</h3>
@@ -39,7 +39,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-lg" style="background: var(--warning-gradient); color: white;">
+            <div class="card border-0 shadow-lg bg-gradient-warning text-white">
                 <div class="card-body text-center">
                     <i class="fas fa-hdd fa-3x mb-3"></i>
                     <h3>{{ system_info.disk_usage or '0' }}%</h3>
@@ -48,7 +48,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-lg" style="background: var(--info-gradient); color: white;">
+            <div class="card border-0 shadow-lg bg-gradient-info text-white">
                 <div class="card-body text-center">
                     <i class="fas fa-network-wired fa-3x mb-3"></i>
                     <h3>{{ system_info.network_status or 'نشط' }}</h3>

@@ -75,7 +75,7 @@
           <div class="table-responsive">
             <table class="table table-sm table-striped align-middle mb-0">
               <thead>
-                <tr><th>الحالة</th><th style="width: 140px;">عدد</th></tr>
+                <tr><th>الحالة</th><th class="w-140">عدد</th></tr>
               </thead>
               <tbody>
                 {% for st, cnt in (by_status or []) %}
@@ -96,7 +96,7 @@
           <div class="table-responsive">
             <table class="table table-sm table-striped align-middle mb-0">
               <thead>
-                <tr><th>الأولوية</th><th style="width: 140px;">عدد</th></tr>
+                <tr><th>الأولوية</th><th class="w-140">عدد</th></tr>
               </thead>
               <tbody>
                 {% for pr, cnt in (by_priority or []) %}
@@ -118,7 +118,7 @@
       <div class="table-responsive">
         <table class="table table-sm table-striped align-middle mb-0">
           <thead>
-            <tr><th>القسم</th><th style="width: 140px;">عدد</th></tr>
+            <tr><th>القسم</th><th class="w-140">عدد</th></tr>
           </thead>
           <tbody>
             {% for dept, cnt in (by_department or []) %}
@@ -140,10 +140,10 @@
           <thead>
             <tr>
               <th>العنوان</th>
-              <th style="width: 200px;">الممرضة</th>
-              <th style="width: 120px;">الأولوية</th>
-              <th style="width: 140px;">الحالة</th>
-              <th style="width: 180px;">الاستحقاق</th>
+              <th class="w-200">الممرضة</th>
+              <th class="w-120">الأولوية</th>
+              <th class="w-140">الحالة</th>
+              <th class="w-180">الاستحقاق</th>
             </tr>
           </thead>
           <tbody>

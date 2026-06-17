@@ -89,9 +89,9 @@
                                     <label for="triage_level">مستوى الفرز</label>
                                     <select class="form-control" id="triage_level" name="triage_level" required>
                                         <option value="">اختر مستوى الفرز</option>
-                                        <option value="RED" {% if (visit.triage_level or '') == 'RED' %}selected{% endif %} style="background-color: #dc3545; color: white;">أحمر - حرج (فوري)</option>
-                                        <option value="YELLOW" {% if (visit.triage_level or '') == 'YELLOW' %}selected{% endif %} style="background-color: #ffc107; color: black;">أصفر - عاجل (15 دقيقة)</option>
-                                        <option value="GREEN" {% if (visit.triage_level or '') == 'GREEN' %}selected{% endif %} style="background-color: #28a745; color: white;">أخضر - عادي (60 دقيقة)</option>
+                                        <option value="RED" {% if (visit.triage_level or '') == 'RED' %}selected{% endif %} class="bg-danger text-white">أحمر - حرج (فوري)</option>
+                                        <option value="YELLOW" {% if (visit.triage_level or '') == 'YELLOW' %}selected{% endif %} class="bg-warning text-dark">أصفر - عاجل (15 دقيقة)</option>
+                                        <option value="GREEN" {% if (visit.triage_level or '') == 'GREEN' %}selected{% endif %} class="bg-success text-white">أخضر - عادي (60 دقيقة)</option>
                                     </select>
                                 </div>
                             </div>
@@ -195,42 +195,8 @@
 </div>
 
 <script>
-document.getElementById('triageForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    // جمع العلامات الحيوية
-    const vitalSigns = {
-        blood_pressure: formData.get('blood_pressure'),
-        heart_rate: formData.get('heart_rate'),
-        temperature: formData.get('temperature'),
-        oxygen_saturation: formData.get('oxygen_saturation'),
-        respiratory_rate: formData.get('respiratory_rate'),
-        pain_level: formData.get('pain_level')
-    };
-    
-    formData.set('vital_signs', JSON.stringify(vitalSigns));
-    
-    fetch('{{ url_for("emergency.triage", emergency_id=emergency.id) }}', {
-        method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            Swal.fire({ title: 'تم', text: 'تم حفظ بيانات الفرز بنجاح', icon: 'success' });
-            // إعادة توجيه للطوارئ
-            window.location.href = '{{ url_for("emergency.patient_queue") }}';
-        } else {
-            Swal.fire({ title: 'خطأ', text: 'خطأ: ' + (data.error || ''), icon: 'error' });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ بيانات الفرز', icon: 'error' });
-    });
-});
+window.__M = window.__M || [];
+__M0__='{{ url_for("emergency.triage", emergency_id=emergency.id) }}'; __M1__='{{ url_for("emergency.patient_queue") }}';
 </script>
+<script src="{{ url_for('static', filename='js/pages/emergency/triage.js') }}"></script>
 {% endblock %}

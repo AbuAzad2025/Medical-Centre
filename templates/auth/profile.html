@@ -105,9 +105,9 @@
 
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">التوقيع الحالي</label>
-                                <div class="border rounded p-3 text-center bg-light mb-2" style="height: 150px; display: flex; align-items: center; justify-content: center;">
+                                <div class="border rounded p-3 text-center bg-light mb-2 h-150 d-flex align-items-center justify-content-center">
                                     {% if user.digital_signature %}
-                                        <img src="{{ user.digital_signature }}" alt="Signature" style="max-height: 100%; max-width: 100%;">
+                                        <img src="{{ user.digital_signature }}" alt="Signature" class="max-h-100pct max-w-100pct">
                                     {% else %}
                                         <p class="text-muted mb-0">لا يوجد توقيع محفوظ</p>
                                     {% endif %}

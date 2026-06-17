@@ -22,24 +22,8 @@
   </div>
 </div>
 <script>
-function submitScan() {
-  const barcode = document.getElementById('barcodeInput').value;
-  const action = document.getElementById('scanAction').value;
-  fetch('{{ url_for('barcode.api_scan') }}', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}'},
-    body: JSON.stringify({barcode: barcode, action: action})
-  }).then(r => r.json()).then(data => {
-    const el = document.getElementById('scanResult');
-    if (data.success) {
-      el.innerHTML = '<div class="alert alert-success">'+data.entity_type+' #'+data.entity_id+'</div>';
-    } else {
-      el.innerHTML = '<div class="alert alert-danger">'+data.message+'</div>';
-    }
-  });
-}
-document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') submitScan();
-});
-</script>
+        window.__M = window.__M || [];
+        __M0__='{{ url_for('barcode.api_scan') }}'; __M1__='{{ csrf_token() }}';
+        </script>
+<script src="{{ url_for('static', filename='js/pages/barcode/scan.js') }}"></script>
 {% endblock %}

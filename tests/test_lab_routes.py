@@ -49,12 +49,12 @@ class LabRoutesTestCase(unittest.TestCase):
 
     def tearDown(self):
         db.session.rollback()
-        # Use TRUNCATE TABLE instead of DROP SCHEMA to avoid enum type recreation issues
         from sqlalchemy import inspect
         inspector = inspect(db.engine)
         tables = inspector.get_table_names()
         if tables:
-            db.session.execute(db.text(f"TRUNCATE TABLE {', '.join(tables)} CASCADE"))
+            for t in tables:
+                db.session.execute(db.text(f"DELETE FROM {t}"))
         db.session.commit()
         db.engine.dispose()
         db.session.remove()

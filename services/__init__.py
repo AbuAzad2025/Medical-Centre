@@ -14,5 +14,18 @@ from services.workflow_orchestrator import WorkflowOrchestrator, QueueService
 from services.pharmacy_sale_service import PharmacySaleService
 from services.radiology_workflow_service import RadiologyWorkflowService
 from services.ai_governance_service import AIRecommendationGovernanceService
+from services.core_queries import core_queries, CoreQueryService
+from services.prescription_service import prescription_service
+from services.emergency_service import emergency_service
+from services.nursing_service import nursing_service
+from services.financial_service import financial_service
+from services.reception_service import reception_service
+from services.manager_service import manager_service
+from services.super_admin_service import super_admin_service
+from services.lab_service import lab_service
+from services.radiology_service import radiology_service
+from services.fhir_service import fhir_service
+from services.dicom_service import dicom_service
+from services.sso_service import sso_service
 
 

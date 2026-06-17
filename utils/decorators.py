@@ -68,7 +68,31 @@ def _format_message(key):
     return base.get(key, base['no_permission'])
 
 
-def role_required(*roles):
+# Role hierarchy: higher roles inherit access to lower roles' endpoints
+ROLE_HIERARCHY = {
+    'super_admin': ['admin', 'manager', 'doctor', 'nurse', 'reception', 'accountant', 'emergency', 'lab', 'radiology', 'pharmacist', 'technician', 'receptionist', 'lab_tech', 'owner'],
+    'admin': ['manager', 'doctor', 'nurse', 'reception', 'accountant', 'emergency', 'lab', 'radiology', 'pharmacist', 'technician', 'receptionist', 'lab_tech'],
+    'manager': ['reception', 'accountant'],
+    'doctor': ['nurse'],
+    'owner': [],
+}
+
+
+def _role_in_hierarchy(user_role, target_role):
+    """Check if user_role has access equivalent to target_role through hierarchy"""
+    if user_role == target_role:
+        return True
+    inherited = ROLE_HIERARCHY.get(user_role, [])
+    if target_role in inherited:
+        return True
+    # Check nested inheritance
+    for r in inherited:
+        if target_role in ROLE_HIERARCHY.get(r, []):
+            return True
+    return False
+
+
+def role_required(*roles, use_hierarchy=True):
     """
     ديكوريتر للتحقق من دور المستخدم
     
@@ -84,7 +108,12 @@ def role_required(*roles):
                 flash(_format_message('not_authenticated'), 'error')
                 return redirect(url_for('auth.login'))
             
-            if current_user.role not in roles:
+            if use_hierarchy:
+                allowed = any(_role_in_hierarchy(current_user.role, r) for r in roles)
+            else:
+                allowed = current_user.role in roles
+            
+            if not allowed:
                 logger.warning(f"Access denied: User {current_user.id} ({current_user.role}) tried to access {request.endpoint}")
                 flash(_format_message('no_permission'), 'error')
                 abort(403)
@@ -101,12 +130,10 @@ def reception_only(f):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        
-        if current_user.role not in ['reception', 'manager', 'super_admin']:
+        if not _role_in_hierarchy(current_user.role, 'reception'):
             logger.warning(f"Reception access denied for user {current_user.id} ({current_user.role})")
             flash(_format_message('reception_only'), 'error')
             abort(403)
-        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -118,12 +145,10 @@ def accountant_only(f):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        
-        if current_user.role not in ['accountant', 'manager', 'super_admin']:
+        if not _role_in_hierarchy(current_user.role, 'accountant'):
             logger.warning(f"Accountant access denied for user {current_user.id} ({current_user.role})")
             flash(_format_message('accountant_only'), 'error')
             abort(403)
-        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -135,12 +160,10 @@ def manager_or_admin_only(f):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        
-        if current_user.role not in ['manager', 'super_admin']:
+        if not _role_in_hierarchy(current_user.role, 'manager'):
             logger.warning(f"Manager/Admin access denied for user {current_user.id} ({current_user.role})")
             flash(_format_message('manager_admin_only'), 'error')
             abort(403)
-        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -168,13 +191,10 @@ def can_handle_payments(f):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        
-        allowed_roles = ['reception', 'accountant', 'manager', 'super_admin']
-        if current_user.role not in allowed_roles:
+        if not (_role_in_hierarchy(current_user.role, 'reception') or _role_in_hierarchy(current_user.role, 'accountant')):
             logger.warning(f"Payment handling denied for user {current_user.id} ({current_user.role})")
             flash(_format_message('payments_not_allowed'), 'error')
             abort(403)
-        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -189,12 +209,10 @@ def can_approve_force_payment(f):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        
-        if current_user.role not in ['manager', 'super_admin']:
+        if not _role_in_hierarchy(current_user.role, 'manager'):
             logger.warning(f"Force payment approval denied for user {current_user.id} ({current_user.role})")
             flash(_format_message('force_payment_manager_only'), 'error')
             abort(403)
-        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -209,13 +227,10 @@ def can_create_visits(f):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        
-        allowed_roles = ['reception']
-        if current_user.role not in allowed_roles:
+        if current_user.role != 'reception':
             logger.warning(f"Visit creation denied for user {current_user.id} ({current_user.role})")
             flash(_format_message('visit_create_reception_only'), 'error')
             abort(403)
-        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -229,13 +244,10 @@ def can_modify_patient_data(f):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        
-        allowed_roles = ['reception', 'manager', 'super_admin']
-        if current_user.role not in allowed_roles:
+        if not _role_in_hierarchy(current_user.role, 'reception'):
             logger.warning(f"Patient data modification denied for user {current_user.id} ({current_user.role})")
             flash(_format_message('patient_modify_not_allowed'), 'error')
             abort(403)
-        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -249,13 +261,10 @@ def can_delete_patient(f):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        
-        allowed_roles = ['manager', 'super_admin']
-        if current_user.role not in allowed_roles:
+        if not _role_in_hierarchy(current_user.role, 'manager'):
             logger.warning(f"Patient deletion denied for user {current_user.id} ({current_user.role})")
             flash(_format_message('patient_delete_not_allowed'), 'error')
             abort(403)
-        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -269,13 +278,10 @@ def can_access_financial_reports(f):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        
-        allowed_roles = ['accountant', 'manager', 'super_admin']
-        if current_user.role not in allowed_roles:
+        if not _role_in_hierarchy(current_user.role, 'accountant'):
             logger.warning(f"Financial reports access denied for user {current_user.id} ({current_user.role})")
             flash(_format_message('financial_reports_not_allowed'), 'error')
             abort(403)
-        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -394,7 +400,7 @@ def prevent_self_approval(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def role_required_json(*roles):
+def role_required_json(*roles, use_hierarchy=True):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
@@ -403,7 +409,11 @@ def role_required_json(*roles):
                     return jsonify({'success': False, 'message': _format_message('not_authenticated')}), 401
                 flash(_format_message('not_authenticated'), 'error')
                 return redirect(url_for('auth.login'))
-            if current_user.role not in roles:
+            if use_hierarchy:
+                allowed = any(_role_in_hierarchy(current_user.role, r) for r in roles)
+            else:
+                allowed = current_user.role in roles
+            if not allowed:
                 if (request.headers.get('Accept') or '').lower().find('application/json') != -1 or (request.headers.get('X-Requested-With') or '').lower() == 'xmlhttprequest':
                     return jsonify({'success': False, 'message': _format_message('no_permission')}), 403
                 flash(_format_message('no_permission'), 'error')

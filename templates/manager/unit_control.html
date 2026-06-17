@@ -19,11 +19,11 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2">
-                                <button class="btn btn-primary" onclick="refreshUnits()">
+                                <button class="btn btn-primary" data-action="refresh-units">
                                     <i class="fas fa-sync-alt me-1"></i>
                                     تحديث
                                 </button>
-                                <button class="btn btn-success" onclick="exportUnitsReport()">
+                                <button class="btn btn-success" data-action="export-units-report">
                                     <i class="fas fa-file-excel me-1"></i>
                                     تصدير تقرير
                                 </button>
@@ -86,16 +86,16 @@
                                         </div>
                                     </div>
                                     <div class="unit-actions">
-                                        <button class="btn btn-sm btn-outline-primary" onclick="viewUnitDetails('{{ unit.name }}')">
+                                        <button class="btn btn-sm btn-outline-primary" data-action="viewUnitDetails" data-value="{{ unit.name }}">
                                             <i class="fas fa-eye me-1"></i>
                                             تفاصيل
                                         </button>
                                         <button class="btn btn-sm btn-outline-{{ 'warning' if unit.status == 'active' else 'success' }}" 
-                                                onclick="toggleUnit('{{ unit.name }}')">
+                                                data-action="toggleUnit" data-value="{{ unit.name }}">
                                             <i class="fas fa-toggle-{{ 'on' if unit.status == 'active' else 'off' }} me-1"></i>
                                             {{ 'تعطيل' if unit.status == 'active' else 'تفعيل' }}
                                         </button>
-                                        <button class="btn btn-sm btn-outline-info" onclick="configureUnit('{{ unit.name }}')">
+                                        <button class="btn btn-sm btn-outline-info" data-action="configureUnit" data-value="{{ unit.name }}">
                                             <i class="fas fa-cog me-1"></i>
                                             إعدادات
                                         </button>
@@ -117,9 +117,9 @@
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">إدارة الوحدات</h6>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" onclick="filterUnits('all')">الكل</button>
-                        <button class="btn btn-sm btn-outline-success" onclick="filterUnits('active')">النشطة</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="filterUnits('inactive')">المعطلة</button>
+                        <button class="btn btn-sm btn-outline-primary" data-action="filter-units" data-value="all">الكل</button>
+                        <button class="btn btn-sm btn-outline-success" data-action="filter-units" data-value="active">النشطة</button>
+                        <button class="btn btn-sm btn-outline-danger" data-action="filter-units" data-value="inactive">المعطلة</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -197,7 +197,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="progress" style="height: 8px;">
+                                        <div class="progress h-8">
                                             <div class="progress-bar bg-{{ 'success' if unit.status == 'active' else 'danger' }}" 
                                                  style="width: {{ 85 if unit.status == 'active' else 0 }}%"></div>
                                         </div>
@@ -205,17 +205,17 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="viewUnitDetails('{{ unit.name }}')" title="تفاصيل">
+                                            <button class="btn btn-sm btn-outline-primary" data-action="viewUnitDetails" data-value="{{ unit.name }}" title="تفاصيل">
                                                 <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
                                             </button>
                                             <button class="btn btn-sm btn-outline-{{ 'warning' if unit.status == 'active' else 'success' }}" 
-                                                    onclick="toggleUnit('{{ unit.name }}')" title="{{ 'تعطيل' if unit.status == 'active' else 'تفعيل' }}">
+                                                    data-action="toggleUnit" data-value="{{ unit.name }}" title="{{ 'تعطيل' if unit.status == 'active' else 'تفعيل' }}">
                                                 <i class="fas fa-toggle-{{ 'on' if unit.status == 'active' else 'off' }}"></i> <span class="btn-label">زر</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-info" onclick="configureUnit('{{ unit.name }}')" title="إعدادات">
+                                            <button class="btn btn-sm btn-outline-info" data-action="configureUnit" data-value="{{ unit.name }}" title="إعدادات">
                                                 <i class="fas fa-cog"></i> <span class="btn-label">إعدادات</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-success" onclick="restartUnit('{{ unit.name }}')" title="إعادة تشغيل">
+                                            <button class="btn btn-sm btn-outline-success" data-action="restartUnit" data-value="{{ unit.name }}" title="إعادة تشغيل">
                                                 <i class="fas fa-redo"></i> <span class="btn-label">إعادة</span>
                                             </button>
                                         </div>
@@ -333,25 +333,25 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-primary w-100" onclick="bulkActivate()">
+                            <button class="btn btn-primary w-100" data-action="bulk-activate">
                                 <i class="fas fa-play me-2"></i>
                                 تفعيل جميع الوحدات
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-warning w-100" onclick="bulkDeactivate()">
+                            <button class="btn btn-warning w-100" data-action="bulk-deactivate">
                                 <i class="fas fa-pause me-2"></i>
                                 تعطيل جميع الوحدات
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-info w-100" onclick="bulkRestart()">
+                            <button class="btn btn-info w-100" data-action="bulk-restart">
                                 <i class="fas fa-redo me-2"></i>
                                 إعادة تشغيل جميع الوحدات
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-success w-100" onclick="bulkExport()">
+                            <button class="btn btn-success w-100" data-action="bulk-export">
                                 <i class="fas fa-download me-2"></i>
                                 تصدير تقرير الوحدات
                             </button>
@@ -370,19 +370,16 @@
     background: #fff;
     transition: all 0.3s ease;
 }
-
 .unit-control-card:hover {
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
     transform: translateY(-2px);
 }
-
 .unit-header {
     display: flex;
     align-items: center;
     padding: 1.5rem;
     border-bottom: 1px solid #e3e6f0;
 }
-
 .unit-icon {
     width: 50px;
     height: 50px;
@@ -395,21 +392,17 @@
     color: #5a5c69;
     font-size: 1.5rem;
 }
-
 .unit-name {
     margin: 0;
     font-size: 1.1rem;
     color: #5a5c69;
 }
-
 .unit-body {
     padding: 1.5rem;
 }
-
 .unit-stats {
     margin-bottom: 1rem;
 }
-
 .stat-item {
     display: flex;
     justify-content: space-between;
@@ -417,27 +410,22 @@
     padding: 0.5rem 0;
     border-bottom: 1px solid #f8f9fc;
 }
-
 .stat-item:last-child {
     border-bottom: none;
 }
-
 .stat-label {
     font-size: 0.9rem;
     color: #5a5c69;
 }
-
 .stat-value {
     font-weight: bold;
     color: #5a5c69;
 }
-
 .unit-actions {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
 }
-
 .unit-icon-small {
     width: 25px;
     height: 25px;
@@ -445,7 +433,6 @@
     align-items: center;
     justify-content: center;
 }
-
 .performance-item {
     display: flex;
     align-items: center;
@@ -455,7 +442,6 @@
     margin-bottom: 1rem;
     background: #fff;
 }
-
 .performance-icon {
     width: 50px;
     height: 50px;
@@ -467,170 +453,32 @@
     color: white;
     font-size: 1.2rem;
 }
-
 .performance-info {
     flex: 1;
 }
-
 .performance-info h6 {
     margin: 0 0 0.5rem 0;
     font-size: 0.9rem;
     color: #5a5c69;
 }
-
 .performance-value {
     font-size: 1.1rem;
     font-weight: bold;
     color: #5a5c69;
     margin-top: 0.5rem;
 }
-
-.btn-block {
-    width: 100%;
-    padding: 0.75rem;
-    text-align: center;
-    text-decoration: none;
-    display: block;
-}
-
 .btn-block:hover {
     text-decoration: none;
     transform: translateY(-2px);
     transition: all 0.3s ease;
 }
-
 #unitsTable {
     font-size: 0.9rem;
 }
-
 .btn-group .btn {
     margin: 0 1px;
 }
 </style>
 
-<script>
-function refreshUnits() {
-    location.reload();
-}
-
-function exportUnitsReport() {
-    const csvContent = "data:text/csv;charset=utf-8," 
-        + "اسم الوحدة,النوع,المستخدمين,الحالة,آخر نشاط,الإنتاجية\n"
-        + "الاستقبال,استقبال,5,نشط,منذ 5 دقائق,85%\n"
-        + "الطبيب,طبي,8,نشط,منذ 3 دقائق,92%\n"
-        + "الطوارئ,طوارئ,3,نشط,منذ دقيقة,78%\n"
-        + "المختبر,مختبر,4,نشط,منذ 7 دقائق,88%\n"
-        + "الأشعة,أشعة,2,نشط,منذ 4 دقائق,75%\n"
-        + "المحاسب,مالي,3,نشط,منذ 2 دقيقة,90%\n";
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "units_report_" + new Date().toISOString().split('T')[0] + ".csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function viewUnitDetails(unitName) {
-    Swal.fire({ title: 'تفاصيل الوحدة', text: 'عرض تفاصيل الوحدة: ' + unitName, icon: 'info' });
-}
-
-function toggleUnit(unitName) {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد تغيير حالة هذه الوحدة؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم تغيير حالة الوحدة: ' + unitName, icon: 'success' }).then(() => { location.reload(); }); } });
-}
-
-function configureUnit(unitName) {
-    Swal.fire({ title: 'إعدادات', text: 'إعدادات الوحدة: ' + unitName, icon: 'info' });
-}
-
-function restartUnit(unitName) {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد إعادة تشغيل هذه الوحدة؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم إعادة تشغيل الوحدة: ' + unitName, icon: 'success' }); } });
-}
-
-function filterUnits(status) {
-    const rows = document.querySelectorAll('#unitsTable tbody tr');
-    
-    rows.forEach(row => {
-        if (status === 'all' || row.dataset.status === status) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-    
-    // تحديث أزرار التصفية
-    document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-danger').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    event.target.classList.add('active');
-}
-
-function bulkActivate() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد تفعيل جميع الوحدات؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم تفعيل جميع الوحدات', icon: 'success' }).then(() => { location.reload(); }); } });
-}
-
-function bulkDeactivate() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد تعطيل جميع الوحدات؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم تعطيل جميع الوحدات', icon: 'success' }).then(() => { location.reload(); }); } });
-}
-
-function bulkRestart() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد إعادة تشغيل جميع الوحدات؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم إعادة تشغيل جميع الوحدات', icon: 'success' }).then(() => { location.reload(); }); } });
-}
-
-function bulkExport() {
-    // تصدير تقرير الوحدات
-    exportUnitsReport();
-}
-
-// إضافة تأثيرات تفاعلية
-document.addEventListener('DOMContentLoaded', function() {
-    // إضافة تأثير hover للصفوف
-    const rows = document.querySelectorAll('#unitsTable tbody tr');
-    rows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-        });
-        row.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
-        });
-    });
-});
-</script>
+<script src="{{ url_for('static', filename='js/pages/manager/unit_control.js') }}"></script>
 {% endblock %}

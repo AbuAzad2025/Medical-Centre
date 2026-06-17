@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required
 from app_factory import db
 from models import SSOConfiguration
+from services.sso_service import sso_service
 from utils.decorators import handle_route_errors
 
 sso_bp = Blueprint('sso', __name__)

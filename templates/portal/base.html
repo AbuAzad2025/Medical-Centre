@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/static/css/bootstrap.rtl.min.css">
   <title>{% block title %}بوابة المريض{% endblock %} — Azad Medical</title>
   <style>
-    :root { --primary:#0d6efd; }
+:root { --primary:#0d6efd; }
     body{background:#f7f9fc;font-family:'Segoe UI',sans-serif}
     .portal-navbar{background:linear-gradient(135deg,#0d6efd,#0b5ed7);padding:.75rem 1rem;color:#fff}
     .portal-navbar a{color:#fff;text-decoration:none}
@@ -17,7 +17,7 @@
     .portal-sidebar .nav-link{color:#475569;border-radius:.5rem;margin:.25rem .5rem}
     .portal-sidebar .nav-link.active{background:var(--primary);color:#fff}
     .portal-card{background:#fff;border-radius:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06);border:none}
-  </style>
+</style>
 </head>
 <body>
 <nav class="portal-navbar d-flex justify-content-between align-items-center">
@@ -48,11 +48,9 @@
   </div>
 </div>
 <script src="/static/js/bootstrap.bundle.min.js"></script>
-<script>
-  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/service-worker.js'); }
-</script>
+<script src="{{ url_for('static', filename='js/pages/portal/base.js') }}"></script>
 {% block scripts %}{% endblock %}
-<footer class="portal-footer" style="background:#f8fafc;color:#64748b;padding:1rem;font-size:.8rem;border-top:1px solid #e2e8f0;text-align:center;margin-top:auto;">
+<footer class="portal-footer" class="portal-footer"n:center;margin-top:auto;">
     <strong>{{ developer_company or 'شركة آزاد للأنظمة الذكية' }}</strong>
     <span class="mx-2">|</span>
     <span>بإدارة {{ developer_name or 'المهندس أحمد غنام' }}</span>

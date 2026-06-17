@@ -24,7 +24,8 @@ class BookingRoutesTestCase(unittest.TestCase):
         inspector = inspect(db.engine)
         tables = inspector.get_table_names()
         if tables:
-            db.session.execute(db.text(f"TRUNCATE TABLE {', '.join(tables)} CASCADE"))
+            for t in tables:
+                db.session.execute(db.text(f"DELETE FROM {t}"))
         db.session.commit()
         db.engine.dispose()
         db.session.remove()

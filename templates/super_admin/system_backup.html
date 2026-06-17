@@ -19,11 +19,11 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2">
-                                <button class="btn btn-primary" onclick="createBackup()">
+                                <button class="btn btn-primary" data-action="create-backup">
                                     <i class="fas fa-plus me-1"></i>
                                     إنشاء نسخة احتياطية
                                 </button>
-                                <button class="btn btn-success" onclick="scheduleBackup()">
+                                <button class="btn btn-success" data-action="schedule-backup">
                                     <i class="fas fa-clock me-1"></i>
                                     جدولة نسخة احتياطية
                                 </button>
@@ -120,25 +120,25 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-primary w-100" onclick="createFullBackup()">
+                            <button class="btn btn-primary w-100" data-action="create-full-backup">
                                 <i class="fas fa-database me-2"></i>
                                 نسخة احتياطية كاملة
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-info w-100" onclick="createIncrementalBackup()">
+                            <button class="btn btn-info w-100" data-action="create-incremental-backup">
                                 <i class="fas fa-plus-circle me-2"></i>
                                 نسخة احتياطية تدريجية
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-warning w-100" onclick="createDatabaseBackup()">
+                            <button class="btn btn-warning w-100" data-action="create-db-backup">
                                 <i class="fas fa-table me-2"></i>
                                 نسخة احتياطية لقاعدة البيانات
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-success w-100" onclick="createFilesBackup()">
+                            <button class="btn btn-success w-100" data-action="create-files-backup">
                                 <i class="fas fa-folder me-2"></i>
                                 نسخة احتياطية للملفات
                             </button>
@@ -156,10 +156,10 @@
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">قائمة النسخ الاحتياطية</h6>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" onclick="filterBackups('all')">الكل</button>
-                        <button class="btn btn-sm btn-outline-success" onclick="filterBackups('completed')">مكتملة</button>
-                        <button class="btn btn-sm btn-outline-warning" onclick="filterBackups('in_progress')">قيد التنفيذ</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="filterBackups('failed')">فاشلة</button>
+                        <button class="btn btn-sm btn-outline-primary" data-action="filter-backups" data-value="all">الكل</button>
+                        <button class="btn btn-sm btn-outline-success" data-action="filter-backups" data-value="completed">مكتملة</button>
+                        <button class="btn btn-sm btn-outline-warning" data-action="filter-backups" data-value="in_progress">قيد التنفيذ</button>
+                        <button class="btn btn-sm btn-outline-danger" data-action="filter-backups" data-value="failed">فاشلة</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -215,14 +215,14 @@
                         <a href="{{ url_for('backup.download_backup', backup_id=backup.id) }}" class="btn btn-sm btn-outline-success" title="تحميل">
                             <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
                         </a>
-                        <button class="btn btn-sm btn-outline-info" onclick="restoreBackup('{{ backup.id }}')" title="استعادة">
+                        <button class="btn btn-sm btn-outline-info" data-action="restoreBackup" data-value="{{ backup.id }}" title="استعادة">
                             <i class="fas fa-undo"></i> <span class="btn-label">تراجع</span>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteBackup('{{ backup.id }}')" title="حذف">
+                        <button class="btn btn-sm btn-outline-danger" data-action="deleteBackup" data-value="{{ backup.id }}" title="حذف">
                             <i class="fas fa-trash"></i> <span class="btn-label">حذف</span>
                         </button>
                         {% if backup.backup_status == 'FAILED' %}
-                        <button class="btn btn-sm btn-outline-warning" onclick="retryBackup('{{ backup.backup_type }}')" title="إعادة المحاولة">
+                        <button class="btn btn-sm btn-outline-warning" data-action="retryBackup" data-value="{{ backup.backup_type }}" title="إعادة المحاولة">
                             <i class="fas fa-redo"></i> <span class="btn-label">إعادة</span>
                         </button>
                         {% endif %}
@@ -301,7 +301,7 @@
                         </div>
                         <div class="row mt-3">
                             <div class="col-md-12">
-                                <button type="button" class="btn btn-primary" onclick="saveBackupSettings()">
+                                <button type="button" class="btn btn-primary" data-action="save-backup-settings">
                                     <i class="fas fa-save me-2"></i>
                                     حفظ الإعدادات
                                 </button>
@@ -378,19 +378,19 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <button class="btn btn-primary w-100" onclick="generateBackupReport()">
+                        <button class="btn btn-primary w-100" data-action="generate-backup-report">
                             <i class="fas fa-file-alt me-2"></i>
                             تقرير النسخ الاحتياطية
                         </button>
                     </div>
                     <div class="mb-3">
-                        <button class="btn btn-success w-100" onclick="exportBackupLogs()">
+                        <button class="btn btn-success w-100" data-action="export-backup-logs">
                             <i class="fas fa-download me-2"></i>
                             تصدير سجلات النسخ
                         </button>
                     </div>
                     <div class="mb-3">
-                        <button class="btn btn-info w-100" onclick="viewBackupHistory()">
+                        <button class="btn btn-info w-100" data-action="view-backup-history">
                             <i class="fas fa-history me-2"></i>
                             تاريخ النسخ الاحتياطية
                         </button>
@@ -402,36 +402,11 @@
 </div>
 
 <style>
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df !important;
-}
-
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a !important;
-}
-
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc !important;
-}
-
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e !important;
-}
-
-.btn-block {
-    width: 100%;
-    padding: 0.75rem;
-    text-align: center;
-    text-decoration: none;
-    display: block;
-}
-
 .btn-block:hover {
     text-decoration: none;
     transform: translateY(-2px);
     transition: all 0.3s ease;
 }
-
 .backup-icon {
     width: 25px;
     height: 25px;
@@ -439,7 +414,6 @@
     align-items: center;
     justify-content: center;
 }
-
 .stat-item {
     display: flex;
     align-items: center;
@@ -449,7 +423,6 @@
     margin-bottom: 1rem;
     background: #fff;
 }
-
 .stat-icon {
     width: 50px;
     height: 50px;
@@ -461,532 +434,22 @@
     color: white;
     font-size: 1.2rem;
 }
-
 .stat-info h6 {
     margin: 0;
     font-size: 0.9rem;
     color: #5a5c69;
 }
-
 .stat-value {
     font-size: 1.5rem;
     font-weight: bold;
     color: #5a5c69;
 }
-
 #backupsTable {
     font-size: 0.9rem;
 }
-
 .btn-group .btn {
     margin: 0 1px;
 }
 </style>
-<script>
-function createBackup() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد إنشاء نسخة احتياطية للنظام؟',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const btn = event && event.target ? event.target.closest('button') : null;
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...'; }
-            fetch('/super-admin/backup/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.success) {
-                    Swal.fire({ title: 'تم', text: 'تم إنشاء النسخة الاحتياطية بنجاح', icon: 'success' }).then(() => { location.reload(); });
-                } else {
-                    Swal.fire({ title: 'خطأ', text: (data && data.message) || 'حدث خطأ في إنشاء النسخة الاحتياطية', icon: 'error' });
-                }
-                if (btn) { btn.disabled = false; }
-            })
-            .catch(() => {
-                Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الاتصال', icon: 'error' });
-                if (btn) { btn.disabled = false; }
-            });
-        }
-    });
-}
-
-function scheduleBackup() {
-    Swal.showLoading();
-    fetch('/super-admin/backup/schedule')
-        .then(r => r.json())
-        .then(data => {
-            if (!data.success) throw new Error(data.message);
-            
-            Swal.fire({
-                title: 'جدولة النسخ الاحتياطي',
-                html: `
-                    <div class="text-right text-start">
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="scheduleEnabled" ${data.enabled ? 'checked' : ''}>
-                            <label class="form-check-label" for="scheduleEnabled">تفعيل الجدولة التلقائية</label>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">تكرار النسخ</label>
-                            <select class="form-control" id="scheduleType">
-                                <option value="daily" ${data.type === 'daily' ? 'selected' : ''}>يومي</option>
-                                <option value="weekly" ${data.type === 'weekly' ? 'selected' : ''}>أسبوعي</option>
-                                <option value="monthly" ${data.type === 'monthly' ? 'selected' : ''}>شهري</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">وقت التنفيذ</label>
-                            <input type="time" class="form-control" id="scheduleTime" value="${data.time}">
-                        </div>
-                        <div class="alert alert-info small">
-                            <i class="fas fa-info-circle"></i> ملاحظة: تتطلب الجدولة أن يكون الخادم قيد التشغيل في الوقت المحدد.
-                        </div>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'حفظ الإعدادات',
-                cancelButtonText: 'إلغاء',
-                preConfirm: () => {
-                    return {
-                        enabled: document.getElementById('scheduleEnabled').checked,
-                        type: document.getElementById('scheduleType').value,
-                        time: document.getElementById('scheduleTime').value
-                    }
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.showLoading();
-                    fetch('/super-admin/backup/schedule', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(result.value)
-                    })
-                    .then(r => r.json())
-                    .then(res => {
-                        if (res.success) {
-                            Swal.fire('تم', res.message, 'success');
-                        } else {
-                            Swal.fire('خطأ', res.message, 'error');
-                        }
-                    })
-                    .catch(() => Swal.fire('خطأ', 'حدث خطأ في الاتصال', 'error'));
-                }
-            });
-        })
-        .catch(err => {
-            Swal.fire('خطأ', 'فشل تحميل الإعدادات: ' + err.message, 'error');
-        });
-}
-
-function createFullBackup() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد إنشاء نسخة احتياطية كاملة؟ قد يستغرق هذا بعض الوقت.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'بدء',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const btn = event && event.target ? event.target.closest('button') : null;
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
-            fetch('/super-admin/backup/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ type: 'full' })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.success) {
-                    Swal.fire({ title: 'تم', text: 'تم إنشاء النسخة الكاملة بنجاح', icon: 'success' }).then(() => { location.reload(); });
-                } else {
-                    Swal.fire({ title: 'خطأ', text: (data && data.message) || 'حدث خطأ في إنشاء النسخة الاحتياطية', icon: 'error' });
-                }
-                if (btn) { btn.disabled = false; }
-            })
-            .catch(() => {
-                Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الاتصال', icon: 'error' });
-                if (btn) { btn.disabled = false; }
-            });
-        }
-    });
-}
-
-function createIncrementalBackup() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد إنشاء نسخة احتياطية تدريجية (قاعدة البيانات فقط)؟',
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonText: 'بدء',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const btn = event && event.target ? event.target.closest('button') : null;
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
-            fetch('/super-admin/backup/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ type: 'incremental' })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.success) {
-                    Swal.fire({ title: 'تم', text: 'تم إنشاء النسخة التدريجية بنجاح', icon: 'success' }).then(() => { location.reload(); });
-                } else {
-                    Swal.fire({ title: 'خطأ', text: (data && data.message) || 'حدث خطأ في إنشاء النسخة', icon: 'error' });
-                }
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus-circle me-2"></i> نسخة احتياطية تدريجية'; }
-            })
-            .catch(() => {
-                Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الاتصال', icon: 'error' });
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus-circle me-2"></i> نسخة احتياطية تدريجية'; }
-            });
-        }
-    });
-}
-
-function createDatabaseBackup() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد إنشاء نسخة احتياطية لقاعدة البيانات فقط؟',
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonText: 'بدء',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const btn = event && event.target ? event.target.closest('button') : null;
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
-            fetch('/super-admin/backup/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ type: 'database' })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.success) {
-                    Swal.fire({ title: 'تم', text: 'تم إنشاء نسخة قاعدة البيانات بنجاح', icon: 'success' }).then(() => { location.reload(); });
-                } else {
-                    Swal.fire({ title: 'خطأ', text: (data && data.message) || 'حدث خطأ في إنشاء النسخة', icon: 'error' });
-                }
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-table me-2"></i> نسخة احتياطية لقاعدة البيانات'; }
-            })
-            .catch(() => {
-                Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الاتصال', icon: 'error' });
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-table me-2"></i> نسخة احتياطية لقاعدة البيانات'; }
-            });
-        }
-    });
-}
-
-function createFilesBackup() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد إنشاء نسخة احتياطية للملفات فقط؟',
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonText: 'بدء',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const btn = event && event.target ? event.target.closest('button') : null;
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
-            fetch('/super-admin/backup/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ type: 'files' })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.success) {
-                    Swal.fire({ title: 'تم', text: 'تم إنشاء نسخة الملفات بنجاح', icon: 'success' }).then(() => { location.reload(); });
-                } else {
-                    Swal.fire({ title: 'خطأ', text: (data && data.message) || 'حدث خطأ في إنشاء النسخة', icon: 'error' });
-                }
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-folder me-2"></i> نسخة احتياطية للملفات'; }
-            })
-            .catch(() => {
-                Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الاتصال', icon: 'error' });
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-folder me-2"></i> نسخة احتياطية للملفات'; }
-            });
-        }
-    });
-}
-
-function filterBackups(status) {
-    const rows = document.querySelectorAll('#backupsTable tbody tr');
-    
-    rows.forEach(row => {
-        if (status === 'all' || row.dataset.status === status) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-    
-    // تحديث أزرار التصفية
-    document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    event.target.classList.add('active');
-}
-
-function restoreBackup(backupId) {
-    Swal.fire({
-        title: 'تأكيد الاستعادة',
-        text: 'سيتم استبدال البيانات الحالية. هل تريد المتابعة؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم، استعادة',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.showLoading();
-            fetch('/super-admin/backup/restore/' + backupId, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire('تم', data.message, 'success').then(() => location.reload());
-                } else {
-                    Swal.fire('خطأ', data.message, 'error');
-                }
-            })
-            .catch(() => {
-                Swal.fire('خطأ', 'حدث خطأ في الاتصال', 'error');
-            });
-        }
-    });
-}
-
-function deleteBackup(backupId) {
-    Swal.fire({
-        title: 'حذف النسخة',
-        text: 'هل تريد حذف هذه النسخة نهائياً؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم، حذف',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.showLoading();
-            fetch('/super-admin/backup/delete/' + backupId, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire('تم', data.message, 'success').then(() => location.reload());
-                } else {
-                    Swal.fire('خطأ', data.message, 'error');
-                }
-            })
-            .catch(() => {
-                Swal.fire('خطأ', 'حدث خطأ في الاتصال', 'error');
-            });
-        }
-    });
-}
-
-function cancelBackup(backupId) {
-    Swal.fire({
-        title: 'إلغاء النسخ',
-        text: 'هل تريد إلغاء عملية النسخ الاحتياطي؟ (سيتم وضع علامة "ملغى")',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم، إلغاء',
-        cancelButtonText: 'تراجع'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.showLoading();
-            fetch('/super-admin/backup/cancel/' + backupId, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire('تم', data.message, 'success').then(() => location.reload());
-                } else {
-                    Swal.fire('خطأ', data.message, 'error');
-                }
-            })
-            .catch(() => {
-                Swal.fire('خطأ', 'حدث خطأ في الاتصال', 'error');
-            });
-        }
-    });
-}
-
-function retryBackup(type) {
-    let reqType = 'full';
-    if (type === 'incremental' || type === 'INCREMENTAL') reqType = 'incremental';
-    else if (type === 'differential' || type === 'DIFFERENTIAL') reqType = 'database'; // Defaulting to database
-
-    Swal.fire({
-        title: 'تأكيد إعادة المحاولة',
-        text: 'هل تريد إعادة محاولة إنشاء النسخة الاحتياطية؟',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'نعم، إعادة المحاولة',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire({
-                title: 'جاري النسخ...',
-                html: 'يرجى الانتظار بينما يتم إنشاء النسخة الاحتياطية.',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-            
-            fetch('/super-admin/backup/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type: reqType })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire('تم', 'تم إنشاء النسخة الاحتياطية بنجاح', 'success').then(() => location.reload());
-                } else {
-                    Swal.fire('خطأ', data.message || 'حدث خطأ غير معروف', 'error');
-                }
-            })
-            .catch(() => Swal.fire('خطأ', 'حدث خطأ في الاتصال', 'error'));
-        }
-    });
-}
-
-function saveBackupSettings() {
-    Swal.fire({
-        title: 'حفظ الإعدادات',
-        text: 'هل تريد حفظ إعدادات النسخ الاحتياطي؟',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'حفظ',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const form = document.getElementById('backupSettingsForm');
-            const formData = new FormData(form);
-            const data = {};
-            formData.forEach((value, key) => data[key] = value);
-            // Handle checkbox manually because unchecked checkboxes are not included in FormData
-            data['auto_backup'] = document.getElementById('auto_backup').checked;
-
-            Swal.showLoading();
-            fetch('/super-admin/backup/settings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(r => r.json())
-            .then(response => {
-                if (response.success) {
-                    Swal.fire('تم', response.message, 'success');
-                } else {
-                    Swal.fire('خطأ', response.message, 'error');
-                }
-            })
-            .catch(() => {
-                Swal.fire('خطأ', 'حدث خطأ في الاتصال', 'error');
-            });
-        }
-    });
-}
-
-function generateBackupReport() {
-    window.location.href = '/super-admin/backup/report';
-}
-
-function exportBackupLogs() {
-    window.location.href = '/super-admin/backup/export-logs';
-}
-
-function viewBackupHistory() {
-    Swal.showLoading();
-    fetch('/super-admin/backup/history')
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            let html = '<div class="text-start" style="max-height: 400px; overflow-y: auto;"><ul class="list-group">';
-            if (data.history.length === 0) {
-                html += '<li class="list-group-item text-center text-muted">لا توجد سجلات</li>';
-            } else {
-                data.history.forEach(item => {
-                    let badgeClass = 'secondary';
-                    if (item.status === 'COMPLETED') badgeClass = 'success';
-                    else if (item.status === 'FAILED') badgeClass = 'danger';
-                    else if (item.status === 'IN_PROGRESS') badgeClass = 'warning';
-                    
-                    html += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="badge bg-${badgeClass} me-2">${item.status}</span>
-                                <span>${item.type}</span>
-                            </div>
-                            <small class="text-muted" dir="ltr">${item.created_at}</small>
-                        </li>
-                    `;
-                });
-            }
-            html += '</ul></div>';
-            
-            Swal.fire({
-                title: 'تاريخ النسخ الاحتياطي',
-                html: html,
-                width: '600px',
-                confirmButtonText: 'إغلاق'
-            });
-        } else {
-            Swal.fire('خطأ', data.message, 'error');
-        }
-    })
-    .catch(() => Swal.fire('خطأ', 'حدث خطأ في الاتصال', 'error'));
-}
-
-// إضافة تأثيرات تفاعلية
-document.addEventListener('DOMContentLoaded', function() {
-    // إضافة تأثير hover للصفوف
-    const rows = document.querySelectorAll('#backupsTable tbody tr');
-    rows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-        });
-        row.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
-        });
-    });
-});
-</script>
+<script src="{{ url_for('static', filename='js/pages/super_admin/system_backup.js') }}"></script>
 {% endblock %}

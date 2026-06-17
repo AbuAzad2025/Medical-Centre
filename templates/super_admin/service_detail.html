@@ -8,7 +8,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-body" style="background: var(--primary-gradient); color: white;">
+                <div class="card-body bg-gradient-primary text-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h2 class="mb-2">
@@ -37,7 +37,7 @@
     <div class="row">
         <div class="col-lg-8">
             <div class="card border-0 shadow-lg glass-effect mb-4">
-                <div class="card-header" style="background: var(--success-gradient); color: white;">
+                <div class="card-header bg-gradient-success text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-info-circle me-2"></i>
                         معلومات الخدمة
@@ -158,7 +158,7 @@
 
         <div class="col-lg-4">
             <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--warning-gradient); color: white;">
+                <div class="card-header bg-gradient-warning text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-bolt me-2"></i>
                         إجراءات سريعة
@@ -175,12 +175,12 @@
                             إدارة التسعير
                         </a>
                         {% if service.is_active %}
-                        <button onclick="deactivateService({{ service.id }})" class="btn btn-danger">
+                        <button data-action="deactivateService" data-service-id="service.id" class="btn btn-danger">
                             <i class="fas fa-times-circle me-2"></i>
                             إلغاء التفعيل
                         </button>
                         {% else %}
-                        <button onclick="activateService({{ service.id }})" class="btn btn-success">
+                        <button data-action="activateService" data-service-id="service.id" class="btn btn-success">
                             <i class="fas fa-check-circle me-2"></i>
                             تفعيل الخدمة
                         </button>
@@ -196,63 +196,5 @@
     </div>
 </div>
 
-<script>
-function activateService(serviceId) {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل أنت متأكد من تفعيل هذه الخدمة؟',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`/super-admin/activate-service/${serviceId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    Swal.fire({ title: 'خطأ', text: 'حدث خطأ في تفعيل الخدمة', icon: 'error' });
-                }
-            })
-            .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
-        }
-    });
-}
-
-function deactivateService(serviceId) {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل أنت متأكد من إلغاء تفعيل هذه الخدمة؟',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`/super-admin/deactivate-service/${serviceId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إلغاء تفعيل الخدمة', icon: 'error' });
-                }
-            })
-            .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
-        }
-    });
-}
-</script>
+<script src="{{ url_for('static', filename='js/pages/super_admin/service_detail.js') }}"></script>
 {% endblock %}

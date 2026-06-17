@@ -239,29 +239,8 @@
 </div>
 
 <script>
-document.getElementById('emergencyTreatmentForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    fetch('{{ url_for("emergency.emergency_treatment", visit_id=visit.id) }}', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            Swal.fire({ title: 'تم', text: 'تم حفظ العلاج الإسعافي بنجاح', icon: 'success' });
-            // إعادة توجيه للطوارئ
-            window.location.href = '{{ url_for("emergency.emergency_visits") }}';
-        } else {
-            Swal.fire({ title: 'خطأ', text: 'خطأ: ' + (data.error || ''), icon: 'error' });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ العلاج الإسعافي', icon: 'error' });
-    });
-});
-</script>
+        window.__M = window.__M || [];
+        __M0__='{{ url_for("emergency.emergency_treatment", visit_id=visit.id) }}'; __M1__='{{ url_for("emergency.emergency_visits") }}';
+        </script>
+<script src="{{ url_for('static', filename='js/pages/emergency/emergency_treatment.js') }}"></script>
 {% endblock %}

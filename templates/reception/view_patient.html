@@ -36,7 +36,7 @@
                     <div class="mb-2"><strong>العنوان:</strong> {{ patient.address or '-' }}</div>
                     <div class="mb-2"><strong>جهة التأمين:</strong> {{ patient.insurance_company.name_ar if patient.insurance_company and patient.insurance_company.name_ar else (patient.insurance_company.name if patient.insurance_company else '-') }}</div>
                     <div class="mb-2"><strong>رقم التأمين:</strong> {{ patient.insurance_member_number or '-' }}</div>
-                    <div class="mb-2"><strong>ملاحظات إدارية:</strong> <span style="white-space: pre-line;">{{ patient.admin_notes or '-' }}</span></div>
+                    <div class="mb-2"><strong>ملاحظات إدارية:</strong> <span class="text-pre-line">{{ patient.admin_notes or '-' }}</span></div>
                 </div>
             </div>
         </div>

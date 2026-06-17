@@ -7,7 +7,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-body" style="background: var(--info-gradient); color: white;">
+                <div class="card-body bg-gradient-info text-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h2 class="mb-2">
@@ -35,7 +35,7 @@
     <div class="row">
         <div class="col-lg-8">
             <div class="card border-0 shadow-lg glass-effect mb-4">
-                <div class="card-header" style="background: var(--primary-gradient); color: white;">
+                <div class="card-header bg-gradient-primary text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-info-circle me-2"></i>
                         معلومات القسم
@@ -81,7 +81,7 @@
             
             <!-- قائمة الموظفين -->
             <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--success-gradient); color: white;">
+                <div class="card-header bg-gradient-success text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-users me-2"></i>
                         موظفو القسم ({{ staff|length }})
@@ -120,7 +120,7 @@
         
         <div class="col-lg-4">
             <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--warning-gradient); color: white;">
+                <div class="card-header bg-gradient-warning text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-bolt me-2"></i>
                         إجراءات سريعة
@@ -137,12 +137,12 @@
                             إدارة الموظفين
                         </a>
                         {% if department.is_active %}
-                        <button onclick="deactivateDepartment({{ department.id }})" class="btn btn-danger">
+                        <button data-action="deactivateDepartment" data-department-id="department.id" class="btn btn-danger">
                             <i class="fas fa-times-circle me-2"></i>
                             إلغاء التفعيل
                         </button>
                         {% else %}
-                        <button onclick="activateDepartment({{ department.id }})" class="btn btn-success">
+                        <button data-action="activateDepartment" data-department-id="department.id" class="btn btn-success">
                             <i class="fas fa-check-circle me-2"></i>
                             تفعيل القسم
                         </button>
@@ -158,60 +158,6 @@
     </div>
 </div>
 
-<script>
-function activateDepartment(deptId) {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل أنت متأكد من تفعيل هذا القسم؟',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`/super-admin/activate-department/${deptId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                }
-            })
-            .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
-        }
-    });
-}
-
-function deactivateDepartment(deptId) {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل أنت متأكد من إلغاء تفعيل هذا القسم؟',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`/super-admin/deactivate-department/${deptId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                }
-            })
-            .catch(() => Swal.fire({ title: 'خطأ', text: 'فشل الاتصال بالخادم', icon: 'error' }));
-        }
-    });
-}
-</script>
+<script src="{{ url_for('static', filename='js/pages/super_admin/department_detail.js') }}"></script>
 {% endblock %}
 

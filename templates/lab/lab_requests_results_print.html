@@ -10,7 +10,6 @@
 .flash-messages {
     display: none !important;
 }
-
 .sidebar,
 .sidebar-modern,
 #appSidebar,
@@ -18,11 +17,9 @@
 .main-layout aside {
     display: none !important;
 }
-
 .main-layout {
     display: block !important;
 }
-
 .main-container {
     margin: 0 !important;
     padding: 0 !important;
@@ -47,16 +44,16 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2">
-                                <button class="btn btn-primary" onclick="window.print()">
+                                <button class="btn btn-primary" data-action="print">
                                     <i class="fas fa-print me-1"></i>
                                     طباعة
                                 </button>
-                                <button class="btn btn-secondary" onclick="history.back()">
+                                <button class="btn btn-secondary" data-action="go-back">
                                     <i class="fas fa-arrow-right me-1"></i>
                                     العودة
                                 </button>
                                 {% if qr_data_uri %}
-                                <img src="{{ qr_data_uri }}" alt="QR" style="height:96px; margin-right: 8px; border:1px solid #eee; border-radius:4px;" />
+                                <img src="{{ qr_data_uri }}" alt="QR" class="lab-thumb" />
                                 {% endif %}
                             </div>
                         </div>
@@ -271,15 +268,12 @@
     box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
     color: #111;
 }
-
 .print-page .card {
     border-radius: 6px;
 }
-
 .print-sheet {
     border: 1px solid #e5e7eb;
 }
-
 .print-header {
     display: grid;
     grid-template-columns: 90px 1fr 160px;
@@ -289,41 +283,34 @@
     border-bottom: 1px solid #e5e7eb;
     margin-bottom: 16px;
 }
-
 .print-brand {
     display: flex;
     align-items: center;
     justify-content: center;
 }
-
 .brand-logo {
     height: 64px;
     width: 64px;
     object-fit: contain;
 }
-
 .print-organization {
     font-size: 14px;
     font-weight: 600;
     color: #111;
 }
-
 .print-title {
     font-size: 18px;
     font-weight: 700;
 }
-
 .print-subtitle {
     font-size: 12px;
     color: #555;
 }
-
 .print-meta {
     text-align: center;
     font-size: 12px;
     color: #444;
 }
-
 .print-qr {
     height: 72px;
     width: 72px;
@@ -332,41 +319,34 @@
     border-radius: 6px;
     margin-bottom: 6px;
 }
-
 .print-section {
     margin-bottom: 14px;
 }
-
 .section-title {
     font-size: 14px;
     font-weight: 700;
     margin-bottom: 8px;
     color: #0f172a;
 }
-
 .info-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px 10px;
 }
-
 .info-item {
     border: 1px solid #e5e7eb;
     border-radius: 6px;
     padding: 6px 8px;
     background: #fafafa;
 }
-
 .info-item.info-wide {
     grid-column: span 2;
 }
-
 .info-label {
     font-size: 11px;
     color: #6b7280;
     margin-bottom: 2px;
 }
-
 .info-value {
     font-size: 12px;
     font-weight: 600;
@@ -374,30 +354,25 @@
     word-break: break-word;
     overflow-wrap: anywhere;
 }
-
 .print-page .table {
     table-layout: fixed;
     width: 100%;
 }
-
 .print-page .table td,
 .print-page .table th {
     word-break: break-word;
     overflow-wrap: anywhere;
 }
-
 @page {
     size: A4;
     margin: 6mm;
 }
-
 @media print {
     body {
         background: #fff !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
-
     .btn,
     .card.border-0.shadow-sm,
     .luxury-header,
@@ -408,100 +383,76 @@
     .print-page .mb-4:first-child {
         display: none !important;
     }
-
     .card {
         border: none !important;
         box-shadow: none !important;
     }
-
     .print-page {
         max-width: 200mm;
         margin: 0 !important;
         padding: 0 !important;
         box-shadow: none !important;
     }
-
     .main-layout,
     .main-container {
         padding: 0 !important;
         margin: 0 !important;
         width: 100% !important;
     }
-
     .row {
         margin: 0 !important;
     }
-
     .col-12, .col-md-3, .col-md-4, .col-md-6, .col-md-8 {
         padding: 0 !important;
     }
-
     .table {
         font-size: 10.5px;
     }
-
     .badge {
         font-size: 9px;
         white-space: normal;
     }
-
     h1, h2, h3, h4, h5, h6 {
         color: #000 !important;
     }
-
     .text-primary {
         color: #000 !important;
     }
-
     .text-muted {
         color: #555 !important;
     }
-
     .print-footer {
         page-break-inside: avoid;
     }
-
     .print-footer-meta {
         page-break-inside: avoid;
     }
 }
-
 .print-footer {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
     margin-top: 16px;
 }
-
 .print-footer-meta {
     text-align: center;
     font-size: 11px;
     color: #4b5563;
     margin-top: 10px;
 }
-
 .footer-block {
     text-align: center;
 }
-
 .footer-title {
     font-size: 12px;
     color: #374151;
     margin-bottom: 6px;
 }
-
 .footer-line {
     border-bottom: 1px solid #9ca3af;
     height: 24px;
 }
 </style>
 
-<script>
-// Auto print when page loads
-window.onload = function() {
-    setTimeout(function() {
-        window.print();
-    }, 1000);
-};
-</script>
+<script src="{{ url_for('static', filename='js/pages/lab/lab_requests_results_print.js') }}"></script>
 {% endblock %}

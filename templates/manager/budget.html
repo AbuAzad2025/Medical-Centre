@@ -9,7 +9,7 @@
                 <select name="month" class="form-select form-select-sm">
                     {% for m in range(1,13) %}<option value="{{ m }}"{% if m==month %} selected{% endif %}>{{ m }}</option>{% endfor %}
                 </select>
-                <input type="number" name="year" class="form-control form-control-sm" value="{{ year }}" style="width:80px;">
+                <input type="number" name="year" class="form-control form-control-sm w-80">
                 <button class="btn btn-sm btn-primary" type="submit" title="تصفية" aria-label="تصفية"><i class="fas fa-filter"></i> <span class="btn-label">تصفية</span></button>
             </form>
         </div>

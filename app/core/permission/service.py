@@ -46,6 +46,23 @@ ROLE_PERMISSIONS = {
     "accountant": {
         "financial.*", "invoice.*", "payment.*", "report.read",
     },
+    "technician": {
+        "lab_request.read", "lab_request.update", "lab_result.*",
+        "radiology_request.read", "radiology_request.update", "radiology_result.*",
+        "patient.read",
+    },
+    "receptionist": {
+        "patient.*", "visit.*", "appointment.*", "payment.*",
+        "queue.*", "receipt.*",
+    },
+    "lab_tech": {
+        "lab_request.read", "lab_request.update", "lab_result.*",
+        "patient.read",
+    },
+    "owner": {
+        "patient.*", "visit.*", "report.*", "financial.*",
+        "setting.*", "user.*", "audit.*",
+    },
 }
 
 

@@ -323,6 +323,14 @@ class User(UserMixin, db.Model):
     def is_admin_user(self) -> bool:
         return bool(self.is_admin or self.role in ('admin', 'super_admin', 'manager'))
 
+    def has_permission(self, permission: str) -> bool:
+        """Check if user has a specific permission via PermissionService"""
+        try:
+            from app.core.permission.service import PermissionService
+            return PermissionService.has_permission(self, permission)
+        except Exception:
+            return False
+
 
 class StaffWorkSchedule(db.Model):
     __tablename__ = 'staff_work_schedules'

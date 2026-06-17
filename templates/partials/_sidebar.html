@@ -1,5 +1,5 @@
 <style>
-    .luxury-sidebar {
+.luxury-sidebar {
         background: linear-gradient(180deg, #1a1f3a 0%, #0f1225 100%);
         border-left: 1px solid rgba(212,175,55,0.2); /* Gold border */
         height: 100vh;
@@ -7,14 +7,12 @@
         padding-bottom: 2rem;
         box-shadow: 4px 0 15px rgba(0,0,0,0.3);
     }
-
     @supports (scrollbar-width: thin) {
         .luxury-sidebar {
             scrollbar-width: thin;
             scrollbar-color: var(--luxury-gold) #1a1f3a;
         }
     }
-    
     .luxury-sidebar::-webkit-scrollbar {
         width: 4px; /* Thinner scrollbar */
     }
@@ -25,7 +23,6 @@
         background-color: var(--luxury-gold);
         border-radius: 10px;
     }
-
     .sidebar-header {
         padding: 1rem 1rem; /* Reduced padding */
         text-align: center;
@@ -33,7 +30,6 @@
         margin-bottom: 0.5rem; /* Reduced margin */
         background: rgba(0,0,0,0.2);
     }
-    
     .user-role-badge {
         background: rgba(212,175,55,0.15);
         color: var(--luxury-gold);
@@ -47,7 +43,6 @@
         text-transform: uppercase;
         letter-spacing: 1px;
     }
-
     .nav-section-title {
         color: rgba(255,255,255,0.4);
         font-size: 0.7rem; /* Smaller font */
@@ -58,18 +53,15 @@
         margin-top: 0.25rem;
         border-top: 1px solid rgba(255,255,255,0.03);
     }
-    
     .nav-section-title:first-child {
         border-top: none;
         margin-top: 0;
     }
-
     .nav-list {
         list-style: none;
         padding: 0;
         margin: 0;
     }
-    
     .nav-link-luxury {
         display: flex;
         align-items: center;
@@ -80,31 +72,30 @@
         border-right: 3px solid transparent;
         font-size: 0.9rem; /* Slightly smaller font */
     }
-    
     .nav-link-luxury:hover {
         background: rgba(255,255,255,0.03);
         color: white;
         padding-right: 1.3rem; /* Adjusted slide effect */
     }
-    
     .nav-link-luxury.active {
         background: linear-gradient(90deg, rgba(212,175,55,0.15) 0%, transparent 100%);
         color: var(--luxury-gold);
         border-right-color: var(--luxury-gold);
         font-weight: bold;
     }
-    
     .nav-link-luxury i {
         width: 20px; /* Smaller icon width */
         font-size: 1rem; /* Smaller icon size */
         color: rgba(255,255,255,0.5);
         transition: color 0.3s;
     }
-    
     .nav-link-luxury:hover i, .nav-link-luxury.active i {
         color: var(--luxury-gold);
     }
     .sidebar-title { font-size: 1.1rem; }
+    .sidebar-footer-line1 { font-size: 0.65rem; color: rgba(148,163,184,0.5); letter-spacing: 0.04em; }
+    .sidebar-footer-line1 i { color: var(--medical-cyan); opacity: 0.6; }
+    .sidebar-footer-line2 { font-size: 0.6rem; color: rgba(148,163,184,0.35); margin-top: 2px; }
 </style>
 
 {%- set mods = enabled_modules|default([]) %}
@@ -349,11 +340,11 @@
 
     <!-- AZAD brand footer -->
     <div class="sidebar-footer-art mt-auto">
-        <div style="font-size:0.65rem; color:rgba(148,163,184,0.5); letter-spacing:0.04em;">
-            <i class="fas fa-code me-1" style="color:var(--medical-cyan); opacity:0.6;"></i>
+        <div class="sidebar-footer-line1">
+            <i class="fas fa-code me-1"></i>
             AZAD Medical Systems
         </div>
-        <div style="font-size:0.6rem; color:rgba(148,163,184,0.35); margin-top:2px;">
+        <div class="sidebar-footer-line2">
             Palestinian Medical Platform
         </div>
     </div>

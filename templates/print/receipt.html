@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سند قبض - {{ visit.patient.full_name }}</title>
     <style>
-        @page {
+@page {
             size: A4;
             margin: 10mm;
         }
-        
         body {
             font-family: 'Tahoma', 'Segoe UI', 'Arial', sans-serif;
             font-size: 12px;
@@ -18,32 +17,27 @@
             margin: 0;
             padding: 0;
         }
-
         .page {
             width: 190mm;
             margin: 0 auto;
             padding: 0;
         }
-        
         .header {
             text-align: center;
             border-bottom: 2px solid #007bff;
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
-        
         .header h1 {
             color: #007bff;
             margin: 0;
             font-size: 24px;
         }
-        
         .header h2 {
             color: #666;
             margin: 5px 0;
             font-size: 18px;
         }
-        
         .receipt-info {
             display: flex;
             justify-content: space-between;
@@ -52,12 +46,10 @@
             padding: 15px;
             border-radius: 5px;
         }
-        
         .receipt-info .info-section {
             flex: 1;
             margin: 0 10px;
         }
-        
         .receipt-info h3 {
             color: #007bff;
             margin: 0 0 10px 0;
@@ -65,84 +57,71 @@
             border-bottom: 1px solid #ddd;
             padding-bottom: 5px;
         }
-        
         .receipt-info p {
             margin: 5px 0;
             font-size: 11px;
         }
-        
         .patient-info {
             background: #e3f2fd;
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
         }
-        
         .patient-info h3 {
             color: #1976d2;
             margin: 0 0 10px 0;
             font-size: 16px;
         }
-        
         .patient-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
-        
         .patient-details .detail {
             display: flex;
             justify-content: space-between;
             padding: 5px 0;
             border-bottom: 1px dotted #ccc;
         }
-        
         .visit-details {
             background: #f1f8e9;
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
         }
-        
         .visit-details h3 {
             color: #388e3c;
             margin: 0 0 10px 0;
             font-size: 16px;
         }
-        
         .payment-details {
             background: #fff3e0;
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
         }
-        
         .payment-details h3 {
             color: #f57c00;
             margin: 0 0 10px 0;
             font-size: 16px;
         }
-        
         .cost-breakdown {
             background: #fafafa;
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
         }
-        
         .cost-breakdown h3 {
             color: #424242;
             margin: 0 0 10px 0;
             font-size: 16px;
         }
-        
         .cost-item {
             display: flex;
             justify-content: space-between;
             padding: 5px 0;
             border-bottom: 1px dotted #ccc;
         }
-        
         .cost-item.total {
             font-weight: bold;
             font-size: 14px;
@@ -151,7 +130,6 @@
             margin-top: 10px;
             padding-top: 10px;
         }
-        
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -160,7 +138,6 @@
             color: #666;
             font-size: 10px;
         }
-        
         .print-button {
             position: fixed;
             top: 20px;
@@ -173,16 +150,13 @@
             cursor: pointer;
             font-size: 14px;
         }
-        
         .print-button:hover {
             background: #0056b3;
         }
-        
         @media print {
             .print-button {
                 display: none;
             }
-            
             body {
                 font-size: 11px;
             }
@@ -190,7 +164,7 @@
 </style>
 </head>
 <body>
-    <button class="print-button" onclick="window.print()">طباعة</button>
+    <button class="print-button" data-action="print">طباعة</button>
     
     <div class="page">
     <div class="header">
@@ -205,25 +179,25 @@
             <p><strong>تاريخ الإصدار:</strong> {{ visit.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
             <p><strong>حالة الدفع:</strong> 
                 {% if visit.payment_status == 'PAID' or (visit.remaining_amount is defined and visit.remaining_amount <= 0) %}
-                    <span style="color: green;">مدفوع</span>
+                    <span class="text-success">مدفوع</span>
                 {% elif visit.payment_status == 'PARTIAL' or (visit.paid_amount is defined and visit.remaining_amount is defined and visit.paid_amount > 0 and visit.remaining_amount > 0) %}
-                    <span style="color: #0d6efd;">جزئي</span>
+                    <span class="text-primary">جزئي</span>
                 {% elif visit.payment_status == 'DEBT' %}
-                    <span style="color: red;">دين</span>
+                    <span class="text-danger">دين</span>
                 {% elif visit.payment_status == 'PENDING' %}
-                    <span style="color: orange;">معلق</span>
+                    <span class="text-warning">معلق</span>
                 {% else %}
-                    <span style="color: #6c757d;">{{ visit.payment_status }}</span>
+                    <span class="text-secondary">{{ visit.payment_status }}</span>
                 {% endif %}
             </p>
             {% if visit.paid_amount is defined and visit.remaining_amount is defined %}
             <p>
                 {% if visit.paid_amount > 0 and visit.remaining_amount > 0 %}
-                    <small style="color:#0d6efd;">مدفوع جزئياً: {{ "%.2f"|format(visit.paid_amount) }} {{ visit.currency }} • المتبقي: {{ "%.2f"|format(visit.remaining_amount) }} {{ visit.currency }}</small>
+                    <small class="text-primary">مدفوع جزئياً: {{ "%.2f"|format(visit.paid_amount) }} {{ visit.currency }} • المتبقي: {{ "%.2f"|format(visit.remaining_amount) }} {{ visit.currency }}</small>
                 {% elif visit.paid_amount > 0 and visit.remaining_amount <= 0 %}
-                    <small style="color:green;">مدفوع: {{ "%.2f"|format(visit.paid_amount) }} {{ visit.currency }}</small>
+                    <small class="text-success">مدفوع: {{ "%.2f"|format(visit.paid_amount) }} {{ visit.currency }}</small>
                 {% elif visit.paid_amount == 0 and visit.remaining_amount > 0 %}
-                    <small style="color:#f57c00;">متبقي: {{ "%.2f"|format(visit.remaining_amount) }} {{ visit.currency }}</small>
+                    <small class="text-warning">متبقي: {{ "%.2f"|format(visit.remaining_amount) }} {{ visit.currency }}</small>
                 {% endif %}
             </p>
             {% endif %}
@@ -294,7 +268,7 @@
                 <span><strong>حالة الطوارئ:</strong></span>
                 <span>
                     {% if visit.is_emergency %}
-                        <span style="color: red;">طوارئ</span>
+                        <span class="text-danger">طوارئ</span>
                     {% else %}
                         عادي
                     {% endif %}
@@ -426,7 +400,7 @@
         {% if visit.visit_type == 'FOLLOW_UP' %}
         <div class="cost-item">
             <span>خصم المراجعة (30%):</span>
-            <span style="color: green;">-{{ "%.2f"|format(follow_up_discount if follow_up_discount is not none else ((visit.total_amount * 3) / 10)) }} {{ visit.currency }}</span>
+            <span class="text-success">-{{ "%.2f"|format(follow_up_discount if follow_up_discount is not none else ((visit.total_amount * 3) / 10)) }} {{ visit.currency }}</span>
         </div>
         {% endif %}
         {% if visit.tax_amount and visit.tax_amount > 0 %}
@@ -446,17 +420,13 @@
         <p>هذا السند صالح للاستخدام القانوني</p>
         <p>تاريخ الطباعة: {{ printed_at.strftime('%Y-%m-%d %H:%M') }}</p>
         <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else 'info@medical-center.com' }} | {{ branding.organization_phone if branding and branding.organization_phone else '+970-XX-XXXXXXX' }}</p>
-        <hr style="margin: 10px 0; border: 1px solid #ddd;">
-        <p style="font-size: 10px; color: #666; margin: 5px 0;">
+        <hr class="my-2 border border-dark">
+        <p class="text-xs text-muted my-1">
             <strong>تطوير:</strong> {{ developer_company or 'شركة أزاد للأنظمة الذكية' }} | 
             <strong>مطور:</strong> {{ developer_name or 'أحمد غنام' }}
         </p>
     </div>
     </div>
-    <script>
-    window.onload = function() {
-        setTimeout(function() { window.print(); }, 800);
-    };
-    </script>
+    <script src="{{ url_for('static', filename='js/pages/print/receipt.js') }}"></script>
 </body>
 </html>

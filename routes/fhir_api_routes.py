@@ -10,6 +10,7 @@ from models.visit import Visit
 from models.lab_request import LabRequest, LabResult
 from models.radiology_request import RadiologyRequest
 from models.radiology_test import RadiologyResult
+from services.fhir_service import fhir_service
 from app_factory import db
 import json, uuid
 from datetime import datetime, timezone

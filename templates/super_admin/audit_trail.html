@@ -19,11 +19,11 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2">
-                                <button class="btn btn-primary" onclick="refreshAuditLogs()">
+                                <button class="btn btn-primary" data-action="refresh-audit-logs">
                                     <i class="fas fa-sync-alt me-1"></i>
                                     تحديث
                                 </button>
-                                <button class="btn btn-success" onclick="exportAuditLogs()">
+                                <button class="btn btn-success" data-action="export-audit-logs">
                                     <i class="fas fa-download me-1"></i>
                                     تصدير السجلات
                                 </button>
@@ -159,11 +159,11 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                <button type="button" class="btn btn-primary" onclick="applyFilters()">
+                                <button type="button" class="btn btn-primary" data-action="apply-filters">
                                     <i class="fas fa-filter me-2"></i>
                                     تطبيق التصفية
                                 </button>
-                                <button type="button" class="btn btn-secondary" onclick="clearFilters()">
+                                <button type="button" class="btn btn-secondary" data-action="clear-filters">
                                     <i class="fas fa-times me-2"></i>
                                     مسح التصفية
                                 </button>
@@ -182,10 +182,10 @@
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">سجلات التدقيق</h6>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" onclick="filterLogs('all')">الكل</button>
-                        <button class="btn btn-sm btn-outline-success" onclick="filterLogs('success')">نجح</button>
-                        <button class="btn btn-sm btn-outline-warning" onclick="filterLogs('warning')">تحذير</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="filterLogs('error')">خطأ</button>
+                        <button class="btn btn-sm btn-outline-primary" data-action="filter-logs" data-value="all">الكل</button>
+                        <button class="btn btn-sm btn-outline-success" data-action="filter-logs" data-value="success">نجح</button>
+                        <button class="btn btn-sm btn-outline-warning" data-action="filter-logs" data-value="warning">تحذير</button>
+                        <button class="btn btn-sm btn-outline-danger" data-action="filter-logs" data-value="error">خطأ</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -247,10 +247,10 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="viewLogDetails('{{ log.id }}')" title="عرض التفاصيل">
+                                            <button class="btn btn-sm btn-outline-primary" data-action="viewLogDetails" data-value="{{ log.id }}" title="عرض التفاصيل">
                                                 <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-info" onclick="exportLog('{{ log.id }}')" title="تصدير">
+                                            <button class="btn btn-sm btn-outline-info" data-action="exportLog" data-value="{{ log.id }}" title="تصدير">
                                                 <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
                                             </button>
                                         </div>
@@ -393,25 +393,25 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-primary w-100" onclick="generateAuditReport()">
+                            <button class="btn btn-primary w-100" data-action="generate-audit-report">
                                 <i class="fas fa-file-alt me-2"></i>
                                 إنشاء تقرير التدقيق
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-success w-100" onclick="exportAllLogs()">
+                            <button class="btn btn-success w-100" data-action="export-all-logs">
                                 <i class="fas fa-download me-2"></i>
                                 تصدير جميع السجلات
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-warning w-100" onclick="cleanOldLogs()">
+                            <button class="btn btn-warning w-100" data-action="clean-old-logs">
                                 <i class="fas fa-trash me-2"></i>
                                 تنظيف السجلات القديمة
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-info w-100" onclick="viewAuditSettings()">
+                            <button class="btn btn-info w-100" data-action="view-audit-settings">
                                 <i class="fas fa-cog me-2"></i>
                                 إعدادات التدقيق
                             </button>
@@ -424,28 +424,6 @@
 </div>
 
 <style>
-.border-left-primary {
-    border-left: 0.25rem solid #4e73df !important;
-}
-
-.border-left-success {
-    border-left: 0.25rem solid #1cc88a !important;
-}
-
-.border-left-info {
-    border-left: 0.25rem solid #36b9cc !important;
-}
-
-.border-left-warning {
-    border-left: 0.25rem solid #f6c23e !important;
-}
-
-.avatar-sm {
-    width: 40px;
-    height: 40px;
-    font-size: 14px;
-}
-
 .stat-item {
     display: flex;
     align-items: flex-start;
@@ -455,7 +433,6 @@
     margin-bottom: 1rem;
     background: #fff;
 }
-
 .stat-icon {
     width: 50px;
     height: 50px;
@@ -467,29 +444,24 @@
     color: white;
     font-size: 1.2rem;
 }
-
 .stat-info h6 {
     margin: 0 0 1rem 0;
     font-size: 0.9rem;
     color: #5a5c69;
 }
-
 .stat-chart {
     width: 100%;
 }
-
 .chart-item {
     display: flex;
     align-items: center;
     margin-bottom: 0.5rem;
 }
-
 .chart-label {
     width: 100px;
     font-size: 0.8rem;
     color: #5a5c69;
 }
-
 .chart-bar {
     flex: 1;
     height: 8px;
@@ -497,24 +469,20 @@
     border-radius: 4px;
     margin: 0 1rem;
 }
-
 .chart-fill {
     height: 100%;
     background: #4e73df;
     border-radius: 4px;
 }
-
 .chart-value {
     width: 40px;
     text-align: right;
     font-size: 0.8rem;
     color: #5a5c69;
 }
-
 .user-stats {
     width: 100%;
 }
-
 .user-stat-item {
     display: flex;
     justify-content: space-between;
@@ -522,147 +490,31 @@
     padding: 0.5rem 0;
     border-bottom: 1px solid #f8f9fc;
 }
-
 .user-stat-item:last-child {
     border-bottom: none;
 }
-
 .user-name {
     font-size: 0.9rem;
     color: #5a5c69;
 }
-
 .user-count {
     font-weight: bold;
     color: #5a5c69;
 }
-
-.btn-block {
-    width: 100%;
-    padding: 0.75rem;
-    text-align: center;
-    text-decoration: none;
-    display: block;
-}
-
 .btn-block:hover {
     text-decoration: none;
     transform: translateY(-2px);
     transition: all 0.3s ease;
 }
-
 #auditLogsTable {
     font-size: 0.9rem;
 }
-
 .btn-group .btn {
     margin: 0 1px;
 }
 </style>
 
-<script>
-function refreshAuditLogs() {
-    location.reload();
-}
+<script>window.__M=window.__M||[];__M0__={{ audit_logs|tojson }};</script>
+<script src="{{ url_for('static', filename='js/pages/super_admin/audit_trail.js') }}"></script>
 
-function exportAuditLogs() {
-    const csvContent = "data:text/csv;charset=utf-8," 
-        + "الوقت,المستخدم,العمل,الكيان,التفاصيل,الحالة\n"
-        {% for log in audit_logs %}
-        + "{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else 'غير محدد' }},{{ log.user.full_name if log.user else 'غير محدد' }},{{ log.action }},{{ log.entity_type or 'غير محدد' }},{{ log.description or 'لا يوجد تفاصيل' }},{{ log.status }}\n"
-        {% endfor %};
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "audit_logs_" + new Date().toISOString().split('T')[0] + ".csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function applyFilters() {
-    // تطبيق التصفية
-    const form = document.getElementById('auditFiltersForm');
-    const formData = new FormData(form);
-    
-    const filters = {};
-    for (let [key, value] of formData.entries()) {
-        if (value) filters[key] = value;
-    }
-    
-    Swal.fire({ title: 'تطبيق التصفية', text: 'تم تطبيق التصفية', icon: 'success' });
-}
-
-function clearFilters() {
-    // مسح التصفية
-    document.getElementById('auditFiltersForm').reset();
-    Swal.fire({ title: 'تم', text: 'تم مسح التصفية', icon: 'success' });
-}
-
-function filterLogs(status) {
-    const rows = document.querySelectorAll('#auditLogsTable tbody tr');
-    
-    rows.forEach(row => {
-        if (status === 'all' || row.dataset.status === status) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-    
-    // تحديث أزرار التصفية
-    document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    event.target.classList.add('active');
-}
-
-function viewLogDetails(logId) {
-    Swal.fire({ title: 'تفاصيل السجل', text: 'عرض تفاصيل السجل: ' + logId, icon: 'info' });
-}
-
-function exportLog(logId) {
-    Swal.fire({ title: 'تصدير', text: 'تصدير السجل: ' + logId, icon: 'info' });
-}
-
-function generateAuditReport() {
-    Swal.fire({ title: 'إنشاء تقرير', text: 'إنشاء تقرير التدقيق', icon: 'info' });
-}
-
-function exportAllLogs() {
-    // تصدير جميع السجلات
-    exportAuditLogs();
-}
-
-function cleanOldLogs() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد تنظيف السجلات القديمة (أكثر من 90 يوم)؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم، تنظيف',
-        cancelButtonText: 'إلغاء'
-    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم تنظيف السجلات القديمة', icon: 'success' }); } });
-}
-
-function viewAuditSettings() {
-    Swal.fire({ title: 'إعدادات التدقيق', text: 'عرض إعدادات التدقيق', icon: 'info' });
-}
-
-// إضافة تأثيرات تفاعلية
-document.addEventListener('DOMContentLoaded', function() {
-    // إضافة تأثير hover للصفوف
-    const rows = document.querySelectorAll('#auditLogsTable tbody tr');
-    rows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-        });
-        row.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
-        });
-    });
-});
-</script>
 {% endblock %}

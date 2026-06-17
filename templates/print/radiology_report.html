@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقرير الأشعة - {{ radiology_result.patient.full_name }}</title>
     <style>
-        @page {
+@page {
             size: A4;
             margin: 1cm;
         }
-        
         body {
             font-family: 'Arial', sans-serif;
             font-size: 12px;
@@ -18,26 +17,22 @@
             margin: 0;
             padding: 0;
         }
-        
         .header {
             text-align: center;
             border-bottom: 3px solid #6f42c1;
             padding-bottom: 20px;
             margin-bottom: 25px;
         }
-        
         .header h1 {
             color: #6f42c1;
             margin: 0;
             font-size: 28px;
         }
-        
         .header h2 {
             color: #666;
             margin: 8px 0;
             font-size: 20px;
         }
-        
         .radiology-info {
             display: flex;
             justify-content: space-between;
@@ -46,12 +41,10 @@
             padding: 20px;
             border-radius: 8px;
         }
-        
         .radiology-info .info-section {
             flex: 1;
             margin: 0 15px;
         }
-        
         .radiology-info h3 {
             color: #6f42c1;
             margin: 0 0 12px 0;
@@ -59,90 +52,76 @@
             border-bottom: 2px solid #6f42c1;
             padding-bottom: 8px;
         }
-        
         .radiology-info p {
             margin: 6px 0;
             font-size: 12px;
         }
-        
         .patient-info {
             background: #e2d9f3;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 25px;
         }
-        
         .patient-info h3 {
             color: #4a2c7a;
             margin: 0 0 15px 0;
             font-size: 18px;
         }
-        
         .patient-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
-        
         .patient-details .detail {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px dotted #6f42c1;
         }
-        
         .doctor-info {
             background: #d1ecf1;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 25px;
         }
-        
         .doctor-info h3 {
             color: #0c5460;
             margin: 0 0 15px 0;
             font-size: 18px;
         }
-        
         .examination-info {
             background: #fff3cd;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 25px;
         }
-        
         .examination-info h3 {
             color: #856404;
             margin: 0 0 15px 0;
             font-size: 18px;
         }
-        
         .examination-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
-        
         .examination-details .detail {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px dotted #856404;
         }
-        
         .findings-section {
             background: #f8d7da;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 25px;
         }
-        
         .findings-section h3 {
             color: #721c24;
             margin: 0 0 15px 0;
             font-size: 18px;
         }
-        
         .findings-content {
             background: white;
             padding: 15px;
@@ -152,20 +131,17 @@
             white-space: pre-wrap;
             word-break: break-word;
         }
-        
         .impression-section {
             background: #d4edda;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 25px;
         }
-        
         .impression-section h3 {
             color: #155724;
             margin: 0 0 15px 0;
             font-size: 18px;
         }
-        
         .impression-content {
             background: white;
             padding: 15px;
@@ -175,20 +151,17 @@
             white-space: pre-wrap;
             word-break: break-word;
         }
-        
         .recommendations-section {
             background: #e2e3e5;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 25px;
         }
-        
         .recommendations-section h3 {
             color: #383d41;
             margin: 0 0 15px 0;
             font-size: 18px;
         }
-        
         .recommendations-content {
             background: white;
             padding: 15px;
@@ -198,7 +171,6 @@
             white-space: pre-wrap;
             word-break: break-word;
         }
-        
         .signature-section {
             display: flex;
             justify-content: space-between;
@@ -206,23 +178,19 @@
             padding-top: 20px;
             border-top: 2px solid #6f42c1;
         }
-        
         .signature-box {
             text-align: center;
             width: 200px;
         }
-        
         .signature-line {
             border-bottom: 1px solid #333;
             height: 40px;
             margin-bottom: 10px;
         }
-        
         .signature-label {
             font-size: 12px;
             color: #666;
         }
-        
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -231,7 +199,6 @@
             color: #666;
             font-size: 11px;
         }
-        
         .print-button {
             position: fixed;
             top: 20px;
@@ -245,31 +212,28 @@
             font-size: 14px;
             font-weight: bold;
         }
-        
         .print-button:hover {
             background: #5a32a3;
         }
-        
         @media print {
             .print-button {
                 display: none;
             }
-            
             body {
                 font-size: 11px;
             }
         }
-    </style>
+</style>
 </head>
 <body>
-    <button class="print-button" onclick="window.print()">طباعة التقرير</button>
+    <button class="print-button" data-action="print">طباعة التقرير</button>
     
     <div class="header">
         <h1>المركز الصحي المتخصص</h1>
         <h2>تقرير الأشعة</h2>
         {% if qr_data_uri %}
-        <div style="margin-top:10px;">
-            <img src="{{ qr_data_uri }}" alt="QR" style="height:110px; border:1px solid #eee; border-radius:4px;" />
+        <div class="mt-2">
+            <img src="{{ qr_data_uri }}" alt="QR" class="lab-thumb-lg" />
         </div>
         {% endif %}
     </div>
@@ -282,11 +246,11 @@
             <p><strong>تاريخ الإكمال:</strong> {{ radiology_result.updated_at.strftime('%Y-%m-%d %H:%M') if radiology_result.updated_at else 'غير مكتمل' }}</p>
             <p><strong>حالة التقرير:</strong> 
                 {% if radiology_result.status == 'VALIDATED' %}
-                    <span style="color: green;">مكتمل</span>
+                    <span class="text-success">مكتمل</span>
                 {% elif radiology_result.status == 'READY' %}
-                    <span style="color: orange;">قيد التنفيذ</span>
+                    <span class="text-warning">قيد التنفيذ</span>
                 {% else %}
-                    <span style="color: red;">معلق</span>
+                    <span class="text-danger">معلق</span>
                 {% endif %}
             </p>
         </div>
@@ -436,17 +400,13 @@
         <p><strong>هذا التقرير صالح للاستخدام الطبي</strong></p>
         <p>تاريخ الطباعة: {{ moment().format('YYYY-MM-DD HH:mm') }}</p>
         <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else 'radiology@medical-center.com' }} | {{ branding.organization_phone if branding and branding.organization_phone else '+970-XX-XXXXXXX' }}</p>
-        <hr style="margin: 10px 0; border: 1px solid #ddd;">
-        <p style="font-size: 10px; color: #666; margin: 5px 0;">
+        <hr class="my-2 border border-dark">
+        <p class="text-xs text-muted my-1">
             <strong>تطوير:</strong> {{ developer_company or 'شركة أزاد للأنظمة الذكية' }} | 
             <strong>مطور:</strong> {{ developer_name or 'أحمد غنام' }}
         </p>
 </div>
 
-    <script>
-    window.onload = function() {
-        setTimeout(function() { window.print(); }, 800);
-    };
-    </script>
+    <script src="{{ url_for('static', filename='js/pages/print/radiology_report.js') }}"></script>
 </body>
 </html>

@@ -91,3 +91,15 @@ fix_*.py
 check_*.py
 test_*.py
 
+# Maintenance & Development (excluded from git)
+صيانة وتطوير/
+
+# Extraction / migration scripts (dev-only)
+extract_*.py
+restore_*.py
+scan_imports*.py
+analyze_*.py
+script_*.txt
+analysis.txt
+extract_err.txt
+

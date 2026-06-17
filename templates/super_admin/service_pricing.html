@@ -7,7 +7,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-lg glass-effect">
-                <div class="card-header" style="background: var(--success-gradient); color: white;">
+                <div class="card-header bg-gradient-success text-white">
                     <h4 class="mb-0">
                         <i class="fas fa-dollar-sign me-2"></i>
                         إدارة تسعير: {{ service.name }}
@@ -45,7 +45,7 @@
                                                 </td>
                                                 <td>{{ price.description or '-' }}</td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-danger" onclick="deletePricing({{ price.id }})">
+                                                    <button class="btn btn-sm btn-danger" data-action="deletePricing" data-price-id="price.id">
                                                         <i class="fas fa-trash"></i> <span class="btn-label">حذف</span>
                                                     </button>
                                                 </td>
@@ -137,17 +137,6 @@
     </div>
 </div>
 
-<script>
-function deletePricing(pricingId) {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل أنت متأكد من حذف هذا التسعير؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم، حذف',
-        cancelButtonText: 'إلغاء'
-    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'قريباً', text: 'سيتم تفعيل الحذف قريباً', icon: 'info' }); } });
-}
-</script>
+<script src="{{ url_for('static', filename='js/pages/super_admin/service_pricing.js') }}"></script>
 {% endblock %}
 

@@ -361,61 +361,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-function optimizeDatabase() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل أنت متأكد من تحسين قاعدة البيانات؟ قد يستغرق هذا بعض الوقت.',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire({ title: 'جاري العمل', text: 'جاري تحسين قاعدة البيانات...', icon: 'info' });
-        }
-    });
-}
-
-function forceLogoutAll() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل أنت متأكد من إجبار جميع المستخدمين على تسجيل الخروج؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم إجبار جميع المستخدمين على تسجيل الخروج', icon: 'success' });
-        }
-    });
-}
-
-function refreshLogs() {
-    location.reload();
-}
-
-function clearLogs() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل أنت متأكد من مسح سجل النظام؟ لا يمكن التراجع عن هذا الإجراء.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم، مسح',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire({ title: 'تم', text: 'تم مسح سجل النظام', icon: 'success' });
-        }
-    });
-}
-
-// تحديث الإحصائيات كل 30 ثانية
-setInterval(function() {
-    // هنا يمكن إضافة AJAX لتحديث الإحصائيات
-}, 30000);
-</script>
+<script src="{{ url_for('static', filename='js/pages/super_admin/system_maintenance.js') }}"></script>
 
 <style>
 .cleanup-item {
@@ -428,24 +374,20 @@ setInterval(function() {
     margin-bottom: 1rem;
     background: var(--gray-50);
 }
-
 .cleanup-info h5 {
     margin: 0 0 0.5rem 0;
     color: var(--gray-900);
 }
-
 .cleanup-info p {
     margin: 0;
     color: var(--gray-600);
     font-size: 0.875rem;
 }
-
 .db-info {
     background: var(--gray-50);
     padding: 1.5rem;
     border-radius: var(--border-radius);
 }
-
 .info-item {
     display: flex;
     justify-content: space-between;
@@ -453,38 +395,31 @@ setInterval(function() {
     padding: 0.5rem 0;
     border-bottom: 1px solid var(--gray-200);
 }
-
 .info-item:last-child {
     border-bottom: none;
 }
-
 .info-label {
     font-weight: 600;
     color: var(--gray-700);
 }
-
 .info-value {
     color: var(--primary-color);
     font-weight: 600;
 }
-
 .monitoring-grid {
     display: grid;
     gap: 1rem;
 }
-
 .monitor-item {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
-
 .monitor-label {
     min-width: 120px;
     font-weight: 600;
     color: var(--gray-700);
 }
-
 .monitor-bar {
     flex: 1;
     height: 8px;
@@ -492,19 +427,16 @@ setInterval(function() {
     border-radius: 4px;
     overflow: hidden;
 }
-
 .monitor-fill {
     height: 100%;
     transition: width 0.3s ease;
 }
-
 .monitor-value {
     min-width: 40px;
     text-align: center;
     font-weight: 600;
     color: var(--gray-900);
 }
-
 .management-item {
     display: flex;
     justify-content: space-between;
@@ -515,31 +447,26 @@ setInterval(function() {
     margin-bottom: 1rem;
     background: white;
 }
-
 .management-info h5 {
     margin: 0 0 0.25rem 0;
     font-size: 1rem;
 }
-
 .management-info p {
     margin: 0;
     color: var(--gray-600);
     font-size: 0.875rem;
 }
-
 .management-value {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--primary-color);
 }
-
 .system-logs {
     max-height: 300px;
     overflow-y: auto;
     border: 1px solid var(--gray-200);
     border-radius: var(--border-radius);
 }
-
 .log-item {
     display: flex;
     align-items: center;
@@ -548,16 +475,13 @@ setInterval(function() {
     font-family: monospace;
     font-size: 0.875rem;
 }
-
 .log-item:last-child {
     border-bottom: none;
 }
-
 .log-time {
     min-width: 150px;
     color: var(--gray-600);
 }
-
 .log-level {
     min-width: 80px;
     font-weight: 600;
@@ -566,33 +490,27 @@ setInterval(function() {
     border-radius: 4px;
     font-size: 0.75rem;
 }
-
 .log-level.info {
     background: #dbeafe;
     color: #1e40af;
 }
-
 .log-level.warning {
     background: #fef3c7;
     color: #d97706;
 }
-
 .log-level.success {
     background: #d1fae5;
     color: #059669;
 }
-
 .log-level.error {
     background: #fee2e2;
     color: #dc2626;
 }
-
 .log-message {
     flex: 1;
     margin-left: 1rem;
     color: var(--gray-800);
 }
-
 .db-actions, .management-actions, .log-actions {
     display: flex;
     gap: 1rem;

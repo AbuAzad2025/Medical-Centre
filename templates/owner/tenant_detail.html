@@ -51,7 +51,7 @@
                     <div class="d-grid gap-2">
                         <a href="{{ url_for('owner.owner_renew_tenant', tenant_id=tenant.id) }}" class="btn btn-success btn-sm">تجديد الاشتراك</a>
                         {% if tenant.status.value != 'suspended' %}
-                        <a href="{{ url_for('owner.owner_suspend_tenant', tenant_id=tenant.id) }}" class="btn btn-warning btn-sm" onclick="return confirm('تأكيد الإيقاف؟')">إيقاف مؤقت</a>
+                        <a href="{{ url_for('owner.owner_suspend_tenant', tenant_id=tenant.id) }}" class="btn btn-warning btn-sm" data-action="confirm" data-message="تأكيد الإيقاف؟">إيقاف مؤقت</a>
                         {% else %}
                         <a href="{{ url_for('owner.owner_activate_tenant', tenant_id=tenant.id) }}" class="btn btn-success btn-sm">تفعيل</a>
                         {% endif %}

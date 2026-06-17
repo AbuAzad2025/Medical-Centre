@@ -23,11 +23,11 @@
                                     <i class="fas fa-chart-line me-1"></i>
                                     مركز التقارير
                                 </a>
-                                <button class="btn btn-primary" onclick="generateReport()">
+                                <button class="btn btn-primary" data-action="generate-report">
                                     <i class="fas fa-file-alt me-1"></i>
                                     إنشاء تقرير
                                 </button>
-                                <button class="btn btn-success" onclick="exportAllReports()">
+                                <button class="btn btn-success" data-action="export-all-reports">
                                     <i class="fas fa-download me-1"></i>
                                     تصدير جميع التقارير
                                 </button>
@@ -56,7 +56,7 @@
                                 <div class="category-info">
                                     <h6>تقارير المرضى</h6>
                                     <p class="text-muted">إحصائيات المرضى والزيارات</p>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="viewPatientReports()">
+                                    <button class="btn btn-sm btn-outline-primary" data-action="view-patient-reports">
                                         عرض التقارير
                                     </button>
                                 </div>
@@ -70,7 +70,7 @@
                                 <div class="category-info">
                                     <h6>التقارير المالية</h6>
                                     <p class="text-muted">الإيرادات والمصروفات</p>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="viewFinancialReports()">
+                                    <button class="btn btn-sm btn-outline-primary" data-action="view-financial-reports">
                                         عرض التقارير
                                     </button>
                                 </div>
@@ -84,7 +84,7 @@
                                 <div class="category-info">
                                     <h6>تقارير الأطباء</h6>
                                     <p class="text-muted">أداء الأطباء والإنتاجية</p>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="viewDoctorReports()">
+                                    <button class="btn btn-sm btn-outline-primary" data-action="view-doctor-reports">
                                         عرض التقارير
                                     </button>
                                 </div>
@@ -98,7 +98,7 @@
                                 <div class="category-info">
                                     <h6>التقارير التحليلية</h6>
                                     <p class="text-muted">تحليلات متقدمة واتجاهات</p>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="viewAnalyticalReports()">
+                                    <button class="btn btn-sm btn-outline-primary" data-action="view-analytical-reports">
                                         عرض التقارير
                                     </button>
                                 </div>
@@ -127,7 +127,7 @@
                                 <div class="report-info">
                                     <h6>تقرير اليوم</h6>
                                     <p class="text-muted">إحصائيات اليوم الحالي</p>
-                                    <button class="btn btn-sm btn-primary" onclick="generateDailyReport()">
+                                    <button class="btn btn-sm btn-primary" data-action="generate-daily-report">
                                         إنشاء التقرير
                                     </button>
                                 </div>
@@ -141,7 +141,7 @@
                                 <div class="report-info">
                                     <h6>تقرير الأسبوع</h6>
                                     <p class="text-muted">إحصائيات الأسبوع الحالي</p>
-                                    <button class="btn btn-sm btn-success" onclick="generateWeeklyReport()">
+                                    <button class="btn btn-sm btn-success" data-action="generate-weekly-report">
                                         إنشاء التقرير
                                     </button>
                                 </div>
@@ -155,7 +155,7 @@
                                 <div class="report-info">
                                     <h6>تقرير الشهر</h6>
                                     <p class="text-muted">إحصائيات الشهر الحالي</p>
-                                    <button class="btn btn-sm btn-info" onclick="generateMonthlyReport()">
+                                    <button class="btn btn-sm btn-info" data-action="generate-monthly-report">
                                         إنشاء التقرير
                                     </button>
                                 </div>
@@ -215,7 +215,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                <button type="button" class="btn btn-primary" onclick="generateCustomReport()">
+                                <button type="button" class="btn btn-primary" data-action="generate-custom-report">
                                     <i class="fas fa-file-alt me-2"></i>
                                     إنشاء التقرير المخصص
                                 </button>
@@ -234,9 +234,9 @@
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">تاريخ التقارير</h6>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" onclick="filterReports('all')">الكل</button>
-                        <button class="btn btn-sm btn-outline-success" onclick="filterReports('recent')">الأحدث</button>
-                        <button class="btn btn-sm btn-outline-warning" onclick="filterReports('favorite')">المفضلة</button>
+                        <button class="btn btn-sm btn-outline-primary" data-action="filter-reports" data-value="all">الكل</button>
+                        <button class="btn btn-sm btn-outline-success" data-action="filter-reports" data-value="recent">الأحدث</button>
+                        <button class="btn btn-sm btn-outline-warning" data-action="filter-reports" data-value="favorite">المفضلة</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -275,16 +275,16 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="viewReport('report1')" title="عرض">
+                                            <button class="btn btn-sm btn-outline-primary" data-action="viewReport" data-value="report1" title="عرض">
                                                 <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-success" onclick="downloadReport('report1')" title="تحميل">
+                                            <button class="btn btn-sm btn-outline-success" data-action="downloadReport" data-value="report1" title="تحميل">
                                                 <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-warning" onclick="shareReport('report1')" title="مشاركة">
+                                            <button class="btn btn-sm btn-outline-warning" data-action="shareReport" data-value="report1" title="مشاركة">
                                                 <i class="fas fa-share"></i> <span class="btn-label">مشاركة</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteReport('report1')" title="حذف">
+                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteReport" data-value="report1" title="حذف">
                                                 <i class="fas fa-trash"></i> <span class="btn-label">حذف</span>
                                             </button>
                                         </div>
@@ -312,16 +312,16 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="viewReport('report2')" title="عرض">
+                                            <button class="btn btn-sm btn-outline-primary" data-action="viewReport" data-value="report2" title="عرض">
                                                 <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-success" onclick="downloadReport('report2')" title="تحميل">
+                                            <button class="btn btn-sm btn-outline-success" data-action="downloadReport" data-value="report2" title="تحميل">
                                                 <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-warning" onclick="shareReport('report2')" title="مشاركة">
+                                            <button class="btn btn-sm btn-outline-warning" data-action="shareReport" data-value="report2" title="مشاركة">
                                                 <i class="fas fa-share"></i> <span class="btn-label">مشاركة</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteReport('report2')" title="حذف">
+                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteReport" data-value="report2" title="حذف">
                                                 <i class="fas fa-trash"></i> <span class="btn-label">حذف</span>
                                             </button>
                                         </div>
@@ -349,16 +349,16 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="viewReport('report3')" title="عرض">
+                                            <button class="btn btn-sm btn-outline-primary" data-action="viewReport" data-value="report3" title="عرض">
                                                 <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-success" onclick="downloadReport('report3')" title="تحميل">
+                                            <button class="btn btn-sm btn-outline-success" data-action="downloadReport" data-value="report3" title="تحميل">
                                                 <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-warning" onclick="shareReport('report3')" title="مشاركة">
+                                            <button class="btn btn-sm btn-outline-warning" data-action="shareReport" data-value="report3" title="مشاركة">
                                                 <i class="fas fa-share"></i> <span class="btn-label">مشاركة</span>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteReport('report3')" title="حذف">
+                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteReport" data-value="report3" title="حذف">
                                                 <i class="fas fa-trash"></i> <span class="btn-label">حذف</span>
                                             </button>
                                         </div>
@@ -480,12 +480,10 @@
     transition: all 0.3s ease;
     background: #fff;
 }
-
 .report-category-card:hover {
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
     transform: translateY(-2px);
 }
-
 .category-icon {
     width: 60px;
     height: 60px;
@@ -498,12 +496,10 @@
     font-size: 1.5rem;
     color: #5a5c69;
 }
-
 .category-info h6 {
     margin-bottom: 0.5rem;
     color: #5a5c69;
 }
-
 .quick-report-item {
     display: flex;
     align-items: center;
@@ -513,12 +509,10 @@
     background: #fff;
     transition: all 0.3s ease;
 }
-
 .quick-report-item:hover {
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
     transform: translateY(-2px);
 }
-
 .report-icon {
     width: 50px;
     height: 50px;
@@ -530,12 +524,10 @@
     color: white;
     font-size: 1.2rem;
 }
-
 .report-info h6 {
     margin: 0 0 0.5rem 0;
     color: #5a5c69;
 }
-
 .report-icon-small {
     width: 25px;
     height: 25px;
@@ -543,7 +535,6 @@
     align-items: center;
     justify-content: center;
 }
-
 .analytics-item {
     display: flex;
     align-items: center;
@@ -553,7 +544,6 @@
     margin-bottom: 1rem;
     background: #fff;
 }
-
 .analytics-icon {
     width: 50px;
     height: 50px;
@@ -565,177 +555,52 @@
     color: white;
     font-size: 1.2rem;
 }
-
 .analytics-info h6 {
     margin: 0;
     font-size: 0.9rem;
     color: #5a5c69;
 }
-
 .analytics-value {
     font-size: 1.5rem;
     font-weight: bold;
     color: #5a5c69;
 }
-
 .popular-reports {
     padding: 0;
 }
-
 .popular-report-item {
     padding: 1rem 0;
     border-bottom: 1px solid #f8f9fc;
 }
-
 .popular-report-item:last-child {
     border-bottom: none;
 }
-
 .report-name {
     font-weight: bold;
     color: #5a5c69;
     margin-bottom: 0.5rem;
 }
-
 .report-usage {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
-
 .report-usage .progress {
     flex: 1;
     height: 8px;
 }
-
 .usage-text {
     font-weight: bold;
     color: #5a5c69;
     min-width: 40px;
 }
-
 #reportsTable {
     font-size: 0.9rem;
 }
-
 .btn-group .btn {
     margin: 0 1px;
 }
 </style>
 
-<script>
-function generateReport() {
-    Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير جديد', icon: 'info' });
-}
-
-function exportAllReports() {
-    Swal.fire({ title: 'تصدير', text: 'تصدير جميع التقارير', icon: 'info' });
-}
-
-function viewPatientReports() {
-    Swal.fire({ title: 'عرض', text: 'عرض تقارير المرضى', icon: 'info' });
-}
-
-function viewFinancialReports() {
-    Swal.fire({ title: 'عرض', text: 'عرض التقارير المالية', icon: 'info' });
-}
-
-function viewDoctorReports() {
-    Swal.fire({ title: 'عرض', text: 'عرض تقارير الأطباء', icon: 'info' });
-}
-
-function viewAnalyticalReports() {
-    Swal.fire({ title: 'عرض', text: 'عرض التقارير التحليلية', icon: 'info' });
-}
-
-function generateDailyReport() {
-    Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير يومي', icon: 'info' });
-}
-
-function generateWeeklyReport() {
-    Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير أسبوعي', icon: 'info' });
-}
-
-function generateMonthlyReport() {
-    Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير شهري', icon: 'info' });
-}
-
-function generateCustomReport() {
-    // إنشاء تقرير مخصص
-    const form = document.getElementById('customReportForm');
-    const formData = new FormData(form);
-    
-    const reportData = {};
-    for (let [key, value] of formData.entries()) {
-        reportData[key] = value;
-    }
-    
-    if (!reportData.report_type || !reportData.date_from || !reportData.date_to) {
-        Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى ملء جميع الحقول المطلوبة', icon: 'warning' });
-        return;
-    }
-    
-    Swal.fire({ title: 'تقرير', text: 'إنشاء تقرير مخصص: ' + JSON.stringify(reportData), icon: 'info' });
-}
-
-function filterReports(filter) {
-    const rows = document.querySelectorAll('#reportsTable tbody tr');
-    
-    rows.forEach(row => {
-        if (filter === 'all') {
-            row.style.display = '';
-        } else if (filter === 'recent') {
-            // تصفية التقارير الحديثة
-            row.style.display = '';
-        } else if (filter === 'favorite') {
-            // تصفية التقارير المفضلة
-            row.style.display = '';
-        }
-    });
-    
-    // تحديث أزرار التصفية
-    document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-outline-warning').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    event.target.classList.add('active');
-}
-
-function viewReport(reportId) {
-    Swal.fire({ title: 'عرض تقرير', text: 'عرض التقرير: ' + reportId, icon: 'info' });
-}
-
-function downloadReport(reportId) {
-    Swal.fire({ title: 'تحميل', text: 'تحميل التقرير: ' + reportId, icon: 'info' });
-}
-
-function shareReport(reportId) {
-    Swal.fire({ title: 'مشاركة', text: 'مشاركة التقرير: ' + reportId, icon: 'info' });
-}
-
-function deleteReport(reportId) {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد حذف هذا التقرير؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم حذف التقرير: ' + reportId, icon: 'success' }); } });
-}
-
-// إضافة تأثيرات تفاعلية
-document.addEventListener('DOMContentLoaded', function() {
-    // إضافة تأثير hover للصفوف
-    const rows = document.querySelectorAll('#reportsTable tbody tr');
-    rows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-        });
-        row.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
-        });
-    });
-});
-</script>
+<script src="{{ url_for('static', filename='js/pages/manager/reports.js') }}"></script>
 {% endblock %}

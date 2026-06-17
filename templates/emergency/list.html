@@ -4,14 +4,13 @@
 
 {% block extra_css %}
 <style>
-    .emergency-container {
+.emergency-container {
         background: white;
         border-radius: 15px;
         box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         padding: 2rem;
         margin-bottom: 2rem;
     }
-    
     .emergency-header {
         background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
         color: white;
@@ -20,7 +19,6 @@
         margin-bottom: 2rem;
         text-align: center;
     }
-    
     .stats-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -29,18 +27,15 @@
         text-align: center;
         margin-bottom: 2rem;
     }
-    
     .stats-number {
         font-size: 2.5rem;
         font-weight: bold;
         margin-bottom: 0.5rem;
     }
-    
     .stats-label {
         font-size: 1rem;
         opacity: 0.9;
     }
-    
     .emergency-card {
         background: white;
         border-radius: 15px;
@@ -50,38 +45,31 @@
         border-right: 5px solid #ff6b6b;
         transition: all 0.3s ease;
     }
-    
     .emergency-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     }
-    
     .priority-critical {
         border-right-color: #e74c3c;
         background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
     }
-    
     .priority-high {
         border-right-color: #f39c12;
         background: linear-gradient(135deg, #a8e6cf 0%, #88d8c0 100%);
     }
-    
     .priority-medium {
         border-right-color: #3498db;
         background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
     }
-    
     .priority-low {
         border-right-color: #2ecc71;
         background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
     }
-    
     .patient-info {
         display: flex;
         align-items: center;
         margin-bottom: 1rem;
     }
-    
     .patient-avatar {
         width: 50px;
         height: 50px;
@@ -94,50 +82,41 @@
         font-size: 1.5rem;
         margin-left: 1rem;
     }
-    
     .patient-details h6 {
         margin-bottom: 0.25rem;
         color: #2c3e50;
     }
-    
     .patient-details p {
         margin-bottom: 0;
         color: #6c757d;
         font-size: 0.875rem;
     }
-    
     .emergency-info {
         margin-bottom: 1rem;
     }
-    
     .emergency-info h6 {
         color: #2c3e50;
         margin-bottom: 0.5rem;
     }
-    
     .emergency-info p {
         color: #6c757d;
         margin-bottom: 0.5rem;
     }
-    
     .vital-signs {
         background: #f8f9fa;
         border-radius: 8px;
         padding: 1rem;
         margin-bottom: 1rem;
     }
-    
     .vital-signs h6 {
         color: #2c3e50;
         margin-bottom: 0.5rem;
     }
-    
     .vital-signs-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 0.5rem;
     }
-    
     .vital-sign {
         text-align: center;
         padding: 0.5rem;
@@ -145,18 +124,15 @@
         border-radius: 5px;
         border: 1px solid #e9ecef;
     }
-    
     .vital-sign-label {
         font-size: 0.75rem;
         color: #6c757d;
         margin-bottom: 0.25rem;
     }
-    
     .vital-sign-value {
         font-weight: 600;
         color: #2c3e50;
     }
-    
     .status-badge {
         padding: 0.5rem 1rem;
         border-radius: 20px;
@@ -164,22 +140,18 @@
         font-weight: 600;
         text-align: center;
     }
-    
     .status-active {
         background: #d4edda;
         color: #155724;
     }
-    
     .status-resolved {
         background: #cce5ff;
         color: #004085;
     }
-    
     .status-transferred {
         background: #fff3cd;
         color: #856404;
     }
-    
     .priority-badge {
         padding: 0.5rem 1rem;
         border-radius: 20px;
@@ -187,33 +159,27 @@
         font-weight: 600;
         text-align: center;
     }
-    
     .priority-critical {
         background: #f8d7da;
         color: #721c24;
     }
-    
     .priority-high {
         background: #fff3cd;
         color: #856404;
     }
-    
     .priority-medium {
         background: #cce5ff;
         color: #004085;
     }
-    
     .priority-low {
         background: #d4edda;
         color: #155724;
     }
-    
     .action-buttons {
         display: flex;
         gap: 0.5rem;
         flex-wrap: wrap;
     }
-    
     .btn-action {
         padding: 0.5rem 1rem;
         border-radius: 8px;
@@ -221,12 +187,10 @@
         font-weight: 600;
         transition: all 0.3s ease;
     }
-    
     .btn-action:hover {
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
-    
     .filters-card {
         background: white;
         border-radius: 15px;
@@ -234,25 +198,20 @@
         padding: 2rem;
         margin-bottom: 2rem;
     }
-    
     .filter-group {
         margin-bottom: 1rem;
     }
-    
     .filter-group label {
         font-weight: 600;
         color: #2c3e50;
         margin-bottom: 0.5rem;
     }
-    
     .search-box {
         position: relative;
     }
-    
     .search-box input {
         padding-right: 3rem;
     }
-    
     .search-box i {
         position: absolute;
         right: 1rem;
@@ -260,23 +219,19 @@
         transform: translateY(-50%);
         color: #6c757d;
     }
-    
     .pagination {
         justify-content: center;
         margin-top: 2rem;
     }
-    
     .page-link {
         color: #667eea;
         border-color: #667eea;
     }
-    
     .page-link:hover {
         color: #764ba2;
         background-color: #f8f9fa;
         border-color: #764ba2;
     }
-    
     .page-item.active .page-link {
         background-color: #667eea;
         border-color: #667eea;
@@ -492,9 +447,9 @@
                             <i class="fas fa-edit"></i> تعديل
                         </a>
                         {% if emergency.status == 'active' %}
-                        <form method="POST" action="{{ url_for('emergency.resolve_emergency_case', id=emergency.id) }}" style="display: inline;">
+                        <form method="POST" action="{{ url_for('emergency.resolve_emergency_case', id=emergency.id) }}" class="d-inline">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-outline-info btn-action" onclick="return confirmSubmit(event, 'هل أنت متأكد من حل هذه الحالة؟')">
+                            <button type="submit" class="btn btn-outline-info btn-action" data-action="confirm-submit" data-message="هل أنت متأكد من حل هذه الحالة؟">
                                 <i class="fas fa-check"></i> حل
                             </button>
                         </form>
@@ -561,19 +516,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    // تحديث الصفحة كل 30 ثانية للحالات النشطة
-    setInterval(function() {
-        if (document.querySelector('.status-active')) {
-            location.reload();
-        }
-    }, 30000);
-    
-    // فلترة سريعة
-    document.querySelectorAll('select[name="priority"], select[name="status"], select[name="doctor_id"], select[name="today"]').forEach(function(select) {
-        select.addEventListener('change', function() {
-            this.form.submit();
-        });
-    });
-</script>
+<script src="{{ url_for('static', filename='js/pages/emergency/list.js') }}"></script>
 {% endblock %}

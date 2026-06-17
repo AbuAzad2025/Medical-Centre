@@ -18,7 +18,7 @@
             صلاحيات النظام
         </h3>
         <div class="card-actions">
-            <button class="btn btn-primary" onclick="createPermission()">
+            <button class="btn btn-primary" data-action="create-permission">
                 <i class="fas fa-plus"></i>
                 إضافة صلاحية
             </button>
@@ -46,10 +46,10 @@
                             <td>{{ permission.created_at.strftime('%Y-%m-%d') if permission.created_at else '-' }}</td>
                             <td>
                                 <div class="btn-group btn-group-sm shadow-sm" role="group">
-                                    <button class="btn btn-primary" onclick="editPermission({{ permission.id }})" title="تعديل الصلاحية">
+                                    <button class="btn btn-primary" data-action="editPermission" data-permission-id="permission.id" title="تعديل الصلاحية">
                                         <i class="fas fa-edit"></i> <span class="btn-label">تعديل</span>
                                     </button>
-                                    <button class="btn btn-danger" onclick="deletePermission({{ permission.id }})" title="حذف الصلاحية">
+                                    <button class="btn btn-danger" data-action="deletePermission" data-permission-id="permission.id" title="حذف الصلاحية">
                                         <i class="fas fa-trash-alt"></i> <span class="btn-label">حذف</span>
                                     </button>
                                 </div>
@@ -71,11 +71,11 @@
 </div>
 
 <!-- Modal for creating/editing permission -->
-<div id="permissionModal" class="modal" style="display: none;">
+<div id="permissionModal" class="modal d-none">
     <div class="modal-content">
         <div class="modal-header">
             <h3 id="modalTitle">إضافة صلاحية جديدة</h3>
-            <span class="close" onclick="closeModal()">&times;</span>
+            <span class="close" data-action="close-modal">&times;</span>
         </div>
         <div class="modal-body">
             <form id="permissionForm" method="POST" action="{{ url_for('super_admin.create_permission') }}">
@@ -109,7 +109,7 @@
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">حفظ</button>
-                    <button type="button" class="btn btn-outline" onclick="closeModal()">إلغاء</button>
+                    <button type="button" class="btn btn-outline" data-action="close-modal">إلغاء</button>
                 </div>
             </form>
         </div>
@@ -118,56 +118,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-function createPermission() {
-    document.getElementById('modalTitle').textContent = 'إضافة صلاحية جديدة';
-    document.getElementById('permissionForm').reset();
-    document.getElementById('permissionModal').style.display = 'block';
-}
-
-function editPermission(id) {
-    document.getElementById('modalTitle').textContent = 'تعديل الصلاحية';
-    // هنا يمكن تحميل بيانات الصلاحية وتعبئة النموذج
-    document.getElementById('permissionModal').style.display = 'block';
-}
-
-function deletePermission(id) {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل أنت متأكد من حذف هذه الصلاحية؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم، حذف',
-        cancelButtonText: 'إلغاء'
-    }).then((res) => {
-        if (res.isConfirmed) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/super-admin/permissions/${id}/delete`;
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrf_token';
-            csrfInput.value = csrfToken;
-            form.appendChild(csrfInput);
-            document.body.appendChild(form);
-            form.submit();
-        }
-    });
-}
-
-function closeModal() {
-    document.getElementById('permissionModal').style.display = 'none';
-}
-
-// إغلاق النافذة المنبثقة عند النقر خارجها
-window.onclick = function(event) {
-    const modal = document.getElementById('permissionModal');
-    if (event.target == modal) {
-        closeModal();
-    }
-}
-</script>
+<script src="{{ url_for('static', filename='js/pages/super_admin/permissions.js') }}"></script>
 
 <style>
 .modal {
@@ -180,7 +131,6 @@ window.onclick = function(event) {
     background-color: rgba(0,0,0,0.5);
     backdrop-filter: blur(5px);
 }
-
 .modal-content {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
@@ -191,7 +141,6 @@ window.onclick = function(event) {
     max-width: 500px;
     box-shadow: var(--shadow-xl);
 }
-
 .modal-header {
     padding: 1.5rem;
     border-bottom: 1px solid var(--gray-200);
@@ -199,12 +148,10 @@ window.onclick = function(event) {
     justify-content: space-between;
     align-items: center;
 }
-
 .modal-header h3 {
     margin: 0;
     color: var(--gray-900);
 }
-
 .close {
     color: var(--gray-500);
     font-size: 28px;
@@ -212,15 +159,12 @@ window.onclick = function(event) {
     cursor: pointer;
     transition: color 0.3s ease;
 }
-
 .close:hover {
     color: var(--danger-color);
 }
-
 .modal-body {
     padding: 1.5rem;
 }
-
 .form-actions {
     display: flex;
     gap: 1rem;

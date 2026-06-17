@@ -1,11 +1,10 @@
 <style>
-    :root {
+:root {
         --luxury-gold: #D4AF37;
         --luxury-dark: #1a1f3a;
         --luxury-gradient: linear-gradient(135deg, #1a1f3a 0%, #2c3e50 100%);
         --luxury-gold-gradient: linear-gradient(135deg, #D4AF37 0%, #F2D06B 100%);
     }
-    
     .luxury-header {
         background: var(--luxury-gradient);
         border-bottom: 1px solid var(--luxury-gold);
@@ -17,7 +16,6 @@
         backdrop-filter: blur(10px);
         height: 60px; /* Fixed compact height */
     }
-    
     .luxury-brand {
         font-family: 'Amiri', serif;
         font-size: 1.2rem;
@@ -27,12 +25,10 @@
         align-items: center;
         gap: 10px;
     }
-    
     .luxury-brand img {
         height: 35px; /* Smaller logo */
         filter: drop-shadow(0 0 5px rgba(212,175,55,0.5));
     }
-    
     .luxury-nav-link {
         color: rgba(255,255,255,0.9) !important;
         font-weight: 500;
@@ -45,17 +41,14 @@
         gap: 6px;
         font-size: 0.9rem;
     }
-    
     .luxury-nav-link i {
         color: var(--luxury-gold);
     }
-    
     .luxury-nav-link:hover, .luxury-nav-link.active {
         background: rgba(212,175,55,0.15);
         color: var(--luxury-gold) !important;
         border: 1px solid rgba(212,175,55,0.3);
     }
-    
     .clock-widget {
         background: rgba(255,255,255,0.05);
         border: 1px solid rgba(212,175,55,0.3);
@@ -70,7 +63,6 @@
         gap: 8px;
         box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
     }
-    
     .user-profile-btn {
         background: rgba(255,255,255,0.05);
         border: 1px solid rgba(212,175,55,0.3);
@@ -84,12 +76,10 @@
         cursor: pointer;
         font-size: 0.9rem;
     }
-    
     .user-profile-btn:hover {
         background: rgba(212,175,55,0.2);
         box-shadow: 0 0 10px rgba(212,175,55,0.2);
     }
-
     .dropdown-menu-dark-luxury {
         background: #1a1f3a;
         border: 1px solid var(--luxury-gold);
@@ -107,20 +97,27 @@
     .dropdown-divider {
         border-top-color: rgba(255,255,255,0.1);
     }
+    .luxury-icon-gold { color: var(--luxury-gold); }
+    .luxury-icon-flag { color: var(--palestine-green); }
+    .luxury-icon-cyan { color: var(--medical-cyan); opacity: 0.7; }
+    .nav-subtitle { font-size: 0.75rem; opacity: 0.7; }
+    .notif-dot { width: 8px; height: 8px; }
+    .user-avatar-circle { width: 28px; height: 28px; font-size: 0.8rem; }
+    .dropdown-meta { font-size: 0.75rem; padding: 0.25rem 1rem; }
 </style>
 
 <header class="luxury-header d-flex align-items-center justify-content-between">
     <!-- Left Section: Toggle & Brand -->
     <div class="d-flex align-items-center">
         <button class="btn btn-link text-white p-0 me-3 d-lg-none" id="sidebarToggle" aria-label="فتح/إغلاق القائمة الجانبية"
-            onclick="const sb=document.querySelector('.luxury-sidebar');const ov=document.getElementById('sidebarOverlay');if(sb){sb.classList.toggle('show');}if(ov){ov.classList.toggle('active');}document.body.classList.toggle('sidebar-open');">
-            <i class="fas fa-bars fa-lg" style="color: var(--luxury-gold);"></i> <span class="btn-label">القائمة</span>
+            >
+            <i class="fas fa-bars fa-lg luxury-icon-gold"></i> <span class="btn-label">القائمة</span>
         </button>
         <a href="{{ url_for('main.dashboard') }}" class="luxury-brand">
             <img src="{{ branding.logo_path or url_for('static', filename='img/azad_logo.png') }}" alt="Logo">
             <span class="d-none d-md-block fw-bold">{{ branding.organization_name if branding else 'المركز الطبي' }}</span>
-            <span class="ms-2" style="font-size:0.75rem; opacity:0.7;" title="Palestinian Medical Platform">
-                <i class="fas fa-flag" style="color:var(--palestine-green);"></i>
+            <span class="ms-2 nav-subtitle" title="Palestinian Medical Platform">
+                <i class="fas fa-flag luxury-icon-flag"></i>
             </span>
         </a>
     </div>
@@ -140,21 +137,21 @@
     <div class="d-flex align-items-center gap-2">
         <!-- Notifications (Example) -->
         <button type="button" class="btn btn-link position-relative p-1 text-white opacity-75 hover-opacity-100" title="الإشعارات" aria-label="الإشعارات"><i class="fas fa-bell"></i> <span class="btn-label">إشعارات</span>
-            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="width: 8px; height: 8px;"></span>
+            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle notif-dot"></span>
         </button>
 
         <!-- User Dropdown -->
         <div class="dropdown">
             <button type="button" class="user-profile-btn dropdown-toggle text-decoration-none" data-bs-toggle="dropdown">
-                <div class="bg-gradient-warning text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.8rem;">
+                <div class="bg-gradient-warning text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold user-avatar-circle">
                     {{ current_user.full_name[0] if current_user.full_name else 'U' }}
                 </div>
                 <span class="d-none d-lg-block">{{ current_user.full_name.split()[0] if current_user.full_name else current_user.username }}</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark-luxury shadow-lg mt-2">
                 <li><h6 class="dropdown-header text-warning fw-bold">{{ current_user.role|upper }}</h6></li>
-                <li><span class="dropdown-item-text text-muted" style="font-size:0.75rem; padding:0.25rem 1rem;">
-                    <i class="fas fa-hospital me-1" style="color:var(--medical-cyan); opacity:0.7;"></i> AZAD Medical
+                <li><span class="dropdown-item-text text-muted dropdown-meta">
+                    <i class="fas fa-hospital me-1 luxury-icon-cyan"></i> AZAD Medical
                 </span></li>
                 <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-user-circle me-2"></i>الملف الشخصي</a></li>
                 <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-cog me-2"></i>الإعدادات</a></li>
@@ -170,18 +167,4 @@
     {% endif %}
 </header>
 
-<script>
-    function updateClock() {
-        const now = new Date();
-        const optionsDate = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', calendar: 'islamic-umalqura' }; // Islamic date if supported or locale default
-        const dateStr = now.toLocaleDateString('ar-SA', optionsDate);
-        const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        
-        document.getElementById('currentDate').textContent = dateStr;
-        document.getElementById('currentTime').textContent = timeStr;
-    }
-    
-    // Update every second
-    setInterval(updateClock, 1000);
-    updateClock(); // Initial call
-</script>
+<script src="{{ url_for('static', filename='js/pages/partials/_navbar.js') }}"></script>

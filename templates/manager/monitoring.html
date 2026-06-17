@@ -335,7 +335,6 @@
     border-radius: 0.35rem;
     background: #fff;
 }
-
 .status-icon {
     width: 50px;
     height: 50px;
@@ -347,32 +346,27 @@
     color: white;
     font-size: 1.2rem;
 }
-
 .status-info h6 {
     margin: 0;
     font-size: 0.9rem;
     color: #5a5c69;
 }
-
 .unit-card {
     border: 1px solid #e3e6f0;
     border-radius: 0.35rem;
     background: #fff;
     transition: all 0.3s ease;
 }
-
 .unit-card:hover {
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
     transform: translateY(-2px);
 }
-
 .unit-header {
     display: flex;
     align-items: center;
     padding: 1rem;
     border-bottom: 1px solid #e3e6f0;
 }
-
 .unit-icon {
     width: 40px;
     height: 40px;
@@ -385,21 +379,17 @@
     color: #5a5c69;
     font-size: 1.1rem;
 }
-
 .unit-name {
     margin: 0;
     font-size: 1rem;
     color: #5a5c69;
 }
-
 .unit-body {
     padding: 1rem;
 }
-
 .unit-stats {
     margin-bottom: 1rem;
 }
-
 .stat-item {
     display: flex;
     justify-content: space-between;
@@ -407,47 +397,38 @@
     padding: 0.5rem 0;
     border-bottom: 1px solid #f8f9fc;
 }
-
 .stat-item:last-child {
     border-bottom: none;
 }
-
 .stat-label {
     font-size: 0.9rem;
     color: #5a5c69;
 }
-
 .stat-value {
     font-weight: bold;
     color: #5a5c69;
 }
-
 .unit-actions {
     display: flex;
     gap: 0.5rem;
 }
-
 .metric-item {
     margin-bottom: 1.5rem;
 }
-
 .metric-label {
     font-size: 0.9rem;
     color: #5a5c69;
     margin-bottom: 0.5rem;
 }
-
 .metric-value {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
-
 .metric-value .progress {
     flex: 1;
     height: 8px;
 }
-
 .metric-text {
     font-weight: bold;
     color: #5a5c69;
@@ -456,110 +437,8 @@
 </style>
 
 <script>
-function refreshMonitoring() {
-    location.reload();
-}
-
-function exportMonitoringReport() {
-    const reportData = {
-        timestamp: new Date().toISOString(),
-        units: {{ units_status|tojson }},
-        performance: {
-            response_rate: 95,
-            uptime: 99.9,
-            memory_usage: 75,
-            disk_usage: 60
-        }
-    };
-    
-    const csvContent = "data:text/csv;charset=utf-8," 
-        + "الوحدة,الحالة,الإحصائيات\n"
-        + "الاستقبال,نشط," + ({{ units_status.reception.pending_visits }} || 0) + "\n"
-        + "الطبيب,نشط," + ({{ units_status.doctor.in_progress_visits }} || 0) + "\n"
-        + "الطوارئ,نشط," + ({{ units_status.emergency.emergency_visits }} || 0) + "\n"
-        + "المختبر,نشط," + ({{ units_status.lab.lab_requests }} || 0) + "\n"
-        + "الأشعة,نشط," + ({{ units_status.radiology.radiology_requests }} || 0) + "\n"
-        + "المحاسبة,نشط," + ({{ units_status.accountant.open_invoices }} || 0) + "\n";
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "monitoring_report_" + new Date().toISOString().split('T')[0] + ".csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function viewUnitDetails(unitKey) {
-    Swal.fire({ title: 'تفاصيل الوحدة', text: 'عرض تفاصيل الوحدة: ' + unitKey, icon: 'info' });
-}
-
-function refreshUnit(unitKey) {
-    Swal.fire({ title: 'تحديث', text: 'تحديث الوحدة: ' + unitKey, icon: 'info' });
-}
-
-function clearLogs() {
-    Swal.fire({
-        title: 'تأكيد',
-        text: 'هل تريد مسح جميع السجلات؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم',
-        cancelButtonText: 'إلغاء'
-    }).then((r) => { if (r.isConfirmed) { Swal.fire({ title: 'تم', text: 'تم مسح السجلات', icon: 'success' }); } });
-}
-
-function exportLogs() {
-    Swal.fire({ title: 'تم', text: 'تم تصدير السجلات', icon: 'success' });
-}
-
-// تحديث تلقائي كل دقيقة
-setInterval(function() {
-    // تحديث حالة الوحدات
-    fetch('{{ url_for("manager.monitoring") }}?ajax=true')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // تحديث البيانات في الصفحة
-                updateUnitStatus(data.units_status);
-            }
-        })
-        .catch(error => {
-            console.error('Error updating monitoring data:', error);
-        });
-}, 60000); // دقيقة واحدة
-
-function updateUnitStatus(unitsStatus) {
-    const map = {
-        reception: 'pending_visits',
-        doctor: 'in_progress_visits',
-        emergency: 'emergency_visits',
-        lab: 'lab_requests',
-        radiology: 'radiology_requests',
-        accountant: 'open_invoices'
-    };
-    Object.keys(unitsStatus).forEach(unitKey => {
-        const unit = unitsStatus[unitKey];
-        const statProp = map[unitKey];
-        const statEl = document.getElementById(`stat-${unitKey}-${statProp}`);
-        if (statEl) {
-            statEl.textContent = unit[statProp] ?? 0;
-        }
-        const badgeEl = document.getElementById(`badge-${unitKey}-status`);
-        if (badgeEl) {
-            const active = unit.status === 'active';
-            let cls = active ? 'bg-success' : 'bg-danger';
-            const val = unit[statProp] ?? 0;
-            if (active) {
-                if ((unitKey === 'lab' || unitKey === 'radiology') && val > 40) cls = 'bg-danger';
-                else if ((unitKey === 'lab' || unitKey === 'radiology') && val > 20) cls = 'bg-warning';
-                else if (unitKey === 'emergency' && val > 15) cls = 'bg-danger';
-                else if (unitKey === 'emergency' && val > 8) cls = 'bg-warning';
-            }
-            badgeEl.className = `badge ${cls}`;
-            badgeEl.textContent = active ? 'نشط' : 'معطل';
-        }
-    });
-}
-</script>
+        window.__M = window.__M || [];
+        __M0__={{ units_status|tojson }}; __M1__='{{ units_status.reception.pending_visits }}'; __M2__='{{ units_status.doctor.in_progress_visits }}'; __M3__='{{ units_status.emergency.emergency_visits }}'; __M4__='{{ units_status.lab.lab_requests }}'; __M5__='{{ units_status.radiology.radiology_requests }}'; __M6__='{{ units_status.accountant.open_invoices }}'; __M7__='{{ url_for("manager.monitoring") }}';
+        </script>
+<script src="{{ url_for('static', filename='js/pages/manager/monitoring.js') }}"></script>
 {% endblock %}
