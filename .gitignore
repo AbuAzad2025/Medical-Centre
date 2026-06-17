@@ -83,5 +83,5 @@ reports/
 tem*
 
 # Tests & Development (excluded from production)
-تست_وتطوير/
+dev/
 
