@@ -1,0 +1,31 @@
+{% macro audit_timeline(events) %}
+<div class="card mb-3">
+    <div class="card-header"><i class="fas fa-history me-1"></i> سجل الأحداث</div>
+    <div class="card-body p-0">
+        {% if events %}
+        <ul class="list-group list-group-flush">
+            {% for event in events %}
+            <li class="list-group-item py-2">
+                <div class="d-flex justify-content-between">
+                    <small>
+                        {% if event.from_status %}
+                        <span class="badge bg-secondary">{{ event.from_status }}</span>
+                        <i class="fas fa-arrow-left mx-1"></i>
+                        {% endif %}
+                        <span class="badge bg-primary">{{ event.to_status }}</span>
+                    </small>
+                    <small class="text-muted">
+                        {{ event.created_at.strftime('%Y-%m-%d %H:%M') if event.created_at else '' }}
+                        {% if event.performer %}- {{ event.performer.full_name }}{% endif %}
+                    </small>
+                </div>
+                {% if event.notes %}<small class="text-muted d-block mt-1">{{ event.notes }}</small>{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted text-center py-3 mb-0">لا توجد أحداث مسجلة</p>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}

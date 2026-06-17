@@ -1,0 +1,7 @@
+{% macro billing_status_badge(billing_state) %}
+{%- set colors = {'unbilled': 'secondary', 'partial': 'warning', 'paid': 'success', 'overpaid': 'info', 'refunded': 'danger', 'debt': 'danger', 'cancelled': 'secondary'} %}
+{%- set labels = {'unbilled': 'غير مفوترة', 'partial': 'مدفوع جزئياً', 'paid': 'مدفوع', 'overpaid': 'مدفوع أكثر', 'refunded': 'مسترجع', 'debt': 'ديون', 'cancelled': 'ملغي'} %}
+<span class="badge bg-{{ colors.get(billing_state, 'secondary') }}">
+    {{ labels.get(billing_state, billing_state) }}
+</span>
+{% endmacro %}
