@@ -79,7 +79,7 @@ medical_system.db
 # Local Artifacts
 debug/
 scripts/manual_tests/
-reports/*.txt
+reports/
 tem*
 
 # Tests & Development (excluded from production)
