@@ -85,5 +85,7 @@ tests/
 
 # Tests & Development (excluded from production)
 dev/
+test_*.py
+test_*.html
 
 .tests_deleted/

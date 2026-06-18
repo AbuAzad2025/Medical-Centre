@@ -29,5 +29,5 @@ function generateReport() {
     });
     html += '</tbody></table>';
     el.innerHTML = html;
-  });
+  }).catch(err => console.error('فشل إنشاء التقرير:', err));
 }

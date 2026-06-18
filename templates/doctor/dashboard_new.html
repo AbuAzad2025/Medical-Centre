@@ -44,6 +44,16 @@
                 <td><span class="badge bg-warning">{{ v.status }}</span></td>
                 <td><a href="/doctor/visit/{{ v.id }}" class="btn btn-sm btn-primary">فحص</a></td>
             </tr>
+            {% else %}
+            <tr>
+                <td colspan="4">
+                    <div class="empty-state-smart">
+                        <div class="empty-icon-wrap"><i class="fas fa-user-injured"></i></div>
+                        <h5>لا يوجد مرضى في قائمة الانتظار</h5>
+                        <p>قائمة الانتظار فارغة حالياً.</p>
+                    </div>
+                </td>
+            </tr>
             {% endfor %}
             </tbody>
         </table>

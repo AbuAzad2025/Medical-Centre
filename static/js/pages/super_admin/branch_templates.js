@@ -5,20 +5,20 @@ if (saveBtn) {
     let items = [];
     try {
       items = JSON.parse(document.getElementById('templatesJson').value || '[]');
+      const r = await fetch(__M0__, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items })
+      });
+      const data = await r.json().catch(() => ({}));
+      if (data.success) {
+        alert('تم حفظ القوالب');
+      } else {
+        alert('تعذر الحفظ');
+      }
     } catch (e) {
       alert('صيغة JSON غير صحيحة');
       return;
-    }
-    const r = await fetch(__M0__, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items })
-    });
-    const data = await r.json().catch(() => ({}));
-    if (data.success) {
-      alert('تم حفظ القوالب');
-    } else {
-      alert('تعذر الحفظ');
     }
   });
 }

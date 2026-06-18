@@ -59,8 +59,7 @@
                 </tr>
               </thead>
               <tbody>
-                {% if results %}
-                  {% for row in results %}
+                {% for row in results %}
                   <tr>
                     <td>{{ loop.index }}</td>
                     <td>{{ row.full_name }}</td>
@@ -91,12 +90,17 @@
                       </a>
                     </td>
                   </tr>
-                  {% endfor %}
                 {% else %}
                   <tr>
-                    <td colspan="10" class="text-center text-muted">لا توجد نتائج. جرّب توسيع البحث.</td>
+                    <td colspan="10">
+                      <div class="empty-state-smart">
+                        <div class="empty-icon-wrap"><i class="fas fa-users"></i></div>
+                        <h5>لا يوجد مرضى</h5>
+                        <p>لم يتم العثور على مرضى مطابقين لمعايير البحث.</p>
+                      </div>
+                    </td>
                   </tr>
-                {% endif %}
+                {% endfor %}
               </tbody>
             </table>
           </div>

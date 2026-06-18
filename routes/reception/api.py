@@ -32,6 +32,8 @@ from services.pos_terminal_service import PosTerminalService
 # API ROUTES
 # ═══════════════════════════════════════
 
+@reception_bp.route('/api/doctors')
+@login_required
 def api_doctors():
     """API لجلب الأطباء"""
     if current_user.role not in ['reception', 'super_admin', 'manager']:
@@ -115,7 +117,7 @@ def api_department_staff():
         logging.error(f"Error getting department staff: {str(e)}")
         return jsonify({'error': 'حدث خطأ في جلب الموظفين'}), 500
 
-@reception_bp.route('/api/visit-pricing')
+@reception_bp.route('/api/department-services')
 @login_required
 
 def api_department_services():
@@ -159,7 +161,7 @@ def api_department_services():
     }
     return jsonify(resp)
 
-@reception_bp.route('/api/available-times')
+@reception_bp.route('/api/queue-department-status/<int:department_id>')
 @login_required
 
 def api_queue_status(department_id):

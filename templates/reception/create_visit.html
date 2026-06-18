@@ -521,8 +521,6 @@
 </style>
 
 <script>window.__M=window.__M||[];__M0__={{ (preselected_patient_id or 'null')|tojson }};__M1__={{ (preselected_department_id or 'null')|tojson }};__M2__={{ (preselected_doctor_id or 'null')|tojson }};__M3__={{ preselected_patient|tojson if preselected_patient else 'null' }};</script>
-<script src="{{ url_for('static', filename='js/pages/reception/create_visit.js') }}"></script>
-
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>

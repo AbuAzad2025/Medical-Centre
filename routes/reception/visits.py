@@ -25,6 +25,7 @@ from app_factory import db
 import logging
 from services.access_control_service import AccessControlService
 from services.pos_terminal_service import PosTerminalService
+from routes.reception.queue import add_patient_to_queue_auto
 
 
 
@@ -32,9 +33,11 @@ from services.pos_terminal_service import PosTerminalService
 # VISIT ROUTES
 # ═══════════════════════════════════════
 
+@reception_bp.route('/visits')
+@login_required
+@role_required('reception', 'super_admin', 'manager')
 def visits():
     """قائمة الزيارات - الوحدة المركزية"""
-    # التحقق من الصلاحيات
     
     
     # البحث والفلترة
@@ -189,7 +192,7 @@ def export_visits():
         }
     )
 
-@reception_bp.route('/api/pos/charge', methods=['POST'])
+@reception_bp.route('/visits/<int:visit_id>/transfer', methods=['POST'])
 @login_required
 
 def transfer_visit(visit_id):
@@ -210,9 +213,6 @@ def transfer_visit(visit_id):
         status = 409
     return jsonify({'success': False, 'message': msg}), status
 
-@reception_bp.route('/visits/create', methods=['GET', 'POST'])
-@login_required
-@can_create_visits
 def _process_custom_services(custom_names, custom_prices, department_id, current_user):
     """إنشاء خدمات يدوية غير مدرجة وإرجاع قائمة معرفات الخدمات"""
     ids = []
@@ -274,6 +274,9 @@ def _calculate_visit_tax(visit, tax_type):
         visit.total_amount = round(float(visit.total_amount) + tax_val, 2)
 
 
+@reception_bp.route('/visits/create', methods=['GET', 'POST'])
+@login_required
+@can_create_visits
 def create_visit():
     """إنشاء زيارة جديدة - الوحدة المركزية المحسّنة"""
     
@@ -737,14 +740,9 @@ def create_visit():
                          preselected_doctor_id=preselected_doctor_id,
                          preselected_patient=preselected_patient)
 
-@reception_bp.route('/appointments')
+@reception_bp.route('/view_visit/<int:visit_id>')
 @login_required
-# ══════════════════════
-# SECTION: APPOINTMENTS
-# ══════════════════════
-
-
-
+@role_required('reception', 'super_admin', 'manager')
 def view_visit(visit_id):
     """عرض تفاصيل الزيارة - الوحدة المركزية"""
     if current_user.role not in ['reception', 'manager']:
@@ -757,13 +755,8 @@ def view_visit(visit_id):
         return redirect(url_for('reception.queue_management'))
     return render_template('reception/visits.html', visit=visit, mode='view')
 
-@reception_bp.route('/process_payment/<int:visit_id>', methods=['POST'])
+@reception_bp.route('/api/visit-pricing')
 @login_required
-# ══════════════════════
-# SECTION: PAYMENTS
-# ══════════════════════
-
-
 
 def api_visit_pricing():
     """API لحساب تكلفة الزيارة حسب إعدادات المدير"""
@@ -927,9 +920,6 @@ def get_pricing_details(department_id, doctor_id, visit_type, is_emergency, paym
         logging.error(f"Error getting pricing details: {str(e)}")
         return {}
 
-@reception_bp.route('/api/department-services')
-@login_required
-
 def calculate_visit_cost(department_id, doctor_id, visit_type, is_emergency, payment_method='cash'):
     """حساب تكلفة الزيارة تلقائياً حسب إعدادات المدير"""
     try:
@@ -1056,6 +1046,8 @@ def calculate_doctor_cost(doctor_id, department_id, visit_type, is_emergency, pa
         return 0
 
 
+@reception_bp.route('/edit_visit/<int:visit_id>', methods=['GET', 'POST'])
+@login_required
 def edit_visit(visit_id):
     if current_user.role not in ['reception', 'manager']:
         flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')

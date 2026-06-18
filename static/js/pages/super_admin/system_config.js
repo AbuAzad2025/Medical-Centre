@@ -128,7 +128,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     tbody.appendChild(tr);
                 });
             }
-        });
+        })
+        .catch(function(err) { console.error('خطأ:', err); });
 
     document.getElementById('saveDeptQueueSettings').addEventListener('click', function() {
         const rows = document.querySelectorAll('#deptQueueTable tbody tr');
@@ -152,6 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({ items })
         })
         .then(r => r.json())
-        .then(d => { if (d.success) { Swal.fire({ title: 'تم', text: 'تم حفظ إعدادات الأقسام بنجاح', icon: 'success' }); } else { Swal.fire({ title: 'خطأ', text: 'فشل حفظ إعدادات الأقسام', icon: 'error' }); } });
+        .then(d => { if (d.success) { Swal.fire({ title: 'تم', text: 'تم حفظ إعدادات الأقسام بنجاح', icon: 'success' }); } else { Swal.fire({ title: 'خطأ', text: 'فشل حفظ إعدادات الأقسام', icon: 'error' }); } })
+        .catch(function(err) { console.error('خطأ:', err); });
     });
 });

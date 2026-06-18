@@ -120,7 +120,7 @@
                     <div class="mt-3 d-flex gap-2">
                         <form method="post" action="{{ url_for('reception.process_payment', visit_id=visit.id) }}" class="d-inline">
                             {{ forms.csrf() }}
-                            <button type="submit" class="btn btn-outline-success">
+                            <button type="submit" class="btn btn-outline-success" data-confirm="هل أنت متأكد من إرسال الفاتورة للمحاسبة؟">
                                 <i class="fas fa-share-square me-1"></i> إرسال للمحاسبة
                             </button>
                         </form>
@@ -309,7 +309,7 @@
                                             {% if visit.payment_status == 'PENDING' %}
                                             <form method="post" action="{{ url_for('reception.process_payment', visit_id=visit.id) }}" class="d-inline">
                                                 {{ forms.csrf() }}
-                                                <button type="submit" class="btn btn-sm btn-outline-success" title="إرسال للمحاسبة">
+                                                <button type="submit" class="btn btn-sm btn-outline-success" title="إرسال للمحاسبة" data-confirm="هل أنت متأكد من إرسال الفاتورة للمحاسبة؟">
                                                     <i class="fas fa-share-square"></i> <span class="btn-label">زر</span>
                                                 </button>
                                             </form>
@@ -328,7 +328,7 @@
                                             {% if visit.status == 'COMPLETED' %}
                                             <form method="POST" action="{{ url_for('reception.archive_visit', visit_id=visit.id) }}" class="d-inline">
                                                 {{ forms.csrf() }}
-                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="أرشفة">
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="أرشفة" data-confirm="هل أنت متأكد من أرشفة الزيارة؟">
                                                     <i class="fas fa-archive"></i> <span class="btn-label">أرشيف</span>
                                                 </button>
                                             </form>

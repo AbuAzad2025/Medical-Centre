@@ -188,10 +188,10 @@
                         <div class="text-muted small">عرض {{ visits|length }} عنصر</div>
                         <div class="btn-group">
                             <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
-                               href="{{ url_for('accountant.pending_payments', page=page-1) }}">السابق</a>
+                               href="{{ url_for('accountant.invoices', page=page-1) }}">السابق</a>
                             <span class="btn btn-outline-secondary">Page {{ page }} of {{ pages if pages > 0 else 1 }}</span>
                             <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
-                               href="{{ url_for('accountant.pending_payments', page=page+1) }}">التالي</a>
+                               href="{{ url_for('accountant.invoices', page=page+1) }}">التالي</a>
                         </div>
                     </div>
                 </div>

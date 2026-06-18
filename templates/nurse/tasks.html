@@ -143,7 +143,7 @@
                             <form method="POST" action="{{ url_for('nurse.update_task_status', task_id=t.id) }}">
                               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                               <input type="hidden" name="status" value="cancelled">
-                              <button class="btn btn-sm btn-outline-danger" type="submit">إلغاء</button>
+                              <button class="btn btn-sm btn-outline-danger" type="submit" data-confirm="هل أنت متأكد من إلغاء المهمة؟">إلغاء</button>
                             </form>
                           {% endif %}
                         </div>

@@ -200,7 +200,7 @@
                                 </div>
                             </div>
                             <div class="d-flex gap-2 mt-3">
-                                <a class="btn btn-sm btn-outline-secondary w-100" href="{{ url_for('manager.monitoring') }}">المراقبة</a>
+                                <a class="btn btn-sm btn-outline-secondary w-100" href="{{ url_for('manager.analytics') }}">المراقبة</a>
                                 <a class="btn btn-sm btn-outline-primary w-100" href="{{ url_for('manager.kpi_dashboard') }}">مؤشرات الأداء</a>
                             </div>
                         </div>
@@ -234,7 +234,15 @@
                                             <td>{{ "%.1f"|format(r.avg_minutes_30d) }}</td>
                                         </tr>
                                         {% else %}
-                                        <tr><td colspan="4" class="text-center text-muted py-4">لا بيانات</td></tr>
+                                        <tr>
+                                            <td colspan="4">
+                                                <div class="empty-state-smart">
+                                                    <div class="empty-icon-wrap"><i class="fas fa-sitemap"></i></div>
+                                                    <h5>لا توجد بيانات</h5>
+                                                    <p>لا توجد بيانات أداء للأقسام متاحة حالياً.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -267,7 +275,15 @@
                                             <td>{{ "%.1f"|format(r.avg_minutes_30d) }}</td>
                                         </tr>
                                         {% else %}
-                                        <tr><td colspan="3" class="text-center text-muted py-4">لا بيانات</td></tr>
+                                        <tr>
+                                            <td colspan="3">
+                                                <div class="empty-state-smart">
+                                                    <div class="empty-icon-wrap"><i class="fas fa-user-md"></i></div>
+                                                    <h5>لا توجد بيانات</h5>
+                                                    <p>لا توجد بيانات أداء للأطباء متاحة حالياً.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -350,6 +366,12 @@
                                 </h6>
                                 <p class="mb-1">{{ insight.description }}</p>
                                 <small class="text-muted">التوصية: {{ insight.recommendation }}</small>
+                            </div>
+                            {% else %}
+                            <div class="empty-state-smart">
+                                <div class="empty-icon-wrap"><i class="fas fa-lightbulb"></i></div>
+                                <h5>لا توجد رؤى</h5>
+                                <p>لا توجد رؤى أعمال متاحة حالياً. ستظهر هنا عندما تتوفر بيانات كافية للتحليل.</p>
                             </div>
                             {% endfor %}
                         </div>

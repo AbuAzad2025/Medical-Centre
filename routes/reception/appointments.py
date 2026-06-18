@@ -25,6 +25,7 @@ from app_factory import db
 import logging
 from services.access_control_service import AccessControlService
 from services.pos_terminal_service import PosTerminalService
+from routes.reception.queue import add_patient_to_queue_auto
 
 
 
@@ -32,6 +33,9 @@ from services.pos_terminal_service import PosTerminalService
 # APPOINTMENT ROUTES
 # ═══════════════════════════════════════
 
+@reception_bp.route('/online-bookings/checkin', methods=['POST'])
+@login_required
+@role_required('reception', 'super_admin', 'manager')
 def checkin_online_booking():
     booking_id = request.form.get('booking_id', type=int)
     booking_reference = (request.form.get('booking_reference') or '').strip().upper() or None
@@ -227,14 +231,9 @@ def checkin_appointment(appointment_id: int):
     xreq = (request.headers.get('X-Requested-With') or '').lower()
     return ('application/json' in accept) or (xreq == 'xmlhttprequest')
 
-@reception_bp.route('/visits')
+@reception_bp.route('/appointments')
 @login_required
 @role_required('reception', 'manager')
-# ---------------------------------------
-# SECTION: VISITS
-# ---------------------------------------
-
-
 
 def appointments():
     """قائمة المواعيد - الوحدة المركزية"""
@@ -526,14 +525,9 @@ def create_appointment():
                          follow_up_id=follow_up_id,
                          today=today)
 
-@reception_bp.route('/staff/schedule', methods=['GET', 'POST'])
+@reception_bp.route('/view_appointment/<int:appointment_id>')
 @login_required
-# ══════════════════════
-# SECTION: STAFF
-# ══════════════════════
-
-
-
+@role_required('reception', 'super_admin', 'manager')
 def view_appointment(appointment_id):
     """عرض تفاصيل الموعد - الوحدة المركزية"""
     if current_user.role not in ['reception', 'super_admin', 'manager']:
@@ -674,7 +668,7 @@ def edit_appointment(appointment_id):
 
 # API endpoints للاستقبال
 
-@reception_bp.route('/api/doctors')
+@reception_bp.route('/api/available-times')
 @login_required
 
 def api_available_times():

@@ -16,7 +16,15 @@
             <td><span class="badge bg-secondary">{{ i.status }}</span></td>
           </tr>
         {% else %}
-          <tr><td colspan="3" class="text-muted text-center">لا يوجد فواتير</td></tr>
+          <tr>
+            <td colspan="3">
+              <div class="empty-state-smart">
+                <div class="empty-icon-wrap"><i class="fas fa-file-invoice"></i></div>
+                <h5>لا توجد فواتير</h5>
+                <p>لا توجد فواتير متاحة حالياً.</p>
+              </div>
+            </td>
+          </tr>
         {% endfor %}
         </tbody>
       </table>
@@ -35,7 +43,15 @@
             <td>{{ p.payment_method or '-' }}</td>
           </tr>
         {% else %}
-          <tr><td colspan="3" class="text-muted text-center">لا يوجد مدفوعات</td></tr>
+          <tr>
+            <td colspan="3">
+              <div class="empty-state-smart">
+                <div class="empty-icon-wrap"><i class="fas fa-credit-card"></i></div>
+                <h5>لا توجد مدفوعات</h5>
+                <p>لا توجد مدفوعات متاحة حالياً.</p>
+              </div>
+            </td>
+          </tr>
         {% endfor %}
         </tbody>
       </table>

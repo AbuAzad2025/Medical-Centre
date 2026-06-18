@@ -21,31 +21,35 @@ function intInput(value, min, max) {
 }
 
 async function loadSettings() {
-  const r = await fetch(`__M0__?action=load`, { method: 'GET' });
-  const data = await r.json().catch(() => ({}));
-  if (!data || !data.success) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">فشل التحميل</td></tr>';
-    return;
-  }
-  const items = Array.isArray(data.items) ? data.items : [];
-  tbody.innerHTML = '';
-  items.forEach(it => {
-    const tr = document.createElement('tr');
-    tr.dataset.departmentId = it.department_id;
-    tr.innerHTML = `
-      <td class="ps-3 fw-semibold">${String(it.department_name || it.department_id)}</td>
-      <td>${intInput(it.max_queue_size, 1, 999)}</td>
-      <td>${boolSelect(it.payment_required)}</td>
-      <td>${boolSelect(it.emergency_payment_waived)}</td>
-      <td>${boolSelect(it.force_entry_allowed)}</td>
-      <td>${intInput(it.average_wait_time, 0, 999)}</td>
-      <td>${boolSelect(it.allow_partial_payment)}</td>
-      <td>${boolSelect(it.allow_debt)}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-  if (items.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">لا بيانات</td></tr>';
+  try {
+    const r = await fetch(`__M0__?action=load`, { method: 'GET' });
+    const data = await r.json().catch(() => ({}));
+    if (!data || !data.success) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">فشل التحميل</td></tr>';
+      return;
+    }
+    const items = Array.isArray(data.items) ? data.items : [];
+    tbody.innerHTML = '';
+    items.forEach(it => {
+      const tr = document.createElement('tr');
+      tr.dataset.departmentId = it.department_id;
+      tr.innerHTML = `
+        <td class="ps-3 fw-semibold">${String(it.department_name || it.department_id)}</td>
+        <td>${intInput(it.max_queue_size, 1, 999)}</td>
+        <td>${boolSelect(it.payment_required)}</td>
+        <td>${boolSelect(it.emergency_payment_waived)}</td>
+        <td>${boolSelect(it.force_entry_allowed)}</td>
+        <td>${intInput(it.average_wait_time, 0, 999)}</td>
+        <td>${boolSelect(it.allow_partial_payment)}</td>
+        <td>${boolSelect(it.allow_debt)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    if (items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">لا بيانات</td></tr>';
+    }
+  } catch (err) {
+    console.error('خطأ في الاتصال:', err);
   }
 }
 
@@ -77,23 +81,27 @@ if (saveBtn) {
   saveBtn.addEventListener('click', async function () {
     saveBtn.disabled = true;
     const payload = collectSettings();
-    const r = await fetch(`__M1__`, {
-      method: 'POST',
-      headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-      body: JSON.stringify(payload)
-    });
-    saveBtn.disabled = false;
-    if (!r.ok) {
+    try {
+      const r = await fetch(`__M1__`, {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        body: JSON.stringify(payload)
+      });
+      saveBtn.disabled = false;
+      if (!r.ok) {
+        window.alert('فشل الحفظ');
+        return;
+      }
+      const data = await r.json().catch(() => ({}));
+      if (data && data.success) {
+        window.alert('تم الحفظ');
+        loadSettings();
+        return;
+      }
       window.alert('فشل الحفظ');
-      return;
+    } catch (err) {
+      console.error('خطأ في الاتصال:', err);
     }
-    const data = await r.json().catch(() => ({}));
-    if (data && data.success) {
-      window.alert('تم الحفظ');
-      loadSettings();
-      return;
-    }
-    window.alert('فشل الحفظ');
   });
 }
 

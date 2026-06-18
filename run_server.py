@@ -4,6 +4,7 @@
 import sys
 import logging
 import os
+import io
 from dotenv import load_dotenv
 
 # تحميل متغيرات البيئة من .env
@@ -11,6 +12,10 @@ load_dotenv()
 
 from app_factory import create_app, socketio
 import threading, time
+
+# Force UTF-8 encoding on stdout/stderr to handle emoji in log messages
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # إعداد logging
 logging.basicConfig(

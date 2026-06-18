@@ -26,6 +26,18 @@ from app_factory import db
 import logging
 from services.access_control_service import AccessControlService
 from services.pos_terminal_service import PosTerminalService
+from routes.reception.queue import (
+    get_smart_queue_management,
+    get_patient_flow_analysis,
+    get_appointment_optimization,
+    get_real_time_alerts,
+    calculate_queue_efficiency,
+    get_workflow_automation,
+    get_patient_satisfaction_ai,
+    get_resource_planning,
+    get_smart_recommendations,
+    get_patient_demand_forecast,
+)
 
 
 
@@ -33,6 +45,8 @@ from services.pos_terminal_service import PosTerminalService
 # DASHBOARD ROUTES
 # ═══════════════════════════════════════
 
+@reception_bp.route('/')
+@login_required
 def index():
     """توجيه تلقائي إلى لوحة التحكم"""
     return redirect(url_for('reception.dashboard'))
@@ -114,7 +128,7 @@ def dashboard():
                          stats=stats,
                          patient_demand_forecast=patient_demand_forecast)
 
-@reception_bp.route('/display/waiting')
+@reception_bp.route('/staff/schedule', methods=['GET', 'POST'])
 @login_required
 @role_required('reception', 'super_admin', 'manager')
 
@@ -189,9 +203,7 @@ def reception_staff_absence():
 
 
 
-@reception_bp.route('/view_visit/<int:visit_id>')
-@login_required
-
+@reception_bp.route('/survey/<token>', methods=['GET', 'POST'])
 def survey(token):
     try:
         from models.patient_satisfaction import PatientSatisfactionSurvey

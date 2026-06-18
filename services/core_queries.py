@@ -20,7 +20,8 @@ if TYPE_CHECKING:
     from models.invoice import Invoice
     from models.appointment import Appointment
     from models.lab_request import LabRequest, LabResult
-    from models.radiology_request import RadiologyRequest, RadiologyResult
+    from models.radiology_request import RadiologyRequest
+    from models.radiology_test import RadiologyResult
     from models.medication import Medication, Prescription
     from models.emergency import EmergencyCase
 
@@ -248,7 +249,7 @@ class CoreQueryService:
 
     @staticmethod
     def get_radiology_results_ready(patient_id: int | None = None) -> list[RadiologyResult]:
-        from models.radiology_request import RadiologyResult
+        from models.radiology_test import RadiologyResult
         q = RadiologyResult.query.filter_by(status="COMPLETED")
         if patient_id:
             q = q.join(RadiologyRequest).filter(RadiologyRequest.patient_id == patient_id)
