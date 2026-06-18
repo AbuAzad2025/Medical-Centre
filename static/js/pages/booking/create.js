@@ -17,7 +17,7 @@ function loadDoctors(){
       sel.appendChild(o);
     });
     loadTimes();
-  });
+  }).catch(err => console.error('فشل تحميل الأطباء:', err));
 }
 
 function loadTimes(){
@@ -39,7 +39,7 @@ function loadTimes(){
       if (current && String(t) === String(current)) o.selected = true;
       sel.appendChild(o);
     });
-  });
+  }).catch(err => console.error('فشل تحميل المواعيد:', err));
 }
 
 function loadSmartSlots(){
@@ -61,7 +61,7 @@ function loadSmartSlots(){
         sel.value = list[0];
       }
     }
-  });
+  }).catch(err => console.error('فشل تحميل الأوقات المقترحة:', err));
 }
 
 document.addEventListener('DOMContentLoaded', () => {

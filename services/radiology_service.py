@@ -51,7 +51,8 @@ class RadiologyService:
 
     @staticmethod
     def get_results_for_request(request_id: int) -> Any | None:
-        from models.radiology_request import RadiologyResult, RadiologyRequest
+        from models.radiology_test import RadiologyResult
+        from models.radiology_request import RadiologyRequest
         req = RadiologyRequest.query.get(request_id)
         if req and req.results:
             return req.results[0]
@@ -80,7 +81,8 @@ class RadiologyService:
     @staticmethod
     def create_or_update_result(request_id: int, report_text: str,
                                 conclusion: str | None = None, is_critical: bool = False) -> Any | None:
-        from models.radiology_request import RadiologyRequest, RadiologyResult
+        from models.radiology_test import RadiologyResult
+        from models.radiology_request import RadiologyRequest
         try:
             req = RadiologyRequest.query.get(request_id)
             if not req:

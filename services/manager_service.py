@@ -35,11 +35,15 @@ class ManagerService:
 
     @staticmethod
     def get_financial_summary(period: str = "monthly") -> dict:
-        from models.invoice import Invoice, Payment, Expense
+        from models.invoice import Invoice, Payment
+        try:
+            from models.invoice import Expense
+        except ImportError:
+            Expense = None
         try:
             total_billed = db.session.query(func.coalesce(func.sum(Invoice.total_amount), 0)).scalar()
             total_collected = db.session.query(func.coalesce(func.sum(Payment.amount), 0)).scalar()
-            total_expenses = db.session.query(func.coalesce(func.sum(Expense.amount), 0)).scalar()
+            total_expenses = db.session.query(func.coalesce(func.sum(Expense.amount), 0)).scalar() if Expense is not None else 0
             return {
                 "total_billed": float(total_billed),
                 "total_collected": float(total_collected),

@@ -30,7 +30,7 @@
                 <a class="btn btn-sm btn-secondary" href="{{ url_for('backup.download_backup', backup_id=b.id) }}">تحميل</a>
                 <form method="post" action="{{ url_for('backup.delete_backup', backup_id=b.id) }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button class="btn btn-sm btn-danger">حذف</button>
+                  <button class="btn btn-sm btn-danger" data-confirm="هل أنت متأكد من حذف النسخة الاحتياطية؟">حذف</button>
                 </form>
               </td>
             </tr>

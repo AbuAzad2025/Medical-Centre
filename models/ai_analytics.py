@@ -306,3 +306,19 @@ class PatientInsight(db.Model):
             'acknowledged_at': self.acknowledged_at.isoformat() if self.acknowledged_at else None,
             'created_at': self.created_at.isoformat()
         }
+
+
+class ModelPrediction(db.Model):
+    __tablename__ = 'model_predictions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    model_name = db.Column(db.String(100), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)
+    input_data = db.Column(db.Text, nullable=True)
+    output_data = db.Column(db.Text, nullable=True)
+    confidence_score = db.Column(db.Float, nullable=True)
+    is_accepted = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    accepted_at = db.Column(db.DateTime, nullable=True)
+
+    patient = db.relationship('Patient', backref='model_predictions')

@@ -32,6 +32,8 @@ from services.pos_terminal_service import PosTerminalService
 # PAYMENT ROUTES
 # ═══════════════════════════════════════
 
+@reception_bp.route('/pos/charge', methods=['POST'])
+@login_required
 def pos_charge():
     if current_user.role not in ['accountant', 'super_admin']:
         return jsonify({'success': False, 'message': 'غير مصرح'}), 403
@@ -46,7 +48,7 @@ def pos_charge():
         logging.error(f"POS charge error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر تنفيذ عملية الدفع حالياً'}), 500
 
-@reception_bp.route('/visits/<int:visit_id>/transfer', methods=['POST'])
+@reception_bp.route('/visits/<int:visit_id>/send-to-accounting', methods=['POST'])
 @login_required
 
 def process_payment(visit_id):
@@ -217,9 +219,6 @@ def print_prescription(prescription_id):
         return redirect(url_for('reception.queue_management'))
     return render_template('print/prescription.html', prescription=prescription)
 
-@reception_bp.route('/view_appointment/<int:appointment_id>')
-@login_required
-
 def get_payment_methods():
     """جلب طرق الدفع المتاحة"""
     return [
@@ -251,25 +250,15 @@ def validate_payment_data(payment_method, form_data):
 
 
 
-@reception_bp.route('/queue/save-settings/<int:department_id>', methods=['POST'])
+@reception_bp.route('/payments')
 @login_required
-@AccessControlService.require_permission('queue_settings_manage')
-
+@role_required('reception', 'super_admin', 'manager')
 def payments():
-    """المدفوعات"""
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
-    
+    """المدفوعات"""   
     return render_template('accountant/payments.html')
 
-@reception_bp.route('/survey/<token>', methods=['GET', 'POST'])
-# ══════════════════════
-# SECTION: SURVEY & CLOSE
-# ══════════════════════
-
-
-
+@reception_bp.route('/cash-register', methods=['GET', 'POST'])
+@login_required
 def cash_register():
     """سجل الصندوق اليومي"""
     from models.cash_register import CashRegister

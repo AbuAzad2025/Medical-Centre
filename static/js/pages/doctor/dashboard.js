@@ -35,11 +35,15 @@ function renderSettings(items) {
 }
 
 async function loadLayout() {
-    const r = await fetch(dashboardLayoutUrl);
-    const data = await r.json().catch(() => ({}));
-    if (!data || !data.items) return;
-    applyLayout(data.items);
-    renderSettings(data.items);
+    try {
+        const r = await fetch(dashboardLayoutUrl);
+        const data = await r.json().catch(() => ({}));
+        if (!data || !data.items) return;
+        applyLayout(data.items);
+        renderSettings(data.items);
+    } catch (err) {
+        console.error('خطأ في الاتصال:', err);
+    }
 }
 
 async function saveLayout() {
@@ -53,15 +57,19 @@ async function saveLayout() {
             enabled: checkbox ? checkbox.checked : true
         });
     });
-    const r = await fetch(dashboardLayoutUrl, {
-        method: 'POST',
-        headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-        body: JSON.stringify({ items })
-    });
-    const data = await r.json().catch(() => ({}));
-    if (data && data.items) {
-        applyLayout(data.items);
-        renderSettings(data.items);
+    try {
+        const r = await fetch(dashboardLayoutUrl, {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+            body: JSON.stringify({ items })
+        });
+        const data = await r.json().catch(() => ({}));
+        if (data && data.items) {
+            applyLayout(data.items);
+            renderSettings(data.items);
+        }
+    } catch (err) {
+        console.error('خطأ في الاتصال:', err);
     }
 }
 

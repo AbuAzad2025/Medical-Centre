@@ -51,6 +51,67 @@ document.addEventListener('DOMContentLoaded', function() {
             console.warn('Sidebar toggle init failed:', e);
         }
     }
+
+    // Form submit: disable button + show loading
+    document.querySelectorAll('form').forEach(function(form) {
+        var handled = form.hasAttribute('data-submit-handled');
+        if (handled) return;
+        form.setAttribute('data-submit-handled', '1');
+        form.addEventListener('submit', function(e) {
+            var btn = this.querySelector('button[type="submit"], input[type="submit"]');
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                btn.setAttribute('data-loading', '');
+                // Re-enable after 30s in case of timeout
+                setTimeout(function() {
+                    if (btn) { btn.disabled = false; btn.removeAttribute('data-loading'); }
+                }, 30000);
+            }
+        });
+    });
+
+    // Auto-focus first visible input in modals
+    document.querySelectorAll('.modal').forEach(function(modal) {
+        modal.addEventListener('shown.bs.modal', function() {
+            var input = this.querySelector('input:not([type="hidden"]):not([type="search"]), textarea, select');
+            if (input) setTimeout(function() { input.focus(); }, 100);
+        });
+        modal.addEventListener('hidden.bs.modal', function() {
+            var btn = this.querySelector('button[type="submit"]');
+            if (btn) { btn.disabled = false; btn.removeAttribute('data-loading'); }
+        });
+    });
+
+    // Auto-attach confirmation to [data-confirm] buttons/links
+    document.querySelectorAll('[data-confirm]').forEach(function(el) {
+        var msg = el.getAttribute('data-confirm');
+        if (!msg) return;
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            var target = this;
+            var type = this.tagName === 'A' ? 'link' : 'button';
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'تأكيد',
+                    text: msg,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'نعم',
+                    cancelButtonText: 'إلغاء'
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        if (type === 'link') {
+                            var href = target.getAttribute('href');
+                            if (href && href !== '#') window.location.href = href;
+                        } else {
+                            var form = target.form || target.closest('form');
+                            if (form) form.submit();
+                        }
+                    }
+                });
+            }
+        });
+    });
 });
 
 if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
@@ -118,31 +179,6 @@ function validateForm(form) {
         }
     });
     return isValid;
-}
-
-function showNotification(message, type = 'info', duration = 5000) {
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    notification.style.cssText = `
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        min-width: 300px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        border: none;
-        border-radius: 15px;
-    `;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    document.body.appendChild(notification);
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.remove();
-        }
-    }, duration);
 }
 
 function confirmNavigate(e, message) {
@@ -338,9 +374,6 @@ window.addEventListener('error', function(e) {
         return;
     }
     console.error('Global error:', e.error);
-    if (e.error && e.error.stack) {
-        showNotification('حدث خطأ غير متوقع. يرجى إعادة تحميل الصفحة.', 'error');
-    }
 });
 
 if ('serviceWorker' in navigator) {
@@ -354,3 +387,86 @@ if ('serviceWorker' in navigator) {
             });
     });
 }
+
+// Top loading bar for page navigation
+(function() {
+  var bar = document.createElement('div');
+  bar.className = 'top-loading-bar';
+  bar.id = 'topLoadingBar';
+  bar.style.display = 'none';
+  document.body.appendChild(bar);
+  var timeoutId = null;
+  function showBar() {
+    bar.style.display = 'block';
+    bar.style.width = '30%';
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+  function completeBar() {
+    bar.style.width = '100%';
+    timeoutId = setTimeout(function() {
+      bar.style.width = '0';
+      bar.style.display = 'none';
+    }, 400);
+  }
+  // Hook into link clicks for same-origin navigation
+  document.addEventListener('click', function(e) {
+    var link = e.target.closest('a');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (!href || href === '#' || href.startsWith('javascript:') || href.startsWith('#')) return;
+    if (link.target === '_blank' || link.hasAttribute('download')) return;
+    try {
+      var linkUrl = new URL(href, window.location.origin);
+      if (linkUrl.origin !== window.location.origin) return;
+      if (linkUrl.pathname === window.location.pathname) return;
+    } catch(_) { return; }
+    showBar();
+  });
+  window.addEventListener('beforeunload', function() { showBar(); });
+  window.addEventListener('load', function() { completeBar(); });
+})();
+
+// Clickable table rows
+document.addEventListener('click', function(e) {
+  var tr = e.target.closest('tr[data-href]');
+  if (tr) {
+    var href = tr.getAttribute('data-href');
+    if (href && href !== '#') {
+      window.location.href = href;
+    }
+  }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Escape: close all toasts + modals
+    if (e.key === 'Escape' && !e.target.closest('.tox')) {
+        document.querySelectorAll('.toast:not(.removing)').forEach(function(toast) {
+            var btn = toast.querySelector('.toast-close');
+            if (btn) btn.click();
+        });
+    }
+
+    // Ctrl+Enter / Cmd+Enter: submit current form
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        var active = document.activeElement;
+        if (active) {
+            var form = active.form || active.closest('form');
+            if (form) {
+                e.preventDefault();
+                var btn = form.querySelector('button[type="submit"]');
+                if (btn) btn.click();
+                else form.submit();
+            }
+        }
+    }
+});
+
+// Extra safety: prevent double-submit via capture phase
+document.addEventListener('submit', function(e) {
+    if (e.defaultPrevented) return;
+    var btn = e.target.querySelector('button[type="submit"]');
+    if (btn && btn.disabled) {
+        e.preventDefault();
+    }
+}, true);

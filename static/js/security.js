@@ -441,11 +441,15 @@ class AuditLogger {
     }
 
     sendLog(logEntry) {
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        if (this.csrfToken) {
+            headers['X-CSRFToken'] = this.csrfToken;
+        }
         fetch('/super-admin/api/audit-log', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify(logEntry)
         }).catch(error => {
             console.error('Failed to send audit log:', error);

@@ -211,7 +211,8 @@ function transferVisit(visitId) {
                     const roleAr = {'doctor':'طبيب','nurse':'ممرض','lab':'فني مختبر','radiology':'فني أشعة','emergency':'طوارئ'}[s.role] || s.role;
                     docSelect.innerHTML += `<option value="${s.id}">${s.full_name} - ${roleAr}</option>`;
                 });
-            });
+            })
+            .catch(function(err) { console.error('خطأ:', err); });
     }, {once: false});
     const modal = new bootstrap.Modal(document.getElementById('transferVisitModal'));
     modal.show();

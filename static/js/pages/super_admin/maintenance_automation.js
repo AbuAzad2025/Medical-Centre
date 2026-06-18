@@ -9,16 +9,20 @@ if (saveBtn) {
       log_retention_days: parseInt(document.getElementById('log_retention_days').value || '90', 10),
       auto_backup: document.getElementById('auto_backup').value === 'true'
     };
-    const r = await fetch(__M0__, {
-      method: 'POST',
-      headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-      body: JSON.stringify(payload)
-    });
-    const data = await r.json().catch(() => ({}));
-    if (r.ok && data.success) {
-      alert('تم حفظ الإعدادات');
-    } else {
-      alert('تعذر الحفظ');
+    try {
+      const r = await fetch(__M0__, {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        body: JSON.stringify(payload)
+      });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok && data.success) {
+        alert('تم حفظ الإعدادات');
+      } else {
+        alert('تعذر الحفظ');
+      }
+    } catch (err) {
+      console.error('خطأ في الاتصال:', err);
     }
   });
 }

@@ -21,11 +21,15 @@ function autoResize() {
 }
 
 async function fetchTemplates() {
-    const r = await fetch(__M0__, { method: 'GET' });
-    const data = await r.json().catch(() => ({}));
-    const arr = data && data.templates ? data.templates : [];
-    templatesCache = Array.isArray(arr) ? arr : [];
-    return templatesCache;
+    try {
+        const r = await fetch(__M0__, { method: 'GET' });
+        const data = await r.json().catch(() => ({}));
+        const arr = data && data.templates ? data.templates : [];
+        templatesCache = Array.isArray(arr) ? arr : [];
+        return templatesCache;
+    } catch (err) {
+        console.error('خطأ في الاتصال:', err);
+    }
 }
 
 function fillTemplateSelect(templates) {
@@ -139,17 +143,21 @@ if (dntForm) {
             text: dntTextEl.value || '',
             is_active: dntActiveEl.checked
         };
-        const r = await fetch(__M1__, {
-            method: 'POST',
-            headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-            body: JSON.stringify(payload)
-        });
-        if (!r.ok) {
-            window.alert('فشل الحفظ');
-            return;
+        try {
+            const r = await fetch(__M1__, {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                body: JSON.stringify(payload)
+            });
+            if (!r.ok) {
+                window.alert('فشل الحفظ');
+                return;
+            }
+            resetTemplateForm();
+            await refreshTemplatesUI();
+        } catch (err) {
+            console.error('خطأ في الاتصال:', err);
         }
-        resetTemplateForm();
-        await refreshTemplatesUI();
     });
 }
 if (dntTableBody) {
@@ -168,15 +176,19 @@ if (dntTableBody) {
         } else if (action === 'delete') {
             const ok = window.confirm('حذف القالب؟');
             if (!ok) return;
-            const r = await fetch(`__M2__`.replace('__T__', encodeURIComponent(id)), {
-                method: 'POST',
-                headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
-            });
-            if (!r.ok) {
-                window.alert('فشل الحذف');
-                return;
+            try {
+                const r = await fetch(`__M2__`.replace('__T__', encodeURIComponent(id)), {
+                    method: 'POST',
+                    headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
+                });
+                if (!r.ok) {
+                    window.alert('فشل الحذف');
+                    return;
+                }
+                await refreshTemplatesUI();
+            } catch (err) {
+                console.error('خطأ في الاتصال:', err);
             }
-            await refreshTemplatesUI();
         }
     });
 }

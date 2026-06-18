@@ -1,31 +1,39 @@
 @echo off
-REM Medical System - Startup Script
-REM Runs the Flask-SocketIO application
+REM Medical System - Single Startup Script
+REM Usage: run.bat [--dev]
 
 cd /d "%~dp0"
 
-title Medical System - Starting...
+if /I "%1"=="--dev" (
+    title Medical System - DEV MODE
+    set FLASK_DEBUG=1
+    set FLASK_ENV=development
+    echo ==========================================
+    echo   Medical System - DEVELOPMENT MODE
+    echo ==========================================
+    echo Debug: ON ^| Auto-reload: ON
+) else (
+    title Medical System - Starting...
+    echo ==========================================
+    echo   Medical System - Starting Application
+    echo ==========================================
+)
 
-REM Enable UTF-8 for emoji/arabic support in console
 chcp 65001 >nul
 set PYTHONIOENCODING=utf-8
 
 echo.
-echo ==========================================
-echo   Medical System - Starting Application
-echo ==========================================
+echo Access at: http://127.0.0.1:8080
+echo Press Ctrl+C to stop
 echo.
 
-REM Use python from PATH, check if available
 where python >nul 2>nul
 if errorlevel 1 (
     echo ERROR: Python not found in PATH
-    echo Please install Python and add to PATH
     pause
     exit /b 1
 )
 
-REM Check if virtual environment exists
 if not exist ".venv" (
     echo Virtual environment not found. Creating...
     python -m venv .venv
@@ -42,12 +50,6 @@ if not exist ".venv" (
         exit /b 1
     )
 )
-
-echo.
-echo Starting Flask-SocketIO server on port 8080...
-echo Access at: http://127.0.0.1:8080
-echo Press Ctrl+C to stop
-echo.
 
 .venv\Scripts\python run_server.py
 

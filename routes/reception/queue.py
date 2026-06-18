@@ -32,6 +32,7 @@ from services.pos_terminal_service import PosTerminalService
 # QUEUE ROUTES
 # ═══════════════════════════════════════
 
+@reception_bp.route('/display/waiting')
 def waiting_display():
     return render_template('reception/waiting_display.html')
 
@@ -42,10 +43,9 @@ def calls_display():
     return render_template('reception/calls_display.html')
 
 
-@reception_bp.route('/online-bookings/checkin', methods=['POST'])
+@reception_bp.route('/queue')
 @login_required
 @role_required('reception', 'super_admin', 'manager')
-
 def queue_management():
     """إدارة الطابور الموحد - الوحدة المركزية"""
     # التحقق من الصلاحيات
@@ -419,13 +419,8 @@ def approve_force_entry(ticket_id):
 
 @reception_bp.route('/api/queue-status/<int:department_id>')
 @login_required
-# ══════════════════════
-# SECTION: API ENDPOINTS
-# ══════════════════════
 
-
-
-def get_smart_queue_management():
+def get_smart_queue_management(department_id=None):
     """إدارة الطابور الذكية"""
     try:
         from models.queue_management import QueueManagement
@@ -1033,9 +1028,10 @@ def add_patient_to_queue_auto(visit_id, department_id, doctor_id=None):
         return False, f"خطأ في النظام: {str(e)}"
 
 
+@reception_bp.route('/queue/save-settings/<int:department_id>', methods=['POST'])
+@login_required
+@AccessControlService.require_permission('queue_settings_manage')
 def save_queue_settings(department_id):
-
-    
     """حفظ إعدادات الطابور للقسم"""
     try:
         from models.queue_management import QueueSettings

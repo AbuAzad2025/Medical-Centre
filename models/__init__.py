@@ -50,7 +50,7 @@ from .workflow import WorkflowStep, PatientWorkflow, WorkflowTransfer
 from .backup import Backup, BackupLog
 from .file_management import FileUpload
 from .advanced_permissions import ModulePermission, DepartmentPermission
-from .ai_analytics import AIRecommendation, DiseasePattern, PerformanceAnalytics, PatientInsight
+from .ai_analytics import AIRecommendation, DiseasePattern, PerformanceAnalytics, PatientInsight, ModelPrediction
 from .pricing_management import PricingManagement, PricingRule
 from .icd_coding import ICD10Code, CPTCode, DRGCode, CodedDiagnosis, CodedProcedure
 from .emar import eMARAdministration, MedicationSchedule
@@ -114,7 +114,7 @@ __all__ = [
     "WorkflowStep", "PatientWorkflow", "WorkflowTransfer",
     "Backup", "BackupLog", "FileUpload",
     "ModulePermission", "DepartmentPermission",
-    "AIRecommendation", "DiseasePattern", "PerformanceAnalytics", "PatientInsight",
+    "AIRecommendation", "DiseasePattern", "PerformanceAnalytics", "PatientInsight", "ModelPrediction",
     "PricingManagement", "PricingRule",
     "ICD10Code", "CPTCode", "DRGCode", "CodedDiagnosis", "CodedProcedure",
     "eMARAdministration", "MedicationSchedule",

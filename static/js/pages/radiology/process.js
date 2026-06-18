@@ -73,47 +73,59 @@ var __M = window.__M || [];
                     study_uid: studyUidEl ? studyUidEl.value : '',
                     pacs_url: pacsUrlEl ? pacsUrlEl.value : ''
                 };
-                const r = await fetch(__M0__, {
-                    method: 'POST',
-                    headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-                    body: JSON.stringify(payload)
-                });
-                const data = await r.json().catch(() => ({}));
-                aiAssistBtn.disabled = false;
-                if (!data || !data.success || !data.data) {
-                    aiAssistOutput.textContent = 'تعذر الحصول على توصيات حالياً';
-                    return;
+                try {
+                    const r = await fetch(__M0__, {
+                        method: 'POST',
+                        headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await r.json().catch(() => ({}));
+                    aiAssistBtn.disabled = false;
+                    if (!data || !data.success || !data.data) {
+                        aiAssistOutput.textContent = 'تعذر الحصول على توصيات حالياً';
+                        return;
+                    }
+                    const suggestions = data.data.suggestions || [];
+                    const disclaimer = data.data.disclaimer || '';
+                    const ref = data.data.external_ref || '';
+                    const lines = [];
+                    for (const s of suggestions) {
+                        lines.push('• ' + s);
+                    }
+                    if (disclaimer) {
+                        lines.push(disclaimer);
+                    }
+                    if (ref) {
+                        lines.push('مرجع: ' + ref);
+                    }
+                    aiAssistOutput.textContent = lines.join('\n');
+                } catch (err) {
+                    console.error('خطأ في الاتصال:', err);
                 }
-                const suggestions = data.data.suggestions || [];
-                const disclaimer = data.data.disclaimer || '';
-                const ref = data.data.external_ref || '';
-                const lines = [];
-                for (const s of suggestions) {
-                    lines.push('• ' + s);
-                }
-                if (disclaimer) {
-                    lines.push(disclaimer);
-                }
-                if (ref) {
-                    lines.push('مرجع: ' + ref);
-                }
-                aiAssistOutput.textContent = lines.join('\n');
             }
 
             async function fetchTemplates() {
-                const r = await fetch(__M1__, { method: 'GET' });
-                const data = await r.json().catch(() => ({}));
-                const arr = data && data.templates ? data.templates : [];
-                templatesCache = Array.isArray(arr) ? arr : [];
-                return templatesCache;
+                try {
+                    const r = await fetch(__M1__, { method: 'GET' });
+                    const data = await r.json().catch(() => ({}));
+                    const arr = data && data.templates ? data.templates : [];
+                    templatesCache = Array.isArray(arr) ? arr : [];
+                    return templatesCache;
+                } catch (err) {
+                    console.error('خطأ في الاتصال:', err);
+                }
             }
 
             async function fetchMacros() {
-                const r = await fetch(__M2__, { method: 'GET' });
-                const data = await r.json().catch(() => ({}));
-                const arr = data && data.macros ? data.macros : [];
-                macrosCache = Array.isArray(arr) ? arr : [];
-                return macrosCache;
+                try {
+                    const r = await fetch(__M2__, { method: 'GET' });
+                    const data = await r.json().catch(() => ({}));
+                    const arr = data && data.macros ? data.macros : [];
+                    macrosCache = Array.isArray(arr) ? arr : [];
+                    return macrosCache;
+                } catch (err) {
+                    console.error('خطأ في الاتصال:', err);
+                }
             }
 
             if (aiAssistBtn) {
@@ -316,17 +328,21 @@ var __M = window.__M || [];
                         text: macroTextEl.value || '',
                         is_active: macroActiveEl.checked
                     };
-                    const r = await fetch(__M4__, {
-                        method: 'POST',
-                        headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-                        body: JSON.stringify(payload)
-                    });
-                    if (!r.ok) {
-                        window.alert('فشل الحفظ');
-                        return;
+                    try {
+                        const r = await fetch(__M4__, {
+                            method: 'POST',
+                            headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                            body: JSON.stringify(payload)
+                        });
+                        if (!r.ok) {
+                            window.alert('فشل الحفظ');
+                            return;
+                        }
+                        resetMacroForm();
+                        await refreshMacrosUI();
+                    } catch (err) {
+                        console.error('خطأ في الاتصال:', err);
                     }
-                    resetMacroForm();
-                    await refreshMacrosUI();
                 });
             }
             if (macroTableBody) {
@@ -345,15 +361,19 @@ var __M = window.__M || [];
                     } else if (action === 'delete') {
                         const ok = window.confirm('حذف الماكرو؟');
                         if (!ok) return;
-                        const r = await fetch(`__M5__`.replace('__M__', encodeURIComponent(id)), {
-                            method: 'POST',
-                            headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
-                        });
-                        if (!r.ok) {
-                            window.alert('فشل الحذف');
-                            return;
+                        try {
+                            const r = await fetch(`__M5__`.replace('__M__', encodeURIComponent(id)), {
+                                method: 'POST',
+                                headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
+                            });
+                            if (!r.ok) {
+                                window.alert('فشل الحذف');
+                                return;
+                            }
+                            await refreshMacrosUI();
+                        } catch (err) {
+                            console.error('خطأ في الاتصال:', err);
                         }
-                        await refreshMacrosUI();
                     }
                 });
             }
@@ -386,15 +406,19 @@ var __M = window.__M || [];
                     } else if (action === 'delete') {
                         const ok = window.confirm('حذف القالب؟');
                         if (!ok) return;
-                        const r = await fetch(`__M6__`.replace('__TPL__', encodeURIComponent(id)), {
-                            method: 'POST',
-                            headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
-                        });
-                        if (!r.ok) {
-                            window.alert('فشل الحذف');
-                            return;
+                        try {
+                            const r = await fetch(`__M6__`.replace('__TPL__', encodeURIComponent(id)), {
+                                method: 'POST',
+                                headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
+                            });
+                            if (!r.ok) {
+                                window.alert('فشل الحذف');
+                                return;
+                            }
+                            await refreshTemplatesUI();
+                        } catch (err) {
+                            console.error('خطأ في الاتصال:', err);
                         }
-                        await refreshTemplatesUI();
                     }
                 });
             }
@@ -410,17 +434,21 @@ var __M = window.__M || [];
                         recommendations: tplRecommendationsEl.value || '',
                         is_active: tplActiveEl.checked
                     };
-                    const r = await fetch(__M7__, {
-                        method: 'POST',
-                        headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-                        body: JSON.stringify(payload)
-                    });
-                    if (!r.ok) {
-                        window.alert('فشل الحفظ');
-                        return;
+                    try {
+                        const r = await fetch(__M7__, {
+                            method: 'POST',
+                            headers: Object.assign({ 'Content-Type': 'application/json' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+                            body: JSON.stringify(payload)
+                        });
+                        if (!r.ok) {
+                            window.alert('فشل الحفظ');
+                            return;
+                        }
+                        resetTemplateForm();
+                        await refreshTemplatesUI();
+                    } catch (err) {
+                        console.error('خطأ في الاتصال:', err);
                     }
-                    resetTemplateForm();
-                    await refreshTemplatesUI();
                 });
             }
         })();

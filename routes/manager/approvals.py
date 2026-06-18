@@ -108,7 +108,7 @@ def approve_force_payment(visit_id):
             from models.queue_management import QueueManagement
             existing_ticket = QueueManagement.query.filter_by(visit_id=visit_id, department_id=visit.department_id).first()
             if not existing_ticket:
-                from routes.reception import add_patient_to_queue_auto
+                from routes.reception.queue import add_patient_to_queue_auto
                 add_patient_to_queue_auto(visit_id=visit_id, department_id=visit.department_id, doctor_id=visit.doctor_id)
         except Exception:
             pass

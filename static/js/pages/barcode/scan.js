@@ -13,7 +13,7 @@ function submitScan() {
     } else {
       el.innerHTML = '<div class="alert alert-danger">'+data.message+'</div>';
     }
-  });
+  }).catch(err => console.error('فشل مسح الباركود:', err));
 }
 document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
   if (e.key === 'Enter') submitScan();

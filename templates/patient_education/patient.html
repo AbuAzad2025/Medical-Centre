@@ -42,7 +42,15 @@
           <td>{{ a.completed_at.strftime('%Y-%m-%d %H:%M') if a.completed_at else '—' }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="4" class="text-center text-muted">لا توجد مواد مُسنَدة</td></tr>
+        <tr>
+            <td colspan="4">
+                <div class="empty-state-smart">
+                    <div class="empty-icon-wrap"><i class="fas fa-book"></i></div>
+                    <h5>لا توجد مواد مُسنَدة</h5>
+                    <p>لم يتم إسناد أي مواد تعليمية لهذا المريض بعد.</p>
+                </div>
+            </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>

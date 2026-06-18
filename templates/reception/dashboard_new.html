@@ -54,6 +54,16 @@
                 <td><span class="badge bg-{% if v.status=='COMPLETED' %}success{% elif v.status=='IN_PROGRESS' %}primary{% else %}secondary{% endif %}">{{ v.status }}</span></td>
                 <td class="text-muted small">{{ v.created_at.strftime('%H:%M') if v.created_at else '-' }}</td>
             </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">
+                    <div class="empty-state-smart">
+                        <div class="empty-icon-wrap"><i class="fas fa-calendar-day"></i></div>
+                        <h5>لا توجد زيارات اليوم</h5>
+                        <p>لم يتم تسجيل أي زيارات لهذا اليوم بعد.</p>
+                    </div>
+                </td>
+            </tr>
             {% endfor %}
             </tbody>
         </table>

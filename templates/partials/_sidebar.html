@@ -182,7 +182,7 @@
                 <li><a href="{{ url_for('manager.kpi_dashboard') }}" class="nav-link-luxury {% if 'manager.kpi_dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-chart-line"></i> <span>مؤشرات الأداء</span></a></li>
                 <li><a href="{{ url_for('manager.pricing') }}" class="nav-link-luxury {% if 'manager.pricing' in request.endpoint %}active{% endif %}"><i class="fas fa-dollar-sign"></i> <span>إدارة الأسعار</span></a></li>
                 <li><a href="{{ url_for('manager.reports') }}" class="nav-link-luxury {% if 'manager.reports' in request.endpoint %}active{% endif %}"><i class="fas fa-chart-pie"></i> <span>التقارير</span></a></li>
-                <li><a href="{{ url_for('manager.monitoring') }}" class="nav-link-luxury {% if 'manager.monitoring' in request.endpoint %}active{% endif %}"><i class="fas fa-desktop"></i> <span>المراقبة</span></a></li>
+                <li><a href="{{ url_for('manager.analytics') }}" class="nav-link-luxury {% if 'manager.analytics' in request.endpoint %}active{% endif %}"><i class="fas fa-desktop"></i> <span>المراقبة</span></a></li>
                 <li><a href="{{ url_for('manager.staff_schedule') }}" class="nav-link-luxury {% if 'manager.staff_schedule' in request.endpoint %}active{% endif %}"><i class="fas fa-clock"></i> <span>جداول العمل</span></a></li>
                 <li><a href="{{ url_for('quality.dashboard') }}" class="nav-link-luxury {% if 'quality.dashboard' in request.endpoint %}active{% endif %}"><i class="fas fa-shield-alt"></i> <span>الجودة والامتثال</span></a></li>
                 <li><a href="{{ url_for('manager.exchange_rates') }}" class="nav-link-luxury {% if 'manager.exchange_rates' in request.endpoint %}active{% endif %}"><i class="fas fa-coins"></i> <span>أسعار الصرف</span></a></li>
@@ -330,7 +330,7 @@
         <div class="nav-section mt-auto pt-2 border-top border-secondary">
              <ul class="nav-list">
                 <li>
-                    <a href="{{ url_for('auth.logout') }}" class="nav-link-luxury text-danger">
+                    <a href="{{ url_for('auth.logout') }}" class="nav-link-luxury text-danger" data-confirm="هل أنت متأكد من تسجيل الخروج؟">
                         <i class="fas fa-sign-out-alt"></i> <span>تسجيل الخروج</span>
                     </a>
                 </li>

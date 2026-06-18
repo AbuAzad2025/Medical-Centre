@@ -438,7 +438,7 @@
 
 <script>
         window.__M = window.__M || [];
-        __M0__={{ units_status|tojson }}; __M1__='{{ units_status.reception.pending_visits }}'; __M2__='{{ units_status.doctor.in_progress_visits }}'; __M3__='{{ units_status.emergency.emergency_visits }}'; __M4__='{{ units_status.lab.lab_requests }}'; __M5__='{{ units_status.radiology.radiology_requests }}'; __M6__='{{ units_status.accountant.open_invoices }}'; __M7__='{{ url_for("manager.monitoring") }}';
+        __M0__={{ units_status|tojson }}; __M1__='{{ units_status.reception.pending_visits }}'; __M2__='{{ units_status.doctor.in_progress_visits }}'; __M3__='{{ units_status.emergency.emergency_visits }}'; __M4__='{{ units_status.lab.lab_requests }}'; __M5__='{{ units_status.radiology.radiology_requests }}'; __M6__='{{ units_status.accountant.open_invoices }}'; __M7__='{{ url_for("manager.analytics") }}';
         </script>
 <script src="{{ url_for('static', filename='js/pages/manager/monitoring.js') }}"></script>
 {% endblock %}
