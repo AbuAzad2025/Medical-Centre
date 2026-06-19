@@ -19,13 +19,13 @@ class DentalChart(db.Model):
     __tablename__ = 'dental_charts'
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    teeth = db.relationship('DentalTooth', backref='chart', lazy='dynamic',
+    teeth = db.relationship('DentalTooth', back_populates='chart', lazy='dynamic',
                             cascade='all, delete-orphan')
 
     def to_dict(self):
@@ -44,11 +44,13 @@ class DentalTooth(db.Model):
     __tablename__ = 'dental_teeth'
 
     id = db.Column(db.Integer, primary_key=True)
-    chart_id = db.Column(db.Integer, db.ForeignKey('dental_charts.id'), nullable=False)
+    chart_id = db.Column(db.Integer, db.ForeignKey('dental_charts.id', ondelete='CASCADE'), nullable=False, index=True)
     fdi_number = db.Column(db.String(2), nullable=False)  # 11-48
     state = db.Column(db.String(20), nullable=False, default='sound')
     surfaces = db.Column(db.JSON, nullable=True)  # {'occlusal': 'caries', 'buccal': 'sound', ...}
     notes = db.Column(db.Text, nullable=True)
+    chart = db.relationship('DentalChart', back_populates='teeth')
+
 
     def to_dict(self):
         return {

@@ -14,8 +14,7 @@ class Notification(db.Model):
     """نموذج الإشعار المتطور"""
     
     __tablename__ = 'notifications'
-    __table_args__ = {'extend_existing': True}
-    
+
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     title = db.Column(db.String(200), nullable=False)
@@ -24,12 +23,12 @@ class Notification(db.Model):
     priority = db.Column(db.String(20), default='normal')  # low, normal, high, urgent
     
     # المستلم
-    recipient_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     recipient_role = db.Column(db.String(50), nullable=True)
-    recipient_department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)
+    recipient_department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # المرسل
-    sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # الحالة
     is_read = db.Column(db.Boolean, default=False, index=True)
@@ -102,12 +101,14 @@ class NotificationTemplate(db.Model):
     variables = db.Column(db.Text, nullable=True)  # JSON format
     is_active = db.Column(db.Boolean, default=True)
     is_system = db.Column(db.Boolean, default=False)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
     
     # العلاقات
-    creator = db.relationship('User', foreign_keys=[created_by], lazy='select')
+    creator = db.relationship('User', foreign_keys=[created_by], lazy='selectin')
+    queue_items = db.relationship('NotificationQueue', back_populates='template')
+
     
     def __repr__(self):
         return f'<NotificationTemplate {self.name}>'
@@ -168,8 +169,8 @@ class NotificationQueue(db.Model):
     __tablename__ = 'notification_queue'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    template_id = db.Column(db.Integer, db.ForeignKey('notification_templates.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    template_id = db.Column(db.Integer, db.ForeignKey('notification_templates.id', ondelete='CASCADE'), nullable=True, index=True)
     notification_type = db.Column(db.String(50), nullable=False)  # whatsapp, email, sms, push
     recipient = db.Column(db.String(200), nullable=False)  # phone, email, etc.
     subject = db.Column(db.String(200), nullable=True)
@@ -187,8 +188,8 @@ class NotificationQueue(db.Model):
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
     
     # العلاقات
-    user = db.relationship('User', backref='notification_queue')
-    template = db.relationship('NotificationTemplate', backref='queue_items')
+    user = db.relationship('User', back_populates='notification_queue')
+    template = db.relationship('NotificationTemplate', back_populates='queue_items')
     
     def __repr__(self):
         return f'<NotificationQueue {self.id}>'

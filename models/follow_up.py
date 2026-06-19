@@ -27,11 +27,11 @@ class FollowUpRequest(db.Model):
         Index('idx_follow_up_requests_doctor_status_date', 'doctor_id', 'status', 'suggested_date'),
     )
 
-    patient = db.relationship('Patient', lazy='select')
-    doctor = db.relationship('User', foreign_keys=[doctor_id], lazy='select')
-    source_visit = db.relationship('Visit', foreign_keys=[source_visit_id], lazy='select')
-    appointment = db.relationship('Appointment', foreign_keys=[appointment_id], lazy='select')
-    creator = db.relationship('User', foreign_keys=[created_by], lazy='select')
+    patient = db.relationship('Patient', lazy='selectin')
+    doctor = db.relationship('User', foreign_keys=[doctor_id], lazy='selectin')
+    source_visit = db.relationship('Visit', foreign_keys=[source_visit_id], lazy='selectin')
+    appointment = db.relationship('Appointment', foreign_keys=[appointment_id], lazy='selectin')
+    creator = db.relationship('User', foreign_keys=[created_by], lazy='selectin')
 
     def to_dict(self) -> dict:
         return {

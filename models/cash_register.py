@@ -37,7 +37,7 @@ class CashRegister(db.Model):
 
     # Shift info
     shift_name = db.Column(db.String(50), nullable=True)  # morning, evening, night
-    receptionist_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    receptionist_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
 
     # Audit
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

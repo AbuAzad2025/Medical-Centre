@@ -25,5 +25,5 @@ class LabQualityControlEntry(db.Model):
         Index('idx_lab_qc_test_date', 'test_code', 'recorded_at'),
     )
 
-    recorder = db.relationship('User', foreign_keys=[recorded_by], lazy='select')
+    recorder = db.relationship('User', foreign_keys=[recorded_by], lazy='selectin')
 

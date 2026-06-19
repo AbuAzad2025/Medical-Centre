@@ -23,8 +23,8 @@ class Task(db.Model):
     priority = db.Column(db.String(20), nullable=False, default='medium')  # low, medium, high, urgent
     
     # التعيين
-    assigned_to = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    assigned_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    assigned_to = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    assigned_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # الكيان المرتبط
     related_entity_type = db.Column(db.String(50), nullable=True)  # patient, visit, appointment, department
@@ -51,8 +51,8 @@ class Task(db.Model):
     )
     
     # العلاقات
-    assignee = db.relationship('User', foreign_keys=[assigned_to], back_populates='assigned_tasks', lazy='select')
-    assigner = db.relationship('User', foreign_keys=[assigned_by], back_populates='created_tasks', lazy='select')
+    assignee = db.relationship('User', foreign_keys=[assigned_to], back_populates='assigned_tasks', lazy='selectin')
+    assigner = db.relationship('User', foreign_keys=[assigned_by], back_populates='created_tasks', lazy='selectin')
     comments = db.relationship('TaskComment', back_populates='task', lazy='dynamic', cascade='all, delete-orphan')
     attachments = db.relationship('TaskAttachment', back_populates='task', lazy='dynamic', cascade='all, delete-orphan')
     project_tasks = db.relationship('ProjectTask', back_populates='task', lazy='dynamic', cascade='all, delete-orphan')
@@ -104,12 +104,12 @@ class TaskComment(db.Model):
     __tablename__ = 'task_comments'
     
     id = db.Column(db.Integer, primary_key=True)
-    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'), nullable=False)
+    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE'), nullable=False, index=True)
     comment = db.Column(db.Text, nullable=False)
     comment_type = db.Column(db.String(20), nullable=False, default='comment')  # comment, update, status_change
     
     # المستخدم
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # التواريخ
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
@@ -123,8 +123,8 @@ class TaskComment(db.Model):
     )
     
     # العلاقات
-    task = db.relationship('Task', back_populates='comments', lazy='select')
-    user = db.relationship('User', foreign_keys=[user_id], back_populates='task_comments', lazy='select')
+    task = db.relationship('Task', back_populates='comments', lazy='selectin')
+    user = db.relationship('User', foreign_keys=[user_id], back_populates='task_comments', lazy='selectin')
     
     def __repr__(self):
         return f'<TaskComment {self.id}>'
@@ -148,12 +148,12 @@ class TaskAttachment(db.Model):
     __tablename__ = 'task_attachments'
     
     id = db.Column(db.Integer, primary_key=True)
-    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'), nullable=False)
-    file_id = db.Column(db.Integer, db.ForeignKey('file_uploads.id'), nullable=False)
+    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE'), nullable=False, index=True)
+    file_id = db.Column(db.Integer, db.ForeignKey('file_uploads.id', ondelete='CASCADE'), nullable=False, index=True)
     
     # التواريخ
     attached_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    attached_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    attached_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # Constraints and Indexes
     __table_args__ = (
@@ -163,9 +163,9 @@ class TaskAttachment(db.Model):
     )
     
     # العلاقات
-    task = db.relationship('Task', back_populates='attachments', lazy='select')
-    file = db.relationship('FileUpload', back_populates='task_attachments', lazy='select')
-    attacher = db.relationship('User', foreign_keys=[attached_by], back_populates='task_attachments', lazy='select')
+    task = db.relationship('Task', back_populates='attachments', lazy='selectin')
+    file = db.relationship('FileUpload', back_populates='task_attachments', lazy='selectin')
+    attacher = db.relationship('User', foreign_keys=[attached_by], back_populates='task_attachments', lazy='selectin')
     
     def __repr__(self):
         return f'<TaskAttachment {self.id}>'
@@ -198,8 +198,8 @@ class Project(db.Model):
     priority = db.Column(db.String(20), nullable=False, default='medium')  # low, medium, high, urgent
     
     # المسؤول
-    project_manager = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    project_manager = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # التواريخ
     start_date = db.Column(db.DateTime, nullable=True)
@@ -221,8 +221,8 @@ class Project(db.Model):
     )
     
     # العلاقات
-    manager = db.relationship('User', foreign_keys=[project_manager], back_populates='managed_projects', lazy='select')
-    creator = db.relationship('User', foreign_keys=[created_by], back_populates='created_projects', lazy='select')
+    manager = db.relationship('User', foreign_keys=[project_manager], back_populates='managed_projects', lazy='selectin')
+    creator = db.relationship('User', foreign_keys=[created_by], back_populates='created_projects', lazy='selectin')
     tasks = db.relationship('ProjectTask', back_populates='project', lazy='dynamic', cascade='all, delete-orphan')
     members = db.relationship('ProjectMember', back_populates='project', lazy='dynamic', cascade='all, delete-orphan')
     
@@ -276,12 +276,12 @@ class ProjectTask(db.Model):
     __tablename__ = 'project_tasks'
     
     id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
-    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id', ondelete='CASCADE'), nullable=False, index=True)
+    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='CASCADE'), nullable=False, index=True)
     
     # التواريخ
     added_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    added_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    added_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # Constraints and Indexes
     __table_args__ = (
@@ -291,9 +291,9 @@ class ProjectTask(db.Model):
     )
     
     # العلاقات
-    project = db.relationship('Project', back_populates='tasks', lazy='select')
-    task = db.relationship('Task', back_populates='project_tasks', lazy='select')
-    adder = db.relationship('User', foreign_keys=[added_by], back_populates='project_tasks', lazy='select')
+    project = db.relationship('Project', back_populates='tasks', lazy='selectin')
+    task = db.relationship('Task', back_populates='project_tasks', lazy='selectin')
+    adder = db.relationship('User', foreign_keys=[added_by], back_populates='project_tasks', lazy='selectin')
     
     def __repr__(self):
         return f'<ProjectTask {self.id}>'
@@ -317,13 +317,13 @@ class ProjectMember(db.Model):
     __tablename__ = 'project_members'
     
     id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     role = db.Column(db.String(50), nullable=False, default='member')  # member, contributor, reviewer
     
     # التواريخ
     joined_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    added_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    added_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # Constraints and Indexes
     __table_args__ = (
@@ -334,9 +334,9 @@ class ProjectMember(db.Model):
     )
     
     # العلاقات
-    project = db.relationship('Project', back_populates='members', lazy='select')
-    user = db.relationship('User', foreign_keys=[user_id], back_populates='project_memberships', lazy='select')
-    adder = db.relationship('User', foreign_keys=[added_by], back_populates='added_project_members', lazy='select')
+    project = db.relationship('Project', back_populates='members', lazy='selectin')
+    user = db.relationship('User', foreign_keys=[user_id], back_populates='project_memberships', lazy='selectin')
+    adder = db.relationship('User', foreign_keys=[added_by], back_populates='added_project_members', lazy='selectin')
     
     def __repr__(self):
         return f'<ProjectMember {self.id}>'

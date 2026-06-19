@@ -17,13 +17,21 @@ class WorkflowStep(db.Model):
     name_ar = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     step_type = db.Column(db.String(50), nullable=False)  # reception, doctor, lab, radiology, pharmacy, billing
-    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # العلاقات
-    department = db.relationship('Department', backref='workflow_steps')
+    department = db.relationship('Department', back_populates='workflow_steps')
+    patient_workflows = db.relationship('PatientWorkflow', back_populates='current_step')
+    transfers_from = db.relationship('WorkflowTransfer', back_populates='from_step')
+    transfers_to = db.relationship('WorkflowTransfer', back_populates='to_step')
+    workflow_queue_items = db.relationship('WorkflowQueue', back_populates='step')
+
+
+
+
     
     def __repr__(self):
         return f'<WorkflowStep {self.name_ar}>'
@@ -50,12 +58,12 @@ class PatientWorkflow(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
-    appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # معلومات التدفق
-    current_step_id = db.Column(db.Integer, db.ForeignKey('workflow_steps.id'), nullable=False)
+    current_step_id = db.Column(db.Integer, db.ForeignKey('workflow_steps.id', ondelete='RESTRICT'), nullable=False, index=True)
     status = db.Column(db.String(20), default='active')  # active, completed, cancelled, transferred
     priority = db.Column(db.String(20), default='normal')  # low, normal, high, urgent
     
@@ -71,10 +79,14 @@ class PatientWorkflow(db.Model):
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # العلاقات
-    patient = db.relationship('Patient', backref='workflows')
-    visit = db.relationship('Visit', backref='workflows')
-    appointment = db.relationship('Appointment', backref='workflows')
-    current_step = db.relationship('WorkflowStep', backref='patient_workflows')
+    patient = db.relationship('Patient', back_populates='workflows')
+    visit = db.relationship('Visit', back_populates='workflows')
+    appointment = db.relationship('Appointment', back_populates='workflows')
+    current_step = db.relationship('WorkflowStep', back_populates='patient_workflows')
+    transfers = db.relationship('WorkflowTransfer', back_populates='workflow')
+    workflow_queue_items = db.relationship('WorkflowQueue', back_populates='workflow')
+
+
     
     def __repr__(self):
         return f'<PatientWorkflow {self.id}: {self.patient.full_name}>'
@@ -162,24 +174,24 @@ class WorkflowTransfer(db.Model):
     __tablename__ = 'workflow_transfers'
     
     id = db.Column(db.Integer, primary_key=True)
-    workflow_id = db.Column(db.Integer, db.ForeignKey('patient_workflows.id'), nullable=False)
-    from_step_id = db.Column(db.Integer, db.ForeignKey('workflow_steps.id'), nullable=False)
-    to_step_id = db.Column(db.Integer, db.ForeignKey('workflow_steps.id'), nullable=False)
+    workflow_id = db.Column(db.Integer, db.ForeignKey('patient_workflows.id', ondelete='CASCADE'), nullable=False, index=True)
+    from_step_id = db.Column(db.Integer, db.ForeignKey('workflow_steps.id', ondelete='SET NULL'), nullable=True, index=True)
+    to_step_id = db.Column(db.Integer, db.ForeignKey('workflow_steps.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # معلومات النقل
     reason = db.Column(db.Text, nullable=True)
     notes = db.Column(db.Text, nullable=True)
-    transferred_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    transferred_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # تواريخ
     transferred_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # العلاقات
-    workflow = db.relationship('PatientWorkflow', backref='transfers')
-    from_step = db.relationship('WorkflowStep', foreign_keys=[from_step_id], backref='transfers_from')
-    to_step = db.relationship('WorkflowStep', foreign_keys=[to_step_id], backref='transfers_to')
-    transferred_by_user = db.relationship('User', backref='workflow_transfers')
+    workflow = db.relationship('PatientWorkflow', back_populates='transfers')
+    from_step = db.relationship('WorkflowStep', foreign_keys=[from_step_id], back_populates='transfers_from')
+    to_step = db.relationship('WorkflowStep', foreign_keys=[to_step_id], back_populates='transfers_to')
+    transferred_by_user = db.relationship('User', back_populates='workflow_transfers')
     
     def __repr__(self):
         return f'<WorkflowTransfer {self.id}: {self.from_step.name_ar} -> {self.to_step.name_ar}>'
@@ -207,9 +219,9 @@ class WorkflowQueue(db.Model):
     __tablename__ = 'workflow_queues'
     
     id = db.Column(db.Integer, primary_key=True)
-    step_id = db.Column(db.Integer, db.ForeignKey('workflow_steps.id'), nullable=False)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    workflow_id = db.Column(db.Integer, db.ForeignKey('patient_workflows.id'), nullable=False)
+    step_id = db.Column(db.Integer, db.ForeignKey('workflow_steps.id', ondelete='CASCADE'), nullable=False, index=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    workflow_id = db.Column(db.Integer, db.ForeignKey('patient_workflows.id', ondelete='CASCADE'), nullable=False, index=True)
     
     # معلومات الطابور
     queue_number = db.Column(db.Integer, nullable=False)
@@ -224,9 +236,9 @@ class WorkflowQueue(db.Model):
     completed_at = db.Column(db.DateTime, nullable=True)
     
     # العلاقات
-    step = db.relationship('WorkflowStep', backref='workflow_queue_items')
-    patient = db.relationship('Patient', backref='workflow_queue_items')
-    workflow = db.relationship('PatientWorkflow', backref='workflow_queue_items')
+    step = db.relationship('WorkflowStep', back_populates='workflow_queue_items')
+    patient = db.relationship('Patient', back_populates='workflow_queue_items')
+    workflow = db.relationship('PatientWorkflow', back_populates='workflow_queue_items')
     
     def __repr__(self):
         return f'<WorkflowQueue {self.id}: {self.patient.full_name} - {self.step.name_ar}>'
@@ -288,16 +300,16 @@ class VisitWorkflowEvent(db.Model):
     __tablename__ = 'visit_workflow_events'
 
     id = db.Column(db.Integer, primary_key=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=False, index=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='RESTRICT'), nullable=False, index=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     from_status = db.Column(db.String(50), nullable=True)
     to_status = db.Column(db.String(50), nullable=False)
-    performed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    performed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
-    visit = db.relationship('Visit', backref='workflow_events')
-    performer = db.relationship('User', backref='workflow_events')
+    visit = db.relationship('Visit', back_populates='workflow_events')
+    performer = db.relationship('User', back_populates='workflow_events')
 
     def __repr__(self):
         return f'<VisitWorkflowEvent {self.id}: {self.from_status} -> {self.to_status}>'

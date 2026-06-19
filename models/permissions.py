@@ -85,10 +85,10 @@ class RolePermission(db.Model):
     __tablename__ = 'role_permissions'
     
     id = db.Column(db.Integer, primary_key=True)
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
-    permission_id = db.Column(db.Integer, db.ForeignKey('permissions.id'), nullable=False)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id', ondelete='CASCADE'), nullable=False, index=True)
+    permission_id = db.Column(db.Integer, db.ForeignKey('permissions.id', ondelete='CASCADE'), nullable=False, index=True)
     granted_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    granted_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    granted_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True)
     
     # العلاقات
     role = db.relationship('Role', back_populates='role_permissions')
@@ -107,10 +107,10 @@ class UserPermission(db.Model):
     __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    permission_id = db.Column(db.Integer, db.ForeignKey('permissions.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    permission_id = db.Column(db.Integer, db.ForeignKey('permissions.id', ondelete='CASCADE'), nullable=False, index=True)
     granted_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    granted_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    granted_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True)
     expires_at = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
     
@@ -128,7 +128,7 @@ class AuditLog(db.Model):
     __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True)
     action = db.Column(db.String(100), nullable=False)
     resource_type = db.Column(db.String(50), nullable=False)
     resource_id = db.Column(db.String(50))

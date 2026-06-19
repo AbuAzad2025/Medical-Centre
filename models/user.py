@@ -59,21 +59,21 @@ class User(UserMixin, db.Model):
         'Department',
         foreign_keys='Department.head_doctor_id',
         back_populates='head_doctor',
-        lazy='select'
+        lazy='selectin'
     )
 
     doctor_visits = db.relationship(
         'Visit',
         foreign_keys='Visit.doctor_id',
         back_populates='doctor',
-        lazy='select'
+        lazy='selectin'
     )
 
     doctor_appointments = db.relationship(
         'Appointment',
         foreign_keys='Appointment.doctor_id',
         back_populates='doctor',
-        lazy='select'
+        lazy='selectin'
     )
 
     # علاقات التدقيق
@@ -81,7 +81,7 @@ class User(UserMixin, db.Model):
         'AuditTrail',
         foreign_keys='AuditTrail.user_id',
         back_populates='user',
-        lazy='select'
+        lazy='selectin'
     )
 
     # علاقات سجلات النظام
@@ -89,7 +89,7 @@ class User(UserMixin, db.Model):
         'SystemLog',
         foreign_keys='SystemLog.user_id',
         back_populates='user',
-        lazy='select'
+        lazy='selectin'
     )
 
     # علاقات أحداث الأمان
@@ -97,7 +97,7 @@ class User(UserMixin, db.Model):
         'SecurityEvent',
         foreign_keys='SecurityEvent.user_id',
         back_populates='user',
-        lazy='select'
+        lazy='selectin'
     )
 
     # علاقات أحداث الأمان المحلولة
@@ -105,7 +105,7 @@ class User(UserMixin, db.Model):
         'SecurityEvent',
         foreign_keys='SecurityEvent.resolved_by',
         back_populates='resolver',
-        lazy='select'
+        lazy='selectin'
     )
     
     # الإشعارات
@@ -113,14 +113,14 @@ class User(UserMixin, db.Model):
         'Notification',
         foreign_keys='Notification.recipient_id',
         back_populates='recipient',
-        lazy='select'
+        lazy='selectin'
     )
     
     sent_notifications = db.relationship(
         'Notification',
         foreign_keys='Notification.sender_id',
         back_populates='sender',
-        lazy='select'
+        lazy='selectin'
     )
 
     # علاقات إعدادات النظام
@@ -143,14 +143,14 @@ class User(UserMixin, db.Model):
         'Backup',
         foreign_keys='Backup.created_by',
         back_populates='creator',
-        lazy='select'
+        lazy='selectin'
     )
 
     restored_backups = db.relationship(
         'Backup',
         foreign_keys='Backup.last_restore_by',
         back_populates='last_restore_user',
-        lazy='select'
+        lazy='selectin'
     )
 
     # علاقات نظام الصلاحيات
@@ -187,7 +187,7 @@ class User(UserMixin, db.Model):
         'DoctorPricing',
         foreign_keys='DoctorPricing.doctor_id',
         back_populates='doctor',
-        lazy='select'
+        lazy='selectin'
     )
     
 
@@ -282,6 +282,54 @@ class User(UserMixin, db.Model):
     def get_id(self):
         v = int(self.session_version or 0)
         return f"{self.id}:{v}"
+        ai_recommendations_accepted = db.relationship('AIRecommendation', back_populates='accepter')
+        performance_analytics = db.relationship('PerformanceAnalytics', back_populates='doctor')
+        patient_insights_acknowledged = db.relationship('PatientInsight', back_populates='acknowledger')
+        created_branding = db.relationship('BrandingSettings', back_populates='creator')
+        updated_branding = db.relationship('BrandingSettings', back_populates='updater')
+        digital_signatures = db.relationship('DigitalSignature', back_populates='user')
+        session_logs = db.relationship('SessionLog', back_populates='user')
+        notification_queue = db.relationship('NotificationQueue', back_populates='user')
+        nurse_profile = db.relationship('Nurse', back_populates='user')
+        online_bookings = db.relationship('OnlineBooking', back_populates='doctor')
+        created_pricing = db.relationship('PricingManagement', back_populates='creator')
+        created_pricing_rules = db.relationship('PricingRule', back_populates='creator')
+        emergency_approvals = db.relationship('QueueManagement', back_populates='emergency_approver')
+        force_entry_approvals = db.relationship('QueueManagement', back_populates='force_entry_approver')
+        created_reports = db.relationship('Report', back_populates='creator')
+        executed_reports = db.relationship('ReportExecution', back_populates='executor')
+        created_report_templates = db.relationship('ReportTemplate', back_populates='creator')
+        workflow_actions = db.relationship('RequestWorkflow', back_populates='user')
+        schedules = db.relationship('StaffWorkSchedule', back_populates='user', cascade='all, delete-orphan', lazy='selectin')
+        absences = db.relationship('StaffAbsence', back_populates='user', cascade='all, delete-orphan', lazy='selectin')
+        prescriptions = db.relationship('Prescription', back_populates='doctor', foreign_keys='Prescription.doctor_id', lazy='selectin')
+        signed_medical_reports = db.relationship('MedicalReport', back_populates='signer', foreign_keys='MedicalReport.signed_by', lazy='selectin')
+        sent_whatsapp_messages = db.relationship('WhatsAppMessage', back_populates='sent_by_user')
+        workflow_transfers = db.relationship('WorkflowTransfer', back_populates='transferred_by_user')
+        workflow_events = db.relationship('VisitWorkflowEvent', back_populates='performer')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"
@@ -347,7 +395,7 @@ class StaffWorkSchedule(db.Model):
         db.UniqueConstraint('user_id', 'day_of_week', name='uq_staff_schedule_user_day'),
     )
 
-    user = db.relationship('User', backref=db.backref('schedules', cascade='all, delete-orphan', lazy='selectin'))
+    user = db.relationship('User', back_populates='schedules')
 
 
 class StaffAbsence(db.Model):
@@ -360,7 +408,7 @@ class StaffAbsence(db.Model):
     reason = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
-    user = db.relationship('User', backref=db.backref('absences', cascade='all, delete-orphan', lazy='selectin'))
+    user = db.relationship('User', back_populates='absences')
 
 
 @event.listens_for(User, 'after_insert')

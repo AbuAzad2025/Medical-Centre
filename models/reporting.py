@@ -35,10 +35,12 @@ class Report(db.Model):
     # التوقيت
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # العلاقات
-    creator = db.relationship('User', backref='created_reports')
+    creator = db.relationship('User', back_populates='created_reports')
+    executions = db.relationship('ReportExecution', back_populates='report')
+
     
     def __repr__(self):
         return f'<Report {self.name}>'
@@ -89,8 +91,8 @@ class ReportExecution(db.Model):
     __tablename__ = 'report_executions'
     
     id = db.Column(db.Integer, primary_key=True)
-    report_id = db.Column(db.Integer, db.ForeignKey('reports.id'), nullable=False)
-    executed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    report_id = db.Column(db.Integer, db.ForeignKey('reports.id', ondelete='CASCADE'), nullable=False, index=True)
+    executed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # معاملات التنفيذ
     execution_parameters = db.Column(db.Text, nullable=True)  # JSON format
@@ -108,8 +110,8 @@ class ReportExecution(db.Model):
     execution_time = db.Column(db.Float, nullable=True)  # بالثواني
     
     # العلاقات
-    report = db.relationship('Report', backref='executions')
-    executor = db.relationship('User', backref='executed_reports')
+    report = db.relationship('Report', back_populates='executions')
+    executor = db.relationship('User', back_populates='executed_reports')
     
     def __repr__(self):
         return f'<ReportExecution {self.report.name if self.report else "Unknown"} - {self.status}>'
@@ -187,10 +189,10 @@ class ReportTemplate(db.Model):
     # التوقيت
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # العلاقات
-    creator = db.relationship('User', backref='created_report_templates')
+    creator = db.relationship('User', back_populates='created_report_templates')
     
     def __repr__(self):
         return f'<ReportTemplate {self.name}>'

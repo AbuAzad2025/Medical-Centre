@@ -17,8 +17,8 @@ class Receipt(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     receipt_number = db.Column(db.String(50), unique=True, nullable=False)  # رقم سند القبض
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=False)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=False, index=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False, index=True)
     
     # تفاصيل الدفع
     total_amount = db.Column(db.Numeric(12, 2), nullable=False)  # المبلغ الإجمالي
@@ -37,26 +37,20 @@ class Receipt(db.Model):
     is_debt = db.Column(db.Boolean, default=False)  # هل هو دين
     debt_reason = db.Column(db.Text, nullable=True)  # سبب الدين
 
-    __table_args__ = (
-        CheckConstraint("total_amount >= 0", name='chk_receipt_total_non_negative'),
-        CheckConstraint("paid_amount >= 0", name='chk_receipt_paid_non_negative'),
-        CheckConstraint("remaining_amount >= 0", name='chk_receipt_remaining_non_negative'),
-        CheckConstraint("insurance_coverage >= 0 AND insurance_coverage <= 100", name='chk_receipt_coverage_percent'),
-    )
-    debt_approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # من وافق على الدين
+    debt_approved_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)  # من وافق على الدين
     debt_approved_at = db.Column(db.DateTime, nullable=True)  # وقت الموافقة
     
     # تفاصيل الطباعة
     is_printed = db.Column(db.Boolean, default=False)  # هل تم طباعته
     printed_at = db.Column(db.DateTime, nullable=True)  # وقت الطباعة
-    printed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # من طبع السند
+    printed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)  # من طبع السند
     
     # QR Code
     qr_code = db.Column(db.Text, nullable=True)  # QR Code كـ base64
     
     # التواريخ
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # Constraints and Indexes
     __table_args__ = (

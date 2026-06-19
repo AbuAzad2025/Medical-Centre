@@ -49,7 +49,7 @@ class SSOConfiguration(db.Model):
     # Auto-provisioning
     auto_create_user = db.Column(db.Boolean, default=True, nullable=False)
     default_role = db.Column(db.String(50), default='user', nullable=False)
-    default_department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True)
+    default_department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
 
     # SSL/TLS
     use_ssl = db.Column(db.Boolean, default=True, nullable=False)

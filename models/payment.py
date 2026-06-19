@@ -58,7 +58,7 @@ class Payment(db.Model):
     received_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # للإلغاء/الاسترجاع
-    cancelled_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    cancelled_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
     cancellation_reason = db.Column(db.Text, nullable=True)
     
@@ -77,11 +77,11 @@ class Payment(db.Model):
     )
 
     # العلاقات
-    patient = db.relationship('Patient', lazy='select')
-    visit = db.relationship('Visit', lazy='select')
-    invoice = db.relationship('Invoice', lazy='select')
-    receiver = db.relationship('User', foreign_keys=[received_by], lazy='select')
-    canceller = db.relationship('User', foreign_keys=[cancelled_by], lazy='select')
+    patient = db.relationship('Patient', lazy='selectin')
+    visit = db.relationship('Visit', lazy='selectin')
+    invoice = db.relationship('Invoice', lazy='selectin')
+    receiver = db.relationship('User', foreign_keys=[received_by], lazy='selectin')
+    canceller = db.relationship('User', foreign_keys=[cancelled_by], lazy='selectin')
 
     @property
     def is_cancelled(self):

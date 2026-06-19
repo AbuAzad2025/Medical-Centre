@@ -14,5 +14,5 @@ class PatientSatisfactionSurvey(db.Model):
     submitted_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
-    visit = db.relationship('Visit', lazy='select')
-    patient = db.relationship('Patient', lazy='select')
+    visit = db.relationship('Visit', back_populates='patient_satisfaction_surveys', lazy='selectin')
+    patient = db.relationship('Patient', back_populates='patient_satisfaction_surveys', lazy='selectin')

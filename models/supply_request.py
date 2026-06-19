@@ -27,9 +27,9 @@ class MedicationSupplyRequest(db.Model):
         Index('idx_med_supply_requests_status_created', 'status', 'created_at'),
     )
 
-    creator = db.relationship('User', foreign_keys=[created_by], lazy='select')
-    approver = db.relationship('User', foreign_keys=[approved_by], lazy='select')
-    fulfiller = db.relationship('User', foreign_keys=[fulfilled_by], lazy='select')
+    creator = db.relationship('User', foreign_keys=[created_by], lazy='selectin')
+    approver = db.relationship('User', foreign_keys=[approved_by], lazy='selectin')
+    fulfiller = db.relationship('User', foreign_keys=[fulfilled_by], lazy='selectin')
 
     items = db.relationship('MedicationSupplyRequestItem', back_populates='request', lazy='selectin', cascade='all, delete-orphan')
 
@@ -54,6 +54,6 @@ class MedicationSupplyRequestItem(db.Model):
         Index('idx_med_supply_request_items_request_med', 'request_id', 'medication_id'),
     )
 
-    request = db.relationship('MedicationSupplyRequest', back_populates='items', lazy='select')
-    medication = db.relationship('Medication', lazy='select')
+    request = db.relationship('MedicationSupplyRequest', back_populates='items', lazy='selectin')
+    medication = db.relationship('Medication', lazy='selectin')
 

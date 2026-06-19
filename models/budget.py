@@ -8,7 +8,7 @@ class Budget(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     year = db.Column(db.Integer, nullable=False)
     month = db.Column(db.Integer, nullable=False)
-    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
 
     # Budget targets
     revenue_target = db.Column(db.Numeric(14, 2), default=0)
@@ -21,7 +21,7 @@ class Budget(db.Model):
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True)
 
     __table_args__ = (db.UniqueConstraint('year', 'month', 'department_id', name='uq_budget_month_dept'),)
 

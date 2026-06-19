@@ -32,7 +32,9 @@ class ServiceMaster(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
-    department = db.relationship('Department', lazy='select')
+    department = db.relationship('Department', lazy='selectin')
+    pricing_management = db.relationship('PricingManagement', back_populates='service')
+
 
     def __repr__(self) -> str:
         return f"<ServiceMaster {self.code}>"

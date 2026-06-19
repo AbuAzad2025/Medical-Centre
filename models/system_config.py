@@ -26,8 +26,8 @@ class SystemConfig(db.Model):
     # التواريخ
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    updated_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    updated_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # Constraints and Indexes
     __table_args__ = (
@@ -39,8 +39,8 @@ class SystemConfig(db.Model):
     )
     
     # العلاقات
-    creator = db.relationship('User', foreign_keys=[created_by], back_populates='created_system_configs', lazy='select')
-    updater = db.relationship('User', foreign_keys=[updated_by], back_populates='updated_system_configs', lazy='select')
+    creator = db.relationship('User', foreign_keys=[created_by], back_populates='created_system_configs', lazy='selectin')
+    updater = db.relationship('User', foreign_keys=[updated_by], back_populates='updated_system_configs', lazy='selectin')
     
     def __repr__(self):
         return f'<SystemConfig {self.config_key}>'

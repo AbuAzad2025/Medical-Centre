@@ -14,7 +14,7 @@ class Appointment(db.Model):
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
     doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
 
     starts_at = db.Column(db.DateTime, nullable=False, index=True)
     ends_at = db.Column(db.DateTime, nullable=True)
@@ -32,7 +32,9 @@ class Appointment(db.Model):
     patient = db.relationship('Patient', back_populates='appointments', lazy='selectin')
     doctor = db.relationship('User', back_populates='doctor_appointments', foreign_keys=[doctor_id], lazy='selectin')
     department = db.relationship('Department', back_populates='appointments', lazy='selectin')
-    creator = db.relationship('User', foreign_keys=[created_by], lazy='select')
+    creator = db.relationship('User', foreign_keys=[created_by], lazy='selectin')
+    workflows = db.relationship('PatientWorkflow', back_populates='appointment')
+
 
     def __repr__(self) -> str:
         return f"<Appointment patient={self.patient_id} at={self.starts_at}>"

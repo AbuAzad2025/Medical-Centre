@@ -143,7 +143,7 @@ def get_ai_diagnostic_assistant():
     try:
         from models.visit import Visit
         from models.medical_record import MedicalRecord
-        from models.medication import Prescription
+        from models.medication import Prescription, PrescriptionItem, Medication
         from datetime import datetime, timedelta
         
         # تحليل التشخيصات الشائعة
@@ -157,12 +157,15 @@ def get_ai_diagnostic_assistant():
         
         # تحليل الأدوية الموصوفة
         common_medications = db.session.query(
-            Prescription.medication_name,
-            func.count(Prescription.id).label('count')
-        ).join(Visit, Prescription.visit_id == Visit.id).filter(
+            Medication.trade_name.label('medication_name'),
+            func.count(func.distinct(Prescription.id)).label('count')
+        ).join(PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
+        ).join(Medication, Medication.id == PrescriptionItem.medication_id
+        ).join(Visit, Prescription.visit_id == Visit.id
+        ).filter(
             Visit.doctor_id == current_user.id,
             Prescription.created_at >= datetime.now() - timedelta(days=30)
-        ).group_by(Prescription.medication_name).order_by(func.count(Prescription.id).desc()).limit(5).all()
+        ).group_by(Medication.trade_name).order_by(func.count(func.distinct(Prescription.id)).desc()).limit(5).all()
         
         # اقتراحات التشخيص
         diagnostic_suggestions = []
@@ -315,7 +318,7 @@ def get_patient_medical_history_ai():
     try:
         from models.visit import Visit
         from models.medical_record import MedicalRecord
-        from models.medication import Prescription
+        from models.medication import Prescription, PrescriptionItem, Medication
         from models.patient import Patient
         from datetime import datetime, timedelta
         
@@ -340,12 +343,15 @@ def get_patient_medical_history_ai():
         
         # تحليل الأدوية طويلة المدى
         long_term_medications = db.session.query(
-            Prescription.medication_name,
-            func.count(Prescription.id).label('frequency')
-        ).join(Visit, Prescription.visit_id == Visit.id).filter(
+            Medication.trade_name.label('medication_name'),
+            func.count(func.distinct(Prescription.id)).label('frequency')
+        ).join(PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
+        ).join(Medication, Medication.id == PrescriptionItem.medication_id
+        ).join(Visit, Prescription.visit_id == Visit.id
+        ).filter(
             Visit.doctor_id == current_user.id,
             Prescription.created_at >= datetime.now() - timedelta(days=90)
-        ).group_by(Prescription.medication_name).having(func.count(Prescription.id) > 3).all()
+        ).group_by(Medication.trade_name).having(func.count(func.distinct(Prescription.id)) > 3).all()
         
         return {
             'frequent_patients': [
@@ -367,7 +373,7 @@ def get_treatment_recommendations():
     try:
         from models.visit import Visit
         from models.medical_record import MedicalRecord
-        from models.medication import Prescription
+        from models.medication import Prescription, PrescriptionItem, Medication
         from datetime import datetime, timedelta
         
         recommendations = []
@@ -375,15 +381,17 @@ def get_treatment_recommendations():
         # تحليل نجاح العلاجات
         successful_treatments = db.session.query(
             MedicalRecord.diagnosis,
-            Prescription.medication_name,
-            func.count(MedicalRecord.id).label('success_count')
-        ).join(Visit, MedicalRecord.visit_id == Visit.id).join(
-            Prescription, Visit.id == Prescription.visit_id
+            Medication.trade_name.label('medication_name'),
+            func.count(func.distinct(MedicalRecord.id)).label('success_count')
+        ).join(Visit, MedicalRecord.visit_id == Visit.id
+        ).join(Prescription, Visit.id == Prescription.visit_id
+        ).join(PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
+        ).join(Medication, Medication.id == PrescriptionItem.medication_id
         ).filter(
             Visit.doctor_id == current_user.id,
             Visit.status == 'ARCHIVED',
             MedicalRecord.created_at >= datetime.now() - timedelta(days=60)
-        ).group_by(MedicalRecord.diagnosis, Prescription.medication_name).all()
+        ).group_by(MedicalRecord.diagnosis, Medication.trade_name).all()
         
         # تحليل العلاجات الفعالة
         if successful_treatments:
@@ -415,7 +423,7 @@ def get_treatment_recommendations():
 def get_drug_interaction_checker():
     """فحص التفاعلات الدوائية"""
     try:
-        from models.medication import Prescription
+        from models.medication import Prescription, PrescriptionItem, Medication
         from models.visit import Visit
         from datetime import datetime, timedelta
         
@@ -435,23 +443,29 @@ def get_drug_interaction_checker():
         interactions_found = []
         
         for prescription in recent_prescriptions:
-            medication = prescription.medication_name
-            if medication in known_interactions:
-                for other_med in known_interactions[medication]:
-                    # فحص إذا كان المريض يتناول الدواء الآخر
-                    other_prescription = Prescription.query.join(Visit).filter(
-                        Visit.patient_id == prescription.visit.patient_id,
-                        Prescription.medication_name == other_med,
-                        Prescription.created_at >= datetime.now() - timedelta(days=30)
-                    ).first()
-                    
-                    if other_prescription:
-                        interactions_found.append({
-                            'medication1': medication,
-                            'medication2': other_med,
-                            'severity': 'متوسط',
-                            'description': f'تفاعل محتمل بين {medication} و {other_med}'
-                        })
+            medications = Medication.query.join(PrescriptionItem).filter(
+                PrescriptionItem.prescription_id == prescription.id
+            ).all()
+            for medication in medications:
+                med_name = medication.trade_name
+                if med_name in known_interactions:
+                    for other_med in known_interactions[med_name]:
+                        # فحص إذا كان المريض يتناول الدواء الآخر
+                        other_prescription = Prescription.query.join(Visit).join(
+                            PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
+                        ).join(Medication, Medication.id == PrescriptionItem.medication_id).filter(
+                            Visit.patient_id == prescription.visit.patient_id,
+                            Medication.trade_name == other_med,
+                            Prescription.created_at >= datetime.now() - timedelta(days=30)
+                        ).first()
+                        
+                        if other_prescription:
+                            interactions_found.append({
+                                'medication1': med_name,
+                                'medication2': other_med,
+                                'severity': 'متوسط',
+                                'description': f'تفاعل محتمل بين {med_name} و {other_med}'
+                            })
         
         return {
             'interactions_found': interactions_found,
@@ -467,7 +481,7 @@ def get_clinical_decision_support():
     try:
         from models.visit import Visit
         from models.medical_record import MedicalRecord
-        from models.medication import Prescription
+        from models.medication import Prescription, PrescriptionItem, Medication
         from datetime import datetime, timedelta
         
         support_recommendations = []
@@ -495,13 +509,16 @@ def get_clinical_decision_support():
         
         # تحليل فعالية الأدوية
         medication_effectiveness = db.session.query(
-            Prescription.medication_name,
-            func.count(Prescription.id).label('total_prescriptions'),
+            Medication.trade_name.label('medication_name'),
+            func.count(func.distinct(Prescription.id)).label('total_prescriptions'),
             func.sum(case([(Visit.status == 'ARCHIVED', 1)], else_=0)).label('successful_treatments')
-        ).join(Visit, Prescription.visit_id == Visit.id).filter(
+        ).join(PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
+        ).join(Medication, Medication.id == PrescriptionItem.medication_id
+        ).join(Visit, Prescription.visit_id == Visit.id
+        ).filter(
             Visit.doctor_id == current_user.id,
             Prescription.created_at >= datetime.now() - timedelta(days=30)
-        ).group_by(Prescription.medication_name).all()
+        ).group_by(Medication.trade_name).all()
         
         for medication in medication_effectiveness:
             effectiveness_rate = (medication.successful_treatments / medication.total_prescriptions * 100) if medication.total_prescriptions > 0 else 0
@@ -524,7 +541,7 @@ def get_medical_analytics():
     try:
         from models.visit import Visit
         from models.medical_record import MedicalRecord
-        from models.medication import Prescription
+        from models.medication import Prescription, PrescriptionItem, Medication
         from datetime import datetime, timedelta
         
         # تحليل الأداء الطبي
@@ -552,12 +569,15 @@ def get_medical_analytics():
         
         # تحليل الأدوية
         medication_distribution = db.session.query(
-            Prescription.medication_name,
-            func.count(Prescription.id).label('count')
-        ).join(Visit, Prescription.visit_id == Visit.id).filter(
+            Medication.trade_name.label('medication_name'),
+            func.count(func.distinct(Prescription.id)).label('count')
+        ).join(PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
+        ).join(Medication, Medication.id == PrescriptionItem.medication_id
+        ).join(Visit, Prescription.visit_id == Visit.id
+        ).filter(
             Visit.doctor_id == current_user.id,
             Prescription.created_at >= datetime.now() - timedelta(days=30)
-        ).group_by(Prescription.medication_name).all()
+        ).group_by(Medication.trade_name).all()
         
         return {
             'completion_rate': round(completion_rate, 2),

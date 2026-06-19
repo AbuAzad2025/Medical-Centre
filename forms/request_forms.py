@@ -97,7 +97,7 @@ class RadiologyRequestForm(FormBase, MedicalEntityMixin, StatusMixin, PriorityMi
     def load_dynamic_choices(self):
         """تحميل الخيارات الديناميكية"""
         # تحميل فحوص الأشعة
-        from models.radiology_test import RadiologyTest
+        from models.radiology_result import RadiologyResult
         tests = RadiologyResult.query.filter_by(status='ACTIVE').all()
         self.radiology_test_id.choices = [(t.id, f"{t.name_ar} - {t.name}") for t in tests]
         

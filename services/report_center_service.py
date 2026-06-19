@@ -161,7 +161,7 @@ class ReportCenterService:
 
     @staticmethod
     def radiology_revision_rate(start_dt, end_dt):
-        from models.radiology_test import RadiologyResult
+        from models.radiology_result import RadiologyResult
 
         q = RadiologyResult.query.filter(RadiologyResult.created_at >= start_dt, RadiologyResult.created_at <= end_dt)
         reviewed = q.filter(RadiologyResult.reviewed_at.isnot(None)).count()

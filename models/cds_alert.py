@@ -38,7 +38,7 @@ class CDSAlertRule(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    fired_alerts = db.relationship('CDSFiredAlert', backref='rule', lazy='dynamic')
+    fired_alerts = db.relationship('CDSFiredAlert', back_populates='rule', lazy='dynamic')
 
     def __repr__(self):
         return f"<CDSAlertRule {self.rule_type}>"
@@ -50,10 +50,10 @@ class CDSFiredAlert(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    rule_id = db.Column(db.Integer, db.ForeignKey('cds_alert_rules.id'), nullable=False)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
-    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id'), nullable=True)
+    rule_id = db.Column(db.Integer, db.ForeignKey('cds_alert_rules.id', ondelete='CASCADE'), nullable=False, index=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
+    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='SET NULL'), nullable=True, index=True)
 
     severity = db.Column(db.String(20), nullable=False)
     alert_title = db.Column(db.String(500), nullable=False)
@@ -62,11 +62,11 @@ class CDSFiredAlert(db.Model):
 
     # User response
     fired_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    acknowledged_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    acknowledged_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     acknowledged_at = db.Column(db.DateTime, nullable=True)
     overridden = db.Column(db.Boolean, default=False)
     override_reason = db.Column(db.Text, nullable=True)
-    override_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    override_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
 
     # Outcome tracking
     action_taken = db.Column(db.Text, nullable=True)
@@ -75,11 +75,13 @@ class CDSFiredAlert(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    patient = db.relationship('Patient', backref='cds_alerts')
-    visit = db.relationship('Visit', backref='cds_alerts')
-    prescription = db.relationship('Prescription', backref='cds_alerts')
+    patient = db.relationship('Patient', back_populates='cds_alerts')
+    visit = db.relationship('Visit', back_populates='cds_alerts')
+    prescription = db.relationship('Prescription', back_populates='cds_alerts')
     acknowledged_by = db.relationship('User', foreign_keys=[acknowledged_by_id])
     override_by = db.relationship('User', foreign_keys=[override_by_id])
+    rule = db.relationship('CDSAlertRule', back_populates='fired_alerts')
+
 
     def __repr__(self):
         return f"<CDSFiredAlert {self.severity}>"

@@ -13,7 +13,7 @@ class Ward(db.Model):
     name = db.Column(db.String(100), nullable=False)
     name_ar = db.Column(db.String(100), nullable=True)
     code = db.Column(db.String(20), nullable=False, unique=True)
-    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
     ward_type = db.Column(db.String(50), default='GENERAL')  # GENERAL, ICU, NICU, PICU, MATERNITY, SURGERY, ISOLATION
     capacity = db.Column(db.Integer, default=0)
     floor = db.Column(db.String(20), nullable=True)
@@ -22,8 +22,8 @@ class Ward(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    department = db.relationship('Department', backref='wards')
-    rooms = db.relationship('Room', backref='ward', lazy='dynamic', cascade='all, delete-orphan')
+    department = db.relationship('Department', back_populates='wards')
+    rooms = db.relationship('Room', back_populates='ward', lazy='dynamic', cascade='all, delete-orphan')
 
     @property
     def occupancy_rate(self):
@@ -41,7 +41,7 @@ class Room(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    ward_id = db.Column(db.Integer, db.ForeignKey('wards.id'), nullable=False)
+    ward_id = db.Column(db.Integer, db.ForeignKey('wards.id', ondelete='CASCADE'), nullable=False, index=True)
     name = db.Column(db.String(50), nullable=False)
     code = db.Column(db.String(20), nullable=False)
     room_type = db.Column(db.String(50), default='STANDARD')  # STANDARD, PRIVATE, SEMI_PRIVATE, ICU_BAY, ISOLATION
@@ -50,7 +50,9 @@ class Room(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    beds = db.relationship('Bed', backref='room', lazy='dynamic', cascade='all, delete-orphan')
+    beds = db.relationship('Bed', back_populates='room', lazy='dynamic', cascade='all, delete-orphan')
+    ward = db.relationship('Ward', back_populates='rooms')
+
 
     def __repr__(self):
         return f"<Room {self.name}>"
@@ -62,16 +64,18 @@ class Bed(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), nullable=False)
+    room_id = db.Column(db.Integer, db.ForeignKey('rooms.id', ondelete='CASCADE'), nullable=False, index=True)
     bed_number = db.Column(db.String(20), nullable=False)
     bed_type = db.Column(db.String(50), default='STANDARD')  # STANDARD, ELECTRIC, BARIATRIC, PEDIATRIC, ICU, INCUBATOR
     status = db.Column(db.String(20), default='AVAILABLE')  # AVAILABLE, OCCUPIED, RESERVED, CLEANING, OUT_OF_ORDER
-    current_patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)
+    current_patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     current_patient = db.relationship('Patient', foreign_keys=[current_patient_id])
-    admissions = db.relationship('Admission', backref='bed', lazy='dynamic')
+    admissions = db.relationship('Admission', back_populates='bed', lazy='dynamic')
+    room = db.relationship('Room', back_populates='beds')
+
 
     def __repr__(self):
         return f"<Bed {self.bed_number}>"
@@ -83,9 +87,9 @@ class Admission(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    bed_id = db.Column(db.Integer, db.ForeignKey('beds.id'), nullable=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    bed_id = db.Column(db.Integer, db.ForeignKey('beds.id', ondelete='SET NULL'), nullable=True, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
 
     # Admission details
     admission_type = db.Column(db.String(50), default='ELECTIVE')  # ELECTIVE, EMERGENCY, URGENT, TRANSFER, READMISSION
@@ -96,12 +100,12 @@ class Admission(db.Model):
     # Clinical info
     admitting_diagnosis = db.Column(db.Text, nullable=True)
     discharge_diagnosis = db.Column(db.Text, nullable=True)
-    drg_code_id = db.Column(db.Integer, db.ForeignKey('drg_codes.id'), nullable=True)
+    drg_code_id = db.Column(db.Integer, db.ForeignKey('drg_codes.id', ondelete='SET NULL'), nullable=True, index=True)
     length_of_stay = db.Column(db.Integer, nullable=True)  # calculated days
 
     # Doctors
-    admitting_doctor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    attending_doctor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    admitting_doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    attending_doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
 
     # Status
     status = db.Column(db.String(20), default='ADMITTED')  # ADMITTED, DISCHARGED, TRANSFERRED, DECEASED
@@ -110,11 +114,21 @@ class Admission(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    patient = db.relationship('Patient', backref='admissions')
-    visit = db.relationship('Visit', backref='admissions')
-    drg = db.relationship('DRGCode', backref='admissions')
+    patient = db.relationship('Patient', back_populates='admissions')
+    visit = db.relationship('Visit', back_populates='admissions')
+    drg = db.relationship('DRGCode', back_populates='admissions')
     admitting_doctor = db.relationship('User', foreign_keys=[admitting_doctor_id])
     attending_doctor = db.relationship('User', foreign_keys=[attending_doctor_id])
+    bed = db.relationship('Bed', back_populates='admissions')
+    transfers = db.relationship('BedTransfer', back_populates='admission')
+    care_plans = db.relationship('PatientCarePlan', back_populates='admission')
+    medication_reconciliations = db.relationship('MedicationReconciliation', back_populates='admission')
+    surgeries = db.relationship('SurgerySchedule', back_populates='admission')
+
+
+
+
+
 
     def __repr__(self):
         return f"<Admission {self.admission_type}>"
@@ -126,18 +140,18 @@ class BedTransfer(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    admission_id = db.Column(db.Integer, db.ForeignKey('admissions.id'), nullable=False)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    from_bed_id = db.Column(db.Integer, db.ForeignKey('beds.id'), nullable=True)
-    to_bed_id = db.Column(db.Integer, db.ForeignKey('beds.id'), nullable=False)
+    admission_id = db.Column(db.Integer, db.ForeignKey('admissions.id', ondelete='CASCADE'), nullable=False, index=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    from_bed_id = db.Column(db.Integer, db.ForeignKey('beds.id', ondelete='SET NULL'), nullable=True, index=True)
+    to_bed_id = db.Column(db.Integer, db.ForeignKey('beds.id', ondelete='CASCADE'), nullable=False, index=True)
     transfer_datetime = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     transfer_type = db.Column(db.String(50), default='INTERNAL')  # INTERNAL, INTER_WARD, ICU, DISCHARGE
     reason = db.Column(db.Text, nullable=True)
-    requested_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    approved_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    requested_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    approved_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    admission = db.relationship('Admission', backref='transfers')
-    patient = db.relationship('Patient', backref='bed_transfers')
+    admission = db.relationship('Admission', back_populates='transfers')
+    patient = db.relationship('Patient', back_populates='bed_transfers')
     from_bed = db.relationship('Bed', foreign_keys=[from_bed_id])
     to_bed = db.relationship('Bed', foreign_keys=[to_bed_id])

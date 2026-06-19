@@ -32,7 +32,7 @@ class Backup(db.Model):
     # معلومات الاستعادة
     restore_count = db.Column(db.Integer, default=0)
     last_restore = db.Column(db.DateTime, nullable=True)
-    last_restore_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    last_restore_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # معلومات التشفير
     is_encrypted = db.Column(db.Boolean, default=False)
@@ -42,7 +42,7 @@ class Backup(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     started_at = db.Column(db.DateTime, nullable=True)
     completed_at = db.Column(db.DateTime, nullable=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # Constraints and Indexes
     __table_args__ = (
@@ -57,8 +57,8 @@ class Backup(db.Model):
     )
     
     # العلاقات (مبسطة)
-    creator = db.relationship('User', foreign_keys=[created_by], back_populates='created_backups', lazy='select')
-    last_restore_user = db.relationship('User', foreign_keys=[last_restore_by], back_populates='restored_backups', lazy='select')
+    creator = db.relationship('User', foreign_keys=[created_by], back_populates='created_backups', lazy='selectin')
+    last_restore_user = db.relationship('User', foreign_keys=[last_restore_by], back_populates='restored_backups', lazy='selectin')
     logs = db.relationship('BackupLog', back_populates='backup', lazy='selectin', cascade='all, delete-orphan', passive_deletes=True)
     
     def __repr__(self):
@@ -125,7 +125,7 @@ class BackupLog(db.Model):
     __tablename__ = 'backup_logs'
     
     id = db.Column(db.Integer, primary_key=True)
-    backup_id = db.Column(db.Integer, db.ForeignKey('backups.id'), nullable=False)
+    backup_id = db.Column(db.Integer, db.ForeignKey('backups.id', ondelete='CASCADE'), nullable=False, index=True)
     log_type = db.Column(db.String(50), nullable=False)  # info, warning, error, success
     message = db.Column(db.Text, nullable=False)
     details = db.Column(db.Text, nullable=True)  # تفاصيل إضافية

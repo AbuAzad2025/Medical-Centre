@@ -11,11 +11,11 @@ class eMARAdministration(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
-    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id'), nullable=False)
-    prescription_item_id = db.Column(db.Integer, db.ForeignKey('prescription_items.id'), nullable=True)
-    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
+    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='RESTRICT'), nullable=False, index=True)
+    prescription_item_id = db.Column(db.Integer, db.ForeignKey('prescription_items.id', ondelete='CASCADE'), nullable=True, index=True)
+    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='RESTRICT'), nullable=False, index=True)
 
     # Administration details
     scheduled_time = db.Column(db.DateTime, nullable=False)
@@ -34,8 +34,8 @@ class eMARAdministration(db.Model):
     medication_barcode = db.Column(db.String(100), nullable=True)
 
     # Nurse documentation
-    nurse_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    witnessed_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    nurse_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    witnessed_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     notes = db.Column(db.Text, nullable=True)
     refusal_reason = db.Column(db.String(200), nullable=True)
     hold_reason = db.Column(db.String(200), nullable=True)
@@ -52,10 +52,10 @@ class eMARAdministration(db.Model):
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relationships
-    patient = db.relationship('Patient', backref='emar_administrations')
-    visit = db.relationship('Visit', backref='emar_administrations')
-    prescription = db.relationship('Prescription', backref='emar_administrations')
-    medication = db.relationship('Medication', backref='emar_administrations')
+    patient = db.relationship('Patient', back_populates='emar_administrations')
+    visit = db.relationship('Visit', back_populates='emar_administrations')
+    prescription = db.relationship('Prescription', back_populates='emar_administrations')
+    medication = db.relationship('Medication', back_populates='emar_administrations')
     nurse = db.relationship('User', foreign_keys=[nurse_id])
     witnessed_by = db.relationship('User', foreign_keys=[witnessed_by_id])
 
@@ -69,7 +69,7 @@ class MedicationSchedule(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    prescription_item_id = db.Column(db.Integer, db.ForeignKey('prescription_items.id'), nullable=False)
+    prescription_item_id = db.Column(db.Integer, db.ForeignKey('prescription_items.id', ondelete='CASCADE'), nullable=False, index=True)
     scheduled_time = db.Column(db.Time, nullable=False)
     dose = db.Column(db.String(100), nullable=True)
     frequency = db.Column(db.String(50), nullable=True)  # Q4H, BID, TID, QD, etc.
@@ -80,4 +80,4 @@ class MedicationSchedule(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    prescription_item = db.relationship('PrescriptionItem', backref='schedules')
+    prescription_item = db.relationship('PrescriptionItem', back_populates='schedules')

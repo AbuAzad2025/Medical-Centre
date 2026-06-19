@@ -182,7 +182,7 @@ def _get_visit_radiology_data(visit_id):
         req_ids = [r.id for r in (radiology_requests or []) if getattr(r, 'id', None)]
         critical = 0
         if req_ids:
-            from models.radiology_test import RadiologyResult
+            from models.radiology_result import RadiologyResult
             critical = RadiologyResult.query.filter(RadiologyResult.request_id.in_(req_ids), RadiologyResult.is_critical == True, RadiologyResult.status == 'VALIDATED').count()
         return radiology_requests, critical
     except Exception:
@@ -260,7 +260,7 @@ def patient_details(visit_id):
             radiology_requests = []
         critical_radiology_results_count = 0
         try:
-            from models.radiology_test import RadiologyResult
+            from models.radiology_result import RadiologyResult
             req_ids = [r.id for r in (radiology_requests or []) if getattr(r, 'id', None)]
             if req_ids:
                 critical_radiology_results_count = RadiologyResult.query.filter(

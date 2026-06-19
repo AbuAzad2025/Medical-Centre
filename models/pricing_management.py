@@ -14,8 +14,8 @@ class PricingManagement(db.Model):
     __tablename__ = 'pricing_management'
     
     id = db.Column(db.Integer, primary_key=True)
-    service_id = db.Column(db.Integer, db.ForeignKey('service_master.id'), nullable=False)
-    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)
+    service_id = db.Column(db.Integer, db.ForeignKey('service_master.id', ondelete='CASCADE'), nullable=False, index=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # التسعير الأساسي
     base_price = db.Column(db.Numeric(12, 2), nullable=False)
@@ -42,12 +42,12 @@ class PricingManagement(db.Model):
     # التوقيت
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # العلاقات
-    service = db.relationship('ServiceMaster', backref='pricing_management')
-    department = db.relationship('Department', backref='pricing_management')
-    creator = db.relationship('User', backref='created_pricing')
+    service = db.relationship('ServiceMaster', back_populates='pricing_management')
+    department = db.relationship('Department', back_populates='pricing_management')
+    creator = db.relationship('User', back_populates='created_pricing')
     
     def __repr__(self):
         return f'<PricingManagement {self.service.name if self.service else "Unknown"} - {self.base_price} {self.currency}>'
@@ -128,10 +128,10 @@ class PricingRule(db.Model):
     # التوقيت
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # العلاقات
-    creator = db.relationship('User', backref='created_pricing_rules')
+    creator = db.relationship('User', back_populates='created_pricing_rules')
     
     def __repr__(self):
         return f'<PricingRule {self.name}>'

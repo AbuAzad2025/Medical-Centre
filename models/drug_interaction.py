@@ -25,9 +25,9 @@ class DrugInteraction(db.Model):
         Index('idx_drug_interactions_active_severity', 'is_active', 'severity'),
     )
 
-    medication_a = db.relationship('Medication', foreign_keys=[medication_a_id], lazy='select')
-    medication_b = db.relationship('Medication', foreign_keys=[medication_b_id], lazy='select')
-    creator = db.relationship('User', foreign_keys=[created_by], lazy='select')
+    medication_a = db.relationship('Medication', foreign_keys=[medication_a_id], lazy='selectin')
+    medication_b = db.relationship('Medication', foreign_keys=[medication_b_id], lazy='selectin')
+    creator = db.relationship('User', foreign_keys=[created_by], lazy='selectin')
 
     def to_dict(self) -> dict:
         return {

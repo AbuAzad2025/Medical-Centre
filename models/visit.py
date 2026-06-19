@@ -42,6 +42,10 @@ class Visit(db.Model):
     # حقول إضافية للطباعة والتوثيق
     diagnosis = db.Column(db.Text, nullable=True)
     treatment_plan = db.Column(db.Text, nullable=True)
+    chief_complaint = db.Column(db.Text, nullable=True)
+    differential_diagnosis = db.Column(db.Text, nullable=True)
+    follow_up_notes = db.Column(db.Text, nullable=True)
+    vital_signs = db.Column(db.Text, nullable=True)
     follow_up_required = db.Column(db.Boolean, default=False)
     follow_up_date = db.Column(db.Date, nullable=True)
     prescription_issued = db.Column(db.Boolean, default=False)
@@ -67,11 +71,11 @@ class Visit(db.Model):
     
     # حقول الدفع القسري
     force_payment_reason = db.Column(db.Text, nullable=True)
-    force_payment_approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    force_payment_approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
     force_payment_approved_at = db.Column(db.DateTime, nullable=True)
     
     # حقول الإيصال المتقدمة
-    receipt_printed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    receipt_printed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
     receipt_printed_at = db.Column(db.DateTime, nullable=True)
 
     # حقول مالية إضافية لدعم GatekeeperService
@@ -82,8 +86,8 @@ class Visit(db.Model):
     archive_status = db.Column(db.String(20), default='ACTIVE')
 
     created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
-    completed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
-    archived_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    completed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    archived_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
@@ -100,13 +104,13 @@ class Visit(db.Model):
     patient = db.relationship('Patient', back_populates='visits', lazy='selectin')
     department = db.relationship('Department', back_populates='visits', lazy='selectin')
     doctor = db.relationship('User', back_populates='doctor_visits', foreign_keys=[doctor_id], lazy='selectin')
-    insurance_company = db.relationship('InsuranceCompany', foreign_keys=[insurance_company_id], lazy='select')
+    insurance_company = db.relationship('InsuranceCompany', foreign_keys=[insurance_company_id], lazy='selectin')
 
-    creator = db.relationship('User', foreign_keys=[created_by], lazy='select')
-    completer = db.relationship('User', foreign_keys=[completed_by], lazy='select')
-    archiver = db.relationship('User', foreign_keys=[archived_by], lazy='select')
-    force_payment_approver = db.relationship('User', foreign_keys=[force_payment_approved_by], lazy='select')
-    receipt_printer = db.relationship('User', foreign_keys=[receipt_printed_by], lazy='select')
+    creator = db.relationship('User', foreign_keys=[created_by], lazy='selectin')
+    completer = db.relationship('User', foreign_keys=[completed_by], lazy='selectin')
+    archiver = db.relationship('User', foreign_keys=[archived_by], lazy='selectin')
+    force_payment_approver = db.relationship('User', foreign_keys=[force_payment_approved_by], lazy='selectin')
+    receipt_printer = db.relationship('User', foreign_keys=[receipt_printed_by], lazy='selectin')
 
     invoices = db.relationship(
         'Invoice',
@@ -196,6 +200,40 @@ class Visit(db.Model):
             total = Decimal(str(self.total_amount or 0))
             self.insurance_amount = total * coverage
             self.patient_share = total * (Decimal('1') - coverage)
+        ai_recommendations = db.relationship('AIRecommendation', back_populates='visit')
+        admissions = db.relationship('Admission', back_populates='visit')
+        cds_alerts = db.relationship('CDSFiredAlert', back_populates='visit')
+        care_plans = db.relationship('PatientCarePlan', back_populates='visit')
+        emar_administrations = db.relationship('eMARAdministration', back_populates='visit')
+        emergency_cases = db.relationship('EmergencyCase', back_populates='visit')
+        coded_diagnoses = db.relationship('CodedDiagnosis', back_populates='visit')
+        coded_procedures = db.relationship('CodedProcedure', back_populates='visit')
+        medical_records = db.relationship('MedicalRecord', back_populates='visit', lazy='selectin')
+        medical_reports = db.relationship('MedicalReport', back_populates='visit', lazy='selectin')
+        patient_satisfaction_surveys = db.relationship('PatientSatisfactionSurvey', back_populates='visit', lazy='selectin')
+        medication_reconciliations = db.relationship('MedicationReconciliation', back_populates='visit')
+        surgeries = db.relationship('SurgerySchedule', back_populates='visit')
+        queue_items = db.relationship('QueueManagement', back_populates='visit')
+        referrals = db.relationship('Referral', back_populates='visit')
+        treatments = db.relationship('Treatment', back_populates='visit', lazy='selectin')
+        workflows = db.relationship('PatientWorkflow', back_populates='visit')
+        workflow_events = db.relationship('VisitWorkflowEvent', back_populates='visit')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
     def __repr__(self) -> str:
         return f"<Visit #{self.visit_number or self.id} patient={self.patient_id}>"

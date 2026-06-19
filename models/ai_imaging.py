@@ -36,7 +36,7 @@ class AIImagingAnalysis(db.Model):
     status = db.Column(db.String(20), default='pending', nullable=False, index=True)
     # pending | processing | completed | failed | reviewed
     processed_at = db.Column(db.DateTime, nullable=True)
-    reviewed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    reviewed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     review_notes = db.Column(db.Text, nullable=True)
 
     # Raw response from AI service

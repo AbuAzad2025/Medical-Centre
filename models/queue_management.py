@@ -14,9 +14,9 @@ class QueueManagement(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
-    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=False)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # معلومات الطابور
     queue_number = db.Column(db.String(20), nullable=False)
@@ -32,12 +32,12 @@ class QueueManagement(db.Model):
     # معلومات الطوارئ
     is_emergency = db.Column(db.Boolean, default=False)
     emergency_reason = db.Column(db.Text, nullable=True)
-    emergency_approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    emergency_approved_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # معلومات الدخول القوي
     force_entry = db.Column(db.Boolean, default=False)
     force_entry_reason = db.Column(db.Text, nullable=True)
-    force_entry_approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    force_entry_approved_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # التوقيت
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
@@ -50,11 +50,11 @@ class QueueManagement(db.Model):
     notes = db.Column(db.Text, nullable=True)
     
     # العلاقات
-    department = db.relationship('Department', backref='queue_items')
-    patient = db.relationship('Patient', backref='queue_items')
-    visit = db.relationship('Visit', backref='queue_items')
-    emergency_approver = db.relationship('User', foreign_keys=[emergency_approved_by], backref='emergency_approvals')
-    force_entry_approver = db.relationship('User', foreign_keys=[force_entry_approved_by], backref='force_entry_approvals')
+    department = db.relationship('Department', back_populates='queue_items')
+    patient = db.relationship('Patient', back_populates='queue_items')
+    visit = db.relationship('Visit', back_populates='queue_items')
+    emergency_approver = db.relationship('User', foreign_keys=[emergency_approved_by], back_populates='emergency_approvals')
+    force_entry_approver = db.relationship('User', foreign_keys=[force_entry_approved_by], back_populates='force_entry_approvals')
     
     def __repr__(self):
         return f'<QueueManagement {self.queue_number} - {self.patient.full_name if self.patient else "Unknown"}>'
@@ -123,7 +123,7 @@ class QueueSettings(db.Model):
     __tablename__ = 'queue_settings'
     
     id = db.Column(db.Integer, primary_key=True)
-    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=False)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # إعدادات الطابور
     max_queue_size = db.Column(db.Integer, default=50)
@@ -147,7 +147,7 @@ class QueueSettings(db.Model):
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # العلاقات
-    department = db.relationship('Department', backref='queue_settings')
+    department = db.relationship('Department', back_populates='queue_settings')
     
     def __repr__(self):
         return f'<QueueSettings for {self.department.name if self.department else "Unknown"}>'

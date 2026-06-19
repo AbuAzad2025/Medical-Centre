@@ -22,7 +22,7 @@ class WhatIfScenario(db.Model):
     # Scenario parameters (changes)
     param_change_value = db.Column(db.Numeric(12, 2), nullable=True)  # numeric change
     param_change_percent = db.Column(db.Numeric(6, 2), nullable=True)  # percentage change
-    param_department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True)
+    param_department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
     param_new_staff_count = db.Column(db.Integer, nullable=True)
     param_new_bed_count = db.Column(db.Integer, nullable=True)
 
@@ -36,7 +36,7 @@ class WhatIfScenario(db.Model):
     result_summary = db.Column(db.Text, nullable=True)
     result_json = db.Column(db.Text, nullable=True)
 
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
                            onupdate=lambda: datetime.now(timezone.utc), nullable=False)

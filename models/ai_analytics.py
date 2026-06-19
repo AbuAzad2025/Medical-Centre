@@ -12,23 +12,23 @@ class AIRecommendation(db.Model):
     __tablename__ = 'ai_recommendations'
     
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
     recommendation_type = db.Column(db.String(100), nullable=False)  # diagnosis, treatment, medication, test
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     confidence_score = db.Column(db.Float, nullable=False)  # 0-1
     source_data = db.Column(db.Text, nullable=True)  # JSON format
     is_accepted = db.Column(db.Boolean, nullable=True)
-    accepted_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    accepted_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     accepted_at = db.Column(db.DateTime, nullable=True)
     feedback = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # العلاقات
-    patient = db.relationship('Patient', backref='ai_recommendations')
-    visit = db.relationship('Visit', backref='ai_recommendations')
-    accepter = db.relationship('User', backref='ai_recommendations_accepted')
+    patient = db.relationship('Patient', back_populates='ai_recommendations')
+    visit = db.relationship('Visit', back_populates='ai_recommendations')
+    accepter = db.relationship('User', back_populates='ai_recommendations_accepted')
     
     def __repr__(self):
         return f'<AIRecommendation {self.title}>'
@@ -162,14 +162,14 @@ class PerformanceAnalytics(db.Model):
     target_value = db.Column(db.Float, nullable=True)
     unit = db.Column(db.String(50), nullable=True)
     department = db.Column(db.String(100), nullable=True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     period_start = db.Column(db.DateTime, nullable=False)
     period_end = db.Column(db.DateTime, nullable=False)
     additional_data = db.Column(db.Text, nullable=True)  # JSON format
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # العلاقات
-    doctor = db.relationship('User', backref='performance_analytics')
+    doctor = db.relationship('User', back_populates='performance_analytics')
     
     def __repr__(self):
         return f'<PerformanceAnalytics {self.metric_name}>'
@@ -235,7 +235,7 @@ class PatientInsight(db.Model):
     __tablename__ = 'patient_insights'
     
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
     insight_type = db.Column(db.String(100), nullable=False)  # health_risk, treatment_effectiveness, etc.
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
@@ -243,13 +243,13 @@ class PatientInsight(db.Model):
     confidence_score = db.Column(db.Float, nullable=True)
     recommendations = db.Column(db.Text, nullable=True)  # JSON format
     is_acknowledged = db.Column(db.Boolean, default=False)
-    acknowledged_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    acknowledged_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     acknowledged_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # العلاقات
-    patient = db.relationship('Patient', backref='patient_insights')
-    acknowledger = db.relationship('User', backref='patient_insights_acknowledged')
+    patient = db.relationship('Patient', back_populates='patient_insights')
+    acknowledger = db.relationship('User', back_populates='patient_insights_acknowledged')
     
     def __repr__(self):
         return f'<PatientInsight {self.title}>'
@@ -313,7 +313,7 @@ class ModelPrediction(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     model_name = db.Column(db.String(100), nullable=False)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True)
     input_data = db.Column(db.Text, nullable=True)
     output_data = db.Column(db.Text, nullable=True)
     confidence_score = db.Column(db.Float, nullable=True)
@@ -321,4 +321,4 @@ class ModelPrediction(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     accepted_at = db.Column(db.DateTime, nullable=True)
 
-    patient = db.relationship('Patient', backref='model_predictions')
+    patient = db.relationship('Patient', back_populates='model_predictions')

@@ -92,8 +92,8 @@ class DoctorPricing(db.Model):
     __tablename__ = 'doctor_pricing'
     
     id = db.Column(db.Integer, primary_key=True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # الأسعار
     consultation_price = db.Column(db.Numeric(12, 2), nullable=False, default=0.0)
@@ -124,8 +124,8 @@ class DoctorPricing(db.Model):
     )
     
     # العلاقات
-    doctor = db.relationship('User', foreign_keys=[doctor_id], back_populates='pricing', lazy='select')
-    department = db.relationship('Department', back_populates='doctor_pricing', lazy='select')
+    doctor = db.relationship('User', foreign_keys=[doctor_id], back_populates='pricing', lazy='selectin')
+    department = db.relationship('Department', back_populates='doctor_pricing', lazy='selectin')
     
     def __repr__(self):
         return f'<DoctorPricing {self.doctor.full_name if self.doctor else "Unknown"}>'
@@ -251,7 +251,7 @@ class PricingCatalog(db.Model):
     patient_share = db.Column(db.Numeric(12, 2), default=0.0)
     is_active = db.Column(db.Boolean, default=True)
     is_temporary = db.Column(db.Boolean, default=False)  # خدمة مؤقتة من "أخرى"
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
@@ -312,7 +312,7 @@ class TemporaryService(db.Model):
     price = db.Column(db.Numeric(12, 2), nullable=False, default=0.0)
     description = db.Column(db.Text, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     

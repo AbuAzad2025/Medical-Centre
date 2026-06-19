@@ -16,7 +16,7 @@ class BackupRestoreLog(db.Model):
     completed_at = db.Column(db.DateTime, nullable=True)
     duration_seconds = db.Column(db.Integer, nullable=True)
 
-    initiated_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    initiated_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     source_path = db.Column(db.String(500), nullable=True)
     target_path = db.Column(db.String(500), nullable=True)
     error_message = db.Column(db.Text, nullable=True)

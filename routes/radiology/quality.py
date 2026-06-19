@@ -10,7 +10,7 @@ from models.patient import Patient
 from models.visit import Visit
 from models.user import User
 from models.radiology_request import RadiologyRequest
-from models.radiology_test import RadiologyResult
+from models.radiology_result import RadiologyResult
 from models.file_management import FileUpload
 from models.system_config import SystemConfig
 from app_factory import db
@@ -154,7 +154,7 @@ def api_ai_assist():
 @role_required('radiology', 'admin', 'manager', 'super_admin')
 def second_review_result(result_id):
     try:
-        from models.radiology_test import RadiologyResult
+        from models.radiology_result import RadiologyResult
         res = db.session.get(RadiologyResult, result_id)
         if not res:
             return jsonify({'success': False, 'message': 'النتيجة غير موجودة'}), 404

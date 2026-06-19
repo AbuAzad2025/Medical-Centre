@@ -14,7 +14,7 @@ from models.invoice import Invoice, InvoiceService
 from models.user import User
 from models.department import Department
 from models.lab_request import LabRequest
-from models.radiology_test import RadiologyResult
+from models.radiology_result import RadiologyResult
 from models.audit_trail import SystemLog
 from models.audit_trail import AuditTrail, SystemLog, SecurityEvent
 import logging
