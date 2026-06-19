@@ -233,7 +233,7 @@ def create_app(config_name: str | None = None) -> Flask:
             import models.backup
             import models.receipt
             import models.pricing
-            import models.radiology_test
+            import models.radiology_result
             import models.whatsapp_integration
             import models.file_management
             import models.online_booking

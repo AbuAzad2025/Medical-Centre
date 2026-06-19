@@ -13,7 +13,7 @@ class Invoice(db.Model):
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     invoice_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
 
     status = db.Column(db.String(20), default='DRAFT', index=True)  # DRAFT|ISSUED|PAID|VOID
     currency = db.Column(db.String(8), default='ILS', nullable=False)
@@ -32,7 +32,7 @@ class Invoice(db.Model):
     )
 
     visit = db.relationship('Visit', back_populates='invoices', lazy='selectin')
-    creator = db.relationship('User', foreign_keys=[created_by], lazy='select')
+    creator = db.relationship('User', foreign_keys=[created_by], lazy='selectin')
 
     lines = db.relationship(
         'InvoiceService',
@@ -84,8 +84,8 @@ class InvoiceService(db.Model):
     )
 
     invoice = db.relationship('Invoice', back_populates='lines', lazy='selectin')
-    department = db.relationship('Department', lazy='select')
-    visit = db.relationship('Visit', lazy='select')
+    department = db.relationship('Department', lazy='selectin')
+    visit = db.relationship('Visit', lazy='selectin')
 
     def __repr__(self) -> str:
         return f"<InvoiceService {self.service_code} x{self.quantity}>"

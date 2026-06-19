@@ -11,14 +11,14 @@ class Referral(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
 
     # Direction
     referral_type = db.Column(db.String(20), default='OUTGOING')  # OUTGOING, INCOMING
 
     # Referring party
-    referring_doctor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    referring_doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     referring_facility = db.Column(db.String(300), nullable=True)
     referring_facility_phone = db.Column(db.String(50), nullable=True)
     referring_facility_email = db.Column(db.String(200), nullable=True)
@@ -53,12 +53,12 @@ class Referral(db.Model):
     tracking_number = db.Column(db.String(100), nullable=True, unique=True)
     notes = db.Column(db.Text, nullable=True)
 
-    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    patient = db.relationship('Patient', backref='referrals')
-    visit = db.relationship('Visit', backref='referrals')
+    patient = db.relationship('Patient', back_populates='referrals')
+    visit = db.relationship('Visit', back_populates='referrals')
     referring_doctor = db.relationship('User', foreign_keys=[referring_doctor_id])
     created_by = db.relationship('User', foreign_keys=[created_by_id])
 

@@ -51,21 +51,21 @@ class Department(db.Model):
         'User',
         foreign_keys=[head_doctor_id],
         back_populates='head_of_department',
-        lazy='select',
+        lazy='selectin',
         post_update=True
     )
 
     visits = db.relationship(
         'Visit',
         back_populates='department',
-        lazy='select',
+        lazy='selectin',
         passive_deletes=True
     )
 
     appointments = db.relationship(
         'Appointment',
         back_populates='department',
-        lazy='select',
+        lazy='selectin',
         passive_deletes=True
     )
     
@@ -81,8 +81,20 @@ class Department(db.Model):
     doctor_pricing = db.relationship(
         'DoctorPricing',
         back_populates='department',
-        lazy='select'
+        lazy='selectin'
     )
+    wards = db.relationship('Ward', back_populates='department')
+    online_bookings = db.relationship('OnlineBooking', back_populates='department')
+    pricing_management = db.relationship('PricingManagement', back_populates='department')
+    queue_items = db.relationship('QueueManagement', back_populates='department')
+    queue_settings = db.relationship('QueueSettings', back_populates='department')
+    workflow_steps = db.relationship('WorkflowStep', back_populates='department')
+
+
+
+
+
+
 
     def __repr__(self) -> str:
         return f"<Department {self.name_ar or self.name}>"

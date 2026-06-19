@@ -21,7 +21,7 @@ class PatientEducationMaterial(db.Model):
     is_active = db.Column(db.Boolean, default=True, nullable=False, index=True)
     view_count = db.Column(db.Integer, default=0, nullable=False)
 
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
                            onupdate=lambda: datetime.now(timezone.utc), nullable=False)
@@ -38,7 +38,7 @@ class PatientEducationAssignment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
     material_id = db.Column(db.Integer, db.ForeignKey('patient_education_materials.id', ondelete='CASCADE'), nullable=False, index=True)
-    assigned_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    assigned_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
 
     status = db.Column(db.String(20), default='assigned', nullable=False)  # assigned | viewed | completed
     viewed_at = db.Column(db.DateTime, nullable=True)

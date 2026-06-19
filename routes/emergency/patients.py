@@ -52,11 +52,11 @@ def patient_details(emergency_id):
         
         # جلب طلبات المختبر والأشعة
         lab_requests = LabRequest.query.filter(
-            LabRequest.emergency_id == emergency_id
+            LabRequest.visit_id == emergency.visit_id
         ).all()
         
         radiology_requests = RadiologyRequest.query.filter(
-            RadiologyRequest.emergency_id == emergency_id
+            RadiologyRequest.visit_id == emergency.visit_id
         ).all()
         
         return render_template('emergency/patient_details.html',

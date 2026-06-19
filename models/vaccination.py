@@ -24,7 +24,9 @@ class Vaccine(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    immunizations = db.relationship('Immunization', backref='vaccine', lazy='dynamic')
+    immunizations = db.relationship('Immunization', back_populates='vaccine', lazy='dynamic')
+    schedules = db.relationship('VaccinationSchedule', back_populates='vaccine')
+
 
     def __repr__(self):
         return f"<Vaccine {self.name}>"
@@ -36,8 +38,8 @@ class Immunization(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    vaccine_id = db.Column(db.Integer, db.ForeignKey('vaccines.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    vaccine_id = db.Column(db.Integer, db.ForeignKey('vaccines.id', ondelete='RESTRICT'), nullable=False, index=True)
     dose_number = db.Column(db.Integer, default=1)
     administration_date = db.Column(db.Date, nullable=False)
     administration_site = db.Column(db.String(100), nullable=True)  # Left Arm, Right Arm, Left Thigh, etc.
@@ -48,7 +50,7 @@ class Immunization(db.Model):
     manufacturer = db.Column(db.String(200), nullable=True)
 
     # Provider
-    administered_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    administered_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     facility = db.Column(db.String(200), nullable=True)
 
     # Status
@@ -63,8 +65,10 @@ class Immunization(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    patient = db.relationship('Patient', backref='immunizations')
+    patient = db.relationship('Patient', back_populates='immunizations')
     administered_by = db.relationship('User', foreign_keys=[administered_by_id])
+    vaccine = db.relationship('Vaccine', back_populates='immunizations')
+
 
     def __repr__(self):
         return f"<Immunization {self.dose_number}>"
@@ -76,7 +80,7 @@ class VaccinationSchedule(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    vaccine_id = db.Column(db.Integer, db.ForeignKey('vaccines.id'), nullable=False)
+    vaccine_id = db.Column(db.Integer, db.ForeignKey('vaccines.id', ondelete='RESTRICT'), nullable=False, index=True)
     schedule_name = db.Column(db.String(100), default='STANDARD')  # STANDARD, CATCH_UP, TRAVEL
     dose_number = db.Column(db.Integer, nullable=False)
     recommended_age_months = db.Column(db.Integer, nullable=False)
@@ -86,4 +90,4 @@ class VaccinationSchedule(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    vaccine = db.relationship('Vaccine', backref='schedules')
+    vaccine = db.relationship('Vaccine', back_populates='schedules')

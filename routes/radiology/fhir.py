@@ -10,7 +10,7 @@ from models.patient import Patient
 from models.visit import Visit
 from models.user import User
 from models.radiology_request import RadiologyRequest
-from models.radiology_test import RadiologyResult
+from models.radiology_result import RadiologyResult
 from models.file_management import FileUpload
 from models.system_config import SystemConfig
 from app_factory import db

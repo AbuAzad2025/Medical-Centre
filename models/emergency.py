@@ -14,8 +14,8 @@ class EmergencyCase(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
     case_number = db.Column(db.String(50), unique=True, nullable=False)
     chief_complaint = db.Column(db.Text, nullable=False)
     severity = db.Column(db.String(20), nullable=False, default='MODERATE')  # LOW, MODERATE, HIGH, CRITICAL
@@ -29,8 +29,9 @@ class EmergencyCase(db.Model):
     updated_at = db.Column(db.DateTime, nullable=False, server_default=func.now(), onupdate=func.now(), index=True)
     
     # العلاقات
-    patient = db.relationship('Patient', backref='emergency_cases', lazy='select')
-    visit = db.relationship('Visit', backref='emergency_cases', lazy='select')
+    patient = db.relationship('Patient', back_populates='emergency_cases', lazy='selectin')
+    visit = db.relationship('Visit', back_populates='emergency_cases', lazy='selectin')
+    status_history = db.relationship('EmergencyStatusHistory', back_populates='emergency', lazy='selectin')
 
     @property
     def priority(self):

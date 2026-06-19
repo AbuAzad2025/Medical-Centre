@@ -93,7 +93,7 @@ def radiology_results(patient_id):
         results = []
         for req in rad_requests:
             try:
-                from models.radiology_test import RadiologyResult
+                from models.radiology_result import RadiologyResult
                 req_results = RadiologyResult.query.filter(
                     RadiologyResult.request_id == req.id
                 ).order_by(desc(RadiologyResult.created_at)).all()

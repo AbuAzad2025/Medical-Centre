@@ -10,7 +10,7 @@ from .appointment import Appointment
 from .invoice import Invoice, InvoiceService
 from .lab_request import LabRequest, LabResult
 from .radiology_request import RadiologyRequest
-from .radiology_test import RadiologyResult
+from .radiology_result import RadiologyResult
 from .insurance import InsuranceCompany, InsuranceClaim
 from .service import ServiceMaster
 from .pricing import ServicePrice, DoctorPricing, InsuranceProvider, PricingCatalog, TemporaryService

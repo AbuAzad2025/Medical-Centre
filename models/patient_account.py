@@ -10,6 +10,6 @@ class PatientAccount(db.Model):
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, unique=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
-    user = db.relationship('User', foreign_keys=[user_id], lazy='select')
-    patient = db.relationship('Patient', foreign_keys=[patient_id], lazy='select')
+    user = db.relationship('User', foreign_keys=[user_id], lazy='selectin')
+    patient = db.relationship('Patient', foreign_keys=[patient_id], lazy='selectin')
 

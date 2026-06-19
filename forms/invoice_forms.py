@@ -79,22 +79,11 @@ class InvoiceSearchForm(SearchFormBase, DateRangeMixin):
         self.load_dynamic_choices()
     
     def get_status_choices(self):
-        """خيارات حالة الفاتورة المطابقة للنموذج"""
         return [
             ('DRAFT', 'مسودة'),
             ('ISSUED', 'صادرة'),
             ('PAID', 'مدفوعة'),
             ('VOID', 'ملغاة'),
-        ]
-    
-    def get_status_choices(self):
-        """خيارات حالة المطالبة المطابقة للنموذج"""
-        return [
-            ('DRAFT', 'مسودة'),
-            ('SUBMITTED', 'مقدمة'),
-            ('APPROVED', 'معتمدة'),
-            ('REJECTED', 'مرفوضة'),
-            ('PAID', 'مدفوعة'),
         ]
     
     def load_dynamic_choices(self):

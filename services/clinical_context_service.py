@@ -15,7 +15,7 @@ class ClinicalContextService:
         from models.nurse import VitalSigns
         from models.lab_request import LabRequest, LabResult
         from models.radiology_request import RadiologyRequest
-        from models.radiology_test import RadiologyResult
+        from models.radiology_result import RadiologyResult
         from models.medication import Prescription, PrescriptionItem, MedicationAllergy
         from models.patient import Patient
         from models.workflow import VisitWorkflowEvent

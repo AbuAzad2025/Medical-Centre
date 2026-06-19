@@ -11,14 +11,14 @@ class FHIRPatient(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    internal_patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False, unique=True)
+    internal_patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, unique=True, index=True)
     fhir_id = db.Column(db.String(100), nullable=False, unique=True, index=True)  # UUID
     resource_json = db.Column(db.Text, nullable=False)  # Full FHIR JSON
     version = db.Column(db.Integer, default=1)
     last_synced = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     is_active = db.Column(db.Boolean, default=True)
 
-    patient = db.relationship('Patient', backref='fhir_patient')
+    patient = db.relationship('Patient', back_populates='fhir_patient')
 
 
 class FHIRObservation(db.Model):
@@ -66,7 +66,7 @@ class FHIRDocumentReference(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     fhir_id = db.Column(db.String(100), nullable=False, unique=True, index=True)
-    internal_file_id = db.Column(db.Integer, db.ForeignKey('file_uploads.id'), nullable=True)
+    internal_file_id = db.Column(db.Integer, db.ForeignKey('file_uploads.id', ondelete='CASCADE'), nullable=True, index=True)
     patient_fhir_id = db.Column(db.String(100), nullable=False, index=True)
     resource_json = db.Column(db.Text, nullable=False)
     document_type = db.Column(db.String(100), nullable=True)  # LOINC code for document type
@@ -83,7 +83,7 @@ class FHIRAuditLog(db.Model):
     action = db.Column(db.String(50), nullable=False)  # CREATE, READ, UPDATE, DELETE, SEARCH
     resource_type = db.Column(db.String(50), nullable=False)  # Patient, Observation, Encounter
     resource_id = db.Column(db.String(100), nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     ip_address = db.Column(db.String(45), nullable=True)
     request_body = db.Column(db.Text, nullable=True)
     response_status = db.Column(db.Integer, nullable=True)

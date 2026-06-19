@@ -10,8 +10,8 @@ class PatientProblem(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    icd10_code_id = db.Column(db.Integer, db.ForeignKey('icd10_codes.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    icd10_code_id = db.Column(db.Integer, db.ForeignKey('icd10_codes.id', ondelete='SET NULL'), nullable=True, index=True)
     problem_description = db.Column(db.Text, nullable=False)
     problem_description_ar = db.Column(db.Text, nullable=True)
 
@@ -27,7 +27,7 @@ class PatientProblem(db.Model):
     resolution_notes = db.Column(db.Text, nullable=True)
 
     # Attribution
-    recorded_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    recorded_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     recorded_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Clinical details
@@ -42,7 +42,7 @@ class PatientProblem(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    patient = db.relationship('Patient', backref='problems')
+    patient = db.relationship('Patient', back_populates='problems')
     icd10_code = db.relationship('ICD10Code')
     recorded_by = db.relationship('User', foreign_keys=[recorded_by_id])
 
@@ -56,7 +56,7 @@ class AllergyIntolerance(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
     substance = db.Column(db.String(200), nullable=False)  # Penicillin, Latex, Peanuts, etc.
     substance_ar = db.Column(db.String(200), nullable=True)
     category = db.Column(db.String(50), default='MEDICATION')  # MEDICATION, FOOD, ENVIRONMENTAL, BIOLOGIC
@@ -69,7 +69,7 @@ class AllergyIntolerance(db.Model):
     verification_status = db.Column(db.String(20), default='CONFIRMED')  # UNCONFIRMED, CONFIRMED, REFUTED, ENTERED_IN_ERROR
 
     # Source
-    reported_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    reported_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     reported_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     notes = db.Column(db.Text, nullable=True)
@@ -77,7 +77,7 @@ class AllergyIntolerance(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    patient = db.relationship('Patient', backref='allergy_intolerances')
+    patient = db.relationship('Patient', back_populates='allergy_intolerances')
     reported_by = db.relationship('User', foreign_keys=[reported_by_id])
 
     def __repr__(self):

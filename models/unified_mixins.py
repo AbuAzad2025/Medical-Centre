@@ -69,15 +69,15 @@ class MedicalEntityMixin:
     # العلاقات الأساسية
     @declared_attr
     def patient(cls):
-        return db.relationship('Patient', lazy='select')
+        return db.relationship('Patient', lazy='selectin')
     
     @declared_attr
     def visit(cls):
-        return db.relationship('Visit', lazy='select')
+        return db.relationship('Visit', lazy='selectin')
     
     @declared_attr
     def doctor(cls):
-        return db.relationship('User', foreign_keys=[cls.doctor_id], lazy='select')
+        return db.relationship('User', foreign_keys=[cls.doctor_id], lazy='selectin')
 
 class AuditBase(BaseModelMixin):
     """قاعدة التدقيق الموحدة"""
@@ -94,7 +94,7 @@ class AuditBase(BaseModelMixin):
     notes = Column(Text, nullable=True)
     
     # العلاقات
-    user = db.relationship('User', lazy='select')
+    user = db.relationship('User', lazy='selectin')
     
     # فهارس مركبة
     __table_args__ = (
@@ -115,7 +115,7 @@ class PermissionBase(BaseModelMixin):
     reason = Column(Text, nullable=True)
     
     # العلاقات
-    granter = db.relationship('User', foreign_keys=[granted_by], lazy='select')
+    granter = db.relationship('User', foreign_keys=[granted_by], lazy='selectin')
     
     def is_expired(self):
         """هل انتهت صلاحية الصلاحية"""
@@ -142,10 +142,10 @@ class FinancialBase(BaseModelMixin, StatusMixin):
     invoice_id = Column(Integer, ForeignKey('invoices.id'), nullable=True, index=True)
     
     # العلاقات
-    user = db.relationship('User', foreign_keys=[user_id], lazy='select')
-    patient = db.relationship('Patient', lazy='select')
-    visit = db.relationship('Visit', lazy='select')
-    invoice = db.relationship('Invoice', lazy='select')
+    user = db.relationship('User', foreign_keys=[user_id], lazy='selectin')
+    patient = db.relationship('Patient', lazy='selectin')
+    visit = db.relationship('Visit', lazy='selectin')
+    invoice = db.relationship('Invoice', lazy='selectin')
     
     # فهارس مركبة
     __table_args__ = (
@@ -182,8 +182,8 @@ class FileBase(BaseModelMixin, StatusMixin):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
     category_id = Column(Integer, ForeignKey('file_categories.id'), nullable=True, index=True)
     
-    user = db.relationship('User', lazy='select')
-    category = db.relationship('FileCategory', lazy='select')
+    user = db.relationship('User', lazy='selectin')
+    category = db.relationship('FileCategory', lazy='selectin')
     
     def get_size_display(self):
         """عرض حجم الملف"""
@@ -206,8 +206,8 @@ class NotificationBase(BaseModelMixin, StatusMixin):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
     sender_id = Column(Integer, ForeignKey('users.id'), nullable=True, index=True)
     
-    user = db.relationship('User', foreign_keys=[user_id], lazy='select')
-    sender = db.relationship('User', foreign_keys=[sender_id], lazy='select')
+    user = db.relationship('User', foreign_keys=[user_id], lazy='selectin')
+    sender = db.relationship('User', foreign_keys=[sender_id], lazy='selectin')
     
     # فهارس مركبة
     __table_args__ = (

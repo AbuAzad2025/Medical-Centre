@@ -19,7 +19,7 @@ class BarcodeRegistry(db.Model):
     entity_sub_id = db.Column(db.Integer, nullable=True)  # e.g., prescription_item_id
 
     # Generation
-    generated_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    generated_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     generated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     print_count = db.Column(db.Integer, default=0)
 
@@ -29,7 +29,7 @@ class BarcodeRegistry(db.Model):
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    scans = db.relationship('BarcodeScanLog', backref='barcode', lazy='dynamic')
+    scans = db.relationship('BarcodeScanLog', back_populates='barcode', lazy='dynamic')
 
     def __repr__(self):
         return f"<BarcodeRegistry {self.entity_type}>"
@@ -41,11 +41,11 @@ class BarcodeScanLog(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    barcode_registry_id = db.Column(db.Integer, db.ForeignKey('barcode_registry.id'), nullable=False)
+    barcode_registry_id = db.Column(db.Integer, db.ForeignKey('barcode_registry.id', ondelete='CASCADE'), nullable=False, index=True)
     scan_action = db.Column(db.String(50), nullable=False)
     # ADMINISTER, VERIFY, DISPENSE, COLLECT, TRANSFER, ADMIT, DISCHARGE, CHECK_IN
 
-    scanned_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    scanned_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     scanned_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     location = db.Column(db.String(200), nullable=True)  # Ward, Room, Pharmacy, Lab
     device_id = db.Column(db.String(100), nullable=True)  # Scanner device identifier
@@ -56,6 +56,8 @@ class BarcodeScanLog(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     scanned_by = db.relationship('User', foreign_keys=[scanned_by_id])
+    barcode = db.relationship('BarcodeRegistry', back_populates='scans')
+
 
     def __repr__(self):
         return f"<BarcodeScanLog {self.scan_action}>"

@@ -15,6 +15,6 @@ class UserDepartmentAccess(db.Model):
         db.UniqueConstraint('user_id', 'department_id', name='uq_user_department_access'),
     )
 
-    user = db.relationship('User', foreign_keys=[user_id], lazy='select')
-    department = db.relationship('Department', foreign_keys=[department_id], lazy='select')
+    user = db.relationship('User', foreign_keys=[user_id], lazy='selectin')
+    department = db.relationship('Department', foreign_keys=[department_id], lazy='selectin')
 

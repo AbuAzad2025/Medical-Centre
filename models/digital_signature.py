@@ -11,7 +11,7 @@ class DigitalSignature(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     document_type = db.Column(db.String(100), nullable=False)  # PRESCRIPTION, REPORT, CONSENT, DISCHARGE
     document_id = db.Column(db.Integer, nullable=False)
     signature_hash = db.Column(db.String(500), nullable=False)
@@ -25,7 +25,7 @@ class DigitalSignature(db.Model):
     revoked_reason = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    user = db.relationship('User', backref='digital_signatures')
+    user = db.relationship('User', back_populates='digital_signatures')
 
     def __repr__(self):
         return f"<DigitalSignature {self.document_type}>"
@@ -37,7 +37,7 @@ class PasswordPolicy(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'), nullable=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     min_length = db.Column(db.Integer, default=8)
     require_uppercase = db.Column(db.Boolean, default=True)
     require_lowercase = db.Column(db.Boolean, default=True)
@@ -58,7 +58,7 @@ class SessionLog(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     session_id = db.Column(db.String(200), nullable=False)
     login_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     logout_at = db.Column(db.DateTime, nullable=True)
@@ -72,7 +72,7 @@ class SessionLog(db.Model):
     terminated_by = db.Column(db.String(50), nullable=True)  # USER, ADMIN, TIMEOUT, SECURITY
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    user = db.relationship('User', backref='session_logs')
+    user = db.relationship('User', back_populates='session_logs')
 
     def __repr__(self):
         return f"<SessionLog {self.session_id[:8]}>"

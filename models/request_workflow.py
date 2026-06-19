@@ -19,7 +19,7 @@ class RequestWorkflow(db.Model):
     action = db.Column(db.String(100), nullable=False)  # Action taken
     notes = db.Column(db.Text, nullable=True)  # Additional notes
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # معلومات إضافية
     priority = db.Column(db.String(20), default='normal')  # urgent, high, normal, low
@@ -29,7 +29,7 @@ class RequestWorkflow(db.Model):
     is_completed = db.Column(db.Boolean, default=False)  # هل تم إنجاز المهمة
     
     # العلاقات
-    user = db.relationship('User', backref='workflow_actions')
+    user = db.relationship('User', back_populates='workflow_actions')
     
     def __repr__(self):
         return f'<RequestWorkflow {self.request_type}_{self.request_id}_{self.department}>'

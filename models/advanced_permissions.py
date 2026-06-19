@@ -13,7 +13,7 @@ class ModulePermission(db.Model):
     __tablename__ = 'module_permissions'
     
     id = db.Column(db.Integer, primary_key=True)
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id', ondelete='SET NULL'), nullable=True, index=True)
     module_name = db.Column(db.String(50), nullable=False)  # reception, doctor, lab, radiology, emergency, accounting, admin, manager, pharmacy, billing, nursing, appointments, inventory, portal, dicom, ai_imaging
     
     # صلاحيات الوحدة
@@ -43,7 +43,7 @@ class ModulePermission(db.Model):
     )
     
     # العلاقات
-    role = db.relationship('Role', back_populates='module_permissions', lazy='select')
+    role = db.relationship('Role', back_populates='module_permissions', lazy='selectin')
     
     def __repr__(self):
         return f'<ModulePermission {self.role.name_ar} - {self.module_name}>'
@@ -76,8 +76,8 @@ class DepartmentPermission(db.Model):
     __tablename__ = 'department_permissions'
     
     id = db.Column(db.Integer, primary_key=True)
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
-    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)  # None = جميع الأقسام
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id', ondelete='SET NULL'), nullable=True, index=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)  # None = جميع الأقسام
     
     # صلاحيات القسم
     can_access = db.Column(db.Boolean, default=False)
@@ -102,8 +102,8 @@ class DepartmentPermission(db.Model):
     )
     
     # العلاقات
-    role = db.relationship('Role', back_populates='department_permissions', lazy='select')
-    department = db.relationship('Department', back_populates='role_permissions', lazy='select')
+    role = db.relationship('Role', back_populates='department_permissions', lazy='selectin')
+    department = db.relationship('Department', back_populates='role_permissions', lazy='selectin')
     
     def __repr__(self):
         return f'<DepartmentPermission {self.role.name_ar} - {self.department.name_ar if self.department else "All"}>'

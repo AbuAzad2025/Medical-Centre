@@ -19,10 +19,10 @@ class VisitTransferLog(db.Model):
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
-    visit = db.relationship('Visit', lazy='select')
-    from_department = db.relationship('Department', foreign_keys=[from_department_id], lazy='select')
-    to_department = db.relationship('Department', foreign_keys=[to_department_id], lazy='select')
-    from_doctor = db.relationship('User', foreign_keys=[from_doctor_id], lazy='select')
-    to_doctor = db.relationship('User', foreign_keys=[to_doctor_id], lazy='select')
-    actor = db.relationship('User', foreign_keys=[transferred_by], lazy='select')
+    visit = db.relationship('Visit', lazy='selectin')
+    from_department = db.relationship('Department', foreign_keys=[from_department_id], lazy='selectin')
+    to_department = db.relationship('Department', foreign_keys=[to_department_id], lazy='selectin')
+    from_doctor = db.relationship('User', foreign_keys=[from_doctor_id], lazy='selectin')
+    to_doctor = db.relationship('User', foreign_keys=[to_doctor_id], lazy='selectin')
+    actor = db.relationship('User', foreign_keys=[transferred_by], lazy='selectin')
 

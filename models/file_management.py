@@ -36,7 +36,7 @@ class FileUpload(db.Model):
     related_entity_id = db.Column(db.Integer, nullable=True)
     
     # المستخدم
-    uploaded_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    uploaded_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # التواريخ
     uploaded_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
@@ -56,7 +56,7 @@ class FileUpload(db.Model):
     )
     
     # العلاقات
-    uploader = db.relationship('User', foreign_keys=[uploaded_by], back_populates='uploaded_files', lazy='select')
+    uploader = db.relationship('User', foreign_keys=[uploaded_by], back_populates='uploaded_files', lazy='selectin')
     permissions = db.relationship('FilePermission', back_populates='file', lazy='dynamic', cascade='all, delete-orphan')
     task_attachments = db.relationship('TaskAttachment', back_populates='file', lazy='dynamic', cascade='all, delete-orphan')
     
@@ -125,7 +125,7 @@ class FileCategory(db.Model):
     # التواريخ
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # Constraints and Indexes
     __table_args__ = (
@@ -135,7 +135,7 @@ class FileCategory(db.Model):
     )
     
     # العلاقات
-    creator = db.relationship('User', foreign_keys=[created_by], back_populates='created_file_categories', lazy='select')
+    creator = db.relationship('User', foreign_keys=[created_by], back_populates='created_file_categories', lazy='selectin')
     
     def __repr__(self):
         return f'<FileCategory {self.name_ar}>'
@@ -183,8 +183,8 @@ class FilePermission(db.Model):
     __tablename__ = 'file_permissions'
     
     id = db.Column(db.Integer, primary_key=True)
-    file_id = db.Column(db.Integer, db.ForeignKey('file_uploads.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # None = جميع المستخدمين
+    file_id = db.Column(db.Integer, db.ForeignKey('file_uploads.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)  # None = جميع المستخدمين
     role = db.Column(db.String(50), nullable=True)  # دور المستخدم
     
     # الصلاحيات
@@ -195,7 +195,7 @@ class FilePermission(db.Model):
     
     # التواريخ
     granted_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    granted_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    granted_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     expires_at = db.Column(db.DateTime, nullable=True)
     
     # Constraints and Indexes
@@ -208,9 +208,9 @@ class FilePermission(db.Model):
     )
     
     # العلاقات
-    file = db.relationship('FileUpload', back_populates='permissions', lazy='select')
-    user = db.relationship('User', foreign_keys=[user_id], back_populates='file_permissions', lazy='select')
-    granter = db.relationship('User', foreign_keys=[granted_by], back_populates='granted_file_permissions', lazy='select')
+    file = db.relationship('FileUpload', back_populates='permissions', lazy='selectin')
+    user = db.relationship('User', foreign_keys=[user_id], back_populates='file_permissions', lazy='selectin')
+    granter = db.relationship('User', foreign_keys=[granted_by], back_populates='granted_file_permissions', lazy='selectin')
     
     def __repr__(self):
         return f'<FilePermission {self.file.original_filename if self.file else "Unknown"}>'

@@ -13,7 +13,7 @@ class Nurse(db.Model):
     __tablename__ = 'nurses'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     license_number = db.Column(db.String(50), unique=True, nullable=False)
     specialization = db.Column(db.String(100), nullable=True)
     experience_years = db.Column(db.Integer, default=0)
@@ -22,7 +22,9 @@ class Nurse(db.Model):
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # العلاقات
-    user = db.relationship('User', backref='nurse_profile')
+    user = db.relationship('User', back_populates='nurse_profile')
+    recorded_vital_signs = db.relationship('VitalSigns', back_populates='nurse')
+
     
     def __repr__(self):
         return f'<Nurse {self.user.full_name if self.user else "Unknown"}>'
@@ -51,8 +53,8 @@ class VitalSigns(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    nurse_id = db.Column(db.Integer, db.ForeignKey('nurses.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    nurse_id = db.Column(db.Integer, db.ForeignKey('nurses.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # العلامات الحيوية
     blood_pressure_systolic = db.Column(db.Integer, nullable=True)
@@ -69,8 +71,8 @@ class VitalSigns(db.Model):
     recorded_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # العلاقات
-    patient = db.relationship('Patient', backref='vital_signs')
-    nurse = db.relationship('Nurse', backref='recorded_vital_signs')
+    patient = db.relationship('Patient', back_populates='vital_signs')
+    nurse = db.relationship('Nurse', back_populates='recorded_vital_signs')
     
     def __repr__(self):
         return f'<VitalSigns for {self.patient.full_name if self.patient else "Unknown"}>'
@@ -116,12 +118,12 @@ class MedicationAdministrationLog(db.Model):
     administered_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     notes = db.Column(db.Text, nullable=True)
 
-    patient = db.relationship('Patient', lazy='select')
-    visit = db.relationship('Visit', lazy='select')
-    prescription = db.relationship('Prescription', lazy='select')
-    prescription_item = db.relationship('PrescriptionItem', lazy='select')
-    medication = db.relationship('Medication', lazy='select')
-    nurse = db.relationship('Nurse', lazy='select')
+    patient = db.relationship('Patient', lazy='selectin')
+    visit = db.relationship('Visit', lazy='selectin')
+    prescription = db.relationship('Prescription', lazy='selectin')
+    prescription_item = db.relationship('PrescriptionItem', lazy='selectin')
+    medication = db.relationship('Medication', lazy='selectin')
+    nurse = db.relationship('Nurse', lazy='selectin')
 
     def to_dict(self):
         return {

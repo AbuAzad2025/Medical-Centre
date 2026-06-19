@@ -12,7 +12,7 @@ class RadiologyResult(db.Model):
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     request_id = db.Column(db.Integer, db.ForeignKey('radiology_requests.id', ondelete='CASCADE'), nullable=False, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
-    performed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    performed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
 
     study_uid = db.Column(db.String(64), nullable=True, index=True)
     pacs_url = db.Column(db.String(300), nullable=True)
@@ -30,8 +30,8 @@ class RadiologyResult(db.Model):
 
     request = db.relationship('RadiologyRequest', back_populates='results', lazy='selectin')
     patient = db.relationship('Patient', back_populates='radiology_results', lazy='selectin')
-    performer = db.relationship('User', foreign_keys=[performed_by], lazy='select')
-    reviewer = db.relationship('User', foreign_keys=[reviewed_by], lazy='select')
+    performer = db.relationship('User', foreign_keys=[performed_by], lazy='selectin')
+    reviewer = db.relationship('User', foreign_keys=[reviewed_by], lazy='selectin')
 
     def __repr__(self) -> str:
         return f"<RadiologyResult request={self.request_id}>"

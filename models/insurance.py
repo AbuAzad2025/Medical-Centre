@@ -49,9 +49,9 @@ class InsuranceClaim(db.Model):
         Index('idx_insurance_claim_created', 'created_at'),
     )
 
-    company = db.relationship('InsuranceCompany', back_populates='claims', lazy='select')
-    visit = db.relationship('Visit', lazy='select')
-    invoice = db.relationship('Invoice', lazy='select')
+    company = db.relationship('InsuranceCompany', back_populates='claims', lazy='selectin')
+    visit = db.relationship('Visit', lazy='selectin')
+    invoice = db.relationship('Invoice', lazy='selectin')
 
     def __repr__(self) -> str:
         return f"<InsuranceClaim #{self.claim_number or self.id}>"

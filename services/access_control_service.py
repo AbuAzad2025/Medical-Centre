@@ -9,7 +9,7 @@ from models.patient import Patient
 from models.appointment import Appointment
 from models.medication import Prescription
 from models.lab_request import LabResult
-from models.radiology_test import RadiologyResult
+from models.radiology_result import RadiologyResult
 from models.payment import Payment
 from app_factory import db
 import logging

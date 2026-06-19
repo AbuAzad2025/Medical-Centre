@@ -11,9 +11,9 @@ class MedicationReconciliation(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    admission_id = db.Column(db.Integer, db.ForeignKey('admissions.id'), nullable=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    admission_id = db.Column(db.Integer, db.ForeignKey('admissions.id', ondelete='CASCADE'), nullable=True, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
 
     # Transition type
     transition_type = db.Column(db.String(50), nullable=False)
@@ -31,7 +31,7 @@ class MedicationReconciliation(db.Model):
 
     # Reconciliation results
     status = db.Column(db.String(30), default='PENDING')  # PENDING, COMPLETED, PARTIAL, NOT_DONE
-    reconciled_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    reconciled_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     reconciled_at = db.Column(db.DateTime, nullable=True)
 
     # Discrepancies found
@@ -50,9 +50,9 @@ class MedicationReconciliation(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    patient = db.relationship('Patient', backref='medication_reconciliations')
-    admission = db.relationship('Admission', backref='medication_reconciliations')
-    visit = db.relationship('Visit', backref='medication_reconciliations')
+    patient = db.relationship('Patient', back_populates='medication_reconciliations')
+    admission = db.relationship('Admission', back_populates='medication_reconciliations')
+    visit = db.relationship('Visit', back_populates='medication_reconciliations')
     reconciled_by = db.relationship('User', foreign_keys=[reconciled_by_id])
 
     def __repr__(self):

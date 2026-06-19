@@ -17,8 +17,8 @@ class WhatsAppMessage(db.Model):
     message_id = db.Column(db.String(100), unique=True, nullable=False)
     
     # معلومات المرسل
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    sent_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    sent_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # معلومات الرسالة
     phone_number = db.Column(db.String(20), nullable=False)
@@ -44,8 +44,8 @@ class WhatsAppMessage(db.Model):
     failed_at = db.Column(db.DateTime, nullable=True)
     
     # العلاقات
-    patient = db.relationship('Patient', backref='whatsapp_messages')
-    sent_by_user = db.relationship('User', backref='sent_whatsapp_messages')
+    patient = db.relationship('Patient', back_populates='whatsapp_messages')
+    sent_by_user = db.relationship('User', back_populates='sent_whatsapp_messages')
     
     def __repr__(self):
         return f'<WhatsAppMessage {self.message_id}>'

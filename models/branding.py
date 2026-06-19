@@ -38,12 +38,12 @@ class BrandingSettings(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
-    updated_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True)
+    updated_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True)
     
     # العلاقات
-    creator = db.relationship('User', foreign_keys=[created_by], backref='created_branding')
-    updater = db.relationship('User', foreign_keys=[updated_by], backref='updated_branding')
+    creator = db.relationship('User', foreign_keys=[created_by], back_populates='created_branding')
+    updater = db.relationship('User', foreign_keys=[updated_by], back_populates='updated_branding')
     
     def __repr__(self):
         return f'<BrandingSettings {self.organization_name}>'

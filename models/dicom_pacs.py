@@ -12,8 +12,8 @@ class DICOMStudy(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     study_instance_uid = db.Column(db.String(100), nullable=False, unique=True, index=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    radiology_request_id = db.Column(db.Integer, db.ForeignKey('radiology_requests.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    radiology_request_id = db.Column(db.Integer, db.ForeignKey('radiology_requests.id', ondelete='SET NULL'), nullable=True, index=True)
     accession_number = db.Column(db.String(50), nullable=True, index=True)
 
     study_date = db.Column(db.Date, nullable=True)
@@ -25,7 +25,7 @@ class DICOMStudy(db.Model):
 
     # Status
     status = db.Column(db.String(50), default='RECEIVED')  # RECEIVED, PENDING_REVIEW, REVIEWED, REPORTED, ARCHIVED
-    reviewed_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    reviewed_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     reviewed_at = db.Column(db.DateTime, nullable=True)
 
     # Storage
@@ -37,10 +37,10 @@ class DICOMStudy(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    patient = db.relationship('Patient', backref='dicom_studies')
-    radiology_request = db.relationship('RadiologyRequest', backref='dicom_studies')
+    patient = db.relationship('Patient', back_populates='dicom_studies')
+    radiology_request = db.relationship('RadiologyRequest', back_populates='dicom_studies')
     reviewed_by = db.relationship('User', foreign_keys=[reviewed_by_id])
-    series = db.relationship('DICOMSeries', backref='study', lazy='dynamic', cascade='all, delete-orphan')
+    series = db.relationship('DICOMSeries', back_populates='study', lazy='dynamic', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f"<DICOMStudy {self.modality}>"
@@ -52,7 +52,7 @@ class DICOMSeries(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    study_id = db.Column(db.Integer, db.ForeignKey('dicom_studies.id'), nullable=False)
+    study_id = db.Column(db.Integer, db.ForeignKey('dicom_studies.id', ondelete='CASCADE'), nullable=False, index=True)
     series_instance_uid = db.Column(db.String(100), nullable=False, unique=True, index=True)
     series_number = db.Column(db.Integer, nullable=True)
     modality = db.Column(db.String(20), nullable=False)
@@ -62,7 +62,8 @@ class DICOMSeries(db.Model):
     storage_path = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    instances = db.relationship('DICOMInstance', backref='series', lazy='dynamic', cascade='all, delete-orphan')
+    instances = db.relationship('DICOMInstance', back_populates='series', lazy='dynamic', cascade='all, delete-orphan')
+    study = db.relationship('DICOMStudy', back_populates='series')
 
 
 class DICOMInstance(db.Model):
@@ -71,7 +72,7 @@ class DICOMInstance(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    series_id = db.Column(db.Integer, db.ForeignKey('dicom_series.id'), nullable=False)
+    series_id = db.Column(db.Integer, db.ForeignKey('dicom_series.id', ondelete='CASCADE'), nullable=False, index=True)
     sop_instance_uid = db.Column(db.String(100), nullable=False, unique=True, index=True)
     instance_number = db.Column(db.Integer, nullable=True)
     file_path = db.Column(db.String(500), nullable=True)
@@ -80,6 +81,7 @@ class DICOMInstance(db.Model):
     width = db.Column(db.Integer, nullable=True)
     height = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    series = db.relationship('DICOMSeries', back_populates='instances')
 
 
 class PACSConfiguration(db.Model):

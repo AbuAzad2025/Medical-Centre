@@ -12,7 +12,7 @@ class RadiologyRequest(db.Model):
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='CASCADE'), nullable=False, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
-    requested_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    requested_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
 
     request_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
     status = db.Column(db.String(20), default='REQUESTED', index=True)  # REQUESTED|IN_PROGRESS|DONE|CANCELLED
@@ -25,7 +25,7 @@ class RadiologyRequest(db.Model):
 
     visit = db.relationship('Visit', back_populates='radiology_requests', lazy='selectin')
     patient = db.relationship('Patient', lazy='selectin')
-    requester = db.relationship('User', foreign_keys=[requested_by], lazy='select')
+    requester = db.relationship('User', foreign_keys=[requested_by], lazy='selectin')
 
     results = db.relationship(
         'RadiologyResult',
@@ -34,6 +34,8 @@ class RadiologyRequest(db.Model):
         cascade='all, delete-orphan',
         passive_deletes=True
     )
+    dicom_studies = db.relationship('DICOMStudy', back_populates='radiology_request')
+
 
     def __repr__(self) -> str:
         return f"<RadiologyRequest #{self.request_number or self.id}>"

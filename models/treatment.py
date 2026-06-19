@@ -13,8 +13,8 @@ class Treatment(db.Model):
     __tablename__ = 'treatments'
     
     id = db.Column(db.Integer, primary_key=True)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=False)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='RESTRICT'), nullable=False, index=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # الأعراض
     symptoms = db.Column(db.Text, nullable=True)
@@ -51,7 +51,7 @@ class Treatment(db.Model):
     
     # Constraints and Indexes
     __table_args__ = (
-        CheckConstraint("status IN ('active', 'completed', 'cancelled', 'suspended')", name='chk_treatment_status'),
+        CheckConstraint("status IN ('pending', 'active', 'completed', 'cancelled', 'follow_up')", name='chk_treatment_status'),
         CheckConstraint("visit_id > 0", name='chk_treatment_visit_id'),
         Index('idx_treatment_visit', 'visit_id'),
         Index('idx_treatment_doctor', 'doctor_id'),
@@ -60,7 +60,7 @@ class Treatment(db.Model):
     )
     
     # العلاقات
-    visit = db.relationship('Visit', backref=db.backref('treatments', lazy='selectin'))
+    visit = db.relationship('Visit', back_populates='treatments')
     doctor = db.relationship('User', foreign_keys=[doctor_id])
     
     def __repr__(self):

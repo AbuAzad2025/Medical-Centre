@@ -12,6 +12,6 @@ class EmergencyStatusHistory(db.Model):
     changed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
-    emergency = db.relationship('EmergencyCase', lazy='select')
-    actor = db.relationship('User', foreign_keys=[changed_by], lazy='select')
+    emergency = db.relationship('EmergencyCase', back_populates='status_history', lazy='selectin')
+    actor = db.relationship('User', foreign_keys=[changed_by], lazy='selectin')
 

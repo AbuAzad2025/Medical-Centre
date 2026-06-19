@@ -59,7 +59,7 @@ class Patient(db.Model):
         back_populates='patient',
         cascade='all, delete-orphan',
         passive_deletes=True,
-        lazy='select'
+        lazy='selectin'
     )
 
     appointments = db.relationship(
@@ -67,23 +67,28 @@ class Patient(db.Model):
         back_populates='patient',
         cascade='all, delete-orphan',
         passive_deletes=True,
-        lazy='select'
+        lazy='selectin'
     )
 
-    insurance_company = db.relationship('InsuranceCompany', foreign_keys=[insurance_company_id], lazy='select')
+    insurance_company = db.relationship('InsuranceCompany', foreign_keys=[insurance_company_id], lazy='selectin')
 
     lab_results = db.relationship(
         'LabResult',
         back_populates='patient',
-        lazy='select',
+        lazy='selectin',
         passive_deletes=True
     )
     radiology_results = db.relationship(
         'RadiologyResult',
         back_populates='patient',
-        lazy='select',
+        lazy='selectin',
         passive_deletes=True
     )
+
+    prescriptions = db.relationship('Prescription', back_populates='patient',
+        lazy='selectin', passive_deletes=True)
+    medical_records = db.relationship('MedicalRecord', back_populates='patient', lazy='selectin')
+    patient_satisfaction_surveys = db.relationship('PatientSatisfactionSurvey', back_populates='patient', lazy='selectin')
 
     @property
     def visit_count(self):
@@ -98,13 +103,62 @@ class Patient(db.Model):
             from models.visit import Visit
             return Visit.query.filter_by(patient_id=self.id).count()
 
-    # الوصفات الطبية - سيتم تعريفها لاحقاً
-    # prescriptions = db.relationship(
-    #     'Prescription',
-    #     back_populates='patient',
-    #     lazy='selectin',
-    #     passive_deletes=True
-    # )
+        ai_recommendations = db.relationship('AIRecommendation', back_populates='patient')
+        patient_insights = db.relationship('PatientInsight', back_populates='patient')
+        model_predictions = db.relationship('ModelPrediction', back_populates='patient')
+        admissions = db.relationship('Admission', back_populates='patient')
+        bed_transfers = db.relationship('BedTransfer', back_populates='patient')
+        cds_alerts = db.relationship('CDSFiredAlert', back_populates='patient')
+        care_plans = db.relationship('PatientCarePlan', back_populates='patient')
+        dicom_studies = db.relationship('DICOMStudy', back_populates='patient')
+        emar_administrations = db.relationship('eMARAdministration', back_populates='patient')
+        emergency_cases = db.relationship('EmergencyCase', back_populates='patient')
+        fhir_patient = db.relationship('FHIRPatient', back_populates='patient')
+        coded_diagnoses = db.relationship('CodedDiagnosis', back_populates='patient')
+        coded_procedures = db.relationship('CodedProcedure', back_populates='patient')
+        pharmacy_sales = db.relationship('PharmacySale', back_populates='patient')
+        medication_reconciliations = db.relationship('MedicationReconciliation', back_populates='patient')
+        vital_signs = db.relationship('VitalSigns', back_populates='patient')
+        online_bookings = db.relationship('OnlineBooking', back_populates='patient')
+        surgeries = db.relationship('SurgerySchedule', back_populates='patient')
+        allergies = db.relationship('PatientAllergy', back_populates='patient')
+        disease_registries = db.relationship('DiseaseRegistry', back_populates='patient')
+        problems = db.relationship('PatientProblem', back_populates='patient')
+        allergy_intolerances = db.relationship('AllergyIntolerance', back_populates='patient')
+        queue_items = db.relationship('QueueManagement', back_populates='patient')
+        referrals = db.relationship('Referral', back_populates='patient')
+        immunizations = db.relationship('Immunization', back_populates='patient')
+        whatsapp_messages = db.relationship('WhatsAppMessage', back_populates='patient')
+        workflows = db.relationship('PatientWorkflow', back_populates='patient')
+        workflow_queue_items = db.relationship('WorkflowQueue', back_populates='patient')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def __repr__(self) -> str:
         return f"<Patient {self.first_name} {self.last_name}>"
@@ -144,4 +198,4 @@ class PatientAllergy(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
-    patient = db.relationship('Patient', backref='allergies')
+    patient = db.relationship('Patient', back_populates='allergies')

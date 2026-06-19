@@ -18,7 +18,7 @@ class AuditTrail(db.Model):
     action = db.Column(db.String(50), nullable=False)  # create, update, delete, view, login, logout
     
     # المستخدم الذي قام بالعملية
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     user_ip = db.Column(db.String(45), nullable=True)  # IP address
     user_agent = db.Column(db.Text, nullable=True)  # User agent string
     
@@ -44,7 +44,7 @@ class AuditTrail(db.Model):
     )
     
     # العلاقات
-    user = db.relationship('User', foreign_keys=[user_id], back_populates='audit_trails', lazy='select')
+    user = db.relationship('User', foreign_keys=[user_id], back_populates='audit_trails', lazy='selectin')
     
     def __repr__(self):
         return f'<AuditTrail {self.entity_type}:{self.entity_id} - {self.action}>'
@@ -83,7 +83,7 @@ class SystemLog(db.Model):
     details = db.Column(db.Text, nullable=True)  # JSON string
     
     # المستخدم المرتبط
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     user_ip = db.Column(db.String(45), nullable=True)
     
     # البيانات المرتبطة
@@ -104,7 +104,7 @@ class SystemLog(db.Model):
     )
     
     # العلاقات
-    user = db.relationship('User', foreign_keys=[user_id], back_populates='system_logs', lazy='select')
+    user = db.relationship('User', foreign_keys=[user_id], back_populates='system_logs', lazy='selectin')
     
     def __repr__(self):
         return f'<SystemLog {self.log_level}:{self.log_category} - {self.message[:50]}...>'
@@ -133,7 +133,7 @@ class SlowQueryReport(db.Model):
     period_start = db.Column(db.DateTime, nullable=False)
     period_end = db.Column(db.DateTime, nullable=False)
     reset_time = db.Column(db.DateTime, nullable=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=db.func.now(), nullable=False, index=True)
 
     __table_args__ = (
@@ -141,7 +141,7 @@ class SlowQueryReport(db.Model):
         Index('idx_slow_query_report_created', 'created_at'),
     )
 
-    creator = db.relationship('User', foreign_keys=[created_by], lazy='select')
+    creator = db.relationship('User', foreign_keys=[created_by], lazy='selectin')
     entries = db.relationship('SlowQueryEntry', back_populates='report', lazy='selectin', cascade='all, delete-orphan')
 
 
@@ -161,7 +161,7 @@ class SlowQueryEntry(db.Model):
         Index('idx_slow_query_entry_mean', 'mean_time'),
     )
 
-    report = db.relationship('SlowQueryReport', back_populates='entries', lazy='select')
+    report = db.relationship('SlowQueryReport', back_populates='entries', lazy='selectin')
 
 
 class SecurityEvent(db.Model):
@@ -178,7 +178,7 @@ class SecurityEvent(db.Model):
     severity = db.Column(db.String(20), nullable=False)  # low, medium, high, critical
     
     # المستخدم المرتبط
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     user_ip = db.Column(db.String(45), nullable=True)
     user_agent = db.Column(db.Text, nullable=True)
     
@@ -187,7 +187,7 @@ class SecurityEvent(db.Model):
     
     # الحالة
     is_resolved = db.Column(db.Boolean, default=False)
-    resolved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    resolved_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     resolved_at = db.Column(db.DateTime, nullable=True)
     resolution_notes = db.Column(db.Text, nullable=True)
     
@@ -206,8 +206,8 @@ class SecurityEvent(db.Model):
     )
     
     # العلاقات
-    user = db.relationship('User', foreign_keys=[user_id], back_populates='security_events', lazy='select')
-    resolver = db.relationship('User', foreign_keys=[resolved_by], back_populates='resolved_security_events', lazy='select')
+    user = db.relationship('User', foreign_keys=[user_id], back_populates='security_events', lazy='selectin')
+    resolver = db.relationship('User', foreign_keys=[resolved_by], back_populates='resolved_security_events', lazy='selectin')
     
     def __repr__(self):
         return f'<SecurityEvent {self.event_type}:{self.severity} - {self.description[:50]}...>'
@@ -227,13 +227,13 @@ class LoginAttempt(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), nullable=False, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     success = db.Column(db.Boolean, default=False, nullable=False, index=True)
     user_ip = db.Column(db.String(45), nullable=True, index=True)
     user_agent = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
-    user = db.relationship('User', foreign_keys=[user_id], lazy='select')
+    user = db.relationship('User', foreign_keys=[user_id], lazy='selectin')
     
     def to_dict(self):
         """تحويل إلى قاموس"""

@@ -20,7 +20,7 @@ class ExchangeRate(db.Model):
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     notes = db.Column(db.Text, nullable=True)
 
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
                            onupdate=lambda: datetime.now(timezone.utc), nullable=False)
@@ -32,7 +32,7 @@ class ExchangeRate(db.Model):
         Index('idx_exchange_active', 'is_active'),
     )
 
-    creator = db.relationship('User', lazy='select')
+    creator = db.relationship('User', lazy='selectin')
 
     def __repr__(self):
         return f'<ExchangeRate {self.from_currency}->{self.to_currency} {self.buy_rate}>'

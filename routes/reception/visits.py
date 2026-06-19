@@ -156,9 +156,10 @@ def export_visits():
     if search:
         query = query.join(Patient).filter(
             db.or_(
-                Patient.full_name.contains(search),
-                Patient.phone.contains(search),
-                Patient.national_id.contains(search)
+                Patient.first_name.ilike(f'%{search}%'),
+                Patient.last_name.ilike(f'%{search}%'),
+                Patient.phone.ilike(f'%{search}%'),
+                Patient.national_id.ilike(f'%{search}%')
             )
         )
     if department_id:

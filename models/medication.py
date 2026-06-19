@@ -47,6 +47,8 @@ class Medication(db.Model):
     
     # العلاقات
     prescription_items = db.relationship('PrescriptionItem', back_populates='medication', lazy='dynamic')
+    emar_administrations = db.relationship('eMARAdministration', back_populates='medication')
+
     
     def __repr__(self):
         return f'<Medication {self.trade_name}>'
@@ -143,9 +145,9 @@ class Prescription(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
     prescription_number = db.Column(db.String(50), unique=True, nullable=False)
     diagnosis = db.Column(db.Text, nullable=True)
     notes = db.Column(db.Text, nullable=True)
@@ -166,11 +168,17 @@ class Prescription(db.Model):
     )
     
     # العلاقات
-    patient = db.relationship('Patient', backref='prescriptions')
-    doctor = db.relationship('User', foreign_keys=[doctor_id])
+    patient = db.relationship('Patient', back_populates='prescriptions')
+    doctor = db.relationship('User', foreign_keys=[doctor_id], back_populates='prescriptions')
     visit = db.relationship('Visit', foreign_keys=[visit_id])
     items = db.relationship('PrescriptionItem', back_populates='prescription', lazy='dynamic', cascade='all, delete-orphan')
     dispense_logs = db.relationship('PrescriptionDispenseLog', back_populates='prescription', lazy='dynamic', cascade='all, delete-orphan')
+    cds_alerts = db.relationship('CDSFiredAlert', back_populates='prescription')
+    emar_administrations = db.relationship('eMARAdministration', back_populates='prescription')
+    pharmacy_sales = db.relationship('PharmacySale', back_populates='prescription')
+
+
+
     
     def __repr__(self):
         return f'<Prescription {self.prescription_number}>'
@@ -222,8 +230,8 @@ class PrescriptionItem(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
-    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id'), nullable=False)
-    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id'), nullable=False)
+    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='CASCADE'), nullable=False, index=True)
+    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='RESTRICT'), nullable=False, index=True)
     dosage = db.Column(db.String(100), nullable=False)  # 1 tablet, 2 times daily
     quantity = db.Column(db.Integer, nullable=False, default=1)
     duration_days = db.Column(db.Integer, nullable=False, default=7)
@@ -244,6 +252,8 @@ class PrescriptionItem(db.Model):
     # العلاقات
     prescription = db.relationship('Prescription', back_populates='items')
     medication = db.relationship('Medication', back_populates='prescription_items')
+    schedules = db.relationship('MedicationSchedule', back_populates='prescription_item')
+
     
     def __repr__(self):
         return f'<PrescriptionItem {self.medication.trade_name if self.medication else "Unknown"}>'
@@ -290,10 +300,10 @@ class PrescriptionDispenseLog(db.Model):
     dispensed_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     notes = db.Column(db.Text, nullable=True)
 
-    prescription = db.relationship('Prescription', back_populates='dispense_logs', lazy='select')
-    patient = db.relationship('Patient', lazy='select')
-    visit = db.relationship('Visit', lazy='select')
-    dispenser = db.relationship('User', foreign_keys=[dispensed_by], lazy='select')
+    prescription = db.relationship('Prescription', back_populates='dispense_logs', lazy='selectin')
+    patient = db.relationship('Patient', lazy='selectin')
+    visit = db.relationship('Visit', lazy='selectin')
+    dispenser = db.relationship('User', foreign_keys=[dispensed_by], lazy='selectin')
 
     def to_dict(self):
         return {
@@ -313,18 +323,18 @@ class PharmacySale(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True)
     sale_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
-    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id'), nullable=True)
+    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='SET NULL'), nullable=True, index=True)
     doctor_name = db.Column(db.String(200), nullable=True)
     total_amount = db.Column(db.Numeric(12, 2), default=0, nullable=False)
     status = db.Column(db.String(20), default='completed', index=True)
     notes = db.Column(db.Text, nullable=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
-    patient = db.relationship('Patient', backref='pharmacy_sales', lazy='select')
-    prescription = db.relationship('Prescription', backref='pharmacy_sales', lazy='select')
+    patient = db.relationship('Patient', back_populates='pharmacy_sales', lazy='selectin')
+    prescription = db.relationship('Prescription', back_populates='pharmacy_sales', lazy='selectin')
     items = db.relationship('PharmacySaleItem', back_populates='sale', cascade='all, delete-orphan', lazy='selectin')
 
 
@@ -335,7 +345,7 @@ class PharmacySaleItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     sale_id = db.Column(db.Integer, db.ForeignKey('pharmacy_sales.id', ondelete='CASCADE'), nullable=False, index=True)
-    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id'), nullable=False)
+    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='RESTRICT'), nullable=False, index=True)
     medication_name = db.Column(db.String(200), nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=1)
     unit_price = db.Column(db.Numeric(12, 2), nullable=False, default=0)
@@ -343,8 +353,8 @@ class PharmacySaleItem(db.Model):
     batch_number = db.Column(db.String(50), nullable=True)
     expiry_date = db.Column(db.Date, nullable=True)
 
-    sale = db.relationship('PharmacySale', back_populates='items', lazy='select')
-    medication = db.relationship('Medication', lazy='select')
+    sale = db.relationship('PharmacySale', back_populates='items', lazy='selectin')
+    medication = db.relationship('Medication', lazy='selectin')
 
 
 class PharmacyReturn(db.Model):
@@ -353,10 +363,10 @@ class PharmacyReturn(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
-    sale_item_id = db.Column(db.Integer, db.ForeignKey('pharmacy_sale_items.id'), nullable=False)
-    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id'), nullable=False)
+    sale_item_id = db.Column(db.Integer, db.ForeignKey('pharmacy_sale_items.id', ondelete='CASCADE'), nullable=False, index=True)
+    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='RESTRICT'), nullable=False, index=True)
     quantity = db.Column(db.Integer, nullable=False)
     reason = db.Column(db.String(200), nullable=False)
     refund_amount = db.Column(db.Numeric(12, 2), nullable=False, default=0)
-    returned_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    returned_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

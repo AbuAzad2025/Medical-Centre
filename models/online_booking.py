@@ -16,7 +16,7 @@ class OnlineBooking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     booking_reference = db.Column(db.String(20), unique=True, nullable=False)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # معلومات المريض (للحجوزات الجديدة)
     first_name = db.Column(db.String(100), nullable=False)
@@ -28,8 +28,8 @@ class OnlineBooking(db.Model):
     gender = db.Column(db.String(10), nullable=True)
     
     # معلومات الحجز
-    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=False)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     appointment_date = db.Column(db.Date, nullable=False)
     appointment_time = db.Column(db.Time, nullable=False)
     visit_type = db.Column(db.String(20), default='first')  # first, follow_up, emergency
@@ -58,9 +58,11 @@ class OnlineBooking(db.Model):
     no_show_at = db.Column(db.DateTime, nullable=True)
     
     # العلاقات
-    patient = db.relationship('Patient', backref='online_bookings')
-    department = db.relationship('Department', backref='online_bookings')
-    doctor = db.relationship('User', backref='online_bookings')
+    patient = db.relationship('Patient', back_populates='online_bookings')
+    department = db.relationship('Department', back_populates='online_bookings')
+    doctor = db.relationship('User', back_populates='online_bookings')
+    payment_transactions = db.relationship('PaymentTransaction', back_populates='booking')
+
     
     def __repr__(self):
         return f'<OnlineBooking {self.booking_reference}>'
@@ -191,7 +193,7 @@ class PaymentTransaction(db.Model):
     __tablename__ = 'online_booking_payment_transactions'
     
     id = db.Column(db.Integer, primary_key=True)
-    booking_id = db.Column(db.Integer, db.ForeignKey('online_bookings.id'), nullable=False)
+    booking_id = db.Column(db.Integer, db.ForeignKey('online_bookings.id', ondelete='CASCADE'), nullable=False, index=True)
     transaction_reference = db.Column(db.String(100), unique=True, nullable=False)
     
     # معلومات الدفع
@@ -215,7 +217,7 @@ class PaymentTransaction(db.Model):
     failed_at = db.Column(db.DateTime, nullable=True)
     
     # العلاقات
-    booking = db.relationship('OnlineBooking', backref='payment_transactions')
+    booking = db.relationship('OnlineBooking', back_populates='payment_transactions')
     
     def __repr__(self):
         return f'<PaymentTransaction {self.transaction_reference}>'

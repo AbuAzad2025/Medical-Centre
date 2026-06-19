@@ -26,7 +26,7 @@ class ICD10Code(db.Model):
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relationships
-    diagnoses = db.relationship('CodedDiagnosis', backref='icd_code', lazy='dynamic')
+    diagnoses = db.relationship('CodedDiagnosis', back_populates='icd_code', lazy='dynamic')
 
     def __repr__(self):
         return f"<ICD10Code {self.code}>"
@@ -53,7 +53,7 @@ class CPTCode(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    procedures = db.relationship('CodedProcedure', backref='cpt_code', lazy='dynamic')
+    procedures = db.relationship('CodedProcedure', back_populates='cpt_code', lazy='dynamic')
 
     def __repr__(self):
         return f"<CPTCode {self.code}>"
@@ -74,6 +74,8 @@ class DRGCode(db.Model):
     is_medical = db.Column(db.Boolean, default=True)  # vs surgical
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    admissions = db.relationship('Admission', back_populates='drg')
+
 
     def __repr__(self):
         return f"<DRGCode {self.code}>"
@@ -85,21 +87,23 @@ class CodedDiagnosis(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
-    medical_record_id = db.Column(db.Integer, db.ForeignKey('medical_records.id'), nullable=True)
-    icd10_code_id = db.Column(db.Integer, db.ForeignKey('icd10_codes.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
+    medical_record_id = db.Column(db.Integer, db.ForeignKey('medical_records.id', ondelete='SET NULL'), nullable=True, index=True)
+    icd10_code_id = db.Column(db.Integer, db.ForeignKey('icd10_codes.id', ondelete='RESTRICT'), nullable=False, index=True)
     diagnosis_type = db.Column(db.String(20), default='PRIMARY')  # PRIMARY, SECONDARY, ADMITTING, DISCHARGE
     onset_date = db.Column(db.Date, nullable=True)
     status = db.Column(db.String(20), default='ACTIVE')  # ACTIVE, RESOLVED, CHRONIC, RELAPSE
     notes = db.Column(db.Text, nullable=True)
-    coded_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    coded_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     coded_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    patient = db.relationship('Patient', backref='coded_diagnoses')
-    visit = db.relationship('Visit', backref='coded_diagnoses')
-    medical_record = db.relationship('MedicalRecord', backref='coded_diagnoses')
+    patient = db.relationship('Patient', back_populates='coded_diagnoses')
+    visit = db.relationship('Visit', back_populates='coded_diagnoses')
+    medical_record = db.relationship('MedicalRecord', back_populates='coded_diagnoses')
     coded_by = db.relationship('User', foreign_keys=[coded_by_id])
+    icd_code = db.relationship('ICD10Code', back_populates='diagnoses')
+
 
     def __repr__(self):
         return f"<CodedDiagnosis {self.diagnosis_type}>"
@@ -111,21 +115,23 @@ class CodedProcedure(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=True)
-    cpt_code_id = db.Column(db.Integer, db.ForeignKey('cpt_codes.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
+    cpt_code_id = db.Column(db.Integer, db.ForeignKey('cpt_codes.id', ondelete='RESTRICT'), nullable=False, index=True)
     quantity = db.Column(db.Integer, default=1)
     modifier = db.Column(db.String(10), nullable=True)
     performed_date = db.Column(db.Date, nullable=True)
     status = db.Column(db.String(20), default='PLANNED')  # PLANNED, PERFORMED, CANCELLED
     notes = db.Column(db.Text, nullable=True)
     billed = db.Column(db.Boolean, default=False)
-    coded_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    coded_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    patient = db.relationship('Patient', backref='coded_procedures')
-    visit = db.relationship('Visit', backref='coded_procedures')
+    patient = db.relationship('Patient', back_populates='coded_procedures')
+    visit = db.relationship('Visit', back_populates='coded_procedures')
     coded_by = db.relationship('User', foreign_keys=[coded_by_id])
+    cpt_code = db.relationship('CPTCode', back_populates='procedures')
+
 
     def __repr__(self):
         return f"<CodedProcedure {self.quantity}x>"

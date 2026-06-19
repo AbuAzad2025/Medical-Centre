@@ -11,8 +11,8 @@ class DiseaseRegistry(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    icd10_code_id = db.Column(db.Integer, db.ForeignKey('icd10_codes.id'), nullable=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
+    icd10_code_id = db.Column(db.Integer, db.ForeignKey('icd10_codes.id', ondelete='SET NULL'), nullable=True, index=True)
     disease_name = db.Column(db.String(300), nullable=False)
     disease_name_ar = db.Column(db.String(300), nullable=True)
     is_notifiable = db.Column(db.Boolean, default=False)
@@ -24,10 +24,10 @@ class DiseaseRegistry(db.Model):
     outcome = db.Column(db.String(50), nullable=True)  # RECOVERED, DECEASED, CHRONIC, UNKNOWN
     district = db.Column(db.String(200), nullable=True)
     city = db.Column(db.String(200), nullable=True)
-    reported_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    reported_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    patient = db.relationship('Patient', backref='disease_registries')
+    patient = db.relationship('Patient', back_populates='disease_registries')
     icd10 = db.relationship('ICD10Code')
     reported_by = db.relationship('User', foreign_keys=[reported_by_id])
 
