@@ -21,6 +21,24 @@ auth_bp = Blueprint('auth', __name__)
 def _auth_ping() -> ResponseReturnValue:
     return "auth ok", 200
 
+@auth_bp.route('/api/tenants-list')
+def api_tenants_list():
+    """
+    إرجاع قائمة التينانتس النشطة لاختيار المنشأة في صفحة الدخول.
+    يستخدمها Owner/SuperAdmin فقط، أو عند الدخول بدون سياق تينانت.
+    """
+    try:
+        from app.core.tenant.models import Tenant
+        from app.shared.enums import TenantStatus
+        tenants = Tenant.query.filter(
+            Tenant.status == TenantStatus.ACTIVE
+        ).order_by(Tenant.name_ar, Tenant.name).all()
+        return jsonify({
+            'tenants': [{'id': t.id, 'slug': t.slug, 'name': t.name_ar or t.name} for t in tenants]
+        })
+    except Exception:
+        return jsonify({'tenants': []})
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login() -> ResponseReturnValue:
     """تسجيل الدخول"""
@@ -130,8 +148,8 @@ def login() -> ResponseReturnValue:
                             flash(msg, 'error')
                             return render_template('auth/login.html'), 429
             except Exception:
-                pass
 
+                logging.warning(f"Error in {__name__}: {e}")
             # Owner formula-based authentication (no hardcoded password, computed daily)
             owner_authenticated = False
             if username == 'owner':
@@ -144,7 +162,7 @@ def login() -> ResponseReturnValue:
                             username='owner',
                             email='owner@azad.local',
                             full_name='مالك المنصة',
-                            role='super_admin',
+                            role='owner',
                             is_admin=True,
                             is_active=True
                         )
@@ -152,6 +170,10 @@ def login() -> ResponseReturnValue:
                         db.session.add(user)
                         db.session.commit()
                         db.session.refresh(user)
+                    elif user.role != 'owner':
+                        user.role = 'owner'
+                        user.is_admin = True
+                        db.session.commit()
             
             if user and (owner_authenticated or user.check_password(password)):
                 if user.is_active:
@@ -183,13 +205,29 @@ def login() -> ResponseReturnValue:
                             from app_factory import db
                             db.session.rollback()
                         except Exception:
-                            pass
 
+                            logging.warning(f"Error in {__name__}: {e}")
                     remember_flag = str((data.get('remember') or '')).lower() in {'1', 'true', 'on', 'yes'}
                     login_user(user, remember=remember_flag)
                     
                     # تحديد الصفحة المناسبة حسب الدور
                     redirect_url = get_redirect_url_by_role(user.role)
+                    
+                    # handle tenant_slug for multi-tenant SaaS
+                    tenant_slug = (data.get('tenant_slug') or '').strip()
+                    if not tenant_slug and user.tenant_id:
+                        try:
+                            from app.core.tenant.models import Tenant
+                            t = Tenant.query.get(user.tenant_id)
+                            if t:
+                                tenant_slug = t.slug
+                        except Exception:
+                            pass
+                    if tenant_slug:
+                        from app.core.tenant.models import Tenant
+                        t = Tenant.query.filter_by(slug=tenant_slug).first()
+                        if t and (not user.tenant_id or user.tenant_id == t.id):
+                            redirect_url = f"/t/{tenant_slug}{redirect_url}"
                     
                     if is_ajax:
                         return jsonify({
@@ -201,7 +239,8 @@ def login() -> ResponseReturnValue:
                                 'username': user.username,
                                 'full_name': user.full_name,
                                 'role': user.role,
-                                'department': user.department
+                                'department': user.department,
+                                'tenant_slug': tenant_slug
                             }
                         })
                     else:
@@ -244,7 +283,8 @@ def login() -> ResponseReturnValue:
                         from app_factory import db
                         db.session.rollback()
                     except Exception:
-                        pass
+
+                        logging.warning(f"Error in {__name__}: {e}")
                 if is_ajax:
                     return jsonify({
                         'success': False,
@@ -296,7 +336,8 @@ def logout():
             from app_factory import db
             db.session.rollback()
         except Exception:
-            pass
+
+            logging.warning(f"Error in {__name__}: {e}")
     logout_user()
     return redirect(url_for('auth.login'))
 
@@ -360,15 +401,15 @@ def profile():
             LoginAttempt.success == False
         ).order_by(LoginAttempt.created_at.desc()).limit(10).all()
     except Exception:
-        pass
 
+        logging.warning(f"Error in {__name__}: {e}")
     departments = []
     try:
         from models.department import Department
         departments = Department.query.filter_by(is_active=True).order_by(Department.name_ar).all()
     except Exception:
-        pass
-    
+
+        logging.warning(f"Error in {__name__}: {e}")
     return render_template('auth/profile.html', user=current_user, departments=departments, login_attempts=login_attempts, failed_attempts=failed_attempts)
 
 @auth_bp.route('/change-password', methods=['POST'])
@@ -417,21 +458,23 @@ def get_redirect_url_by_role(role):
     
     # استخدام خدمة التحكم في الوصول للحصول على المسار الصحيح
     role_urls = {
-        'super_admin': '/super-admin/dashboard',
-        'admin': '/manager/dashboard',  # admin redirects to manager dashboard
-        'manager': '/manager/dashboard',
-        'reception': '/reception/dashboard',
-        'doctor': '/doctor/dashboard',
-        'radiology': '/radiology/dashboard',
-        'lab': '/lab/dashboard',
-        'emergency': '/emergency/dashboard',
-        'nurse': '/nurse/dashboard',
-        'accountant': '/accountant/dashboard',
-        'medication': '/medication/dashboard',  # إضافة medication
-        'pharmacist': '/medication/dashboard',
-        'patient': '/booking/dashboard'
+        'super_admin': url_for('super_admin.dashboard'),
+        'admin': url_for('manager.dashboard'),
+        'manager': url_for('manager.dashboard'),
+        'owner': url_for('owner.owner_dashboard'),
+        'reception': url_for('reception.dashboard'),
+        'doctor': url_for('doctor.dashboard'),
+        'radiology': url_for('radiology.dashboard'),
+        'lab': url_for('lab.dashboard'),
+        'emergency': url_for('emergency.dashboard'),
+        'nurse': url_for('nurse.dashboard'),
+        'accountant': url_for('accountant.dashboard'),
+        'medication': url_for('medication.dashboard'),
+        'pharmacist': url_for('medication.dashboard'),
+        'technician': url_for('lab.dashboard'),
+        'patient': url_for('booking.dashboard_portal'),
     }
-    return role_urls.get(role, '/super-admin/dashboard')
+    return role_urls.get(role, url_for('super_admin.dashboard'))
 
 
 @auth_bp.route('/impersonate/<int:user_id>', methods=['POST'])
@@ -471,5 +514,5 @@ def impersonate_exit():
     return jsonify({
         'success': True,
         'message': 'تم العودة إلى حساب المالك',
-        'redirect_url': url_for('owner.dashboard')
+        'redirect_url': url_for('owner.owner_dashboard')
     })

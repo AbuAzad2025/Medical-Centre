@@ -3,8 +3,9 @@ Data Warehouse / Analytics Summary Tables
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class DataWarehouseSync(db.Model):
+class DataWarehouseSync(TenantMixin, db.Model):
     __tablename__ = 'data_warehouse_syncs'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -28,7 +29,7 @@ class DataWarehouseSync(db.Model):
         return f"<DataWarehouseSync {self.sync_name} {self.status}>"
 
 
-class DailyVisitSummary(db.Model):
+class DailyVisitSummary(TenantMixin, db.Model):
     __tablename__ = 'dw_daily_visit_summary'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -54,7 +55,7 @@ class DailyVisitSummary(db.Model):
         return f"<DailyVisitSummary {self.date} visits={self.total_visits}>"
 
 
-class MonthlyFinanceSummary(db.Model):
+class MonthlyFinanceSummary(TenantMixin, db.Model):
     __tablename__ = 'dw_monthly_finance_summary'
 
     id = db.Column(db.Integer, primary_key=True)

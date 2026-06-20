@@ -4,8 +4,9 @@ Medical System Medication Model
 """
 
 from datetime import datetime, timezone
-from sqlalchemy import Index, CheckConstraint
+from sqlalchemy import Index, CheckConstraint, UniqueConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 class Medication(db.Model):
     """نموذج الدواء"""
@@ -43,6 +44,7 @@ class Medication(db.Model):
         Index('idx_medication_trade_name', 'trade_name'),
         Index('idx_medication_generic_name', 'generic_name'),
         Index('idx_medication_active', 'is_active'),
+        Index('idx_medication_name_search', 'generic_name', 'trade_name'),
     )
     
     # العلاقات
@@ -138,6 +140,21 @@ class Medication(db.Model):
     def min_stock_level(self, value):
         self.minimum_stock = int(value) if value is not None else self.minimum_stock
 
+    @db.validates('stock_quantity')
+    def validate_stock(self, key, value):
+        if value is not None and value < 0:
+            raise ValueError(f"الكمية لا يمكن أن تكون سالبة: {value}")
+        return value
+
+    @db.validates('price')
+    def validate_price(self, key, value):
+        if value is not None:
+            from decimal import Decimal
+            val = Decimal(str(value)) if not isinstance(value, Decimal) else value
+            if val < 0:
+                raise ValueError(f"السعر لا يمكن أن يكون سالباً: {value}")
+        return value
+
 class Prescription(db.Model):
     """نموذج الروشيتا"""
     
@@ -165,6 +182,7 @@ class Prescription(db.Model):
         Index('idx_prescription_visit', 'visit_id'),
         Index('idx_prescription_status', 'status'),
         Index('idx_prescription_number', 'prescription_number'),
+        Index('idx_prescription_patient_status', 'patient_id', 'status'),
     )
     
     # العلاقات
@@ -289,7 +307,7 @@ class PrescriptionItem(db.Model):
             'created_at': self.created_at.isoformat()
         }
 
-class PrescriptionDispenseLog(db.Model):
+class PrescriptionDispenseLog(TenantMixin, db.Model):
     __tablename__ = 'prescription_dispense_logs'
 
     id = db.Column(db.Integer, primary_key=True)

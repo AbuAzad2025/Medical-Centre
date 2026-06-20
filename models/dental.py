@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 TOOTH_STATES = {
     'sound': {'label': 'سليم', 'color': '#10b981'},
@@ -15,7 +16,7 @@ TOOTH_STATES = {
     'abscess': {'label': 'خراج', 'color': '#be185d'},
 }
 
-class DentalChart(db.Model):
+class DentalChart(TenantMixin, db.Model):
     __tablename__ = 'dental_charts'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -40,7 +41,7 @@ class DentalChart(db.Model):
         }
 
 
-class DentalTooth(db.Model):
+class DentalTooth(TenantMixin, db.Model):
     __tablename__ = 'dental_teeth'
 
     id = db.Column(db.Integer, primary_key=True)

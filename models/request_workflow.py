@@ -29,7 +29,7 @@ class RequestWorkflow(db.Model):
     is_completed = db.Column(db.Boolean, default=False)  # هل تم إنجاز المهمة
     
     # العلاقات
-    user = db.relationship('User', back_populates='workflow_actions')
+    user = db.relationship('User')
     
     def __repr__(self):
         return f'<RequestWorkflow {self.request_type}_{self.request_id}_{self.department}>'

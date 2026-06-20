@@ -4,8 +4,9 @@ Track referrals to/from external providers and facilities
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class Referral(db.Model):
+class Referral(TenantMixin, db.Model):
     """Patient referral to/from another provider/facility"""
     __tablename__ = 'referrals'
     __table_args__ = {'extend_existing': True}

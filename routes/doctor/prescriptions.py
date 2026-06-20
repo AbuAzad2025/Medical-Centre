@@ -51,7 +51,8 @@ def _check_drug_interaction_warnings(used_med_ids):
                 b = prescription_service.get_medication(row.medication_b_id)
                 warnings.append(f'تحذير: تداخل دوائي {a.trade_name if a else row.medication_a_id} ↔ {b.trade_name if b else row.medication_b_id} ({row.severity})')
     except Exception:
-        pass
+
+        logging.warning(f"Error in {__name__}: {e}")
     return warnings
 
 
@@ -78,9 +79,8 @@ def _notify_pharmacy_non_catalog(non_catalog_medications, visit, current_user):
         )
         db.session.add(notif)
     except Exception:
-        pass
 
-
+        logging.warning(f"Error in {__name__}: {e}")
 @doctor_bp.route('/prescription/<int:visit_id>', methods=['GET', 'POST'])
 @login_required
 @role_required('doctor', 'admin', 'manager')
@@ -286,8 +286,8 @@ def prescription(visit_id):
                             warnings.append(f'تحذير: حساسية مسجلة تجاه {med.trade_name}')
                             break
                 except Exception:
-                    pass
 
+                    logging.warning(f"Error in {__name__}: {e}")
             warnings.extend(_check_drug_interaction_warnings(used_med_ids))
 
             prescription.total_cost = total_cost
@@ -348,8 +348,8 @@ def prescription(visit_id):
                     cfg.set_value(existing)
                     cfg.updated_by = current_user.id
                 except Exception:
-                    pass
 
+                    logging.warning(f"Error in {__name__}: {e}")
             db.session.commit()
 
             for w in warnings:
@@ -367,8 +367,8 @@ def prescription(visit_id):
                 ))
                 db.session.commit()
             except Exception:
-                pass
 
+                logging.warning(f"Error in {__name__}: {e}")
             flash('تم حفظ الوصفة بنجاح', 'success')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
 

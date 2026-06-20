@@ -176,8 +176,8 @@ def edit_user(user_id):
                         continue
                     db.session.add(UserDepartmentAccess(user_id=user.id, department_id=did, can_access=True))
             except Exception:
-                pass
-            
+
+                logging.warning(f"Error in {__name__}: {e}")
             # تحديث كلمة المرور إذا تم إدخالها
             new_password = request.form.get('new_password')
             if new_password:

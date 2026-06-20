@@ -163,9 +163,8 @@ def _notify_lab_results_ready(lab_request):
                 notification_type='error', is_urgent=True
             )
     except Exception:
-        pass
 
-
+        logging.warning(f"Error in {__name__}: {e}")
 def worklist_request(request_id):
     try:
         lab_request = db.session.get(LabRequest, request_id)
@@ -215,8 +214,8 @@ def worklist_request(request_id):
                         description='تحديث نتائج المختبر'
                     ))
                 except Exception:
-                    pass
 
+                    logging.warning(f"Error in {__name__}: {e}")
             db.session.commit()
             flash('تم حفظ نتائج المختبر', 'success')
             return redirect(url_for('lab.worklist_request', request_id=lab_request.id))
@@ -289,8 +288,8 @@ def worklist_complete(request_id):
                     notification_type='info'
                 )
         except Exception:
-            pass
 
+            logging.warning(f"Error in {__name__}: {e}")
         return jsonify({'success': True, 'message': 'تم إكمال الطلب'}), 200
     except Exception as e:
         db.session.rollback()

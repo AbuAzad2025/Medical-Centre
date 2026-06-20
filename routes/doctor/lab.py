@@ -69,7 +69,8 @@ def lab_request(visit_id):
                 ))
                 db.session.commit()
             except Exception:
-                pass
+
+                logging.warning(f"Error in {__name__}: {e}")
             flash('تم تدوين مذكرة التحاليل. يتوجه المريض للاستقبال لإنشاء زيارة للمختبر عند رغبة التنفيذ داخل المركز.', 'info')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
         return redirect(url_for('doctor.patient_details', visit_id=visit_id))
@@ -112,8 +113,8 @@ def lab_results(patient_id):
                         'technician': getattr(r, 'recorded_by', None)
                     })
             except Exception:
-                pass
 
+                logging.warning(f"Error in {__name__}: {e}")
         return render_template('doctor/lab_results.html',
                              patient=patient,
                              lab_requests=lab_requests,

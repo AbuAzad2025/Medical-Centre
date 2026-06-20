@@ -4,8 +4,9 @@ Surgery scheduling, team assignment, instrument tracking
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class SurgerySchedule(db.Model):
+class SurgerySchedule(TenantMixin, db.Model):
     """Scheduled surgery/procedure"""
     __tablename__ = 'surgery_schedules'
     __table_args__ = {'extend_existing': True}
@@ -57,8 +58,8 @@ class SurgerySchedule(db.Model):
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     patient = db.relationship('Patient', back_populates='surgeries')
-    admission = db.relationship('Admission', back_populates='surgeries')
-    visit = db.relationship('Visit', back_populates='surgeries')
+    admission = db.relationship('Admission')
+    visit = db.relationship('Visit')
     surgeon = db.relationship('User', foreign_keys=[surgeon_id])
     cpt_code = db.relationship('CPTCode')
     checklist = db.relationship('SurgeryChecklist', back_populates='surgery')
@@ -68,7 +69,7 @@ class SurgerySchedule(db.Model):
         return f"<SurgerySchedule {self.status}>"
 
 
-class SurgeryChecklist(db.Model):
+class SurgeryChecklist(TenantMixin, db.Model):
     """WHO Surgical Safety Checklist"""
     __tablename__ = 'surgery_checklists'
     __table_args__ = {'extend_existing': True}

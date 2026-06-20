@@ -4,8 +4,9 @@ Track medications, specimens, patients, and equipment via barcode/QR
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class BarcodeRegistry(db.Model):
+class BarcodeRegistry(TenantMixin, db.Model):
     """Registry of all barcodes/QR codes in the system"""
     __tablename__ = 'barcode_registry'
     __table_args__ = {'extend_existing': True}
@@ -35,7 +36,7 @@ class BarcodeRegistry(db.Model):
         return f"<BarcodeRegistry {self.entity_type}>"
 
 
-class BarcodeScanLog(db.Model):
+class BarcodeScanLog(TenantMixin, db.Model):
     """Log of barcode/QR scans"""
     __tablename__ = 'barcode_scan_logs'
     __table_args__ = {'extend_existing': True}

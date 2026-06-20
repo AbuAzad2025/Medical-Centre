@@ -81,7 +81,8 @@ def patients():
             try:
                 conditions.append(Patient.id == int(search))
             except Exception:
-                pass
+
+                logging.warning(f"Error in {__name__}: {e}")
         query = query.filter(db.or_(*conditions))
     
     if department_id:

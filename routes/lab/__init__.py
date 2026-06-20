@@ -38,25 +38,8 @@ def _log_lab_workflow(request_id, status, action, notes=None):
             user_id=getattr(current_user, 'id', None) or 0
         ))
     except Exception:
-        pass
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        logging.warning(f"Error in {__name__}: {e}")
 def get_lab_smart_analytics():
     """التحليلات الذكية للمختبر"""
     try:

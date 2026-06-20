@@ -102,8 +102,8 @@ def end_treatment(emergency_id):
                     sender_id=current_user.id
                 )
         except Exception:
-            pass
-        
+
+            logging.warning(f"Error in {__name__}: {e}")
         db.session.commit()
         flash('تم إنهاء العلاج بنجاح وإخطار الاستقبال', 'success')
         return redirect(url_for('emergency.patient_queue'))
@@ -189,7 +189,8 @@ def emergency_treatment(visit_id):
                     sender_id=current_user.id
                 )
             except Exception:
-                pass
+
+                logging.warning(f"Error in {__name__}: {e}")
             db.session.commit()
             return jsonify({'success': True})
         return render_template('emergency/emergency_treatment.html', visit=visit)
@@ -227,7 +228,8 @@ def complete_visit(visit_id):
                 sender_id=current_user.id
             )
         except Exception:
-            pass
+
+            logging.warning(f"Error in {__name__}: {e}")
         db.session.commit()
         return jsonify({'success': True}), 200
     except Exception as e:

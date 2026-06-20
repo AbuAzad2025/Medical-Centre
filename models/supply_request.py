@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class MedicationSupplyRequest(db.Model):
+class MedicationSupplyRequest(TenantMixin, db.Model):
     __tablename__ = 'medication_supply_requests'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -34,7 +35,7 @@ class MedicationSupplyRequest(db.Model):
     items = db.relationship('MedicationSupplyRequestItem', back_populates='request', lazy='selectin', cascade='all, delete-orphan')
 
 
-class MedicationSupplyRequestItem(db.Model):
+class MedicationSupplyRequestItem(TenantMixin, db.Model):
     __tablename__ = 'medication_supply_request_items'
 
     id = db.Column(db.Integer, primary_key=True)

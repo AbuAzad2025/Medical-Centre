@@ -47,7 +47,7 @@ class PricingManagement(db.Model):
     # العلاقات
     service = db.relationship('ServiceMaster', back_populates='pricing_management')
     department = db.relationship('Department', back_populates='pricing_management')
-    creator = db.relationship('User', back_populates='created_pricing')
+    creator = db.relationship('User')
     
     def __repr__(self):
         return f'<PricingManagement {self.service.name if self.service else "Unknown"} - {self.base_price} {self.currency}>'
@@ -131,7 +131,7 @@ class PricingRule(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # العلاقات
-    creator = db.relationship('User', back_populates='created_pricing_rules')
+    creator = db.relationship('User')
     
     def __repr__(self):
         return f'<PricingRule {self.name}>'

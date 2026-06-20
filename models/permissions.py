@@ -5,28 +5,7 @@ Advanced Permissions System
 
 from app_factory import db
 from datetime import datetime, timezone
-from enum import Enum
-
-class PermissionLevel(Enum):
-    """مستويات الصلاحيات"""
-    READ = "read"
-    WRITE = "write"
-    DELETE = "delete"
-    ADMIN = "admin"
-    SUPER_ADMIN = "super_admin"
-
-class PermissionCategory(Enum):
-    """فئات الصلاحيات"""
-    USER_MANAGEMENT = "user_management"
-    PATIENT_MANAGEMENT = "patient_management"
-    MEDICAL_RECORDS = "medical_records"
-    FINANCIAL = "financial"
-    SYSTEM_ADMIN = "system_admin"
-    BACKUP_RESTORE = "backup_restore"
-    REPORTS = "reports"
-    SETTINGS = "settings"
-    SECURITY = "security"
-    AUDIT = "audit"
+from app.shared.enums import PermissionLevel, PermissionCategory
 
 class Permission(db.Model):
     """جدول الصلاحيات"""
@@ -257,6 +236,10 @@ def create_default_roles():
         ('nurse', 'ممرض', 'ممرض', True),
         ('accountant', 'محاسب', 'محاسب', True),
         ('pharmacist', 'صيدلي', 'صيدلي', True),
+        ('technician', 'فني', 'فني طبي', True),
+        ('receptionist', 'استقبال', 'موظف استقبال', True),
+        ('lab_tech', 'فني مختبر', 'فني مختبر', True),
+        ('owner', 'مالك', 'مالك المركز', True),
     ]
     
     for name, name_ar, description, is_system in roles:

@@ -6,7 +6,7 @@ Medical System Notification Management Service
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import and_, or_, func, desc
 from app_factory import db
-from models.notification import Notification, NotificationTemplate, NotificationQueue, WhatsAppMessage, EmailMessage
+from models.notification import Notification, NotificationTemplate, NotificationQueue, WhatsAppNotificationMessage, EmailMessage
 from models.user import User
 from models.department import Department
 import logging
@@ -389,7 +389,7 @@ class NotificationService:
     def send_whatsapp_message(phone_number, message_content, message_type='text', template_name=None, media_url=None):
         """إرسال رسالة واتساب"""
         try:
-            whatsapp_message = WhatsAppMessage(
+            whatsapp_message = WhatsAppNotificationMessage(
                 phone_number=phone_number,
                 message_content=message_content,
                 message_type=message_type,

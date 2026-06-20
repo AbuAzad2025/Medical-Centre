@@ -2,6 +2,7 @@
 الأشعة - نتيجة تصوير (Result)
 """
 from datetime import datetime, timezone
+from sqlalchemy import Index
 from app_factory import db
 
 
@@ -27,6 +28,11 @@ class RadiologyResult(db.Model):
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+
+    __table_args__ = (
+        Index('idx_rad_result_req_status', 'request_id', 'status'),
+        Index('idx_rad_result_patient_created', 'patient_id', 'created_at'),
+    )
 
     request = db.relationship('RadiologyRequest', back_populates='results', lazy='selectin')
     patient = db.relationship('Patient', back_populates='radiology_results', lazy='selectin')

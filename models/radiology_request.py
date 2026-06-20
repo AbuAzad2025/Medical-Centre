@@ -2,6 +2,7 @@
 الأشعة - طلب تصوير (Request)
 """
 from datetime import datetime, timezone
+from sqlalchemy import Index
 from app_factory import db
 
 
@@ -22,6 +23,10 @@ class RadiologyRequest(db.Model):
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+
+    __table_args__ = (
+        Index('idx_rad_req_patient_created', 'patient_id', 'created_at'),
+    )
 
     visit = db.relationship('Visit', back_populates='radiology_requests', lazy='selectin')
     patient = db.relationship('Patient', lazy='selectin')

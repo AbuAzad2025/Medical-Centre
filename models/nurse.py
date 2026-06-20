@@ -4,10 +4,12 @@ Medical System Nurse Model
 """
 
 from datetime import datetime, timezone
+from sqlalchemy import Index
 from app_factory import db
+from app.shared.mixins import TenantMixin
 import json
 
-class Nurse(db.Model):
+class Nurse(TenantMixin, db.Model):
     """نموذج الممرضة"""
     
     __tablename__ = 'nurses'
@@ -49,6 +51,11 @@ class VitalSigns(db.Model):
     """نموذج العلامات الحيوية"""
     
     __tablename__ = 'vital_signs'
+    
+    __table_args__ = (
+        Index('idx_vitals_patient_recorded', 'patient_id', 'recorded_at'),
+        Index('idx_vitals_nurse_recorded', 'nurse_id', 'recorded_at'),
+    )
     
     id = db.Column(db.Integer, primary_key=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)

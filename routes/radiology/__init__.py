@@ -41,10 +41,8 @@ def _log_radiology_workflow(request_id, status, action, notes=None):
             user_id=getattr(current_user, 'id', None) or 0
         ))
     except Exception:
-        pass
 
-
-
+        logging.warning(f"Error in {__name__}: {e}")
 def _radiology_templates_cfg():
     return SystemConfig.query.filter_by(config_key='radiology_report_templates').first()
 

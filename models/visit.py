@@ -98,6 +98,13 @@ class Visit(db.Model):
         Index('idx_visit_doctor_status', 'doctor_id', 'status'),
         Index('idx_visit_department_status', 'department_id', 'status'),
         Index('idx_visit_patient_created', 'patient_id', 'created_at'),
+        Index('idx_visit_patient_status', 'patient_id', 'status'),
+        Index('idx_visit_status_created', 'status', 'created_at'),
+        Index('idx_visit_doctor_created', 'doctor_id', 'created_at'),
+        Index('idx_visit_department_created', 'department_id', 'created_at'),
+        Index('idx_visit_type_status', 'visit_type', 'status'),
+        Index('idx_visit_type_created', 'visit_type', 'created_at'),
+        Index('idx_visit_payment_status_created', 'payment_status', 'created_at'),
         Index('idx_visit_payment_method', 'payment_method'),
     )
 
@@ -131,6 +138,24 @@ class Visit(db.Model):
         passive_deletes=True
     )
 
+    ai_recommendations = db.relationship('AIRecommendation', back_populates='visit')
+    admissions = db.relationship('Admission', back_populates='visit')
+    cds_alerts = db.relationship('CDSFiredAlert', back_populates='visit')
+    care_plans = db.relationship('PatientCarePlan', back_populates='visit')
+    emar_administrations = db.relationship('eMARAdministration', back_populates='visit')
+    emergency_cases = db.relationship('EmergencyCase', back_populates='visit')
+    coded_diagnoses = db.relationship('CodedDiagnosis', back_populates='visit')
+    coded_procedures = db.relationship('CodedProcedure', back_populates='visit')
+    medical_records = db.relationship('MedicalRecord', back_populates='visit', lazy='selectin')
+    medical_reports = db.relationship('MedicalReport', back_populates='visit', lazy='selectin')
+    patient_satisfaction_surveys = db.relationship('PatientSatisfactionSurvey', back_populates='visit', lazy='selectin')
+    medication_reconciliations = db.relationship('MedicationReconciliation', back_populates='visit')
+    surgeries = db.relationship('SurgerySchedule', back_populates='visit')
+    queue_items = db.relationship('QueueManagement', back_populates='visit')
+    referrals = db.relationship('Referral', back_populates='visit')
+    treatments = db.relationship('Treatment', back_populates='visit', lazy='selectin')
+    workflows = db.relationship('PatientWorkflow', back_populates='visit')
+    workflow_events = db.relationship('VisitWorkflowEvent', back_populates='visit')
 
     @property
     def remaining_amount(self):
@@ -200,24 +225,6 @@ class Visit(db.Model):
             total = Decimal(str(self.total_amount or 0))
             self.insurance_amount = total * coverage
             self.patient_share = total * (Decimal('1') - coverage)
-        ai_recommendations = db.relationship('AIRecommendation', back_populates='visit')
-        admissions = db.relationship('Admission', back_populates='visit')
-        cds_alerts = db.relationship('CDSFiredAlert', back_populates='visit')
-        care_plans = db.relationship('PatientCarePlan', back_populates='visit')
-        emar_administrations = db.relationship('eMARAdministration', back_populates='visit')
-        emergency_cases = db.relationship('EmergencyCase', back_populates='visit')
-        coded_diagnoses = db.relationship('CodedDiagnosis', back_populates='visit')
-        coded_procedures = db.relationship('CodedProcedure', back_populates='visit')
-        medical_records = db.relationship('MedicalRecord', back_populates='visit', lazy='selectin')
-        medical_reports = db.relationship('MedicalReport', back_populates='visit', lazy='selectin')
-        patient_satisfaction_surveys = db.relationship('PatientSatisfactionSurvey', back_populates='visit', lazy='selectin')
-        medication_reconciliations = db.relationship('MedicationReconciliation', back_populates='visit')
-        surgeries = db.relationship('SurgerySchedule', back_populates='visit')
-        queue_items = db.relationship('QueueManagement', back_populates='visit')
-        referrals = db.relationship('Referral', back_populates='visit')
-        treatments = db.relationship('Treatment', back_populates='visit', lazy='selectin')
-        workflows = db.relationship('PatientWorkflow', back_populates='visit')
-        workflow_events = db.relationship('VisitWorkflowEvent', back_populates='visit')
 
 
 

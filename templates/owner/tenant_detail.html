@@ -6,8 +6,50 @@
         <div class="col"><h4><i class="fas fa-building me-2 text-primary"></i>{{ tenant.name }}</h4></div>
         <div class="col-auto">
             <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+            <a href="{{ url_for('owner.owner_bundles') }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-boxes me-1"></i> الباقات</a>
         </div>
     </div>
+
+    <!-- Bundle limits & usage -->
+    {% if bundle_limits %}
+    <div class="row g-2 mb-3">
+        <div class="col-md-3">
+            <div class="card bg-light border-0 text-center py-2">
+                <small class="text-muted">المستخدمون</small>
+                <strong>{{ user_count }} / {{ bundle_limits.max_users or 'غير محدود' }}</strong>
+                {% if bundle_limits.max_users %}
+                <div class="progress mt-1" style="height:4px">
+                    <div class="progress-bar {{ 'bg-danger' if user_count >= bundle_limits.max_users else 'bg-success' }}" style="width:{{ (user_count / bundle_limits.max_users * 100)|round }}%"></div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light border-0 text-center py-2">
+                <small class="text-muted">المرضى</small>
+                <strong>{{ patient_count }} / {{ bundle_limits.max_patients or 'غير محدود' }}</strong>
+                {% if bundle_limits.max_patients %}
+                <div class="progress mt-1" style="height:4px">
+                    <div class="progress-bar {{ 'bg-danger' if patient_count >= bundle_limits.max_patients else 'bg-success' }}" style="width:{{ (patient_count / bundle_limits.max_patients * 100)|round }}%"></div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light border-0 text-center py-2">
+                <small class="text-muted">التخزين</small>
+                <strong>{{ bundle_limits.storage_gb or 'غير محدود' }} جيجابايت</strong>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light border-0 text-center py-2">
+                <small class="text-muted">API</small>
+                <strong>{{ bundle_limits.api_calls_per_month or 'غير محدود' }} /شهر</strong>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="row g-3">
         <div class="col-md-4">
             <div class="card h-100">
@@ -22,7 +64,8 @@
                     <p><strong>الهاتف:</strong> {{ tenant.contact_phone or '-' }}</p>
                     <p><strong>الرقم الضريبي:</strong> {{ tenant.tax_number or '-' }}</p>
                     <p><strong>طريقة التخزين:</strong> {{ tenant.storage_mode.value }}</p>
-                    <p><strong>نوع العيادة (Profile):</strong> {{ tenant.product_profile_code.value if tenant.product_profile_code else 'غير محدد' }}</p>
+                    <p><strong>الباقة:</strong> {{ bundle_name or 'غير محدد' }}</p>
+                    <p><strong>نوع العيادة:</strong> {{ tenant.product_profile_code.value if tenant.product_profile_code else 'غير محدد' }}</p>
                 </div>
             </div>
         </div>
@@ -44,7 +87,8 @@
             <div class="card h-100">
                 <div class="card-header fw-bold">إحصائيات</div>
                 <div class="card-body">
-                    <p><strong>المستخدمون:</strong> {{ tenant.users|length }}</p>
+                    <p><strong>المستخدمون:</strong> {{ user_count }}</p>
+                    <p><strong>المرضى:</strong> {{ patient_count }}</p>
                     <p><strong>الوحدات النشطة:</strong> {{ active_modules|length }}</p>
                     <p><strong>تاريخ الإنشاء:</strong> {{ tenant.created_at.strftime('%Y-%m-%d') if tenant.created_at else '-' }}</p>
                     <hr>
@@ -60,7 +104,31 @@
             </div>
         </div>
     </div>
+
+    <!-- Modules with toggle switches -->
     <div class="row g-3 mt-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-puzzle-piece me-1"></i>الوحدات</span>
+                    <small class="text-muted">اضغط للتفعيل/التعطيل</small>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for m in all_modules %}
+                        {% set is_active = m in active_modules %}
+                        <button class="btn btn-sm toggle-module-btn {{ 'btn-primary' if is_active else 'btn-outline-secondary' }}"
+                                data-tenant-id="{{ tenant.id }}"
+                                data-module="{{ m }}"
+                                data-active="{{ 'true' if is_active else 'false' }}">
+                            {{ m }}
+                            <i class="fas {{ 'fa-check-circle' if is_active else 'fa-times-circle' }} ms-1"></i>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header fw-bold">المستخدمون</div>
@@ -77,39 +145,62 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header fw-bold">الوحدات النشطة</div>
-                <div class="card-body">
-                    {% for m in active_modules %}
-                    <span class="badge bg-primary me-1 mb-1">{{ m }}</span>
-                    {% else %}<span class="text-muted">لا وحدات</span>{% endfor %}
-                    <hr>
-                    <small class="text-muted">جميع الوحدات المتاحة:</small>
-                    <div class="mt-1">
-                    {% for m in all_modules %}
-                        {% if m not in active_modules %}
-                        <span class="badge bg-secondary me-1 mb-1 opacity-50">{{ m }}</span>
-                        {% endif %}
-                    {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
+
     {% if feature_flags %}
     <div class="row mt-3">
         <div class="col-12">
             <div class="card">
-                <div class="card-header fw-bold"><i class="fas fa-flag me-1"></i>ميزات مفعلة</div>
+                <div class="card-header fw-bold"><i class="fas fa-flag me-1"></i>الميزات المفعلة</div>
                 <div class="card-body">
-                    {% for f in feature_flags %}
-                    <span class="badge bg-info me-1 mb-1">{{ f.feature_key }}</span>
-                    {% endfor %}
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for f in feature_flags %}
+                        <span class="badge bg-info me-1 mb-1">{{ f.feature_key }}</span>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.toggle-module-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var tenantId = this.dataset.tenantId;
+        var moduleName = this.dataset.module;
+        var isActive = this.dataset.active === 'true';
+        var action = isActive ? 'deactivate' : 'activate';
+        var btnEl = this;
+
+        fetch('/owner/api/tenants/' + tenantId + '/modules/' + moduleName + '/' + action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.status === 'activated' || data.status === 'deactivated') {
+                btnEl.dataset.active = isActive ? 'false' : 'true';
+                btnEl.classList.toggle('btn-primary');
+                btnEl.classList.toggle('btn-outline-secondary');
+                var icon = btnEl.querySelector('i');
+                if (icon) {
+                    icon.className = 'fas ' + (isActive ? 'fa-times-circle' : 'fa-check-circle') + ' ms-1';
+                }
+            } else {
+                alert('خطأ: ' + (data.error || 'فشل التبديل'));
+            }
+        })
+        .catch(function() {
+            alert('خطأ في الاتصال');
+        });
+    });
+});
+</script>
 {% endblock %}

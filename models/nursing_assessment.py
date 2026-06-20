@@ -3,8 +3,9 @@ Nursing Assessment Scales: Braden, Glasgow Coma, Fall Risk, Pain Scale
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class NursingAssessment(db.Model):
+class NursingAssessment(TenantMixin, db.Model):
     __tablename__ = 'nursing_assessments'
 
     id = db.Column(db.Integer, primary_key=True)

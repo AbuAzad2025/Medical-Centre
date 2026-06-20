@@ -91,8 +91,8 @@ def diagnosis(visit_id):
             try:
                 _sync_follow_up_request_for_visit(visit, current_user.id)
             except Exception:
-                pass
-            
+
+                logging.warning(f"Error in {__name__}: {e}")
             # إنشاء سجل طبي
             medical_record = MedicalRecord(
                 patient_id=visit.patient_id,
@@ -116,8 +116,8 @@ def diagnosis(visit_id):
                 ))
                 db.session.commit()
             except Exception:
-                pass
 
+                logging.warning(f"Error in {__name__}: {e}")
             flash('تم حفظ التشخيص بنجاح', 'success')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
 

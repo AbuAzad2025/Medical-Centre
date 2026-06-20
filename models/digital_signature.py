@@ -4,8 +4,9 @@ Electronic signatures for doctors, audit trails, password policy, encryption
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class DigitalSignature(db.Model):
+class DigitalSignature(TenantMixin, db.Model):
     """Electronic signature for clinical documents"""
     __tablename__ = 'digital_signatures'
     __table_args__ = {'extend_existing': True}
@@ -52,7 +53,7 @@ class PasswordPolicy(db.Model):
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
 
-class SessionLog(db.Model):
+class SessionLog(TenantMixin, db.Model):
     """Advanced session tracking for security"""
     __tablename__ = 'session_logs'
     __table_args__ = {'extend_existing': True}
@@ -78,7 +79,7 @@ class SessionLog(db.Model):
         return f"<SessionLog {self.session_id[:8]}>"
 
 
-class EncryptedField(db.Model):
+class EncryptedField(TenantMixin, db.Model):
     """Store encrypted sensitive data fields"""
     __tablename__ = 'encrypted_fields'
     __table_args__ = {'extend_existing': True}

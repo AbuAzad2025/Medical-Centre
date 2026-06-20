@@ -11,7 +11,6 @@ from app.core.module.registry import (
     get_feature_flags_for_module,
 )
 from app.core.module.models import ModuleDefinition, TenantModule
-from app.core.module.decorators import module_required
 from app.core.module.validators import (
     validate_reception_required,
     get_active_modules_for_tenant,
@@ -30,7 +29,6 @@ __all__ = [
     "get_feature_flags_for_module",
     "ModuleDefinition",
     "TenantModule",
-    "module_required",
     "validate_reception_required",
     "get_active_modules_for_tenant",
     "can_activate_module",

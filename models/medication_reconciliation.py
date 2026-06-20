@@ -4,8 +4,9 @@ Compare medications across care transitions (admission, transfer, discharge)
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class MedicationReconciliation(db.Model):
+class MedicationReconciliation(TenantMixin, db.Model):
     """Medication reconciliation at care transition"""
     __tablename__ = 'medication_reconciliations'
     __table_args__ = {'extend_existing': True}

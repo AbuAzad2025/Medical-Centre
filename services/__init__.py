@@ -9,7 +9,6 @@ from services.inventory_ledger_service import InventoryLedgerService
 from services.order_service import OrderService
 from services.permission_scope_service import PermissionScopeService
 from services.report_scope_service import ReportScopeService
-from services.tenant_scope_service import TenantScopeService
 from services.workflow_orchestrator import WorkflowOrchestrator, QueueService
 from services.pharmacy_sale_service import PharmacySaleService
 from services.radiology_workflow_service import RadiologyWorkflowService

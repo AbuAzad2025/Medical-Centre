@@ -174,7 +174,7 @@ def super_admin_required(f):
         if not current_user.is_authenticated:
             flash(_format_message('not_authenticated'), 'error')
             return redirect(url_for('auth.login'))
-        if not current_user.is_admin or current_user.role not in ['super_admin', 'admin']:
+        if current_user.role not in ['super_admin', 'admin', 'owner']:
             flash(_format_message('no_permission'), 'error')
             return redirect(url_for('main.index'))
         return f(*args, **kwargs)

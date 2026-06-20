@@ -4,9 +4,10 @@
 from datetime import datetime, timezone
 from sqlalchemy import Index
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class InsuranceCompany(db.Model):
+class InsuranceCompany(TenantMixin, db.Model):
     __tablename__ = 'insurance_companies'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -26,7 +27,7 @@ class InsuranceCompany(db.Model):
         return f"<InsuranceCompany {self.name}>"
 
 
-class InsuranceClaim(db.Model):
+class InsuranceClaim(TenantMixin, db.Model):
     __tablename__ = 'insurance_claims'
 
     id = db.Column(db.Integer, primary_key=True)

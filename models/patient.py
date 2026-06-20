@@ -3,7 +3,9 @@
 """
 from datetime import datetime, date, timezone
 from sqlalchemy import Index
+from sqlalchemy.orm import validates
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
 class Patient(db.Model):
@@ -52,6 +54,8 @@ class Patient(db.Model):
 
     __table_args__ = (
         Index('idx_patient_name', 'first_name', 'last_name'),
+        Index('idx_patient_name_birthdate', 'first_name', 'last_name', 'birth_date'),
+        Index('idx_patient_insurance_created', 'insurance_company_id', 'created_at'),
     )
 
     visits = db.relationship(
@@ -90,6 +94,35 @@ class Patient(db.Model):
     medical_records = db.relationship('MedicalRecord', back_populates='patient', lazy='selectin')
     patient_satisfaction_surveys = db.relationship('PatientSatisfactionSurvey', back_populates='patient', lazy='selectin')
 
+    ai_recommendations = db.relationship('AIRecommendation', back_populates='patient')
+    patient_insights = db.relationship('PatientInsight', back_populates='patient')
+    model_predictions = db.relationship('ModelPrediction', back_populates='patient')
+    admissions = db.relationship('Admission', back_populates='patient')
+    bed_transfers = db.relationship('BedTransfer', back_populates='patient')
+    cds_alerts = db.relationship('CDSFiredAlert', back_populates='patient')
+    care_plans = db.relationship('PatientCarePlan', back_populates='patient')
+    dicom_studies = db.relationship('DICOMStudy', back_populates='patient')
+    emar_administrations = db.relationship('eMARAdministration', back_populates='patient')
+    emergency_cases = db.relationship('EmergencyCase', back_populates='patient')
+    fhir_patient = db.relationship('FHIRPatient', back_populates='patient')
+    coded_diagnoses = db.relationship('CodedDiagnosis', back_populates='patient')
+    coded_procedures = db.relationship('CodedProcedure', back_populates='patient')
+    pharmacy_sales = db.relationship('PharmacySale', back_populates='patient')
+    medication_reconciliations = db.relationship('MedicationReconciliation', back_populates='patient')
+    vital_signs = db.relationship('VitalSigns', back_populates='patient')
+    online_bookings = db.relationship('OnlineBooking', back_populates='patient')
+    surgeries = db.relationship('SurgerySchedule', back_populates='patient')
+    allergies = db.relationship('PatientAllergy', back_populates='patient')
+    disease_registries = db.relationship('DiseaseRegistry', back_populates='patient')
+    problems = db.relationship('PatientProblem', back_populates='patient')
+    allergy_intolerances = db.relationship('AllergyIntolerance', back_populates='patient')
+    queue_items = db.relationship('QueueManagement', back_populates='patient')
+    referrals = db.relationship('Referral', back_populates='patient')
+    immunizations = db.relationship('Immunization', back_populates='patient')
+    whatsapp_messages = db.relationship('WhatsAppMessage', back_populates='patient')
+    workflows = db.relationship('PatientWorkflow', back_populates='patient')
+    workflow_queue_items = db.relationship('WorkflowQueue', back_populates='patient')
+
     @property
     def visit_count(self):
         try:
@@ -102,35 +135,6 @@ class Patient(db.Model):
         except Exception:
             from models.visit import Visit
             return Visit.query.filter_by(patient_id=self.id).count()
-
-        ai_recommendations = db.relationship('AIRecommendation', back_populates='patient')
-        patient_insights = db.relationship('PatientInsight', back_populates='patient')
-        model_predictions = db.relationship('ModelPrediction', back_populates='patient')
-        admissions = db.relationship('Admission', back_populates='patient')
-        bed_transfers = db.relationship('BedTransfer', back_populates='patient')
-        cds_alerts = db.relationship('CDSFiredAlert', back_populates='patient')
-        care_plans = db.relationship('PatientCarePlan', back_populates='patient')
-        dicom_studies = db.relationship('DICOMStudy', back_populates='patient')
-        emar_administrations = db.relationship('eMARAdministration', back_populates='patient')
-        emergency_cases = db.relationship('EmergencyCase', back_populates='patient')
-        fhir_patient = db.relationship('FHIRPatient', back_populates='patient')
-        coded_diagnoses = db.relationship('CodedDiagnosis', back_populates='patient')
-        coded_procedures = db.relationship('CodedProcedure', back_populates='patient')
-        pharmacy_sales = db.relationship('PharmacySale', back_populates='patient')
-        medication_reconciliations = db.relationship('MedicationReconciliation', back_populates='patient')
-        vital_signs = db.relationship('VitalSigns', back_populates='patient')
-        online_bookings = db.relationship('OnlineBooking', back_populates='patient')
-        surgeries = db.relationship('SurgerySchedule', back_populates='patient')
-        allergies = db.relationship('PatientAllergy', back_populates='patient')
-        disease_registries = db.relationship('DiseaseRegistry', back_populates='patient')
-        problems = db.relationship('PatientProblem', back_populates='patient')
-        allergy_intolerances = db.relationship('AllergyIntolerance', back_populates='patient')
-        queue_items = db.relationship('QueueManagement', back_populates='patient')
-        referrals = db.relationship('Referral', back_populates='patient')
-        immunizations = db.relationship('Immunization', back_populates='patient')
-        whatsapp_messages = db.relationship('WhatsAppMessage', back_populates='patient')
-        workflows = db.relationship('PatientWorkflow', back_populates='patient')
-        workflow_queue_items = db.relationship('WorkflowQueue', back_populates='patient')
 
 
 
@@ -188,7 +192,16 @@ class Patient(db.Model):
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
-class PatientAllergy(db.Model):
+    @validates('phone')
+    def validate_phone(self, key, value):
+        if value is not None:
+            cleaned = ''.join(c for c in value if c.isdigit() or c in '+-() ')
+            if len(cleaned) < 7:
+                raise ValueError(f"رقم الهاتف قصير جداً: {value}")
+            return cleaned
+        return value
+
+class PatientAllergy(TenantMixin, db.Model):
     __tablename__ = 'patient_allergies'
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)

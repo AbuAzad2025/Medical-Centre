@@ -10,8 +10,12 @@ class TimestampMixin:
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
 class TenantMixin:
-    """Adds tenant_id to any model. All tenant-scoped models must inherit this."""
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=False, index=True)
+    """Adds tenant_id to any model. All tenant-scoped models must inherit this.
+
+    Note: nullable=True allows super-admin / system records to exist without a tenant.
+    The AutoTenantFilter (tenant_filter.py) enforces isolation at query time.
+    """
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
 
 class SoftDeleteMixin:
     """Adds soft-delete support."""

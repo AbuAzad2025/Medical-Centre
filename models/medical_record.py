@@ -2,10 +2,12 @@
 السجل الطبي - MedicalRecord (ملاحظات عامة للمريض)
 """
 from datetime import datetime, timezone
+from sqlalchemy import Index
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class MedicalRecord(db.Model):
+class MedicalRecord(TenantMixin, db.Model):
     __tablename__ = 'medical_records'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -18,6 +20,11 @@ class MedicalRecord(db.Model):
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+
+    __table_args__ = (
+        Index('idx_med_record_patient_created', 'patient_id', 'created_at'),
+        Index('idx_med_record_visit_created', 'visit_id', 'created_at'),
+    )
 
     patient = db.relationship('Patient', back_populates='medical_records', lazy='selectin')
     visit = db.relationship('Visit', back_populates='medical_records', foreign_keys=[visit_id])

@@ -148,8 +148,8 @@ def triage(emergency_id):
             try:
                 emergency.vital_signs = json.dumps(vital_signs, ensure_ascii=False)
             except Exception:
-                pass
 
+                logging.warning(f"Error in {__name__}: {e}")
             if triage_level in ['RED', 'YELLOW', 'GREEN'] and visit is not None:
                 visit.triage_level = triage_level
             elif visit is not None and visit.triage_level is None:

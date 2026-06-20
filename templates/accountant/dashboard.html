@@ -50,8 +50,8 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <div class="text-uppercase text-muted small fw-bold mb-2">مدفوعات اليوم</div>
-                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.today_payments }}</div>
-                                    <small class="text-muted">+15% من أمس</small>
+                                     <div class="h2 mb-0 fw-bold gradient-text">{{ stats.today_payments }}</div>
+                                     <small class="text-muted">{{ stats.today_payments_yoy or 0 }}% من أمس</small>
                                 </div>
                                 <div class="icon-circle bg-primary bg-opacity-10 text-primary">
                                     <i class="fas fa-calendar-day fa-2x"></i>
@@ -67,8 +67,8 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <div class="text-uppercase text-muted small fw-bold mb-2">إيرادات الشهر</div>
-                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.monthly_revenue }}</div>
-                                    <small class="text-success fw-bold"><i class="fas fa-arrow-up me-1"></i>8.5%</small>
+                                     <div class="h2 mb-0 fw-bold gradient-text">{{ stats.monthly_revenue }}</div>
+                                     <small class="text-success fw-bold"><i class="fas fa-arrow-up me-1"></i>{{ stats.monthly_revenue_yoy or 0 }}%</small>
                                 </div>
                                 <div class="icon-circle bg-success bg-opacity-10 text-success">
                                     <i class="fas fa-dollar-sign fa-2x"></i>
@@ -84,8 +84,8 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <div class="text-uppercase text-muted small fw-bold mb-2">صافي الربح</div>
-                                    <div class="h2 mb-0 fw-bold gradient-text">{{ stats.net_profit }}</div>
-                                    <small class="text-info fw-bold">هامش 22%</small>
+                                     <div class="h2 mb-0 fw-bold gradient-text">{{ stats.net_profit }}</div>
+                                     <small class="text-info fw-bold">هامش {{ stats.profit_margin or 0 }}%</small>
                                 </div>
                                 <div class="icon-circle bg-info bg-opacity-10 text-info">
                                     <i class="fas fa-chart-line fa-2x"></i>

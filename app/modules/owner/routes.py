@@ -2,34 +2,24 @@
 Owner Blueprint — platform admin routes (SaaS control plane)
 """
 from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
+import json
 from flask import current_app, render_template, render_template_string, jsonify, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from app.modules.owner import owner_bp
 from app.extensions import db
 from app.core.tenant.models import (
     Tenant, SubscriptionPlan, TenantSubscriptionHistory,
-    SupportTicket, PlatformAuditLog, ResourceUsage, NotificationRule
+    SupportTicket, PlatformAuditLog, ResourceUsage, NotificationRule,
+    ProductBundle, get_bundle_for_profile, check_tenant_limits
 )
 from app.core.module.models import TenantModule
 from app.core.module.validators import can_activate_module, get_active_modules_for_tenant
+from app.core.module.registry import MODULE_REGISTRY, get_all_module_names
 from app.shared.enums import TenantStatus, SubscriptionType, StorageMode, ProductProfile
-
-
-def _owner_guard():
-    if current_user.role not in ('super_admin', 'admin', 'owner'):
-        flash('غير مصرح', 'error')
-        return redirect(url_for('main.dashboard'))
-    return None
-
-
-def _owner_api_guard():
-    if not current_user.is_authenticated:
-        return jsonify({"error": "authentication_required"}), 401
-    if current_user.role not in ('super_admin', 'admin', 'owner'):
-        return jsonify({"error": "owner_access_required"}), 403
-    if not current_app.config.get('ENABLE_SAAS_MODE', False):
-        return jsonify({"error": "saas_mode_disabled"}), 404
-    return None
+from app.core.rate_limiter import rate_limit
+from app.modules.owner.decorators import owner_required
+from services.webhook_service import dispatch_webhook, EVENT_TENANT_CREATED, EVENT_TENANT_SUSPENDED, EVENT_TENANT_ACTIVATED, EVENT_MODULE_ACTIVATED, EVENT_MODULE_DEACTIVATED, EVENT_BUNDLE_CHANGED
 
 
 def _log_action(action, entity_type, entity_id=None, details=None):
@@ -51,11 +41,10 @@ def _log_action(action, entity_type, entity_id=None, details=None):
 
 @owner_bp.route("/dashboard")
 @login_required
+@owner_required
 def owner_dashboard():
     """لوحة تحكم المنصة — SaaS metrics"""
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     all_tenants = Tenant.query.order_by(Tenant.created_at.desc()).all()
     plans = SubscriptionPlan.query.all()
@@ -117,33 +106,37 @@ def owner_dashboard():
     churn_spark = []
     user_spark = []
     for i in range(5, -1, -1):
-        month_start = (date.today().replace(day=1) - timedelta(days=i*30)).replace(day=1)
-        months.append(month_start.strftime('%Y-%m'))
-        # Count tenants created up to this month
-        count = sum(1 for t in all_tenants if t.created_at and t.created_at.date() <= month_start)
-        tenant_growth.append(count)
-        # MRR at that month (simplified: current active with created before)
-        monthly_mrr = 0.0
-        for t in all_tenants:
-            if t.is_active_and_paid() and t.plan and t.created_at and t.created_at.date() <= month_start:
-                price = float(t.plan.base_price or 0)
-                if t.subscription_type == SubscriptionType.YEARLY:
-                    price = price / 12.0
-                elif t.subscription_type == SubscriptionType.PERPETUAL:
-                    price = 0
-                monthly_mrr += price
-        mrr_trend.append(round(monthly_mrr, 2))
-        churn_spark.append(max(0, expired_count - i))  # synthetic sparkline
-        user_spark.append(max(0, total_users_all - i * 2))
+            month_start = (date.today().replace(day=1) - timedelta(days=i*30)).replace(day=1)
+            month_end = (month_start + timedelta(days=31)).replace(day=1)
+            months.append(month_start.strftime('%Y-%m'))
+            # Count tenants created up to this month
+            count = sum(1 for t in all_tenants if t.created_at and t.created_at.date() <= month_start)
+            tenant_growth.append(count)
+            # MRR at that month
+            monthly_mrr = 0.0
+            for t in all_tenants:
+                if t.is_active_and_paid() and t.plan and t.created_at and t.created_at.date() <= month_start:
+                    price = float(t.plan.base_price or 0)
+                    if t.subscription_type == SubscriptionType.YEARLY:
+                        price = price / 12.0
+                    elif t.subscription_type == SubscriptionType.PERPETUAL:
+                        price = 0
+                    monthly_mrr += price
+            mrr_trend.append(round(monthly_mrr, 2))
+            # Real churn: tenants that expired in this month
+            churn_count = sum(1 for t in all_tenants if t.status == TenantStatus.EXPIRED and t.subscription_end and month_start <= t.subscription_end < month_end)
+            churn_spark.append(churn_count)
+            # Real user growth: users created in this month
+            user_count = sum(1 for t in all_tenants for u in (t.users or []) if u.created_at and month_start <= u.created_at.date() < month_end)
+            user_spark.append(user_count)
 
     # Status distribution for chart
-    status_labels = ['نشط', 'معلق', 'منتهي', 'موقوف', 'تجريبي']
+    status_labels = ['نشط', 'معلق', 'منتهي', 'موقوف']
     status_data = [
         sum(1 for t in all_tenants if t.status == TenantStatus.ACTIVE),
         sum(1 for t in all_tenants if t.status == TenantStatus.PENDING),
         sum(1 for t in all_tenants if t.status == TenantStatus.EXPIRED),
         sum(1 for t in all_tenants if t.status == TenantStatus.SUSPENDED),
-        sum(1 for t in all_tenants if t.status == TenantStatus.PENDING),
     ]
 
     # Support tickets summary for chart
@@ -195,10 +188,9 @@ def owner_dashboard():
 
 @owner_bp.route("/tenants/create", methods=["GET", "POST"])
 @login_required
+@owner_required
 def owner_create_tenant():
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     plans = SubscriptionPlan.query.all()
     if request.method == 'POST':
@@ -236,6 +228,7 @@ def owner_create_tenant():
 
             db.session.commit()
             _log_action('CREATE_TENANT', 'tenant', t.id, f"Created tenant {t.name} ({t.slug}) profile={profile_code}")
+            dispatch_webhook(EVENT_TENANT_CREATED, {"tenant_id": t.id, "name": t.name, "slug": t.slug})
             flash('تم إنشاء العميل بنجاح', 'success')
             return redirect(url_for('owner.owner_dashboard'))
         except Exception as e:
@@ -248,30 +241,46 @@ def owner_create_tenant():
 
 @owner_bp.route("/tenants/<int:tenant_id>")
 @login_required
+@owner_required
 def owner_tenant_detail(tenant_id):
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     tenant = Tenant.query.get_or_404(tenant_id)
     active_modules = get_active_modules_for_tenant(tenant_id)
-    from app.core.tenant.models import TenantFeatureFlag
+    from app.core.tenant.models import TenantFeatureFlag, get_bundle_for_profile, check_tenant_limits
     feature_flags = TenantFeatureFlag.query.filter_by(tenant_id=tenant_id, is_enabled=True).all()
     from app.core.module.registry import MODULE_REGISTRY, get_all_module_names
     all_modules = get_all_module_names()
+    bundle = get_bundle_for_profile(tenant.product_profile_code.value) if tenant.product_profile_code else None
+    bundle_limits = None
+    bundle_name = None
+    if bundle:
+        bundle_limits = {
+            'max_users': bundle.max_users,
+            'max_patients': bundle.max_patients,
+            'storage_gb': bundle.storage_gb,
+            'api_calls_per_month': bundle.api_calls_per_month,
+        }
+        bundle_name = bundle.name_ar or bundle.name
+    user_count = len(tenant.users)
+    from models.patient import Patient
+    patient_count = Patient.query.filter_by(tenant_id=tenant_id).count()
     return render_template('owner/tenant_detail.html',
                            tenant=tenant,
                            active_modules=list(active_modules),
                            feature_flags=feature_flags,
-                           all_modules=all_modules)
+                           all_modules=all_modules,
+                           bundle_limits=bundle_limits,
+                           bundle_name=bundle_name,
+                           user_count=user_count,
+                           patient_count=patient_count)
 
 
 @owner_bp.route("/tenants/<int:tenant_id>/renew")
 @login_required
+@owner_required
 def owner_renew_tenant(tenant_id):
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     tenant = Tenant.query.get_or_404(tenant_id)
     try:
@@ -306,16 +315,16 @@ def owner_renew_tenant(tenant_id):
 
 @owner_bp.route("/tenants/<int:tenant_id>/suspend")
 @login_required
+@owner_required
 def owner_suspend_tenant(tenant_id):
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     tenant = Tenant.query.get_or_404(tenant_id)
     try:
         tenant.status = TenantStatus.SUSPENDED
         db.session.commit()
         _log_action('SUSPEND_TENANT', 'tenant', tenant_id, f"Suspended tenant {tenant.name}")
+        dispatch_webhook(EVENT_TENANT_SUSPENDED, {"tenant_id": tenant_id, "name": tenant.name})
         flash('تم إيقاف العميل', 'warning')
     except Exception as e:
         db.session.rollback()
@@ -325,16 +334,16 @@ def owner_suspend_tenant(tenant_id):
 
 @owner_bp.route("/tenants/<int:tenant_id>/activate")
 @login_required
+@owner_required
 def owner_activate_tenant(tenant_id):
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     tenant = Tenant.query.get_or_404(tenant_id)
     try:
         tenant.status = TenantStatus.ACTIVE
         db.session.commit()
         _log_action('ACTIVATE_TENANT', 'tenant', tenant_id, f"Activated tenant {tenant.name}")
+        dispatch_webhook(EVENT_TENANT_ACTIVATED, {"tenant_id": tenant_id, "name": tenant.name})
         flash('تم تفعيل العميل', 'success')
     except Exception as e:
         db.session.rollback()
@@ -344,10 +353,9 @@ def owner_activate_tenant(tenant_id):
 
 @owner_bp.route("/plans")
 @login_required
+@owner_required
 def owner_plans():
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     plans = SubscriptionPlan.query.all()
     return render_template('owner/plans.html', plans=plans)
@@ -355,10 +363,9 @@ def owner_plans():
 
 @owner_bp.route("/announcements", methods=["GET", "POST"])
 @login_required
+@owner_required
 def owner_announcements():
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     announcements = []
     try:
@@ -417,10 +424,9 @@ def owner_announcements():
 # ─────────────────────────────────────────────
 @owner_bp.route("/support-tickets")
 @login_required
+@owner_required
 def owner_support_tickets():
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     status_filter = request.args.get('status', '')
     q = SupportTicket.query
@@ -432,10 +438,9 @@ def owner_support_tickets():
 
 @owner_bp.route("/support-tickets/<int:ticket_id>/update", methods=["POST"])
 @login_required
+@owner_required
 def owner_update_ticket(ticket_id):
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     ticket = SupportTicket.query.get_or_404(ticket_id)
     try:
@@ -458,10 +463,9 @@ def owner_update_ticket(ticket_id):
 # ─────────────────────────────────────────────
 @owner_bp.route("/audit-logs")
 @login_required
+@owner_required
 def owner_audit_logs():
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     entity_type = request.args.get('entity_type', '')
     q = PlatformAuditLog.query
@@ -476,10 +480,9 @@ def owner_audit_logs():
 # ─────────────────────────────────────────────
 @owner_bp.route("/resource-usage")
 @login_required
+@owner_required
 def owner_resource_usage():
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     usages = ResourceUsage.query.order_by(ResourceUsage.recorded_at.desc()).limit(100).all()
     return render_template('owner/resource_usage.html', usages=usages)
@@ -490,10 +493,9 @@ def owner_resource_usage():
 # ─────────────────────────────────────────────
 @owner_bp.route("/notifications")
 @login_required
+@owner_required
 def owner_notifications():
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     rules = NotificationRule.query.order_by(NotificationRule.created_at.desc()).all()
     return render_template('owner/notifications.html', rules=rules)
@@ -501,10 +503,9 @@ def owner_notifications():
 
 @owner_bp.route("/notifications/create", methods=["POST"])
 @login_required
+@owner_required
 def owner_create_notification():
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     try:
         r = NotificationRule(
@@ -530,10 +531,9 @@ def owner_create_notification():
 # ─────────────────────────────────────────────
 @owner_bp.route("/branding", methods=["GET", "POST"])
 @login_required
+@owner_required
 def owner_branding():
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     branding = {}
     try:
@@ -589,10 +589,9 @@ def owner_branding():
 # ─────────────────────────────────────────────
 @owner_bp.route("/webhooks", methods=["GET", "POST"])
 @login_required
+@owner_required
 def owner_webhooks():
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     webhooks = []
     api_keys = []
@@ -649,10 +648,9 @@ def owner_webhooks():
 
 @owner_bp.route("/api-keys", methods=["POST"])
 @login_required
+@owner_required
 def owner_api_keys():
-    guard = _owner_guard()
-    if guard:
-        return guard
+
 
     try:
         import secrets
@@ -693,30 +691,27 @@ def owner_api_keys():
 # ─────────────────────────────────────────────
 @owner_bp.route("/api/tenants", methods=["GET"])
 @login_required
+@owner_required
 def api_tenants():
-    guard = _owner_api_guard()
-    if guard:
-        return guard
+
     tenants = Tenant.query.all()
     return jsonify([{"id": t.id, "name": t.name, "slug": t.slug, "status": str(t.status)} for t in tenants])
 
 
 @owner_bp.route("/api/tenants/<int:tenant_id>/modules", methods=["GET"])
 @login_required
+@owner_required
 def api_tenant_modules(tenant_id):
-    guard = _owner_api_guard()
-    if guard:
-        return guard
+
     active = get_active_modules_for_tenant(tenant_id)
     return jsonify({"tenant_id": tenant_id, "active_modules": list(active)})
 
 
 @owner_bp.route("/api/tenants/<int:tenant_id>/modules/<module_name>/activate", methods=["POST"])
 @login_required
+@owner_required
 def api_activate_module(tenant_id, module_name):
-    guard = _owner_api_guard()
-    if guard:
-        return guard
+
     ok, err = can_activate_module(tenant_id, module_name)
     if not ok:
         return jsonify({"error": err}), 400
@@ -727,30 +722,30 @@ def api_activate_module(tenant_id, module_name):
     tm.is_active = True
     tm.activated_at = datetime.now(timezone.utc)
     db.session.commit()
+    dispatch_webhook(EVENT_MODULE_ACTIVATED, {"tenant_id": tenant_id, "module": module_name})
     return jsonify({"status": "activated", "module": module_name})
 
 
 @owner_bp.route("/api/tenants/<int:tenant_id>/modules/<module_name>/deactivate", methods=["POST"])
 @login_required
+@owner_required
 def api_deactivate_module(tenant_id, module_name):
-    guard = _owner_api_guard()
-    if guard:
-        return guard
+
     tm = TenantModule.query.filter_by(tenant_id=tenant_id, module_name=module_name).first()
     if tm:
         tm.is_active = False
         tm.deactivated_at = datetime.now(timezone.utc)
         db.session.commit()
         _log_action('DEACTIVATE_MODULE', 'module', tenant_id, f"Deactivated {module_name}")
+        dispatch_webhook(EVENT_MODULE_DEACTIVATED, {"tenant_id": tenant_id, "module": module_name})
     return jsonify({"status": "deactivated", "module": module_name})
 
 
 @owner_bp.route("/api/tenants/<int:tenant_id>/profile", methods=["POST"])
 @login_required
+@owner_required
 def api_update_profile(tenant_id):
-    guard = _owner_api_guard()
-    if guard:
-        return guard
+
     tenant = Tenant.query.get_or_404(tenant_id)
     profile_code = request.json.get("product_profile") or request.form.get("product_profile")
     from app.shared.enums import ProductProfile
@@ -768,10 +763,9 @@ def api_update_profile(tenant_id):
 
 @owner_bp.route("/api/tenants/<int:tenant_id>/features/<feature_key>/toggle", methods=["POST"])
 @login_required
+@owner_required
 def api_toggle_feature(tenant_id, feature_key):
-    guard = _owner_api_guard()
-    if guard:
-        return guard
+
     from app.core.tenant.models import TenantFeatureFlag
     flag = TenantFeatureFlag.query.filter_by(tenant_id=tenant_id, feature_key=feature_key).first()
     if not flag:
@@ -786,3 +780,272 @@ def api_toggle_feature(tenant_id, feature_key):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 400
+
+
+# ─────────────────────────────────────────────
+# ProductBundle HTML page
+# ─────────────────────────────────────────────
+@owner_bp.route("/bundles")
+@login_required
+@owner_required
+def owner_bundles():
+    """إدارة الباقات (HTML)"""
+    bundles = ProductBundle.query.order_by(ProductBundle.monthly_price).all()
+    return render_template('owner/bundles.html', bundles=bundles)
+
+
+# ─────────────────────────────────────────────
+# ProductBundle CRUD API
+# ─────────────────────────────────────────────
+@owner_bp.route("/api/bundles", methods=["GET"])
+@login_required
+@rate_limit(max_requests=30, window_seconds=60)
+def api_list_bundles():
+    """List all product bundles."""
+
+    bundles = ProductBundle.query.filter_by(is_active=True).order_by(ProductBundle.monthly_price).all()
+    return jsonify([{
+        "id": b.id,
+        "slug": b.slug,
+        "name": b.name,
+        "name_ar": b.name_ar,
+        "description_ar": b.description_ar,
+        "monthly_price": float(b.monthly_price),
+        "yearly_price": float(b.yearly_price),
+        "setup_fee": float(b.setup_fee),
+        "currency": b.currency,
+        "modules": b.get_modules(),
+        "max_users": b.max_users,
+        "max_patients": b.max_patients,
+        "storage_gb": b.storage_gb,
+        "api_calls_per_month": b.api_calls_per_month,
+        "is_public": b.is_public,
+        "is_active": b.is_active,
+        "profile_code": b.profile_code,
+    } for b in bundles])
+
+
+@owner_bp.route("/api/bundles/<int:bundle_id>", methods=["GET"])
+@login_required
+@rate_limit(max_requests=60, window_seconds=60)
+def api_get_bundle(bundle_id):
+    """Get a single bundle detail."""
+
+    b = ProductBundle.query.get_or_404(bundle_id)
+    return jsonify({
+        "id": b.id,
+        "slug": b.slug,
+        "name": b.name,
+        "name_ar": b.name_ar,
+        "description_ar": b.description_ar,
+        "monthly_price": float(b.monthly_price),
+        "yearly_price": float(b.yearly_price),
+        "setup_fee": float(b.setup_fee),
+        "currency": b.currency,
+        "modules": b.get_modules(),
+        "max_users": b.max_users,
+        "max_patients": b.max_patients,
+        "storage_gb": b.storage_gb,
+        "api_calls_per_month": b.api_calls_per_month,
+        "is_public": b.is_public,
+        "is_active": b.is_active,
+        "profile_code": b.profile_code,
+        "created_at": b.created_at.isoformat() if b.created_at else None,
+        "updated_at": b.updated_at.isoformat() if b.updated_at else None,
+    })
+
+
+@owner_bp.route("/api/bundles", methods=["POST"])
+@login_required
+@rate_limit(max_requests=20, window_seconds=60)
+def api_create_bundle():
+    """Create a new product bundle."""
+
+    try:
+        data = request.get_json() or request.form
+        b = ProductBundle(
+            slug=data.get("slug", "").strip(),
+            name=data.get("name", "").strip(),
+            name_ar=data.get("name_ar", "").strip(),
+            description_ar=data.get("description_ar", "").strip() or None,
+            monthly_price=Decimal(str(data.get("monthly_price", 0))),
+            yearly_price=Decimal(str(data.get("yearly_price", 0))),
+            setup_fee=Decimal(str(data.get("setup_fee", 0))),
+            currency=data.get("currency", "SAR"),
+            modules=json.dumps(data.get("modules", [])),
+            max_users=int(data.get("max_users")) if data.get("max_users") else None,
+            max_patients=int(data.get("max_patients")) if data.get("max_patients") else None,
+            storage_gb=int(data.get("storage_gb")) if data.get("storage_gb") else None,
+            api_calls_per_month=int(data.get("api_calls_per_month")) if data.get("api_calls_per_month") else None,
+            is_public=bool(data.get("is_public", True)),
+            is_active=bool(data.get("is_active", True)),
+            profile_code=data.get("profile_code", "").strip() or None,
+        )
+        db.session.add(b)
+        db.session.commit()
+        _log_action('CREATE_BUNDLE', 'bundle', b.id, f"Created bundle {b.name_ar}")
+        dispatch_webhook(EVENT_BUNDLE_CHANGED, {"action": "created", "bundle_id": b.id, "slug": b.slug, "name": b.name_ar})
+        return jsonify({"status": "created", "id": b.id, "slug": b.slug})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 400
+
+
+@owner_bp.route("/api/bundles/<int:bundle_id>", methods=["PUT"])
+@login_required
+@rate_limit(max_requests=20, window_seconds=60)
+def api_update_bundle(bundle_id):
+    """Update a product bundle."""
+
+    b = ProductBundle.query.get_or_404(bundle_id)
+    try:
+        data = request.get_json() or request.form
+        b.name = data.get("name", b.name)
+        b.name_ar = data.get("name_ar", b.name_ar)
+        b.description_ar = data.get("description_ar", b.description_ar)
+        b.monthly_price = Decimal(str(data.get("monthly_price", b.monthly_price)))
+        b.yearly_price = Decimal(str(data.get("yearly_price", b.yearly_price)))
+        b.setup_fee = Decimal(str(data.get("setup_fee", b.setup_fee)))
+        b.currency = data.get("currency", b.currency)
+        if "modules" in data:
+            b.set_modules(data.get("modules"))
+        b.max_users = int(data.get("max_users")) if data.get("max_users") else None
+        b.max_patients = int(data.get("max_patients")) if data.get("max_patients") else None
+        b.storage_gb = int(data.get("storage_gb")) if data.get("storage_gb") else None
+        b.api_calls_per_month = int(data.get("api_calls_per_month")) if data.get("api_calls_per_month") else None
+        b.is_public = bool(data.get("is_public", b.is_public))
+        b.is_active = bool(data.get("is_active", b.is_active))
+        b.profile_code = data.get("profile_code", b.profile_code) or None
+        db.session.commit()
+        _log_action('UPDATE_BUNDLE', 'bundle', bundle_id, f"Updated bundle {b.name_ar}")
+        dispatch_webhook(EVENT_BUNDLE_CHANGED, {"action": "updated", "bundle_id": bundle_id, "slug": b.slug, "name": b.name_ar})
+        return jsonify({"status": "updated", "id": b.id})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 400
+
+
+@owner_bp.route("/api/bundles/<int:bundle_id>", methods=["DELETE"])
+@login_required
+@rate_limit(max_requests=10, window_seconds=60)
+def api_delete_bundle(bundle_id):
+    """Delete (deactivate) a product bundle."""
+
+    b = ProductBundle.query.get_or_404(bundle_id)
+    try:
+        b.is_active = False
+        db.session.commit()
+        _log_action('DELETE_BUNDLE', 'bundle', bundle_id, f"Deactivated bundle {b.name_ar}")
+        dispatch_webhook(EVENT_BUNDLE_CHANGED, {"action": "deleted", "bundle_id": bundle_id, "slug": b.slug, "name": b.name_ar})
+        return jsonify({"status": "deleted", "id": bundle_id})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 400
+
+
+# ─────────────────────────────────────────────
+# Tenant Provisioning with Bundle
+# ─────────────────────────────────────────────
+@owner_bp.route("/api/tenants/provision", methods=["POST"])
+@login_required
+@rate_limit(max_requests=10, window_seconds=60)
+def api_provision_tenant():
+    """Create a new tenant with bundle-based provisioning."""
+
+    try:
+        data = request.get_json() or request.form
+        slug = data.get("slug", "").strip()
+        name = data.get("name", "").strip()
+        name_ar = data.get("name_ar", "").strip() or None
+        email = data.get("email", "").strip()
+        phone = data.get("phone", "").strip() or None
+        bundle_slug = data.get("bundle_slug", "").strip()
+        domain = data.get("domain", "").strip() or None
+        subdomain = data.get("subdomain", "").strip() or None
+        
+        if not all([slug, name, email, bundle_slug]):
+            return jsonify({"error": "Missing required fields: slug, name, email, bundle_slug"}), 400
+        
+        if Tenant.query.filter_by(slug=slug).first():
+            return jsonify({"error": "Slug already exists"}), 400
+        
+        bundle = ProductBundle.query.filter_by(slug=bundle_slug, is_active=True).first()
+        if not bundle:
+            return jsonify({"error": "Invalid or inactive bundle"}), 400
+        
+        # Check bundle limits for trial
+        if not bundle.is_unlimited("max_users") and bundle.max_users and bundle.max_users < 1:
+            return jsonify({"error": "Bundle has zero user limit"}), 400
+        
+        tenant = Tenant(
+            slug=slug,
+            name=name,
+            name_ar=name_ar,
+            domain=domain,
+            subdomain=subdomain,
+            contact_email=email,
+            contact_phone=phone,
+            product_profile_code=bundle.profile_code,
+            status=TenantStatus.ACTIVE,
+            storage_mode=StorageMode.LOCAL,
+        )
+        db.session.add(tenant)
+        db.session.flush()
+        
+        # Activate bundle modules
+        for mod_name in bundle.get_modules():
+            tm = TenantModule(tenant_id=tenant.id, module_name=mod_name, is_active=True)
+            db.session.add(tm)
+        
+        # Record initial resource snapshot
+        from app.core.tenant.models import ResourceUsage
+        ResourceUsage.record_snapshot(tenant.id)
+        
+        db.session.commit()
+        _log_action('PROVISION_TENANT', 'tenant', tenant.id, f"Provisioned {tenant.name} with bundle {bundle_slug}")
+        dispatch_webhook(EVENT_TENANT_CREATED, {"tenant_id": tenant.id, "name": tenant.name, "slug": tenant.slug, "bundle": bundle_slug})
+        
+        return jsonify({
+            "status": "provisioned",
+            "tenant": {
+                "id": tenant.id,
+                "slug": tenant.slug,
+                "name": tenant.name,
+                "bundle": bundle.slug,
+                "modules": bundle.get_modules(),
+            }
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 400
+
+
+@owner_bp.route("/api/tenants/<int:tenant_id>/limits", methods=["GET"])
+@login_required
+@owner_required
+def api_tenant_limits(tenant_id):
+    """Get tenant's current resource usage vs bundle limits."""
+
+    tenant = Tenant.query.get_or_404(tenant_id)
+    limits = check_tenant_limits(tenant_id)
+    bundle = get_bundle_for_profile(tenant.product_profile_code or "")
+    latest_usage = ResourceUsage.query.filter_by(tenant_id=tenant_id).order_by(ResourceUsage.recorded_at.desc()).first()
+    
+    return jsonify({
+        "tenant_id": tenant_id,
+        "bundle": bundle.slug if bundle else None,
+        "limits": limits,
+        "usage": latest_usage.to_dict() if latest_usage else None,
+    })
+
+
+@owner_bp.route("/api/tenants/<int:tenant_id>/record-usage", methods=["POST"])
+@login_required
+@rate_limit(max_requests=30, window_seconds=60)
+def api_record_usage(tenant_id):
+    """Manually trigger a resource usage snapshot for a tenant."""
+
+    snapshot = ResourceUsage.record_snapshot(tenant_id)
+    return jsonify({"status": "recorded", "snapshot": snapshot.to_dict()})
+
+

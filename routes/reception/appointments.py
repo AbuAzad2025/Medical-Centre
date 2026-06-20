@@ -276,8 +276,8 @@ def appointments():
             from sqlalchemy import func
             query = query.filter(func.date(Appointment.starts_at) == d0)
         except Exception:
-            pass
-    
+
+            logging.warning(f"Error in {__name__}: {e}")
     per_page = request.args.get('per_page', type=int) or 50
     per_page = max(10, min(per_page, 200))
     page = request.args.get('page', type=int) or 1
@@ -375,8 +375,8 @@ def follow_ups():
             d0 = _dt.strptime(date_str, '%Y-%m-%d').date()
             query = query.filter(FollowUpRequest.suggested_date == d0)
         except Exception:
-            pass
 
+            logging.warning(f"Error in {__name__}: {e}")
     followups = query.order_by(FollowUpRequest.suggested_date.asc(), FollowUpRequest.created_at.desc()).limit(500).all()
 
     return render_template('reception/follow_ups.html', followups=followups, search=search, selected_status=status, selected_date=date_str)

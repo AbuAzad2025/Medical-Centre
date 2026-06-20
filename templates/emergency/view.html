@@ -200,7 +200,7 @@
                 <h5><i class="fas fa-user"></i> معلومات المريض</h5>
                 <div class="info-item">
                     <strong>اسم المريض:</strong>
-                    <span><a href="{{ url_for('reception.view_patient', patient_id=emergency.patient.id) }}">{{ emergency.patient.name }}</a></span>
+                    <span>{% if module_active('reception') %}<a href="{{ url_for('reception.view_patient', patient_id=emergency.patient.id) }}">{{ emergency.patient.name }}</a>{% endif %}</span>
                 </div>
                 <div class="info-item">
                     <strong>رقم الهاتف:</strong>
@@ -431,9 +431,9 @@
                         </button>
                     </form>
                     {% endif %}
-                    <a href="{{ url_for('reception.view_patient', patient_id=emergency.patient.id) }}" class="btn btn-outline-primary">
+                    {% if module_active('reception') %}<a href="{{ url_for('reception.view_patient', patient_id=emergency.patient.id) }}" class="btn btn-outline-primary">
                         <i class="fas fa-user"></i> ملف المريض
-                    </a>
+                    </a>{% endif %}
                     <a href="{{ url_for('emergency.list_emergency_cases') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-list"></i> قائمة الطوارئ
                     </a>

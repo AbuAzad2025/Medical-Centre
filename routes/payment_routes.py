@@ -164,7 +164,8 @@ def process_payment(visit_id):
                         if company:
                             provider_value = company.name_ar or company.name or provider_value
                     except Exception:
-                        pass
+
+                        logging.warning(f"Error in {__name__}: {e}")
                 valid_ins, ins_message = GatekeeperService.validate_insurance(
                     provider_value,
                     policy_value,
@@ -223,7 +224,8 @@ def process_payment(visit_id):
                         note_prefix = f"DEBT[{current_user.id}] {debt_reason}"
                         visit.notes = f"{visit.notes or ''}\n{note_prefix}".strip()
                     except Exception:
-                        pass
+
+                        logging.warning(f"Error in {__name__}: {e}")
                 db.session.commit()
                 if _wants_json():
                     return jsonify({'success': True})
@@ -290,7 +292,8 @@ def process_payment(visit_id):
                     try:
                         visit.insurance_coverage_percentage = Decimal(insurance_coverage_raw)
                     except Exception:
-                        pass
+
+                        logging.warning(f"Error in {__name__}: {e}")
                 if insurance_company_id and insurance_company_id.isdigit():
                     try:
                         from models.insurance import InsuranceCompany
@@ -300,7 +303,8 @@ def process_payment(visit_id):
                             if not visit.insurance_provider:
                                 visit.insurance_provider = company.name_ar or company.name
                     except Exception:
-                        pass
+
+                        logging.warning(f"Error in {__name__}: {e}")
                 # حساب مبالغ التأمين وحصة المريض
                 visit.calculate_insurance_amounts()
                 # عند الدفع بالتأمين يجب أن يكون المبلغ مساوياً لحصة المريض
@@ -328,8 +332,8 @@ def process_payment(visit_id):
                 if not visit.receipt_number:
                     visit.receipt_number = f"RCPT-{visit.id}-{int(datetime.now(timezone.utc).timestamp())}"
             except Exception:
-                pass
 
+                logging.warning(f"Error in {__name__}: {e}")
             db.session.commit()
 
             resp = {'success': True, 'payment_id': payment.id}

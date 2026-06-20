@@ -2,17 +2,9 @@
 VisitWorkflowService — state machine for visit lifecycle
 """
 from datetime import datetime, timezone
-from enum import Enum
 from typing import Optional
 from app.extensions import db
-
-class VisitStatus(str, Enum):
-    REGISTERED = "registered"
-    WAITING = "waiting"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    ARCHIVED = "archived"
-    CANCELLED = "cancelled"
+from app.shared.enums import VisitWorkflowStatus as VisitStatus
 
 
 class VisitWorkflowService:

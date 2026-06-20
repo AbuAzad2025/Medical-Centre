@@ -42,7 +42,7 @@
                 <td>{{ v.visit_number or v.id }}</td>
                 <td>{{ v.patient.full_name if v.patient else '-' }}</td>
                 <td><span class="badge bg-warning">{{ v.status }}</span></td>
-                <td><a href="/doctor/visit/{{ v.id }}" class="btn btn-sm btn-primary">فحص</a></td>
+                <td><a href="{{ url_for('doctor.patient_details', visit_id=v.id) }}" class="btn btn-sm btn-primary">فحص</a></td>
             </tr>
             {% else %}
             <tr>

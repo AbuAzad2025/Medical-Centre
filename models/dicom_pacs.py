@@ -4,8 +4,9 @@ Medical imaging storage and retrieval
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class DICOMStudy(db.Model):
+class DICOMStudy(TenantMixin, db.Model):
     """DICOM study (exam session)"""
     __tablename__ = 'dicom_studies'
     __table_args__ = {'extend_existing': True}
@@ -46,7 +47,7 @@ class DICOMStudy(db.Model):
         return f"<DICOMStudy {self.modality}>"
 
 
-class DICOMSeries(db.Model):
+class DICOMSeries(TenantMixin, db.Model):
     """DICOM series within a study"""
     __tablename__ = 'dicom_series'
     __table_args__ = {'extend_existing': True}
@@ -66,7 +67,7 @@ class DICOMSeries(db.Model):
     study = db.relationship('DICOMStudy', back_populates='series')
 
 
-class DICOMInstance(db.Model):
+class DICOMInstance(TenantMixin, db.Model):
     """Individual DICOM image/instance"""
     __tablename__ = 'dicom_instances'
     __table_args__ = {'extend_existing': True}
@@ -84,7 +85,7 @@ class DICOMInstance(db.Model):
     series = db.relationship('DICOMSeries', back_populates='instances')
 
 
-class PACSConfiguration(db.Model):
+class PACSConfiguration(TenantMixin, db.Model):
     """PACS server configuration"""
     __tablename__ = 'pacs_configurations'
     __table_args__ = {'extend_existing': True}

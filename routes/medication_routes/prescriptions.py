@@ -114,7 +114,8 @@ def dispense_prescription(prescription_id):
                     b = db.session.get(Medication, row.medication_b_id)
                     conflicts.append(f'{a.trade_name if a else row.medication_a_id} ↔ {b.trade_name if b else row.medication_b_id} ({row.severity})')
         except Exception:
-            pass
+
+            logging.warning(f"Error in {__name__}: {e}")
         for it in items:
             med = db.session.get(Medication, it.medication_id)
             if med.expiry_date and med.is_expired():

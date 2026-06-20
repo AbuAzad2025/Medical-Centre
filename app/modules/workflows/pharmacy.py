@@ -3,18 +3,9 @@ PharmacyStockService — stock movement ledger
 """
 from datetime import datetime, timezone
 from decimal import Decimal
-from enum import Enum
 from typing import Optional
 from app.extensions import db
-
-class StockMovementType(str, Enum):
-    PURCHASE = "purchase"
-    SALE = "sale"
-    RETURN = "return"
-    ADJUSTMENT = "adjustment"
-    EXPIRED = "expired"
-    TRANSFER_IN = "transfer_in"
-    TRANSFER_OUT = "transfer_out"
+from app.shared.enums import StockMovementType
 
 
 class PharmacyStockService:
@@ -55,6 +46,19 @@ class PharmacyStockService:
         )
         db.session.add(med)
         db.session.add(movement)
+
+        # Emit stock_low_alert signal if stock is below minimum
+        if med.stock_quantity < med.minimum_stock:
+            try:
+                from app.shared.signals import stock_low_alert
+                from app.shared.signal_subscribers import _safe_send
+                _safe_send(stock_low_alert,
+                           medication_id=med.id,
+                           medication_name=med.trade_name or med.scientific_name,
+                           current_stock=med.stock_quantity,
+                           minimum_stock=med.minimum_stock)
+            except Exception:
+                pass
 
     @staticmethod
     def dispense_prescription_item(prescription_item_id: int, dispensed_qty: int,

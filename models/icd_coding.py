@@ -4,6 +4,7 @@ Medical diagnosis and procedure coding per WHO / CMS standards
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 class ICD10Code(db.Model):
     """ICD-10-CM diagnosis codes"""
@@ -81,7 +82,7 @@ class DRGCode(db.Model):
         return f"<DRGCode {self.code}>"
 
 
-class CodedDiagnosis(db.Model):
+class CodedDiagnosis(TenantMixin, db.Model):
     """Link patient encounters to ICD-10 codes"""
     __tablename__ = 'coded_diagnoses'
     __table_args__ = {'extend_existing': True}
@@ -109,7 +110,7 @@ class CodedDiagnosis(db.Model):
         return f"<CodedDiagnosis {self.diagnosis_type}>"
 
 
-class CodedProcedure(db.Model):
+class CodedProcedure(TenantMixin, db.Model):
     """Link patient encounters to CPT/HCPCS codes"""
     __tablename__ = 'coded_procedures'
     __table_args__ = {'extend_existing': True}

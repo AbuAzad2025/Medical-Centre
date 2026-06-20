@@ -136,8 +136,8 @@ def dashboard():
                 debt_alerts['large_debts_count'] = len(large)
                 debt_alerts['top_large'] = sorted(large, key=lambda x: float(x.get('remaining_amount') or 0), reverse=True)[:10]
         except Exception:
-            pass
-        
+
+            logging.warning(f"Error in {__name__}: {e}")
         stats = {
             'today_payments': len(today_payments),
             'today_total': float(today_total),

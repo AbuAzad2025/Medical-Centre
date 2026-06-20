@@ -6,6 +6,7 @@ Medical System Advanced Notification Model
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint, func
 from app_factory import db
+from app.shared.mixins import TenantMixin
 import json
 
 # ===== النماذج الأساسية (موحدة) =====
@@ -88,7 +89,7 @@ class Notification(db.Model):
             'read_at': self.read_at.isoformat() if self.read_at else None
         }
 
-class NotificationTemplate(db.Model):
+class NotificationTemplate(TenantMixin, db.Model):
     """نموذج قالب الإشعار"""
     
     __tablename__ = 'notification_templates'
@@ -163,7 +164,7 @@ class NotificationTemplate(db.Model):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
-class NotificationQueue(db.Model):
+class NotificationQueue(TenantMixin, db.Model):
     """نموذج طابور الإشعارات"""
     
     __tablename__ = 'notification_queue'
@@ -188,7 +189,7 @@ class NotificationQueue(db.Model):
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
     
     # العلاقات
-    user = db.relationship('User', back_populates='notification_queue')
+    user = db.relationship('User')
     template = db.relationship('NotificationTemplate', back_populates='queue_items')
     
     def __repr__(self):
@@ -247,7 +248,7 @@ class NotificationQueue(db.Model):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
-class WhatsAppMessage(db.Model):
+class WhatsAppNotificationMessage(TenantMixin, db.Model):
     """نموذج رسائل الواتساب"""
     
     __tablename__ = 'whatsapp_messages'
@@ -266,7 +267,7 @@ class WhatsAppMessage(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     def __repr__(self):
-        return f'<WhatsAppMessage {self.phone_number}>'
+        return f'<WhatsAppNotificationMessage {self.phone_number}>'
     
     def to_dict(self):
         """تحويل إلى قاموس"""
@@ -285,7 +286,7 @@ class WhatsAppMessage(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
-class EmailMessage(db.Model):
+class EmailMessage(TenantMixin, db.Model):
     """نموذج رسائل البريد الإلكتروني"""
     
     __tablename__ = 'email_messages'

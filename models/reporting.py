@@ -38,7 +38,7 @@ class Report(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # العلاقات
-    creator = db.relationship('User', back_populates='created_reports')
+    creator = db.relationship('User')
     executions = db.relationship('ReportExecution', back_populates='report')
 
     
@@ -111,7 +111,7 @@ class ReportExecution(db.Model):
     
     # العلاقات
     report = db.relationship('Report', back_populates='executions')
-    executor = db.relationship('User', back_populates='executed_reports')
+    executor = db.relationship('User')
     
     def __repr__(self):
         return f'<ReportExecution {self.report.name if self.report else "Unknown"} - {self.status}>'
@@ -192,7 +192,7 @@ class ReportTemplate(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # العلاقات
-    creator = db.relationship('User', back_populates='created_report_templates')
+    creator = db.relationship('User')
     
     def __repr__(self):
         return f'<ReportTemplate {self.name}>'

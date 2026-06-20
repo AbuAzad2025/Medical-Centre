@@ -16,8 +16,8 @@ class ClinicalContextService:
         from models.lab_request import LabRequest, LabResult
         from models.radiology_request import RadiologyRequest
         from models.radiology_result import RadiologyResult
-        from models.medication import Prescription, PrescriptionItem, MedicationAllergy
-        from models.patient import Patient
+        from models.medication import Prescription, PrescriptionItem
+        from models.patient import Patient, PatientAllergy
         from models.workflow import VisitWorkflowEvent
 
         visit = Visit.query.get(visit_id)
@@ -26,7 +26,7 @@ class ClinicalContextService:
 
         patient = Patient.query.get(visit.patient_id)
         vitals = VitalSigns.query.filter_by(visit_id=visit_id).order_by(VitalSigns.recorded_at.desc()).all()
-        allergies = MedicationAllergy.query.filter_by(patient_id=visit.patient_id).all()
+        allergies = PatientAllergy.query.filter_by(patient_id=visit.patient_id).all()
         lab_reqs = LabRequest.query.filter_by(visit_id=visit_id).all()
         rad_reqs = RadiologyRequest.query.filter_by(visit_id=visit_id).all()
         prescriptions = Prescription.query.filter_by(visit_id=visit_id).all()
@@ -36,7 +36,7 @@ class ClinicalContextService:
             "patient": patient.to_dict() if hasattr(patient, 'to_dict') else {"id": patient.id, "name": patient.full_name},
             "vitals": [{"bp": f"{v.blood_pressure_systolic}/{v.blood_pressure_diastolic}", "hr": v.heart_rate, "temp": v.temperature,
                         "rr": v.respiratory_rate, "spo2": v.oxygen_saturation, "recorded_at": str(v.recorded_at)} for v in vitals],
-            "allergies": [{"medication": a.medication_name, "severity": a.severity} for a in allergies],
+            "allergies": [{"medication": a.allergen, "severity": a.severity} for a in allergies],
             "diagnoses": [{"code": d.icd_code, "name": d.diagnosis_name, "type": d.diagnosis_type} for d in diagnoses],
             "lab_requests": [{"id": r.id, "test": r.test_name, "status": r.status} for r in lab_reqs],
             "radiology_requests": [{"id": r.id, "test": r.test_name, "status": r.status} for r in rad_reqs],

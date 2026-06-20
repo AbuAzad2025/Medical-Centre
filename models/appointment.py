@@ -27,6 +27,8 @@ class Appointment(db.Model):
     __table_args__ = (
         db.UniqueConstraint('patient_id', 'starts_at', name='uq_appointment_patient_time'),
         db.Index('idx_appt_doctor_time', 'doctor_id', 'starts_at'),
+        db.Index('idx_appt_dept_status', 'department_id', 'status'),
+        db.Index('idx_appt_patient_status', 'patient_id', 'status'),
     )
 
     patient = db.relationship('Patient', back_populates='appointments', lazy='selectin')
@@ -52,3 +54,9 @@ class Appointment(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
+    @db.validates('starts_at', 'ends_at')
+    def validate_times(self, key, value):
+        if value is not None and key == 'ends_at' and self.starts_at and value <= self.starts_at:
+            raise ValueError("وقت النهاية يجب أن يكون بعد وقت البداية")
+        return value

@@ -6,8 +6,9 @@ Medical System Treatment Model
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class Treatment(db.Model):
+class Treatment(TenantMixin, db.Model):
     """نموذج العلاج"""
     
     __tablename__ = 'treatments'
@@ -57,6 +58,8 @@ class Treatment(db.Model):
         Index('idx_treatment_doctor', 'doctor_id'),
         Index('idx_treatment_status', 'status'),
         Index('idx_treatment_created', 'created_at'),
+        Index('idx_treatment_visit_status', 'visit_id', 'status'),
+        Index('idx_treatment_doctor_status', 'doctor_id', 'status'),
     )
     
     # العلاقات

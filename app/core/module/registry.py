@@ -214,6 +214,20 @@ MODULE_REGISTRY: Dict[str, ModuleMeta] = {
         icon="fas fa-robot",
         description_ar="تحليل الصور الطبية بالذكاء الاصطناعي",
     ),
+    "integration": ModuleMeta(
+        name="integration",
+        name_ar="التكامل",
+        category="integration",
+        required_modules=(),
+        required_any_of=(),
+        capabilities=("fhir_api", "sso", "dicom_listener"),
+        standalone_allowed=False,
+        default_route="/sso/dashboard",
+        route_prefixes=("/sso", "/api/fhir"),
+        feature_flags=("sso_enabled", "fhir_enabled"),
+        icon="fas fa-plug",
+        description_ar="التكامل مع الأنظمة الخارجية (SSO, FHIR)",
+    ),
 }
 
 def get_module_metadata(name: str) -> ModuleMeta | None:

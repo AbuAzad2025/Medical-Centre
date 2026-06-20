@@ -5,8 +5,9 @@ Medical System AI Analytics Model
 
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class AIRecommendation(db.Model):
+class AIRecommendation(TenantMixin, db.Model):
     """نموذج توصية الذكاء الصناعي"""
     
     __tablename__ = 'ai_recommendations'
@@ -28,7 +29,7 @@ class AIRecommendation(db.Model):
     # العلاقات
     patient = db.relationship('Patient', back_populates='ai_recommendations')
     visit = db.relationship('Visit', back_populates='ai_recommendations')
-    accepter = db.relationship('User', back_populates='ai_recommendations_accepted')
+    accepter = db.relationship('User')
     
     def __repr__(self):
         return f'<AIRecommendation {self.title}>'
@@ -86,7 +87,7 @@ class AIRecommendation(db.Model):
             'created_at': self.created_at.isoformat()
         }
 
-class DiseasePattern(db.Model):
+class DiseasePattern(TenantMixin, db.Model):
     """نموذج نمط المرض"""
     
     __tablename__ = 'disease_patterns'
@@ -150,7 +151,7 @@ class DiseasePattern(db.Model):
             'updated_at': self.updated_at.isoformat()
         }
 
-class PerformanceAnalytics(db.Model):
+class PerformanceAnalytics(TenantMixin, db.Model):
     """نموذج تحليل الأداء"""
     
     __tablename__ = 'performance_analytics'
@@ -169,7 +170,7 @@ class PerformanceAnalytics(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # العلاقات
-    doctor = db.relationship('User', back_populates='performance_analytics')
+    doctor = db.relationship('User')
     
     def __repr__(self):
         return f'<PerformanceAnalytics {self.metric_name}>'
@@ -229,7 +230,7 @@ class PerformanceAnalytics(db.Model):
             'created_at': self.created_at.isoformat()
         }
 
-class PatientInsight(db.Model):
+class PatientInsight(TenantMixin, db.Model):
     """نموذج رؤى المريض"""
     
     __tablename__ = 'patient_insights'
@@ -249,7 +250,7 @@ class PatientInsight(db.Model):
     
     # العلاقات
     patient = db.relationship('Patient', back_populates='patient_insights')
-    acknowledger = db.relationship('User', back_populates='patient_insights_acknowledged')
+    acknowledger = db.relationship('User')
     
     def __repr__(self):
         return f'<PatientInsight {self.title}>'
@@ -308,7 +309,7 @@ class PatientInsight(db.Model):
         }
 
 
-class ModelPrediction(db.Model):
+class ModelPrediction(TenantMixin, db.Model):
     __tablename__ = 'model_predictions'
 
     id = db.Column(db.Integer, primary_key=True)

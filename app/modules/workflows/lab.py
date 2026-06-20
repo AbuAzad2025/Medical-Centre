@@ -2,18 +2,9 @@
 LabWorkflowService — lab order lifecycle
 """
 from datetime import datetime, timezone
-from enum import Enum
 from typing import Optional
 from app.extensions import db
-
-class LabOrderStatus(str, Enum):
-    ORDERED = "ordered"
-    SAMPLE_COLLECTED = "sample_collected"
-    IN_PROGRESS = "in_progress"
-    RESULTS_ENTERED = "results_entered"
-    APPROVED = "approved"
-    DELIVERED = "delivered"
-    CANCELLED = "cancelled"
+from app.shared.enums import LabOrderStatus
 
 
 class LabWorkflowService:
