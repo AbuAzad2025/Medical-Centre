@@ -4,8 +4,9 @@ Track patient vaccinations with schedules and boosters
 """
 from datetime import datetime, timezone, date
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class Vaccine(db.Model):
+class Vaccine(TenantMixin, db.Model):
     """Vaccine master data"""
     __tablename__ = 'vaccines'
     __table_args__ = {'extend_existing': True}
@@ -32,7 +33,7 @@ class Vaccine(db.Model):
         return f"<Vaccine {self.name}>"
 
 
-class Immunization(db.Model):
+class Immunization(TenantMixin, db.Model):
     """Patient immunization record"""
     __tablename__ = 'immunizations'
     __table_args__ = {'extend_existing': True}
@@ -74,7 +75,7 @@ class Immunization(db.Model):
         return f"<Immunization {self.dose_number}>"
 
 
-class VaccinationSchedule(db.Model):
+class VaccinationSchedule(TenantMixin, db.Model):
     """Recommended vaccination schedule (e.g., WHO Expanded Programme)"""
     __tablename__ = 'vaccination_schedules'
     __table_args__ = {'extend_existing': True}

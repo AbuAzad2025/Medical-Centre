@@ -6,6 +6,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Index, CheckConstraint, event
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
 class User(UserMixin, db.Model):
@@ -23,6 +24,9 @@ class User(UserMixin, db.Model):
         db.UniqueConstraint('tenant_id', 'email', name='uq_user_tenant_email'),
         CheckConstraint("length(username) >= 3", name='chk_user_username_len'),
         Index('idx_user_role', 'role'),
+        Index('idx_user_department_role', 'department_id', 'role'),
+        Index('idx_user_active_role', 'is_active', 'role'),
+        Index('idx_user_department_active', 'department_id', 'is_active'),
     )
     password_hash = db.Column(db.String(255), nullable=False)
     full_name = db.Column(db.String(120), nullable=False)
@@ -273,6 +277,18 @@ class User(UserMixin, db.Model):
         lazy='selectin'
     )
 
+    # Extended relationships (moved from dead code inside get_id())
+    schedules = db.relationship('StaffWorkSchedule', back_populates='user', cascade='all, delete-orphan', lazy='selectin')
+    absences = db.relationship('StaffAbsence', back_populates='user', cascade='all, delete-orphan', lazy='selectin')
+    prescriptions = db.relationship('Prescription', back_populates='doctor', foreign_keys='Prescription.doctor_id', lazy='selectin')
+    signed_medical_reports = db.relationship('MedicalReport', back_populates='signer', foreign_keys='MedicalReport.signed_by', lazy='selectin')
+    digital_signatures = db.relationship('DigitalSignature', back_populates='user', lazy='selectin')
+    session_logs = db.relationship('SessionLog', back_populates='user', lazy='selectin')
+    nurse_profile = db.relationship('Nurse', back_populates='user', lazy='selectin')
+    sent_whatsapp_messages = db.relationship('WhatsAppMessage', back_populates='sent_by_user', lazy='selectin')
+    workflow_transfers = db.relationship('WorkflowTransfer', back_populates='transferred_by_user', lazy='selectin')
+    workflow_events = db.relationship('VisitWorkflowEvent', back_populates='performer', lazy='selectin')
+
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
 
@@ -282,32 +298,6 @@ class User(UserMixin, db.Model):
     def get_id(self):
         v = int(self.session_version or 0)
         return f"{self.id}:{v}"
-        ai_recommendations_accepted = db.relationship('AIRecommendation', back_populates='accepter')
-        performance_analytics = db.relationship('PerformanceAnalytics', back_populates='doctor')
-        patient_insights_acknowledged = db.relationship('PatientInsight', back_populates='acknowledger')
-        created_branding = db.relationship('BrandingSettings', back_populates='creator')
-        updated_branding = db.relationship('BrandingSettings', back_populates='updater')
-        digital_signatures = db.relationship('DigitalSignature', back_populates='user')
-        session_logs = db.relationship('SessionLog', back_populates='user')
-        notification_queue = db.relationship('NotificationQueue', back_populates='user')
-        nurse_profile = db.relationship('Nurse', back_populates='user')
-        online_bookings = db.relationship('OnlineBooking', back_populates='doctor')
-        created_pricing = db.relationship('PricingManagement', back_populates='creator')
-        created_pricing_rules = db.relationship('PricingRule', back_populates='creator')
-        emergency_approvals = db.relationship('QueueManagement', back_populates='emergency_approver')
-        force_entry_approvals = db.relationship('QueueManagement', back_populates='force_entry_approver')
-        created_reports = db.relationship('Report', back_populates='creator')
-        executed_reports = db.relationship('ReportExecution', back_populates='executor')
-        created_report_templates = db.relationship('ReportTemplate', back_populates='creator')
-        workflow_actions = db.relationship('RequestWorkflow', back_populates='user')
-        schedules = db.relationship('StaffWorkSchedule', back_populates='user', cascade='all, delete-orphan', lazy='selectin')
-        absences = db.relationship('StaffAbsence', back_populates='user', cascade='all, delete-orphan', lazy='selectin')
-        prescriptions = db.relationship('Prescription', back_populates='doctor', foreign_keys='Prescription.doctor_id', lazy='selectin')
-        signed_medical_reports = db.relationship('MedicalReport', back_populates='signer', foreign_keys='MedicalReport.signed_by', lazy='selectin')
-        sent_whatsapp_messages = db.relationship('WhatsAppMessage', back_populates='sent_by_user')
-        workflow_transfers = db.relationship('WorkflowTransfer', back_populates='transferred_by_user')
-        workflow_events = db.relationship('VisitWorkflowEvent', back_populates='performer')
-
 
 
 
@@ -364,7 +354,12 @@ class User(UserMixin, db.Model):
             'accountant': 'محاسب',
             'emergency': 'طوارئ',
             'super_admin': 'مدير أعلى',
-            'user': 'مستخدم'
+            'user': 'مستخدم',
+            'pharmacist': 'صيدلي',
+            'technician': 'فني',
+            'receptionist': 'استقبال',
+            'lab_tech': 'فني مختبر',
+            'owner': 'مالك',
         }
         return role_map.get(self.role, self.role)
 
@@ -379,8 +374,23 @@ class User(UserMixin, db.Model):
         except Exception:
             return False
 
+    @db.validates('email')
+    def validate_email(self, key, value):
+        if value and '@' not in value:
+            raise ValueError(f"البريد الإلكتروني غير صالح: {value}")
+        return value
 
-class StaffWorkSchedule(db.Model):
+    @db.validates('phone')
+    def validate_phone(self, key, value):
+        if value is not None:
+            cleaned = ''.join(c for c in value if c.isdigit() or c in '+-() ')
+            if len(cleaned) < 7:
+                raise ValueError(f"رقم الهاتف قصير جداً: {value}")
+            return cleaned
+        return value
+
+
+class StaffWorkSchedule(TenantMixin, db.Model):
     __tablename__ = 'staff_work_schedules'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -398,7 +408,7 @@ class StaffWorkSchedule(db.Model):
     user = db.relationship('User', back_populates='schedules')
 
 
-class StaffAbsence(db.Model):
+class StaffAbsence(TenantMixin, db.Model):
     __tablename__ = 'staff_absences'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -421,6 +431,7 @@ def _create_default_schedule(mapper, connection, target):
                 connection.execute(
                     tbl.insert().values(
                         user_id=target.id,
+                        tenant_id=target.tenant_id,
                         day_of_week=d,
                         start_time=time(9, 0),
                         end_time=time(17, 0),
@@ -428,5 +439,6 @@ def _create_default_schedule(mapper, connection, target):
                         created_at=datetime.now(timezone.utc),
                     )
                 )
-    except Exception:
-        pass
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning("Failed to create default schedule for user %s: %s", target.id, exc)

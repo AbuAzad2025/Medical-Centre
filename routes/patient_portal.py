@@ -112,7 +112,8 @@ def book_appointment():
                 flash('تم طلب الموعد بنجاح، سيتم التأكيد قريباً', 'success')
                 return redirect(url_for('portal.appointments'))
             except Exception:
-                pass
+
+                logging.warning(f"Error in {__name__}: {e}")
         flash('يرجى ملء جميع الحقول المطلوبة', 'error')
 
     from models.user import User

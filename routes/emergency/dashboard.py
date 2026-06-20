@@ -72,8 +72,8 @@ def reports():
                 hr = int(c.created_at.strftime('%H'))
                 by_hour[hr] = by_hour.get(hr, 0) + 1
             except Exception:
-                pass
 
+                logging.warning(f"Error in {__name__}: {e}")
         top_reasons = {}
         for c in cases:
             txt = (c.chief_complaint or '').strip()

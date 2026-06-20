@@ -6,11 +6,12 @@ Medical System Receipt Model
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 import qrcode
 import io
 import base64
 
-class Receipt(db.Model):
+class Receipt(TenantMixin, db.Model):
     """نموذج سند القبض"""
     
     __tablename__ = 'receipts'

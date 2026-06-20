@@ -390,7 +390,7 @@
 
 <script>
         window.__M = window.__M || [];
-        __M0__='{{ url_for("doctor.api_patient_search") }}'; __M1__='{{ url_for("reception.view_patient", patient_id=0) }}'; __M2__='{{ current_user.id }}';
+        __M0__='{{ url_for("doctor.api_patient_search") }}'; {% if module_active('reception') %}__M1__='{{ url_for("reception.view_patient", patient_id=0) }}';{% endif %} __M2__='{{ current_user.id }}';
         </script>
 <script src="{{ url_for('static', filename='js/pages/doctor/patient_queue.js') }}"></script>
 {% endblock %}

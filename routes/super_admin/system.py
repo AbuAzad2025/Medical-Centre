@@ -125,7 +125,8 @@ def system_config():
                     db.session.add(audit)
                     db.session.commit()
                 except Exception:
-                    pass
+
+                    logging.warning(f"Error in {__name__}: {e}")
                 return jsonify({'success': True, 'message': 'تم حفظ الإعدادات بنجاح'}), 200
             else:
                 flash('تم حفظ الإعدادات بنجاح', 'success')
@@ -206,7 +207,8 @@ def queue_settings():
                     try:
                         qs.max_queue_size = int(mx)
                     except Exception:
-                        pass
+
+                        logging.warning(f"Error in {__name__}: {e}")
                 if pr is not None:
                     qs.payment_required = bool(pr)
                 if ew is not None:
@@ -217,7 +219,8 @@ def queue_settings():
                     try:
                         qs.average_wait_time = int(aw)
                     except Exception:
-                        pass
+
+                        logging.warning(f"Error in {__name__}: {e}")
                 if ap is not None:
                     qs.allow_partial_payment = bool(ap)
                 if ad is not None:

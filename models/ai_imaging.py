@@ -3,8 +3,9 @@ AI Radiology / Imaging Analysis Results
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class AIImagingAnalysis(db.Model):
+class AIImagingAnalysis(TenantMixin, db.Model):
     __tablename__ = 'ai_imaging_analyses'
 
     id = db.Column(db.Integer, primary_key=True)

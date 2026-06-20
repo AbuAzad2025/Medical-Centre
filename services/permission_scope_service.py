@@ -12,7 +12,7 @@ class PermissionScopeService:
     def get_accessible_tenant_ids(user_id: int) -> List[int]:
         """Return tenant IDs the user can access (all if super admin, else assigned)."""
         from models.user import User
-        from models.tenant import Tenant
+        from app.core.tenant.models import Tenant
 
         user = User.query.get(user_id)
         if not user:
@@ -26,7 +26,7 @@ class PermissionScopeService:
     @staticmethod
     def get_accessible_module_names(user_id: int, tenant_id: Optional[int] = None) -> List[str]:
         """Return module names the user can access within a tenant."""
-        from models.tenant import TenantFeatureFlag
+        from app.core.tenant.models import TenantFeatureFlag
         from models.user import User
         from models.advanced_permissions import ModulePermission
 

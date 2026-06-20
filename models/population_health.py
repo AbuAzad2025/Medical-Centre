@@ -4,8 +4,9 @@ Analytics for community health, epidemiology, disease surveillance
 """
 from datetime import datetime, timezone, date
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class DiseaseRegistry(db.Model):
+class DiseaseRegistry(TenantMixin, db.Model):
     """Registry of notifiable diseases for public health reporting"""
     __tablename__ = 'disease_registries'
     __table_args__ = {'extend_existing': True}
@@ -35,7 +36,7 @@ class DiseaseRegistry(db.Model):
         return f"<DiseaseRegistry {self.disease_name}>"
 
 
-class PopulationHealthIndicator(db.Model):
+class PopulationHealthIndicator(TenantMixin, db.Model):
     """Pre-calculated population health KPIs"""
     __tablename__ = 'population_health_indicators'
     __table_args__ = {'extend_existing': True}
@@ -59,7 +60,7 @@ class PopulationHealthIndicator(db.Model):
         return f"<PopulationHealthIndicator {self.indicator_name}>"
 
 
-class QualityMeasure(db.Model):
+class QualityMeasure(TenantMixin, db.Model):
     """Healthcare quality measures (HEDIS-style)"""
     __tablename__ = 'quality_measures'
     __table_args__ = {'extend_existing': True}

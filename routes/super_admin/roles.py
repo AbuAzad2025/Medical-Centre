@@ -287,8 +287,8 @@ def permissions_matrix():
             create_default_roles()
             assign_super_admin_permissions()
         except Exception:
-            pass
 
+            logging.warning(f"Error in {__name__}: {e}")
         roles = Role.query.filter_by(is_active=True).order_by(Role.id.asc()).all()
         permissions = Permission.query.filter_by(is_active=True).order_by(Permission.category.asc(), Permission.level.asc(), Permission.name.asc()).all()
 

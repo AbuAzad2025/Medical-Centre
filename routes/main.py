@@ -36,6 +36,12 @@ def dashboard():
         return redirect(url_for('nurse.dashboard'))
     elif current_user.role == 'accountant':
         return redirect(url_for('accountant.dashboard'))
+    elif current_user.role == 'owner':
+        return redirect(url_for('owner.owner_dashboard'))
+    elif current_user.role == 'pharmacist':
+        return redirect(url_for('medication.dashboard'))
+    elif current_user.role == 'technician':
+        return redirect(url_for('lab.dashboard'))
     else:
         return redirect(url_for('auth.login'))
 

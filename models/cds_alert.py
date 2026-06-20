@@ -4,8 +4,9 @@ Smart alerts for drug interactions, allergies, contraindications
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class CDSAlertRule(db.Model):
+class CDSAlertRule(TenantMixin, db.Model):
     """Rules for generating clinical alerts"""
     __tablename__ = 'cds_alert_rules'
     __table_args__ = {'extend_existing': True}
@@ -44,7 +45,7 @@ class CDSAlertRule(db.Model):
         return f"<CDSAlertRule {self.rule_type}>"
 
 
-class CDSFiredAlert(db.Model):
+class CDSFiredAlert(TenantMixin, db.Model):
     """Individual fired alert instance"""
     __tablename__ = 'cds_fired_alerts'
     __table_args__ = {'extend_existing': True}

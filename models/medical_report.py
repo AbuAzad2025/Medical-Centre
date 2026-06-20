@@ -2,10 +2,12 @@
 تقرير طبي مرتبط بزيارة - MedicalReport
 """
 from datetime import datetime, timezone
+from sqlalchemy import Index
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class MedicalReport(db.Model):
+class MedicalReport(TenantMixin, db.Model):
     __tablename__ = 'medical_reports'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -16,6 +18,11 @@ class MedicalReport(db.Model):
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+
+    __table_args__ = (
+        Index('idx_med_report_visit_created', 'visit_id', 'created_at'),
+        Index('idx_med_report_signer_created', 'signed_by', 'created_at'),
+    )
 
     visit = db.relationship('Visit', back_populates='medical_reports', lazy='selectin')
     signer = db.relationship('User', foreign_keys=[signed_by], back_populates='signed_medical_reports', lazy='selectin')

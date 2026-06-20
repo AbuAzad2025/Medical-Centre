@@ -5,6 +5,7 @@ Medical System Online Booking Models
 
 from datetime import datetime, date, timedelta, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 import secrets
 import string
 
@@ -60,7 +61,7 @@ class OnlineBooking(db.Model):
     # العلاقات
     patient = db.relationship('Patient', back_populates='online_bookings')
     department = db.relationship('Department', back_populates='online_bookings')
-    doctor = db.relationship('User', back_populates='online_bookings')
+    doctor = db.relationship('User')
     payment_transactions = db.relationship('PaymentTransaction', back_populates='booking')
 
     
@@ -187,7 +188,7 @@ class OnlineBooking(db.Model):
             'no_show_at': self.no_show_at.isoformat() if self.no_show_at else None
         }
 
-class PaymentTransaction(db.Model):
+class PaymentTransaction(TenantMixin, db.Model):
     """نموذج معاملة الدفع"""
     
     __tablename__ = 'online_booking_payment_transactions'

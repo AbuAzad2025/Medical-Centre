@@ -29,6 +29,8 @@ class Invoice(db.Model):
         CheckConstraint("paid_amount >= 0", name='chk_invoice_paid_non_negative'),
         Index('idx_invoice_status', 'status'),
         Index('idx_invoice_status_created', 'status', 'created_at'),
+        Index('idx_invoice_visit_created', 'visit_id', 'created_at'),
+        Index('idx_invoice_tenant_status', 'tenant_id', 'status'),
     )
 
     visit = db.relationship('Visit', back_populates='invoices', lazy='selectin')

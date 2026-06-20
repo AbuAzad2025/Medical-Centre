@@ -38,13 +38,23 @@ class Config:
     SEND_FILE_MAX_AGE_DEFAULT = 31536000  # سنة واحدة للكاش
     DEFAULT_CURRENCY = os.environ.get('DEFAULT_CURRENCY') or 'ILS'
 
+    # ========== SaaS Multi-Tenancy Configuration ==========
     # Deployment mode:
-    # - single_install: one standalone customer installation, no tenant enforcement.
-    # - saas: tenant resolution and module guards are enforced.
+    #   single_install — one standalone customer, no tenant enforcement (default).
+    #   saas           — ENABLE_SAAS_MODE=True, tenant resolution + module guards enforced.
     DEPLOYMENT_MODE = os.environ.get('DEPLOYMENT_MODE', 'single_install').strip().lower()
-    ENABLE_SAAS_MODE = DEPLOYMENT_MODE == 'saas' or os.environ.get('ENABLE_SAAS_MODE', 'false').lower() in ('true', 'on', '1')
-    TENANT_RESOLUTION_MODE = os.environ.get('TENANT_RESOLUTION_MODE', 'domain').strip().lower()
+    # Explicit SaaS flag — overrides DEPLOYMENT_MODE if set.
+    # Accepts: true/on/1 (any casing) for enabled.
+    ENABLE_SAAS_MODE = os.environ.get('ENABLE_SAAS_MODE', '').lower() in ('true', 'on', '1') \
+        if os.environ.get('ENABLE_SAAS_MODE') is not None \
+        else DEPLOYMENT_MODE == 'saas'
+    # Tenant resolution strategy: domain, subdomain, path, or all (comma-separated)
+    TENANT_RESOLUTION_MODE = os.environ.get('TENANT_RESOLUTION_MODE', 'path').strip().lower()
+    # Base domain for subdomain-based resolution, e.g. "example.com" → tenant.example.com
     TENANT_BASE_DOMAIN = os.environ.get('TENANT_BASE_DOMAIN', '').strip().lower()
+    # Auto-create default tenant on first run (dev/test convenience)
+    TENANT_AUTO_CREATE = os.environ.get('TENANT_AUTO_CREATE', 'false').lower() in ('true', 'on', '1')
+    TENANT_DEFAULT_SLUG = os.environ.get('TENANT_DEFAULT_SLUG', 'default').strip().lower()
     
     # إعدادات قاعدة البيانات
     SQLALCHEMY_TRACK_MODIFICATIONS = False

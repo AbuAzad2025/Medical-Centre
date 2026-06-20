@@ -4,6 +4,7 @@ Medical System Queue Management Model
 """
 
 from datetime import datetime, timezone
+from sqlalchemy import Index
 from app_factory import db
 import json
 
@@ -48,13 +49,20 @@ class QueueManagement(db.Model):
     
     # ملاحظات
     notes = db.Column(db.Text, nullable=True)
-    
+
+    __table_args__ = (
+        Index('idx_queue_dept_status', 'department_id', 'status'),
+        Index('idx_queue_dept_priority_status', 'department_id', 'priority_level', 'status'),
+        Index('idx_queue_dept_queued', 'department_id', 'queued_at'),
+        Index('idx_queue_patient_status', 'patient_id', 'status'),
+    )
+
     # العلاقات
     department = db.relationship('Department', back_populates='queue_items')
     patient = db.relationship('Patient', back_populates='queue_items')
     visit = db.relationship('Visit', back_populates='queue_items')
-    emergency_approver = db.relationship('User', foreign_keys=[emergency_approved_by], back_populates='emergency_approvals')
-    force_entry_approver = db.relationship('User', foreign_keys=[force_entry_approved_by], back_populates='force_entry_approvals')
+    emergency_approver = db.relationship('User', foreign_keys=[emergency_approved_by])
+    force_entry_approver = db.relationship('User', foreign_keys=[force_entry_approved_by])
     
     def __repr__(self):
         return f'<QueueManagement {self.queue_number} - {self.patient.full_name if self.patient else "Unknown"}>'

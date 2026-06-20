@@ -241,13 +241,10 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script>
-        window.__M = window.__M || [];
-        __M0__={{ {
+<script id="emg-chart-data" type="application/json">{{ {
   'spark': [stats.today_emergencies or 0, stats.completed_today or 0, (stats.critical_cases or 0)+(stats.urgent_cases or 0), stats.active_emergencies or 0],
   'mainData': [stats.today_emergencies or 0, stats.active_emergencies or 0, stats.completed_today or 0, stats.urgent_cases or 0, stats.critical_cases or 0]
-}|tojson }};
-        </script>
+}|tojson }}</script>
 <script src="{{ url_for('static', filename='js/pages/emergency/dashboard_new.js') }}"></script>
 
 {% endblock %}

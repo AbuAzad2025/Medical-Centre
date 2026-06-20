@@ -3,8 +3,9 @@ Problem List — Active patient health problems / diagnoses
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class PatientProblem(db.Model):
+class PatientProblem(TenantMixin, db.Model):
     """Active/chronic problems for a patient"""
     __tablename__ = 'patient_problems'
     __table_args__ = {'extend_existing': True}
@@ -50,7 +51,7 @@ class PatientProblem(db.Model):
         return f"<PatientProblem {self.status}>"
 
 
-class AllergyIntolerance(db.Model):
+class AllergyIntolerance(TenantMixin, db.Model):
     """Patient allergies and intolerances for CDS alerts"""
     __tablename__ = 'allergy_intolerances'
     __table_args__ = {'extend_existing': True}

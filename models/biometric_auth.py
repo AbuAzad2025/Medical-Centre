@@ -3,8 +3,9 @@ Biometric Authentication (WebAuthn / FIDO2)
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class BiometricCredential(db.Model):
+class BiometricCredential(TenantMixin, db.Model):
     __tablename__ = 'biometric_credentials'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -36,7 +37,7 @@ class BiometricCredential(db.Model):
         return f"<BiometricCredential user={self.user_id} type={self.device_type}>"
 
 
-class BiometricAuthChallenge(db.Model):
+class BiometricAuthChallenge(TenantMixin, db.Model):
     __tablename__ = 'biometric_auth_challenges'
 
     id = db.Column(db.Integer, primary_key=True)

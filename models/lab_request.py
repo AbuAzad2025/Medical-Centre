@@ -4,6 +4,7 @@
 from datetime import datetime, timezone
 from sqlalchemy import Index
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
 class LabRequest(db.Model):
@@ -22,6 +23,10 @@ class LabRequest(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     completed_at = db.Column(db.DateTime, nullable=True)
+
+    __table_args__ = (
+        Index('idx_lab_req_patient_created', 'patient_id', 'created_at'),
+    )
 
     visit = db.relationship('Visit', back_populates='lab_requests', lazy='selectin')
     patient = db.relationship('Patient', lazy='selectin')
@@ -53,11 +58,15 @@ class LabRequest(db.Model):
         }
 
 
-class LabResult(db.Model):
+class LabResult(TenantMixin, db.Model):
     __tablename__ = 'lab_results'
 
+    __table_args__ = (
+        Index('idx_lab_result_req_status', 'request_id', 'status'),
+        Index('idx_lab_result_patient_created', 'patient_id', 'created_at'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     request_id = db.Column(db.Integer, db.ForeignKey('lab_requests.id', ondelete='CASCADE'), nullable=False, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
     performed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)

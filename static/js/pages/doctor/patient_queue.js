@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!pts.length) { list.innerHTML = '<div class="list-group-item text-muted">لا توجد نتائج</div>'; list.style.display='block'; return; }
             pts.forEach(p => {
               const item = document.createElement('a');
-              item.href = __M1__.replace('0', p.id);
+              item.href = (typeof __M1__ !== 'undefined' ? __M1__.replace('0', p.id) : '#');
               item.className = 'list-group-item list-group-item-action';
               item.innerHTML = `
                 <div class="d-flex w-100 justify-content-between">

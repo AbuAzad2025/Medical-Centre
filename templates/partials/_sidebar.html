@@ -127,7 +127,7 @@
         </div>
         
         <!-- Role Specific Links -->
-        {% if current_user.role == 'super_admin' or current_user.role == 'admin' %}
+        {% if current_user.role == 'super_admin' or current_user.role == 'admin' or current_user.role == 'owner' %}
         <div class="nav-section">
             <h6 class="nav-section-title">إدارة المستخدمين</h6>
             <ul class="nav-list">
@@ -174,7 +174,7 @@
         </div>
 
         {% elif current_user.role == 'manager' %}
-        {% if not is_saas or 'management' in mods %}
+        {% if not is_saas or 'reporting' in mods %}
         <div class="nav-section">
             <h6 class="nav-section-title">الإدارة</h6>
             <ul class="nav-list">

@@ -592,8 +592,8 @@ def get_accessible_departments_for_user(user_role, user_id=None, user_department
                 return [d for d in all_departments if d.id in set(dept_ids)]
             return []
     except Exception:
-        pass
 
+        logging.warning(f"Error in {__name__}: {e}")
     if user_role in ['reception', 'super_admin', 'manager', 'doctor', 'emergency', 'accountant']:
         return all_departments
     if user_role in ['lab', 'radiology', 'nurse'] and user_department_id:

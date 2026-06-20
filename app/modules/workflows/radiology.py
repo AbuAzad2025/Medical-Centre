@@ -2,19 +2,9 @@
 RadiologyWorkflowService — radiology order lifecycle
 """
 from datetime import datetime, timezone
-from enum import Enum
 from typing import Optional
 from app.extensions import db
-
-class RadiologyOrderStatus(str, Enum):
-    ORDERED = "ordered"
-    SCHEDULED = "scheduled"
-    IN_PROGRESS = "in_progress"
-    IMAGES_CAPTURED = "images_captured"
-    REPORTED = "reported"
-    APPROVED = "approved"
-    DELIVERED = "delivered"
-    CANCELLED = "cancelled"
+from app.shared.enums import RadiologyOrderStatus
 
 
 class RadiologyWorkflowService:

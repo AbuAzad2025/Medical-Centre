@@ -93,7 +93,8 @@ def start_treatment(visit_id):
                 description='بدء علاج المريض'
             ))
         except Exception:
-            pass
+
+            logging.warning(f"Error in {__name__}: {e}")
         try:
             from services.notification_service import NotificationService
             NotificationService.send_notification(
@@ -105,7 +106,8 @@ def start_treatment(visit_id):
                 sender_id=current_user.id
             )
         except Exception:
-            pass
+
+            logging.warning(f"Error in {__name__}: {e}")
         db.session.commit()
         flash('تم تسجيل بدء العلاج وإخطار الاستقبال', 'success')
         return redirect(url_for('doctor.patient_details', visit_id=visit_id))
@@ -142,7 +144,8 @@ def _parse_visit_vital_signs(visit):
         if isinstance(parsed, dict):
             return {k: parsed.get(k) for k in ('blood_pressure', 'heart_rate', 'temperature', 'respiratory_rate')}
     except Exception:
-        pass
+
+        logging.warning(f"Error in {__name__}: {e}")
     return {}
 
 def _get_nurse_vital_signs(patient_id):
@@ -160,7 +163,8 @@ def _get_nurse_vital_signs(patient_id):
                 'height': latest.height, 'notes': latest.notes,
             }, latest.recorded_at)
     except Exception:
-        pass
+
+        logging.warning(f"Error in {__name__}: {e}")
     return (None, None)
 
 def _get_visit_lab_data(visit_id):
@@ -201,7 +205,8 @@ def _count_visit_notes(visit):
             radiology_notes_count = notes.count('[مذكرة تصوير]')
             general_notes_count = notes.count('[مذكرة عامة]') + notes.count('[ملاحظات طبية]')
     except Exception:
-        pass
+
+        logging.warning(f"Error in {__name__}: {e}")
     return note_count, lab_notes_count, radiology_notes_count, general_notes_count
 
 def _get_current_prescriptions(visit_id):
@@ -288,8 +293,8 @@ def patient_details(visit_id):
                 radiology_notes_count = visit.notes.count('[مذكرة تصوير]')
                 general_notes_count = visit.notes.count('[مذكرة عامة]') + visit.notes.count('[ملاحظات طبية]')
             except Exception:
-                pass
 
+                logging.warning(f"Error in {__name__}: {e}")
         current_prescriptions = []
         try:
             current_prescriptions = Prescription.query.filter(
@@ -408,13 +413,13 @@ def save_visit_summary(visit_id):
                 visit.follow_up_date = _dt.strptime(fup_raw, '%Y-%m-%d').date()
                 visit.follow_up_required = True
             except Exception:
-                pass
 
+                logging.warning(f"Error in {__name__}: {e}")
         try:
             _sync_follow_up_request_for_visit(visit, current_user.id)
         except Exception:
-            pass
 
+            logging.warning(f"Error in {__name__}: {e}")
         db.session.commit()
         try:
             db.session.add(AuditTrail(
@@ -428,7 +433,8 @@ def save_visit_summary(visit_id):
             ))
             db.session.commit()
         except Exception:
-            pass
+
+            logging.warning(f"Error in {__name__}: {e}")
         return jsonify({'success': True})
     except Exception as e:
         logging.error(f"Error saving visit summary: {str(e)}")
@@ -484,7 +490,8 @@ def end_treatment(visit_id):
                 sender_id=current_user.id
             )
         except Exception:
-            pass
+
+            logging.warning(f"Error in {__name__}: {e}")
         db.session.commit()
         try:
             db.session.add(AuditTrail(
@@ -499,8 +506,8 @@ def end_treatment(visit_id):
             ))
             db.session.commit()
         except Exception:
-            pass
-        
+
+            logging.warning(f"Error in {__name__}: {e}")
         flash('تم تسجيل إنهاء العلاج وإخطار الاستقبال', 'success')
         return redirect(url_for('doctor.patient_queue'))
     except Exception as e:

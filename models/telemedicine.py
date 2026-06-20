@@ -3,8 +3,9 @@ Telemedicine / Remote Consultation Appointments
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class TelemedicineAppointment(db.Model):
+class TelemedicineAppointment(TenantMixin, db.Model):
     __tablename__ = 'telemedicine_appointments'
 
     id = db.Column(db.Integer, primary_key=True)

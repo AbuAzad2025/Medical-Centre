@@ -174,8 +174,11 @@ def dashboard():
         
         return render_template('doctor/dashboard_new.html',
                              stats=stats,
-                             upcoming_patients=upcoming_patients,
-                             viewing_doctor=None)
+                             my_visits_count=today_visits,
+                             waiting_patients=pending_visits,
+                             prescriptions_count=prescriptions_today,
+                             appointments_count=Appointment.query.filter(Appointment.doctor_id==current_user.id, Appointment.appointment_date==today, Appointment.status.in_(['SCHEDULED','CONFIRMED'])).count(),
+                             waiting_list=upcoming_patients)
     except Exception as e:
         logging.error(f"Error in doctor dashboard: {str(e)}")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')

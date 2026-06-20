@@ -45,7 +45,7 @@ class AuditLogMiddleware:
             if request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
                 try:
                     user_id = getattr(g, 'current_user_id', None)
-                    tenant_id = getattr(g, 'current_tenant_id', None)
+                    tenant_id = getattr(g, 'tenant_id', None)
                     logger.info(
                         "AUDIT %s %s user=%s tenant=%s status=%s",
                         request.method, request.path, user_id, tenant_id, response.status_code

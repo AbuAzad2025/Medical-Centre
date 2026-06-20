@@ -4,8 +4,9 @@ Structured treatment protocols and care plans
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class ClinicalPathway(db.Model):
+class ClinicalPathway(TenantMixin, db.Model):
     """Master clinical pathway template"""
     __tablename__ = 'clinical_pathways'
     __table_args__ = {'extend_existing': True}
@@ -29,7 +30,7 @@ class ClinicalPathway(db.Model):
         return f"<ClinicalPathway {self.name}>"
 
 
-class ClinicalPathwayStep(db.Model):
+class ClinicalPathwayStep(TenantMixin, db.Model):
     """Individual step in a clinical pathway"""
     __tablename__ = 'clinical_pathway_steps'
     __table_args__ = {'extend_existing': True}
@@ -52,7 +53,7 @@ class ClinicalPathwayStep(db.Model):
         return f"<ClinicalPathwayStep {self.step_number}>"
 
 
-class PatientCarePlan(db.Model):
+class PatientCarePlan(TenantMixin, db.Model):
     """Care plan assigned to a specific patient"""
     __tablename__ = 'patient_care_plans'
     __table_args__ = {'extend_existing': True}
@@ -92,7 +93,7 @@ class PatientCarePlan(db.Model):
         return f"<PatientCarePlan {self.status}>"
 
 
-class CarePlanTask(db.Model):
+class CarePlanTask(TenantMixin, db.Model):
     """Individual task within a patient care plan"""
     __tablename__ = 'care_plan_tasks'
     __table_args__ = {'extend_existing': True}

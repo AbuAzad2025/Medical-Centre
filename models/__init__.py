@@ -48,6 +48,8 @@ from .visit_transfer import VisitTransferLog
 from .whatsapp_integration import WhatsAppMessage
 from .workflow import WorkflowStep, PatientWorkflow, WorkflowTransfer
 from .backup import Backup, BackupLog
+from .budget import Budget
+from .cash_register import CashRegister
 from .file_management import FileUpload
 from .advanced_permissions import ModulePermission, DepartmentPermission
 from .ai_analytics import AIRecommendation, DiseasePattern, PerformanceAnalytics, PatientInsight, ModelPrediction
@@ -56,6 +58,7 @@ from .icd_coding import ICD10Code, CPTCode, DRGCode, CodedDiagnosis, CodedProced
 from .emar import eMARAdministration, MedicationSchedule
 from .bed_management import Ward, Room, Bed, Admission, BedTransfer
 from .fhir_mapping import FHIRPatient, FHIRObservation, FHIREncounter, FHIRDocumentReference, FHIRAuditLog
+from .dental import DentalChart, DentalTooth
 from .dicom_pacs import DICOMStudy, DICOMSeries, DICOMInstance, PACSConfiguration
 from .vaccination import Vaccine, Immunization, VaccinationSchedule
 from .problem_list import PatientProblem, AllergyIntolerance

@@ -6,6 +6,7 @@ Medical System File Management Models
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 import os
 import hashlib
 import mimetypes
@@ -107,7 +108,7 @@ class FileUpload(db.Model):
         }
 
 
-class FileCategory(db.Model):
+class FileCategory(TenantMixin, db.Model):
     """نموذج فئات الملفات"""
     
     __tablename__ = 'file_categories'
@@ -177,7 +178,7 @@ class FileCategory(db.Model):
         }
 
 
-class FilePermission(db.Model):
+class FilePermission(TenantMixin, db.Model):
     """نموذج صلاحيات الملفات"""
     
     __tablename__ = 'file_permissions'

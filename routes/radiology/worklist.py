@@ -99,9 +99,8 @@ def _notify_radiology_complete(req, is_critical):
                     notification_type='warning', is_urgent=True
                 )
     except Exception:
-        pass
 
-
+        logging.warning(f"Error in {__name__}: {e}")
 @radiology_bp.route('/worklist')
 @login_required
 @role_required('radiology', 'technician', 'admin', 'manager')

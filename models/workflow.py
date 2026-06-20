@@ -25,8 +25,8 @@ class WorkflowStep(db.Model):
     # العلاقات
     department = db.relationship('Department', back_populates='workflow_steps')
     patient_workflows = db.relationship('PatientWorkflow', back_populates='current_step')
-    transfers_from = db.relationship('WorkflowTransfer', back_populates='from_step')
-    transfers_to = db.relationship('WorkflowTransfer', back_populates='to_step')
+    transfers_from = db.relationship('WorkflowTransfer', foreign_keys='WorkflowTransfer.from_step_id', back_populates='from_step')
+    transfers_to = db.relationship('WorkflowTransfer', foreign_keys='WorkflowTransfer.to_step_id', back_populates='to_step')
     workflow_queue_items = db.relationship('WorkflowQueue', back_populates='step')
 
 

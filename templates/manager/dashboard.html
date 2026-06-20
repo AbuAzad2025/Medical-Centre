@@ -269,7 +269,7 @@
                                         {% for r in (stats.doctor_performance or []) %}
                                         <tr>
                                             <td class="ps-3">
-                                                <a href="{{ url_for('doctor.dashboard_for_doctor', doctor_id=r.doctor_id) }}">{{ r.doctor_name }}</a>
+                                                {% if module_active('doctor') %}<a href="{{ url_for('doctor.dashboard_for_doctor', doctor_id=r.doctor_id) }}">{{ r.doctor_name }}</a>{% endif %}
                                             </td>
                                             <td>{{ r.archived_30d }}</td>
                                             <td>{{ "%.1f"|format(r.avg_minutes_30d) }}</td>

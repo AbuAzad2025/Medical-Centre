@@ -131,8 +131,8 @@
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
           <div class="text-muted small text-uppercase mb-2">دقة الأدوية</div>
-          <h3 class="fw-bold text-success">{{ stats.medication_management.accuracy_score or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="دقة الأدوية"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="دقة الأدوية" data-width="{{ stats.medication_management.accuracy_score or 0 }}"></div></div>
+          <h3 class="fw-bold text-success">{{ stats.medication_management.medication_efficiency or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="دقة الأدوية"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="دقة الأدوية" data-width="{{ stats.medication_management.medication_efficiency or 0 }}"></div></div>
         </div>
       </div>
     </div>
@@ -158,8 +158,8 @@
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
           <div class="text-muted small text-uppercase mb-2">الامتثال البروتوكولي</div>
-          <h3 class="fw-bold text-warning">{{ stats.nursing_protocols.compliance_rate or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="الامتثال البروتوكولي"><div class="progress-bar bg-warning progress-dynamic" role="progressbar" title="الامتثال البروتوكولي" data-width="{{ stats.nursing_protocols.compliance_rate or 0 }}"></div></div>
+          <h3 class="fw-bold text-warning">{{ stats.nursing_protocols_compliance_rate or 0 }}%</h3>
+          <div class="progress mb-2 prog-thin" title="الامتثال البروتوكولي"><div class="progress-bar bg-warning progress-dynamic" role="progressbar" title="الامتثال البروتوكولي" data-width="{{ stats.nursing_protocols_compliance_rate or 0 }}"></div></div>
         </div>
       </div>
     </div>
@@ -243,13 +243,10 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script>
-        window.__M = window.__M || [];
-        __M0__={{ {
+<script id="nurse-chart-data" type="application/json">{{ {
   'spark': [stats.patients_today or 0, stats.active_visits or 0, stats.pending_tasks or 0, stats.smart_analytics.efficiency_score or 0],
   'mainData': [stats.patients_today or 0, stats.active_visits or 0, stats.pending_tasks or 0, stats.medications_needed or 0, stats.smart_analytics.completed_tasks or 0]
-}|tojson }};
-        </script>
+}|tojson }}</script>
 <script src="{{ url_for('static', filename='js/pages/nurse/dashboard_new.js') }}"></script>
 
 {% endblock %}

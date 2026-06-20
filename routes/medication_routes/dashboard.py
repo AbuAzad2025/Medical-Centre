@@ -16,6 +16,16 @@ from app_factory import db
 import logging, json
 from datetime import datetime, timezone, timedelta, date
 from sqlalchemy import func
+from routes.medication_routes.__init__ import (
+    get_pharmacy_smart_analytics,
+    get_inventory_optimization,
+    get_medication_safety_monitoring,
+    get_prescription_analytics,
+    get_drug_interaction_checker,
+    get_pharmacy_workflow_automation,
+    get_pharmacy_predictive_insights,
+    get_pharmacy_smart_recommendations,
+)
 
 
 # =============================================

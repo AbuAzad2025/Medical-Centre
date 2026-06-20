@@ -87,9 +87,16 @@ def can_activate_module(
 def validate_profile_modules(profile_code: str, modules: list[str]) -> list[str]:
     """Validate that the module combination makes sense for a profile."""
     errors = []
-    from app.core.tenant.models import PRODUCT_PROFILE_DEFAULTS
-    profile = PRODUCT_PROFILE_DEFAULTS.get(profile_code)
-    if not profile:
+    from app.core.tenant.models import get_bundle_for_profile, _PRODUCT_PROFILE_SEED
+    try:
+        bundle = get_bundle_for_profile(profile_code)
+        if bundle:
+            bundle_data = {"standalone": profile_code.startswith("standalone_")}
+        else:
+            bundle_data = _PRODUCT_PROFILE_SEED.get(profile_code)
+    except Exception:
+        bundle_data = _PRODUCT_PROFILE_SEED.get(profile_code)
+    if not bundle_data:
         return ["Invalid profile code"]
 
     if profile_code.startswith("standalone_"):

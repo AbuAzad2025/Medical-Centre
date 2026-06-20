@@ -4,7 +4,7 @@ Medical System Emergency Cases
 """
 
 from datetime import datetime
-from sqlalchemy import func
+from sqlalchemy import func, Index
 from app_factory import db
 
 class EmergencyCase(db.Model):
@@ -27,7 +27,12 @@ class EmergencyCase(db.Model):
     completed_at = db.Column(db.DateTime, nullable=True, index=True)
     created_at = db.Column(db.DateTime, nullable=False, server_default=func.now(), index=True)
     updated_at = db.Column(db.DateTime, nullable=False, server_default=func.now(), onupdate=func.now(), index=True)
-    
+
+    __table_args__ = (
+        Index('idx_emergency_patient_status', 'patient_id', 'status'),
+        Index('idx_emergency_severity_created', 'severity', 'created_at'),
+    )
+
     # العلاقات
     patient = db.relationship('Patient', back_populates='emergency_cases', lazy='selectin')
     visit = db.relationship('Visit', back_populates='emergency_cases', lazy='selectin')
@@ -82,3 +87,11 @@ class EmergencyCase(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+
+    ALLOWED_SEVERITIES = {'LOW', 'MODERATE', 'HIGH', 'CRITICAL'}
+
+    @db.validates('severity')
+    def validate_severity(self, key, value):
+        if value and value.upper() not in self.ALLOWED_SEVERITIES:
+            raise ValueError(f"شدة الحالة غير صالحة: {value}. القيم المسموحة: {self.ALLOWED_SEVERITIES}")
+        return value.upper() if value else value

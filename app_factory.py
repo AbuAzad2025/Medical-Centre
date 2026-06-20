@@ -10,7 +10,7 @@ from flask_migrate import Migrate
 from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect
 from flask_socketio import SocketIO
-import os, logging
+import os, logging, click
 from logging.handlers import RotatingFileHandler
 from sqlalchemy import inspect as _sa_inspect
 from logging import StreamHandler
@@ -187,19 +187,17 @@ def create_app(config_name: str | None = None) -> Flask:
                     response.headers['Vary'] = 'Accept-Encoding'
         except Exception:
             pass
-        try:
-            response.headers.setdefault('X-Content-Type-Options', 'nosniff')
-            response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
-            response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
-            response.headers.setdefault('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
-        except Exception:
-            pass
         return response
 
     # تسجيل الموديلات في metadata ليتمكن Alembic من اكتشافها (استيراد فقط، بدون استعلامات)
     with app.app_context():
         try:
             # استيراد كل نماذجك هنا (حسب مشروعك)
+            # New platform models (tenant, module) — load before User to resolve Tenant ref
+            import importlib
+            importlib.import_module('app.core.tenant.models')
+            importlib.import_module('app.core.module.models')
+            importlib.import_module('app.modules.workflows.stock_models')
             # استيراد النماذج الأساسية أولاً
             import models.department
             import models.user
@@ -254,12 +252,6 @@ def create_app(config_name: str | None = None) -> Flask:
             import models.lab_quality
             import models.lab_reagent
             import models.exchange_rate
-            # New platform models (tenant, module, stock ledger)
-            # Use importlib to avoid shadowing local 'app' variable
-            import importlib
-            importlib.import_module('app.core.tenant.models')
-            importlib.import_module('app.core.module.models')
-            importlib.import_module('app.modules.workflows.stock_models')
         except Exception as e:
             app.logger.warning(f"Model import registration skipped: {e}")
 
@@ -294,14 +286,10 @@ def create_app(config_name: str | None = None) -> Flask:
             return None
         return user
 
-    # السجلات الدوّارة
+    # السجلات الدوّارة (تمت في البداية)
     if not app.debug and not app.testing:
         os.makedirs("logs", exist_ok=True)
-        handler = RotatingFileHandler("logs/medical_system.log", maxBytes=1_000_000, backupCount=5, encoding="utf-8")
-        handler.setLevel(logging.INFO)
-        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
-        handler.setFormatter(formatter)
-        app.logger.addHandler(handler)
+        # RotatingFileHandler already set up above — skip duplicate
         app.logger.setLevel(logging.INFO)
 
     # Health
@@ -526,8 +514,13 @@ def create_app(config_name: str | None = None) -> Flask:
             if not tenant:
                 abort(403, description="Tenant context is required in SaaS mode.")
             try:
-                from app.core.module.validators import get_active_modules_for_tenant
-                if module_name not in get_active_modules_for_tenant(tenant.id):
+                # Use cached enabled_modules from g (set by set_tenant_context)
+                enabled = getattr(g, 'enabled_modules', None)
+                if enabled is None or module_name not in enabled:
+                    from app.core.module.validators import get_active_modules_for_tenant
+                    enabled = get_active_modules_for_tenant(tenant.id)
+                    g.enabled_modules = enabled
+                if module_name not in enabled:
                     abort(403, description=f"Module '{module_name}' is not activated for this tenant.")
             except HTTPException:
                 raise
@@ -540,6 +533,33 @@ def create_app(config_name: str | None = None) -> Flask:
         if not getattr(bp, '_module_guard_added', False):
             bp.before_request(_guard_factory(module_name))
             bp._module_guard_added = True
+
+    # Helper: allow routes to check module access programmatically
+    @app.context_processor
+    def _inject_module_helpers():
+        def module_active(name):
+            return name in getattr(g, 'enabled_modules', set())
+        return dict(module_active=module_active)
+
+    @app.context_processor
+    def _inject_tenant_url_for():
+        """Provide tenant_url_for() that prefixes /t/<slug>/ in SaaS mode."""
+        from flask import url_for, g
+        def tenant_url_for(endpoint, **values):
+            if not app.config.get('ENABLE_SAAS_MODE', False):
+                return url_for(endpoint, **values)
+            tenant_slug = getattr(g, 'tenant_slug', None)
+            if not tenant_slug:
+                return url_for(endpoint, **values)
+            url = url_for(endpoint, **values)
+            if not url.startswith('/'):
+                return url
+            if url.startswith('/t/') or url.startswith('/static/'):
+                return url
+            if url.startswith('/owner/') or url.startswith('/super-admin/') or url.startswith('/auth/'):
+                return url
+            return f'/t/{tenant_slug}{url}'
+        return dict(tenant_url_for=tenant_url_for)
 
     _add_guard_once(reception_bp, "reception")
     _add_guard_once(doctor_bp, "doctor")
@@ -629,12 +649,50 @@ def create_app(config_name: str | None = None) -> Flask:
         try:
             from app.core.tenant.middleware import set_tenant_context
             set_tenant_context()
-        except Exception as exc:
+        except Exception:
             if app.config.get('ENABLE_SAAS_MODE', False):
                 app.logger.exception("Tenant resolution failed")
                 from flask import abort
-                abort(403, description=str(exc))
+                abort(403, description="Tenant resolution failed")
             # Tenant tables may not exist yet in standalone mode.
+            pass
+
+    # WSGI middleware for /t/<slug>/ path rewriting (applied after full setup)
+    from app.core.tenant.middleware import TenantPathWSGIMiddleware
+    app.wsgi_app = TenantPathWSGIMiddleware(app.wsgi_app)
+
+    # Tenant data isolation layer (auto-filters all queries by tenant_id)
+    import importlib
+    importlib.import_module('app.shared.tenant_filter')  # registers SQLAlchemy event listeners
+
+    # Auto-record ResourceUsage snapshot periodically (once per hour per tenant)
+    @app.after_request
+    def auto_record_resource_usage(response):
+        try:
+            tid = getattr(g, 'tenant_id', None)
+            if tid is None:
+                return response
+            from app.core.tenant.models import ResourceUsage
+            last = ResourceUsage.query.filter_by(tenant_id=tid)\
+                .order_by(ResourceUsage.recorded_at.desc()).first()
+            from datetime import datetime, timedelta, timezone
+            if last and (datetime.now(timezone.utc) - last.recorded_at) < timedelta(hours=1):
+                return response
+            ResourceUsage.record_snapshot(tid)
+        except Exception:
+            pass
+        return response
+
+    # Auto-seed default ProductBundles if table exists and is empty
+    with app.app_context():
+        try:
+            from sqlalchemy import inspect
+            if 'product_bundles' in inspect(db.engine).get_table_names():
+                count = db.session.execute(db.text('SELECT COUNT(*) FROM product_bundles')).scalar()
+                if count == 0:
+                    from app.core.tenant.models import seed_default_bundles
+                    seed_default_bundles()
+        except Exception:
             pass
 
     # Module-aware context processor for templates
@@ -643,27 +701,53 @@ def create_app(config_name: str | None = None) -> Flask:
         from flask import g
         tenant = getattr(g, 'current_tenant', None)
         if tenant:
-            try:
-                from app.core.module.validators import get_active_modules_for_tenant
-                mods = get_active_modules_for_tenant(tenant.id)
-                return {
-                    'enabled_modules': mods,
-                    'current_tenant': tenant,
-                    'product_profile': getattr(tenant, 'product_profile_code', None),
-                    'feature_flags': getattr(g, 'feature_flags', {}),
-                    'module_active': lambda m: m in mods,
-                    'feature_enabled': lambda f: getattr(g, 'feature_flags', {}).get(f, False),
-                }
-            except Exception as exc:
-                if app.config.get('ENABLE_SAAS_MODE', False):
-                    app.logger.exception("Module context injection failed")
-                    return {'enabled_modules': set(), 'current_tenant': tenant, 'product_profile': None, 'feature_flags': {}, 'module_active': lambda m: False, 'feature_enabled': lambda f: False}
+            mods = getattr(g, 'enabled_modules', None)
+            if mods is None:
+                try:
+                    from app.core.module.validators import get_active_modules_for_tenant
+                    mods = get_active_modules_for_tenant(tenant.id)
+                except Exception:
+                    mods = set()
+            return {
+                'enabled_modules': mods,
+                'current_tenant': tenant,
+                'product_profile': getattr(tenant, 'product_profile_code', None),
+                'feature_flags': getattr(g, 'feature_flags', {}),
+                'module_active': lambda m: m in mods,
+                'feature_enabled': lambda f: getattr(g, 'feature_flags', {}).get(f, False),
+            }
         return {'enabled_modules': set(), 'current_tenant': None, 'product_profile': None, 'feature_flags': {}, 'module_active': lambda m: False, 'feature_enabled': lambda f: False}
+
+    # Enum helpers for templates
+    @app.context_processor
+    def inject_enum_helpers():
+        """Provide enum label/color lookups from app/shared/enums.py to all templates."""
+        try:
+            from app.shared.enums import get_enum_values
+            return {
+                'enum_values': get_enum_values,
+            }
+        except Exception:
+            return {}
 
     # Security & audit middleware
     from app.core.security_middleware import SecurityHeadersMiddleware, AuditLogMiddleware
     SecurityHeadersMiddleware().init_app(app)
     AuditLogMiddleware().init_app(app)
+
+    # Register signal subscribers (audit, notifications)
+    try:
+        from app.shared.signal_subscribers import register_all_subscribers
+        register_all_subscribers()
+    except Exception as exc:
+        app.logger.warning("Signal subscriber registration failed: %s", exc)
+
+    # Register model event listeners (status change → signal emission)
+    try:
+        from app.shared.model_listeners import register_model_listeners
+        register_model_listeners()
+    except Exception as exc:
+        app.logger.warning("Model listener registration failed: %s", exc)
 
     # إعدادات لحل مشاكل 404
     app.url_map.strict_slashes = False
@@ -822,5 +906,132 @@ def create_app(config_name: str | None = None) -> Flask:
             pass
         except Exception:
             pass
+
+    # CLI commands for module/tenant management
+    @app.cli.command("module-seed")
+    def module_seed():
+        """Seed ModuleDefinition from registry and activate for all tenants."""
+        from app.core.module.models import ModuleDefinition, TenantModule
+        from app.core.module.registry import MODULE_REGISTRY
+        from app.core.tenant.models import Tenant
+        from app.extensions import db
+        from models.user import User
+        
+        # Seed ModuleDefinition
+        for name, meta in MODULE_REGISTRY.items():
+            m = ModuleDefinition.query.filter_by(name=name).first()
+            if not m:
+                m = ModuleDefinition(name=name, name_ar=meta.name_ar, category=meta.category, 
+                                     description=meta.description_ar, is_active=True)
+                db.session.add(m)
+        db.session.commit()
+        print(f"ModuleDefinition: {ModuleDefinition.query.count()} modules")
+
+        # Seed TenantModule for all tenants
+        admin = User.query.first()
+        if not admin:
+            print("No admin user found")
+            return
+        for tenant in Tenant.query.all():
+            for name in MODULE_REGISTRY.keys():
+                tm = TenantModule.query.filter_by(tenant_id=tenant.id, module_name=name).first()
+                if not tm:
+                    tm = TenantModule(tenant_id=tenant.id, module_name=name, is_active=True,
+                                      activated_at=db.func.now(), activated_by=admin.id)
+                    db.session.add(tm)
+        db.session.commit()
+        print(f"TenantModule seeded for {Tenant.query.count()} tenants")
+
+    @app.cli.command("tenant-create")
+    @click.option("--slug", required=True)
+    @click.option("--name", required=True)
+    @click.option("--email", required=True)
+    @click.option("--bundle", default="multi_department_center")
+    def tenant_create(slug, name, email, bundle):
+        """Create a new tenant with modules from bundle."""
+        from app.core.tenant.models import Tenant, TenantStatus, get_bundle_for_profile, get_default_modules_for_profile
+        from app.core.module.models import TenantModule
+        from app.core.module.registry import MODULE_REGISTRY
+        from app.extensions import db
+        from models.user import User
+        
+        if Tenant.query.filter_by(slug=slug).first():
+            print(f"Tenant {slug} already exists")
+            return
+        
+        
+        bundle = get_bundle_for_profile(bundle)
+        if bundle:
+            modules = bundle.get_modules()
+            profile_code = bundle.profile_code
+        else:
+            modules = get_default_modules_for_profile(bundle)
+            if not modules:
+                modules = list(MODULE_REGISTRY.keys())
+            profile_code = bundle
+        
+        tenant = Tenant(slug=slug, name=name, contact_email=email,
+                        status=TenantStatus.ACTIVE, product_profile_code=profile_code)
+        db.session.add(tenant)
+        db.session.flush()
+        
+        admin = User.query.first()
+        for m in modules:
+            db.session.add(TenantModule(tenant_id=tenant.id, module_name=m, is_active=True,
+                                        activated_at=db.func.now(), activated_by=admin.id))
+        db.session.commit()
+        print(f"Created tenant {tenant.id} ({slug}) with {len(modules)} modules")
+
+    @app.cli.command("tenant-backfill")
+    @click.option("--tenant-id", default=11, type=int, help="Default tenant ID for backfill")
+    def tenant_backfill(tenant_id):
+        """Backfill tenant_id for existing records that have NULL tenant_id."""
+        from app.extensions import db
+        from sqlalchemy import text
+        
+        # Tables to backfill (only those with data)
+        tables = [
+            'users', 'patients', 'visits', 'medical_records', 'medical_reports',
+            'treatments', 'invoices', 'prescriptions',
+            'appointments', 'emergency_cases', 'queues', 'notifications', 'notification_queue',
+            'beds', 'admissions', 'receipts', 'referrals', 'wards', 'rooms',
+            'insurance_companies', 'insurance_claims', 'clinical_pathways',
+            'patient_care_plans', 'care_plan_tasks',
+            'medication_schedules', 'prescription_dispense_logs',
+            'patient_accounts', 'medication_supply_requests', 'medication_supply_request_items',
+            'medication_reconciliations', 'patient_problems', 'allergy_intolerances',
+            'coded_diagnoses', 'coded_procedures', 'follow_up_requests',
+            'telemedicine_appointments', 'surgery_schedules', 'surgery_checklists',
+            'nurses', 'nursing_assessments', 'digital_signatures', 'file_categories',
+            'staff_work_schedules', 'staff_absences', 'payment_transactions',
+            'patient_allergies', 'lab_results', 'lab_requests', 'radiology_requests',
+            'radiology_results', 'vital_signs', 'nurse_notes', 'daily_census_log',
+            'surgery_checklist_items', 'clinical_pathway_templates',
+            'treatment_protocols', 'medication_schedule_templates',
+            'resource_usage',
+        ]
+        
+        total_updated = 0
+        for tbl in tables:
+            try:
+                r = db.session.execute(
+                    text(f"UPDATE {tbl} SET tenant_id = :tid WHERE tenant_id IS NULL"),
+                    {"tid": tenant_id}
+                )
+                affected = r.rowcount
+                if affected:
+                    total_updated += affected
+                    print(f"  {tbl}: {affected} rows updated")
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+        
+        print(f"\nBackfill complete: {total_updated} total rows updated")
+
+    @app.cli.command("seed-default-bundles")
+    def seed_default_bundles():
+        """Seed default ProductBundles from seed data."""
+        from app.core.tenant.models import seed_default_bundles as _seed
+        _seed()
 
     return app

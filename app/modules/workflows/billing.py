@@ -2,16 +2,8 @@
 BillingService — invoice lifecycle and posting
 """
 from datetime import datetime, timezone
-from enum import Enum
 from typing import Any
-
-
-class InvoiceStatus(str, Enum):
-    DRAFT = "DRAFT"
-    ISSUED = "ISSUED"
-    POSTED = "POSTED"
-    PAID = "PAID"
-    VOID = "VOID"
+from app.shared.enums import InvoiceStatus
 
 
 class _BillingServiceDeprecated:

@@ -362,8 +362,8 @@ def create_visit():
                     if emergency_dept:
                         department_id = str(emergency_dept.id)
                 except Exception:
-                    pass
 
+                    logging.warning(f"Error in {__name__}: {e}")
                 doctor_id = None
                 visit_type = 'EMERGENCY'
                 is_emergency = True
@@ -488,8 +488,8 @@ def create_visit():
                             if not visit.insurance_provider:
                                 visit.insurance_provider = company.name_ar or company.name
                     except Exception:
-                        pass
-            
+
+                        logging.warning(f"Error in {__name__}: {e}")
             # ========== المرحلة 7: إضافة بيانات البطاقة ==========
             elif payment_method in ['visa', 'card']:
                 visit.card_number_last_digits = card_last_digits

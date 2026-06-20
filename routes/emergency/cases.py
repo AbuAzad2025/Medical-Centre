@@ -138,7 +138,8 @@ def edit_emergency_case(id):
                     dt = datetime.strptime(f"{emergency_date} {emergency_time}", "%Y-%m-%d %H:%M")
                     emergency.created_at = dt
                 except Exception:
-                    pass
+
+                    logging.warning(f"Error in {__name__}: {e}")
             priority_val = request.form.get('priority')
             severity_map = {
                 'low': 'LOW',
@@ -165,7 +166,8 @@ def edit_emergency_case(id):
             try:
                 emergency.vital_signs = json.dumps(vs)
             except Exception:
-                pass
+
+                logging.warning(f"Error in {__name__}: {e}")
             emergency.diagnosis = request.form.get('initial_assessment') or emergency.diagnosis
             emergency.treatment_plan = request.form.get('treatment_given') or emergency.treatment_plan
             emergency.notes = request.form.get('notes') or emergency.notes
@@ -176,7 +178,8 @@ def edit_emergency_case(id):
                 try:
                     emergency.follow_up_date = datetime.strptime(follow_up_date, "%Y-%m-%d").date()
                 except Exception:
-                    pass
+
+                    logging.warning(f"Error in {__name__}: {e}")
             db.session.commit()
             flash('تم تحديث حالة الطوارئ بنجاح', 'success')
             return redirect(url_for('emergency.view_emergency_case', id=emergency.id))
@@ -270,7 +273,8 @@ def create_emergency_case():
             from models.emergency_status_history import EmergencyStatusHistory
             db.session.add(EmergencyStatusHistory(emergency_id=emergency.id, from_status=None, to_status='WAITING', changed_by=current_user.id))
         except Exception:
-            pass
+
+            logging.warning(f"Error in {__name__}: {e}")
         try:
             from models.queue_management import QueueManagement
             if visit.department_id:
@@ -285,7 +289,8 @@ def create_emergency_case():
                 )
                 db.session.add(qm)
         except Exception:
-            pass
+
+            logging.warning(f"Error in {__name__}: {e}")
         try:
             from models.patient_visit_counter import PatientVisitCounter
             pvc = PatientVisitCounter.query.filter_by(patient_id=patient_id).first()
@@ -296,7 +301,8 @@ def create_emergency_case():
             from datetime import datetime as _dt, timezone
             pvc.last_visit_at = _dt.now(timezone.utc)
         except Exception:
-            pass
+
+            logging.warning(f"Error in {__name__}: {e}")
         db.session.commit()
         return jsonify({'success': True, 'visit_id': visit.id, 'case_id': emergency.id}), 200
     except Exception as e:

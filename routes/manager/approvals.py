@@ -111,8 +111,8 @@ def approve_force_payment(visit_id):
                 from routes.reception.queue import add_patient_to_queue_auto
                 add_patient_to_queue_auto(visit_id=visit_id, department_id=visit.department_id, doctor_id=visit.doctor_id)
         except Exception:
-            pass
-        
+
+            logging.warning(f"Error in {__name__}: {e}")
         # تسجيل في التدقيق
         from models.audit_trail import AuditTrail
         audit = AuditTrail(

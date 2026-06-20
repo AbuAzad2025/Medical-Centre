@@ -4,8 +4,9 @@ Nurse medication administration tracking with barcode/QR support
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class eMARAdministration(db.Model):
+class eMARAdministration(TenantMixin, db.Model):
     """Record of nurse administering medication to patient"""
     __tablename__ = 'emar_administrations'
     __table_args__ = {'extend_existing': True}
@@ -63,7 +64,7 @@ class eMARAdministration(db.Model):
         return f"<eMARAdministration {self.status}>"
 
 
-class MedicationSchedule(db.Model):
+class MedicationSchedule(TenantMixin, db.Model):
     """Scheduled medication times for a prescription item"""
     __tablename__ = 'medication_schedules'
     __table_args__ = {'extend_existing': True}

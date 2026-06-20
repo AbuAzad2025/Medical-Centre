@@ -42,8 +42,8 @@ class BrandingSettings(db.Model):
     updated_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True)
     
     # العلاقات
-    creator = db.relationship('User', foreign_keys=[created_by], back_populates='created_branding')
-    updater = db.relationship('User', foreign_keys=[updated_by], back_populates='updated_branding')
+    creator = db.relationship('User', foreign_keys=[created_by])
+    updater = db.relationship('User', foreign_keys=[updated_by])
     
     def __repr__(self):
         return f'<BrandingSettings {self.organization_name}>'

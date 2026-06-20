@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class PatientAccount(db.Model):
+class PatientAccount(TenantMixin, db.Model):
     __tablename__ = 'patient_accounts'
 
     id = db.Column(db.Integer, primary_key=True)

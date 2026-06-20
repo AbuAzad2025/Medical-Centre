@@ -2,9 +2,11 @@
 Bed Management — Ward, Room, Bed, Admission-Discharge-Transfer (ADT)
 """
 from datetime import datetime, timezone
+from sqlalchemy import Index
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class Ward(db.Model):
+class Ward(TenantMixin, db.Model):
     """Hospital ward / unit"""
     __tablename__ = 'wards'
     __table_args__ = {'extend_existing': True}
@@ -35,7 +37,7 @@ class Ward(db.Model):
         return f"<Ward {self.name}>"
 
 
-class Room(db.Model):
+class Room(TenantMixin, db.Model):
     """Room within a ward"""
     __tablename__ = 'rooms'
     __table_args__ = {'extend_existing': True}
@@ -58,7 +60,7 @@ class Room(db.Model):
         return f"<Room {self.name}>"
 
 
-class Bed(db.Model):
+class Bed(TenantMixin, db.Model):
     """Individual bed in a room"""
     __tablename__ = 'beds'
     __table_args__ = {'extend_existing': True}
@@ -81,7 +83,7 @@ class Bed(db.Model):
         return f"<Bed {self.bed_number}>"
 
 
-class Admission(db.Model):
+class Admission(TenantMixin, db.Model):
     """Patient admission record (ADT)"""
     __tablename__ = 'admissions'
     __table_args__ = {'extend_existing': True}
@@ -134,7 +136,7 @@ class Admission(db.Model):
         return f"<Admission {self.admission_type}>"
 
 
-class BedTransfer(db.Model):
+class BedTransfer(TenantMixin, db.Model):
     """Transfer patient between beds/wards"""
     __tablename__ = 'bed_transfers'
     __table_args__ = {'extend_existing': True}

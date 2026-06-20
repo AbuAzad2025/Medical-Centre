@@ -66,7 +66,8 @@ def radiology_request(visit_id):
                 ))
                 db.session.commit()
             except Exception:
-                pass
+
+                logging.warning(f"Error in {__name__}: {e}")
             flash('تم تدوين مذكرة التصوير. يتوجه المريض للاستقبال لإنشاء زيارة لقسم الأشعة عند رغبة التنفيذ داخل المركز.', 'info')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
         return redirect(url_for('doctor.patient_details', visit_id=visit_id))
@@ -109,8 +110,8 @@ def radiology_results(patient_id):
                         'radiologist': getattr(r, 'recorded_by', None)
                     })
             except Exception:
-                pass
 
+                logging.warning(f"Error in {__name__}: {e}")
         return render_template('doctor/radiology_results.html',
                              patient=patient,
                              rad_requests=rad_requests,

@@ -171,7 +171,8 @@ def cancel_booking(booking_id):
                 is_urgent=False
             )
         except Exception:
-            pass
+
+            logging.warning(f"Error in {__name__}: {e}")
         if request.accept_mimetypes.best == 'application/json':
             return jsonify({'success': True}), 200
         flash('تم إلغاء الحجز', 'success')
@@ -277,8 +278,8 @@ def create_booking():
                         booking.patient_id = link.patient_id
                         booking.is_new_patient = False
             except Exception:
-                pass
-            
+
+                logging.warning(f"Error in {__name__}: {e}")
             db.session.add(booking)
             db.session.commit()
 
@@ -331,8 +332,8 @@ def create_booking():
                         is_urgent=False
                     )
             except Exception:
-                pass
-            
+
+                logging.warning(f"Error in {__name__}: {e}")
             flash('تم إنشاء الحجز بنجاح', 'success')
             return redirect(url_for('booking.confirmation', booking_id=booking.id))
             

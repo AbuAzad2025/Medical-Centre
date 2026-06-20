@@ -3,8 +3,9 @@ SSO / LDAP / Active Directory Configuration
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class SSOConfiguration(db.Model):
+class SSOConfiguration(TenantMixin, db.Model):
     __tablename__ = 'sso_configurations'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -63,7 +64,7 @@ class SSOConfiguration(db.Model):
         return f"<SSOConfiguration {self.name} type={self.provider_type}>"
 
 
-class SSOUserMapping(db.Model):
+class SSOUserMapping(TenantMixin, db.Model):
     __tablename__ = 'sso_user_mappings'
 
     id = db.Column(db.Integer, primary_key=True)

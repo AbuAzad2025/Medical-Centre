@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class FollowUpRequest(db.Model):
+class FollowUpRequest(TenantMixin, db.Model):
     __tablename__ = 'follow_up_requests'
 
     id = db.Column(db.Integer, primary_key=True)

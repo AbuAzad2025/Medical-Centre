@@ -81,7 +81,8 @@ def notes(visit_id):
                     ))
                     db.session.commit()
                 except Exception:
-                    pass
+
+                    logging.warning(f"Error in {__name__}: {e}")
                 flash('تم حفظ الملاحظات الطبية بنجاح', 'success')
                 return redirect(url_for('doctor.patient_queue'))
         

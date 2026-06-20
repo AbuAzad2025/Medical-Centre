@@ -2,18 +2,9 @@
 AppointmentService — booking, reschedule, no-show, convert-to-visit
 """
 from datetime import datetime, timezone, timedelta
-from enum import Enum
 from typing import Optional
 from app.extensions import db
-
-class AppointmentStatus(str, Enum):
-    SCHEDULED = "scheduled"
-    CONFIRMED = "confirmed"
-    CHECKED_IN = "checked_in"
-    IN_PROGRESS = "in_progress"
-    DONE = "done"
-    CANCELLED = "cancelled"
-    NO_SHOW = "no_show"
+from app.shared.enums import AppointmentWorkflowStatus as AppointmentStatus
 
 
 class AppointmentService:

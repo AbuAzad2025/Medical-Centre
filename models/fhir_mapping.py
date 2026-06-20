@@ -4,8 +4,9 @@ Basic FHIR R4 resources for interoperability
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class FHIRPatient(db.Model):
+class FHIRPatient(TenantMixin, db.Model):
     """FHIR Patient resource mapping"""
     __tablename__ = 'fhir_patients'
     __table_args__ = {'extend_existing': True}
@@ -21,7 +22,7 @@ class FHIRPatient(db.Model):
     patient = db.relationship('Patient', back_populates='fhir_patient')
 
 
-class FHIRObservation(db.Model):
+class FHIRObservation(TenantMixin, db.Model):
     """FHIR Observation resource (vitals, lab results, etc.)"""
     __tablename__ = 'fhir_observations'
     __table_args__ = {'extend_existing': True}
@@ -40,7 +41,7 @@ class FHIRObservation(db.Model):
     is_active = db.Column(db.Boolean, default=True)
 
 
-class FHIREncounter(db.Model):
+class FHIREncounter(TenantMixin, db.Model):
     """FHIR Encounter resource (visits, admissions)"""
     __tablename__ = 'fhir_encounters'
     __table_args__ = {'extend_existing': True}
@@ -59,7 +60,7 @@ class FHIREncounter(db.Model):
     is_active = db.Column(db.Boolean, default=True)
 
 
-class FHIRDocumentReference(db.Model):
+class FHIRDocumentReference(TenantMixin, db.Model):
     """FHIR DocumentReference (DICOM, PDF reports, etc.)"""
     __tablename__ = 'fhir_document_references'
     __table_args__ = {'extend_existing': True}
@@ -74,7 +75,7 @@ class FHIRDocumentReference(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 
-class FHIRAuditLog(db.Model):
+class FHIRAuditLog(TenantMixin, db.Model):
     """Audit log for FHIR API access"""
     __tablename__ = 'fhir_audit_logs'
     __table_args__ = {'extend_existing': True}
