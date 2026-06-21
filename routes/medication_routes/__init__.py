@@ -499,3 +499,5 @@ from . import inventory
 from . import prescriptions
 from . import interactions
 from . import external
+from . import pos
+from . import suppliers

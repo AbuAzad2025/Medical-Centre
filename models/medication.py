@@ -345,6 +345,7 @@ class PharmacySale(db.Model):
     sale_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
     prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='SET NULL'), nullable=True, index=True)
     doctor_name = db.Column(db.String(200), nullable=True)
+    customer_name = db.Column(db.String(200), nullable=True)
     total_amount = db.Column(db.Numeric(12, 2), default=0, nullable=False)
     status = db.Column(db.String(20), default='completed', index=True)
     notes = db.Column(db.Text, nullable=True)
@@ -388,3 +389,55 @@ class PharmacyReturn(db.Model):
     refund_amount = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     returned_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+
+class Supplier(db.Model):
+    """مورد الأدوية - Supplier"""
+    __tablename__ = 'suppliers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
+    name = db.Column(db.String(200), nullable=False)
+    contact_person = db.Column(db.String(200), nullable=True)
+    phone = db.Column(db.String(50), nullable=True)
+    email = db.Column(db.String(200), nullable=True)
+    address = db.Column(db.Text, nullable=True)
+    tax_id = db.Column(db.String(100), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+
+    purchases = db.relationship('MedicationPurchase', back_populates='supplier', lazy='dynamic')
+
+    def __repr__(self):
+        return f'<Supplier {self.name}>'
+
+
+class MedicationPurchase(db.Model):
+    """شراء أدوية من مورد - Purchase with batch tracking"""
+    __tablename__ = 'medication_purchases'
+
+    id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
+    supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id', ondelete='SET NULL'), nullable=True, index=True)
+    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='CASCADE'), nullable=False, index=True)
+    batch_number = db.Column(db.String(100), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False, default=0)
+    remaining_quantity = db.Column(db.Integer, nullable=False, default=0)
+    purchase_price = db.Column(db.Numeric(12, 2), nullable=False, default=0)
+    selling_price = db.Column(db.Numeric(12, 2), nullable=True)
+    expiry_date = db.Column(db.Date, nullable=True)
+    purchase_date = db.Column(db.Date, nullable=True)
+    invoice_number = db.Column(db.String(100), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+
+    supplier = db.relationship('Supplier', back_populates='purchases', lazy='selectin')
+    medication = db.relationship('Medication', lazy='selectin')
+    creator = db.relationship('User', foreign_keys=[created_by], lazy='selectin')
+
+    def __repr__(self):
+        return f'<MedicationPurchase {self.batch_number} - {self.medication.trade_name if self.medication else "?"}>'

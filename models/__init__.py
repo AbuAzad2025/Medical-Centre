@@ -33,7 +33,7 @@ from .drug_interaction import DrugInteraction
 from .follow_up import FollowUpRequest
 from .lab_reagent import LabReagent
 from .lab_quality import LabQualityControlEntry
-from .medication import Medication, Prescription, PrescriptionItem, PrescriptionDispenseLog
+from .medication import Medication, Prescription, PrescriptionItem, PrescriptionDispenseLog, PharmacySale, PharmacySaleItem, PharmacyReturn, Supplier, MedicationPurchase
 from .nurse import Nurse, VitalSigns, MedicationAdministrationLog
 from .online_booking import OnlineBooking, PaymentTransaction
 from .patient_account import PatientAccount
@@ -105,6 +105,7 @@ __all__ = [
     "DrugInteraction", "FollowUpRequest",
     "LabReagent", "LabQualityControlEntry",
     "Medication", "Prescription", "PrescriptionItem", "PrescriptionDispenseLog",
+    "PharmacySale", "PharmacySaleItem", "PharmacyReturn", "Supplier", "MedicationPurchase",
     "Nurse", "VitalSigns", "MedicationAdministrationLog",
     "OnlineBooking", "PaymentTransaction", "PatientAccount",
     "Receipt",

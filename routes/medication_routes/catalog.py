@@ -69,9 +69,9 @@ def list_medications():
                              per_page=per_page,
                              total=total)
     except Exception as e:
-        logging.error(f"Error listing medications: {str(e)}")
+        logging.error(f"Error listing medications: {str(e)}", exc_info=True)
         flash('حدث خطأ في تحميل قائمة الأدوية', 'error')
-        return redirect(url_for('medication.dashboard'))
+        return redirect(url_for('auth.login'))
 
 @medication_bp.route('/add', methods=['GET', 'POST'])
 @login_required
@@ -90,7 +90,10 @@ def add_medication():
                     exp_val = datetime.strptime(expiry_date, '%Y-%m-%d').date()
                 except Exception:
                     exp_val = None
+            _tid_input = current_user.tenant_id
+            import sys; print(f"[DD] cur_user.id={current_user.id}, cur_user.role={current_user.role}, tenant_id_from_user={_tid_input}", file=sys.stderr, flush=True)
             medication = Medication(
+                tenant_id=_tid_input,
                 trade_name=(request.form.get('trade_name') or '').strip(),
                 scientific_name=(request.form.get('scientific_name') or '').strip(),
                 generic_name=(request.form.get('generic_name') or '').strip() or None,

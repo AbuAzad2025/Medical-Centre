@@ -1,6 +1,12 @@
 {% extends "dashboard_base.html" %}
 {% block title %}لوحة تحكم الصيدلية{% endblock %}
 {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="fas fa-pills ms-2"></i>لوحة تحكم الصيدلية</h4>
+    <a href="{{ url_for('medication.pos') }}" class="btn btn-success">
+        <i class="fas fa-cash-register ms-1"></i>نقطة البيع
+    </a>
+</div>
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <div class="card card-stat bg-primary">
@@ -19,34 +25,89 @@
     <div class="col-md-3">
         <div class="card card-stat bg-success">
             <div class="icon-bg"><i class="fas fa-prescription-bottle-alt"></i></div>
-            <h6>الروشيتات اليوم</h6>
-            <h3>{{ prescriptions_count }}</h3>
+            <h6>مبيعات اليوم</h6>
+            <h3>{{ today_sales }} ₪</h3>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card card-stat bg-danger">
-            <div class="icon-bg"><i class="fas fa-calendar-times"></i></div>
-            <h6>منتهية الصلاحية</h6>
-            <h3>{{ expired_count }}</h3>
+        <div class="card card-stat bg-info">
+            <div class="icon-bg"><i class="fas fa-calendar-alt"></i></div>
+            <h6>مبيعات الشهر</h6>
+            <h3>{{ month_sales }} ₪</h3>
         </div>
     </div>
 </div>
-<div class="card">
-    <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2"></i>حركات المخزون الأخيرة</h5></div>
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead><tr><th>الدواء</th><th>العملية</th><th>الكمية</th><th>التاريخ</th></tr></thead>
-            <tbody>
-            {% for m in recent_movements %}
-            <tr>
-                <td>{{ m.medication.name if m.medication else '-' }}</td>
-                <td><span class="badge bg-{% if m.quantity>0 %}success{% else %}danger{% endif %}">{{ m.movement_type }}</span></td>
-                <td>{{ m.quantity }}</td>
-                <td class="text-muted small">{{ m.created_at.strftime('%Y-%m-%d %H:%M') if m.created_at else '-' }}</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle ms-2"></i>أدوية منخفضة المخزون</h5>
+                <a href="{{ url_for('medication.stock_alerts') }}" class="btn btn-sm btn-outline-warning">عرض الكل</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>الدواء</th><th>المخزون</th><th>الحد الأدنى</th></tr></thead>
+                    <tbody>
+                    {% for m in low_stock_list %}
+                    <tr>
+                        <td>{{ m.trade_name }}</td>
+                        <td><span class="badge bg-danger">{{ m.stock_quantity }}</span></td>
+                        <td>{{ m.minimum_stock }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" class="text-center text-muted">لا توجد أدوية منخفضة المخزون</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between">
+                <h5 class="mb-0"><i class="fas fa-chart-line ms-2"></i>الروشتات</h5>
+                <a href="{{ url_for('medication.prescriptions') }}" class="btn btn-sm btn-outline-primary">عرض الكل</a>
+            </div>
+            <div class="card-body">
+                <div class="text-center py-4">
+                    <h2>{{ prescriptions_count }}</h2>
+                    <p class="text-muted mb-0">روشتة اليوم</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row g-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-shopping-cart ms-2"></i>روابط سريعة</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('medication.pos') }}" class="btn btn-success btn-lg w-100 py-3">
+                            <i class="fas fa-cash-register fa-2x d-block mb-2"></i>نقطة البيع
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('medication.sales_history') }}" class="btn btn-info btn-lg w-100 py-3 text-white">
+                            <i class="fas fa-file-invoice fa-2x d-block mb-2"></i>المبيعات
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('medication.suppliers') }}" class="btn btn-secondary btn-lg w-100 py-3">
+                            <i class="fas fa-truck fa-2x d-block mb-2"></i>الموردين
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('medication.purchases') }}" class="btn btn-primary btn-lg w-100 py-3">
+                            <i class="fas fa-boxes fa-2x d-block mb-2"></i>المشتريات
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

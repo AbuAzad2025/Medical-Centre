@@ -305,6 +305,10 @@
                 <li><a href="{{ url_for('medication.stock_alerts') }}" class="nav-link-luxury {% if 'medication.stock_alerts' in request.endpoint %}active{% endif %}"><i class="fas fa-exclamation-triangle"></i> <span>تنبيهات المخزون</span></a></li>
                 <li><a href="{{ url_for('medication.supply_requests') }}" class="nav-link-luxury {% if 'medication.supply_requests' in request.endpoint %}active{% endif %}"><i class="fas fa-truck-loading"></i> <span>طلبات التوريد</span></a></li>
                 <li><a href="{{ url_for('medication.interactions') }}" class="nav-link-luxury {% if 'medication.interactions' in request.endpoint %}active{% endif %}"><i class="fas fa-exchange-alt"></i> <span>التداخلات الدوائية</span></a></li>
+                <li><a href="{{ url_for('medication.pos') }}" class="nav-link-luxury {% if 'medication.pos' in request.endpoint %}active{% endif %}"><i class="fas fa-cash-register"></i> <span>نقطة البيع</span></a></li>
+                <li><a href="{{ url_for('medication.sales_history') }}" class="nav-link-luxury {% if 'medication.sales_history' in request.endpoint %}active{% endif %}"><i class="fas fa-file-invoice"></i> <span>المبيعات</span></a></li>
+                <li><a href="{{ url_for('medication.suppliers') }}" class="nav-link-luxury {% if 'medication.suppliers' in request.endpoint %}active{% endif %}"><i class="fas fa-truck"></i> <span>الموردين</span></a></li>
+                <li><a href="{{ url_for('medication.purchases') }}" class="nav-link-luxury {% if 'medication.purchases' in request.endpoint %}active{% endif %}"><i class="fas fa-boxes"></i> <span>المشتريات</span></a></li>
                 <li><a href="{{ url_for('medication.consumption_report') }}" class="nav-link-luxury {% if 'medication.consumption_report' in request.endpoint %}active{% endif %}"><i class="fas fa-chart-line"></i> <span>تقرير الاستهلاك</span></a></li>
             </ul>
         </div>
