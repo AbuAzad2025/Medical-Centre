@@ -1,7 +1,7 @@
 """
 مصنع التطبيق - Application Factory (منقح ومتوافق مع الموديلات الحالية)
 """
-from flask import Flask, jsonify, render_template_string, render_template, redirect, url_for, request
+from flask import Flask, jsonify, render_template_string, render_template, redirect, url_for, request, abort
 from flask.json.provider import DefaultJSONProvider
 from decimal import Decimal, ROUND_HALF_UP
 from flask_sqlalchemy import SQLAlchemy
@@ -310,6 +310,8 @@ def create_app(config_name: str | None = None) -> Flask:
     # استعراض المسارات (للتسهيل أثناء التطوير)
     @app.get("/__routes")
     def list_routes():
+        if app.config.get('DISABLE_DEBUG_ENDPOINTS', True):
+            abort(404)
         rows = []
         for r in app.url_map.iter_rules():
             methods = ",".join(sorted(m for m in r.methods if m in {"GET","POST","PUT","PATCH","DELETE"}))
@@ -754,18 +756,11 @@ def create_app(config_name: str | None = None) -> Flask:
     app.url_map.strict_slashes = False
     @app.get("/__perf/finance")
     def __perf_finance():
+        if app.config.get('DISABLE_DEBUG_ENDPOINTS', True):
+            abort(404)
         import re, time
         from flask import request, jsonify, render_template_string
         tc = app.test_client()
-        lp = tc.get("/auth/login")
-        html = lp.data.decode("utf-8", "ignore")
-        m = re.search(r'name="csrf_token" value="([^"]+)"', html)
-        token = m.group(1) if m else ""
-        def do_login(passwd: str):
-            r = tc.post("/auth/login", data={"username": "accountant", "password": passwd, "csrf_token": token}, follow_redirects=False)
-            return r.status_code in (301,302)
-        if not do_login("123456"):
-            do_login("p")
         threshold_ms = int(request.args.get("threshold_ms", "800") or "800")
         repeat = int(request.args.get("repeat", "1") or "1")
         base_paths = ["/finance/dashboard","/finance/payments","/finance/invoices","/finance/audit","/payment/dashboard","/accountant/dashboard","/accountant/reports","/accountant/financial","/payment/reports"]
