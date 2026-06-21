@@ -756,7 +756,7 @@ def create_app(config_name: str | None = None) -> Flask:
     app.url_map.strict_slashes = False
     @app.get("/__perf/finance")
     def __perf_finance():
-        if app.config.get('DISABLE_DEBUG_ENDPOINTS', True):
+        if app.config.get('DISABLE_PERF_ENDPOINTS', True):
             abort(404)
         import re, time
         from flask import request, jsonify, render_template_string
