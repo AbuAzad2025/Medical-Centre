@@ -436,7 +436,7 @@ class ReportService:
     # ==================== تقارير التدقيق (الأسبوع الثاني) ====================
     
     @staticmethod
-    def get_daily_audit_report(target_date=None):
+    def get_daily_audit_report(target_date=None, tenant_id: int | None = None):
         """
         تقرير التدقيق اليومي - Daily Audit Report
         يشمل جميع العمليات المالية والزيارات لليوم المحدد

@@ -1036,15 +1036,21 @@ def create_app(config_name: str | None = None) -> Flask:
         import time
 
         def _run_loop():
-            with app_ctx.app_context():
-                while True:
-                    try:
-                        from services.notification_service import process_notification_queue, NotificationService
-                        process_notification_queue()
-                        NotificationService.send_appointment_reminders()
-                    except Exception:
-                        pass
-                    time.sleep(60)
+            from services.tenant_job_runner import for_each_tenant
+            from services.notification_service import process_notification_queue, NotificationService
+
+            while True:
+                try:
+                    for_each_tenant(
+                        app_ctx,
+                        lambda tenant_id: (
+                            process_notification_queue(tenant_id=tenant_id),
+                            NotificationService.send_appointment_reminders(tenant_id=tenant_id),
+                        ),
+                    )
+                except Exception:
+                    pass
+                time.sleep(60)
 
         thread = threading.Thread(target=_run_loop, daemon=True, name='notif-processor')
         thread.start()

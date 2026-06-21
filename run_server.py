@@ -40,13 +40,16 @@ if __name__ == '__main__':
         logger.info("=" * 60)
 
         def _alerts_worker(flask_app):
-            with flask_app.app_context():
-                from services.notification_service import NotificationService
+            from services.tenant_job_runner import for_each_tenant
+            from services.notification_service import NotificationService
+
             while True:
                 try:
-                    with flask_app.app_context():
-                        NotificationService.check_and_send_alerts()
-                        logger.info("⏰ تم تنفيذ مهمة التنبيهات المجدولة")
+                    for_each_tenant(
+                        flask_app,
+                        lambda tenant_id: NotificationService.check_and_send_alerts(tenant_id=tenant_id),
+                    )
+                    logger.info("⏰ تم تنفيذ مهمة التنبيهات المجدولة")
                 except Exception as e:
                     logger.error(f"خطأ في مهمة التنبيهات المجدولة: {str(e)}")
                 time.sleep(3600)
