@@ -26,16 +26,6 @@ if not _test_db_url:
 else:
     os.environ['SQLALCHEMY_DATABASE_URI'] = _test_db_url
 
-# Monkey-patch: Flask 3.1+ Blueprint doesn't accept the custom `guard_module` kwarg
-# used throughout the codebase. Strip it before Blueprint sees it.
-import flask
-_orig_blueprint = flask.Blueprint
-class _PatchedBlueprint(_orig_blueprint):
-    def __init__(self, name, import_name, **kwargs):
-        kwargs.pop('guard_module', None)
-        super().__init__(name, import_name, **kwargs)
-flask.Blueprint = _PatchedBlueprint
-
 from app_factory import create_app, db as _db
 from models.user import User
 from models.medication import Medication, PharmacySale, PharmacySaleItem, Supplier, MedicationPurchase
