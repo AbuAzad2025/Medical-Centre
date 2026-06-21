@@ -14,7 +14,7 @@ from datetime import datetime, timezone, timedelta, date
 import json
 from sqlalchemy import func
 
-medication_bp = Blueprint('medication', __name__, guard_module=__name__)
+medication_bp = Blueprint('medication', __name__)
 
 from services.feature_gate_service import guard_module
 

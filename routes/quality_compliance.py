@@ -8,7 +8,7 @@ from datetime import datetime, date, timedelta
 from sqlalchemy import func
 import logging
 
-quality_bp = Blueprint('quality', __name__, guard_module=__name__)
+quality_bp = Blueprint('quality', __name__)
 
 from services.feature_gate_service import guard_module
 

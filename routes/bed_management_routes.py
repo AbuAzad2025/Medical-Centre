@@ -11,7 +11,7 @@ from models.department import Department
 from app_factory import db
 import logging
 
-bed_bp = Blueprint('bed', __name__, guard_module=__name__)
+bed_bp = Blueprint('bed', __name__)
 
 from services.feature_gate_service import guard_module
 

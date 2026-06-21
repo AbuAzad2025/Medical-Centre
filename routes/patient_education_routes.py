@@ -9,7 +9,7 @@ from models import PatientEducationMaterial, PatientEducationAssignment, Patient
 import os
 from werkzeug.utils import secure_filename
 
-patient_education_bp = Blueprint('patient_education', __name__, guard_module=__name__)
+patient_education_bp = Blueprint('patient_education', __name__)
 
 from services.feature_gate_service import guard_module
 

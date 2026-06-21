@@ -9,7 +9,7 @@ from models.digital_signature import DigitalSignature, PasswordPolicy, SessionLo
 from models.user import User
 from app_factory import db
 
-security_bp = Blueprint('security', __name__, guard_module=__name__)
+security_bp = Blueprint('security', __name__)
 
 @security_bp.route('/signatures')
 @login_required

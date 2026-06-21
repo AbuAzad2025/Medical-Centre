@@ -15,7 +15,7 @@ from app_factory import db
 import json, uuid
 from datetime import datetime, timezone
 
-fhir_bp = Blueprint('fhir', __name__, guard_module=__name__)
+fhir_bp = Blueprint('fhir', __name__)
 
 from services.feature_gate_service import guard_module
 

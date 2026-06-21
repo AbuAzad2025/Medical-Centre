@@ -20,7 +20,7 @@ from models.branding import BrandingSettings
 from app_factory import db
 from datetime import datetime, date, timezone
 
-portal_bp = Blueprint('portal', __name__, guard_module=__name__)
+portal_bp = Blueprint('portal', __name__)
 
 from services.feature_gate_service import guard_module
 

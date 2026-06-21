@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 from utils.decorators import role_required
 from app_factory import db
 
-report_builder_bp = Blueprint('report_builder', __name__, guard_module=__name__)
+report_builder_bp = Blueprint('report_builder', __name__)
 
 from services.feature_gate_service import guard_module
 

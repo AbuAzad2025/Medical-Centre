@@ -24,7 +24,7 @@ import secrets
 
 from models.system_config import SystemConfig
 
-doctor_bp = Blueprint('doctor', __name__, guard_module=__name__)
+doctor_bp = Blueprint('doctor', __name__)
 
 from services.feature_gate_service import guard_module
 

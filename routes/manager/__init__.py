@@ -20,7 +20,7 @@ from datetime import datetime, date, timedelta, timezone
 from sqlalchemy import func
 from decimal import Decimal, ROUND_HALF_UP
 
-manager_bp = Blueprint('manager', __name__, guard_module=__name__)
+manager_bp = Blueprint('manager', __name__)
 
 from services.feature_gate_service import guard_module
 

@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone, date
 import json
 from sqlalchemy import func, and_, or_, desc
 
-nurse_bp = Blueprint('nurse', __name__, guard_module=__name__)
+nurse_bp = Blueprint('nurse', __name__)
 
 from services.feature_gate_service import guard_module
 

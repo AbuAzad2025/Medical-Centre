@@ -21,7 +21,7 @@ from datetime import datetime, date, timedelta, timezone
 from sqlalchemy import and_, or_, desc, case
 import json
 
-emergency_bp = Blueprint('emergency', __name__, guard_module=__name__)
+emergency_bp = Blueprint('emergency', __name__)
 
 from services.feature_gate_service import guard_module
 

@@ -10,7 +10,7 @@ from models.user import User
 from models.icd_coding import CPTCode, ICD10Code
 from app_factory import db
 
-or_bp = Blueprint('or', __name__, guard_module=__name__)
+or_bp = Blueprint('or', __name__)
 
 from services.feature_gate_service import guard_module
 

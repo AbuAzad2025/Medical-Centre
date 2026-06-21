@@ -20,7 +20,7 @@ import logging
 from services.access_control_service import AccessControlService
 from services.pos_terminal_service import PosTerminalService
 
-reception_bp = Blueprint('reception', __name__, guard_module=__name__)
+reception_bp = Blueprint('reception', __name__)
 
 from services.feature_gate_service import guard_module
 

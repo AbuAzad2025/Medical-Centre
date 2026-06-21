@@ -8,7 +8,7 @@ from models.cds_alert import CDSAlertRule, CDSFiredAlert
 from models.patient import Patient
 from app_factory import db
 
-cds_bp = Blueprint('cds', __name__, guard_module=__name__)
+cds_bp = Blueprint('cds', __name__)
 
 from services.feature_gate_service import guard_module
 

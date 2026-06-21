@@ -8,7 +8,7 @@ from models.clinical_pathway import ClinicalPathway, ClinicalPathwayStep, Patien
 from models.patient import Patient
 from app_factory import db
 
-pathway_bp = Blueprint('pathway', __name__, guard_module=__name__)
+pathway_bp = Blueprint('pathway', __name__)
 
 from services.feature_gate_service import guard_module
 

@@ -19,7 +19,7 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 import json
 
-payment_bp = Blueprint('payment', __name__, guard_module=__name__)
+payment_bp = Blueprint('payment', __name__)
 
 from services.feature_gate_service import guard_module
 

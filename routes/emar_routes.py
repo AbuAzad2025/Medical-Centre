@@ -11,7 +11,7 @@ from models.medication import Prescription, PrescriptionItem
 from app_factory import db
 from datetime import datetime, date, timezone
 
-emar_bp = Blueprint('emar', __name__, guard_module=__name__)
+emar_bp = Blueprint('emar', __name__)
 
 from services.feature_gate_service import guard_module
 
