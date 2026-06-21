@@ -37,7 +37,7 @@ def vital_signs():
             visit = db.session.get(Visit, visit_id)
             if visit:
                 patient_id = visit.patient_id
-        vq = Visit.query.filter(Visit.status.in_(['OPEN', 'IN_PROGRESS']))
+        vq = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]))
         dept_ids = _accessible_department_ids()
         if dept_ids is not None and dept_ids:
             vq = vq.filter(Visit.department_id.in_(dept_ids))

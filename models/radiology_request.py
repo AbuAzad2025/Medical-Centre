@@ -4,13 +4,14 @@
 from datetime import datetime, timezone
 from sqlalchemy import Index
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class RadiologyRequest(db.Model):
+class RadiologyRequest(TenantMixin, db.Model):
     __tablename__ = 'radiology_requests'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='CASCADE'), nullable=False, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
     requested_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)

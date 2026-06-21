@@ -37,6 +37,13 @@ def app():
     app = create_app('testing')
     with app.app_context():
         _db.create_all()
+        # Ensure new columns exist on existing tables (adds column if missing)
+        try:
+            from sqlalchemy import text
+            _db.session.execute(text('ALTER TABLE tenants ADD COLUMN IF NOT EXISTS settings JSONB'))
+            _db.session.commit()
+        except Exception:
+            _db.session.rollback()
         yield app
         _db.session.remove()
         try:
@@ -91,6 +98,9 @@ def test_tenant(app):
         )
         _db.session.add(t)
         _db.session.commit()
+    # Reset settings to avoid cross-test contamination
+    t.settings = None
+    _db.session.commit()
     return t
 
 
@@ -148,6 +158,38 @@ def auth_client(app, client, test_user, test_tenant):
     _shared_store.clear()
     client.post('/auth/login', data={
         'username': 'pharmacist_test',
+        'password': 'test123',
+        'tenant_slug': test_tenant.slug,
+    })
+    return client
+
+
+@pytest.fixture(scope='function')
+def manager_user(app, test_tenant):
+    """Create a manager test user."""
+    u = User.query.filter_by(username='manager_test').first()
+    if not u:
+        u = User(
+            username='manager_test',
+            email='manager@test.local',
+            full_name='مدير اختبار',
+            role='manager',
+            is_active=True,
+            tenant_id=test_tenant.id,
+        )
+        u.set_password('test123')
+        _db.session.add(u)
+        _db.session.commit()
+    return u
+
+
+@pytest.fixture(scope='function')
+def manager_auth_client(app, client, manager_user, test_tenant):
+    """Return an authenticated test client for manager via login POST."""
+    from app.core.rate_limiter import _shared_store
+    _shared_store.clear()
+    client.post('/auth/login', data={
+        'username': 'manager_test',
         'password': 'test123',
         'tenant_slug': test_tenant.slug,
     })

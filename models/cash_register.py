@@ -1,8 +1,9 @@
 from datetime import datetime, timezone, date, time
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class CashRegister(db.Model):
+class CashRegister(TenantMixin, db.Model):
     """نموذج سجل الصندوق اليومي - Cash Register / Till"""
     __tablename__ = 'cash_registers'
 

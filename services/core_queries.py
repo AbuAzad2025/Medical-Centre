@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import func, and_, or_, desc
 from sqlalchemy.orm import Query
 
+from app.shared.enums import VisitState
 from app_factory import db
 
 if TYPE_CHECKING:
@@ -96,7 +97,7 @@ class CoreQueryService:
     @staticmethod
     def get_open_visits(department_id: int | None = None) -> list[Visit]:
         from models.visit import Visit
-        q = Visit.query.filter(Visit.status.in_(["OPEN", "IN_PROGRESS"]))
+        q = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]))
         if department_id:
             q = q.filter_by(department_id=department_id)
         return q.order_by(Visit.created_at).all()
@@ -113,7 +114,7 @@ class CoreQueryService:
         elif department_id:
             q = q.filter(
                 Visit.department_id == department_id,
-                Visit.status.in_(["OPEN", "IN_PROGRESS"]),
+                Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]),
             )
         return q.order_by(Visit.queue_number).all()
 

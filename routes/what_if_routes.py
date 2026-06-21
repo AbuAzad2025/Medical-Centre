@@ -8,7 +8,13 @@ from app_factory import db
 from models import WhatIfScenario, Department
 from datetime import datetime, timezone
 
-what_if_bp = Blueprint('what_if', __name__)
+what_if_bp = Blueprint('what_if', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@what_if_bp.before_request
+def _guard_reporting_module():
+    guard_module('reporting')
 
 
 @what_if_bp.route('/')

@@ -44,13 +44,13 @@ def dashboard():
         pending_requests = rstats["pending"]
         completed_today = rstats["completed_today"]
         requested_count = RadiologyRequest.query.filter(
-            RadiologyRequest.status == 'REQUESTED'
+            RadiologyRequest.status == OrderState.REQUESTED
         ).count()
         in_progress_count = RadiologyRequest.query.filter(
-            RadiologyRequest.status == 'IN_PROGRESS'
+            RadiologyRequest.status == OrderState.IN_PROGRESS
         ).count()
         done_today_count = RadiologyRequest.query.filter(
-            RadiologyRequest.status == 'DONE',
+            RadiologyRequest.status == OrderState.DONE,
             db.func.date(RadiologyRequest.updated_at) == date.today()
         ).count()
         smart_analytics = get_radiology_smart_analytics()

@@ -9,11 +9,11 @@ from app_factory import db
 from app.shared.mixins import TenantMixin
 
 
-class User(UserMixin, db.Model):
+class User(TenantMixin, UserMixin, db.Model):
     __tablename__ = 'users'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
 
     username = db.Column(db.String(80), nullable=False, index=True)
     email = db.Column(db.String(120), nullable=False, index=True)

@@ -46,27 +46,27 @@ def dashboard():
         today_visits = Visit.query.filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date == today,
-            Visit.status.in_(['OPEN', 'IN_PROGRESS'])
+            Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])
         ).count()
         
         # الزيارات المعلقة
         pending_visits = Visit.query.filter(
             Visit.doctor_id == current_user.id,
-            Visit.status == 'OPEN'
+            Visit.status == VisitState.OPEN
         ).count()
         
         # الزيارات المكتملة اليوم
         completed_today = Visit.query.filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date == today,
-            Visit.status == 'COMPLETED'
+            Visit.status == VisitState.COMPLETED
         ).count()
         
         # الزيارات الأسبوع الماضي
         weekly_visits = Visit.query.filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date >= week_ago,
-            Visit.status == 'COMPLETED'
+            Visit.status == VisitState.COMPLETED
         ).count()
         
         # الوصفات الطبية اليوم
@@ -78,20 +78,20 @@ def dashboard():
         # طلبات المختبر المعلقة
         pending_lab_requests = LabRequest.query.join(Visit).filter(
             Visit.doctor_id == current_user.id,
-            LabRequest.status == 'REQUESTED'
+            LabRequest.status == OrderState.REQUESTED
         ).count()
         
         # طلبات الأشعة المعلقة
         pending_radiology_requests = RadiologyRequest.query.join(Visit).filter(
             Visit.doctor_id == current_user.id,
-            RadiologyRequest.status == 'REQUESTED'
+            RadiologyRequest.status == OrderState.REQUESTED
         ).count()
         
         # المرضى القادمين اليوم
         upcoming_patients = Visit.query.filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date == today,
-            Visit.status.in_(['OPEN','READY'])
+            Visit.status.in_([VisitState.OPEN, VisitState.READY])
         ).order_by(Visit.visit_time).limit(5).all()
         
         # الإحصائيات
@@ -112,7 +112,7 @@ def dashboard():
                 completed_today_visits = Visit.query.filter(
                     Visit.doctor_id == current_user.id,
                     Visit.visit_date == today,
-                    Visit.status == 'COMPLETED'
+                    Visit.status == VisitState.COMPLETED
                 ).all()
                 def compute_fee(v):
                     total = Decimal(str(v.total_amount or 0))
@@ -144,12 +144,12 @@ def dashboard():
                 weekly_completed = Visit.query.filter(
                     Visit.doctor_id == current_user.id,
                     Visit.visit_date >= week_ago,
-                    Visit.status == 'COMPLETED'
+                    Visit.status == VisitState.COMPLETED
                 ).all()
                 monthly_completed = Visit.query.filter(
                     Visit.doctor_id == current_user.id,
                     Visit.visit_date >= month_start,
-                    Visit.status == 'COMPLETED'
+                    Visit.status == VisitState.COMPLETED
                 ).all()
                 earnings_week = sum(compute_fee(v) for v in weekly_completed) if weekly_completed else Decimal('0.00')
                 earnings_month = sum(compute_fee(v) for v in monthly_completed) if monthly_completed else Decimal('0.00')
@@ -177,7 +177,7 @@ def dashboard():
                              my_visits_count=today_visits,
                              waiting_patients=pending_visits,
                              prescriptions_count=prescriptions_today,
-                             appointments_count=Appointment.query.filter(Appointment.doctor_id==current_user.id, Appointment.appointment_date==today, Appointment.status.in_(['SCHEDULED','CONFIRMED'])).count(),
+                             appointments_count=Appointment.query.filter(Appointment.doctor_id==current_user.id, Appointment.appointment_date==today, Appointment.status.in_([AppointmentState.SCHEDULED, AppointmentState.CONFIRMED])).count(),
                              waiting_list=upcoming_patients)
     except Exception as e:
         logging.error(f"Error in doctor dashboard: {str(e)}")
@@ -196,14 +196,14 @@ def dashboard_for_doctor(doctor_id):
             return redirect(url_for('main.dashboard'))
         today = date.today()
         week_ago = today - timedelta(days=7)
-        today_visits = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status.in_(['OPEN','IN_PROGRESS'])).count()
-        pending_visits = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.status == 'OPEN').count()
-        completed_today = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status == 'COMPLETED').count()
-        weekly_visits = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date >= week_ago, Visit.status == 'COMPLETED').count()
+        today_visits = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])).count()
+        pending_visits = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.status == VisitState.OPEN).count()
+        completed_today = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status == VisitState.COMPLETED).count()
+        weekly_visits = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date >= week_ago, Visit.status == VisitState.COMPLETED).count()
         prescriptions_today = Prescription.query.join(Visit).filter(Visit.doctor_id == doctor_id, Visit.visit_date == today).count()
-        pending_lab_requests = LabRequest.query.join(Visit).filter(Visit.doctor_id == doctor_id, LabRequest.status == 'REQUESTED').count()
-        pending_radiology_requests = RadiologyRequest.query.join(Visit).filter(Visit.doctor_id == doctor_id, RadiologyRequest.status == 'REQUESTED').count()
-        upcoming_patients = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status.in_(['OPEN','READY'])).order_by(Visit.visit_time).limit(5).all()
+        pending_lab_requests = LabRequest.query.join(Visit).filter(Visit.doctor_id == doctor_id, LabRequest.status == OrderState.REQUESTED).count()
+        pending_radiology_requests = RadiologyRequest.query.join(Visit).filter(Visit.doctor_id == doctor_id, RadiologyRequest.status == OrderState.REQUESTED).count()
+        upcoming_patients = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status.in_([VisitState.OPEN, VisitState.READY])).order_by(Visit.visit_time).limit(5).all()
         stats = {
             'today_visits': today_visits,
             'pending_visits': pending_visits,
@@ -234,9 +234,9 @@ def dashboard_for_doctor(doctor_id):
                     fee = total
                 return fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             month_start = date(today.year, today.month, 1)
-            earnings_today = sum(compute_fee(v) for v in Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status == 'COMPLETED').all())
-            earnings_week = sum(compute_fee(v) for v in Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date >= week_ago, Visit.status == 'COMPLETED').all())
-            earnings_month = sum(compute_fee(v) for v in Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date >= month_start, Visit.status == 'COMPLETED').all())
+            earnings_today = sum(compute_fee(v) for v in Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status == VisitState.COMPLETED).all())
+            earnings_week = sum(compute_fee(v) for v in Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date >= week_ago, Visit.status == VisitState.COMPLETED).all())
+            earnings_month = sum(compute_fee(v) for v in Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date >= month_start, Visit.status == VisitState.COMPLETED).all())
             stats['doctor_earnings_today'] = float(earnings_today)
             stats['doctor_earnings_week'] = float(earnings_week)
             stats['doctor_earnings_month'] = float(earnings_month)

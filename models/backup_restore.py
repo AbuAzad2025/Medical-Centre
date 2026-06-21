@@ -3,8 +3,9 @@ Backup Restore Log and Operations
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class BackupRestoreLog(db.Model):
+class BackupRestoreLog(TenantMixin, db.Model):
     __tablename__ = 'backup_restore_logs'
 
     id = db.Column(db.Integer, primary_key=True)

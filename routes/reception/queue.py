@@ -430,7 +430,7 @@ def get_smart_queue_management(department_id=None):
         
         # تحليل الطابور الحالي
         current_queue = QueueManagement.query.filter(
-            QueueManagement.status.in_(['waiting', 'called', 'in_progress'])
+            QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS])
         ).order_by(QueueManagement.created_at).all()
         
         # تحليل أوقات الانتظار
@@ -595,7 +595,7 @@ def get_real_time_alerts():
         today = datetime.now().date()
         overdue_appointments = Appointment.query.filter(
             Appointment.starts_at < today,
-            Appointment.status == 'SCHEDULED'
+            Appointment.status == AppointmentState.SCHEDULED
         ).count()
         
         if overdue_appointments > 0:
@@ -609,7 +609,7 @@ def get_real_time_alerts():
         
         # تنبيهات الطابور
         long_waiting = Visit.query.filter(
-            Visit.status == 'PENDING',
+            Visit.status == VisitState.PENDING,
             Visit.created_at < datetime.now() - timedelta(hours=2)
         ).count()
         
@@ -680,7 +680,7 @@ def get_workflow_automation():
         
         # أتمتة المتابعة
         completed_visits = Visit.query.filter(
-            Visit.status == 'ARCHIVED',
+            Visit.status == VisitState.ARCHIVED,
             Visit.completed_at >= datetime.now() - timedelta(days=7)
         ).count()
         
@@ -708,7 +708,7 @@ def get_patient_satisfaction_ai():
         
         # تحليل عوامل الرضا
         total_visits = Visit.query.count()
-        completed_visits = Visit.query.filter(Visit.status == 'ARCHIVED').count()
+        completed_visits = Visit.query.filter(Visit.status == VisitState.ARCHIVED).count()
         
         # معدل الإنجاز
         completion_rate = (completed_visits / total_visits * 100) if total_visits > 0 else 0
@@ -945,7 +945,7 @@ def calculate_queue_efficiency(queue):
     if not queue:
         return 100
     
-    completed = len([t for t in queue if t.status == 'completed'])
+    completed = len([t for t in queue if t.status == QueueState.COMPLETED])
     total = len(queue)
     return (completed / total * 100) if total > 0 else 0
 

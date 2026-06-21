@@ -92,11 +92,11 @@ def process_payment(visit_id):
         remaining = float(visit.remaining_amount or 0)
         paid_amount = float(visit.paid_amount or 0)
         if remaining <= 0:
-            visit.payment_status = 'PAID'
+            visit.payment_status = PaymentStatus.PAID
         elif paid_amount > 0:
-            visit.payment_status = 'PARTIAL'
+            visit.payment_status = PaymentStatus.PARTIAL
         else:
-            visit.payment_status = 'PENDING'
+            visit.payment_status = PaymentStatus.PENDING
 
         db.session.commit()
         flash('تم إرسال الزيارة للمحاسبة بنجاح.', 'success')
@@ -268,7 +268,7 @@ def cash_register():
     # Calculate expected from payments
     payments = Payment.query.filter(
         db.func.date(Payment.created_at) == today,
-        Payment.status.in_(['COMPLETED', 'PAID'])
+        Payment.status.in_([PaymentStatus.COMPLETED, PaymentStatus.PAID])
     ).all()
     exp_cash = sum(float(p.amount or 0) for p in payments if p.method == 'cash')
     exp_card = sum(float(p.amount or 0) for p in payments if p.method == 'card')

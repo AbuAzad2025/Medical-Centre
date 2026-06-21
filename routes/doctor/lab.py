@@ -38,7 +38,7 @@ def lab_request(visit_id):
         if not visit or visit.doctor_id != current_user.id:
             flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        if visit.status != 'IN_PROGRESS':
+        if visit.status != VisitState.IN_PROGRESS:
             flash('لا يمكن طلب تحاليل إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
         if request.method == 'POST':
@@ -68,7 +68,7 @@ def lab_request(visit_id):
                     description='إضافة مذكرة تحاليل'
                 ))
                 db.session.commit()
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
             flash('تم تدوين مذكرة التحاليل. يتوجه المريض للاستقبال لإنشاء زيارة للمختبر عند رغبة التنفيذ داخل المركز.', 'info')
@@ -112,7 +112,7 @@ def lab_results(patient_id):
                         'recorded_at': getattr(r, 'created_at', None),
                         'technician': getattr(r, 'recorded_by', None)
                     })
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
         return render_template('doctor/lab_results.html',

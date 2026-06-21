@@ -14,7 +14,13 @@ from datetime import datetime, timezone, timedelta, date
 import json
 from sqlalchemy import func
 
-medication_bp = Blueprint('medication', __name__)
+medication_bp = Blueprint('medication', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@medication_bp.before_request
+def _guard_pharmacy_module():
+    guard_module('pharmacy')
 
 
 
@@ -194,8 +200,8 @@ def get_prescription_analytics():
 
         # تحليل الوصفات
         total_prescriptions = Prescription.query.count()
-        active_prescriptions = Prescription.query.filter(Prescription.status == 'active').count()
-        dispensed_prescriptions = Prescription.query.filter(Prescription.status == 'dispensed').count()
+        active_prescriptions = Prescription.query.filter(Prescription.status == PrescriptionState.ACTIVE).count()
+        dispensed_prescriptions = Prescription.query.filter(Prescription.status == PrescriptionState.DISPENSED).count()
         
         # تحليل التكلفة
         total_cost = db.session.query(func.sum(Prescription.total_cost)).scalar() or 0

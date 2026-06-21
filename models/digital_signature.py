@@ -32,13 +32,13 @@ class DigitalSignature(TenantMixin, db.Model):
         return f"<DigitalSignature {self.document_type}>"
 
 
-class PasswordPolicy(db.Model):
+class PasswordPolicy(TenantMixin, db.Model):
     """System-wide password policy configuration"""
     __tablename__ = 'password_policies'
+    __tenant_migration__ = True
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     min_length = db.Column(db.Integer, default=8)
     require_uppercase = db.Column(db.Boolean, default=True)
     require_lowercase = db.Column(db.Boolean, default=True)

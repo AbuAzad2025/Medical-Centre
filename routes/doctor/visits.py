@@ -41,7 +41,7 @@ def start_treatment(visit_id):
         if not visit or visit.doctor_id != current_user.id:
             flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        if visit.status != 'OPEN':
+        if visit.status != VisitState.OPEN:
             flash('لا يمكن بدء العلاج إلا إذا كانت الزيارة في حالة انتظار', 'warning')
             return redirect(url_for('doctor.patient_queue'))
         # ضمان تحديد القسم للزيارة
@@ -92,7 +92,7 @@ def start_treatment(visit_id):
                 user_agent=request.headers.get('User-Agent'),
                 description='بدء علاج المريض'
             ))
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         try:
@@ -105,7 +105,7 @@ def start_treatment(visit_id):
                 notification_type='info',
                 sender_id=current_user.id
             )
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         db.session.commit()
@@ -143,7 +143,7 @@ def _parse_visit_vital_signs(visit):
         parsed = literal_eval(raw)
         if isinstance(parsed, dict):
             return {k: parsed.get(k) for k in ('blood_pressure', 'heart_rate', 'temperature', 'respiratory_rate')}
-    except Exception:
+    except Exception as e:
 
         logging.warning(f"Error in {__name__}: {e}")
     return {}
@@ -162,7 +162,7 @@ def _get_nurse_vital_signs(patient_id):
                 'oxygen_saturation': latest.oxygen_saturation, 'weight': latest.weight,
                 'height': latest.height, 'notes': latest.notes,
             }, latest.recorded_at)
-    except Exception:
+    except Exception as e:
 
         logging.warning(f"Error in {__name__}: {e}")
     return (None, None)
@@ -174,7 +174,7 @@ def _get_visit_lab_data(visit_id):
         req_ids = [r.id for r in (lab_requests or []) if getattr(r, 'id', None)]
         critical = 0
         if req_ids:
-            critical = LabResult.query.filter(LabResult.request_id.in_(req_ids), LabResult.is_critical == True, LabResult.status == 'VALIDATED').count()
+            critical = LabResult.query.filter(LabResult.request_id.in_(req_ids), LabResult.is_critical == True, LabResult.status == LabResultStatus.VALIDATED).count()
         return lab_requests, critical
     except Exception:
         return [], 0
@@ -187,7 +187,7 @@ def _get_visit_radiology_data(visit_id):
         critical = 0
         if req_ids:
             from models.radiology_result import RadiologyResult
-            critical = RadiologyResult.query.filter(RadiologyResult.request_id.in_(req_ids), RadiologyResult.is_critical == True, RadiologyResult.status == 'VALIDATED').count()
+            critical = RadiologyResult.query.filter(RadiologyResult.request_id.in_(req_ids), RadiologyResult.is_critical == True, RadiologyResult.status == LabResultStatus.VALIDATED).count()
         return radiology_requests, critical
     except Exception:
         return [], 0
@@ -204,7 +204,7 @@ def _count_visit_notes(visit):
             lab_notes_count = notes.count('[مذكرة تحاليل]')
             radiology_notes_count = notes.count('[مذكرة تصوير]')
             general_notes_count = notes.count('[مذكرة عامة]') + notes.count('[ملاحظات طبية]')
-    except Exception:
+    except Exception as e:
 
         logging.warning(f"Error in {__name__}: {e}")
     return note_count, lab_notes_count, radiology_notes_count, general_notes_count
@@ -252,7 +252,7 @@ def patient_details(visit_id):
                 critical_lab_results_count = LabResult.query.filter(
                     LabResult.request_id.in_(req_ids),
                     LabResult.is_critical == True,
-                    LabResult.status == 'VALIDATED'
+                    LabResult.status == LabResultStatus.VALIDATED
                 ).count()
         except Exception:
             critical_lab_results_count = 0
@@ -271,7 +271,7 @@ def patient_details(visit_id):
                 critical_radiology_results_count = RadiologyResult.query.filter(
                     RadiologyResult.request_id.in_(req_ids),
                     RadiologyResult.is_critical == True,
-                    RadiologyResult.status == 'VALIDATED'
+                    RadiologyResult.status == LabResultStatus.VALIDATED
                 ).count()
         except Exception:
             critical_radiology_results_count = 0
@@ -292,7 +292,7 @@ def patient_details(visit_id):
                 lab_notes_count = visit.notes.count('[مذكرة تحاليل]')
                 radiology_notes_count = visit.notes.count('[مذكرة تصوير]')
                 general_notes_count = visit.notes.count('[مذكرة عامة]') + visit.notes.count('[ملاحظات طبية]')
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
         current_prescriptions = []
@@ -412,12 +412,12 @@ def save_visit_summary(visit_id):
                 from datetime import datetime as _dt
                 visit.follow_up_date = _dt.strptime(fup_raw, '%Y-%m-%d').date()
                 visit.follow_up_required = True
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
         try:
             _sync_follow_up_request_for_visit(visit, current_user.id)
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         db.session.commit()
@@ -432,7 +432,7 @@ def save_visit_summary(visit_id):
                 description='حفظ ملخص الزيارة'
             ))
             db.session.commit()
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         return jsonify({'success': True})
@@ -451,7 +451,7 @@ def end_treatment(visit_id):
         if not visit or visit.doctor_id != current_user.id:
             flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        if visit.status != 'IN_PROGRESS':
+        if visit.status != VisitState.IN_PROGRESS:
             flash('لا يمكن إنهاء العلاج إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_queue'))
         from models.queue_management import QueueManagement
@@ -459,13 +459,13 @@ def end_treatment(visit_id):
         ticket = QueueManagement.query.filter_by(
             visit_id=visit_id,
             department_id=visit.department_id
-        ).filter(QueueManagement.status == 'in_progress').order_by(desc(QueueManagement.started_at)).first()
+        ).filter(QueueManagement.status == QueueState.IN_PROGRESS).order_by(desc(QueueManagement.started_at)).first()
         if ticket:
             ok, msg = QueueManagementService().complete_treatment(ticket.id, completed_by=current_user.id)
             if not ok:
                 flash(msg, 'warning')
                 return redirect(url_for('doctor.patient_queue'))
-        visit.status = 'COMPLETED'
+        visit.status = VisitState.COMPLETED
         visit.completed_by = current_user.id
         from datetime import timezone
         visit.completed_at = datetime.now(timezone.utc)
@@ -489,7 +489,7 @@ def end_treatment(visit_id):
                 notification_type='warning',
                 sender_id=current_user.id
             )
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         db.session.commit()
@@ -505,7 +505,7 @@ def end_treatment(visit_id):
                 new_values=json.dumps({'status': 'COMPLETED'})
             ))
             db.session.commit()
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         flash('تم تسجيل إنهاء العلاج وإخطار الاستقبال', 'success')

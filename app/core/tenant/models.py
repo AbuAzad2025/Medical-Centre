@@ -40,6 +40,9 @@ class Tenant(db.Model):
     logo_url = db.Column(db.String(255), nullable=True)
     primary_color = db.Column(db.String(7), default='#0d6efd', nullable=True)
 
+    # Per-tenant settings (JSON)
+    settings = db.Column(db.JSON, nullable=True, default=dict)
+
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 

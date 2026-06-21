@@ -9,7 +9,13 @@ from models import DataWarehouseSync, DailyVisitSummary, MonthlyFinanceSummary, 
 from sqlalchemy import func
 from datetime import datetime, timezone
 
-data_warehouse_bp = Blueprint('data_warehouse', __name__)
+data_warehouse_bp = Blueprint('data_warehouse', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@data_warehouse_bp.before_request
+def _guard_reporting_module():
+    guard_module('reporting')
 
 
 @data_warehouse_bp.route('/')

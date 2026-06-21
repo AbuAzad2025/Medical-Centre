@@ -51,14 +51,14 @@ def dashboard():
         
         # الفواتير المفتوحة
         open_invoices = Invoice.query.filter(
-            Invoice.status.in_(['DRAFT', 'ISSUED'])
+            Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
         ).count()
         
         # المبالغ المستحقة
         pending_amount = db.session.query(
             db.func.sum(Invoice.total_amount - Invoice.paid_amount)
         ).filter(
-            Invoice.status.in_(['DRAFT', 'ISSUED'])
+            Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
         ).scalar() or 0
         
         # الميزات الذكية
@@ -135,7 +135,7 @@ def dashboard():
                 large = [d for d in all_debts if float(d.get('remaining_amount') or 0) >= 500]
                 debt_alerts['large_debts_count'] = len(large)
                 debt_alerts['top_large'] = sorted(large, key=lambda x: float(x.get('remaining_amount') or 0), reverse=True)[:10]
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         stats = {

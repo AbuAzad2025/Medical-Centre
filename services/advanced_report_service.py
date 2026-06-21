@@ -4,6 +4,7 @@ Medical System Advanced Report Service
 """
 
 from datetime import datetime, timedelta, timezone
+from app.shared.enums import VisitState, AppointmentState, InvoiceStatus
 from sqlalchemy import and_, or_, func, desc, asc, text
 from app_factory import db
 from models.patient import Patient
@@ -129,7 +130,7 @@ class AdvancedReportService:
             
             # حسب الحالة
             status_stats = {}
-            for status in ['OPEN', 'COMPLETED', 'ARCHIVED']:
+            for status in [VisitState.OPEN, VisitState.COMPLETED, VisitState.ARCHIVED]:
                 count = visits_query.filter(Visit.status == status).count()
                 status_stats[status] = count
             
@@ -224,8 +225,8 @@ class AdvancedReportService:
             
             total_invoices = invoices_query.count()
             total_invoice_amount = invoices_query.with_entities(func.sum(Invoice.total_amount)).scalar() or 0
-            paid_invoices = invoices_query.filter(Invoice.status == 'PAID').count()
-            pending_invoices = invoices_query.filter(Invoice.status.in_(['ISSUED','DRAFT'])).count()
+            paid_invoices = invoices_query.filter(Invoice.status == InvoiceStatus.PAID).count()
+            pending_invoices = invoices_query.filter(Invoice.status.in_([InvoiceStatus.ISSUED,InvoiceStatus.DRAFT])).count()
             
             return {
                 'success': True,
@@ -292,10 +293,10 @@ class AdvancedReportService:
                 
                 # الإحصائيات
                 total_visits = len(visits)
-                completed_visits = len([v for v in visits if v.status == 'COMPLETED'])
+                completed_visits = len([v for v in visits if v.status == VisitState.COMPLETED])
                 total_appointments = len(appointments)
-                completed_appointments = len([a for a in appointments if a.status == 'DONE'])
-                cancelled_appointments = len([a for a in appointments if a.status == 'CANCELLED'])
+                completed_appointments = len([a for a in appointments if a.status == AppointmentState.DONE])
+                cancelled_appointments = len([a for a in appointments if a.status == AppointmentState.CANCELLED])
                 
                 # الإيرادات
                 total_revenue = sum(visit.total_amount for visit in visits if visit.total_amount)
@@ -375,9 +376,9 @@ class AdvancedReportService:
                 
                 # الإحصائيات
                 total_visits = len(visits)
-                completed_visits = len([v for v in visits if v.status == 'COMPLETED'])
+                completed_visits = len([v for v in visits if v.status == VisitState.COMPLETED])
                 total_appointments = len(appointments)
-                completed_appointments = len([a for a in appointments if a.status == 'DONE'])
+                completed_appointments = len([a for a in appointments if a.status == AppointmentState.DONE])
                 
                 # الإيرادات
                 total_revenue = sum(visit.total_amount for visit in visits if visit.total_amount)

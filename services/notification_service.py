@@ -6,6 +6,7 @@ Medical System Notification Management Service
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import and_, or_, func, desc
 from app_factory import db
+from app.shared.enums import NotificationState, PaymentStatus, AppointmentState, BookingState
 from models.notification import Notification, NotificationTemplate, NotificationQueue, WhatsAppNotificationMessage, EmailMessage
 from models.user import User
 from models.department import Department
@@ -395,7 +396,7 @@ class NotificationService:
                 message_type=message_type,
                 template_name=template_name,
                 media_url=media_url,
-                status='pending'
+                status=NotificationState.PENDING
             )
             
             db.session.add(whatsapp_message)
@@ -418,7 +419,7 @@ class NotificationService:
                 content=content,
                 content_type=content_type,
                 attachments=json.dumps(attachments) if attachments else None,
-                status='pending'
+                status=NotificationState.PENDING
             )
             
             db.session.add(email_message)
@@ -463,23 +464,34 @@ class NotificationService:
         """معالجة طابور الإشعارات"""
         try:
             # جلب الإشعارات المعلقة
-            pending_notifications = NotificationQueue.query.filter_by(status='pending').all()
+            pending_notifications = NotificationQueue.query.filter_by(status=NotificationState.PENDING).all()
             
             processed_count = 0
             for notification in pending_notifications:
                 try:
                     # معالجة الإشعار حسب النوع
-                    if notification.notification_type == 'whatsapp':
-                        result = NotificationService.send_whatsapp_message(
-                            phone_number=notification.recipient,
-                            message_content=notification.content,
-                            message_type='text'
+                    if notification.notification_type == 'sms':
+                        from services.sms_service import SMSService
+                        from app.core.tenant.models import Tenant
+                        _tenant = None
+                        if notification.tenant_id:
+                            _tenant = Tenant.query.get(notification.tenant_id)
+                        result = SMSService.send_sms(
+                            phone=notification.recipient,
+                            message=notification.content,
+                            tenant=_tenant
                         )
                     elif notification.notification_type == 'email':
                         result = NotificationService.send_email_message(
                             recipient_email=notification.recipient,
                             subject=notification.subject or 'إشعار من النظام',
                             content=notification.content
+                        )
+                    elif notification.notification_type == 'whatsapp':
+                        result = NotificationService.send_whatsapp_message(
+                            phone_number=notification.recipient,
+                            message_content=notification.content,
+                            message_type='text'
                         )
                     else:
                         # إشعار عادي
@@ -491,16 +503,16 @@ class NotificationService:
                         )
                     
                     if result['success']:
-                        notification.status = 'sent'
+                        notification.status = NotificationState.SENT
                         notification.sent_at = datetime.now(timezone.utc)
                         processed_count += 1
                     else:
-                        notification.status = 'failed'
+                        notification.status = NotificationState.FAILED
                         notification.failed_at = datetime.now(timezone.utc)
                         notification.error_message = result['message']
                         
                 except Exception as e:
-                    notification.status = 'failed'
+                    notification.status = NotificationState.FAILED
                     notification.failed_at = datetime.now(timezone.utc)
                     notification.error_message = str(e)
                     logging.error(f"Error processing notification {notification.id}: {str(e)}")
@@ -518,9 +530,9 @@ class NotificationService:
     def get_notification_queue_status():
         """الحصول على حالة طابور الإشعارات"""
         try:
-            pending_count = NotificationQueue.query.filter_by(status='pending').count()
-            sent_count = NotificationQueue.query.filter_by(status='sent').count()
-            failed_count = NotificationQueue.query.filter_by(status='failed').count()
+            pending_count = NotificationQueue.query.filter_by(status=NotificationState.PENDING).count()
+            sent_count = NotificationQueue.query.filter_by(status=NotificationState.SENT).count()
+            failed_count = NotificationQueue.query.filter_by(status=NotificationState.FAILED).count()
             
             return {
                 'success': True,
@@ -551,8 +563,8 @@ class NotificationService:
             overdue_debts = Visit.query.filter(
                 and_(
                     or_(
-                        Visit.payment_status == 'DEBT',
-                        Visit.payment_status == 'PENDING'
+                        Visit.payment_status == PaymentStatus.DEBT,
+                        Visit.payment_status == PaymentStatus.PENDING
                     ),
                     Visit.created_at < seven_days_ago,
                     Visit.is_force_payment == True
@@ -631,7 +643,7 @@ class NotificationService:
             pending_insurance = Visit.query.filter(
                 and_(
                     Visit.payment_method == 'insurance',
-                    Visit.payment_status == 'PARTIAL',  # دفع المريض حصته فقط
+                    Visit.payment_status == PaymentStatus.PARTIAL,  # دفع المريض حصته فقط
                     Visit.created_at < fourteen_days_ago
                 )
             ).all()
@@ -842,7 +854,7 @@ class NotificationService:
 
             appts = Appointment.query.filter(
                 and_(
-                    Appointment.status == 'SCHEDULED',
+                    Appointment.status == AppointmentState.SCHEDULED,
                     Appointment.starts_at >= now,
                     Appointment.starts_at <= soon
                 )
@@ -912,7 +924,7 @@ class NotificationService:
             soon = now + timedelta(hours=24)
 
             q = OnlineBooking.query.filter(
-                OnlineBooking.status.in_(['pending', 'confirmed']),
+                OnlineBooking.status.in_([BookingState.PENDING, BookingState.CONFIRMED]),
                 OnlineBooking.appointment_date.isnot(None),
                 OnlineBooking.appointment_time.isnot(None)
             ).all()

@@ -5,10 +5,11 @@ Medical System Pricing Management Model
 
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 from decimal import Decimal, ROUND_HALF_UP
 import json
 
-class PricingManagement(db.Model):
+class PricingManagement(TenantMixin, db.Model):
     """نموذج إدارة التسعير"""
     
     __tablename__ = 'pricing_management'
@@ -101,7 +102,7 @@ class PricingManagement(db.Model):
             'created_by': self.created_by
         }
 
-class PricingRule(db.Model):
+class PricingRule(TenantMixin, db.Model):
     """نموذج قواعد التسعير"""
     
     __tablename__ = 'pricing_rules'

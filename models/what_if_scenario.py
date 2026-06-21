@@ -3,8 +3,9 @@ What-If Scenario Engine for Manager Dashboard
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class WhatIfScenario(db.Model):
+class WhatIfScenario(TenantMixin, db.Model):
     __tablename__ = 'what_if_scenarios'
 
     id = db.Column(db.Integer, primary_key=True)

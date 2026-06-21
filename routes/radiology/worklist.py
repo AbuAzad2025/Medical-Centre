@@ -98,7 +98,7 @@ def _notify_radiology_complete(req, is_critical):
                     message=f'يوجد تقرير أشعة حرج لطلب #{req.id} للمريض #{req.patient_id}',
                     notification_type='warning', is_urgent=True
                 )
-    except Exception:
+    except Exception as e:
 
         logging.warning(f"Error in {__name__}: {e}")
 @radiology_bp.route('/worklist')
@@ -203,7 +203,7 @@ def worklist_complete(request_id):
             if action == 'second_review':
                 res.reviewed_by = current_user.id
                 res.reviewed_at = datetime.now(timezone.utc)
-            res.status = 'VALIDATED' if (action in (None, 'finalize', 'second_review')) else (res.status or 'PENDING')
+            res.status = LabResultStatus.VALIDATED if (action in (None, 'finalize', 'second_review')) else (res.status or 'PENDING')
             res.is_critical = is_critical
             if was_reviewed:
                 after = {
@@ -250,11 +250,11 @@ def worklist_complete(request_id):
 
         should_finalize = action in (None, 'finalize')
         if should_finalize:
-            req.status = 'DONE'
+            req.status = OrderState.DONE
             _log_radiology_workflow(req.id, 'DONE', 'finalize')
         else:
-            if req.status == 'REQUESTED':
-                req.status = 'IN_PROGRESS'
+            if req.status == OrderState.REQUESTED:
+                req.status = OrderState.IN_PROGRESS
                 _log_radiology_workflow(req.id, 'IN_PROGRESS', 'start')
         req.updated_at = datetime.now(timezone.utc)
         db.session.commit()

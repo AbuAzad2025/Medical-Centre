@@ -6,8 +6,9 @@ Medical System Audit Trail Models
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class AuditTrail(db.Model):
+class AuditTrail(TenantMixin, db.Model):
     """نموذج سجل التدقيق"""
     
     __tablename__ = 'audit_trails'
@@ -68,7 +69,7 @@ class AuditTrail(db.Model):
         }
 
 
-class SystemLog(db.Model):
+class SystemLog(TenantMixin, db.Model):
     """نموذج سجل النظام"""
     
     __tablename__ = 'system_logs'
@@ -126,7 +127,7 @@ class SystemLog(db.Model):
         }
 
 
-class SlowQueryReport(db.Model):
+class SlowQueryReport(TenantMixin, db.Model):
     __tablename__ = 'slow_query_reports'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -145,7 +146,7 @@ class SlowQueryReport(db.Model):
     entries = db.relationship('SlowQueryEntry', back_populates='report', lazy='selectin', cascade='all, delete-orphan')
 
 
-class SlowQueryEntry(db.Model):
+class SlowQueryEntry(TenantMixin, db.Model):
     __tablename__ = 'slow_query_entries'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -164,7 +165,7 @@ class SlowQueryEntry(db.Model):
     report = db.relationship('SlowQueryReport', back_populates='entries', lazy='selectin')
 
 
-class SecurityEvent(db.Model):
+class SecurityEvent(TenantMixin, db.Model):
     """نموذج أحداث الأمان"""
     
     __tablename__ = 'security_events'
@@ -222,7 +223,7 @@ class SecurityEvent(db.Model):
         db.session.commit()
 
 
-class LoginAttempt(db.Model):
+class LoginAttempt(TenantMixin, db.Model):
     __tablename__ = 'login_attempts'
 
     id = db.Column(db.Integer, primary_key=True)

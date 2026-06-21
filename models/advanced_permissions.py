@@ -6,8 +6,9 @@ Medical System Advanced Permissions Models
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class ModulePermission(db.Model):
+class ModulePermission(TenantMixin, db.Model):
     """نموذج صلاحيات الوحدات"""
     
     __tablename__ = 'module_permissions'
@@ -70,7 +71,7 @@ class ModulePermission(db.Model):
         }
 
 
-class DepartmentPermission(db.Model):
+class DepartmentPermission(TenantMixin, db.Model):
     """نموذج صلاحيات الأقسام"""
     
     __tablename__ = 'department_permissions'

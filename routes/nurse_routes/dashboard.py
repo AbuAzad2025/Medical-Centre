@@ -46,7 +46,7 @@ def dashboard():
         patients_today = Patient.query.filter(Patient.created_at >= start_of_today).count()
 
         active_visits_query = Visit.query.filter(
-            Visit.status.in_(['OPEN', 'IN_PROGRESS'])
+            Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])
         )
         dept_ids = _accessible_department_ids()
         if dept_ids is not None and dept_ids:
@@ -65,7 +65,7 @@ def dashboard():
 
         open_tasks = Task.query.filter(
             Task.assigned_to == current_user.id,
-            Task.status.in_(['pending', 'in_progress'])
+            Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS])
         ).order_by(desc(Task.created_at)).limit(10).all()
 
         vital_due_count = 0
@@ -99,7 +99,7 @@ def dashboard():
                 Prescription, PrescriptionItem.prescription_id == Prescription.id
             ).filter(
                 Prescription.visit_id.in_(active_visit_ids),
-                Prescription.status == 'active'
+                Prescription.status == PrescriptionState.ACTIVE
             ).all()
             for it in prescribed:
                 visit_id = getattr(getattr(it, 'prescription', None), 'visit_id', None)
@@ -215,7 +215,7 @@ def dashboard():
             Task.assigned_to == current_user.id,
             Task.due_date.isnot(None),
             Task.due_date < now,
-            Task.status.in_(['pending', 'in_progress', 'on_hold'])
+            Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS, 'on_hold'])
         )
         overdue_tasks_count = overdue_tasks_q.count()
         overdue_important = overdue_tasks_q.filter(Task.priority.in_(['high', 'urgent'])).order_by(Task.due_date.asc()).limit(10).all()

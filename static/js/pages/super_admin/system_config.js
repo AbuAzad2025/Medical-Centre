@@ -50,6 +50,55 @@ function resetSettings() {
     }).then((result) => { if (result.isConfirmed) { location.reload(); } });
 }
 
+function testSmsConnection() {
+    const testPhone = prompt('أدخل رقم الهاتف المرسل إليه (مثال: +970599123456):');
+    if (!testPhone) return;
+    fetch(__M5__, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone_number: testPhone })
+    })
+    .then(r => r.json())
+    .then(d => {
+        Swal.fire({ title: d.success ? 'تم' : 'فشل', text: d.message, icon: d.success ? 'success' : 'error' });
+    })
+    .catch(err => {
+        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إرسال الرسالة', icon: 'error' });
+        console.error(err);
+    });
+}
+
+function processNotificationQueue() {
+    fetch(__M6__, { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+        Swal.fire({ title: d.success ? 'تم' : 'خطأ', text: d.message, icon: d.success ? 'success' : 'error' });
+    })
+    .catch(err => {
+        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في معالجة الطابور', icon: 'error' });
+        console.error(err);
+    });
+}
+
+// إظهار/إخفاء إعدادات Twilio بناءً على اختيار المزود
+document.addEventListener('DOMContentLoaded', function() {
+    const providerSelect = document.getElementById('sms_provider');
+    if (providerSelect) {
+        providerSelect.addEventListener('change', function() {
+            const twilioSettings = document.getElementById('twilioSettings');
+            if (this.value === 'twilio') {
+                twilioSettings.style.display = 'block';
+            } else {
+                twilioSettings.style.display = 'none';
+            }
+        });
+        // تفعيل عند التحميل
+        if (providerSelect.value === 'twilio') {
+            document.getElementById('twilioSettings').style.display = 'block';
+        }
+    }
+});
+
 function testConnection() {
     // اختبار اتصال قاعدة البيانات
     const dbSettings = {

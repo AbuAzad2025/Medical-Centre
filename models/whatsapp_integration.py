@@ -5,10 +5,11 @@ Medical System WhatsApp Integration Models
 
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 import secrets
 import string
 
-class WhatsAppMessage(db.Model):
+class WhatsAppMessage(TenantMixin, db.Model):
     """نموذج رسالة الواتساب"""
     
     __tablename__ = 'whatsapp_integration_messages'
@@ -132,7 +133,7 @@ class WhatsAppMessage(db.Model):
             'failed_at': self.failed_at.isoformat() if self.failed_at else None
         }
 
-class WhatsAppTemplate(db.Model):
+class WhatsAppTemplate(TenantMixin, db.Model):
     """نموذج قالب الواتساب"""
     
     __tablename__ = 'whatsapp_templates'
@@ -203,7 +204,7 @@ class WhatsAppTemplate(db.Model):
             'approved_at': self.approved_at.isoformat() if self.approved_at else None
         }
 
-class WhatsAppConfig(db.Model):
+class WhatsAppConfig(TenantMixin, db.Model):
     """نموذج إعدادات الواتساب"""
     
     __tablename__ = 'whatsapp_config'

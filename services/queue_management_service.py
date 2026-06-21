@@ -5,6 +5,7 @@ Medical System Queue Management Service
 
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import and_, or_, desc, asc, case
+from app.shared.enums import QueueState, VisitState, PaymentStatus
 from app_factory import db
 import logging
 
@@ -44,9 +45,9 @@ class QueueManagementService:
 
     def _status_rank_expr(self, QueueManagement):
         return case(
-            (QueueManagement.status == 'waiting', 0),
-            (QueueManagement.status == 'called', 1),
-            (QueueManagement.status == 'in_progress', 2),
+            (QueueManagement.status == QueueState.WAITING, 0),
+            (QueueManagement.status == QueueState.CALLED, 1),
+            (QueueManagement.status == QueueState.IN_PROGRESS, 2),
             else_=9
         )
     
@@ -81,7 +82,7 @@ class QueueManagementService:
                            visit_id=None, appointment_id=None, queue_type='normal',
                            is_emergency=False, emergency_reason=None,
                            force_entry=False, force_entry_reason=None,
-                           payment_status='PENDING', created_by=None):
+                           payment_status=PaymentStatus.PENDING, created_by=None):
         """إضافة مريض إلى الطابور"""
         try:
             from models.queue_management import QueueManagement, QueueSettings
@@ -128,7 +129,7 @@ class QueueManagementService:
                     patient_id=int(patient_id),
                     department_id=int(department_id),
                     doctor_id=int(doctor_id),
-                    status='OPEN',
+                    status=VisitState.OPEN,
                     created_by=created_by
                 )
                 db.session.add(v)
@@ -245,13 +246,13 @@ class QueueManagementService:
         
         # التحقق من حالة الدفع
         if settings.payment_required:
-            if payment_status == 'PAID':
+            if payment_status == PaymentStatus.PAID:
                 return True, "تم الدفع - يمكن الدخول"
-            elif payment_status == 'PARTIAL' and getattr(settings, 'allow_partial_payment', True):
+            elif payment_status == PaymentStatus.PARTIAL and getattr(settings, 'allow_partial_payment', True):
                 return True, "دفع جزئي - يمكن الدخول"
-            elif payment_status == 'DEBT' and getattr(settings, 'allow_debt', False):
+            elif payment_status == PaymentStatus.DEBT and getattr(settings, 'allow_debt', False):
                 return True, "دين معتمد - يمكن الدخول"
-            elif payment_status == 'EMERGENCY_DEBT' and settings.emergency_payment_waived:
+            elif payment_status == PaymentStatus.EMERGENCY_DEBT and settings.emergency_payment_waived:
                 return True, "دين طوارئ - يمكن الدخول"
             else:
                 return False, "يجب الدفع أولاً أو الحصول على موافقة للدين"
@@ -275,17 +276,17 @@ class QueueManagementService:
             # جلب المرضى في الطابور
             priority_rank = self._priority_rank_expr(QueueManagement)
             kind_rank = self._visit_kind_rank_expr(QueueManagement, Visit)
-            waiting_patients = query.filter_by(status='waiting').order_by(
+            waiting_patients = query.filter_by(status=QueueState.WAITING).order_by(
                 kind_rank.asc(),
                 priority_rank.asc(),
                 QueueManagement.queued_at.asc()
             ).all()
             
             # جلب المريض الحالي
-            current_patient = query.filter_by(status='in_progress').first()
+            current_patient = query.filter_by(status=QueueState.IN_PROGRESS).first()
             
             # جلب المرضى المستدعين
-            called_patients = query.filter_by(status='called').all()
+            called_patients = query.filter_by(status=QueueState.CALLED).all()
 
             def enrich(ticket: QueueManagement):
                 d = ticket.to_dict()
@@ -350,7 +351,7 @@ class QueueManagementService:
             if status:
                 q = q.filter(QueueManagement.status == status)
             else:
-                q = q.filter(QueueManagement.status.in_(['waiting', 'called', 'in_progress']))
+                q = q.filter(QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS]))
             if priority:
                 q = q.filter(QueueManagement.priority_level == priority)
             if is_emergency is not None:
@@ -397,9 +398,9 @@ class QueueManagementService:
                     return d
 
             enriched = [enrich(t) for t in tickets]
-            waiting = sum(1 for t in tickets if t.status == 'waiting')
-            called = sum(1 for t in tickets if t.status == 'called')
-            in_progress = sum(1 for t in tickets if t.status == 'in_progress')
+            waiting = sum(1 for t in tickets if t.status == QueueState.WAITING)
+            called = sum(1 for t in tickets if t.status == QueueState.CALLED)
+            in_progress = sum(1 for t in tickets if t.status == QueueState.IN_PROGRESS)
             return {
                 'tickets': enriched,
                 'waiting_count': waiting,
@@ -419,7 +420,7 @@ class QueueManagementService:
             # البحث عن المريض التالي
             query = QueueManagement.query.filter_by(
                 department_id=department_id,
-                status='waiting'
+                status=QueueState.WAITING
             )
             query = query.outerjoin(Visit, Visit.id == QueueManagement.visit_id)
             if doctor_id:
@@ -437,7 +438,7 @@ class QueueManagementService:
                 return False, "لا يوجد مرضى في الطابور"
             
             # تحديث حالة المريض
-            next_patient.status = 'called'
+            next_patient.status = QueueState.CALLED
             next_patient.called_at = datetime.now(timezone.utc)
             
             db.session.commit()
@@ -460,7 +461,7 @@ class QueueManagementService:
 
             rows = QueueManagement.query.filter(
                 QueueManagement.department_id.in_(department_ids),
-                QueueManagement.status.in_(['waiting', 'called', 'in_progress', 'completed']),
+                QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS, QueueState.COMPLETED]),
                 QueueManagement.queued_at >= start
             ).all()
 
@@ -514,7 +515,7 @@ class QueueManagementService:
             ticket = db.session.get(QueueManagement, ticket_id)
             if not ticket:
                 return False, "التذكرة غير موجودة"
-            if ticket.status != 'called':
+            if ticket.status != QueueState.CALLED:
                 return False, "يجب استدعاء المريض أولاً"
             
             if started_by:
@@ -530,7 +531,7 @@ class QueueManagementService:
                         return False, "ليس لديك صلاحية لبدء علاج هذه التذكرة"
             
             # تحديث حالة التذكرة
-            ticket.status = 'in_progress'
+            ticket.status = QueueState.IN_PROGRESS
             ticket.started_at = datetime.now(timezone.utc)
             
             # مزامنة حالة الزيارة إلى IN_PROGRESS إذا وجدت
@@ -538,7 +539,7 @@ class QueueManagementService:
                 try:
                     visit = db.session.get(Visit, ticket.visit_id)
                     if visit:
-                        visit.status = 'IN_PROGRESS'
+                        visit.status = VisitState.IN_PROGRESS
                 except Exception:
                     pass
             
@@ -568,7 +569,7 @@ class QueueManagementService:
             if not ticket:
                 return False, "التذكرة غير موجودة"
             
-            if ticket.status != 'in_progress':
+            if ticket.status != QueueState.IN_PROGRESS:
                 return False, "يجب بدء العلاج أولاً"
             
             if completed_by:
@@ -584,7 +585,7 @@ class QueueManagementService:
                         return False, "ليس لديك صلاحية لإنهاء علاج هذه التذكرة"
             
             # تحديث حالة التذكرة
-            ticket.status = 'completed'
+            ticket.status = QueueState.COMPLETED
             ticket.completed_at = datetime.now(timezone.utc)
             
             # مزامنة حالة الزيارة إلى COMPLETED إذا وجدت
@@ -592,7 +593,7 @@ class QueueManagementService:
                 try:
                     visit = db.session.get(Visit, ticket.visit_id)
                     if visit:
-                        visit.status = 'COMPLETED'
+                        visit.status = VisitState.COMPLETED
                         visit.completed_at = datetime.now(timezone.utc)
                         visit.completed_by = completed_by
                         self._ensure_survey_for_visit(visit)
@@ -622,7 +623,7 @@ class QueueManagementService:
                 return False, "التذكرة غير موجودة"
             
             # تحديث حالة التذكرة
-            ticket.status = 'skipped'
+            ticket.status = QueueState.SKIPPED
             ticket.notes = f"تم التخطي - السبب: {reason}" if reason else "تم التخطي"
             
             db.session.commit()
@@ -646,10 +647,10 @@ class QueueManagementService:
                 return False, "التذكرة غير موجودة"
 
             old_status = ticket.status
-            if old_status not in {'called', 'in_progress', 'skipped'}:
+            if old_status not in {QueueState.CALLED, QueueState.IN_PROGRESS, QueueState.SKIPPED}:
                 return False, "لا يمكن إعادة هذه التذكرة للطابور"
 
-            ticket.status = 'waiting'
+            ticket.status = QueueState.WAITING
             ticket.queued_at = datetime.now(timezone.utc)
             ticket.called_at = None
             ticket.started_at = None
@@ -659,11 +660,11 @@ class QueueManagementService:
                 note = f"{note} - السبب: {reason}"
             ticket.notes = f"{ticket.notes} | {note}" if ticket.notes else note
 
-            if ticket.visit_id and old_status == 'in_progress':
+            if ticket.visit_id and old_status == QueueState.IN_PROGRESS:
                 try:
                     v = db.session.get(Visit, ticket.visit_id)
-                    if v and v.status == 'IN_PROGRESS':
-                        v.status = 'OPEN'
+                    if v and v.status == VisitState.IN_PROGRESS:
+                        v.status = VisitState.OPEN
                 except Exception:
                     pass
 
@@ -686,7 +687,7 @@ class QueueManagementService:
                 return False, "التذكرة غير موجودة"
             
             # تحديث حالة التذكرة
-            ticket.status = 'cancelled'
+            ticket.status = QueueState.CANCELLED
             ticket.notes = f"تم الإلغاء - السبب: {reason}" if reason else "تم الإلغاء"
             
             db.session.commit()
@@ -709,7 +710,7 @@ class QueueManagementService:
             # عدد المرضى في الطابور
             waiting_count = QueueManagement.query.filter_by(
                 department_id=department_id,
-                status='waiting'
+                status=QueueState.WAITING
             ).count()
             
             # متوسط وقت الخدمة من إعدادات القسم إن وُجد
@@ -732,7 +733,7 @@ class QueueManagementService:
     def _build_queue_snapshot(self):
         from models.queue_management import QueueManagement
         items = QueueManagement.query.filter(
-            QueueManagement.status.in_(['waiting', 'called', 'in_progress'])
+            QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS])
         ).order_by(QueueManagement.queued_at.asc()).limit(80).all()
         result = []
         for item in items:
@@ -749,13 +750,13 @@ class QueueManagementService:
     def _build_display_waiting(self):
         from models.queue_management import QueueManagement
         waiting = QueueManagement.query.filter(
-            QueueManagement.status == 'waiting'
+            QueueManagement.status == QueueState.WAITING
         ).order_by(QueueManagement.queued_at.asc()).limit(60).all()
         called = QueueManagement.query.filter(
-            QueueManagement.status == 'called'
+            QueueManagement.status == QueueState.CALLED
         ).order_by(QueueManagement.called_at.desc()).limit(12).all()
         current = QueueManagement.query.filter(
-            QueueManagement.status == 'in_progress'
+            QueueManagement.status == QueueState.IN_PROGRESS
         ).order_by(QueueManagement.started_at.desc()).limit(6).all()
 
         def _pack(item):
@@ -774,15 +775,15 @@ class QueueManagementService:
             }
 
         return {
-            'waiting': [_pack(i) for i in waiting],
-            'called': [_pack(i) for i in called],
+            QueueState.WAITING: [_pack(i) for i in waiting],
+            QueueState.CALLED: [_pack(i) for i in called],
             'current': [_pack(i) for i in current]
         }
 
     def _build_display_calls(self):
         from models.queue_management import QueueManagement
         called = QueueManagement.query.filter(
-            QueueManagement.status.in_(['called', 'in_progress'])
+            QueueManagement.status.in_([QueueState.CALLED, QueueState.IN_PROGRESS])
         ).order_by(QueueManagement.called_at.desc()).limit(24).all()
         items = []
         for item in called:
@@ -837,7 +838,7 @@ class QueueManagementService:
             ticket = QueueManagement.query.filter_by(
                 patient_id=patient_id,
                 department_id=department_id,
-                status='waiting'
+                status=QueueState.WAITING
             ).first()
             
             if not ticket:
@@ -849,7 +850,7 @@ class QueueManagementService:
             priority_rank = self._priority_rank_expr(QueueManagement)
             position = QueueManagement.query.filter(
                 QueueManagement.department_id == department_id,
-                QueueManagement.status == 'waiting',
+                QueueManagement.status == QueueState.WAITING,
                 db.or_(
                     priority_rank < ticket_rank,
                     db.and_(priority_rank == ticket_rank, QueueManagement.queued_at < ticket.queued_at)

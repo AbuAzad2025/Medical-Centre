@@ -94,7 +94,7 @@ def medical_history(patient_id):
         # جلب حالات الطوارئ السابقة
         previous_emergencies = EmergencyCase.query.filter(
             EmergencyCase.patient_id == patient_id,
-            EmergencyCase.status == 'COMPLETED'
+            EmergencyCase.status == EmergencyStatus.COMPLETED
         ).order_by(desc(EmergencyCase.created_at)).limit(10).all()
         
         return render_template('emergency/medical_history.html',

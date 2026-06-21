@@ -17,7 +17,13 @@ from datetime import datetime, timedelta, timezone
 import json
 import secrets
 
-booking_bp = Blueprint('booking', __name__)
+booking_bp = Blueprint('booking', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@booking_bp.before_request
+def _guard_appointments_module():
+    guard_module('appointments')
 
 def _extract_meeting_link(notes):
     if not notes:
@@ -170,7 +176,7 @@ def cancel_booking(booking_id):
                 notification_type='info',
                 is_urgent=False
             )
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         if request.accept_mimetypes.best == 'application/json':
@@ -277,7 +283,7 @@ def create_booking():
                     if link:
                         booking.patient_id = link.patient_id
                         booking.is_new_patient = False
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
             db.session.add(booking)
@@ -331,7 +337,7 @@ def create_booking():
                         notification_type='success',
                         is_urgent=False
                     )
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
             flash('تم إنشاء الحجز بنجاح', 'success')

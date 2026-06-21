@@ -16,7 +16,7 @@ import secrets
 import hashlib
 from datetime import datetime, timezone, timedelta
 
-mfa_bp = Blueprint('mfa', __name__)
+mfa_bp = Blueprint('mfa', __name__, guard_module=__name__)
 
 
 @mfa_bp.route('/setup', methods=['GET', 'POST'])

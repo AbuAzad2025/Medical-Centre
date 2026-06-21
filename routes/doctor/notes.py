@@ -40,7 +40,7 @@ def notes(visit_id):
         if not visit or visit.doctor_id != current_user.id:
             flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        if visit.status == 'ARCHIVED':
+        if visit.status == VisitState.ARCHIVED:
             flash('لا يمكن إضافة ملاحظات بعد أرشفة الزيارة', 'warning')
             return redirect(url_for('doctor.patient_queue'))
         
@@ -80,7 +80,7 @@ def notes(visit_id):
                         description='إضافة ملاحظات طبية'
                     ))
                     db.session.commit()
-                except Exception:
+                except Exception as e:
 
                     logging.warning(f"Error in {__name__}: {e}")
                 flash('تم حفظ الملاحظات الطبية بنجاح', 'success')

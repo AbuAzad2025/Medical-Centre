@@ -6,14 +6,15 @@ Medical System Emergency Cases
 from datetime import datetime
 from sqlalchemy import func, Index
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class EmergencyCase(db.Model):
+class EmergencyCase(TenantMixin, db.Model):
     """نموذج حالات الطوارئ"""
     
     __tablename__ = 'emergency_cases'
+    __tenant_migration__ = True
     
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
     case_number = db.Column(db.String(50), unique=True, nullable=False)

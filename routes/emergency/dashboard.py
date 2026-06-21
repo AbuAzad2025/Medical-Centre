@@ -71,7 +71,7 @@ def reports():
             try:
                 hr = int(c.created_at.strftime('%H'))
                 by_hour[hr] = by_hour.get(hr, 0) + 1
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
         top_reasons = {}
@@ -150,31 +150,31 @@ def dashboard():
         
         # الحالات النشطة
         active_emergencies = EmergencyCase.query.filter(
-            EmergencyCase.status.in_(['WAITING', 'TRIAGE', 'RESUSCITATION', 'TREATMENT', 'OBSERVATION'])
+            EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
         ).count()
         
         # الحالات المكتملة اليوم
         completed_today = EmergencyCase.query.filter(
-            EmergencyCase.status == 'COMPLETED',
+            EmergencyCase.status == EmergencyStatus.COMPLETED,
             EmergencyCase.completed_at >= today
         ).count()
         
         # الحالات الأسبوع الماضي
         weekly_emergencies = EmergencyCase.query.filter(
             EmergencyCase.created_at >= week_ago,
-            EmergencyCase.status == 'COMPLETED'
+            EmergencyCase.status == EmergencyStatus.COMPLETED
         ).count()
         
         # الحالات العاجلة
         urgent_cases = EmergencyCase.query.filter(
             EmergencyCase.severity == 'HIGH',
-            EmergencyCase.status.in_(['WAITING', 'TRIAGE', 'RESUSCITATION', 'TREATMENT', 'OBSERVATION'])
+            EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
         ).count()
         
         # الحالات الحرجة
         critical_cases = EmergencyCase.query.filter(
             EmergencyCase.severity == 'CRITICAL',
-            EmergencyCase.status.in_(['WAITING', 'TRIAGE', 'RESUSCITATION', 'TREATMENT', 'OBSERVATION'])
+            EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
         ).count()
         
         # الوصفات الطبية اليوم
@@ -196,7 +196,7 @@ def dashboard():
 
         # الحالات القادمة (أولوية عالية)
         upcoming_cases = EmergencyCase.query.filter(
-            EmergencyCase.status.in_(['WAITING', 'TRIAGE', 'RESUSCITATION', 'TREATMENT', 'OBSERVATION']),
+            EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION]),
             EmergencyCase.severity.in_(['HIGH', 'CRITICAL'])
         ).order_by(severity_order.desc(), EmergencyCase.created_at).limit(5).all()
         

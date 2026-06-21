@@ -5,14 +5,15 @@ Medical System Workflow Models
 
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class WorkflowStep(db.Model):
+class WorkflowStep(TenantMixin, db.Model):
     """نموذج خطوة التدفق"""
     
     __tablename__ = 'workflow_steps'
+    __tenant_migration__ = True
     
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     name = db.Column(db.String(100), nullable=False)
     name_ar = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
@@ -51,13 +52,13 @@ class WorkflowStep(db.Model):
             'updated_at': self.updated_at.isoformat()
         }
 
-class PatientWorkflow(db.Model):
+class PatientWorkflow(TenantMixin, db.Model):
     """نموذج تدفق المريض"""
     
     __tablename__ = 'patient_workflows'
+    __tenant_migration__ = True
     
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
     appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.id', ondelete='SET NULL'), nullable=True, index=True)
@@ -168,7 +169,7 @@ class PatientWorkflow(db.Model):
             'updated_at': self.updated_at.isoformat()
         }
 
-class WorkflowTransfer(db.Model):
+class WorkflowTransfer(TenantMixin, db.Model):
     """نموذج نقل التدفق"""
     
     __tablename__ = 'workflow_transfers'
@@ -213,7 +214,7 @@ class WorkflowTransfer(db.Model):
             'created_at': self.created_at.isoformat()
         }
 
-class WorkflowQueue(db.Model):
+class WorkflowQueue(TenantMixin, db.Model):
     """نموذج طابور التدفق"""
     
     __tablename__ = 'workflow_queues'
@@ -295,13 +296,13 @@ class WorkflowQueue(db.Model):
         }
 
 
-class VisitWorkflowEvent(db.Model):
+class VisitWorkflowEvent(TenantMixin, db.Model):
     """Event log for visit state transitions."""
     __tablename__ = 'visit_workflow_events'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='RESTRICT'), nullable=False, index=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     from_status = db.Column(db.String(50), nullable=True)
     to_status = db.Column(db.String(50), nullable=False)
     performed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)

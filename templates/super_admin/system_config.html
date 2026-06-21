@@ -368,17 +368,68 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="whatsapp_api" class="form-label">WhatsApp API</label>
-                                            <input type="text" class="form-control" id="whatsapp_api" name="whatsapp_api" 
-                                                   placeholder="أدخل مفتاح API">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="sms_enabled" name="sms_enabled">
+                                                <label class="form-check-label" for="sms_enabled">
+                                                    تفعيل إرسال الرسائل النصية
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="sms_api" class="form-label">SMS API</label>
-                                            <input type="text" class="form-control" id="sms_api" name="sms_api" 
-                                                   placeholder="أدخل مفتاح API">
+                                            <label for="sms_provider" class="form-label">مزود الخدمة</label>
+                                            <select class="form-control" id="sms_provider" name="sms_provider">
+                                                <option value="log">تسجيل فقط (تجريبي)</option>
+                                                <option value="twilio">Twilio</option>
+                                            </select>
                                         </div>
+                                    </div>
+                                </div>
+                                <div id="twilioSettings" style="display:none;">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="twilio_account_sid" class="form-label">Twilio Account SID</label>
+                                                <input type="text" class="form-control" id="twilio_account_sid" name="twilio_account_sid" 
+                                                       placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="twilio_auth_token" class="form-label">Twilio Auth Token</label>
+                                                <input type="password" class="form-control" id="twilio_auth_token" name="twilio_auth_token" 
+                                                       placeholder="أدخل رمز التوثيق">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="twilio_phone_number" class="form-label">رقم المرسل</label>
+                                                <input type="text" class="form-control" id="twilio_phone_number" name="twilio_phone_number" 
+                                                       placeholder="+12025551234" dir="ltr">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">&nbsp;</label>
+                                                <div>
+                                                    <button type="button" class="btn btn-outline-info" onclick="testSmsConnection()">
+                                                        <i class="fas fa-comment-dots me-2"></i>
+                                                        إرسال رسالة تجريبية
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-12">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="processNotificationQueue()">
+                                            <i class="fas fa-play me-2"></i>
+                                            معالجة طابور الإشعارات المعلقة
+                                        </button>
                                     </div>
                                 </div>
                             </form>
@@ -448,7 +499,7 @@
 
 <script>
         window.__M = window.__M || [];
-        __M0__='{{ url_for("super_admin.system_config") }}'; __M1__='{{ url_for("super_admin.system_config") }}'; __M2__='{{ url_for("super_admin.system_config") }}'; __M3__='{{ url_for("super_admin.queue_settings") }}'; __M4__='{{ url_for("super_admin.queue_settings") }}';
+        __M0__='{{ url_for("super_admin.system_config") }}'; __M1__='{{ url_for("super_admin.system_config") }}'; __M2__='{{ url_for("super_admin.system_config") }}'; __M3__='{{ url_for("super_admin.queue_settings") }}'; __M4__='{{ url_for("super_admin.queue_settings") }}'; __M5__='{{ url_for("super_admin.test_sms") }}'; __M6__='{{ url_for("super_admin.process_notification_queue_route") }}';
         </script>
 <script src="{{ url_for('static', filename='js/pages/super_admin/system_config.js') }}"></script>
 {% endblock %}

@@ -11,13 +11,13 @@ import json
 
 # ===== النماذج الأساسية (موحدة) =====
 
-class Notification(db.Model):
+class Notification(TenantMixin, db.Model):
     """نموذج الإشعار المتطور"""
     
     __tablename__ = 'notifications'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     title = db.Column(db.String(200), nullable=False)
     message = db.Column(db.Text, nullable=False)
     notification_type = db.Column(db.String(50), nullable=False)  # info, warning, error, success

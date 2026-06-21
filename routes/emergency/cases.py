@@ -62,7 +62,7 @@ def list_emergency_cases():
             EmergencyCase.created_at >= datetime.combine(date.today(), datetime.min.time())
         ).count()
         critical_emergencies = EmergencyCase.query.filter(EmergencyCase.severity == 'CRITICAL').count()
-        active_emergencies = EmergencyCase.query.filter(EmergencyCase.status != 'COMPLETED').count()
+        active_emergencies = EmergencyCase.query.filter(EmergencyCase.status != EmergencyStatus.COMPLETED).count()
 
         doctors = User.query.filter_by(role='doctor').all()
 
@@ -137,7 +137,7 @@ def edit_emergency_case(id):
                 try:
                     dt = datetime.strptime(f"{emergency_date} {emergency_time}", "%Y-%m-%d %H:%M")
                     emergency.created_at = dt
-                except Exception:
+                except Exception as e:
 
                     logging.warning(f"Error in {__name__}: {e}")
             priority_val = request.form.get('priority')
@@ -165,7 +165,7 @@ def edit_emergency_case(id):
             }
             try:
                 emergency.vital_signs = json.dumps(vs)
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
             emergency.diagnosis = request.form.get('initial_assessment') or emergency.diagnosis
@@ -177,7 +177,7 @@ def edit_emergency_case(id):
             if follow_up_date and hasattr(emergency, 'follow_up_date'):
                 try:
                     emergency.follow_up_date = datetime.strptime(follow_up_date, "%Y-%m-%d").date()
-                except Exception:
+                except Exception as e:
 
                     logging.warning(f"Error in {__name__}: {e}")
             db.session.commit()
@@ -272,7 +272,7 @@ def create_emergency_case():
         try:
             from models.emergency_status_history import EmergencyStatusHistory
             db.session.add(EmergencyStatusHistory(emergency_id=emergency.id, from_status=None, to_status='WAITING', changed_by=current_user.id))
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         try:
@@ -288,7 +288,7 @@ def create_emergency_case():
                     is_emergency=True
                 )
                 db.session.add(qm)
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         try:
@@ -300,7 +300,7 @@ def create_emergency_case():
             pvc.visit_count = (pvc.visit_count or 0) + 1
             from datetime import datetime as _dt, timezone
             pvc.last_visit_at = _dt.now(timezone.utc)
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         db.session.commit()

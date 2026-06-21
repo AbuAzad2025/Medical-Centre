@@ -60,7 +60,7 @@ def dashboard() -> ResponseReturnValue:
             Visit.created_at <= end_of_day
         ).count()
         completed_visits_today = Visit.query.filter(
-            Visit.status == 'ARCHIVED',
+            Visit.status == VisitState.ARCHIVED,
             Visit.completed_at >= datetime.combine(today, datetime.min.time())
         ).count()
         
@@ -85,8 +85,8 @@ def dashboard() -> ResponseReturnValue:
             dept_id = getattr(dept, 'id', None)
             if not dept_id:
                 continue
-            open_count = Visit.query.filter(Visit.department_id == dept_id, Visit.status.in_(['OPEN', 'IN_PROGRESS'])).count()
-            done_30d = Visit.query.filter(Visit.department_id == dept_id, Visit.status == 'ARCHIVED', Visit.created_at >= start_30d).count()
+            open_count = Visit.query.filter(Visit.department_id == dept_id, Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])).count()
+            done_30d = Visit.query.filter(Visit.department_id == dept_id, Visit.status == VisitState.ARCHIVED, Visit.created_at >= start_30d).count()
             avg_sec = None
             try:
                 avg_sec = db.session.query(
@@ -95,7 +95,7 @@ def dashboard() -> ResponseReturnValue:
                     )
                 ).filter(
                     Visit.department_id == dept_id,
-                    Visit.status == 'ARCHIVED',
+                    Visit.status == VisitState.ARCHIVED,
                     Visit.created_at >= start_30d,
                     func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at).isnot(None)
                 ).scalar()
@@ -124,7 +124,7 @@ def dashboard() -> ResponseReturnValue:
                 Visit, Visit.doctor_id == User.id
             ).filter(
                 User.role == 'doctor',
-                Visit.status == 'ARCHIVED',
+                Visit.status == VisitState.ARCHIVED,
                 Visit.created_at >= start_30d
             ).group_by(User.id, User.full_name).order_by(func.count(Visit.id).desc()).limit(10).all()
             for r in rows:

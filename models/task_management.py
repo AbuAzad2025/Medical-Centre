@@ -6,14 +6,15 @@ Medical System Task Management Models
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class Task(db.Model):
+class Task(TenantMixin, db.Model):
     """نموذج المهام"""
     
     __tablename__ = 'tasks'
+    __tenant_migration__ = True
     
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
     task_type = db.Column(db.String(50), nullable=False)  # patient_care, administrative, maintenance, emergency
@@ -98,7 +99,7 @@ class Task(db.Model):
         }
 
 
-class TaskComment(db.Model):
+class TaskComment(TenantMixin, db.Model):
     """نموذج تعليقات المهام"""
     
     __tablename__ = 'task_comments'
@@ -142,7 +143,7 @@ class TaskComment(db.Model):
         }
 
 
-class TaskAttachment(db.Model):
+class TaskAttachment(TenantMixin, db.Model):
     """نموذج مرفقات المهام"""
     
     __tablename__ = 'task_attachments'
@@ -183,7 +184,7 @@ class TaskAttachment(db.Model):
         }
 
 
-class Project(db.Model):
+class Project(TenantMixin, db.Model):
     """نموذج المشاريع"""
     
     __tablename__ = 'projects'
@@ -270,7 +271,7 @@ class Project(db.Model):
         }
 
 
-class ProjectTask(db.Model):
+class ProjectTask(TenantMixin, db.Model):
     """نموذج مهام المشاريع"""
     
     __tablename__ = 'project_tasks'
@@ -311,7 +312,7 @@ class ProjectTask(db.Model):
         }
 
 
-class ProjectMember(db.Model):
+class ProjectMember(TenantMixin, db.Model):
     """نموذج أعضاء المشاريع"""
     
     __tablename__ = 'project_members'

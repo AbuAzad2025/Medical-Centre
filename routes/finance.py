@@ -13,7 +13,13 @@ from app_factory import db
 import logging
 from datetime import datetime
 
-finance_bp = Blueprint('finance', __name__)
+finance_bp = Blueprint('finance', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@finance_bp.before_request
+def _guard_billing_module():
+    guard_module('billing')
 
 @finance_bp.route('/')
 @login_required
@@ -39,7 +45,7 @@ def dashboard():
         
         locked_visits = Visit.query.filter(
             Visit.receipt_printed == False,
-            Visit.payment_status != 'PAID'
+            Visit.payment_status != PaymentStatus.PAID
         ).count()
         
         stats = {

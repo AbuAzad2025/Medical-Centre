@@ -96,7 +96,7 @@ def get_critical_alert_system():
         # تنبيهات الحالات الحرجة
         critical_cases = EmergencyCase.query.filter(
             EmergencyCase.severity == 'CRITICAL',
-            EmergencyCase.status.in_(['WAITING', 'TRIAGE', 'RESUSCITATION', 'TREATMENT'])
+            EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT])
         ).count()
         
         if critical_cases > 0:
@@ -110,7 +110,7 @@ def get_critical_alert_system():
         
         # تنبيهات أوقات الانتظار الطويلة
         long_waiting = EmergencyCase.query.filter(
-            EmergencyCase.status == 'WAITING',
+            EmergencyCase.status == EmergencyStatus.WAITING,
             EmergencyCase.created_at < datetime.now() - timedelta(minutes=30)
         ).count()
         
@@ -125,7 +125,7 @@ def get_critical_alert_system():
         
         # تنبيهات الموارد
         active_cases = EmergencyCase.query.filter(
-            EmergencyCase.status.in_(['WAITING', 'TRIAGE', 'RESUSCITATION', 'TREATMENT', 'OBSERVATION'])
+            EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
         ).count()
         
         if active_cases > 20:
@@ -151,18 +151,18 @@ def get_emergency_workflow_ai():
         
         # تحليل مراحل العلاج
         workflow_analysis = {
-            'waiting': EmergencyCase.query.filter(EmergencyCase.status == 'WAITING').count(),
-            'triage': EmergencyCase.query.filter(EmergencyCase.status == 'TRIAGE').count(),
-            'resuscitation': EmergencyCase.query.filter(EmergencyCase.status == 'RESUSCITATION').count(),
-            'treatment': EmergencyCase.query.filter(EmergencyCase.status == 'TREATMENT').count(),
-            'observation': EmergencyCase.query.filter(EmergencyCase.status == 'OBSERVATION').count(),
-            'completed': EmergencyCase.query.filter(EmergencyCase.status == 'COMPLETED').count()
+            'waiting': EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.WAITING).count(),
+            'triage': EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.TRIAGE).count(),
+            'resuscitation': EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.RESUSCITATION).count(),
+            'treatment': EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.TREATMENT).count(),
+            'observation': EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.OBSERVATION).count(),
+            'completed': EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.COMPLETED).count()
         }
         
         # تحليل أوقات المراحل
         stage_times = []
         completed_cases = EmergencyCase.query.filter(
-            EmergencyCase.status == 'COMPLETED',
+            EmergencyCase.status == EmergencyStatus.COMPLETED,
             EmergencyCase.completed_at >= datetime.now() - timedelta(days=7)
         ).all()
         
@@ -384,14 +384,14 @@ def get_emergency_analytics():
         
         # تحليل الأداء
         total_cases = EmergencyCase.query.count()
-        completed_cases = EmergencyCase.query.filter(EmergencyCase.status == 'COMPLETED').count()
+        completed_cases = EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.COMPLETED).count()
         completion_rate = (completed_cases / total_cases * 100) if total_cases > 0 else 0
         
         # تحليل الأوقات
         avg_treatment_time = db.session.query(func.avg(
             func.extract('epoch', EmergencyCase.completed_at - EmergencyCase.created_at) / 60
         )).filter(
-            EmergencyCase.status == 'COMPLETED',
+            EmergencyCase.status == EmergencyStatus.COMPLETED,
             EmergencyCase.completed_at.isnot(None)
         ).scalar() or 0
         
@@ -446,7 +446,7 @@ def get_smart_emergency_recommendations():
         avg_response_time = db.session.query(func.avg(
             func.extract('epoch', EmergencyCase.completed_at - EmergencyCase.created_at) / 60
         )).filter(
-            EmergencyCase.status == 'COMPLETED',
+            EmergencyCase.status == EmergencyStatus.COMPLETED,
             EmergencyCase.completed_at.isnot(None)
         ).scalar() or 0
         

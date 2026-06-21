@@ -69,7 +69,7 @@ def settlements():
         q = Visit.query.filter(
             Visit.visit_date >= period_start,
             Visit.visit_date <= period_end,
-            Visit.status == 'COMPLETED'
+            Visit.status == VisitState.COMPLETED
         )
         target_name = None
         if mode == 'doctor' and doctor_id:
@@ -190,7 +190,7 @@ def settlements_export():
             next_month = (period_start.replace(day=28) + timedelta(days=4)).replace(day=1)
             period_end = next_month - timedelta(days=1)
 
-        q = Visit.query.filter(Visit.visit_date >= period_start, Visit.visit_date <= period_end, Visit.status == 'COMPLETED')
+        q = Visit.query.filter(Visit.visit_date >= period_start, Visit.visit_date <= period_end, Visit.status == VisitState.COMPLETED)
         if mode == 'doctor' and doctor_id:
             q = q.filter(Visit.doctor_id == doctor_id)
         elif mode == 'department' and department_id:
@@ -299,7 +299,7 @@ def budget_dashboard():
 
     actual_revenue = db.session.query(func.sum(Payment.amount)).filter(
         Payment.payment_date >= start, Payment.payment_date < end,
-        Payment.status.in_(['COMPLETED', 'PAID'])
+        Payment.status.in_([PaymentStatus.COMPLETED, PaymentStatus.PAID])
     ).scalar() or 0
 
     actual_visits = Visit.query.filter(Visit.visit_date >= start, Visit.visit_date < end).count()

@@ -12,7 +12,13 @@ from datetime import datetime, timedelta, timezone, date
 import json
 from sqlalchemy import func, and_, or_, desc
 
-nurse_bp = Blueprint('nurse', __name__)
+nurse_bp = Blueprint('nurse', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@nurse_bp.before_request
+def _guard_nursing_module():
+    guard_module('nursing')
 
 
 def _accessible_department_ids():
@@ -95,8 +101,8 @@ def get_nursing_smart_analytics():
         # تحليل الممرضات
         total_nurses = Nurse.query.filter(Nurse.is_active == True).count()
         total_tasks = Task.query.filter(Task.task_type == 'nursing').count()
-        completed_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status == 'completed').count()
-        pending_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status == 'pending').count()
+        completed_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status == TaskState.COMPLETED).count()
+        pending_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status == TaskState.PENDING).count()
         
         # تحليل المهام
         urgent_tasks = Task.query.filter(Task.task_type == 'nursing', Task.priority == 'urgent').count()
@@ -135,8 +141,8 @@ def get_patient_care_optimization():
 
         # تحليل المهام
         total_tasks = Task.query.filter(Task.task_type == 'nursing').count()
-        completed_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status == 'completed').count()
-        in_progress_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status == 'in_progress').count()
+        completed_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status == TaskState.COMPLETED).count()
+        in_progress_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status == TaskState.IN_PROGRESS).count()
         
         # تحليل الأولويات
         urgent_tasks = Task.query.filter(Task.task_type == 'nursing', Task.priority == 'urgent').count()
@@ -220,7 +226,7 @@ def get_medication_management():
         completed_medication_tasks = Task.query.filter(
             and_(
                 Task.task_type == 'nursing',
-                Task.status == 'completed'
+                Task.status == TaskState.COMPLETED
             )
         ).count()
         
@@ -303,7 +309,7 @@ def get_nursing_predictive_insights():
         ).count()
         growth_rate = ((weekly_tasks - prev_week) / prev_week * 100) if prev_week else 0
 
-        active_visits = Visit.query.filter(Visit.status.in_(['OPEN', 'IN_PROGRESS'])).count()
+        active_visits = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])).count()
         recent_vitals = VitalSigns.query.filter(VitalSigns.recorded_at >= now - timedelta(hours=6)).count()
         predicted_workload = int(active_visits + (recent_vitals / 10))
 
@@ -334,7 +340,7 @@ def get_nursing_quality_indicators():
             Task.task_type == 'nursing',
             Task.due_date.isnot(None),
             Task.due_date < now,
-            Task.status.in_(['pending', 'in_progress', 'on_hold'])
+            Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS, 'on_hold'])
         ).count()
         med_logs = MedicationAdministrationLog.query.filter(
             MedicationAdministrationLog.administered_at >= last_7
@@ -353,8 +359,8 @@ def get_nursing_workload_prediction():
     try:
         from models.visit import Visit
         from models.task_management import Task
-        active_visits = Visit.query.filter(Visit.status.in_(['OPEN', 'IN_PROGRESS'])).count()
-        pending_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status.in_(['pending', 'in_progress'])).count()
+        active_visits = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])).count()
+        pending_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS])).count()
         predicted = int(active_visits + (pending_tasks / 2))
         return {
             'active_visits': int(active_visits or 0),

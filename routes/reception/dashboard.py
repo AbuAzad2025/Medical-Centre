@@ -65,7 +65,7 @@ def dashboard():
     pending_appointments = Appointment.query.filter_by(status='SCHEDULED').count()
     today_visits_list = Visit.query.filter(
         Visit.visit_date == db.func.current_date(),
-        Visit.status.in_(['OPEN', 'IN_PROGRESS', 'COMPLETED'])
+        Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS, VisitState.COMPLETED])
     ).order_by(Visit.created_at.desc()).limit(20).all()
     
     # إحصائيات الطوابير لكل قسم
@@ -79,12 +79,12 @@ def dashboard():
             'in_progress': 0
         }
     active_queue_items = QueueManagement.query.filter(
-        QueueManagement.status.in_(['waiting', 'called', 'in_progress'])
+        QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS])
     ).order_by(QueueManagement.queued_at.asc()).limit(50).all()
 
     today_online_bookings = OnlineBooking.query.filter(
         OnlineBooking.appointment_date == db.func.current_date(),
-        OnlineBooking.status.in_(['pending', 'confirmed'])
+        OnlineBooking.status.in_([BookingState.PENDING, BookingState.CONFIRMED])
     ).order_by(OnlineBooking.appointment_time.asc()).limit(20).all()
     
     # الميزات الذكية

@@ -72,3 +72,32 @@ def print_report(radiology_scan_id=None):
         logging.error(f"Error printing radiology report {radiology_scan_id}: {str(e)}")
         flash('حدث خطأ في طباعة تقرير الأشعة', 'error')
         return redirect(url_for('radiology.reports'))
+
+
+@radiology_bp.route('/print_report/<int:radiology_scan_id>/pdf', methods=['GET'])
+@login_required
+@role_required('radiology', 'manager')
+def print_report_pdf(radiology_scan_id=None):
+    """تنزيل تقرير الأشعة كـ PDF"""
+    try:
+        if radiology_scan_id is None:
+            return jsonify({'success': False, 'message': 'المعرف غير محدد'}), 400
+        result = db.session.get(RadiologyResult, radiology_scan_id)
+        if not result:
+            req = db.session.get(RadiologyRequest, radiology_scan_id)
+            if not req or not req.results:
+                return jsonify({'success': False, 'message': 'نتيجة الأشعة غير موجودة'}), 404
+            result = req.results[0]
+        from app.integrations.printing.pdf import PDFReportPrinter
+        printer = PDFReportPrinter()
+        pdf_bytes = printer.generate_radiology_report(result)
+        fname = f"radiology_report_{result.id}.pdf"
+        return send_file(
+            BytesIO(pdf_bytes),
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=fname
+        )
+    except Exception as e:
+        logging.error(f"Error generating radiology PDF {radiology_scan_id}: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500

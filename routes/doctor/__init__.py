@@ -24,7 +24,13 @@ import secrets
 
 from models.system_config import SystemConfig
 
-doctor_bp = Blueprint('doctor', __name__)
+doctor_bp = Blueprint('doctor', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@doctor_bp.before_request
+def _guard_doctor_module():
+    guard_module('doctor')
 
 @doctor_bp.route('/')
 @login_required
@@ -164,7 +170,7 @@ def _sync_follow_up_request_for_visit(visit: Visit, actor_user_id: int):
             existing.doctor_id = visit.doctor_id
             existing.suggested_date = suggested
             existing.notes = getattr(visit, 'follow_up_notes', None) or existing.notes
-            existing.status = existing.status if existing.status == 'SCHEDULED' else 'PENDING'
+            existing.status = existing.status if existing.status == AppointmentState.SCHEDULED else VisitState.PENDING
             existing.updated_at = datetime.now(timezone.utc)
         else:
             db.session.add(FollowUpRequest(

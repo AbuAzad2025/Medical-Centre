@@ -4,14 +4,15 @@
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class Department(db.Model):
+class Department(TenantMixin, db.Model):
     """نموذج القسم"""
     __tablename__ = 'departments'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     name = db.Column(db.String(100), nullable=False, unique=True)   # EN
     name_ar = db.Column(db.String(100), nullable=False)             # AR
     description = db.Column(db.Text, nullable=True)

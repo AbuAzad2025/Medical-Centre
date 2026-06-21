@@ -5,6 +5,7 @@
 from datetime import datetime
 from sqlalchemy import CheckConstraint, Index
 from app_factory import db
+from app.shared.mixins import TenantMixin
 from datetime import datetime, timezone
 
 
@@ -25,12 +26,12 @@ class PaymentStatus:
     REFUNDED = "REFUNDED"
 
 
-class Payment(db.Model):
+class Payment(TenantMixin, db.Model):
     """نموذج المدفوعات - يسجل كل عملية دفع"""
     __tablename__ = 'payments'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     
     # الارتباطات
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True)

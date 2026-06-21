@@ -46,7 +46,12 @@ def system_config():
                     'password_min_length': {'type': 'integer', 'min': 6, 'max': 20, 'category': 'security'},
                     'password_expiry_days': {'type': 'integer', 'min': 30, 'max': 365, 'category': 'security'},
                     'allow_partial_payment_global': {'type': 'boolean', 'category': 'system'},
-                    'allow_debt_global': {'type': 'boolean', 'category': 'system'}
+                    'allow_debt_global': {'type': 'boolean', 'category': 'system'},
+                    'sms_enabled': {'type': 'boolean', 'category': 'sms'},
+                    'sms_provider': {'type': 'string', 'choices': ['log', 'twilio'], 'category': 'sms'},
+                    'twilio_account_sid': {'type': 'string', 'category': 'sms'},
+                    'twilio_auth_token': {'type': 'string', 'category': 'sms'},
+                    'twilio_phone_number': {'type': 'string', 'category': 'sms'}
                 }
                 errors = []
                 normalized = {}
@@ -124,7 +129,7 @@ def system_config():
                     audit = AuditTrail(entity_type='system', entity_id=0, action='update', user_id=current_user.id, description='تحديث إعدادات النظام', notes=change_desc)
                     db.session.add(audit)
                     db.session.commit()
-                except Exception:
+                except Exception as e:
 
                     logging.warning(f"Error in {__name__}: {e}")
                 return jsonify({'success': True, 'message': 'تم حفظ الإعدادات بنجاح'}), 200
@@ -206,7 +211,7 @@ def queue_settings():
                 if mx is not None:
                     try:
                         qs.max_queue_size = int(mx)
-                    except Exception:
+                    except Exception as e:
 
                         logging.warning(f"Error in {__name__}: {e}")
                 if pr is not None:
@@ -218,7 +223,7 @@ def queue_settings():
                 if aw is not None:
                     try:
                         qs.average_wait_time = int(aw)
-                    except Exception:
+                    except Exception as e:
 
                         logging.warning(f"Error in {__name__}: {e}")
                 if ap is not None:
@@ -323,6 +328,44 @@ def system_cleanup():
         logging.error(f"System cleanup error: {str(e)}")
         flash('حدث خطأ في تنظيف النظام', 'error')
         return redirect(url_for('super_admin.system_maintenance'))
+
+@super_admin_bp.route('/system/sms/test', methods=['POST'])
+@login_required
+@super_admin_required
+def test_sms():
+    """إرسال رسالة SMS تجريبية"""
+    try:
+        import json
+        data = request.get_json(force=True) or {}
+        phone_number = data.get('phone_number', '')
+        if not phone_number:
+            return jsonify({'success': False, 'message': 'يرجى إدخال رقم الهاتف'}), 400
+
+        from services.sms_service import SMSService
+        result = SMSService.send_sms(
+            phone=phone_number,
+            message='هذه رسالة تجريبية من النظام الطبي',
+        )
+        if result.get('success'):
+            return jsonify({'success': True, 'message': 'تم إرسال الرسالة التجريبية بنجاح'}), 200
+        else:
+            return jsonify({'success': False, 'message': result.get('error', 'فشل الإرسال')}), 500
+    except Exception as e:
+        logging.error(f"Test SMS error: {str(e)}")
+        return jsonify({'success': False, 'message': f'خطأ: {str(e)}'}), 500
+
+@super_admin_bp.route('/system/notifications/queue/process', methods=['POST'])
+@login_required
+@super_admin_required
+def process_notification_queue_route():
+    """معالجة طابور الإشعارات المعلق"""
+    try:
+        from services.notification_service import process_notification_queue
+        count = process_notification_queue()
+        return jsonify({'success': True, 'message': f'تمت معالجة {count} إشعار'}), 200
+    except Exception as e:
+        logging.error(f"Process notification queue error: {str(e)}")
+        return jsonify({'success': False, 'message': f'خطأ: {str(e)}'}), 500
 
 @super_admin_bp.route('/system/notifications/run', methods=['POST'])
 @login_required

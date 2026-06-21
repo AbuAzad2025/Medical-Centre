@@ -6,6 +6,7 @@ Advanced NLP-Powered AI Engine for Medical System
 
 import re
 from datetime import datetime, timedelta, date
+from app.shared.enums import AppointmentState
 from sqlalchemy import inspect, func, text
 import logging
 
@@ -622,13 +623,13 @@ class SmartAIEngine:
         # مواعيد قادمة
         upcoming = Appointment.query.filter(
             Appointment.starts_at > datetime.now(),
-            Appointment.status == 'SCHEDULED'
+            Appointment.status == AppointmentState.SCHEDULED
         ).count()
         
         # مواعيد متأخرة
         overdue = Appointment.query.filter(
             Appointment.starts_at < datetime.now(),
-            Appointment.status == 'SCHEDULED'
+            Appointment.status == AppointmentState.SCHEDULED
         ).count()
         
         response = f"""

@@ -42,7 +42,7 @@ def quality():
     end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
 
     done_q = RadiologyRequest.query.filter(
-        RadiologyRequest.status == 'DONE',
+        RadiologyRequest.status == OrderState.DONE,
         RadiologyRequest.updated_at >= start_dt,
         RadiologyRequest.updated_at <= end_dt
     )
@@ -52,7 +52,7 @@ def quality():
         avg_tat_seconds = db.session.query(
             db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at))
         ).filter(
-            RadiologyRequest.status == 'DONE',
+            RadiologyRequest.status == OrderState.DONE,
             RadiologyRequest.updated_at >= start_dt,
             RadiologyRequest.updated_at <= end_dt
         ).scalar()
@@ -64,19 +64,19 @@ def quality():
     total_validated_results = db.session.query(db.func.count(RadiologyResult.id)).join(
         RadiologyRequest, RadiologyRequest.id == RadiologyResult.request_id
     ).filter(
-        RadiologyRequest.status == 'DONE',
+        RadiologyRequest.status == OrderState.DONE,
         RadiologyRequest.updated_at >= start_dt,
         RadiologyRequest.updated_at <= end_dt,
-        RadiologyResult.status == 'VALIDATED'
+        RadiologyResult.status == LabResultStatus.VALIDATED
     ).scalar() or 0
 
     critical_validated_results = db.session.query(db.func.count(RadiologyResult.id)).join(
         RadiologyRequest, RadiologyRequest.id == RadiologyResult.request_id
     ).filter(
-        RadiologyRequest.status == 'DONE',
+        RadiologyRequest.status == OrderState.DONE,
         RadiologyRequest.updated_at >= start_dt,
         RadiologyRequest.updated_at <= end_dt,
-        RadiologyResult.status == 'VALIDATED',
+        RadiologyResult.status == LabResultStatus.VALIDATED,
         RadiologyResult.is_critical == True
     ).scalar() or 0
 
@@ -89,7 +89,7 @@ def quality():
             db.func.count(RadiologyRequest.id).label('cnt'),
             db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at)).label('avg_sec'),
         ).filter(
-            RadiologyRequest.status == 'DONE',
+            RadiologyRequest.status == OrderState.DONE,
             RadiologyRequest.updated_at >= start_dt,
             RadiologyRequest.updated_at <= end_dt
         ).group_by(db.func.upper(RadiologyRequest.modality)).order_by(db.func.count(RadiologyRequest.id).desc()).all()

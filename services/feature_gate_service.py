@@ -45,6 +45,18 @@ def require_module(module: str):
         return wrapper
     return decorator
 
+def guard_module(module_name: str):
+    """Blueprint before_request guard: 403 if module not enabled for tenant.
+    Skips check when ENABLE_SAAS_MODE is False (standalone mode).
+    """
+    if not current_app.config.get('ENABLE_SAAS_MODE', False):
+        return
+    tenant = getattr(g, 'current_tenant', None)
+    if not tenant:
+        return
+    if not FeatureGateService.module_enabled(tenant.id, module_name):
+        abort(403, description=f"Module '{module_name}' is not enabled")
+
 def require_feature(feature: str):
     def decorator(f):
         @wraps(f)

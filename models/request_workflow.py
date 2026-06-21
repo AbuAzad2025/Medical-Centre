@@ -5,8 +5,9 @@ Medical System Request Workflow Model
 
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class RequestWorkflow(db.Model):
+class RequestWorkflow(TenantMixin, db.Model):
     """نموذج سير عمل الطلبات لجميع الأقسام"""
     
     __tablename__ = 'request_workflows'
@@ -52,7 +53,7 @@ class RequestWorkflow(db.Model):
             'is_completed': self.is_completed
         }
 
-class DepartmentWorkflow(db.Model):
+class DepartmentWorkflow(TenantMixin, db.Model):
     """نموذج سير عمل الأقسام"""
     
     __tablename__ = 'department_workflows'

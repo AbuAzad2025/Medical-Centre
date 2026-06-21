@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class EmergencyStatusHistory(db.Model):
+class EmergencyStatusHistory(TenantMixin, db.Model):
     __tablename__ = 'emergency_status_history'
 
     id = db.Column(db.Integer, primary_key=True)

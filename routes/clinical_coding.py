@@ -12,7 +12,13 @@ from models.user import User
 from app_factory import db
 import logging
 
-clinical_coding_bp = Blueprint('clinical_coding', __name__)
+clinical_coding_bp = Blueprint('clinical_coding', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@clinical_coding_bp.before_request
+def _guard_doctor_module():
+    guard_module('doctor')
 
 @clinical_coding_bp.route('/icd10')
 @login_required

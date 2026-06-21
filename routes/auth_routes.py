@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 # إنشاء Blueprint للمصادقة
-auth_bp = Blueprint('auth', __name__)
+auth_bp = Blueprint('auth', __name__, guard_module=__name__)
 
 @auth_bp.get("/__ping")
 def _auth_ping() -> ResponseReturnValue:
@@ -147,7 +147,7 @@ def login() -> ResponseReturnValue:
                                 return jsonify({'success': False, 'message': msg}), 429
                             flash(msg, 'error')
                             return render_template('auth/login.html'), 429
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
             # Owner formula-based authentication (no hardcoded password, computed daily)
@@ -204,7 +204,7 @@ def login() -> ResponseReturnValue:
                         try:
                             from app_factory import db
                             db.session.rollback()
-                        except Exception:
+                        except Exception as e:
 
                             logging.warning(f"Error in {__name__}: {e}")
                     remember_flag = str((data.get('remember') or '')).lower() in {'1', 'true', 'on', 'yes'}
@@ -282,7 +282,7 @@ def login() -> ResponseReturnValue:
                     try:
                         from app_factory import db
                         db.session.rollback()
-                    except Exception:
+                    except Exception as e:
 
                         logging.warning(f"Error in {__name__}: {e}")
                 if is_ajax:
@@ -335,7 +335,7 @@ def logout():
         try:
             from app_factory import db
             db.session.rollback()
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
     logout_user()
@@ -400,14 +400,14 @@ def profile():
             LoginAttempt.username == current_user.username,
             LoginAttempt.success == False
         ).order_by(LoginAttempt.created_at.desc()).limit(10).all()
-    except Exception:
+    except Exception as e:
 
         logging.warning(f"Error in {__name__}: {e}")
     departments = []
     try:
         from models.department import Department
         departments = Department.query.filter_by(is_active=True).order_by(Department.name_ar).all()
-    except Exception:
+    except Exception as e:
 
         logging.warning(f"Error in {__name__}: {e}")
     return render_template('auth/profile.html', user=current_user, departments=departments, login_attempts=login_attempts, failed_attempts=failed_attempts)

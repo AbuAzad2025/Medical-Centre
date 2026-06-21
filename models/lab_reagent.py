@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 from sqlalchemy import Index
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class LabReagent(db.Model):
+class LabReagent(TenantMixin, db.Model):
     __tablename__ = 'lab_reagents'
 
     id = db.Column(db.Integer, primary_key=True)

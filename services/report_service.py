@@ -4,6 +4,7 @@ Medical System Report Management Service
 """
 
 from datetime import datetime, timedelta, timezone
+from app.shared.enums import VisitState, AppointmentState, PaymentStatus
 from sqlalchemy import and_, or_, func, desc, asc, text
 from app_factory import db
 from models.patient import Patient
@@ -52,8 +53,8 @@ class ReportService:
                 visits_query = visits_query.filter(Visit.department_id == department_id)
             
             total_visits = visits_query.count()
-            completed_visits = visits_query.filter(Visit.status == 'COMPLETED').count()
-            pending_visits = visits_query.filter(Visit.status == 'OPEN').count()
+            completed_visits = visits_query.filter(Visit.status == VisitState.COMPLETED).count()
+            pending_visits = visits_query.filter(Visit.status == VisitState.OPEN).count()
             
             # إحصائيات المواعيد
             appointments_query = Appointment.query.filter(
@@ -67,8 +68,8 @@ class ReportService:
                 appointments_query = appointments_query.filter(Appointment.department_id == department_id)
             
             total_appointments = appointments_query.count()
-            completed_appointments = appointments_query.filter(Appointment.status == 'DONE').count()
-            cancelled_appointments = appointments_query.filter(Appointment.status == 'CANCELLED').count()
+            completed_appointments = appointments_query.filter(Appointment.status == AppointmentState.DONE).count()
+            cancelled_appointments = appointments_query.filter(Appointment.status == AppointmentState.CANCELLED).count()
             
             # الإحصائيات المالية
             payments_query = Payment.query.filter(
@@ -226,12 +227,12 @@ class ReportService:
             
             # الإحصائيات
             total_visits = len(visits)
-            completed_visits = len([v for v in visits if v.status == 'COMPLETED'])
-            pending_visits = len([v for v in visits if v.status == 'OPEN'])
+            completed_visits = len([v for v in visits if v.status == VisitState.COMPLETED])
+            pending_visits = len([v for v in visits if v.status == VisitState.OPEN])
             
             total_appointments = len(appointments)
-            completed_appointments = len([a for a in appointments if a.status == 'DONE'])
-            cancelled_appointments = len([a for a in appointments if a.status == 'CANCELLED'])
+            completed_appointments = len([a for a in appointments if a.status == AppointmentState.DONE])
+            cancelled_appointments = len([a for a in appointments if a.status == AppointmentState.CANCELLED])
             
             return {
                 'success': True,
@@ -371,12 +372,12 @@ class ReportService:
             
             # الإحصائيات
             total_visits = len(visits)
-            completed_visits = len([v for v in visits if v.status == 'COMPLETED'])
-            pending_visits = len([v for v in visits if v.status in {'OPEN','IN_PROGRESS'}])
+            completed_visits = len([v for v in visits if v.status == VisitState.COMPLETED])
+            pending_visits = len([v for v in visits if v.status in {VisitState.OPEN,VisitState.IN_PROGRESS}])
             
             total_appointments = len(appointments)
-            completed_appointments = len([a for a in appointments if a.status == 'DONE'])
-            cancelled_appointments = len([a for a in appointments if a.status == 'CANCELLED'])
+            completed_appointments = len([a for a in appointments if a.status == AppointmentState.DONE])
+            cancelled_appointments = len([a for a in appointments if a.status == AppointmentState.CANCELLED])
             
             # الإيرادات
             total_revenue = sum(visit.total_amount for visit in visits if visit.total_amount)
@@ -458,10 +459,10 @@ class ReportService:
             visits_stats = {
                 'total': len(visits_today),
                 'by_status': {
-                    'OPEN': len([v for v in visits_today if v.status == 'OPEN']),
-                    'IN_PROGRESS': len([v for v in visits_today if v.status == 'IN_PROGRESS']),
-                    'COMPLETED': len([v for v in visits_today if v.status == 'COMPLETED']),
-                    'ARCHIVED': len([v for v in visits_today if v.status == 'ARCHIVED'])
+                    VisitState.OPEN: len([v for v in visits_today if v.status == VisitState.OPEN]),
+                    VisitState.IN_PROGRESS: len([v for v in visits_today if v.status == VisitState.IN_PROGRESS]),
+                    VisitState.COMPLETED: len([v for v in visits_today if v.status == VisitState.COMPLETED]),
+                    VisitState.ARCHIVED: len([v for v in visits_today if v.status == VisitState.ARCHIVED])
                 },
                 'by_type': {
                     'REGULAR': len([v for v in visits_today if v.visit_type == 'REGULAR']),
@@ -498,8 +499,8 @@ class ReportService:
                 payment_by_status[status]['amount'] += float(payment.amount)
             
             total_collected = sum(float(p.amount) for p in payments_today if p.status == 'CONFIRMED')
-            total_pending = sum(float(p.amount) for p in payments_today if p.status == 'PENDING')
-            total_cancelled = sum(float(p.amount) for p in payments_today if p.status == 'CANCELLED')
+            total_pending = sum(float(p.amount) for p in payments_today if p.status == PaymentStatus.PENDING)
+            total_cancelled = sum(float(p.amount) for p in payments_today if p.status == PaymentStatus.CANCELLED)
             
             payment_stats = {
                 'total_transactions': len(payments_today),
@@ -570,7 +571,7 @@ class ReportService:
             audit_issues = []
             
             # التحقق من زيارات بدون دفع
-            unpaid_visits = [v for v in visits_today if v.payment_status == 'PENDING' and not v.is_force_payment]
+            unpaid_visits = [v for v in visits_today if v.payment_status == PaymentStatus.PENDING and not v.is_force_payment]
             if unpaid_visits:
                 audit_issues.append({
                     'type': 'UNPAID_VISITS',
@@ -591,7 +592,7 @@ class ReportService:
                 })
             
             # التحقق من دفعات ملغاة
-            cancelled_payments = [p for p in payments_today if p.status == 'CANCELLED']
+            cancelled_payments = [p for p in payments_today if p.status == PaymentStatus.CANCELLED]
             if cancelled_payments:
                 audit_issues.append({
                     'type': 'CANCELLED_PAYMENTS',
@@ -683,10 +684,10 @@ class ReportService:
             visits_stats = {
                 'total': len(visits_month),
                 'by_status': {
-                    'OPEN': len([v for v in visits_month if v.status == 'OPEN']),
-                    'IN_PROGRESS': len([v for v in visits_month if v.status == 'IN_PROGRESS']),
-                    'COMPLETED': len([v for v in visits_month if v.status == 'COMPLETED']),
-                    'ARCHIVED': len([v for v in visits_month if v.status == 'ARCHIVED'])
+                    VisitState.OPEN: len([v for v in visits_month if v.status == VisitState.OPEN]),
+                    VisitState.IN_PROGRESS: len([v for v in visits_month if v.status == VisitState.IN_PROGRESS]),
+                    VisitState.COMPLETED: len([v for v in visits_month if v.status == VisitState.COMPLETED]),
+                    VisitState.ARCHIVED: len([v for v in visits_month if v.status == VisitState.ARCHIVED])
                 },
                 'by_payment_method': {
                     'cash': len([v for v in visits_month if (getattr(v, 'payment_method', '') or '').lower() == 'cash']),
@@ -734,8 +735,8 @@ class ReportService:
             # ========== 3. تحليل الدفع القسري ==========
             force_visits_month = [v for v in visits_month if v.is_force_payment]
             force_approved = [v for v in force_visits_month if v.force_payment_approved_by]
-            force_rejected = [v for v in force_visits_month if not v.force_payment_approved_by and v.status == 'ARCHIVED']
-            force_pending = [v for v in force_visits_month if not v.force_payment_approved_by and v.status != 'ARCHIVED']
+            force_rejected = [v for v in force_visits_month if not v.force_payment_approved_by and v.status == VisitState.ARCHIVED]
+            force_pending = [v for v in force_visits_month if not v.force_payment_approved_by and v.status != VisitState.ARCHIVED]
             
             force_payment_analysis = {
                 'total': len(force_visits_month),
@@ -770,7 +771,7 @@ class ReportService:
                 'collection_rate': round(total_revenue / sum(float(v.total_amount or 0) for v in visits_month) * 100, 2) if visits_month else 0,
                 'force_payment_percentage': force_payment_analysis['percentage_of_visits'],
                 'avg_visit_value': round(total_revenue / len(visits_month), 2) if visits_month else 0,
-                'completed_visits_rate': round(visits_stats['by_status']['COMPLETED'] / len(visits_month) * 100, 2) if visits_month else 0,
+                'completed_visits_rate': round(visits_stats['by_status'][VisitState.COMPLETED] / len(visits_month) * 100, 2) if visits_month else 0,
                 'patient_share_collection_rate': insurance_analysis['collection_rate']
             }
             
@@ -797,7 +798,7 @@ class ReportService:
                 and_(
                     Visit.created_at >= start_date,
                     Visit.created_at <= end_date,
-                    Visit.payment_status == 'DEBT'
+                    Visit.payment_status == PaymentStatus.DEBT
                 )
             ).all()
             
@@ -853,9 +854,9 @@ class ReportService:
             # الديون المعلقة
             pending_debts = Visit.query.filter(
                 or_(
-                    Visit.payment_status == 'DEBT',
+                    Visit.payment_status == PaymentStatus.DEBT,
                     and_(
-                        Visit.payment_status == 'PENDING',
+                        Visit.payment_status == PaymentStatus.PENDING,
                         Visit.is_force_payment == True,
                         Visit.force_payment_approved_by != None
                     )

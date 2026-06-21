@@ -7,7 +7,13 @@ from flask_login import login_required, current_user
 from utils.decorators import role_required
 from app_factory import db
 
-report_builder_bp = Blueprint('report_builder', __name__)
+report_builder_bp = Blueprint('report_builder', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@report_builder_bp.before_request
+def _guard_reporting_module():
+    guard_module('reporting')
 
 REPORT_ENTITIES = {
     'patients': {
