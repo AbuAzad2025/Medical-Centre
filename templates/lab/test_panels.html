@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}باقات الفحوصات المخبرية{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-1 text-primary"><i class="fas fa-layer-group me-2"></i>باقات الفحوصات المخبرية</h2>
+            <div class="text-muted">إدارة باقات الفحوصات (CBC, Lipid Profile, LFT ...)</div>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal"><i class="fas fa-plus me-1"></i>إضافة باقة</button>
+            <a class="btn btn-outline-primary" href="{{ url_for('lab.test_catalog') }}"><i class="fas fa-book me-1"></i>الكتالوج</a>
+            <a class="btn btn-secondary" href="{{ url_for('lab.dashboard') }}"><i class="fas fa-arrow-left me-1"></i>العودة</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    {% for p in panels %}
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card shadow h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="m-0">{{ p.name_ar }}</h6>
+          <span class="badge {% if p.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+            {{ 'نشط' if p.is_active else 'غير نشط' }}
+          </span>
+        </div>
+        <div class="card-body">
+          <p class="text-muted small mb-2">{{ p.name_en or '' }}</p>
+          <p class="small">{{ p.description or 'لا يوجد وصف' }}</p>
+          <div class="small">
+            <strong>الفحوصات:</strong>
+            <ul class="mb-0 ps-3 mt-1">
+              {% for item in p.items %}
+              <li>{{ item.test.code }} - {{ item.test.name_ar }}</li>
+              {% else %}
+              <li class="text-muted">لا توجد فحوصات</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        <div class="card-footer d-flex gap-2">
+          <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ p.id }}"><i class="fas fa-edit"></i> تعديل</button>
+          <form method="post" action="{{ url_for('lab.test_panels_delete', id=p.id) }}" class="d-inline" onsubmit="return confirm('حذف الباقة؟')">
+            <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="editModal{{ p.id }}" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <form method="post" action="{{ url_for('lab.test_panels_edit', id=p.id) }}">
+          <div class="modal-content">
+            <div class="modal-header"><h5>تعديل الباقة: {{ p.name_ar }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+              {% include 'lab/test_panel_form_body.html' %}
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+              <button type="submit" class="btn btn-primary">حفظ</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center text-muted py-5">لا توجد باقات</div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <form method="post" action="{{ url_for('lab.test_panels_add') }}">
+      <div class="modal-content">
+        <div class="modal-header"><h5>إضافة باقة جديدة</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          {% with p=None %}
+          {% include 'lab/test_panel_form_body.html' %}
+          {% endwith %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">إضافة</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

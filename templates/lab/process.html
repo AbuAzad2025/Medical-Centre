@@ -69,8 +69,11 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">النتائج</h6>
+                    <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#catalogModal">
+                        <i class="fas fa-book me-1"></i>إضافة من الكتالوج
+                    </button>
                 </div>
                 <div class="card-body">
                     <form method="post" action="{{ url_for('lab.worklist_request', request_id=lab_request.id) }}">
@@ -194,6 +197,126 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="catalogModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-book me-1"></i>اختيار فحص من الكتالوج</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control mb-3" id="catalogSearch" placeholder="بحث ..." oninput="filterCatalog()">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm table-hover" id="catalogTable">
+                            <thead>
+                                <tr>
+                                    <th>الكود</th>
+                                    <th>الاسم</th>
+                                    <th>الوحدة</th>
+                                    <th>المدى المرجعي</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="catalogTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let catalogData = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('{{ url_for("lab.api_test_catalog") }}')
+            .then(r => r.json())
+            .then(data => { catalogData = data; renderCatalog(); })
+            .catch(() => {});
+
+        const tbody = document.querySelector('table.table-bordered tbody');
+        tbody.addEventListener('focusout', function(e) {
+            if (e.target.name === 'test_code[]') {
+                const row = e.target.closest('tr');
+                const code = e.target.value.trim();
+                if (!code) return;
+                const match = catalogData.find(t => t.code === code);
+                if (match) {
+                    const nameInput = row.querySelector('[name="test_name[]"]');
+                    const unitInput = row.querySelector('[name="unit[]"]');
+                    const refInput = row.querySelector('[name="reference_range[]"]');
+                    if (nameInput && !nameInput.value) nameInput.value = match.name_ar;
+                    if (unitInput && !unitInput.value) unitInput.value = match.unit || '';
+                    if (refInput && !refInput.value) refInput.value = match.default_reference_range || '';
+                }
+            }
+        });
+    });
+
+    function renderCatalog() {
+        const tbody = document.getElementById('catalogTableBody');
+        tbody.innerHTML = '';
+        catalogData.forEach(t => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${t.code}</td>
+                <td>${t.name_ar}${t.name_en ? ' (' + t.name_en + ')' : ''}</td>
+                <td>${t.unit || '-'}</td>
+                <td>${t.default_reference_range || '-'}</td>
+                <td><button class="btn btn-sm btn-success" onclick="addFromCatalog(${t.id})">إضافة</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function filterCatalog() {
+        const q = document.getElementById('catalogSearch').value.trim().toLowerCase();
+        document.querySelectorAll('#catalogTableBody tr').forEach(tr => {
+            tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+    }
+
+    function addFromCatalog(testId) {
+        const test = catalogData.find(t => t.id === testId);
+        if (!test) return;
+        const tbody = document.querySelector('table.table-bordered tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <input type="hidden" name="result_id[]" value="">
+                <input type="text" class="form-control" name="test_code[]" value="${test.code}">
+            </td>
+            <td><input type="text" class="form-control" name="test_name[]" value="${test.name_ar}"></td>
+            <td><input type="text" class="form-control" name="value[]" value=""></td>
+            <td><input type="text" class="form-control" name="unit[]" value="${test.unit || ''}"></td>
+            <td><input type="text" class="form-control" name="reference_range[]" value="${test.default_reference_range || ''}"></td>
+            <td>
+                <select class="form-control" name="is_critical[]">
+                    <option value="0" selected>لا</option>
+                    <option value="1">نعم</option>
+                </select>
+            </td>
+            <td>
+                <select class="form-control" name="status[]">
+                    <option value="PENDING">معلق</option>
+                    <option value="READY">جاهز</option>
+                    <option value="VALIDATED">معتمد</option>
+                </select>
+            </td>
+            <td><input type="text" class="form-control" name="notes[]" value=""></td>
+        `;
+        tbody.appendChild(tr);
+        $('#catalogModal').modal('hide');
+        const firstEmpty = tbody.querySelector('tr:first-child td input[name="test_code[]"]');
+        if (firstEmpty && !firstEmpty.value) {
+            firstEmpty.closest('tr').remove();
+        }
+    }
+    </script>
     {% else %}
     <div class="row mb-4">
         <div class="col-12">

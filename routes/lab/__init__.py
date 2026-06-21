@@ -248,3 +248,4 @@ from . import reagents
 from . import quality
 from . import reports
 from . import fhir
+from . import test_catalog

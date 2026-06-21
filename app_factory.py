@@ -251,6 +251,7 @@ def create_app(config_name: str | None = None) -> Flask:
             import models.emergency_status_history
             import models.lab_quality
             import models.lab_reagent
+            import models.lab_test_catalog
             import models.exchange_rate
         except Exception as e:
             app.logger.warning(f"Model import registration skipped: {e}")
@@ -1033,5 +1034,28 @@ def create_app(config_name: str | None = None) -> Flask:
         """Seed default ProductBundles from seed data."""
         from app.core.tenant.models import seed_default_bundles as _seed
         _seed()
+
+    # Background notification queue processor
+    def _start_notification_processor(app_ctx):
+        import threading
+        import time
+
+        def _run_loop():
+            with app_ctx.app_context():
+                while True:
+                    try:
+                        from services.notification_service import process_notification_queue, NotificationService
+                        process_notification_queue()
+                        NotificationService.send_appointment_reminders()
+                    except Exception:
+                        pass
+                    time.sleep(60)
+
+        thread = threading.Thread(target=_run_loop, daemon=True, name='notif-processor')
+        thread.start()
+        return thread
+
+    if not app.testing and not app.config.get('SUPPRESS_BACKGROUND_WORKER'):
+        _start_notification_processor(app)
 
     return app
