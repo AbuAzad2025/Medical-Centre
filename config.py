@@ -72,6 +72,7 @@ class Config:
     
     # Debug endpoints — disabled by default (deny by design)
     DISABLE_DEBUG_ENDPOINTS = os.environ.get('DISABLE_DEBUG_ENDPOINTS', 'true').lower() in ('true', 'on', '1')
+    DISABLE_PERF_ENDPOINTS = os.environ.get('DISABLE_PERF_ENDPOINTS', 'true').lower() in ('true', 'on', '1')
 
     # إعدادات المستخدم الافتراضي — يجب توفيرها عبر environment variables
     DEFAULT_ADMIN_USERNAME = os.environ.get('DEFAULT_ADMIN_USERNAME')
@@ -102,6 +103,7 @@ class DevelopmentConfig(Config):
 
     DEBUG = True
     DISABLE_DEBUG_ENDPOINTS = False
+    DISABLE_PERF_ENDPOINTS = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
         os.environ.get('DATABASE_URL') or \
         os.environ.get('SQLALCHEMY_DATABASE_URI')
@@ -125,6 +127,7 @@ class ProductionConfig(Config):
 
     DEBUG = False
     DISABLE_DEBUG_ENDPOINTS = True
+    DISABLE_PERF_ENDPOINTS = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         os.environ.get('SQLALCHEMY_DATABASE_URI')
     if not SQLALCHEMY_DATABASE_URI:
