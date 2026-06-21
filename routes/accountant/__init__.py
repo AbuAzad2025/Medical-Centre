@@ -11,6 +11,7 @@ from models.invoice import Invoice
 from models.user import User
 from services.report_service import ReportService
 from utils.decorators import accountant_only, can_access_financial_reports
+from app.shared.enums import InsuranceClaimStatus
 from app_factory import db
 import logging
 from datetime import datetime, date, timedelta, timezone
@@ -521,10 +522,10 @@ def get_revenue_cycle_metrics():
     try:
         from models.insurance import InsuranceClaim
         total_claims = InsuranceClaim.query.count()
-        submitted = InsuranceClaim.query.filter(InsuranceClaim.status == 'SUBMITTED').count()
-        approved = InsuranceClaim.query.filter(InsuranceClaim.status == 'APPROVED').count()
-        rejected = InsuranceClaim.query.filter(InsuranceClaim.status == 'REJECTED').count()
-        paid = InsuranceClaim.query.filter(InsuranceClaim.status == 'PAID').count()
+        submitted = InsuranceClaim.query.filter(InsuranceClaim.status == InsuranceClaimStatus.SUBMITTED).count()
+        approved = InsuranceClaim.query.filter(InsuranceClaim.status == InsuranceClaimStatus.APPROVED).count()
+        rejected = InsuranceClaim.query.filter(InsuranceClaim.status == InsuranceClaimStatus.REJECTED).count()
+        paid = InsuranceClaim.query.filter(InsuranceClaim.status == InsuranceClaimStatus.PAID).count()
         outstanding = db.session.query(
             db.func.sum(Invoice.total_amount - Invoice.paid_amount)
         ).filter(Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])).scalar() or 0

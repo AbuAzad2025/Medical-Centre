@@ -498,7 +498,7 @@ class ReportService:
                 payment_by_status[status]['count'] += 1
                 payment_by_status[status]['amount'] += float(payment.amount)
             
-            total_collected = sum(float(p.amount) for p in payments_today if p.status == 'CONFIRMED')
+            total_collected = sum(float(p.amount) for p in payments_today if p.status == PaymentStatus.CONFIRMED)
             total_pending = sum(float(p.amount) for p in payments_today if p.status == PaymentStatus.PENDING)
             total_cancelled = sum(float(p.amount) for p in payments_today if p.status == PaymentStatus.CANCELLED)
             
@@ -704,7 +704,7 @@ class ReportService:
                 and_(
                     Payment.created_at >= start_date,
                     Payment.created_at <= end_date,
-                    Payment.status == 'CONFIRMED'
+                    Payment.status == PaymentStatus.CONFIRMED
                 )
             ).all()
             
