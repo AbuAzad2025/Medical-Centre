@@ -8,7 +8,7 @@ import logging
 from sqlalchemy import func
 
 # إنشاء Blueprint للسوبر أدمن
-super_admin_bp = Blueprint('super_admin', __name__, guard_module=__name__)
+super_admin_bp = Blueprint('super_admin', __name__)
 
 from services.feature_gate_service import guard_module
 

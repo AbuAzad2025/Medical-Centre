@@ -9,7 +9,7 @@ from models import AIImagingAnalysis, DICOMStudy
 from datetime import datetime, timezone
 import random
 
-ai_imaging_bp = Blueprint('ai_imaging', __name__, guard_module=__name__)
+ai_imaging_bp = Blueprint('ai_imaging', __name__)
 
 from services.feature_gate_service import guard_module
 

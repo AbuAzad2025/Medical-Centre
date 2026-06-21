@@ -44,7 +44,7 @@ def main():
             print(f"✓ All {StaffWorkSchedule.query.count()} StaffWorkSchedule records have tenant_id")
         else:
             print(f"✗ {null_tenant_count} StaffWorkSchedule records still have NULL tenant_id")
-            print("  Run the migration script manually: python migrations/versions/fix_staff_work_schedule_tenant_id.py")
+            print("  Run the manual script: python migrations/manual_scripts/fix_staff_work_schedule_tenant_id.py")
 
 if __name__ == '__main__':
     try:

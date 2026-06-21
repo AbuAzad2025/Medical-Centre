@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 # إنشاء Blueprint للمصادقة
-auth_bp = Blueprint('auth', __name__, guard_module=__name__)
+auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.get("/__ping")
 def _auth_ping() -> ResponseReturnValue:

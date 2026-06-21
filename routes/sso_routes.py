@@ -8,7 +8,7 @@ from models import SSOConfiguration
 from services.sso_service import sso_service
 from utils.decorators import handle_route_errors
 
-sso_bp = Blueprint('sso', __name__, guard_module=__name__)
+sso_bp = Blueprint('sso', __name__)
 
 from services.feature_gate_service import guard_module
 

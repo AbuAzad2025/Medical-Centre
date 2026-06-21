@@ -9,7 +9,7 @@ from models.icd_coding import ICD10Code
 from models.patient import Patient
 from app_factory import db
 
-pop_health_bp = Blueprint('pop_health', __name__, guard_module=__name__)
+pop_health_bp = Blueprint('pop_health', __name__)
 
 from services.feature_gate_service import guard_module
 

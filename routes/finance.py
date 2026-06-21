@@ -13,7 +13,7 @@ from app_factory import db
 import logging
 from datetime import datetime
 
-finance_bp = Blueprint('finance', __name__, guard_module=__name__)
+finance_bp = Blueprint('finance', __name__)
 
 from services.feature_gate_service import guard_module
 

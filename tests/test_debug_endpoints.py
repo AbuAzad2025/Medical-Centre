@@ -1,15 +1,5 @@
 """Tests for P0E-001: debug/performance endpoint containment."""
 
-# Blueprint monkey-patch: Flask 3.1+ does not accept the codebase-wide
-# `guard_module` kwarg. Strip it before any route imports trigger it.
-import flask as _flask
-_orig_bp = _flask.Blueprint
-class _PatchedBP(_orig_bp):
-    def __init__(self, name, import_name, **kwargs):
-        kwargs.pop('guard_module', None)
-        super().__init__(name, import_name, **kwargs)
-_flask.Blueprint = _PatchedBP
-
 import pytest
 
 

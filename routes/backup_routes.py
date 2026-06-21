@@ -15,7 +15,7 @@ import shutil
 from datetime import datetime, timezone
 import zipfile
 
-backup_bp = Blueprint('backup', __name__, guard_module=__name__)
+backup_bp = Blueprint('backup', __name__)
 
 @backup_bp.route('/backup/dashboard')
 @login_required

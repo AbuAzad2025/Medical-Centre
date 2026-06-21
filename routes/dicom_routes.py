@@ -10,7 +10,7 @@ from models.radiology_request import RadiologyRequest
 from services.dicom_service import dicom_service
 from app_factory import db
 
-dicom_bp = Blueprint('dicom', __name__, guard_module=__name__)
+dicom_bp = Blueprint('dicom', __name__)
 
 from services.feature_gate_service import guard_module
 

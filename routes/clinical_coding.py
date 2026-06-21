@@ -12,7 +12,7 @@ from models.user import User
 from app_factory import db
 import logging
 
-clinical_coding_bp = Blueprint('clinical_coding', __name__, guard_module=__name__)
+clinical_coding_bp = Blueprint('clinical_coding', __name__)
 
 from services.feature_gate_service import guard_module
 

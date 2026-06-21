@@ -8,7 +8,7 @@ from app_factory import db
 from models import WhatIfScenario, Department
 from datetime import datetime, timezone
 
-what_if_bp = Blueprint('what_if', __name__, guard_module=__name__)
+what_if_bp = Blueprint('what_if', __name__)
 
 from services.feature_gate_service import guard_module
 

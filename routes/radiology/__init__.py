@@ -25,7 +25,7 @@ from io import BytesIO
 import qrcode
 import secrets
 
-radiology_bp = Blueprint('radiology', __name__, guard_module=__name__)
+radiology_bp = Blueprint('radiology', __name__)
 
 from services.feature_gate_service import guard_module
 

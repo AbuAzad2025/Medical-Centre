@@ -7,7 +7,7 @@ from services.currency_service import CurrencyConverter
 from app_factory import db
 import logging
 
-reception_currency_bp = Blueprint('reception_currency', __name__, guard_module=__name__)
+reception_currency_bp = Blueprint('reception_currency', __name__)
 
 
 @reception_currency_bp.route('/api/save-manual-rate', methods=['POST'])

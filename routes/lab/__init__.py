@@ -22,7 +22,7 @@ import base64
 from io import BytesIO
 import qrcode
 
-lab_bp = Blueprint('lab', __name__, guard_module=__name__)
+lab_bp = Blueprint('lab', __name__)
 
 from services.feature_gate_service import guard_module
 

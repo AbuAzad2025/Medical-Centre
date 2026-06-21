@@ -17,7 +17,7 @@ import logging
 from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
 
-accountant_bp = Blueprint('accountant', __name__, guard_module=__name__)
+accountant_bp = Blueprint('accountant', __name__)
 
 from services.feature_gate_service import guard_module
 

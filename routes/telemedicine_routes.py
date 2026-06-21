@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 import secrets
 import logging
 
-telemedicine_bp = Blueprint('telemedicine', __name__, guard_module=__name__)
+telemedicine_bp = Blueprint('telemedicine', __name__)
 
 from services.feature_gate_service import guard_module
 

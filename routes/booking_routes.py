@@ -17,7 +17,7 @@ from datetime import datetime, timedelta, timezone
 import json
 import secrets
 
-booking_bp = Blueprint('booking', __name__, guard_module=__name__)
+booking_bp = Blueprint('booking', __name__)
 
 from services.feature_gate_service import guard_module
 

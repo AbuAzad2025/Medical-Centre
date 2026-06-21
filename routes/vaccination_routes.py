@@ -9,7 +9,7 @@ from models.patient import Patient
 from app_factory import db
 from datetime import date
 
-vaccination_bp = Blueprint('vaccination', __name__, guard_module=__name__)
+vaccination_bp = Blueprint('vaccination', __name__)
 
 from services.feature_gate_service import guard_module
 

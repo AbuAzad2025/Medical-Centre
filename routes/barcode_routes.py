@@ -8,7 +8,7 @@ from models.barcode_tracking import BarcodeRegistry, BarcodeScanLog
 from app_factory import db
 from datetime import datetime, timezone
 
-barcode_bp = Blueprint('barcode', __name__, guard_module=__name__)
+barcode_bp = Blueprint('barcode', __name__)
 
 from services.feature_gate_service import guard_module
 
