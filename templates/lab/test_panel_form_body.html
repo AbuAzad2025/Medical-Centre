@@ -1,0 +1,32 @@
+{% set uid = p.id if p else 'new' %}
+<div class="row">
+  <div class="col-md-6 mb-3">
+    <label class="form-label">الاسم (عربي) <span class="text-danger">*</span></label>
+    <input class="form-control" name="name_ar" value="{{ p.name_ar if p else '' }}" required>
+  </div>
+  <div class="col-md-6 mb-3">
+    <label class="form-label">الاسم (إنجليزي)</label>
+    <input class="form-control" name="name_en" value="{{ p.name_en if p else '' }}">
+  </div>
+  <div class="col-12 mb-3">
+    <label class="form-label">الوصف</label>
+    <textarea class="form-control" name="description" rows="2">{{ p.description if p else '' }}</textarea>
+  </div>
+  <div class="col-12 mb-3">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="is_active" value="1" id="panel_active_{{ uid }}" {% if not p or p.is_active %}checked{% endif %}>
+      <label class="form-check-label" for="panel_active_{{ uid }}">نشط</label>
+    </div>
+  </div>
+  <div class="col-12 mb-3">
+    <label class="form-label">الفحوصات المضمنة</label>
+    <select class="form-select" name="test_ids" multiple style="min-height: 200px;">
+      {% for t in tests %}
+      <option value="{{ t.id }}" {% if p and t.id in p.items|map(attribute='test_id')|list %}selected{% endif %}>
+        {{ t.code }} - {{ t.name_ar }}{% if t.name_en %} ({{ t.name_en }}){% endif %}
+      </option>
+      {% endfor %}
+    </select>
+    <div class="form-text">اضغط Ctrl (أو Cmd) لتحديد متعدد</div>
+  </div>
+</div>

@@ -33,6 +33,7 @@ from .drug_interaction import DrugInteraction
 from .follow_up import FollowUpRequest
 from .lab_reagent import LabReagent
 from .lab_quality import LabQualityControlEntry
+from .lab_test_catalog import LabTestCatalog, LabTestPanel, LabTestPanelItem
 from .medication import Medication, Prescription, PrescriptionItem, PrescriptionDispenseLog, PharmacySale, PharmacySaleItem, PharmacyReturn, Supplier, MedicationPurchase
 from .nurse import Nurse, VitalSigns, MedicationAdministrationLog
 from .online_booking import OnlineBooking, PaymentTransaction
@@ -103,7 +104,7 @@ __all__ = [
     "PatientSatisfactionSurvey",
     "EmergencyCase", "EmergencyStatusHistory",
     "DrugInteraction", "FollowUpRequest",
-    "LabReagent", "LabQualityControlEntry",
+    "LabReagent", "LabQualityControlEntry", "LabTestCatalog", "LabTestPanel", "LabTestPanelItem",
     "Medication", "Prescription", "PrescriptionItem", "PrescriptionDispenseLog",
     "PharmacySale", "PharmacySaleItem", "PharmacyReturn", "Supplier", "MedicationPurchase",
     "Nurse", "VitalSigns", "MedicationAdministrationLog",

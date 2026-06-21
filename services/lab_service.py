@@ -257,5 +257,27 @@ class LabService:
         }
 
 
+    # ==================== TEST CATALOG ====================
+
+    @staticmethod
+    def lookup_catalog_by_code(code: str, tenant_id: int | None = None) -> Any | None:
+        from models.lab_test_catalog import LabTestCatalog
+        q = LabTestCatalog.query.filter(
+            LabTestCatalog.code == code,
+            LabTestCatalog.is_active == True
+        )
+        if tenant_id:
+            q = q.filter(LabTestCatalog.tenant_id == tenant_id)
+        return q.first()
+
+    @staticmethod
+    def get_active_catalog(tenant_id: int | None = None) -> list:
+        from models.lab_test_catalog import LabTestCatalog
+        q = LabTestCatalog.query.filter(LabTestCatalog.is_active == True)
+        if tenant_id:
+            q = q.filter(LabTestCatalog.tenant_id == tenant_id)
+        return q.order_by(LabTestCatalog.sort_order, LabTestCatalog.code).all()
+
+
 # Singleton
 lab_service = LabService()

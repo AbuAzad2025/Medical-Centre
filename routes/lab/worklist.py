@@ -69,11 +69,9 @@ def worklist():
         flash('حدث خطأ في تحميل قائمة العمل', 'error')
         return redirect(url_for('lab.dashboard'))
 
-@lab_bp.route('/worklist/request/<int:request_id>', methods=['GET', 'POST'])
-@login_required
-@role_required('lab', 'technician', 'admin', 'manager', 'super_admin')
 def _process_lab_results_form(lab_request, form):
     """معالجة نتائج المختبر من بيانات النموذج"""
+    from services.lab_service import lab_service
     result_ids = form.getlist('result_id[]')
     test_codes = form.getlist('test_code[]')
     test_names = form.getlist('test_name[]')
@@ -100,6 +98,16 @@ def _process_lab_results_form(lab_request, form):
 
         if not (test_code or test_name or value or unit or reference_range or notes):
             continue
+
+        if not unit or not reference_range:
+            catalog_entry = lab_service.lookup_catalog_by_code(
+                test_code, getattr(current_user, 'tenant_id', None)
+            )
+            if catalog_entry:
+                if not unit:
+                    unit = catalog_entry.unit or None
+                if not reference_range:
+                    reference_range = catalog_entry.default_reference_range or None
 
         if rid_raw and str(rid_raw).isdigit():
             res = db.session.get(LabResult, int(rid_raw))
@@ -165,6 +173,9 @@ def _notify_lab_results_ready(lab_request):
     except Exception:
 
         logging.warning(f"Error in {__name__}: {e}")
+@lab_bp.route('/worklist/request/<int:request_id>', methods=['GET', 'POST'])
+@login_required
+@role_required('lab', 'technician', 'admin', 'manager', 'super_admin')
 def worklist_request(request_id):
     try:
         lab_request = db.session.get(LabRequest, request_id)
