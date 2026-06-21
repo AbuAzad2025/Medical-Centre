@@ -70,6 +70,9 @@ class Config:
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = 3600
     
+    # Debug endpoints — disabled by default (deny by design)
+    DISABLE_DEBUG_ENDPOINTS = os.environ.get('DISABLE_DEBUG_ENDPOINTS', 'true').lower() in ('true', 'on', '1')
+
     # إعدادات المستخدم الافتراضي — يجب توفيرها عبر environment variables
     DEFAULT_ADMIN_USERNAME = os.environ.get('DEFAULT_ADMIN_USERNAME')
     DEFAULT_ADMIN_PASSWORD = os.environ.get('DEFAULT_ADMIN_PASSWORD')
@@ -98,6 +101,7 @@ class DevelopmentConfig(Config):
     """إعدادات التطوير — PostgreSQL فقط"""
 
     DEBUG = True
+    DISABLE_DEBUG_ENDPOINTS = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
         os.environ.get('DATABASE_URL') or \
         os.environ.get('SQLALCHEMY_DATABASE_URI')
