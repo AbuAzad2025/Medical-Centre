@@ -124,6 +124,7 @@ class ProductionConfig(Config):
     """إعدادات الإنتاج — PostgreSQL فقط"""
 
     DEBUG = False
+    DISABLE_DEBUG_ENDPOINTS = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         os.environ.get('SQLALCHEMY_DATABASE_URI')
     if not SQLALCHEMY_DATABASE_URI:
