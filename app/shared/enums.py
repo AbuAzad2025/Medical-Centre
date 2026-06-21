@@ -89,6 +89,7 @@ class PaymentStatus(str, Enum):
     PARTIAL = "PARTIAL"
     DEBT = "DEBT"
     EMERGENCY_DEBT = "EMERGENCY_DEBT"
+    CONFIRMED = "CONFIRMED"
     REFUNDED = "REFUNDED"
     CANCELLED = "CANCELLED"
 
@@ -609,8 +610,19 @@ class SupplyRequestStatus(str, Enum):
 class eMARAdministrationStatus(str, Enum):
     SCHEDULED = "SCHEDULED"
     GIVEN = "GIVEN"
-    MISSED = "MISSED"
+    NOT_GIVEN = "NOT_GIVEN"
+    HELD = "HELD"
     REFUSED = "REFUSED"
+    PARTIAL = "PARTIAL"
+    MISSED = "MISSED"
+    LATE = "LATE"
+
+class InsuranceClaimStatus(str, Enum):
+    DRAFT = "DRAFT"
+    SUBMITTED = "SUBMITTED"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    PAID = "PAID"
 
 class DICOMStudyStatus(str, Enum):
     RECEIVED = "RECEIVED"

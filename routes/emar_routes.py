@@ -3,6 +3,7 @@ eMAR — Electronic Medication Administration Record Routes
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
+from app.shared.enums import eMARAdministrationStatus
 from utils.decorators import handle_route_errors, role_required
 from models.emar import eMARAdministration, MedicationSchedule
 from models.patient import Patient
@@ -27,7 +28,7 @@ def dashboard():
     administrations = eMARAdministration.query.filter(
         db.func.date(eMARAdministration.scheduled_time) == today
     ).order_by(eMARAdministration.scheduled_time).all()
-    pending = [a for a in administrations if a.status == 'SCHEDULED']
+    pending = [a for a in administrations if a.status == eMARAdministrationStatus.SCHEDULED]
     given = [a for a in administrations if a.status == 'GIVEN']
     return render_template('emar/dashboard.html',
                            administrations=administrations,

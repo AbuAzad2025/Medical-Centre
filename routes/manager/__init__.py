@@ -2,6 +2,7 @@
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
+from app.shared.enums import AppointmentWorkflowStatus
 from models.patient import Patient
 from models.visit import Visit
 from models.user import User, StaffWorkSchedule, StaffAbsence
@@ -495,8 +496,8 @@ def get_bi_insights():
         visits_30d = Visit.query.filter(Visit.created_at >= start_30d).count()
         completed_30d = Visit.query.filter(Visit.status == VisitState.ARCHIVED, Visit.created_at >= start_30d).count()
         appointments_30d = Appointment.query.filter(Appointment.starts_at >= start_30d).count()
-        no_show = Appointment.query.filter(Appointment.status == 'no_show', Appointment.starts_at >= start_30d).count()
-        cancel = Appointment.query.filter(Appointment.status == 'cancelled', Appointment.starts_at >= start_30d).count()
+        no_show = Appointment.query.filter(Appointment.status == AppointmentWorkflowStatus.NO_SHOW, Appointment.starts_at >= start_30d).count()
+        cancel = Appointment.query.filter(Appointment.status == AppointmentWorkflowStatus.CANCELLED, Appointment.starts_at >= start_30d).count()
         conversion_rate = (completed_30d / visits_30d * 100) if visits_30d else 0
         no_show_rate = (no_show / appointments_30d * 100) if appointments_30d else 0
         cancel_rate = (cancel / appointments_30d * 100) if appointments_30d else 0
