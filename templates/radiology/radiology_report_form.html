@@ -16,6 +16,7 @@
                         {% if radiology_request %}
                         <a class="btn btn-outline-primary" href="{{ url_for('radiology.worklist_request', request_id=radiology_request.id) }}">فتح الطلب</a>
                         <a class="btn btn-primary" href="{{ url_for('radiology.print_report', radiology_scan_id=(radiology_result.id if radiology_result else radiology_request.id)) }}">طباعة التقرير</a>
+                        <a class="btn btn-danger" href="{{ url_for('radiology.print_report_pdf', radiology_scan_id=(radiology_result.id if radiology_result else radiology_request.id)) }}"><i class="fas fa-file-pdf me-1"></i>تحميل PDF</a>
                         {% endif %}
                         <a class="btn btn-secondary" href="{{ url_for('radiology.dashboard') }}">العودة</a>
                     </div>

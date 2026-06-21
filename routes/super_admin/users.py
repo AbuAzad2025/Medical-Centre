@@ -175,7 +175,7 @@ def edit_user(user_id):
                     except Exception:
                         continue
                     db.session.add(UserDepartmentAccess(user_id=user.id, department_id=did, can_access=True))
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
             # تحديث كلمة المرور إذا تم إدخالها
@@ -366,5 +366,4 @@ def force_logout_user(user_id):
         logging.error(f"Force logout error: {str(e)}")
         flash('حدث خطأ في إجبار تسجيل الخروج', 'error')
         return redirect(url_for('super_admin.users'))
-
 

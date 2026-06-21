@@ -86,7 +86,7 @@ def daily_summary():
         
         # الزيارات المكتملة اليوم
         completed_visits = Visit.query.filter(
-            Visit.status == 'ARCHIVED',
+            Visit.status == VisitState.ARCHIVED,
             Visit.completed_at >= datetime.combine(today, datetime.min.time()),
             Visit.completed_at <= datetime.combine(today, datetime.max.time())
         ).all()

@@ -3,8 +3,9 @@ Patient Education Materials
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class PatientEducationMaterial(db.Model):
+class PatientEducationMaterial(TenantMixin, db.Model):
     __tablename__ = 'patient_education_materials'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -32,7 +33,7 @@ class PatientEducationMaterial(db.Model):
         return f"<PatientEducationMaterial {self.title}>"
 
 
-class PatientEducationAssignment(db.Model):
+class PatientEducationAssignment(TenantMixin, db.Model):
     __tablename__ = 'patient_education_assignments'
 
     id = db.Column(db.Integer, primary_key=True)

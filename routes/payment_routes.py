@@ -19,7 +19,13 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 import json
 
-payment_bp = Blueprint('payment', __name__)
+payment_bp = Blueprint('payment', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@payment_bp.before_request
+def _guard_billing_module():
+    guard_module('billing')
 
 @payment_bp.route('/')
 @login_required
@@ -163,7 +169,7 @@ def process_payment(visit_id):
                         company = db.session.get(InsuranceCompany, int(insurance_company_id))
                         if company:
                             provider_value = company.name_ar or company.name or provider_value
-                    except Exception:
+                    except Exception as e:
 
                         logging.warning(f"Error in {__name__}: {e}")
                 valid_ins, ins_message = GatekeeperService.validate_insurance(
@@ -218,12 +224,12 @@ def process_payment(visit_id):
                     flash('يتطلب تحمل المسؤولية من الاستقبال', 'error')
                     return redirect(url_for('payment.process_payment', visit_id=visit_id))
                 visit.payment_method = method_value or visit.payment_method
-                visit.payment_status = 'DEBT'
+                visit.payment_status = PaymentStatus.DEBT
                 if debt_reason:
                     try:
                         note_prefix = f"DEBT[{current_user.id}] {debt_reason}"
                         visit.notes = f"{visit.notes or ''}\n{note_prefix}".strip()
-                    except Exception:
+                    except Exception as e:
 
                         logging.warning(f"Error in {__name__}: {e}")
                 db.session.commit()
@@ -247,7 +253,7 @@ def process_payment(visit_id):
                     flash('الدين غير مسموح', 'error')
                     return redirect(url_for('payment.process_payment', visit_id=visit_id))
                 visit.payment_method = method_value or visit.payment_method
-                visit.payment_status = 'DEBT'
+                visit.payment_status = PaymentStatus.DEBT
                 db.session.commit()
                 if _wants_json():
                     return jsonify({'success': True})
@@ -291,7 +297,7 @@ def process_payment(visit_id):
                 if insurance_coverage_raw:
                     try:
                         visit.insurance_coverage_percentage = Decimal(insurance_coverage_raw)
-                    except Exception:
+                    except Exception as e:
 
                         logging.warning(f"Error in {__name__}: {e}")
                 if insurance_company_id and insurance_company_id.isdigit():
@@ -302,7 +308,7 @@ def process_payment(visit_id):
                             visit.insurance_company_id = company.id
                             if not visit.insurance_provider:
                                 visit.insurance_provider = company.name_ar or company.name
-                    except Exception:
+                    except Exception as e:
 
                         logging.warning(f"Error in {__name__}: {e}")
                 # حساب مبالغ التأمين وحصة المريض
@@ -321,9 +327,9 @@ def process_payment(visit_id):
                 visit.force_payment_approved_by = current_user.id
                 visit.force_payment_approved_at = datetime.now(timezone.utc)
             if visit.remaining_amount <= 0:
-                visit.payment_status = 'PAID'
+                visit.payment_status = PaymentStatus.PAID
             elif converted_amount > 0:
-                visit.payment_status = 'PARTIAL'
+                visit.payment_status = PaymentStatus.PARTIAL
             else:
                 visit.payment_status = visit.payment_status or 'PENDING'
 
@@ -331,7 +337,7 @@ def process_payment(visit_id):
             try:
                 if not visit.receipt_number:
                     visit.receipt_number = f"RCPT-{visit.id}-{int(datetime.now(timezone.utc).timestamp())}"
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
             db.session.commit()

@@ -6,15 +6,16 @@ Medical System Queue Management Model
 from datetime import datetime, timezone
 from sqlalchemy import Index
 from app_factory import db
+from app.shared.mixins import TenantMixin
 import json
 
-class QueueManagement(db.Model):
+class QueueManagement(TenantMixin, db.Model):
     """نموذج إدارة الطابور"""
     
     __tablename__ = 'queue_management'
+    __tenant_migration__ = True
     
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
@@ -125,7 +126,7 @@ class QueueManagement(db.Model):
             'notes': self.notes
         }
 
-class QueueSettings(db.Model):
+class QueueSettings(TenantMixin, db.Model):
     """نموذج إعدادات الطابور"""
     
     __tablename__ = 'queue_settings'

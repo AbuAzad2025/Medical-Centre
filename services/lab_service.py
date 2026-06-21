@@ -21,7 +21,7 @@ class LabService:
     def get_worklist(status: str = "REQUESTED", limit: int = 200) -> list:
         from models.lab_request import LabRequest
         today = date.today()
-        allowed = {"REQUESTED", "RECEIVED", "ANALYZING", "REVIEWED",
+        allowed = {"REQUESTED", "COLLECTED", "RECEIVED", "ANALYZING", "REVIEWED",
                     "APPROVED", "IN_PROGRESS", "DONE", "DONE_TODAY", "ALL"}
         if status not in allowed:
             status = "REQUESTED"
@@ -40,7 +40,7 @@ class LabService:
         return {
             "requested": LabRequest.query.filter(LabRequest.status == "REQUESTED").count(),
             "in_progress": LabRequest.query.filter(
-                LabRequest.status.in_(["RECEIVED", "ANALYZING", "REVIEWED", "APPROVED", "IN_PROGRESS"])
+                LabRequest.status.in_(["COLLECTED", "RECEIVED", "ANALYZING", "REVIEWED", "APPROVED", "IN_PROGRESS"])
             ).count(),
             "done_today": LabRequest.query.filter(
                 LabRequest.status == "DONE",

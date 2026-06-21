@@ -6,8 +6,9 @@ Medical System Configuration Models
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class SystemConfig(db.Model):
+class SystemConfig(TenantMixin, db.Model):
     """نموذج تكوين النظام"""
     
     __tablename__ = 'system_configs'

@@ -15,7 +15,7 @@ import shutil
 from datetime import datetime, timezone
 import zipfile
 
-backup_bp = Blueprint('backup', __name__)
+backup_bp = Blueprint('backup', __name__, guard_module=__name__)
 
 @backup_bp.route('/backup/dashboard')
 @login_required
@@ -27,8 +27,8 @@ def dashboard():
     try:
         # إحصائيات النسخ الاحتياطي
         total_backups = Backup.query.count()
-        completed_backups = Backup.query.filter_by(backup_status='COMPLETED').count()
-        failed_backups = Backup.query.filter_by(backup_status='FAILED').count()
+        completed_backups = Backup.query.filter_by(backup_status=BackupStatus.COMPLETED).count()
+        failed_backups = Backup.query.filter_by(backup_status=BackupStatus.FAILED).count()
         scheduled_backups = Backup.query.filter_by(is_scheduled=True).count()
         
         # آخر النسخ الاحتياطي
@@ -83,11 +83,11 @@ def create_backup():
             success = create_backup_file(backup)
             
             if success:
-                backup.backup_status = 'COMPLETED'
+                backup.backup_status = BackupStatus.COMPLETED
                 backup.completed_at = datetime.now(timezone.utc)
                 flash('تم إنشاء النسخة الاحتياطية بنجاح', 'success')
             else:
-                backup.backup_status = 'FAILED'
+                backup.backup_status = BackupStatus.FAILED
                 flash('فشل في إنشاء النسخة الاحتياطية', 'error')
             
             db.session.commit()

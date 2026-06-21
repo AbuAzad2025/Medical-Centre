@@ -46,16 +46,16 @@ def dashboard():
         completed_today = lab_stats["completed_today"]
         total_tests = LabRequest.query.count()
         pending_tests = LabRequest.query.filter(
-            LabRequest.status.in_(['REQUESTED', 'RECEIVED', 'ANALYZING', 'REVIEWED', 'APPROVED', 'IN_PROGRESS'])
+            LabRequest.status.in_([OrderState.REQUESTED, OrderState.RECEIVED, OrderState.ANALYZING, OrderState.REVIEWED, OrderState.APPROVED, OrderState.IN_PROGRESS])
         ).count()
         completed_tests = LabRequest.query.filter(
-            LabRequest.status == 'DONE'
+            LabRequest.status == OrderState.DONE
         ).count()
         requested_count = LabRequest.query.filter(
-            LabRequest.status == 'REQUESTED'
+            LabRequest.status == OrderState.REQUESTED
         ).count()
         in_progress_count = LabRequest.query.filter(
-            LabRequest.status.in_(['RECEIVED', 'ANALYZING', 'REVIEWED', 'APPROVED', 'IN_PROGRESS'])
+            LabRequest.status.in_([OrderState.RECEIVED, OrderState.ANALYZING, OrderState.REVIEWED, OrderState.APPROVED, OrderState.IN_PROGRESS])
         ).count()
         smart_analytics = get_lab_smart_analytics()
         test_optimization = get_lab_test_optimization()

@@ -22,7 +22,13 @@ import base64
 from io import BytesIO
 import qrcode
 
-lab_bp = Blueprint('lab', __name__)
+lab_bp = Blueprint('lab', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@lab_bp.before_request
+def _guard_lab_module():
+    guard_module('lab')
 
 def _log_lab_workflow(request_id, status, action, notes=None):
     try:
@@ -37,22 +43,21 @@ def _log_lab_workflow(request_id, status, action, notes=None):
             timestamp=datetime.now(timezone.utc),
             user_id=getattr(current_user, 'id', None) or 0
         ))
-    except Exception:
-
+    except Exception as e:
         logging.warning(f"Error in {__name__}: {e}")
 def get_lab_smart_analytics():
     """التحليلات الذكية للمختبر"""
     try:
         total_requests = LabRequest.query.count()
-        completed_requests = LabRequest.query.filter(LabRequest.status == 'DONE').count()
+        completed_requests = LabRequest.query.filter(LabRequest.status == OrderState.DONE).count()
         pending_requests = LabRequest.query.filter(
-            LabRequest.status.in_(['REQUESTED', 'RECEIVED', 'ANALYZING', 'REVIEWED', 'APPROVED', 'IN_PROGRESS'])
+            LabRequest.status.in_([OrderState.REQUESTED, OrderState.COLLECTED, OrderState.RECEIVED, OrderState.ANALYZING, OrderState.REVIEWED, OrderState.APPROVED, OrderState.IN_PROGRESS])
         ).count()
         completion_rate = (completed_requests / total_requests * 100) if total_requests > 0 else 0
         try:
             avg_processing_seconds = db.session.query(
                 db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
-            ).filter(LabRequest.status == 'DONE', LabRequest.completed_at.isnot(None)).scalar()
+            ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None)).scalar()
         except Exception:
             db.session.rollback()
             avg_processing_seconds = None
@@ -76,12 +81,12 @@ def get_lab_test_optimization():
         try:
             avg_processing_seconds = db.session.query(
                 db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
-            ).filter(LabRequest.status == 'DONE', LabRequest.completed_at.isnot(None)).scalar()
+            ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None)).scalar()
         except Exception:
             db.session.rollback()
             avg_processing_seconds = None
         avg_processing_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
-        total_processed = LabRequest.query.filter(LabRequest.status == 'DONE').count()
+        total_processed = LabRequest.query.filter(LabRequest.status == OrderState.DONE).count()
         suggestions = generate_optimization_suggestions(avg_processing_time)
         return {
             'avg_processing_time': avg_processing_time,
@@ -96,12 +101,12 @@ def get_lab_test_optimization():
 def get_lab_quality_control():
     """مراقبة الجودة"""
     try:
-        total_completed = LabRequest.query.filter(LabRequest.status == 'DONE').count()
+        total_completed = LabRequest.query.filter(LabRequest.status == OrderState.DONE).count()
         qc_total = LabQualityControlEntry.query.count()
         qc_fail = LabQualityControlEntry.query.filter(LabQualityControlEntry.status == 'FAIL').count()
         quality_score = 100.0 - (float(qc_fail) / float(qc_total) * 100.0) if qc_total else 100.0
         standard_deviations = round((qc_fail / qc_total) * 3, 2) if qc_total else 0
-        recheck_requests = LabRequest.query.filter(LabRequest.status == 'REVIEWED').count()
+        recheck_requests = LabRequest.query.filter(LabRequest.status == OrderState.REVIEWED).count()
         return {
             'total_completed': total_completed,
             'quality_score': round(quality_score, 2),
@@ -141,7 +146,7 @@ def get_lab_result_analysis():
         total_results = LabResult.query.count()
         abnormal_results = LabResult.query.filter(
             LabResult.is_critical == True,
-            LabResult.status.in_(['READY', 'VALIDATED'])
+            LabResult.status.in_([LabResultStatus.READY, LabResultStatus.VALIDATED])
         ).count()
         abnormal_rate = (abnormal_results / total_results * 100) if total_results else 0
         today = date.today()
@@ -165,7 +170,7 @@ def get_lab_workflow_automation():
     """أتمتة سير العمل"""
     try:
         total_requests = LabRequest.query.count()
-        done_requests = LabRequest.query.filter(LabRequest.status == 'DONE').count()
+        done_requests = LabRequest.query.filter(LabRequest.status == OrderState.DONE).count()
         automation_rate = round((done_requests / total_requests) * 100, 2) if total_requests else 0
         automated_tasks = done_requests
         time_saved = round(automation_rate * 1.2, 2)
@@ -249,3 +254,4 @@ from . import quality
 from . import reports
 from . import fhir
 from . import test_catalog
+from . import barcode

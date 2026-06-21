@@ -3,9 +3,10 @@
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class PatientVisitCounter(db.Model):
+class PatientVisitCounter(TenantMixin, db.Model):
     __tablename__ = 'patient_visit_counters'
 
     id = db.Column(db.Integer, primary_key=True)

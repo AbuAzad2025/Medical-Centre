@@ -80,7 +80,7 @@ def patients():
         if search.isdigit():
             try:
                 conditions.append(Patient.id == int(search))
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
         query = query.filter(db.or_(*conditions))

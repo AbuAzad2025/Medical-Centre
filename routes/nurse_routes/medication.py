@@ -38,7 +38,7 @@ def medication_administration():
             Medication.stock_quantity <= Medication.minimum_stock
         ).order_by(Medication.trade_name.asc()).all()
 
-        visits_q = Visit.query.filter(Visit.status.in_(['OPEN', 'IN_PROGRESS']))
+        visits_q = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]))
         dept_ids = _accessible_department_ids()
         if dept_ids is not None and dept_ids:
             visits_q = visits_q.filter(Visit.department_id.in_(dept_ids))

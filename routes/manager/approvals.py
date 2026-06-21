@@ -99,7 +99,7 @@ def approve_force_payment(visit_id):
         # الموافقة
         visit.force_payment_approved_by = current_user.id
         visit.force_payment_approved_at = datetime.now(timezone.utc)
-        visit.payment_status = 'DEBT'  # تحديد كدين معتمد
+        visit.payment_status = PaymentStatus.DEBT  # تحديد كدين معتمد
         
         db.session.commit()
         
@@ -110,7 +110,7 @@ def approve_force_payment(visit_id):
             if not existing_ticket:
                 from routes.reception.queue import add_patient_to_queue_auto
                 add_patient_to_queue_auto(visit_id=visit_id, department_id=visit.department_id, doctor_id=visit.doctor_id)
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         # تسجيل في التدقيق
@@ -162,7 +162,7 @@ def reject_force_payment(visit_id):
         # الرفض
         visit.is_force_payment = False
         visit.payment_method = 'CASH'
-        visit.payment_status = 'PENDING'
+        visit.payment_status = PaymentStatus.PENDING
         visit.force_payment_reason = f'[مرفوض] {visit.force_payment_reason}\nسبب الرفض: {rejection_reason}'
         
         db.session.commit()

@@ -202,8 +202,8 @@ def checkin_appointment(appointment_id: int):
     db.session.add(visit)
     db.session.flush()
 
-    if appointment.status == 'SCHEDULED':
-        appointment.status = 'CONFIRMED'
+    if appointment.status == AppointmentState.SCHEDULED:
+        appointment.status = AppointmentState.CONFIRMED
 
     db.session.commit()
 
@@ -275,7 +275,7 @@ def appointments():
             d0 = _dt.strptime(date_str, '%Y-%m-%d').date()
             from sqlalchemy import func
             query = query.filter(func.date(Appointment.starts_at) == d0)
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
     per_page = request.args.get('per_page', type=int) or 50
@@ -324,8 +324,8 @@ def appointments():
     from sqlalchemy import func
     total_count = db.session.query(func.count(Appointment.id)).scalar() or 0
     today_count = db.session.query(func.count(Appointment.id)).filter(func.date(Appointment.starts_at) == func.current_date()).scalar() or 0
-    confirmed_count = db.session.query(func.count(Appointment.id)).filter(Appointment.status == 'CONFIRMED').scalar() or 0
-    pending_count = db.session.query(func.count(Appointment.id)).filter(Appointment.status == 'SCHEDULED').scalar() or 0
+    confirmed_count = db.session.query(func.count(Appointment.id)).filter(Appointment.status == AppointmentState.CONFIRMED).scalar() or 0
+    pending_count = db.session.query(func.count(Appointment.id)).filter(Appointment.status == AppointmentState.SCHEDULED).scalar() or 0
 
     return render_template('reception/appointments.html', 
                          appointments=appointments, 
@@ -374,7 +374,7 @@ def follow_ups():
             from datetime import datetime as _dt
             d0 = _dt.strptime(date_str, '%Y-%m-%d').date()
             query = query.filter(FollowUpRequest.suggested_date == d0)
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
     followups = query.order_by(FollowUpRequest.suggested_date.asc(), FollowUpRequest.created_at.desc()).limit(500).all()
@@ -391,7 +391,7 @@ def confirm_appointment(appointment_id: int):
         return jsonify({'success': False, 'message': 'الموعد غير موجود'}), 404
     if appointment.status in {'CANCELLED', 'NO_SHOW', 'DONE'}:
         return jsonify({'success': False, 'message': 'لا يمكن تأكيد هذا الموعد'}), 400
-    appointment.status = 'CONFIRMED'
+    appointment.status = AppointmentState.CONFIRMED
     appointment.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     return jsonify({'success': True})
@@ -404,9 +404,9 @@ def cancel_appointment(appointment_id: int):
     appointment = db.session.get(Appointment, appointment_id)
     if not appointment:
         return jsonify({'success': False, 'message': 'الموعد غير موجود'}), 404
-    if appointment.status == 'DONE':
+    if appointment.status == AppointmentState.DONE:
         return jsonify({'success': False, 'message': 'لا يمكن إلغاء موعد مكتمل'}), 400
-    appointment.status = 'CANCELLED'
+    appointment.status = AppointmentState.CANCELLED
     appointment.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     return jsonify({'success': True})
@@ -421,7 +421,7 @@ def no_show_appointment(appointment_id: int):
         return jsonify({'success': False, 'message': 'الموعد غير موجود'}), 404
     if appointment.status in {'CANCELLED', 'DONE'}:
         return jsonify({'success': False, 'message': 'لا يمكن وضع هذه الحالة'}), 400
-    appointment.status = 'NO_SHOW'
+    appointment.status = AppointmentState.NO_SHOW
     appointment.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     return jsonify({'success': True})
@@ -698,7 +698,7 @@ def api_available_times():
         Appointment.doctor_id == doctor_id,
         Appointment.starts_at >= start_of_day,
         Appointment.starts_at <= end_of_day,
-        Appointment.status.in_(['SCHEDULED', 'CONFIRMED'])
+        Appointment.status.in_([AppointmentState.SCHEDULED, AppointmentState.CONFIRMED])
     ).all()
 
     # الأوقات المتاحة (من 8 صباحاً إلى 5 مساءً)
@@ -720,7 +720,6 @@ def api_available_times():
         'success': True,
         'available_times': available_times
     })
-
 
 
 

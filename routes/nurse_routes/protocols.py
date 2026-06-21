@@ -81,8 +81,8 @@ def reports():
         )
 
         total_tasks = base_q.with_entities(func.count(Task.id)).scalar() or 0
-        completed_tasks = base_q.with_entities(func.count(Task.id)).filter(Task.status == 'completed').scalar() or 0
-        overdue_tasks = base_q.with_entities(func.count(Task.id)).filter(Task.due_date.isnot(None), Task.due_date < now, Task.status.in_(['pending', 'in_progress', 'on_hold'])).scalar() or 0
+        completed_tasks = base_q.with_entities(func.count(Task.id)).filter(Task.status == TaskState.COMPLETED).scalar() or 0
+        overdue_tasks = base_q.with_entities(func.count(Task.id)).filter(Task.due_date.isnot(None), Task.due_date < now, Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS, 'on_hold'])).scalar() or 0
         urgent_tasks = base_q.with_entities(func.count(Task.id)).filter(Task.priority == 'urgent').scalar() or 0
 
         by_status = db.session.query(Task.status, func.count(Task.id)).join(User, User.id == Task.assigned_to).filter(
@@ -112,7 +112,7 @@ def reports():
         top_overdue = base_q.filter(
             Task.due_date.isnot(None),
             Task.due_date < now,
-            Task.status.in_(['pending', 'in_progress', 'on_hold'])
+            Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS, 'on_hold'])
         ).order_by(Task.due_date.asc()).limit(25).all()
 
         rows = []

@@ -30,7 +30,7 @@ def tasks():
     
     try:
         from models.task_management import Task
-        vq = Visit.query.filter(Visit.status.in_(['OPEN', 'IN_PROGRESS'])).order_by(desc(Visit.created_at))
+        vq = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])).order_by(desc(Visit.created_at))
         if getattr(current_user, 'department_id', None):
             vq = vq.filter(Visit.department_id == current_user.department_id)
         active_visits = vq.limit(50).all()

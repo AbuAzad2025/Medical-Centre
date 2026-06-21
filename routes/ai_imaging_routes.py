@@ -9,8 +9,13 @@ from models import AIImagingAnalysis, DICOMStudy
 from datetime import datetime, timezone
 import random
 
-ai_imaging_bp = Blueprint('ai_imaging', __name__)
+ai_imaging_bp = Blueprint('ai_imaging', __name__, guard_module=__name__)
 
+from services.feature_gate_service import guard_module
+
+@ai_imaging_bp.before_request
+def _guard_ai_imaging_module():
+    guard_module('ai_imaging')
 
 @ai_imaging_bp.route('/')
 @login_required

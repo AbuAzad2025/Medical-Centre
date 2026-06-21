@@ -96,7 +96,7 @@ def archive_visit(visit_id):
         flash(msg, 'warning')
         return redirect(url_for('reception.visits'))
     try:
-        visit.status = 'ARCHIVED'
+        visit.status = VisitState.ARCHIVED
         visit.archived_by = current_user.id
         from datetime import datetime as _dt, timezone
         visit.archived_at = _dt.now(timezone.utc)
@@ -120,7 +120,7 @@ def end_visit(visit_id):
         flash('الزيارة غير موجودة', 'error')
         return redirect(url_for('reception.visits'))
     # تأكد من أن الزيارة مكتملة قبل الأرشفة
-    if visit.status != 'COMPLETED':
+    if visit.status != VisitState.COMPLETED:
         flash('يجب إنهاء العلاج أولاً (حالة الزيارة مكتملة) قبل إنهاء الزيارة', 'warning')
         return redirect(url_for('reception.visits'))
     # استخدام نفس منطق الأرشفة لمنع إنهاء غير مدفوع
@@ -129,7 +129,7 @@ def end_visit(visit_id):
         flash(msg, 'warning')
         return redirect(url_for('reception.visits'))
     try:
-        visit.status = 'ARCHIVED'
+        visit.status = VisitState.ARCHIVED
         visit.archived_by = current_user.id
         from datetime import datetime as _dt, timezone
         visit.archived_at = _dt.now(timezone.utc)
@@ -361,7 +361,7 @@ def create_visit():
                     emergency_dept = next((d for d in departments_all if d.get_type() == 'emergency'), None)
                     if emergency_dept:
                         department_id = str(emergency_dept.id)
-                except Exception:
+                except Exception as e:
 
                     logging.warning(f"Error in {__name__}: {e}")
                 doctor_id = None
@@ -487,7 +487,7 @@ def create_visit():
                             visit.insurance_company_id = company.id
                             if not visit.insurance_provider:
                                 visit.insurance_provider = company.name_ar or company.name
-                    except Exception:
+                    except Exception as e:
 
                         logging.warning(f"Error in {__name__}: {e}")
             # ========== المرحلة 7: إضافة بيانات البطاقة ==========
@@ -537,6 +537,9 @@ def create_visit():
                         notes=f"Generated from reception: {', '.join([s.name for s in lab_services])}"
                     )
                     db.session.add(lab_req)
+                    db.session.flush()
+                    from services.barcode_service import setup_barcode_for_lab_request
+                    setup_barcode_for_lab_request(lab_req, current_user=current_user, tenant_id=getattr(current_user, 'tenant_id', None))
                     # هنا يمكننا إضافة تفاصيل الخدمات إذا كان هناك جدول تفاصيل، 
                     # لكن حالياً سنكتفي بإنشاء الطلب ووضع الأسماء في الملاحظات 
                     # أو يمكننا تحسين LabRequest لاحقاً ليقبل قائمة خدمات
@@ -575,9 +578,9 @@ def create_visit():
                     
                     # إذا دفع كامل المبلغ
                     if visit.is_fully_paid:
-                        visit.payment_status = 'PAID'
+                        visit.payment_status = PaymentStatus.PAID
                     else:
-                        visit.payment_status = 'PARTIAL'
+                        visit.payment_status = PaymentStatus.PARTIAL
                     
                     # إنشاء سجل دفع
                     from models.payment import PaymentMethod
@@ -603,7 +606,7 @@ def create_visit():
                 # دفع حصة المريض
                 if amount_paid and float(amount_paid) >= float(visit.patient_share or 0):
                     visit.paid_amount = float(amount_paid)
-                    visit.payment_status = 'PARTIAL'  # لأن التأمين لم يدفع بعد
+                    visit.payment_status = PaymentStatus.PARTIAL  # لأن التأمين لم يدفع بعد
                     
                     # إنشاء سجل دفع لحصة المريض
                     payment = Payment(
@@ -622,7 +625,7 @@ def create_visit():
             
             elif is_force_payment:
                 # دفع قسري - بانتظار الموافقة
-                visit.payment_status = 'PENDING'
+                visit.payment_status = PaymentStatus.PENDING
                 visit.paid_amount = 0
             
             # ========== المرحلة 11: حفظ الزيارة ==========
@@ -637,6 +640,8 @@ def create_visit():
                 lab_req = LabRequest(visit_id=visit.id, patient_id=patient_id, requested_by=current_user.id, status='REQUESTED')
                 db.session.add(lab_req)
                 db.session.flush()
+                from services.barcode_service import setup_barcode_for_lab_request
+                setup_barcode_for_lab_request(lab_req, current_user=current_user, tenant_id=getattr(current_user, 'tenant_id', None))
                 from models.service import ServiceMaster
                 ids = [int(x) for x in selected_tests if str(x).isdigit()]
                 services = ServiceMaster.query.filter(ServiceMaster.id.in_(ids), ServiceMaster.is_active == True).all()
@@ -695,9 +700,9 @@ def create_visit():
             # ========== المرحلة 13: الرسائل والتوجيه ==========
             if is_force_payment:
                 flash('تم إنشاء الزيارة بنجاح. في انتظار موافقة المدير على الدفع القسري.', 'warning')
-            elif visit.payment_status == 'PAID':
+            elif visit.payment_status == PaymentStatus.PAID:
                 flash('تم إنشاء الزيارة ودفع المبلغ بنجاح.', 'success')
-            elif visit.payment_status == 'PARTIAL':
+            elif visit.payment_status == PaymentStatus.PARTIAL:
                 remaining = visit.remaining_amount
                 flash(f'تم إنشاء الزيارة. المبلغ المتبقي: {remaining:.2f} شيكل', 'info')
             else:
@@ -1092,4 +1097,3 @@ def edit_visit(visit_id):
 
 # Import submodules (must be at bottom after all helpers)
 from . import patients
-

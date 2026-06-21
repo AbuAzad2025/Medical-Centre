@@ -4,9 +4,10 @@
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class ExchangeRate(db.Model):
+class ExchangeRate(TenantMixin, db.Model):
     """أسعار الصرف لدعم العملات المتعددة"""
     __tablename__ = 'exchange_rates'
 

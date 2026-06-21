@@ -1,7 +1,8 @@
 from datetime import datetime, timezone, date
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class Budget(db.Model):
+class Budget(TenantMixin, db.Model):
     """نموذج الميزانية الشهرية - Budget vs Actual"""
     __tablename__ = 'budgets'
 

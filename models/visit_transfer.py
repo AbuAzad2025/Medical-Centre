@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class VisitTransferLog(db.Model):
+class VisitTransferLog(TenantMixin, db.Model):
     __tablename__ = 'visit_transfer_logs'
 
     id = db.Column(db.Integer, primary_key=True)

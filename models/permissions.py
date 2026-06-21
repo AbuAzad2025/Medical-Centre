@@ -6,8 +6,9 @@ Advanced Permissions System
 from app_factory import db
 from datetime import datetime, timezone
 from app.shared.enums import PermissionLevel, PermissionCategory
+from app.shared.mixins import TenantMixin
 
-class Permission(db.Model):
+class Permission(TenantMixin, db.Model):
     """جدول الصلاحيات"""
     __tablename__ = 'permissions'
     __table_args__ = {'extend_existing': True}
@@ -25,7 +26,7 @@ class Permission(db.Model):
     role_permissions = db.relationship('RolePermission', cascade='all, delete-orphan')
     user_permissions = db.relationship('UserPermission', cascade='all, delete-orphan')
 
-class Role(db.Model):
+class Role(TenantMixin, db.Model):
     """جدول الأدوار"""
     __tablename__ = 'roles'
     __table_args__ = {'extend_existing': True}
@@ -59,7 +60,7 @@ class Role(db.Model):
                 return {}
         return {}
 
-class RolePermission(db.Model):
+class RolePermission(TenantMixin, db.Model):
     """جدول صلاحيات الأدوار"""
     __tablename__ = 'role_permissions'
     
@@ -80,7 +81,7 @@ class RolePermission(db.Model):
         {'extend_existing': True}
     )
 
-class UserPermission(db.Model):
+class UserPermission(TenantMixin, db.Model):
     """جدول صلاحيات المستخدمين المباشرة"""
     __tablename__ = 'user_permissions'
     __table_args__ = {'extend_existing': True}
@@ -101,7 +102,7 @@ class UserPermission(db.Model):
     # فهرس فريد
     __table_args__ = (db.UniqueConstraint('user_id', 'permission_id', name='unique_user_permission'),)
 
-class AuditLog(db.Model):
+class AuditLog(TenantMixin, db.Model):
     """جدول سجل التدقيق"""
     __tablename__ = 'audit_logs'
     __table_args__ = {'extend_existing': True}

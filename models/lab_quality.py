@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class LabQualityControlEntry(db.Model):
+class LabQualityControlEntry(TenantMixin, db.Model):
     __tablename__ = 'lab_quality_control_entries'
 
     id = db.Column(db.Integer, primary_key=True)

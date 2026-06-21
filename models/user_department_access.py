@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class UserDepartmentAccess(db.Model):
+class UserDepartmentAccess(TenantMixin, db.Model):
     __tablename__ = 'user_department_access'
 
     id = db.Column(db.Integer, primary_key=True)

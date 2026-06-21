@@ -38,7 +38,7 @@ def radiology_request(visit_id):
         if not visit or visit.doctor_id != current_user.id:
             flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        if visit.status != 'IN_PROGRESS':
+        if visit.status != VisitState.IN_PROGRESS:
             flash('لا يمكن طلب تصوير أشعة إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
         if request.method == 'POST':
@@ -65,7 +65,7 @@ def radiology_request(visit_id):
                     description='إضافة مذكرة تصوير'
                 ))
                 db.session.commit()
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
             flash('تم تدوين مذكرة التصوير. يتوجه المريض للاستقبال لإنشاء زيارة لقسم الأشعة عند رغبة التنفيذ داخل المركز.', 'info')
@@ -109,7 +109,7 @@ def radiology_results(patient_id):
                         'recorded_at': getattr(r, 'created_at', None),
                         'radiologist': getattr(r, 'recorded_by', None)
                     })
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
         return render_template('doctor/radiology_results.html',

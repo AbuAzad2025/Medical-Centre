@@ -4,6 +4,7 @@ PharmacySaleService - manages pharmacy sales and dispensing workflow
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
+from app.shared.enums import PrescriptionState
 
 
 class PharmacySaleService:
@@ -37,7 +38,7 @@ class PharmacySaleService:
             db.session.add(sale_item)
             total += item.get('quantity', 1) * item.get('unit_price', 0)
         sale.total_amount = total
-        prescription.status = 'dispensed'
+        prescription.status = PrescriptionState.DISPENSED
         db.session.commit()
         return {"sale_id": sale.id, "total_amount": total}
 
@@ -47,9 +48,9 @@ class PharmacySaleService:
         sale = PharmacySale.query.get(sale_id)
         if not sale:
             return {"error": "Sale not found"}
-        sale.status = 'cancelled'
+        sale.status = PrescriptionState.CANCELLED
         db.session.commit()
-        return {"sale_id": sale.id, "status": "cancelled"}
+        return {"sale_id": sale.id, "status": PrescriptionState.CANCELLED}
 
     @staticmethod
     def get_prescription_status(prescription_id: int) -> dict:

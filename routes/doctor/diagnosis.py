@@ -82,7 +82,7 @@ def diagnosis(visit_id):
             else:
                 visit.follow_up_date = None
             visit.vital_signs = str(vital_signs)
-            visit.status = 'IN_PROGRESS'
+            visit.status = VisitState.IN_PROGRESS
             if additional_notes:
                 memo_text = "[ملاحظات طبية]\n" + additional_notes
                 visit.notes = (visit.notes or '')
@@ -90,7 +90,7 @@ def diagnosis(visit_id):
 
             try:
                 _sync_follow_up_request_for_visit(visit, current_user.id)
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
             # إنشاء سجل طبي
@@ -115,7 +115,7 @@ def diagnosis(visit_id):
                     new_values=json.dumps({'diagnosis': diagnosis, 'treatment_plan': treatment_plan})
                 ))
                 db.session.commit()
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
             flash('تم حفظ التشخيص بنجاح', 'success')
@@ -389,7 +389,7 @@ def get_treatment_recommendations():
         ).join(Medication, Medication.id == PrescriptionItem.medication_id
         ).filter(
             Visit.doctor_id == current_user.id,
-            Visit.status == 'ARCHIVED',
+            Visit.status == VisitState.ARCHIVED,
             MedicalRecord.created_at >= datetime.now() - timedelta(days=60)
         ).group_by(MedicalRecord.diagnosis, Medication.trade_name).all()
         
@@ -490,7 +490,7 @@ def get_clinical_decision_support():
         diagnosis_success = db.session.query(
             MedicalRecord.diagnosis,
             func.count(MedicalRecord.id).label('total_cases'),
-            func.sum(case([(Visit.status == 'ARCHIVED', 1)], else_=0)).label('successful_cases')
+            func.sum(case([(Visit.status == VisitState.ARCHIVED, 1)], else_=0)).label('successful_cases')
         ).join(Visit, MedicalRecord.visit_id == Visit.id).filter(
             Visit.doctor_id == current_user.id,
             MedicalRecord.created_at >= datetime.now() - timedelta(days=30)
@@ -511,7 +511,7 @@ def get_clinical_decision_support():
         medication_effectiveness = db.session.query(
             Medication.trade_name.label('medication_name'),
             func.count(func.distinct(Prescription.id)).label('total_prescriptions'),
-            func.sum(case([(Visit.status == 'ARCHIVED', 1)], else_=0)).label('successful_treatments')
+            func.sum(case([(Visit.status == VisitState.ARCHIVED, 1)], else_=0)).label('successful_treatments')
         ).join(PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
         ).join(Medication, Medication.id == PrescriptionItem.medication_id
         ).join(Visit, Prescription.visit_id == Visit.id
@@ -548,7 +548,7 @@ def get_medical_analytics():
         total_visits = Visit.query.filter(Visit.doctor_id == current_user.id).count()
         completed_visits = Visit.query.filter(
             Visit.doctor_id == current_user.id,
-            Visit.status == 'ARCHIVED'
+            Visit.status == VisitState.ARCHIVED
         ).count()
         
         completion_rate = (completed_visits / total_visits * 100) if total_visits > 0 else 0
@@ -679,7 +679,7 @@ def get_smart_reminders():
         # تذكيرات المتابعة
         follow_up_visits = Visit.query.filter(
             Visit.doctor_id == current_user.id,
-            Visit.status == 'ARCHIVED',
+            Visit.status == VisitState.ARCHIVED,
             Visit.completed_at >= datetime.now() - timedelta(days=7)
         ).count()
         

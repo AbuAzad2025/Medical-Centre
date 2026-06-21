@@ -19,7 +19,13 @@ from datetime import datetime, date, timedelta, timezone
 from sqlalchemy import func
 from decimal import Decimal, ROUND_HALF_UP
 
-manager_bp = Blueprint('manager', __name__)
+manager_bp = Blueprint('manager', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@manager_bp.before_request
+def _guard_reporting_module():
+    guard_module('reporting')
 
 
 
@@ -73,7 +79,7 @@ def get_smart_analytics():
         
         revenue_growth = ((revenue_this_week - revenue_last_week) / revenue_last_week * 100) if revenue_last_week > 0 else 0
         
-        completion_rate = (Visit.query.filter(Visit.status == 'ARCHIVED').count() / Visit.query.count() * 100) if Visit.query.count() > 0 else 0
+        completion_rate = (Visit.query.filter(Visit.status == VisitState.ARCHIVED).count() / Visit.query.count() * 100) if Visit.query.count() > 0 else 0
         avg_visit_minutes = 0.0
         try:
             avg_seconds = db.session.query(
@@ -181,12 +187,12 @@ def get_performance_metrics():
         
         # معدل الإنجاز
         total_visits = Visit.query.count()
-        completed_visits = Visit.query.filter(Visit.status == 'ARCHIVED').count()
+        completed_visits = Visit.query.filter(Visit.status == VisitState.ARCHIVED).count()
         completion_rate = (completed_visits / total_visits * 100) if total_visits > 0 else 0
         
         # معدل المواعيد
         total_appointments = Appointment.query.count()
-        completed_appointments = Appointment.query.filter(Appointment.status == 'DONE').count()
+        completed_appointments = Appointment.query.filter(Appointment.status == AppointmentState.DONE).count()
         appointment_rate = (completed_appointments / total_appointments * 100) if total_appointments > 0 else 0
         
         avg_wait_minutes = 0.0
@@ -379,7 +385,7 @@ def get_patient_satisfaction():
         
         # محاكاة معدل الرضا بناءً على البيانات المتاحة
         total_visits = Visit.query.count()
-        completed_visits = Visit.query.filter(Visit.status == 'ARCHIVED').count()
+        completed_visits = Visit.query.filter(Visit.status == VisitState.ARCHIVED).count()
         
         # حساب معدل الرضا بناءً على معدل الإنجاز
         base_satisfaction = (completed_visits / total_visits * 100) if total_visits > 0 else 0
@@ -487,7 +493,7 @@ def get_bi_insights():
     try:
         start_30d = datetime.now(timezone.utc) - timedelta(days=30)
         visits_30d = Visit.query.filter(Visit.created_at >= start_30d).count()
-        completed_30d = Visit.query.filter(Visit.status == 'ARCHIVED', Visit.created_at >= start_30d).count()
+        completed_30d = Visit.query.filter(Visit.status == VisitState.ARCHIVED, Visit.created_at >= start_30d).count()
         appointments_30d = Appointment.query.filter(Appointment.starts_at >= start_30d).count()
         no_show = Appointment.query.filter(Appointment.status == 'no_show', Appointment.starts_at >= start_30d).count()
         cancel = Appointment.query.filter(Appointment.status == 'cancelled', Appointment.starts_at >= start_30d).count()
@@ -518,3 +524,4 @@ from . import approvals
 from . import departments
 from . import satisfaction
 from . import api
+from . import settings

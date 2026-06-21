@@ -11,13 +11,13 @@ import os
 import hashlib
 import mimetypes
 
-class FileUpload(db.Model):
+class FileUpload(TenantMixin, db.Model):
     """نموذج رفع الملفات"""
     
     __tablename__ = 'file_uploads'
+    __tenant_migration__ = True
     
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     filename = db.Column(db.String(255), nullable=False)
     original_filename = db.Column(db.String(255), nullable=False)
     file_path = db.Column(db.String(500), nullable=False)

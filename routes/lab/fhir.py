@@ -73,6 +73,8 @@ def api_fhir_lab_service_request():
         req.request_number = f"LAB-{int(datetime.now(timezone.utc).timestamp())}"
         db.session.add(req)
         db.session.flush()
+        from services.barcode_service import setup_barcode_for_lab_request
+        setup_barcode_for_lab_request(req, current_user=current_user, tenant_id=getattr(current_user, 'tenant_id', None))
         for t in tests:
             if not isinstance(t, dict):
                 continue
@@ -128,7 +130,7 @@ def api_fhir_lab_observation_import():
         res.value = value
         res.unit = unit
         res.reference_range = reference_range
-        res.status = 'VALIDATED'
+        res.status = LabResultStatus.VALIDATED
         res.performed_by = getattr(current_user, 'id', None)
         req.updated_at = datetime.now(timezone.utc)
         _log_lab_workflow(req.id, req.status, 'fhir_observation')
@@ -160,6 +162,8 @@ def api_hl7_import():
         req.request_number = f"HL7-{int(datetime.now(timezone.utc).timestamp())}"
         db.session.add(req)
         db.session.flush()
+        from services.barcode_service import setup_barcode_for_lab_request
+        setup_barcode_for_lab_request(req, current_user=current_user, tenant_id=getattr(current_user, 'tenant_id', None))
         for t in tests:
             if not isinstance(t, dict):
                 continue

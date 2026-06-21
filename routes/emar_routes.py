@@ -10,7 +10,13 @@ from models.medication import Prescription, PrescriptionItem
 from app_factory import db
 from datetime import datetime, date, timezone
 
-emar_bp = Blueprint('emar', __name__)
+emar_bp = Blueprint('emar', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@emar_bp.before_request
+def _guard_nursing_module():
+    guard_module('nursing')
 
 @emar_bp.route('/dashboard')
 @login_required

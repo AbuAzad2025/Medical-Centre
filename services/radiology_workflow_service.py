@@ -4,6 +4,7 @@ RadiologyWorkflowService - manages radiology request workflow
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
+from app.shared.enums import OrderState
 
 
 class RadiologyWorkflowService:
@@ -15,9 +16,9 @@ class RadiologyWorkflowService:
         req = RadiologyRequest.query.get(request_id)
         if not req:
             return {"error": "Request not found"}
-        req.status = 'RECEIVED'
+        req.status = OrderState.RECEIVED
         db.session.commit()
-        return {"request_id": request_id, "status": "RECEIVED"}
+        return {"request_id": request_id, "status": OrderState.RECEIVED}
 
     @staticmethod
     def complete_request(request_id: int, findings: str = "") -> dict:
@@ -25,9 +26,9 @@ class RadiologyWorkflowService:
         req = RadiologyRequest.query.get(request_id)
         if not req:
             return {"error": "Request not found"}
-        req.status = 'DONE'
+        req.status = OrderState.DONE
         if findings:
             req.findings = findings
         req.completed_at = datetime.now(timezone.utc)
         db.session.commit()
-        return {"request_id": request_id, "status": "DONE"}
+        return {"request_id": request_id, "status": OrderState.DONE}

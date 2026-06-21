@@ -9,13 +9,13 @@ from app.shared.mixins import TenantMixin
 import secrets
 import string
 
-class OnlineBooking(db.Model):
+class OnlineBooking(TenantMixin, db.Model):
     """نموذج الحجز عن بعد"""
     
     __tablename__ = 'online_bookings'
+    __tenant_migration__ = True
     
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     booking_reference = db.Column(db.String(20), unique=True, nullable=False)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True)
     

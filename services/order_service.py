@@ -4,7 +4,7 @@ OrderService — unified clinical order creation
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
-from app.shared.enums import OrderState
+from app.shared.enums import OrderState, LabResultStatus, PrescriptionState
 
 
 class OrderService:
@@ -22,12 +22,14 @@ class OrderService:
         )
         db.session.add(lab_request)
         db.session.flush()
+        from services.barcode_service import setup_barcode_for_lab_request
+        setup_barcode_for_lab_request(lab_request, tenant_id=tenant_id)
         for test_id in lab_test_ids:
             result = LabResult(
                 tenant_id=tenant_id,
                 request_id=lab_request.id,
                 test_id=test_id,
-                status='pending',
+                status=LabResultStatus.PENDING,
             )
             db.session.add(result)
         db.session.commit()
@@ -57,7 +59,7 @@ class OrderService:
             visit_id=visit.id,
             patient_id=visit.patient_id,
             doctor_id=doctor_id,
-            status='active',
+            status=PrescriptionState.ACTIVE,
         )
         db.session.add(prescription)
         db.session.flush()

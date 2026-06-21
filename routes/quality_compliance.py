@@ -8,7 +8,13 @@ from datetime import datetime, date, timedelta
 from sqlalchemy import func
 import logging
 
-quality_bp = Blueprint('quality', __name__)
+quality_bp = Blueprint('quality', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@quality_bp.before_request
+def _guard_reporting_module():
+    guard_module('reporting')
 
 
 def _allowed():
@@ -53,7 +59,7 @@ def dashboard():
             func.date(LabRequest.created_at) == today
         ).count()
         lab_done_today = LabRequest.query.filter(
-            LabRequest.status == 'DONE',
+            LabRequest.status == OrderState.DONE,
             func.date(LabRequest.completed_at) == today
         ).count()
         lab_quality = round((lab_done_today / max(lab_requests_today, 1)) * 100, 1)
@@ -62,7 +68,7 @@ def dashboard():
             func.date(RadiologyRequest.created_at) == today
         ).count()
         rad_done_today = RadiologyRequest.query.filter(
-            RadiologyRequest.status == 'DONE',
+            RadiologyRequest.status == OrderState.DONE,
             func.date(RadiologyRequest.updated_at) == today
         ).count()
         rad_quality = round((rad_done_today / max(rad_requests_today, 1)) * 100, 1)
@@ -71,7 +77,7 @@ def dashboard():
             func.date(Visit.created_at) == today
         ).count()
         completed_visits_today = Visit.query.filter(
-            Visit.status == 'ARCHIVED',
+            Visit.status == VisitState.ARCHIVED,
             Visit.completed_at >= datetime.combine(today, datetime.min.time())
         ).count()
         visit_quality = round((completed_visits_today / max(visits_today, 1)) * 100, 1)
@@ -80,7 +86,7 @@ def dashboard():
             EmergencyCase.created_at >= today
         ).count()
         emergency_completed_today = EmergencyCase.query.filter(
-            EmergencyCase.status == 'COMPLETED',
+            EmergencyCase.status == EmergencyStatus.COMPLETED,
             EmergencyCase.completed_at >= today
         ).count()
         emergency_quality = round((emergency_completed_today / max(emergency_today, 1)) * 100, 1)

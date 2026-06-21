@@ -11,7 +11,13 @@ from models.department import Department
 from app_factory import db
 import logging
 
-bed_bp = Blueprint('bed', __name__)
+bed_bp = Blueprint('bed', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@bed_bp.before_request
+def _guard_nursing_module():
+    guard_module('nursing')
 
 @bed_bp.route('/dashboard')
 @login_required

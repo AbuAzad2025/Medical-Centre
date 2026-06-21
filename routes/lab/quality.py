@@ -44,7 +44,7 @@ def quality():
     end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
 
     done_requests_q = LabRequest.query.filter(
-        LabRequest.status == 'DONE',
+        LabRequest.status == OrderState.DONE,
         LabRequest.completed_at.isnot(None),
         LabRequest.completed_at >= start_dt,
         LabRequest.completed_at <= end_dt
@@ -56,7 +56,7 @@ def quality():
         avg_tat_seconds = db.session.query(
             db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
         ).filter(
-            LabRequest.status == 'DONE',
+            LabRequest.status == OrderState.DONE,
             LabRequest.completed_at.isnot(None),
         ).scalar()
     except Exception:
@@ -68,21 +68,21 @@ def quality():
     total_validated_results = db.session.query(db.func.count(LabResult.id)).join(
         LabRequest, LabRequest.id == LabResult.request_id
     ).filter(
-        LabRequest.status == 'DONE',
+        LabRequest.status == OrderState.DONE,
         LabRequest.completed_at.isnot(None),
         LabRequest.completed_at >= start_dt,
         LabRequest.completed_at <= end_dt,
-        LabResult.status == 'VALIDATED'
+        LabResult.status == LabResultStatus.VALIDATED
     ).scalar() or 0
 
     critical_validated_results = db.session.query(db.func.count(LabResult.id)).join(
         LabRequest, LabRequest.id == LabResult.request_id
     ).filter(
-        LabRequest.status == 'DONE',
+        LabRequest.status == OrderState.DONE,
         LabRequest.completed_at.isnot(None),
         LabRequest.completed_at >= start_dt,
         LabRequest.completed_at <= end_dt,
-        LabResult.status == 'VALIDATED',
+        LabResult.status == LabResultStatus.VALIDATED,
         LabResult.is_critical == True
     ).scalar() or 0
 
@@ -97,11 +97,11 @@ def quality():
         ).join(
             LabRequest, LabRequest.id == LabResult.request_id
         ).filter(
-            LabRequest.status == 'DONE',
+            LabRequest.status == OrderState.DONE,
             LabRequest.completed_at.isnot(None),
             LabRequest.completed_at >= start_dt,
             LabRequest.completed_at <= end_dt,
-            LabResult.status == 'VALIDATED'
+            LabResult.status == LabResultStatus.VALIDATED
         ).group_by(LabResult.patient_id, LabResult.test_code).having(db.func.count(LabResult.id) > 1).order_by(db.func.count(LabResult.id).desc()).limit(25).all()
         for g in dup_groups:
             repeats.append({'patient_id': g.patient_id, 'test_code': g.test_code, 'count': int(g.cnt or 0)})
@@ -117,11 +117,11 @@ def quality():
         ).join(
             LabRequest, LabRequest.id == LabResult.request_id
         ).filter(
-            LabRequest.status == 'DONE',
+            LabRequest.status == OrderState.DONE,
             LabRequest.completed_at.isnot(None),
             LabRequest.completed_at >= start_dt,
             LabRequest.completed_at <= end_dt,
-            LabResult.status == 'VALIDATED'
+            LabResult.status == LabResultStatus.VALIDATED
         ).group_by(LabResult.test_code).order_by(db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at)).desc()).limit(30).all()
         for r in rows:
             test_tat_rows.append({

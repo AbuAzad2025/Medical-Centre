@@ -42,7 +42,7 @@ def patient_queue():
         # جلب المرضى المخصصين للطبيب مع تفاصيل إضافية
         query = Visit.query.filter(
             Visit.doctor_id == current_user.id,
-            Visit.status.in_(['OPEN', 'IN_PROGRESS'])
+            Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])
         ).order_by(Visit.visit_time)
         
         total = query.count()
@@ -53,8 +53,8 @@ def patient_queue():
         # إحصائيات الطابور
         queue_stats = {
             'total_patients': total,
-            'ready_patients': len([p for p in patients if p.status == 'OPEN']),
-            'in_progress': len([p for p in patients if p.status == 'IN_PROGRESS']),
+            'ready_patients': len([p for p in patients if p.status == VisitState.OPEN]),
+            'in_progress': len([p for p in patients if p.status == VisitState.IN_PROGRESS]),
             'average_wait_time': 15
         }
         # إمكانية البدء لكل زيارة بناءً على حالة تذكرة الطابور (يجب أن تكون 'called')
@@ -75,17 +75,17 @@ def patient_queue():
         todays_visits = Visit.query.filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date == today,
-            Visit.status.in_(['OPEN','IN_PROGRESS'])
+            Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])
         ).all()
         linked_requests = []
         for v in todays_visits:
             lab_pending = LabRequest.query.filter(
                 LabRequest.visit_id == v.id,
-                LabRequest.status.in_(['REQUESTED','IN_PROGRESS'])
+                LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
             ).count()
             rad_pending = RadiologyRequest.query.filter(
                 RadiologyRequest.visit_id == v.id,
-                RadiologyRequest.status.in_(['REQUESTED','IN_PROGRESS'])
+                RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
             ).count()
             linked_requests.append({
                 'visit_id': v.id,

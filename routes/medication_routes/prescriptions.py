@@ -77,13 +77,13 @@ def dispense_prescription(prescription_id):
         prescription = db.session.get(Prescription, prescription_id)
         if not prescription:
             return jsonify({'success': False, 'message': 'الوصفة غير موجودة'}), 404
-        if prescription.status == 'dispensed':
+        if prescription.status == PrescriptionState.DISPENSED:
             return jsonify({'success': False, 'message': 'تم صرف هذه الوصفة مسبقاً'}), 400
         visit_id = prescription.visit_id
         if visit_id:
             visit = db.session.get(Visit, visit_id)
             if visit:
-                if visit.payment_status == 'PENDING' and not visit.is_force_payment:
+                if visit.payment_status == PaymentStatus.PENDING and not visit.is_force_payment:
                     return jsonify({'success': False, 'message': 'يجب إتمام الدفع قبل صرف الأدوية'}), 402
                 if visit.is_force_payment and not visit.force_payment_approved_by:
                     return jsonify({'success': False, 'message': 'الدفع القسري يحتاج موافقة المدير قبل الصرف'}), 403
@@ -113,7 +113,7 @@ def dispense_prescription(prescription_id):
                     a = db.session.get(Medication, row.medication_a_id)
                     b = db.session.get(Medication, row.medication_b_id)
                     conflicts.append(f'{a.trade_name if a else row.medication_a_id} ↔ {b.trade_name if b else row.medication_b_id} ({row.severity})')
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         for it in items:
@@ -135,7 +135,7 @@ def dispense_prescription(prescription_id):
             med.stock_quantity = int(med.stock_quantity or 0) - int(it.quantity or 0)
             med.updated_at = datetime.now(timezone.utc)
             db.session.add(med)
-        prescription.status = 'dispensed'
+        prescription.status = PrescriptionState.DISPENSED
         prescription.updated_at = datetime.now(timezone.utc)
         log_row = PrescriptionDispenseLog(
             prescription_id=prescription.id,

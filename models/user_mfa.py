@@ -3,8 +3,9 @@ Two-Factor Authentication (2FA) / TOTP for Users
 """
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class UserMFASettings(db.Model):
+class UserMFASettings(TenantMixin, db.Model):
     __tablename__ = 'user_mfa_settings'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -31,7 +32,7 @@ class UserMFASettings(db.Model):
         return f"<UserMFASettings user_id={self.user_id} enabled={self.totp_enabled}>"
 
 
-class MFALoginAttempt(db.Model):
+class MFALoginAttempt(TenantMixin, db.Model):
     __tablename__ = 'mfa_login_attempts'
 
     id = db.Column(db.Integer, primary_key=True)

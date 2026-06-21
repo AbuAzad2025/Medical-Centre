@@ -469,7 +469,7 @@ def api_queue_snapshot():
         return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     try:
         active_queue_items = QueueManagement.query.filter(
-            QueueManagement.status.in_(['waiting', 'called', 'in_progress'])
+            QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS])
         ).order_by(QueueManagement.queued_at.asc()).limit(50).all()
         items = []
         for item in active_queue_items:
@@ -502,13 +502,13 @@ def api_display_waiting():
         return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     try:
         waiting = QueueManagement.query.filter(
-            QueueManagement.status == 'waiting'
+            QueueManagement.status == QueueState.WAITING
         ).order_by(QueueManagement.queued_at.asc()).limit(60).all()
         called = QueueManagement.query.filter(
-            QueueManagement.status == 'called'
+            QueueManagement.status == QueueState.CALLED
         ).order_by(QueueManagement.called_at.desc()).limit(12).all()
         current = QueueManagement.query.filter(
-            QueueManagement.status == 'in_progress'
+            QueueManagement.status == QueueState.IN_PROGRESS
         ).order_by(QueueManagement.started_at.desc()).limit(6).all()
 
         def _pack(item):
@@ -543,7 +543,7 @@ def api_display_calls():
         return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     try:
         called = QueueManagement.query.filter(
-            QueueManagement.status.in_(['called', 'in_progress'])
+            QueueManagement.status.in_([QueueState.CALLED, QueueState.IN_PROGRESS])
         ).order_by(QueueManagement.called_at.desc()).limit(24).all()
         items = []
         for item in called:
@@ -591,7 +591,7 @@ def get_accessible_departments_for_user(user_role, user_id=None, user_department
             if dept_ids:
                 return [d for d in all_departments if d.id in set(dept_ids)]
             return []
-    except Exception:
+    except Exception as e:
 
         logging.warning(f"Error in {__name__}: {e}")
     if user_role in ['reception', 'super_admin', 'manager', 'doctor', 'emergency', 'accountant']:
@@ -601,4 +601,3 @@ def get_accessible_departments_for_user(user_role, user_id=None, user_department
     return []
 
 # ===== وظائف مساعدة لسيناريو الزيارة =====
-

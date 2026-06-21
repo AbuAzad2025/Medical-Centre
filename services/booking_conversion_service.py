@@ -4,7 +4,7 @@ OnlineBookingConversionService + AppointmentCheckinService
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
-from app.shared.enums import VisitState, AppointmentState, BookingState
+from app.shared.enums import VisitState, AppointmentState, BookingState, OrderState
 
 
 class AppointmentCheckinService:
@@ -137,11 +137,13 @@ class OnlineBookingConversionService:
             tenant_id=tenant_id,
             patient_id=patient.id,
             requested_by=None,
-            status='REQUESTED',
+            status=OrderState.REQUESTED,
             notes=f"From online booking #{booking.booking_reference}",
         )
         db.session.add(lab_request)
         db.session.flush()
+        from services.barcode_service import setup_barcode_for_lab_request
+        setup_barcode_for_lab_request(lab_request, tenant_id=tenant_id)
         booking.status = BookingState.CONVERTED
         db.session.commit()
         return {"lab_request_id": lab_request.id, "patient_id": patient.id}
@@ -162,7 +164,7 @@ class OnlineBookingConversionService:
             tenant_id=tenant_id,
             patient_id=patient.id,
             requested_by=None,
-            status='REQUESTED',
+            status=OrderState.REQUESTED,
         )
         db.session.add(rad_request)
         db.session.flush()

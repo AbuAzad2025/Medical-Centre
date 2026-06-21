@@ -7,8 +7,9 @@ from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from decimal import Decimal, ROUND_HALF_UP
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class ServicePrice(db.Model):
+class ServicePrice(TenantMixin, db.Model):
     """نموذج أسعار الخدمات"""
     
     __tablename__ = 'service_prices'
@@ -86,7 +87,7 @@ class ServicePrice(db.Model):
         }
 
 
-class DoctorPricing(db.Model):
+class DoctorPricing(TenantMixin, db.Model):
     """نموذج أسعار الأطباء"""
     
     __tablename__ = 'doctor_pricing'
@@ -168,7 +169,7 @@ class DoctorPricing(db.Model):
         }
 
 
-class InsuranceProvider(db.Model):
+class InsuranceProvider(TenantMixin, db.Model):
     """نموذج شركات التأمين"""
     
     __tablename__ = 'insurance_providers'
@@ -237,7 +238,7 @@ class InsuranceProvider(db.Model):
         }
 
 
-class PricingCatalog(db.Model):
+class PricingCatalog(TenantMixin, db.Model):
     """نموذج كتالوج التسعير المركزي"""
     
     __tablename__ = 'pricing_catalog'
@@ -301,7 +302,7 @@ class PricingCatalog(db.Model):
         }
 
 
-class TemporaryService(db.Model):
+class TemporaryService(TenantMixin, db.Model):
     """نموذج الخدمات المؤقتة"""
     
     __tablename__ = 'temporary_services'

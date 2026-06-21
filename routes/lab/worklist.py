@@ -1,6 +1,6 @@
 """worklist routes - extracted from monolithic lab.py"""
 
-from routes.lab import lab_bp
+from routes.lab import lab_bp, _log_lab_workflow
 
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response
@@ -170,8 +170,7 @@ def _notify_lab_results_ready(lab_request):
                 message=f'يوجد نتائج مختبر حرجة لطلب #{lab_request.id} للمريض #{lab_request.patient_id}',
                 notification_type='error', is_urgent=True
             )
-    except Exception:
-
+    except Exception as e:
         logging.warning(f"Error in {__name__}: {e}")
 @lab_bp.route('/worklist/request/<int:request_id>', methods=['GET', 'POST'])
 @login_required
@@ -185,8 +184,9 @@ def worklist_request(request_id):
 
         if request.method == 'POST':
             action = (request.form.get('action') or 'save').strip().lower()
-            if action in {'receive', 'analyze', 'review', 'approve', 'start'}:
+            if action in {'collect', 'receive', 'analyze', 'review', 'approve', 'start'}:
                 status_map = {
+                    'collect': 'COLLECTED',
                     'receive': 'RECEIVED',
                     'analyze': 'ANALYZING',
                     'review': 'REVIEWED',
@@ -197,15 +197,19 @@ def worklist_request(request_id):
                 if new_status and lab_request.status != new_status:
                     lab_request.status = new_status
                     lab_request.updated_at = datetime.now(timezone.utc)
+                    if action == 'collect':
+                        lab_request.collection_time = datetime.now(timezone.utc)
+                    elif action == 'receive':
+                        lab_request.received_time = datetime.now(timezone.utc)
                     _log_lab_workflow(lab_request.id, new_status, action)
             any_change = _process_lab_results_form(lab_request, request.form)
 
             if action == 'finalize':
                 for res in lab_request.results:
                     if (res.value or '').strip():
-                        res.status = 'VALIDATED'
+                        res.status = LabResultStatus.VALIDATED
                         res.performed_by = current_user.id
-                lab_request.status = 'DONE'
+                lab_request.status = OrderState.DONE
                 lab_request.completed_at = datetime.now(timezone.utc)
                 lab_request.updated_at = datetime.now(timezone.utc)
                 _log_lab_workflow(lab_request.id, 'DONE', 'finalize')
@@ -226,7 +230,7 @@ def worklist_request(request_id):
                     ))
                 except Exception:
 
-                    logging.warning(f"Error in {__name__}: {e}")
+                    logging.warning(f"Error in {__name__}: no audit trail")
             db.session.commit()
             flash('تم حفظ نتائج المختبر', 'success')
             return redirect(url_for('lab.worklist_request', request_id=lab_request.id))
@@ -246,7 +250,7 @@ def worklist_claim(request_id):
         req = db.session.get(LabRequest, request_id)
         if not req or req.status not in ('REQUESTED',):
             return jsonify({'success': False, 'message': 'الطلب غير صالح'}), 400
-        req.status = 'RECEIVED'
+        req.status = OrderState.RECEIVED
         req.updated_at = datetime.now(timezone.utc)
         _log_lab_workflow(req.id, 'RECEIVED', 'claim')
         db.session.commit()
@@ -281,7 +285,7 @@ def worklist_complete(request_id):
                 is_critical=bool(result_payload.get('is_critical') or False)
             )
             db.session.add(res)
-        req.status = 'DONE'
+        req.status = OrderState.DONE
         req.completed_at = datetime.now(timezone.utc)
         req.updated_at = datetime.now(timezone.utc)
         _log_lab_workflow(req.id, 'DONE', 'complete')
@@ -299,8 +303,7 @@ def worklist_complete(request_id):
                     notification_type='info'
                 )
         except Exception:
-
-            logging.warning(f"Error in {__name__}: {e}")
+            logging.warning(f"Error in {__name__}: notification skipped")
         return jsonify({'success': True, 'message': 'تم إكمال الطلب'}), 200
     except Exception as e:
         db.session.rollback()

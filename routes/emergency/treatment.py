@@ -101,7 +101,7 @@ def end_treatment(emergency_id):
                     notification_type='warning',
                     sender_id=current_user.id
                 )
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         db.session.commit()
@@ -188,7 +188,7 @@ def emergency_treatment(visit_id):
                     notification_type='info',
                     sender_id=current_user.id
                 )
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
             db.session.commit()
@@ -212,7 +212,7 @@ def complete_visit(visit_id):
             return jsonify({'success': False, 'message': 'الزيارة غير موجودة'}), 404
         emergency_case = EmergencyCase.query.filter_by(visit_id=visit_id).first()
         if emergency_case:
-            emergency_case.status = 'COMPLETED'
+            emergency_case.status = EmergencyStatus.COMPLETED
             emergency_case.completed_at = datetime.now(timezone.utc)
         # تسجيل اكتمال العلاج للطوارئ دون تعديل حالة الزيارة مباشرة، وإخطار الاستقبال
         visit.completed_at = datetime.now(timezone.utc)
@@ -227,7 +227,7 @@ def complete_visit(visit_id):
                 notification_type='warning',
                 sender_id=current_user.id
             )
-        except Exception:
+        except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
         db.session.commit()

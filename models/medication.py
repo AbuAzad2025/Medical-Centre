@@ -8,13 +8,13 @@ from sqlalchemy import Index, CheckConstraint, UniqueConstraint
 from app_factory import db
 from app.shared.mixins import TenantMixin
 
-class Medication(db.Model):
+class Medication(TenantMixin, db.Model):
     """نموذج الدواء"""
     
     __tablename__ = 'medications'
+    __tenant_migration__ = True
     
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     scientific_name = db.Column(db.String(200), nullable=False)
     trade_name = db.Column(db.String(200), nullable=False)
     generic_name = db.Column(db.String(200), nullable=True)
@@ -155,13 +155,13 @@ class Medication(db.Model):
                 raise ValueError(f"السعر لا يمكن أن يكون سالباً: {value}")
         return value
 
-class Prescription(db.Model):
+class Prescription(TenantMixin, db.Model):
     """نموذج الروشيتا"""
     
     __tablename__ = 'prescriptions'
+    __tenant_migration__ = True
     
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
     doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
@@ -241,13 +241,13 @@ class Prescription(db.Model):
             'updated_at': self.updated_at.isoformat()
         }
 
-class PrescriptionItem(db.Model):
+class PrescriptionItem(TenantMixin, db.Model):
     """نموذج عنصر الروشيتا"""
     
     __tablename__ = 'prescription_items'
+    __tenant_migration__ = True
     
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='CASCADE'), nullable=False, index=True)
     medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='RESTRICT'), nullable=False, index=True)
     dosage = db.Column(db.String(100), nullable=False)  # 1 tablet, 2 times daily
@@ -335,12 +335,12 @@ class PrescriptionDispenseLog(TenantMixin, db.Model):
         }
 
 
-class PharmacySale(db.Model):
+class PharmacySale(TenantMixin, db.Model):
     """Standalone pharmacy sale (no visit required)."""
     __tablename__ = 'pharmacy_sales'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True)
     sale_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
     prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='SET NULL'), nullable=True, index=True)
@@ -357,12 +357,12 @@ class PharmacySale(db.Model):
     items = db.relationship('PharmacySaleItem', back_populates='sale', cascade='all, delete-orphan', lazy='selectin')
 
 
-class PharmacySaleItem(db.Model):
+class PharmacySaleItem(TenantMixin, db.Model):
     """Item in a pharmacy sale."""
     __tablename__ = 'pharmacy_sale_items'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     sale_id = db.Column(db.Integer, db.ForeignKey('pharmacy_sales.id', ondelete='CASCADE'), nullable=False, index=True)
     medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='RESTRICT'), nullable=False, index=True)
     medication_name = db.Column(db.String(200), nullable=False)
@@ -376,12 +376,12 @@ class PharmacySaleItem(db.Model):
     medication = db.relationship('Medication', lazy='selectin')
 
 
-class PharmacyReturn(db.Model):
+class PharmacyReturn(TenantMixin, db.Model):
     """Pharmacy return/refund."""
     __tablename__ = 'pharmacy_returns'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     sale_item_id = db.Column(db.Integer, db.ForeignKey('pharmacy_sale_items.id', ondelete='CASCADE'), nullable=False, index=True)
     medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='RESTRICT'), nullable=False, index=True)
     quantity = db.Column(db.Integer, nullable=False)
@@ -391,12 +391,12 @@ class PharmacyReturn(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
 
-class Supplier(db.Model):
+class Supplier(TenantMixin, db.Model):
     """مورد الأدوية - Supplier"""
     __tablename__ = 'suppliers'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     name = db.Column(db.String(200), nullable=False)
     contact_person = db.Column(db.String(200), nullable=True)
     phone = db.Column(db.String(50), nullable=True)
@@ -414,12 +414,12 @@ class Supplier(db.Model):
         return f'<Supplier {self.name}>'
 
 
-class MedicationPurchase(db.Model):
+class MedicationPurchase(TenantMixin, db.Model):
     """شراء أدوية من مورد - Purchase with batch tracking"""
     __tablename__ = 'medication_purchases'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id', ondelete='SET NULL'), nullable=True, index=True)
     medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='CASCADE'), nullable=False, index=True)
     batch_number = db.Column(db.String(100), nullable=False)

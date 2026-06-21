@@ -16,7 +16,13 @@ import logging
 from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
 
-accountant_bp = Blueprint('accountant', __name__)
+accountant_bp = Blueprint('accountant', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@accountant_bp.before_request
+def _guard_billing_module():
+    guard_module('billing')
 
 
 
@@ -44,8 +50,8 @@ def get_accounting_smart_analytics():
         
         # تحليل الفواتير
         total_invoices = Invoice.query.count()
-        open_invoices = Invoice.query.filter(Invoice.status == 'ISSUED').count()
-        paid_invoices = Invoice.query.filter(Invoice.status == 'PAID').count()
+        open_invoices = Invoice.query.filter(Invoice.status == InvoiceStatus.ISSUED).count()
+        paid_invoices = Invoice.query.filter(Invoice.status == InvoiceStatus.PAID).count()
         
         # معدل التحصيل
         collection_rate = (paid_invoices / total_invoices * 100) if total_invoices > 0 else 0
@@ -156,7 +162,7 @@ def get_cash_flow_analysis():
 
         # تحليل المبالغ المستحقة
         pending_amount = db.session.query(func.sum(Invoice.total_amount - Invoice.paid_amount)).filter(
-            Invoice.status == 'ISSUED'
+            Invoice.status == InvoiceStatus.ISSUED
         ).scalar() or 0
 
         return {
@@ -199,7 +205,7 @@ def get_payment_optimization():
         # تحليل المدفوعات المتأخرة
         late_payments = Invoice.query.filter(
             and_(
-                Invoice.status == 'ISSUED',
+                Invoice.status == InvoiceStatus.ISSUED,
                 Invoice.created_at < datetime.now() - timedelta(days=30)
             )
         ).count()
@@ -234,7 +240,7 @@ def get_financial_health_monitoring():
         # مؤشرات الصحة المالية
         total_revenue = db.session.query(func.sum(Payment.amount)).scalar() or 0
         total_invoices = Invoice.query.count()
-        paid_invoices = Invoice.query.filter(Invoice.status == 'PAID').count()
+        paid_invoices = Invoice.query.filter(Invoice.status == InvoiceStatus.PAID).count()
         
         # معدل التحصيل
         collection_rate = (paid_invoices / total_invoices * 100) if total_invoices > 0 else 0
@@ -242,7 +248,7 @@ def get_financial_health_monitoring():
         # المبالغ المستحقة
         outstanding_amount = db.session.query(
             func.sum(Invoice.total_amount - Invoice.paid_amount)
-        ).filter(Invoice.status == 'ISSUED').scalar() or 0
+        ).filter(Invoice.status == InvoiceStatus.ISSUED).scalar() or 0
 
         # تحليل المخاطر
         risk_indicators = analyze_financial_risks(collection_rate, outstanding_amount, total_revenue)
@@ -521,7 +527,7 @@ def get_revenue_cycle_metrics():
         paid = InsuranceClaim.query.filter(InsuranceClaim.status == 'PAID').count()
         outstanding = db.session.query(
             db.func.sum(Invoice.total_amount - Invoice.paid_amount)
-        ).filter(Invoice.status.in_(['DRAFT', 'ISSUED'])).scalar() or 0
+        ).filter(Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])).scalar() or 0
         return {
             'total_claims': int(total_claims or 0),
             'submitted': int(submitted or 0),
@@ -546,9 +552,9 @@ def get_erp_integration_status():
 def get_margin_analytics():
     try:
         total_revenue = db.session.query(db.func.sum(Payment.amount)).scalar() or 0
-        issued_invoices = Invoice.query.filter(Invoice.status.in_(['ISSUED', 'PAID'])).count()
+        issued_invoices = Invoice.query.filter(Invoice.status.in_([InvoiceStatus.ISSUED, InvoiceStatus.PAID])).count()
         collection_rate = 0
-        total_invoiced = db.session.query(db.func.sum(Invoice.total_amount)).filter(Invoice.status.in_(['ISSUED', 'PAID'])).scalar() or 0
+        total_invoiced = db.session.query(db.func.sum(Invoice.total_amount)).filter(Invoice.status.in_([InvoiceStatus.ISSUED, InvoiceStatus.PAID])).scalar() or 0
         if total_invoiced:
             collection_rate = (float(total_revenue) / float(total_invoiced)) * 100
         gross_margin = float(total_revenue) * 0.25

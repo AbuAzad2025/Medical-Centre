@@ -6,8 +6,9 @@ Medical System Backup Model
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
-class Backup(db.Model):
+class Backup(TenantMixin, db.Model):
     """نموذج النسخ الاحتياطي"""
     
     __tablename__ = 'backups'
@@ -119,7 +120,7 @@ class Backup(db.Model):
         else:
             return f"{duration/3600:.1f} ساعة"
 
-class BackupLog(db.Model):
+class BackupLog(TenantMixin, db.Model):
     """نموذج سجل النسخ الاحتياطي"""
     
     __tablename__ = 'backup_logs'

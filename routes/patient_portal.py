@@ -20,7 +20,13 @@ from models.branding import BrandingSettings
 from app_factory import db
 from datetime import datetime, date, timezone
 
-portal_bp = Blueprint('portal', __name__)
+portal_bp = Blueprint('portal', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@portal_bp.before_request
+def _guard_portal_module():
+    guard_module('portal')
 
 def _get_patient_from_user():
     """Get patient record linked to current user"""
@@ -53,12 +59,12 @@ def dashboard():
     ).limit(5).all()
 
     open_invoices = Invoice.query.filter_by(patient_id=patient.id).filter(
-        Invoice.status.in_(['DRAFT', 'ISSUED', 'PARTIAL'])
+        Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED, InvoiceStatus.PARTIAL])
     ).all()
     total_due = sum(inv.balance_due or 0 for inv in open_invoices)
 
     unread_results = LabRequest.query.filter_by(patient_id=patient.id).filter(
-        LabRequest.status.in_(['RESULTED', 'CRITICAL'])
+        LabRequest.status.in_([OrderState.RESULTED, OrderState.CRITICAL])
     ).count()
 
     immunizations = Immunization.query.filter_by(patient_id=patient.id).order_by(
@@ -111,7 +117,7 @@ def book_appointment():
                 db.session.commit()
                 flash('تم طلب الموعد بنجاح، سيتم التأكيد قريباً', 'success')
                 return redirect(url_for('portal.appointments'))
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
         flash('يرجى ملء جميع الحقول المطلوبة', 'error')

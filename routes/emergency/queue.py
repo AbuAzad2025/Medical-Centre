@@ -47,7 +47,7 @@ def patient_queue():
             else_=0
         )
         query = EmergencyCase.query.filter(
-            EmergencyCase.status.in_(['WAITING', 'TRIAGE', 'RESUSCITATION', 'TREATMENT', 'OBSERVATION'])
+            EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
         ).order_by(severity_order.desc(), EmergencyCase.created_at)
         
         total = query.count()
@@ -59,8 +59,8 @@ def patient_queue():
         queue_stats = {
             'total_cases': total,
             'triage_cases': len([e for e in emergencies if e.status in ['WAITING', 'TRIAGE', 'RESUSCITATION']]),
-            'treatment_cases': len([e for e in emergencies if e.status == 'TREATMENT']),
-            'observation_cases': len([e for e in emergencies if e.status == 'OBSERVATION']),
+            'treatment_cases': len([e for e in emergencies if e.status == EmergencyStatus.TREATMENT]),
+            'observation_cases': len([e for e in emergencies if e.status == EmergencyStatus.OBSERVATION]),
             'urgent_cases': len([e for e in emergencies if e.severity == 'HIGH']),
             'critical_cases': len([e for e in emergencies if e.severity == 'CRITICAL'])
         }
@@ -147,7 +147,7 @@ def triage(emergency_id):
             emergency.chief_complaint = request.form.get('chief_complaint') or emergency.chief_complaint
             try:
                 emergency.vital_signs = json.dumps(vital_signs, ensure_ascii=False)
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
             if triage_level in ['RED', 'YELLOW', 'GREEN'] and visit is not None:

@@ -5,9 +5,10 @@ Medical System Branding Management
 
 from datetime import datetime, timezone
 from app_factory import db
+from app.shared.mixins import TenantMixin
 import os
 
-class BrandingSettings(db.Model):
+class BrandingSettings(TenantMixin, db.Model):
     """نموذج إعدادات العلامة التجارية"""
     
     __tablename__ = 'branding_settings'
@@ -92,7 +93,7 @@ class BrandingSettings(db.Model):
         return default_branding
 
 
-class SystemTheme(db.Model):
+class SystemTheme(TenantMixin, db.Model):
     """نموذج الثيمات"""
     
     __tablename__ = 'system_themes'

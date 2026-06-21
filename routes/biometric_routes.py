@@ -9,7 +9,7 @@ from datetime import datetime, timezone, timedelta
 from utils.decorators import handle_route_errors
 import secrets
 
-biometric_bp = Blueprint('biometric', __name__)
+biometric_bp = Blueprint('biometric', __name__, guard_module=__name__)
 
 
 @biometric_bp.route('/')

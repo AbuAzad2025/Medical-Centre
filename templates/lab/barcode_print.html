@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>طباعة باركود - طلب مختبر #{{ lab_request.request_number or lab_request.id }}</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; text-align: center; padding: 20px; }
+        .label { border: 2px dashed #333; display: inline-block; padding: 20px; border-radius: 8px; }
+        img { max-width: 200px; max-height: 200px; }
+        h3 { margin: 10px 0 5px; }
+        .barcode-value { font-family: monospace; font-size: 14px; color: #555; word-break: break-all; }
+        @media print { body { padding: 0; } .no-print { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="margin-bottom:20px">
+        <button onclick="window.print()">طباعة</button>
+        <button onclick="window.close()">إغلاق</button>
+    </div>
+    <div class="label">
+        <h3>{{ lab_request.patient.full_name }}</h3>
+        <p>طلب: {{ lab_request.request_number or lab_request.id }}</p>
+        <img src="data:image/png;base64,{{ lab_request.barcode_image }}" alt="QR">
+        <div class="barcode-value">{{ lab_request.barcode }}</div>
+    </div>
+    <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); };</script>
+</body>
+</html>

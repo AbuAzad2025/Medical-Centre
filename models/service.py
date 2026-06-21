@@ -4,13 +4,14 @@
 from datetime import datetime, timezone
 from sqlalchemy import Index
 from app_factory import db
+from app.shared.mixins import TenantMixin
 
 
-class ServiceMaster(db.Model):
+class ServiceMaster(TenantMixin, db.Model):
     __tablename__ = 'service_master'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     code = db.Column(db.String(50), unique=True, nullable=False, index=True)
     name = db.Column(db.String(120), nullable=False)
     name_ar = db.Column(db.String(120), nullable=True)

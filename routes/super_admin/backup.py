@@ -32,8 +32,8 @@ def backup():
         
         # حساب الإحصائيات
         total_backups = len(backups)
-        successful_backups = sum(1 for b in backups if b.backup_status == 'COMPLETED')
-        failed_backups = sum(1 for b in backups if b.backup_status == 'FAILED')
+        successful_backups = sum(1 for b in backups if b.backup_status == BackupStatus.COMPLETED)
+        failed_backups = sum(1 for b in backups if b.backup_status == BackupStatus.FAILED)
         
         # حساب الحجم الإجمالي
         total_size_bytes = sum(b.backup_size for b in backups if b.backup_size)
@@ -249,7 +249,7 @@ def cancel_backup(backup_id):
         if backup.backup_status not in ['PENDING', 'IN_PROGRESS']:
              return jsonify({'success': False, 'message': 'لا يمكن إلغاء هذه النسخة لأنها مكتملة أو فاشلة بالفعل'}), 400
 
-        backup.backup_status = 'CANCELLED'
+        backup.backup_status = BackupStatus.CANCELLED
         backup.completed_at = datetime.now()
         db.session.commit()
         
@@ -317,8 +317,8 @@ def backup_report():
         
         # Calculate stats
         total = len(backups)
-        success = sum(1 for b in backups if b.backup_status == 'COMPLETED')
-        failed = sum(1 for b in backups if b.backup_status == 'FAILED')
+        success = sum(1 for b in backups if b.backup_status == BackupStatus.COMPLETED)
+        failed = sum(1 for b in backups if b.backup_status == BackupStatus.FAILED)
         size_bytes = sum(b.backup_size for b in backups if b.backup_size)
         size_gb = round(size_bytes / (1024 * 1024 * 1024), 2)
         

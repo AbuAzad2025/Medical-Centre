@@ -47,10 +47,11 @@ class Nurse(TenantMixin, db.Model):
 # تم نقل نموذج NurseTask إلى models/task_management.py كجزء من النموذج الموحد Task
 # يمكن استخدام Task مع task_type='nursing' للتمريض
 
-class VitalSigns(db.Model):
+class VitalSigns(TenantMixin, db.Model):
     """نموذج العلامات الحيوية"""
     
     __tablename__ = 'vital_signs'
+    __tenant_migration__ = True
     
     __table_args__ = (
         Index('idx_vitals_patient_recorded', 'patient_id', 'recorded_at'),
@@ -58,7 +59,6 @@ class VitalSigns(db.Model):
     )
     
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
     nurse_id = db.Column(db.Integer, db.ForeignKey('nurses.id', ondelete='SET NULL'), nullable=True, index=True)
@@ -111,11 +111,11 @@ class VitalSigns(db.Model):
         }
 
 
-class MedicationAdministrationLog(db.Model):
+class MedicationAdministrationLog(TenantMixin, db.Model):
     __tablename__ = 'medication_administration_logs'
+    __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=True, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='CASCADE'), nullable=False, index=True)
     prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='SET NULL'), nullable=True, index=True)

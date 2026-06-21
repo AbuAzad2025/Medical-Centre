@@ -50,7 +50,7 @@ def _check_drug_interaction_warnings(used_med_ids):
                 a = prescription_service.get_medication(row.medication_a_id)
                 b = prescription_service.get_medication(row.medication_b_id)
                 warnings.append(f'تحذير: تداخل دوائي {a.trade_name if a else row.medication_a_id} ↔ {b.trade_name if b else row.medication_b_id} ({row.severity})')
-    except Exception:
+    except Exception as e:
 
         logging.warning(f"Error in {__name__}: {e}")
     return warnings
@@ -78,7 +78,7 @@ def _notify_pharmacy_non_catalog(non_catalog_medications, visit, current_user):
             sender_id=current_user.id
         )
         db.session.add(notif)
-    except Exception:
+    except Exception as e:
 
         logging.warning(f"Error in {__name__}: {e}")
 @doctor_bp.route('/prescription/<int:visit_id>', methods=['GET', 'POST'])
@@ -92,7 +92,7 @@ def prescription(visit_id):
         if not visit or visit.doctor_id != current_user.id:
             flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        if visit.status != 'IN_PROGRESS':
+        if visit.status != VisitState.IN_PROGRESS:
             flash('لا يمكن كتابة وصفة إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
 
@@ -285,7 +285,7 @@ def prescription(visit_id):
                         if any(allergen in n or n in allergen for n in med_names):
                             warnings.append(f'تحذير: حساسية مسجلة تجاه {med.trade_name}')
                             break
-                except Exception:
+                except Exception as e:
 
                     logging.warning(f"Error in {__name__}: {e}")
             warnings.extend(_check_drug_interaction_warnings(used_med_ids))
@@ -347,7 +347,7 @@ def prescription(visit_id):
                     existing.append(new_tpl)
                     cfg.set_value(existing)
                     cfg.updated_by = current_user.id
-                except Exception:
+                except Exception as e:
 
                     logging.warning(f"Error in {__name__}: {e}")
             db.session.commit()
@@ -366,7 +366,7 @@ def prescription(visit_id):
                     new_values=json.dumps({'prescription_id': prescription.id, 'items_count': prescription.items.count()})
                 ))
                 db.session.commit()
-            except Exception:
+            except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
             flash('تم حفظ الوصفة بنجاح', 'success')

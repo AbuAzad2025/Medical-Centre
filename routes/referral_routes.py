@@ -8,7 +8,13 @@ from models.referral import Referral
 from models.patient import Patient
 from app_factory import db
 
-referral_bp = Blueprint('referral', __name__)
+referral_bp = Blueprint('referral', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@referral_bp.before_request
+def _guard_doctor_module():
+    guard_module('doctor')
 
 @referral_bp.route('/list')
 @login_required

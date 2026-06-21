@@ -34,7 +34,7 @@ def open_invoices():
     try:
         # جلب الفواتير المفتوحة
         invoices = Invoice.query.filter(
-            Invoice.status.in_(['DRAFT', 'ISSUED'])
+            Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
         ).order_by(Invoice.created_at.desc()).all()
         
         return render_template('accountant/open_invoices.html', invoices=invoices)

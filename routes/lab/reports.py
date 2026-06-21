@@ -74,3 +74,27 @@ def print_request(id: int):
         logging.error(f"Error printing lab request {id}: {str(e)}")
         flash('حدث خطأ في طباعة تقرير المختبر', 'error')
         return redirect(url_for('lab.requests'))
+
+
+@lab_bp.route('/print_request/<int:id>/pdf')
+@login_required
+@role_required('lab', 'admin', 'manager')
+def print_request_pdf(id: int):
+    """تنزيل تقرير طلب المختبر كـ PDF"""
+    try:
+        lab_request = db.session.get(LabRequest, id)
+        if not lab_request:
+            return jsonify({'success': False, 'message': 'طلب المختبر غير موجود'}), 404
+        from app.integrations.printing.pdf import PDFReportPrinter
+        printer = PDFReportPrinter()
+        pdf_bytes = printer.generate_lab_report(lab_request)
+        fname = f"lab_report_{lab_request.request_number or lab_request.id}.pdf"
+        return send_file(
+            BytesIO(pdf_bytes),
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=fname
+        )
+    except Exception as e:
+        logging.error(f"Error generating lab PDF {id}: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500

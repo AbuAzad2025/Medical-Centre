@@ -25,7 +25,13 @@ from io import BytesIO
 import qrcode
 import secrets
 
-radiology_bp = Blueprint('radiology', __name__)
+radiology_bp = Blueprint('radiology', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@radiology_bp.before_request
+def _guard_radiology_module():
+    guard_module('radiology')
 
 def _log_radiology_workflow(request_id, status, action, notes=None):
     try:
@@ -40,7 +46,7 @@ def _log_radiology_workflow(request_id, status, action, notes=None):
             timestamp=datetime.now(timezone.utc),
             user_id=getattr(current_user, 'id', None) or 0
         ))
-    except Exception:
+    except Exception as e:
 
         logging.warning(f"Error in {__name__}: {e}")
 def _radiology_templates_cfg():
@@ -209,15 +215,15 @@ def get_radiology_smart_analytics():
     """التحليلات الذكية للأشعة"""
     try:
         total_requests = RadiologyRequest.query.count()
-        completed_requests = RadiologyRequest.query.filter(RadiologyRequest.status == 'DONE').count()
+        completed_requests = RadiologyRequest.query.filter(RadiologyRequest.status == OrderState.DONE).count()
         pending_requests = RadiologyRequest.query.filter(
-            RadiologyRequest.status.in_(['REQUESTED', 'IN_PROGRESS'])
+            RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
         ).count()
         completion_rate = (completed_requests / total_requests * 100) if total_requests > 0 else 0
         try:
             avg_processing_seconds = db.session.query(
                 db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at))
-            ).filter(RadiologyRequest.status == 'DONE').scalar()
+            ).filter(RadiologyRequest.status == OrderState.DONE).scalar()
         except Exception:
             db.session.rollback()
             avg_processing_seconds = None
@@ -241,12 +247,12 @@ def get_radiology_imaging_optimization():
         try:
             avg_processing_seconds = db.session.query(
                 db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at))
-            ).filter(RadiologyRequest.status == 'DONE').scalar()
+            ).filter(RadiologyRequest.status == OrderState.DONE).scalar()
         except Exception:
             db.session.rollback()
             avg_processing_seconds = None
         avg_imaging_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
-        total_processed = RadiologyRequest.query.filter(RadiologyRequest.status == 'DONE').count()
+        total_processed = RadiologyRequest.query.filter(RadiologyRequest.status == OrderState.DONE).count()
         suggestions = generate_imaging_optimization_suggestions(avg_imaging_time)
         return {
             'avg_imaging_time': avg_imaging_time,
@@ -261,7 +267,7 @@ def get_radiology_imaging_optimization():
 def get_radiology_quality_assurance():
     """ضمان الجودة"""
     try:
-        total_done = RadiologyRequest.query.filter(RadiologyRequest.status == 'DONE').count()
+        total_done = RadiologyRequest.query.filter(RadiologyRequest.status == OrderState.DONE).count()
         reviewed = RadiologyResult.query.filter(RadiologyResult.reviewed_at.isnot(None)).count()
         critical = RadiologyResult.query.filter(RadiologyResult.is_critical == True).count()
         quality_score = (reviewed / total_done * 100) if total_done else 100
@@ -303,7 +309,7 @@ def get_radiology_report_analysis():
     try:
         total_reports = RadiologyResult.query.count()
         abnormal_findings = RadiologyResult.query.filter(
-            RadiologyResult.status.in_(['READY', 'VALIDATED'])
+            RadiologyResult.status.in_([LabResultStatus.READY, LabResultStatus.VALIDATED])
         ).count()
         critical_reports = RadiologyResult.query.filter(RadiologyResult.is_critical == True).count()
         abnormal_rate = (abnormal_findings / total_reports * 100) if total_reports else 0
@@ -328,7 +334,7 @@ def get_radiology_workflow_automation():
     """أتمتة سير العمل"""
     try:
         total_requests = RadiologyRequest.query.count()
-        done_requests = RadiologyRequest.query.filter(RadiologyRequest.status == 'DONE').count()
+        done_requests = RadiologyRequest.query.filter(RadiologyRequest.status == OrderState.DONE).count()
         automation_rate = round((done_requests / total_requests) * 100, 2) if total_requests else 0
         automated_tasks = done_requests
         time_saved = round(automation_rate * 1.1, 2)

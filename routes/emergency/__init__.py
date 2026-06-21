@@ -21,7 +21,13 @@ from datetime import datetime, date, timedelta, timezone
 from sqlalchemy import and_, or_, desc, case
 import json
 
-emergency_bp = Blueprint('emergency', __name__)
+emergency_bp = Blueprint('emergency', __name__, guard_module=__name__)
+
+from services.feature_gate_service import guard_module
+
+@emergency_bp.before_request
+def _guard_emergency_module():
+    guard_module('emergency')
 
 
 def _normalize_emergency_status(value):
@@ -138,7 +144,7 @@ def get_emergency_protocols():
             {'id': 'trauma', 'name': 'بروتوكول الإصابات', 'title': 'بروتوكول الإصابات', 'keywords': ['حادث', 'سقوط', 'جرح', 'trauma'], 'steps': ['ABC', 'تصوير سريع', 'تحضير غرفة العمليات']}
         ]
         active = EmergencyCase.query.filter(
-            EmergencyCase.status.in_(['WAITING', 'TRIAGE', 'RESUSCITATION', 'TREATMENT', 'OBSERVATION'])
+            EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
         ).order_by(EmergencyCase.created_at.desc()).limit(50).all()
         matched_map = {}
         for c in active:
@@ -177,7 +183,7 @@ def get_ems_metrics():
             EmergencyCase.created_at >= start_today
         ).count()
         completed = EmergencyCase.query.filter(
-            EmergencyCase.status == 'COMPLETED',
+            EmergencyCase.status == EmergencyStatus.COMPLETED,
             EmergencyCase.created_at >= start_7d
         ).count()
         total_cases = EmergencyCase.query.filter(
@@ -186,7 +192,7 @@ def get_ems_metrics():
         diagnosis_accuracy = round((completed / max(total_cases, 1)) * 100, 1)
         active_transports = EmergencyCase.query.filter(
             EmergencyCase.case_number.like('EMS-%'),
-            EmergencyCase.status.in_(['WAITING', 'TRIAGE', 'RESUSCITATION', 'TREATMENT', 'OBSERVATION'])
+            EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
         ).all()
         transport_list = []
         for t in active_transports:
