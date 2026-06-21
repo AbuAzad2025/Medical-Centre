@@ -460,11 +460,19 @@ class NotificationService:
             return {'success': False, 'message': 'تعذر إضافة الإشعار إلى الطابور حالياً'}
     
     @staticmethod
-    def process_notification_queue():
-        """معالجة طابور الإشعارات"""
+    def process_notification_queue(tenant_id: int | None = None):
+        """معالجة طابور الإشعارات.
+
+        Args:
+            tenant_id: If provided, only process notifications for this tenant.
+                Background workers must pass an explicit tenant id.
+        """
         try:
             # جلب الإشعارات المعلقة
-            pending_notifications = NotificationQueue.query.filter_by(status=NotificationState.PENDING).all()
+            query = NotificationQueue.query.filter_by(status=NotificationState.PENDING)
+            if tenant_id is not None:
+                query = query.filter_by(tenant_id=tenant_id)
+            pending_notifications = query.all()
             
             processed_count = 0
             for notification in pending_notifications:
@@ -549,7 +557,7 @@ class NotificationService:
     # ==================== تنبيهات الديون والتأمين (الأسبوع الثاني) ====================
     
     @staticmethod
-    def send_debt_reminders():
+    def send_debt_reminders(tenant_id: int | None = None):
         """
         إرسال تذكيرات بالديون المتأخرة
         يتم تشغيلها يومياً للديون > 7 أيام
@@ -560,7 +568,7 @@ class NotificationService:
             # الديون المتأخرة (> 7 أيام)
             seven_days_ago = datetime.now() - timedelta(days=7)
             
-            overdue_debts = Visit.query.filter(
+            query = Visit.query.filter(
                 and_(
                     or_(
                         Visit.payment_status == PaymentStatus.DEBT,
@@ -569,7 +577,11 @@ class NotificationService:
                     Visit.created_at < seven_days_ago,
                     Visit.is_force_payment == True
                 )
-            ).all()
+            )
+            if tenant_id is not None:
+                query = query.filter_by(tenant_id=tenant_id)
+
+            overdue_debts = query.all()
             
             sent_count = 0
             for debt in overdue_debts:
@@ -629,7 +641,7 @@ class NotificationService:
             }
     
     @staticmethod
-    def send_insurance_followup_alerts():
+    def send_insurance_followup_alerts(tenant_id: int | None = None):
         """
         إرسال تنبيهات متابعة التأمين
         للزيارات التي لم يتم استلام دفعة التأمين بعد 14 يوم
@@ -640,13 +652,17 @@ class NotificationService:
             # زيارات التأمين القديمة (> 14 يوم)
             fourteen_days_ago = datetime.now() - timedelta(days=14)
             
-            pending_insurance = Visit.query.filter(
+            query = Visit.query.filter(
                 and_(
                     Visit.payment_method == 'insurance',
                     Visit.payment_status == PaymentStatus.PARTIAL,  # دفع المريض حصته فقط
                     Visit.created_at < fourteen_days_ago
                 )
-            ).all()
+            )
+            if tenant_id is not None:
+                query = query.filter_by(tenant_id=tenant_id)
+
+            pending_insurance = query.all()
             
             sent_count = 0
             for visit in pending_insurance:
@@ -695,7 +711,7 @@ class NotificationService:
             }
     
     @staticmethod
-    def send_force_payment_approval_alerts():
+    def send_force_payment_approval_alerts(tenant_id: int | None = None):
         """
         إرسال تنبيهات للمدير بالدفعات القسرية المعلقة
         """
@@ -703,12 +719,16 @@ class NotificationService:
             from models.visit import Visit
             
             # دفعات قسرية بدون موافقة
-            pending_force = Visit.query.filter(
+            query = Visit.query.filter(
                 and_(
                     Visit.is_force_payment == True,
                     Visit.force_payment_approved_by == None
                 )
-            ).all()
+            )
+            if tenant_id is not None:
+                query = query.filter_by(tenant_id=tenant_id)
+
+            pending_force = query.all()
             
             if not pending_force:
                 return {
@@ -746,7 +766,7 @@ class NotificationService:
             }
     
     @staticmethod
-    def send_daily_summary_to_manager():
+    def send_daily_summary_to_manager(tenant_id: int | None = None):
         """
         إرسال ملخص يومي للمدير
         يُشغل في نهاية كل يوم
@@ -756,7 +776,7 @@ class NotificationService:
             from services.report_service import ReportService
             
             # الحصول على تقرير التدقيق اليومي
-            report = ReportService.get_daily_audit_report()
+            report = ReportService.get_daily_audit_report(tenant_id=tenant_id)
             
             if not report['success']:
                 return report
@@ -798,39 +818,43 @@ class NotificationService:
             }
     
     @staticmethod
-    def check_and_send_alerts():
+    def check_and_send_alerts(tenant_id: int | None = None):
         """
         فحص وإرسال جميع التنبيهات التلقائية
         يُشغل بشكل دوري (كل ساعة مثلاً)
+
+        Args:
+            tenant_id: If provided, only process alerts for this tenant.
+                Background workers must pass an explicit tenant id.
         """
         try:
             results = {}
-            
-            # 1. تذكيرات الديون
-            results['debt_reminders'] = NotificationService.send_debt_reminders()
-            
-            # 1-b. تذكيرات المواعيد القادمة خلال 24 ساعة
-            results['appointment_reminders'] = NotificationService.send_appointment_reminders()
 
-            results['online_booking_reminders'] = NotificationService.send_online_booking_reminders()
+            # 1. تذكيرات الديون
+            results['debt_reminders'] = NotificationService.send_debt_reminders(tenant_id=tenant_id)
+
+            # 1-b. تذكيرات المواعيد القادمة خلال 24 ساعة
+            results['appointment_reminders'] = NotificationService.send_appointment_reminders(tenant_id=tenant_id)
+
+            results['online_booking_reminders'] = NotificationService.send_online_booking_reminders(tenant_id=tenant_id)
 
             # 2. متابعة التأمين
-            results['insurance_followup'] = NotificationService.send_insurance_followup_alerts()
-            
+            results['insurance_followup'] = NotificationService.send_insurance_followup_alerts(tenant_id=tenant_id)
+
             # 3. موافقات الدفع القسري
-            results['force_payment_approval'] = NotificationService.send_force_payment_approval_alerts()
-            
+            results['force_payment_approval'] = NotificationService.send_force_payment_approval_alerts(tenant_id=tenant_id)
+
             # 4. الملخص اليومي (فقط في نهاية اليوم)
             current_hour = datetime.now().hour
             if current_hour >= 18:  # بعد الساعة 6 مساءً
-                results['daily_summary'] = NotificationService.send_daily_summary_to_manager()
-            
+                results['daily_summary'] = NotificationService.send_daily_summary_to_manager(tenant_id=tenant_id)
+
             return {
                 'success': True,
                 'message': 'تم فحص وإرسال التنبيهات',
                 'results': results
             }
-            
+
         except Exception as e:
             logging.error(f"Error in check_and_send_alerts: {str(e)}")
             return {
@@ -839,10 +863,14 @@ class NotificationService:
             }
 
     @staticmethod
-    def send_appointment_reminders():
+    def send_appointment_reminders(tenant_id: int | None = None):
         """
         إرسال تذكيرات بالمواعيد المجدولة خلال الـ 24 ساعة القادمة
         يعتمد على رقم هاتف المريض (SMS) إن وجد
+
+        Args:
+            tenant_id: If provided, only process appointments for this tenant.
+                Background workers must pass an explicit tenant id.
         """
         try:
             from models.appointment import Appointment
@@ -852,13 +880,17 @@ class NotificationService:
             now = datetime.now()
             soon = now + timedelta(hours=24)
 
-            appts = Appointment.query.filter(
+            query = Appointment.query.filter(
                 and_(
                     Appointment.status == AppointmentState.SCHEDULED,
                     Appointment.starts_at >= now,
                     Appointment.starts_at <= soon
                 )
-            ).all()
+            )
+            if tenant_id is not None:
+                query = query.filter_by(tenant_id=tenant_id)
+
+            appts = query.all()
 
             sent = 0
             fallback_notified = 0
@@ -913,7 +945,7 @@ class NotificationService:
             return {'success': False, 'message': 'تعذر إرسال تذكيرات المواعيد حالياً'}
 
     @staticmethod
-    def send_online_booking_reminders():
+    def send_online_booking_reminders(tenant_id: int | None = None):
         try:
             from models.online_booking import OnlineBooking
             from models.user import User
@@ -923,11 +955,15 @@ class NotificationService:
             now = datetime.now(timezone.utc)
             soon = now + timedelta(hours=24)
 
-            q = OnlineBooking.query.filter(
+            query = OnlineBooking.query.filter(
                 OnlineBooking.status.in_([BookingState.PENDING, BookingState.CONFIRMED]),
                 OnlineBooking.appointment_date.isnot(None),
                 OnlineBooking.appointment_time.isnot(None)
-            ).all()
+            )
+            if tenant_id is not None:
+                query = query.filter_by(tenant_id=tenant_id)
+
+            q = query.all()
 
             sent = 0
             fallback_notified = 0
