@@ -1,0 +1,63 @@
+{% extends "dashboard_base.html" %}
+{% block title %}إضافة مشتريات{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-boxes ms-2"></i>إضافة مشتريات جديدة</h5></div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">الدواء <span class="text-danger">*</span></label>
+                    <select name="medication_id" class="form-select" required>
+                        <option value="">اختر الدواء</option>
+                        {% for m in medications %}
+                        <option value="{{ m.id }}">{{ m.trade_name }} ({{ m.scientific_name or '' }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">المورد</label>
+                    <select name="supplier_id" class="form-select">
+                        <option value="">بدون مورد</option>
+                        {% for s in suppliers %}
+                        <option value="{{ s.id }}">{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">رقم التشغيلة <span class="text-danger">*</span></label>
+                    <input name="batch_number" class="form-control" required placeholder="رقم التشغيلة">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">الكمية <span class="text-danger">*</span></label>
+                    <input name="quantity" class="form-control" type="number" min="1" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">سعر الشراء</label>
+                    <input name="purchase_price" class="form-control" type="number" step="0.01" min="0">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">سعر البيع</label>
+                    <input name="selling_price" class="form-control" type="number" step="0.01" min="0">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">تاريخ الصلاحية</label>
+                    <input name="expiry_date" class="form-control" type="date">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">رقم الفاتورة</label>
+                    <input name="invoice_number" class="form-control" placeholder="رقم فاتورة المورد">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">ملاحظات</label>
+                    <textarea name="notes" class="form-control"></textarea>
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-primary"><i class="fas fa-save ms-1"></i>حفظ</button>
+                    <a href="{{ url_for('medication.purchases') }}" class="btn btn-outline-secondary">إلغاء</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "dashboard_base.html" %}
+{% block title %}{% if supplier %}تعديل مورد{% else %}إضافة مورد{% endif %}{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-truck ms-2"></i>{% if supplier %}تعديل مورد{% else %}إضافة مورد جديد{% endif %}</h5></div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">الاسم <span class="text-danger">*</span></label><input name="name" class="form-control" required value="{{ supplier.name if supplier else '' }}"></div>
+                <div class="col-md-6"><label class="form-label">جهة الاتصال</label><input name="contact_person" class="form-control" value="{{ supplier.contact_person if supplier else '' }}"></div>
+                <div class="col-md-4"><label class="form-label">الهاتف</label><input name="phone" class="form-control" value="{{ supplier.phone if supplier else '' }}"></div>
+                <div class="col-md-4"><label class="form-label">البريد الإلكتروني</label><input name="email" class="form-control" type="email" value="{{ supplier.email if supplier else '' }}"></div>
+                <div class="col-md-4"><label class="form-label">الرقم الضريبي</label><input name="tax_id" class="form-control" value="{{ supplier.tax_id if supplier else '' }}"></div>
+                <div class="col-12"><label class="form-label">العنوان</label><textarea name="address" class="form-control">{{ supplier.address if supplier else '' }}</textarea></div>
+                <div class="col-12"><label class="form-label">ملاحظات</label><textarea name="notes" class="form-control">{{ supplier.notes if supplier else '' }}</textarea></div>
+                <div class="col-12">
+                    <button class="btn btn-primary"><i class="fas fa-save ms-1"></i>حفظ</button>
+                    <a href="{{ url_for('medication.suppliers') }}" class="btn btn-outline-secondary">إلغاء</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

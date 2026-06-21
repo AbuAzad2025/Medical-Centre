@@ -1,0 +1,32 @@
+{% extends "dashboard_base.html" %}
+{% block title %}المشتريات{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="fas fa-boxes ms-2"></i>سجل المشتريات</h4>
+    <a href="{{ url_for('medication.add_purchase') }}" class="btn btn-primary"><i class="fas fa-plus ms-1"></i>إضافة مشتريات</a>
+</div>
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>#</th><th>الدواء</th><th>المورد</th><th>رقم التشغيلة</th><th>الكمية</th><th>سعر الشراء</th><th>سعر البيع</th><th>تاريخ الشراء</th><th>تاريخ الصلاحية</th></tr></thead>
+            <tbody>
+            {% for p in purchases %}
+            <tr>
+                <td>{{ p.id }}</td>
+                <td>{{ p.medication.trade_name if p.medication else '-' }}</td>
+                <td>{{ p.supplier.name if p.supplier else '-' }}</td>
+                <td>{{ p.batch_number }}</td>
+                <td>{{ p.quantity }}</td>
+                <td>{{ '%.2f'|format(p.purchase_price|float) if p.purchase_price else '-' }} ₪</td>
+                <td>{{ '%.2f'|format(p.selling_price|float) if p.selling_price else '-' }} ₪</td>
+                <td class="small">{{ p.purchase_date.strftime('%Y-%m-%d') if p.purchase_date else '-' }}</td>
+                <td class="small">{{ p.expiry_date.strftime('%Y-%m-%d') if p.expiry_date else '-' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9" class="text-center text-muted py-4">لا توجد مشتريات بعد</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

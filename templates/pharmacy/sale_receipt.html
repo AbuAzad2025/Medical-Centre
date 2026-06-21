@@ -1,0 +1,33 @@
+{% extends "dashboard_base.html" %}
+{% block title %}الفاتورة #{{ sale.id }}{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-check-circle text-success" style="font-size:4rem"></i>
+        <h3 class="mt-3">تمت عملية البيع بنجاح</h3>
+        <p class="text-muted">رقم الفاتورة: {{ sale.sale_number or ('#' + '%06d' % sale.id) }}</p>
+        {% if sale.customer_name %}<p class="text-muted">العميل: {{ sale.customer_name }}</p>{% endif %}
+        <p class="text-muted">{{ sale.created_at.strftime('%Y-%m-%d %H:%M') if sale.created_at else '' }}</p>
+        <hr>
+        <table class="table table-bordered w-50 mx-auto">
+            <thead><tr><th>الدواء</th><th>الكمية</th><th>السعر</th><th>المجموع</th></tr></thead>
+            <tbody>
+            {% for item in sale.items %}
+            <tr>
+                <td>{{ item.medication_name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ '%.2f'|format(item.unit_price|float) }} ₪</td>
+                <td>{{ '%.2f'|format(item.total_price|float) }} ₪</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot><tr class="fw-bold"><td colspan="3">الإجمالي</td><td>{{ '%.2f'|format(sale.total_amount|float) }} ₪</td></tr></tfoot>
+        </table>
+        <div class="mt-4">
+            <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print ms-1"></i>طباعة</button>
+            <a href="{{ url_for('medication.pos') }}" class="btn btn-success"><i class="fas fa-cash-register ms-1"></i>بيع جديد</a>
+            <a href="{{ url_for('medication.sales_history') }}" class="btn btn-outline-secondary"><i class="fas fa-list ms-1"></i>المبيعات</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
