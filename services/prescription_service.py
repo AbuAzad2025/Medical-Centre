@@ -81,41 +81,70 @@ class PrescriptionService:
     @staticmethod
     def create_prescription(
         patient_id: int, doctor_id: int, visit_id: int | None = None,
-        items: list[dict] | None = None, notes: str | None = None
-    ) -> Any | None:
-        from models.medication import Prescription, PrescriptionItem
+        tenant_id: int | None = None,
+        items: list[dict] | None = None, notes: str | None = None,
+        diagnosis: str | None = None,
+        prescription_number: str | None = None
+    ) -> tuple[bool, Any | str]:
+        """Create a Prescription with PrescriptionItems.
+
+        P2-002: The service resolves medication_id → Medication (formulary),
+        computes unit_price/total_price from Medication.price, and ensures
+        tenant scoping on both Prescription and PrescriptionItem rows.
+
+        Item dict expected keys:
+          medication_id (int), dosage (str), quantity (int),
+          duration_days (int), instructions (str | None)
+        """
+        from models.medication import Medication, Prescription, PrescriptionItem
         try:
             prescription = Prescription(
+                tenant_id=tenant_id,
                 patient_id=patient_id,
                 doctor_id=doctor_id,
                 visit_id=visit_id,
+                diagnosis=diagnosis,
                 notes=notes,
                 status="active",
-                prescription_number=f"RX-{uuid.uuid4().hex[:8].upper()}",
+                prescription_number=prescription_number or f"RX-{uuid.uuid4().hex[:8].upper()}",
             )
             db.session.add(prescription)
             db.session.flush()
 
             if items:
                 for item_data in items:
-                    item_qty = item_data.get("quantity", 1)
+                    med_id = item_data.get("medication_id")
+                    if not med_id:
+                        continue
+                    med = Medication.query.get(med_id)
+                    if not med:
+                        db.session.rollback()
+                        return False, f"Medication {med_id} not found"
+
+                    item_qty = int(item_data.get("quantity", 1) or 1)
+                    unit_price = med.price or Decimal('0')
+                    total_price = unit_price * item_qty
+
                     item = PrescriptionItem(
+                        tenant_id=tenant_id,
                         prescription_id=prescription.id,
-                        medication_id=item_data.get("medication_id"),
+                        medication_id=med.id,
                         dosage=item_data.get("dosage", ""),
                         quantity=item_qty,
-                        duration_days=item_data.get("duration_days", 7),
-                        instructions=item_data.get("notes", item_data.get("instructions", "")),
-                        unit_price=item_data.get("unit_price", 0),
-                        total_price=item_data.get("unit_price", 0) * item_qty,
+                        duration_days=int(item_data.get("duration_days", 7) or 7),
+                        instructions=item_data.get("instructions") or item_data.get("notes"),
+                        unit_price=unit_price,
+                        total_price=total_price,
                     )
                     db.session.add(item)
+
+            prescription.calculate_total_cost()
             db.session.commit()
-            return prescription
+            return True, prescription
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error creating prescription: {str(e)}")
-            return None
+            return False, str(e)
 
     @staticmethod
     def get_active_prescriptions(patient_id: int) -> list:

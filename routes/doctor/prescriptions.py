@@ -21,6 +21,7 @@ from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from services.prescription_service import prescription_service
 from app_factory import db
+from app.shared.enums import VisitState
 from sqlalchemy import and_, or_, desc, func, case
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
@@ -96,7 +97,7 @@ def prescription(visit_id):
             flash('لا يمكن كتابة وصفة إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
 
-        from models.medication import Medication, PrescriptionItem
+        from models.medication import Medication
         from models.system_config import SystemConfig
 
         medications = Medication.query.filter_by(is_active=True).order_by(Medication.trade_name.asc()).limit(1000).all()
@@ -199,21 +200,9 @@ def prescription(visit_id):
                 notes_parts.append('أدوية غير موجودة بالمخزون:\n' + non_catalog_medications)
             notes = '\n\n'.join([p for p in notes_parts if p]) or None
 
-            prescription = Prescription(
-                visit_id=visit_id,
-                patient_id=visit.patient_id,
-                doctor_id=current_user.id,
-                prescription_number=prescription_number,
-                diagnosis=visit.diagnosis,
-                notes=notes
-            )
-            db.session.add(prescription)
-            db.session.flush()
-
             warnings = []
-            from decimal import Decimal
-            total_cost = Decimal('0')
             used_med_ids = set()
+            items = []
             for i in range(max(len(item_med_ids), len(item_med_refs), len(item_dosages), len(item_frequencies), len(item_durations), len(item_instructions), len(item_quantities))):
                 med_id_raw = item_med_ids[i] if i < len(item_med_ids) else ''
                 if not (med_id_raw or '').strip():
@@ -254,21 +243,13 @@ def prescription(visit_id):
                     quantity = 1
 
                 stored_dosage = f"{dosage} | {frequency}" if frequency else dosage
-                unit_price = med.price or 0
-                total_price = unit_price * quantity
-                total_cost += (total_price or 0)
-
-                pi = PrescriptionItem(
-                    prescription_id=prescription.id,
-                    medication_id=med.id,
-                    dosage=stored_dosage,
-                    quantity=quantity,
-                    duration_days=duration_days,
-                    instructions=instructions,
-                    unit_price=unit_price,
-                    total_price=total_price
-                )
-                db.session.add(pi)
+                items.append({
+                    'medication_id': med.id,
+                    'dosage': stored_dosage,
+                    'quantity': quantity,
+                    'duration_days': duration_days,
+                    'instructions': instructions,
+                })
 
                 try:
                     from models.patient import PatientAllergy
@@ -290,7 +271,21 @@ def prescription(visit_id):
                     logging.warning(f"Error in {__name__}: {e}")
             warnings.extend(_check_drug_interaction_warnings(used_med_ids))
 
-            prescription.total_cost = total_cost
+            # P2-002: Delegate Prescription + PrescriptionItem creation to the service.
+            ok, result = prescription_service.create_prescription(
+                patient_id=visit.patient_id,
+                doctor_id=current_user.id,
+                visit_id=visit_id,
+                tenant_id=getattr(current_user, 'tenant_id', None),
+                items=items,
+                notes=notes,
+                diagnosis=visit.diagnosis,
+                prescription_number=prescription_number,
+            )
+            if not ok:
+                flash(f"تعذر حفظ الوصفة: {result}", 'error')
+                return redirect(url_for('doctor.patient_details', visit_id=visit_id))
+            prescription = result
             visit.prescription_issued = True
 
             _notify_pharmacy_non_catalog(non_catalog_medications, visit, current_user)
