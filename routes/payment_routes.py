@@ -13,10 +13,12 @@ from models.invoice import Invoice
 from models.system_config import SystemConfig
 from models.queue_management import QueueSettings
 from services.gatekeeper_service import GatekeeperService
+from services.payment_service import payment_service
 from app_factory import db
 import logging
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+import hashlib
 import json
 
 payment_bp = Blueprint('payment', __name__)
@@ -262,25 +264,39 @@ def process_payment(visit_id):
                     return redirect(url_for('reception.view_visit', visit_id=visit_id))
                 return redirect(url_for('reception.print_receipt', visit_id=visit_id))
 
-            payment = Payment(
+            # P3-001: deterministic idempotency fingerprint for this payment attempt.
+            idempotency_seed = "|".join([
+                str(getattr(current_user, 'tenant_id', None) or ''),
+                str(visit_id),
+                str(amount_value),
+                str(method_value),
+                str(payment_reference or ''),
+                str(payment_currency),
+            ])
+            idempotency_key = hashlib.sha256(idempotency_seed.encode()).hexdigest()[:32]
+
+            existing_invoice = Invoice.query.filter_by(visit_id=visit.id).order_by(Invoice.created_at.desc()).first()
+            ok, payment_or_error = payment_service.create_payment(
+                tenant_id=getattr(current_user, 'tenant_id', None),
+                operation_type='payment',
+                idempotency_key=idempotency_key,
                 patient_id=visit.patient_id,
                 visit_id=visit_id,
+                invoice_id=existing_invoice.id if existing_invoice else None,
                 amount=amount_value,
                 currency=payment_currency,
                 method=method_value,
                 status=PaymentStatus.CONFIRMED,
-                notes=request.form.get('payment_notes') or request.form.get('notes'),
-                payment_date=datetime.now(timezone.utc),
+                reference=payment_reference or (f"CARD-****{card_last_digits}" if method_value == PaymentMethod.CARD and card_last_digits else None),
                 received_by=current_user.id,
+                notes=request.form.get('payment_notes') or request.form.get('notes'),
             )
-            if payment_reference:
-                payment.reference = payment_reference
-            elif method_value == PaymentMethod.CARD and card_last_digits:
-                payment.reference = f"CARD-****{card_last_digits}"
-            existing_invoice = Invoice.query.filter_by(visit_id=visit.id).order_by(Invoice.created_at.desc()).first()
-            if existing_invoice:
-                payment.invoice_id = existing_invoice.id
-            db.session.add(payment)
+            if not ok:
+                if _wants_json():
+                    return jsonify({'success': False, 'message': payment_or_error}), 500
+                flash(f"تعذر تسجيل الدفع: {payment_or_error}", 'error')
+                return redirect(url_for('payment.process_payment', visit_id=visit_id))
+            payment = payment_or_error
 
             visit.paid_amount = Decimal(str(visit.paid_amount or 0)) + converted_amount
             visit.payment_method = method_value or visit.payment_method

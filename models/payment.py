@@ -22,6 +22,10 @@ class PaymentStatus:
     """حالات الدفع"""
     PENDING = "PENDING"
     CONFIRMED = "CONFIRMED"
+    PAID = "PAID"
+    PARTIAL = "PARTIAL"
+    DEBT = "DEBT"
+    EMERGENCY_DEBT = "EMERGENCY_DEBT"
     CANCELLED = "CANCELLED"
     REFUNDED = "REFUNDED"
 
@@ -43,7 +47,13 @@ class Payment(TenantMixin, db.Model):
     amount = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     currency = db.Column(db.String(8), default='ILS', nullable=False)
     status = db.Column(db.String(16), default=PaymentStatus.CONFIRMED, nullable=False, index=True)
-    
+
+    # P3-001: Idempotency support. `operation_type` scopes the key (e.g. 'payment',
+    # 'refund'). Partial unique index below only enforces uniqueness when the key
+    # is not NULL, allowing older rows without keys to coexist.
+    idempotency_key = db.Column(db.String(64), nullable=True, index=True)
+    operation_type = db.Column(db.String(32), nullable=True, index=True)
+
     # مرجع خارجي (رقم قسيمة/تحويل/معاملة بطاقة)
     reference = db.Column(db.String(64), nullable=True, index=True)
     
@@ -75,6 +85,7 @@ class Payment(TenantMixin, db.Model):
         Index('idx_payment_invoice_created', 'invoice_id', 'created_at'),
         Index('idx_payment_status', 'status'),
         Index('idx_payment_method', 'method'),
+        Index('idx_payment_idempotency', 'tenant_id', 'operation_type', 'idempotency_key', unique=True, postgresql_where=db.text("idempotency_key IS NOT NULL")),
     )
 
     # العلاقات

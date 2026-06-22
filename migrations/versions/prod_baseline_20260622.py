@@ -4475,8 +4475,11 @@ def upgrade():
     sa.Column('amount', sa.Numeric(precision=12, scale=2), nullable=False),
     sa.Column('currency', sa.String(length=8), nullable=False),
     sa.Column('status', sa.String(length=16), nullable=False),
+    sa.Column('idempotency_key', sa.String(length=64), nullable=True),
+    sa.Column('operation_type', sa.String(length=32), nullable=True),
     sa.Column('reference', sa.String(length=64), nullable=True),
     sa.Column('receipt_number', sa.String(length=50), nullable=True),
+
     sa.Column('is_provisional', sa.Boolean(), nullable=True),
     sa.Column('provisional_reason', sa.Text(), nullable=True),
     sa.Column('notes', sa.Text(), nullable=True),
@@ -4499,12 +4502,16 @@ def upgrade():
     sa.UniqueConstraint('receipt_number')
     )
     with op.batch_alter_table('payments', schema=None) as batch_op:
+        batch_op.create_index('idx_payment_idempotency', ['tenant_id', 'operation_type', 'idempotency_key'], unique=True, postgresql_where=sa.text("idempotency_key IS NOT NULL"))
         batch_op.create_index('idx_payment_invoice_created', ['invoice_id', 'created_at'], unique=False)
         batch_op.create_index('idx_payment_method', ['method'], unique=False)
         batch_op.create_index('idx_payment_patient_date', ['patient_id', 'payment_date'], unique=False)
         batch_op.create_index('idx_payment_status', ['status'], unique=False)
         batch_op.create_index('idx_payment_visit_date', ['visit_id', 'payment_date'], unique=False)
         batch_op.create_index(batch_op.f('ix_payments_cancelled_by'), ['cancelled_by'], unique=False)
+        batch_op.create_index(batch_op.f('ix_payments_idempotency_key'), ['idempotency_key'], unique=False)
+        batch_op.create_index(batch_op.f('ix_payments_operation_type'), ['operation_type'], unique=False)
+
         batch_op.create_index(batch_op.f('ix_payments_created_at'), ['created_at'], unique=False)
         batch_op.create_index(batch_op.f('ix_payments_invoice_id'), ['invoice_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_payments_is_provisional'), ['is_provisional'], unique=False)
@@ -5339,8 +5346,12 @@ def downgrade():
         batch_op.drop_index('idx_payment_patient_date')
         batch_op.drop_index('idx_payment_method')
         batch_op.drop_index('idx_payment_invoice_created')
+        batch_op.drop_index('idx_payment_idempotency')
+        batch_op.drop_index(batch_op.f('ix_payments_operation_type'))
+        batch_op.drop_index(batch_op.f('ix_payments_idempotency_key'))
 
     op.drop_table('payments')
+
     with op.batch_alter_table('lab_results', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_lab_results_updated_at'))
         batch_op.drop_index(batch_op.f('ix_lab_results_test_code'))
