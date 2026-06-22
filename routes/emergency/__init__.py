@@ -55,6 +55,13 @@ def _normalize_emergency_status(value):
     return v if v in allowed else v
 
 def _set_emergency_status(emergency, new_status):
+    """Canonical writer for EmergencyCase.status.
+
+    P1-003: All status transitions must go through this helper so that
+    EmergencyStatusHistory is always recorded. The helper normalizes legacy
+    aliases (ACTIVE -> WAITING, RESOLVED -> COMPLETED) and writes the audit row
+    before mutating the case.
+    """
     from models.emergency_status_history import EmergencyStatusHistory
     ns = _normalize_emergency_status(new_status)
     if not ns:
