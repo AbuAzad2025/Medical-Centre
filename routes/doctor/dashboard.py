@@ -21,6 +21,7 @@ from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from services.core_queries import core_queries
 from app_factory import db
+from app.shared.enums import VisitState, OrderState, AppointmentState
 from sqlalchemy import and_, or_, desc, func, case
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
@@ -91,7 +92,7 @@ def dashboard():
         upcoming_patients = Visit.query.filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date == today,
-            Visit.status.in_([VisitState.OPEN, VisitState.READY])
+            Visit.status.in_([VisitState.OPEN, VisitState.CHECKED_IN])
         ).order_by(Visit.visit_time).limit(5).all()
         
         # الإحصائيات
@@ -164,21 +165,37 @@ def dashboard():
             stats['doctor_earnings_today'] = None
             stats['doctor_earnings_week'] = None
             stats['doctor_earnings_month'] = None
-        # توصيات ذكية وتحليلات الأداء
-        recommendations = get_clinical_decision_support()
-        analytics = get_medical_analytics()
-        optimizations = get_workflow_optimization()
-        stats['smart_recommendations'] = recommendations
-        stats['medical_analytics'] = analytics
-        stats['workflow_optimizations'] = optimizations
-        
+        # قائمة مواعيد اليوم
+        today_appointments = Appointment.query.filter(
+            Appointment.doctor_id == current_user.id,
+            db.func.date(Appointment.starts_at) == today
+        ).order_by(Appointment.starts_at.asc()).limit(10).all()
+
+        # طلبات مختبر وأشعة معلقة (قائمة)
+        pending_lab_list = LabRequest.query.join(Visit).filter(
+            Visit.doctor_id == current_user.id,
+            LabRequest.status.in_(['REQUESTED', 'COLLECTED'])
+        ).order_by(LabRequest.created_at.desc()).limit(10).all()
+
+        pending_radiology_list = RadiologyRequest.query.join(Visit).filter(
+            Visit.doctor_id == current_user.id,
+            RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
+        ).order_by(RadiologyRequest.created_at.desc()).limit(10).all()
+
         return render_template('doctor/dashboard_new.html',
                              stats=stats,
                              my_visits_count=today_visits,
                              waiting_patients=pending_visits,
                              prescriptions_count=prescriptions_today,
-                             appointments_count=Appointment.query.filter(Appointment.doctor_id==current_user.id, Appointment.appointment_date==today, Appointment.status.in_([AppointmentState.SCHEDULED, AppointmentState.CONFIRMED])).count(),
-                             waiting_list=upcoming_patients)
+                             appointments_count=Appointment.query.filter(
+                                 Appointment.doctor_id == current_user.id,
+                                 db.func.date(Appointment.starts_at) == today,
+                                 Appointment.status.in_([AppointmentState.SCHEDULED, AppointmentState.CONFIRMED])
+                             ).count(),
+                             waiting_list=upcoming_patients,
+                             today_appointments=today_appointments,
+                             pending_lab_list=pending_lab_list,
+                             pending_radiology_list=pending_radiology_list)
     except Exception as e:
         logging.error(f"Error in doctor dashboard: {str(e)}")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
@@ -203,7 +220,7 @@ def dashboard_for_doctor(doctor_id):
         prescriptions_today = Prescription.query.join(Visit).filter(Visit.doctor_id == doctor_id, Visit.visit_date == today).count()
         pending_lab_requests = LabRequest.query.join(Visit).filter(Visit.doctor_id == doctor_id, LabRequest.status == OrderState.REQUESTED).count()
         pending_radiology_requests = RadiologyRequest.query.join(Visit).filter(Visit.doctor_id == doctor_id, RadiologyRequest.status == OrderState.REQUESTED).count()
-        upcoming_patients = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status.in_([VisitState.OPEN, VisitState.READY])).order_by(Visit.visit_time).limit(5).all()
+        upcoming_patients = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status.in_([VisitState.OPEN, VisitState.CHECKED_IN])).order_by(Visit.visit_time).limit(5).all()
         stats = {
             'today_visits': today_visits,
             'pending_visits': pending_visits,

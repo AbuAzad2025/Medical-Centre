@@ -21,6 +21,7 @@ import json
 from datetime import datetime, date, timedelta, timezone
 from sqlalchemy import and_, or_, desc, func, case
 import secrets
+from app.shared.enums import AppointmentState
 
 from models.system_config import SystemConfig
 
@@ -170,7 +171,7 @@ def _sync_follow_up_request_for_visit(visit: Visit, actor_user_id: int):
             existing.doctor_id = visit.doctor_id
             existing.suggested_date = suggested
             existing.notes = getattr(visit, 'follow_up_notes', None) or existing.notes
-            existing.status = existing.status if existing.status == AppointmentState.SCHEDULED else VisitState.PENDING
+            existing.status = existing.status if existing.status == AppointmentState.SCHEDULED else 'PENDING'
             existing.updated_at = datetime.now(timezone.utc)
         else:
             db.session.add(FollowUpRequest(
