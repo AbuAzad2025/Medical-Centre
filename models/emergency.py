@@ -7,6 +7,7 @@ from datetime import datetime
 from sqlalchemy import func, Index
 from app_factory import db
 from app.shared.mixins import TenantMixin
+from app.shared.enums import EmergencyStatus
 
 class EmergencyCase(TenantMixin, db.Model):
     """نموذج حالات الطوارئ"""
@@ -24,7 +25,7 @@ class EmergencyCase(TenantMixin, db.Model):
     vital_signs = db.Column(db.Text, nullable=True)  # JSON string for vital signs
     diagnosis = db.Column(db.Text, nullable=True)
     treatment_plan = db.Column(db.Text, nullable=True)
-    status = db.Column(db.String(50), nullable=False, index=True, server_default="IN_PROGRESS")
+    status = db.Column(db.String(50), nullable=False, index=True, server_default=EmergencyStatus.IN_PROGRESS.value)
     completed_at = db.Column(db.DateTime, nullable=True, index=True)
     created_at = db.Column(db.DateTime, nullable=False, server_default=func.now(), index=True)
     updated_at = db.Column(db.DateTime, nullable=False, server_default=func.now(), onupdate=func.now(), index=True)

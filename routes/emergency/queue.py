@@ -11,6 +11,7 @@ from models.visit import Visit
 from models.user import User
 from models.department import Department
 from models.emergency import EmergencyCase
+from app.shared.enums import EmergencyStatus
 from models.medication import Prescription
 from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
@@ -156,8 +157,8 @@ def triage(emergency_id):
                 reverse_map = {'CRITICAL': 'RED', 'HIGH': 'YELLOW', 'MODERATE': 'GREEN', 'LOW': 'GREEN'}
                 visit.triage_level = reverse_map.get(severity, 'GREEN')
 
-            if emergency.status in ['IN_PROGRESS', 'TRIAGE']:
-                _set_emergency_status(emergency, 'TREATMENT')
+            if emergency.status in [EmergencyStatus.IN_PROGRESS, EmergencyStatus.TRIAGE]:
+                _set_emergency_status(emergency, EmergencyStatus.TREATMENT)
 
             db.session.commit()
 

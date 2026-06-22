@@ -36,7 +36,6 @@ def _normalize_emergency_status(value):
         return None
     alias = {
         'ACTIVE': 'WAITING',
-        'IN_PROGRESS': 'WAITING',
         'RESOLVED': 'COMPLETED',
     }
     v = alias.get(v, v)
@@ -46,6 +45,7 @@ def _normalize_emergency_status(value):
         'RESUSCITATION',
         'TREATMENT',
         'OBSERVATION',
+        'IN_PROGRESS',
         'TRANSFERRED',
         'DISCHARGED',
         'DECEASED',
