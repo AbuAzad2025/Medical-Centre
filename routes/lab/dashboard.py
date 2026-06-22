@@ -17,6 +17,7 @@ from models.audit_trail import AuditTrail
 from services.core_queries import core_queries
 from services.lab_service import lab_service
 from app_factory import db
+from app.shared.enums import OrderState
 import logging, json, base64
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
@@ -57,6 +58,16 @@ def dashboard():
         in_progress_count = LabRequest.query.filter(
             LabRequest.status.in_([OrderState.RECEIVED, OrderState.ANALYZING, OrderState.REVIEWED, OrderState.APPROVED, OrderState.IN_PROGRESS])
         ).count()
+        # Imported here to avoid circular import during blueprint registration.
+        from routes.lab import (
+            get_lab_smart_analytics,
+            get_lab_test_optimization,
+            get_lab_quality_control,
+            get_lab_equipment_monitoring,
+            get_lab_result_analysis,
+            get_lab_workflow_automation,
+            get_lab_predictive_insights,
+        )
         smart_analytics = get_lab_smart_analytics()
         test_optimization = get_lab_test_optimization()
         quality_control = get_lab_quality_control()

@@ -16,6 +16,7 @@ from models.system_config import SystemConfig
 from services.core_queries import core_queries
 from services.radiology_service import radiology_service
 from app_factory import db
+from app.shared.enums import OrderState
 import logging, json, os, base64, secrets
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
@@ -53,6 +54,16 @@ def dashboard():
             RadiologyRequest.status == OrderState.DONE,
             db.func.date(RadiologyRequest.updated_at) == date.today()
         ).count()
+        # Imported here to avoid circular import during blueprint registration.
+        from routes.radiology import (
+            get_radiology_smart_analytics,
+            get_radiology_imaging_optimization,
+            get_radiology_quality_assurance,
+            get_radiology_equipment_status,
+            get_radiology_report_analysis,
+            get_radiology_workflow_automation,
+            get_radiology_predictive_insights,
+        )
         smart_analytics = get_radiology_smart_analytics()
         imaging_optimization = get_radiology_imaging_optimization()
         quality_assurance = get_radiology_quality_assurance()
