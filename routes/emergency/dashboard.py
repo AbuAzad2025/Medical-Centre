@@ -18,6 +18,7 @@ from models.medical_record import MedicalRecord
 from services.emergency_service import emergency_service
 from app_factory import db
 from services.core_queries import core_queries
+from app.shared.enums import EmergencyStatus
 from sqlalchemy import and_, or_, desc, case
 import logging, json
 from datetime import datetime, date, timedelta, timezone
@@ -185,6 +186,12 @@ def dashboard():
         
         # طلبات الأشعة المعلقة
         pending_radiology_requests = 0
+
+        from routes.emergency import (
+            get_emergency_time_metrics,
+            get_emergency_protocols,
+            get_ems_metrics,
+        )
         
         severity_order = case(
             (EmergencyCase.severity == 'CRITICAL', 4),
