@@ -3930,6 +3930,8 @@ def upgrade():
     sa.Column('receipt_number', sa.String(length=50), nullable=False),
     sa.Column('visit_id', sa.Integer(), nullable=False),
     sa.Column('patient_id', sa.Integer(), nullable=False),
+    sa.Column('payment_id', sa.Integer(), nullable=True),
+    sa.Column('status', sa.String(length=20), nullable=False),
     sa.Column('total_amount', sa.Numeric(precision=12, scale=2), nullable=False),
     sa.Column('paid_amount', sa.Numeric(precision=12, scale=2), nullable=False),
     sa.Column('remaining_amount', sa.Numeric(precision=12, scale=2), nullable=True),
@@ -3943,6 +3945,7 @@ def upgrade():
     sa.Column('debt_reason', sa.Text(), nullable=True),
     sa.Column('debt_approved_by', sa.Integer(), nullable=True),
     sa.Column('debt_approved_at', sa.DateTime(), nullable=True),
+    sa.Column('void_reason', sa.Text(), nullable=True),
     sa.Column('is_printed', sa.Boolean(), nullable=True),
     sa.Column('printed_at', sa.DateTime(), nullable=True),
     sa.Column('printed_by', sa.Integer(), nullable=True),
@@ -3952,6 +3955,7 @@ def upgrade():
     sa.Column('tenant_id', sa.Integer(), nullable=True),
     sa.CheckConstraint("payment_method IN ('cash', 'card', 'visa', 'mada', 'debt')", name='chk_receipt_payment_method'),
     sa.CheckConstraint("payment_status IN ('PAID', 'PARTIAL', 'DEBT', 'EMERGENCY_DEBT')", name='chk_receipt_payment_status'),
+    sa.CheckConstraint("status IN ('issued', 'printed', 'voided')", name='chk_receipt_status'),
     sa.CheckConstraint('insurance_amount >= 0', name='chk_receipt_insurance_amount'),
     sa.CheckConstraint('insurance_coverage >= 0 AND insurance_coverage <= 100', name='chk_receipt_insurance_coverage'),
     sa.CheckConstraint('paid_amount >= 0', name='chk_receipt_paid_amount'),
@@ -3961,6 +3965,7 @@ def upgrade():
     sa.ForeignKeyConstraint(['created_by'], ['users.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['debt_approved_by'], ['users.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['patient_id'], ['patients.id'], ),
+    sa.ForeignKeyConstraint(['payment_id'], ['payments.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['printed_by'], ['users.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['visit_id'], ['visits.id'], ),
@@ -3971,7 +3976,9 @@ def upgrade():
         batch_op.create_index('idx_receipt_created', ['created_at'], unique=False)
         batch_op.create_index('idx_receipt_number', ['receipt_number'], unique=False)
         batch_op.create_index('idx_receipt_patient', ['patient_id'], unique=False)
+        batch_op.create_index('idx_receipt_payment', ['payment_id'], unique=False)
         batch_op.create_index('idx_receipt_printed', ['is_printed'], unique=False)
+        batch_op.create_index('idx_receipt_status', ['status'], unique=False)
         batch_op.create_index('idx_receipt_visit', ['visit_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_receipts_created_by'), ['created_by'], unique=False)
         batch_op.create_index(batch_op.f('ix_receipts_debt_approved_by'), ['debt_approved_by'], unique=False)

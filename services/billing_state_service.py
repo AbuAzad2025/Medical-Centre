@@ -16,7 +16,7 @@ class BillingStateService:
         payments = Payment.query.filter_by(visit_id=visit.id).all()
         invoices = Invoice.query.filter_by(visit_id=visit.id).all()
         total_paid = sum(float(p.amount or 0) for p in payments if p.status == PaymentStatus.CONFIRMED)
-        total_invoiced = sum(float(i.total or 0) for i in invoices)
+        total_invoiced = sum(float(i.total_amount or 0) for i in invoices)
         if total_paid <= 0 and total_invoiced <= 0:
             return BillingState.PENDING
         if total_paid >= total_invoiced and total_invoiced > 0:
@@ -44,18 +44,37 @@ class BillingStateService:
 
 
 class ReceiptService:
+    """P3-004: Issue, print, and void receipts bound to a payment."""
+
+    # Map Payment.method values to Receipt.payment_method constraint values.
+    _METHOD_MAP = {
+        'CASH': 'cash',
+        'CARD': 'card',
+        'WIRE': 'card',
+        'INSURANCE': 'debt',
+        'FORCE': 'cash',
+    }
+
     @staticmethod
     def issue_receipt(visit, payment) -> dict:
         from models.receipt import Receipt
+        from decimal import Decimal
+
         receipt = Receipt(
-            tenant_id=getattr(g, 'tenant_id', None),
+            tenant_id=visit.tenant_id,
             visit_id=visit.id,
-            payment_id=payment.id,
             patient_id=visit.patient_id,
-            amount=payment.amount,
-            issued_at=datetime.now(timezone.utc),
+            payment_id=payment.id,
+            total_amount=Decimal(str(payment.amount or 0)),
+            paid_amount=Decimal(str(payment.amount or 0)),
+            remaining_amount=Decimal(0),
+            payment_method=ReceiptService._METHOD_MAP.get(str(payment.method).upper(), 'cash'),
+            payment_status='PAID',
             status='issued',
+            created_by=payment.received_by,
+            created_at=datetime.now(timezone.utc),
         )
+        receipt.generate_receipt_number()
         db.session.add(receipt)
         db.session.commit()
         return {"receipt_id": receipt.id, "status": "issued"}
@@ -66,6 +85,7 @@ class ReceiptService:
         receipt = Receipt.query.get(receipt_id)
         if receipt:
             receipt.status = 'printed'
+            receipt.is_printed = True
             receipt.printed_at = datetime.now(timezone.utc)
             db.session.commit()
 

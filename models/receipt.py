@@ -20,7 +20,11 @@ class Receipt(TenantMixin, db.Model):
     receipt_number = db.Column(db.String(50), unique=True, nullable=False)  # رقم سند القبض
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'), nullable=False, index=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False, index=True)
-    
+    payment_id = db.Column(db.Integer, db.ForeignKey('payments.id', ondelete='SET NULL'), nullable=True, index=True)
+
+    # P3-004: lifecycle status for the receipt itself (issued/printed/voided)
+    status = db.Column(db.String(20), default='issued', nullable=False, index=True)
+
     # تفاصيل الدفع
     total_amount = db.Column(db.Numeric(12, 2), nullable=False)  # المبلغ الإجمالي
     paid_amount = db.Column(db.Numeric(12, 2), nullable=False)  # المبلغ المدفوع
@@ -40,7 +44,10 @@ class Receipt(TenantMixin, db.Model):
 
     debt_approved_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)  # من وافق على الدين
     debt_approved_at = db.Column(db.DateTime, nullable=True)  # وقت الموافقة
-    
+
+    # P3-004: void details
+    void_reason = db.Column(db.Text, nullable=True)
+
     # تفاصيل الطباعة
     is_printed = db.Column(db.Boolean, default=False)  # هل تم طباعته
     printed_at = db.Column(db.DateTime, nullable=True)  # وقت الطباعة
@@ -60,12 +67,15 @@ class Receipt(TenantMixin, db.Model):
         CheckConstraint("remaining_amount >= 0", name='chk_receipt_remaining_amount'),
         CheckConstraint("payment_method IN ('cash', 'card', 'visa', 'mada', 'debt')", name='chk_receipt_payment_method'),
         CheckConstraint("payment_status IN ('PAID', 'PARTIAL', 'DEBT', 'EMERGENCY_DEBT')", name='chk_receipt_payment_status'),
+        CheckConstraint("status IN ('issued', 'printed', 'voided')", name='chk_receipt_status'),
         CheckConstraint("insurance_coverage >= 0 AND insurance_coverage <= 100", name='chk_receipt_insurance_coverage'),
         CheckConstraint("insurance_amount >= 0", name='chk_receipt_insurance_amount'),
         CheckConstraint("patient_share >= 0", name='chk_receipt_patient_share'),
         Index('idx_receipt_number', 'receipt_number'),
         Index('idx_receipt_visit', 'visit_id'),
         Index('idx_receipt_patient', 'patient_id'),
+        Index('idx_receipt_payment', 'payment_id'),
+        Index('idx_receipt_status', 'status'),
         Index('idx_receipt_created', 'created_at'),
         Index('idx_receipt_printed', 'is_printed'),
     )
@@ -73,6 +83,7 @@ class Receipt(TenantMixin, db.Model):
     # العلاقات
     visit = db.relationship('Visit', foreign_keys=[visit_id])
     patient = db.relationship('Patient', foreign_keys=[patient_id])
+    payment = db.relationship('Payment', foreign_keys=[payment_id])
     creator = db.relationship('User', foreign_keys=[created_by])
     debt_approver = db.relationship('User', foreign_keys=[debt_approved_by])
     printer = db.relationship('User', foreign_keys=[printed_by])
@@ -151,6 +162,8 @@ class Receipt(TenantMixin, db.Model):
             'receipt_number': self.receipt_number,
             'visit_id': self.visit_id,
             'patient_id': self.patient_id,
+            'payment_id': self.payment_id,
+            'status': self.status,
             'patient_name': self.patient.full_name if self.patient else None,
             'total_amount': self.total_amount,
             'paid_amount': self.paid_amount,
@@ -166,6 +179,7 @@ class Receipt(TenantMixin, db.Model):
             'debt_approved_by': self.debt_approved_by,
             'debt_approver_name': self.debt_approver.full_name if self.debt_approver else None,
             'debt_approved_at': self.debt_approved_at.isoformat() if self.debt_approved_at else None,
+            'void_reason': self.void_reason,
             'is_printed': self.is_printed,
             'printed_at': self.printed_at.isoformat() if self.printed_at else None,
             'printed_by': self.printed_by,
