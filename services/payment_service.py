@@ -78,6 +78,16 @@ class PaymentService:
             )
             db.session.add(payment)
             db.session.flush()
+
+            # P3-002: allocate confirmed payments against visit invoices within
+            # the same transaction boundary.
+            if status == "CONFIRMED" and visit_id:
+                from models.visit import Visit
+                from services.billing_state_service import PaymentAllocationService
+                visit = db.session.get(Visit, visit_id)
+                if visit:
+                    PaymentAllocationService.allocate(payment, visit)
+
             return True, payment
         except Exception as e:
             db.session.rollback()
