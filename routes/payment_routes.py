@@ -14,6 +14,7 @@ from models.system_config import SystemConfig
 from models.queue_management import QueueSettings
 from services.gatekeeper_service import GatekeeperService
 from services.payment_service import payment_service
+from services.refund_service import refund_service
 from app_factory import db
 import logging
 from datetime import datetime, timedelta, timezone
@@ -481,4 +482,72 @@ def payment_reports():
     except Exception as e:
         logging.error(f"Error loading payment reports: {str(e)}")
         flash('حدث خطأ في تحميل تقارير الدفع', 'error')
+        return redirect(url_for('payment.dashboard'))
+
+
+@payment_bp.route('/payments/<int:payment_id>/refund', methods=['POST'])
+@login_required
+@role_required('accountant', 'admin', 'manager')
+def request_refund(payment_id):
+    """Create a refund request for a payment."""
+    try:
+        amount = request.form.get('amount') or request.json.get('amount')
+        reason = request.form.get('reason') or request.json.get('reason', '')
+        ok, result = refund_service.request_refund(
+            tenant_id=getattr(current_user, 'tenant_id', None),
+            payment_id=payment_id,
+            amount=amount,
+            reason=reason,
+            requested_by=current_user.id,
+        )
+        if not ok:
+            flash(result, 'error')
+            return redirect(url_for('payment.dashboard'))
+        db.session.commit()
+        flash('تم تقديم طلب الاسترداد بنجاح', 'success')
+        return redirect(url_for('payment.dashboard'))
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error requesting refund: {str(e)}")
+        flash('حدث خطأ أثناء طلب الاسترداد', 'error')
+        return redirect(url_for('payment.dashboard'))
+
+
+@payment_bp.route('/refund-requests/<int:refund_id>/approve', methods=['POST'])
+@login_required
+@role_required('accountant', 'admin', 'manager')
+def approve_refund(refund_id):
+    """Approve a pending refund request."""
+    try:
+        ok, result = refund_service.approve_refund(refund_id, approved_by=current_user.id)
+        if not ok:
+            flash(result, 'error')
+            return redirect(url_for('payment.dashboard'))
+        db.session.commit()
+        flash('تمت موافقة طلب الاسترداد', 'success')
+        return redirect(url_for('payment.dashboard'))
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error approving refund: {str(e)}")
+        flash('حدث خطأ أثناء موافقة الاسترداد', 'error')
+        return redirect(url_for('payment.dashboard'))
+
+
+@payment_bp.route('/refund-requests/<int:refund_id>/execute', methods=['POST'])
+@login_required
+@role_required('accountant', 'admin', 'manager')
+def execute_refund(refund_id):
+    """Execute an approved refund request."""
+    try:
+        ok, result = refund_service.execute_refund(refund_id, executed_by=current_user.id)
+        if not ok:
+            flash(result, 'error')
+            return redirect(url_for('payment.dashboard'))
+        db.session.commit()
+        flash('تم تنفيذ الاسترداد بنجاح', 'success')
+        return redirect(url_for('payment.dashboard'))
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error executing refund: {str(e)}")
+        flash('حدث خطأ أثناء تنفيذ الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
