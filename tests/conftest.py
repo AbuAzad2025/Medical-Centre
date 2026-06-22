@@ -71,6 +71,26 @@ def _clear_rate_limiter(app):
         db.session.rollback()
 
 
+@pytest.fixture(scope='function', autouse=True)
+def _clear_flask_login_state():
+    """Clear cached Flask-Login user to prevent cross-test auth leaks.
+
+    The session-scoped app context in the ``app`` fixture means ``g`` is
+    shared across tests. Flask-Login stores the loaded user in ``g``; if a
+    previous test logged in, the next test may see that user unless we clear it.
+    """
+    from flask import g
+    try:
+        g.pop('_login_user', None)
+    except Exception:
+        pass
+    yield
+    try:
+        g.pop('_login_user', None)
+    except Exception:
+        pass
+
+
 @pytest.fixture(scope='function')
 def client(app):
     return app.test_client()

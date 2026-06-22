@@ -1,6 +1,14 @@
 {% extends "dashboard_base.html" %}
 {% block title %}لوحة تحكم الأطباء{% endblock %}
 {% block content %}
+<div class="row mb-3">
+    <div class="col-12 d-flex flex-wrap gap-2">
+        <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-primary"><i class="fas fa-list-ol me-1"></i> طابور المرضى</a>
+        <a href="{{ url_for('doctor.prescriptions') }}" class="btn btn-warning"><i class="fas fa-prescription me-1"></i> الروشتات</a>
+        <a href="{{ url_for('doctor.lab_requests') }}" class="btn btn-info"><i class="fas fa-flask me-1"></i> طلبات المختبر</a>
+        <a href="{{ url_for('doctor.radiology_requests') }}" class="btn btn-secondary"><i class="fas fa-x-ray me-1"></i> طلبات الأشعة</a>
+    </div>
+</div>
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <div class="card card-stat bg-primary">
@@ -31,32 +39,93 @@
         </div>
     </div>
 </div>
-<div class="card">
-    <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2"></i>قائمة الانتظار</h5></div>
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead><tr><th>#</th><th>المريض</th><th>الحالة</th><th>الإجراء</th></tr></thead>
-            <tbody>
-            {% for v in waiting_list %}
-            <tr>
-                <td>{{ v.visit_number or v.id }}</td>
-                <td>{{ v.patient.full_name if v.patient else '-' }}</td>
-                <td><span class="badge bg-warning">{{ v.status }}</span></td>
-                <td><a href="{{ url_for('doctor.patient_details', visit_id=v.id) }}" class="btn btn-sm btn-primary">فحص</a></td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="4">
-                    <div class="empty-state-smart">
-                        <div class="empty-icon-wrap"><i class="fas fa-user-injured"></i></div>
-                        <h5>لا يوجد مرضى في قائمة الانتظار</h5>
-                        <p>قائمة الانتظار فارغة حالياً.</p>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2 text-primary"></i>قائمة الانتظار</h5></div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>#</th><th>المريض</th><th>الحالة</th><th>الإجراء</th></tr></thead>
+                    <tbody>
+                    {% for v in waiting_list %}
+                    <tr>
+                        <td>{{ v.visit_number or v.id }}</td>
+                        <td>{{ v.patient.full_name if v.patient else '-' }}</td>
+                        <td><span class="badge bg-{% if v.status=='IN_PROGRESS' %}primary{% else %}warning{% endif %}">{{ v.status }}</span></td>
+                        <td><a href="{{ url_for('doctor.patient_details', visit_id=v.id) }}" class="btn btn-sm btn-primary">فحص</a></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4"><div class="text-center text-muted py-4">لا يوجد مرضى في قائمة الانتظار</div></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-calendar-day me-2 text-info"></i>مواعيدي اليوم</h5></div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>المريض</th><th>الوقت</th><th>الحالة</th></tr></thead>
+                    <tbody>
+                    {% for a in today_appointments %}
+                    <tr>
+                        <td>{{ a.patient.full_name if a.patient else '-' }}</td>
+                        <td class="text-muted small">{{ a.starts_at.strftime('%H:%M') if a.starts_at else '-' }}</td>
+                        <td><span class="badge bg-{% if a.status=='CHECKED_IN' %}success{% elif a.status=='CONFIRMED' %}primary{% else %}secondary{% endif %}">{{ a.status }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3"><div class="text-center text-muted py-4">لا توجد مواعيد اليوم</div></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-flask me-2 text-warning"></i>طلبات المختبر المعلّقة</h5></div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>#</th><th>المريض</th><th>الحالة</th></tr></thead>
+                    <tbody>
+                    {% for req in pending_lab_list %}
+                    <tr>
+                        <td>{{ req.request_number or req.id }}</td>
+                        <td>{{ req.patient.full_name if req.patient else '-' }}</td>
+                        <td><span class="badge bg-{% if req.status=='REQUESTED' %}secondary{% else %}info{% endif %}">{{ req.status }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3"><div class="text-center text-muted py-4">لا توجد طلبات مختبر معلّقة</div></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-x-ray me-2 text-secondary"></i>طلبات الأشعة المعلّقة</h5></div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>#</th><th>المريض</th><th>الحالة</th></tr></thead>
+                    <tbody>
+                    {% for req in pending_radiology_list %}
+                    <tr>
+                        <td>{{ req.request_number or req.id }}</td>
+                        <td>{{ req.patient.full_name if req.patient else '-' }}</td>
+                        <td><span class="badge bg-{% if req.status=='REQUESTED' %}secondary{% else %}primary{% endif %}">{{ req.status }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3"><div class="text-center text-muted py-4">لا توجد طلبات أشعة معلّقة</div></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
