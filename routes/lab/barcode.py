@@ -45,11 +45,11 @@ def barcode_scan(barcode):
     )
     db.session.add(scan_log)
 
-    if action == 'COLLECT' and lab_request.status == OrderState.REQUESTED:
-        lab_request.status = OrderState.COLLECTED
+    if action == 'COLLECT' and lab_request.status == 'REQUESTED':
+        lab_request.status = 'COLLECTED'
         lab_request.collection_time = datetime.now(timezone.utc)
-    elif action == 'RECEIVE' and lab_request.status == OrderState.COLLECTED:
-        lab_request.status = OrderState.RECEIVED
+    elif action == 'RECEIVE' and lab_request.status == 'COLLECTED':
+        lab_request.status = 'RECEIVED'
         lab_request.received_time = datetime.now(timezone.utc)
 
     lab_request.updated_at = datetime.now(timezone.utc)

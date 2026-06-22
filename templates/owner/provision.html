@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}إنشاء عميل جديد (SaaS){% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col"><h4><i class="fas fa-plus-circle me-2 text-success"></i>إنشاء عميل جديد (SaaS Provisioning)</h4></div>
+        <div class="col-auto">
+            <a href="{{ url_for('owner.owner_subscriptions') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> الاشتراكات</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{{ url_for('owner.owner_provision') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">اسم المؤسسة *</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Slug (مُعرف فريد) *</label>
+                        <input type="text" name="slug" class="form-control" required placeholder="company-name">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">بريد التواصل *</label>
+                        <input type="email" name="contact_email" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">الملف الشخصي (Product Profile)</label>
+                        <select name="product_profile_code" class="form-select">
+                            <option value="">بدون تحديد</option>
+                            {% for p in profiles %}
+                            <option value="{{ p.value }}">{{ p.value.replace('_', ' ').title() }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Package Version *</label>
+                        <select name="package_version_id" class="form-select" required>
+                            <option value="">اختر Package</option>
+                            {% for v in package_versions %}
+                            <option value="{{ v.id }}">{{ v.package.name }} v{{ v.version }} ({{ v.package.category }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">نوع الفوترة *</label>
+                        <select name="billing_type" class="form-select">
+                            <option value="monthly">شهري</option>
+                            <option value="yearly">سنوي</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> إنشاء العميل</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -20,6 +20,18 @@ from app.shared.enums import TenantStatus, SubscriptionType, StorageMode, Produc
 from app.core.rate_limiter import rate_limit
 from app.modules.owner.decorators import owner_required
 from services.webhook_service import dispatch_webhook, EVENT_TENANT_CREATED, EVENT_TENANT_SUSPENDED, EVENT_TENANT_ACTIVATED, EVENT_MODULE_ACTIVATED, EVENT_MODULE_DEACTIVATED, EVENT_BUNDLE_CHANGED
+from app.core.saas.models import (
+    Package,
+    PackageVersion,
+    PackageVersionEntitlement,
+    PackageVersionLimit,
+    PackageVersionPricing,
+    SubscriptionLine,
+    SubscriptionLineStatus,
+    SubscriptionLineType,
+)
+from app.core.saas.lifecycle import TenantProvisioningService
+from app.core.saas.projection import EntitlementProjectionService
 
 
 def _log_action(action, entity_type, entity_id=None, details=None):
@@ -1048,4 +1060,318 @@ def api_record_usage(tenant_id):
     snapshot = ResourceUsage.record_snapshot(tenant_id)
     return jsonify({"status": "recorded", "snapshot": snapshot.to_dict()})
 
+
+# ---------------------------------------------------------------------------
+# UX0 — SaaS Owner Console
+# ---------------------------------------------------------------------------
+
+@owner_bp.route("/packages")
+@login_required
+@owner_required
+def owner_packages():
+    """Package Manager UI (UX0-001)."""
+    packages = Package.query.order_by(Package.category, Package.name).all()
+    return render_template("owner/packages.html", packages=packages)
+
+
+@owner_bp.route("/packages/create", methods=["POST"])
+@login_required
+@owner_required
+def owner_create_package():
+    """Create a new Package + initial PackageVersion."""
+    name = request.form.get("name", "").strip()
+    name_ar = request.form.get("name_ar", "").strip()
+    slug = request.form.get("slug", "").strip()
+    category = request.form.get("category", "bundle").strip()
+    version = request.form.get("version", "1.0.0").strip()
+
+    if not name or not slug:
+        flash("اسم Package وSlug مطلوبان", "error")
+        return redirect(url_for("owner.owner_packages"))
+
+    if Package.query.filter_by(slug=slug).first():
+        flash("Slug مستخدم مسبقاً", "error")
+        return redirect(url_for("owner.owner_packages"))
+
+    package = Package(name=name, name_ar=name_ar or None, slug=slug, category=category, is_active=True)
+    db.session.add(package)
+    db.session.flush()
+
+    pv = PackageVersion(
+        package_id=package.id,
+        version=version,
+        published_at=datetime.now(timezone.utc),
+    )
+    db.session.add(pv)
+    db.session.commit()
+    _log_action("CREATE_PACKAGE", "package", package.id, f"slug={slug}")
+    flash("تم إنشاء Package بنجاح", "success")
+    return redirect(url_for("owner.owner_packages"))
+
+
+@owner_bp.route("/packages/<int:package_id>/versions/create", methods=["POST"])
+@login_required
+@owner_required
+def owner_create_package_version(package_id):
+    """Create a new version of an existing package."""
+    package = Package.query.get_or_404(package_id)
+    version = request.form.get("version", "").strip()
+    changelog = request.form.get("changelog", "").strip()
+    copy_from_latest = request.form.get("copy_from_latest") == "on"
+
+    if not version:
+        flash("رقم الإصدار مطلوب", "error")
+        return redirect(url_for("owner.owner_packages"))
+
+    if PackageVersion.query.filter_by(package_id=package.id, version=version).first():
+        flash("هذا الإصدار موجود مسبقاً", "error")
+        return redirect(url_for("owner.owner_packages"))
+
+    new_pv = PackageVersion(
+        package_id=package.id,
+        version=version,
+        changelog=changelog or None,
+        published_at=datetime.now(timezone.utc),
+    )
+    db.session.add(new_pv)
+    db.session.flush()
+
+    if copy_from_latest:
+        latest = (
+            PackageVersion.query.filter_by(package_id=package.id)
+            .filter(PackageVersion.id != new_pv.id)
+            .order_by(PackageVersion.published_at.desc())
+            .first()
+        )
+        if latest:
+            for ent in latest.entitlements:
+                db.session.add(PackageVersionEntitlement(
+                    package_version_id=new_pv.id,
+                    module_name=ent.module_name,
+                    capability_key=ent.capability_key,
+                ))
+            for lim in latest.limits:
+                db.session.add(PackageVersionLimit(
+                    package_version_id=new_pv.id,
+                    limit_key=lim.limit_key,
+                    limit_value=lim.limit_value,
+                ))
+            for prc in latest.pricing:
+                db.session.add(PackageVersionPricing(
+                    package_version_id=new_pv.id,
+                    billing_type=prc.billing_type,
+                    price=prc.price,
+                    setup_fee=prc.setup_fee,
+                    currency=prc.currency,
+                ))
+
+    db.session.commit()
+    _log_action("CREATE_PACKAGE_VERSION", "package_version", new_pv.id, f"package={package.slug}, version={version}")
+    flash("تم إنشاء الإصدار بنجاح", "success")
+    return redirect(url_for("owner.owner_packages"))
+
+
+@owner_bp.route("/packages/versions/<int:version_id>/deprecate", methods=["POST"])
+@login_required
+@owner_required
+def owner_deprecate_package_version(version_id):
+    """Deprecate a package version."""
+    pv = PackageVersion.query.get_or_404(version_id)
+    pv.is_deprecated = True
+    db.session.commit()
+    _log_action("DEPRECATE_PACKAGE_VERSION", "package_version", pv.id,
+                f"package={pv.package.slug}, version={pv.version}")
+    flash("تم تعطيل الإصدار", "warning")
+    return redirect(url_for("owner.owner_packages"))
+
+
+@owner_bp.route("/subscriptions")
+@login_required
+@owner_required
+def owner_subscriptions():
+    """Subscription Manager UI (UX0-002)."""
+    tenants = Tenant.query.order_by(Tenant.created_at.desc()).all()
+    package_versions = PackageVersion.query.join(Package).order_by(Package.name, PackageVersion.version).all()
+    return render_template(
+        "owner/subscriptions.html",
+        tenants=tenants,
+        package_versions=package_versions,
+        SubscriptionLineType=SubscriptionLineType,
+        SubscriptionLineStatus=SubscriptionLineStatus,
+    )
+
+
+@owner_bp.route("/subscriptions/<int:tenant_id>/upgrade", methods=["POST"])
+@login_required
+@owner_required
+def owner_upgrade_subscription(tenant_id):
+    """Upgrade tenant to a new base package version."""
+    version_id = request.form.get("package_version_id", type=int)
+    billing_type = request.form.get("billing_type", "monthly").strip()
+    if not version_id:
+        flash("يجب اختيار Package Version", "error")
+        return redirect(url_for("owner.owner_subscriptions"))
+    try:
+        TenantProvisioningService.upgrade_tenant(
+            tenant_id, version_id, billing_type, performed_by_user_id=current_user.id
+        )
+        flash("تم ترقية الاشتراك بنجاح", "success")
+    except Exception as e:
+        flash(f"فشل الترقية: {e}", "error")
+    return redirect(url_for("owner.owner_subscriptions"))
+
+
+@owner_bp.route("/subscriptions/<int:tenant_id>/addon", methods=["POST"])
+@login_required
+@owner_required
+def owner_add_addon(tenant_id):
+    """Add an add-on subscription line to a tenant."""
+    version_id = request.form.get("package_version_id", type=int)
+    billing_type = request.form.get("billing_type", "monthly").strip()
+    if not version_id:
+        flash("يجب اختيار Package Version", "error")
+        return redirect(url_for("owner.owner_subscriptions"))
+    try:
+        TenantProvisioningService.add_addon(
+            tenant_id, version_id, billing_type, performed_by_user_id=current_user.id
+        )
+        flash("تمت إضافة الإضافة بنجاح", "success")
+    except Exception as e:
+        flash(f"فشل إضافة الإضافة: {e}", "error")
+    return redirect(url_for("owner.owner_subscriptions"))
+
+
+@owner_bp.route("/subscriptions/<int:tenant_id>/renew", methods=["POST"])
+@login_required
+@owner_required
+def owner_renew_subscription(tenant_id):
+    """Renew the active base line for a tenant."""
+    line = (
+        SubscriptionLine.query.filter_by(
+            tenant_id=tenant_id,
+            line_type=SubscriptionLineType.BASE,
+            status=SubscriptionLineStatus.ACTIVE,
+        )
+        .order_by(SubscriptionLine.effective_from.desc())
+        .first()
+    )
+    if not line:
+        flash("لا يوجد اشتراك أساسي نشط للتجديد", "error")
+        return redirect(url_for("owner.owner_subscriptions"))
+    try:
+        TenantProvisioningService.renew_base_line(line.id, periods=1, performed_by_user_id=current_user.id)
+        flash("تم تجديد الاشتراك بنجاح", "success")
+    except Exception as e:
+        flash(f"فشل التجديد: {e}", "error")
+    return redirect(url_for("owner.owner_subscriptions"))
+
+
+@owner_bp.route("/subscriptions/<int:tenant_id>/cancel", methods=["POST"])
+@login_required
+@owner_required
+def owner_cancel_subscription(tenant_id):
+    """Cancel a tenant subscription."""
+    try:
+        TenantProvisioningService.cancel_tenant(tenant_id, performed_by_user_id=current_user.id)
+        flash("تم إلغاء الاشتراك بنجاح", "warning")
+    except Exception as e:
+        flash(f"فشل الإلغاء: {e}", "error")
+    return redirect(url_for("owner.owner_subscriptions"))
+
+
+@owner_bp.route("/provision", methods=["GET", "POST"])
+@login_required
+@owner_required
+def owner_provision():
+    """Tenant Provisioning UI (UX0-003)."""
+    package_versions = PackageVersion.query.join(Package).filter(Package.is_active == True).order_by(Package.name).all()
+
+    if request.method == "POST":
+        slug = request.form.get("slug", "").strip()
+        name = request.form.get("name", "").strip()
+        contact_email = request.form.get("contact_email", "").strip()
+        package_version_id = request.form.get("package_version_id", type=int)
+        billing_type = request.form.get("billing_type", "monthly").strip()
+        product_profile_code = request.form.get("product_profile_code", "").strip() or None
+
+        if not all([slug, name, contact_email, package_version_id]):
+            flash("جميع الحقول الأساسية مطلوبة", "error")
+            return redirect(url_for("owner.owner_provision"))
+
+        try:
+            tenant = TenantProvisioningService.provision_tenant(
+                slug=slug,
+                name=name,
+                contact_email=contact_email,
+                package_version_id=package_version_id,
+                billing_type=billing_type,
+                product_profile_code=product_profile_code,
+                performed_by_user_id=current_user.id,
+            )
+            _log_action("PROVISION_TENANT", "tenant", tenant.id, f"slug={slug}")
+            flash(f"تم إنشاء العميل {tenant.name} بنجاح", "success")
+            return redirect(url_for("owner.owner_tenant_detail", tenant_id=tenant.id))
+        except Exception as e:
+            flash(f"فشل إنشاء العميل: {e}", "error")
+            return redirect(url_for("owner.owner_provision"))
+
+    return render_template(
+        "owner/provision.html",
+        package_versions=package_versions,
+        profiles=list(ProductProfile),
+    )
+
+
+@owner_bp.route("/tenant-usage/<int:tenant_id>")
+@login_required
+@owner_required
+def owner_tenant_usage(tenant_id):
+    """UX0-006: owner view of a tenant's resource usage dashboard."""
+    tenant = Tenant.query.get_or_404(tenant_id)
+    latest = (
+        ResourceUsage.query.filter_by(tenant_id=tenant_id)
+        .order_by(ResourceUsage.recorded_at.desc())
+        .first()
+    )
+    if not latest:
+        latest = ResourceUsage.record_snapshot(tenant_id)
+
+    base_line = (
+        SubscriptionLine.query.filter_by(
+            tenant_id=tenant_id,
+            line_type=SubscriptionLineType.BASE,
+            status=SubscriptionLineStatus.ACTIVE,
+        )
+        .order_by(SubscriptionLine.effective_from.desc())
+        .first()
+    )
+
+    limits = {}
+    if base_line:
+        for lim in base_line.package_version.limits:
+            limits[lim.limit_key] = lim.limit_value
+    else:
+        bundle = get_bundle_for_profile(tenant.product_profile_code or "")
+        if bundle:
+            limits = {
+                "max_users": bundle.max_users,
+                "max_patients": bundle.max_patients,
+                "storage_gb": bundle.storage_gb,
+                "api_calls_per_month": bundle.api_calls_per_month,
+            }
+
+    snapshots = (
+        ResourceUsage.query.filter_by(tenant_id=tenant_id)
+        .order_by(ResourceUsage.recorded_at.desc())
+        .limit(30)
+        .all()
+    )
+
+    return render_template(
+        "owner/tenant_usage.html",
+        tenant=tenant,
+        latest=latest,
+        limits=limits,
+        snapshots=snapshots,
+    )
 

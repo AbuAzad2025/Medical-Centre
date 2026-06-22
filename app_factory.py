@@ -197,6 +197,7 @@ def create_app(config_name: str | None = None) -> Flask:
             import importlib
             importlib.import_module('app.core.tenant.models')
             importlib.import_module('app.core.module.models')
+            importlib.import_module('app.core.saas.models')
             importlib.import_module('app.modules.workflows.stock_models')
             # استيراد النماذج الأساسية أولاً
             import models.department
@@ -702,6 +703,7 @@ def create_app(config_name: str | None = None) -> Flask:
     @app.context_processor
     def _inject_modules():
         from flask import g
+        from app.core.module.registry import MODULE_REGISTRY
         tenant = getattr(g, 'current_tenant', None)
         if tenant:
             mods = getattr(g, 'enabled_modules', None)
@@ -713,13 +715,34 @@ def create_app(config_name: str | None = None) -> Flask:
                     mods = set()
             return {
                 'enabled_modules': mods,
+                'module_registry': MODULE_REGISTRY,
                 'current_tenant': tenant,
                 'product_profile': getattr(tenant, 'product_profile_code', None),
                 'feature_flags': getattr(g, 'feature_flags', {}),
                 'module_active': lambda m: m in mods,
                 'feature_enabled': lambda f: getattr(g, 'feature_flags', {}).get(f, False),
             }
-        return {'enabled_modules': set(), 'current_tenant': None, 'product_profile': None, 'feature_flags': {}, 'module_active': lambda m: False, 'feature_enabled': lambda f: False}
+        return {'enabled_modules': set(), 'module_registry': MODULE_REGISTRY, 'current_tenant': None, 'product_profile': None, 'feature_flags': {}, 'module_active': lambda m: False, 'feature_enabled': lambda f: False}
+
+    # Entitlement + permission helpers for templates (S0-004)
+    @app.context_processor
+    def _inject_access_helpers():
+        from flask import g
+        from app.core.saas.resolver import EntitlementResolver
+        from app.core.permission.service import PermissionService
+        from flask_login import current_user
+
+        tenant = getattr(g, 'current_tenant', None)
+
+        def is_entitled(capability_key: str):
+            if tenant is None:
+                return False
+            return EntitlementResolver.is_entitled(tenant.id, capability_key)
+
+        def has_permission(permission: str):
+            return PermissionService.has_permission(current_user, permission)
+
+        return dict(is_entitled=is_entitled, has_permission=has_permission)
 
     # Enum helpers for templates
     @app.context_processor

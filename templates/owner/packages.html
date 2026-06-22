@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}إدارة Packages{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col"><h4><i class="fas fa-cubes me-2 text-primary"></i>إدارة Packages</h4></div>
+        <div class="col-auto">
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createPackageModal">
+                <i class="fas fa-plus me-1"></i> Package جديد
+            </button>
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        {% for pkg in packages %}
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><strong>{{ pkg.name }}</strong> <small class="text-muted">({{ pkg.category }})</small></span>
+                    <span class="badge bg-{{ 'success' if pkg.is_active else 'secondary' }}">{{ 'نشط' if pkg.is_active else 'معطل' }}</span>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">{{ pkg.name_ar or '-' }}</p>
+                    <p class="small"><strong>Slug:</strong> {{ pkg.slug }}</p>
+                    <hr>
+                    <p class="fw-bold small mb-1">الإصدارات:</p>
+                    <ul class="list-group list-group-flush small mb-3">
+                        {% for v in pkg.versions %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>
+                                v{{ v.version }}
+                                {% if v.is_deprecated %}<span class="badge bg-warning text-dark ms-1">مهمل</span>{% endif %}
+                            </span>
+                            <span class="text-muted">
+                                {{ v.entitlements|length }} إمكانية · {{ v.pricing|length }} تسعير
+                            </span>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item px-0 text-muted">لا توجد إصدارات</li>
+                        {% endfor %}
+                    </ul>
+                    <button class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#createVersionModal{{ pkg.id }}">
+                        <i class="fas fa-code-branch me-1"></i> إصدار جديد
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Version Modal -->
+        <div class="modal fade" id="createVersionModal{{ pkg.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="{{ url_for('owner.owner_create_package_version', package_id=pkg.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="modal-header">
+                            <h5 class="modal-title">إصدار جديد — {{ pkg.name }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">رقم الإصدار</label>
+                                <input type="text" name="version" class="form-control" placeholder="1.1.0" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">سجل التغييرات</label>
+                                <textarea name="changelog" class="form-control" rows="2"></textarea>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="copy_from_latest" id="copyLatest{{ pkg.id }}" checked>
+                                <label class="form-check-label" for="copyLatest{{ pkg.id }}">نسخ الإمكانيات والتسعير من آخر إصدار</label>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                            <button type="submit" class="btn btn-primary">إنشاء</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-light text-center">لا توجد Packages. أنشئ Package جديد للبدء.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Create Package Modal -->
+<div class="modal fade" id="createPackageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ url_for('owner.owner_create_package') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Package جديد</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">الاسم</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الاسم بالعربية</label>
+                        <input type="text" name="name_ar" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Slug</label>
+                        <input type="text" name="slug" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الفئة</label>
+                        <select name="category" class="form-select">
+                            <option value="bundle">Bundle</option>
+                            <option value="addon">Add-on</option>
+                            <option value="standalone">Standalone</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الإصدار الأولي</label>
+                        <input type="text" name="version" class="form-control" value="1.0.0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إنشاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

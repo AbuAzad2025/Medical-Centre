@@ -209,6 +209,77 @@
             </div>
 
             <div class="row mb-4">
+                <div class="col-lg-6 mb-3">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-calendar-day me-2 text-info"></i>مواعيد اليوم</h6>
+                            <a href="{{ url_for('reception.appointments') }}" class="btn btn-sm btn-outline-info">كل المواعيد</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-3">المريض</th>
+                                            <th>الطبيب</th>
+                                            <th>الوقت</th>
+                                            <th>الحالة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for a in (stats.today_appointments or []) %}
+                                        <tr>
+                                            <td class="ps-3">{{ a.patient.full_name if a.patient else '-' }}</td>
+                                            <td>{{ a.doctor.full_name if a.doctor else '-' }}</td>
+                                            <td>{{ a.starts_at.strftime('%H:%M') if a.starts_at else '-' }}</td>
+                                            <td><span class="badge bg-{% if a.status=='CHECKED_IN' %}success{% elif a.status=='CONFIRMED' %}primary{% else %}secondary{% endif %}">{{ a.status }}</span></td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="4" class="text-center text-muted py-4">لا توجد مواعيد اليوم</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-3">
+                    <div class="card card-modern h-100">
+                        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>موافقات الدفع القسري المعلّقة</h6>
+                            <a href="{{ url_for('manager.force_payment_approvals') }}" class="btn btn-sm btn-outline-warning">الكل</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-3">المريض</th>
+                                            <th>القيمة</th>
+                                            <th>السبب</th>
+                                            <th>الوقت</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for v in (stats.pending_force_payment_list or []) %}
+                                        <tr>
+                                            <td class="ps-3">{{ v.patient.full_name if v.patient else '-' }}</td>
+                                            <td>{{ "%.2f"|format(v.total_amount or 0) }}</td>
+                                            <td class="small text-truncate" style="max-width: 200px;">{{ v.force_payment_reason or '-' }}</td>
+                                            <td class="small text-muted">{{ v.created_at.strftime('%H:%M') if v.created_at else '-' }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="4" class="text-center text-muted py-4">لا توجد موافقات معلّقة</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
                 <div class="col-lg-7 mb-3">
                     <div class="card card-modern h-100">
                         <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">

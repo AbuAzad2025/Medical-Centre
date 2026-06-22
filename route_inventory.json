@@ -1,12 +1,12 @@
 {
   "generated_at": "2026-06-22",
-  "total_routes": 587,
+  "total_routes": 601,
   "summary": {
-    "authenticated": 431,
-    "internal": 4,
-    "admin": 38,
     "public": 2,
-    "super-admin": 112
+    "internal": 4,
+    "authenticated": 431,
+    "admin": 38,
+    "super-admin": 126
   },
   "routes": [
     {
@@ -4787,6 +4787,120 @@
         "POST"
       ],
       "classification": "authenticated"
+    },
+    {
+      "endpoint": "owner.owner_packages",
+      "path": "/owner/packages",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_create_package",
+      "path": "/owner/packages/create",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_create_package_version",
+      "path": "/owner/packages/<int:package_id>/versions/create",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_deprecate_package_version",
+      "path": "/owner/packages/versions/<int:version_id>/deprecate",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_subscriptions",
+      "path": "/owner/subscriptions",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_upgrade_subscription",
+      "path": "/owner/subscriptions/<int:tenant_id>/upgrade",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_add_addon",
+      "path": "/owner/subscriptions/<int:tenant_id>/addon",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_renew_subscription",
+      "path": "/owner/subscriptions/<int:tenant_id>/renew",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_cancel_subscription",
+      "path": "/owner/subscriptions/<int:tenant_id>/cancel",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_provision",
+      "path": "/owner/provision",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_tenant_usage",
+      "path": "/owner/tenant-usage/<int:tenant_id>",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "super_admin.subscription_status",
+      "path": "/super-admin/subscription-status",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "super_admin.change_plan",
+      "path": "/super-admin/change-plan",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "super_admin.tenant_usage",
+      "path": "/super-admin/usage",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
     }
   ]
 }
