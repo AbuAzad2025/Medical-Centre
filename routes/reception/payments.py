@@ -268,7 +268,7 @@ def cash_register():
     # Calculate expected from payments
     payments = Payment.query.filter(
         db.func.date(Payment.created_at) == today,
-        Payment.status.in_([PaymentStatus.COMPLETED, PaymentStatus.PAID])
+        Payment.status.in_([PaymentStatus.CONFIRMED, PaymentStatus.PAID])
     ).all()
     exp_cash = sum(float(p.amount or 0) for p in payments if p.method == 'cash')
     exp_card = sum(float(p.amount or 0) for p in payments if p.method == 'card')

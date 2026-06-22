@@ -299,7 +299,7 @@ def budget_dashboard():
 
     actual_revenue = db.session.query(func.sum(Payment.amount)).filter(
         Payment.payment_date >= start, Payment.payment_date < end,
-        Payment.status.in_([PaymentStatus.COMPLETED, PaymentStatus.PAID])
+        Payment.status.in_([PaymentStatus.CONFIRMED, PaymentStatus.PAID])
     ).scalar() or 0
 
     actual_visits = Visit.query.filter(Visit.visit_date >= start, Visit.visit_date < end).count()
