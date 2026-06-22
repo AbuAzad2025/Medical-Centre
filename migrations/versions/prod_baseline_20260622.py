@@ -153,7 +153,7 @@ def upgrade():
     sa.Column('tax_number', sa.String(length=50), nullable=True),
     sa.Column('status', sa.Enum('ACTIVE', 'SUSPENDED', 'PENDING', 'EXPIRED', 'DELETED', name='tenantstatus'), nullable=False),
     sa.Column('storage_mode', sa.Enum('CLOUD', 'LOCAL', 'HYBRID', name='storagemode'), nullable=False),
-    sa.Column('product_profile_code', sa.Enum('PRIVATE_DOCTOR_CLINIC', 'SMALL_CLINIC', 'STANDALONE_LAB', 'STANDALONE_RADIOLOGY', 'STANDALONE_PHARMACY', 'MULTI_DEPARTMENT_CENTER', 'CUSTOM', name='productprofile'), nullable=True),
+    sa.Column('product_profile_code', sa.String(length=40), nullable=True),
     sa.Column('subscription_type', sa.Enum('PERPETUAL', 'MONTHLY', 'YEARLY', name='subscriptiontype'), nullable=True),
     sa.Column('subscription_start', sa.Date(), nullable=True),
     sa.Column('subscription_end', sa.Date(), nullable=True),
@@ -169,6 +169,7 @@ def upgrade():
     )
     with op.batch_alter_table('tenants', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_tenants_domain'), ['domain'], unique=False)
+        batch_op.create_index(batch_op.f('ix_tenants_product_profile_code'), ['product_profile_code'], unique=False)
         batch_op.create_index(batch_op.f('ix_tenants_slug'), ['slug'], unique=True)
         batch_op.create_index(batch_op.f('ix_tenants_subdomain'), ['subdomain'], unique=True)
 
