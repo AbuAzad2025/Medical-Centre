@@ -15,6 +15,73 @@ from sqlalchemy import func
 class LabService:
     """Centralized lab business logic"""
 
+    # ==================== REQUEST CREATION ====================
+
+    @staticmethod
+    def create_request(visit_id: int, test_ids: list[int], *, requested_by: int | None = None,
+                       notes: str | None = None, tenant_id: int | None = None) -> tuple[bool, dict]:
+        """Create a structured LabRequest with LabResult rows from catalog test IDs.
+
+        P2-001: This is the canonical path for a clinician to order lab tests.
+        Free-text notes are still preserved in the linked Treatment record (see
+        P2-000 deprecation contract); this method creates the structured order.
+        """
+        from models.lab_request import LabRequest, LabResult
+        from models.lab_test_catalog import LabTestCatalog
+        from models.visit import Visit
+
+        if not test_ids:
+            return False, {"error": "No test IDs provided"}
+
+        visit = db.session.get(Visit, visit_id)
+        if not visit:
+            return False, {"error": "Visit not found"}
+
+        tenant_id = tenant_id or visit.tenant_id
+        now = datetime.now(timezone.utc)
+        request_number = f"LR-{visit_id}-{int(now.timestamp())}"
+
+        lab_request = LabRequest(
+            tenant_id=tenant_id,
+            visit_id=visit.id,
+            patient_id=visit.patient_id,
+            requested_by=requested_by,
+            request_number=request_number,
+            status="REQUESTED",
+            notes=notes or "",
+            created_at=now,
+            updated_at=now,
+        )
+        db.session.add(lab_request)
+        db.session.flush()
+
+        catalog_items = LabTestCatalog.query.filter(
+            LabTestCatalog.id.in_(test_ids),
+            LabTestCatalog.is_active == True
+        ).all()
+        found_ids = {c.id for c in catalog_items}
+        missing = set(test_ids) - found_ids
+        if missing:
+            db.session.rollback()
+            return False, {"error": f"Unknown or inactive test IDs: {sorted(missing)}"}
+
+        for catalog in catalog_items:
+            result = LabResult(
+                tenant_id=tenant_id,
+                request_id=lab_request.id,
+                patient_id=visit.patient_id,
+                test_code=catalog.code,
+                test_name=catalog.name_ar or catalog.name_en or catalog.code,
+                unit=catalog.unit,
+                reference_range=catalog.default_reference_range,
+                status="PENDING",
+                created_at=now,
+                updated_at=now,
+            )
+            db.session.add(result)
+
+        return True, {"lab_request_id": lab_request.id, "request_number": request_number}
+
     # ==================== WORKLIST QUERIES ====================
 
     @staticmethod

@@ -20,6 +20,7 @@ from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from app_factory import db
+from app.shared.enums import VisitState
 from sqlalchemy import and_, or_, desc, func, case
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
@@ -53,6 +54,27 @@ def lab_request(visit_id):
             if urgency:
                 memo_parts.append(f"الأولوية: {urgency}")
             memo_text = "[مذكرة تحاليل]\n" + ("\n".join(memo_parts) if memo_parts else "يرجى إجراء التحليل لدى مركز مناسب.")
+
+            # P2-001: Create a structured LabRequest when catalog test IDs are supplied.
+            test_ids_raw = request.form.get('test_ids', '') or ''
+            test_ids = [int(x) for x in str(test_ids_raw).split(',') if x.strip().isdigit()]
+
+            structured_ok = False
+            if test_ids:
+                from services.lab_service import lab_service
+                ok, result = lab_service.create_request(
+                    visit_id=visit.id,
+                    test_ids=test_ids,
+                    requested_by=current_user.id,
+                    notes=notes,
+                    tenant_id=getattr(current_user, 'tenant_id', None),
+                )
+                if ok:
+                    structured_ok = True
+                    memo_parts.append(f"رقم الطلب المهيكل: {result['request_number']}")
+                else:
+                    flash(f"تعذر إنشاء طلب المختبر المهيكل: {result.get('error')}", 'warning')
+
             visit.notes = (visit.notes or '')
             visit.notes += (('\n\n' if visit.notes else '') + memo_text)
             visit.lab_tests_ordered = True
@@ -65,13 +87,13 @@ def lab_request(visit_id):
                     user_id=current_user.id,
                     user_ip=request.remote_addr,
                     user_agent=request.headers.get('User-Agent'),
-                    description='إضافة مذكرة تحاليل'
+                    description='إضافة مذكرة تحاليل' + (' + LabRequest' if structured_ok else '')
                 ))
                 db.session.commit()
             except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
-            flash('تم تدوين مذكرة التحاليل. يتوجه المريض للاستقبال لإنشاء زيارة للمختبر عند رغبة التنفيذ داخل المركز.', 'info')
+            flash('تم تدوين مذكرة التحاليل. ' + ('تم إنشاء طلب مختبر مهيكل.' if structured_ok else 'يتوجه المريض للاستقبال لإنشاء زيارة للمختبر عند رغبة التنفيذ داخل المركز.'), 'info')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
         return redirect(url_for('doctor.patient_details', visit_id=visit_id))
     except Exception as e:
