@@ -94,7 +94,7 @@ def test_tenant(app):
             name='صيدلية الشفاء',
             contact_email='pharmacy@test.local',
             status='active',
-            product_profile_code='pharmacy_standalone',
+            product_profile_code='standalone_pharmacy',
         )
         _db.session.add(t)
         _db.session.commit()
