@@ -20,6 +20,8 @@ from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from app_factory import db
+from app.shared.enums import VisitState, QueueState
+from services.visit_state_machine_service import VisitStateMachineService
 from sqlalchemy import and_, or_, desc, func, case
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
@@ -465,7 +467,9 @@ def end_treatment(visit_id):
             if not ok:
                 flash(msg, 'warning')
                 return redirect(url_for('doctor.patient_queue'))
-        visit.status = VisitState.COMPLETED
+        VisitStateMachineService.transition(
+            visit, VisitState.COMPLETED, actor=current_user
+        )
         visit.completed_by = current_user.id
         from datetime import timezone
         visit.completed_at = datetime.now(timezone.utc)
@@ -511,7 +515,7 @@ def end_treatment(visit_id):
         flash('تم تسجيل إنهاء العلاج وإخطار الاستقبال', 'success')
         return redirect(url_for('doctor.patient_queue'))
     except Exception as e:
-        logging.error(f"Error ending treatment: {str(e)}")
+        logging.error(f"Error ending treatment: {str(e)}", exc_info=True)
         flash('حدث خطأ في إنهاء العلاج', 'error')
         return redirect(url_for('doctor.patient_queue'))
 

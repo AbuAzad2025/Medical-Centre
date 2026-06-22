@@ -6,6 +6,7 @@ EmergencyStatus enum value used by the model default.
 """
 
 import pytest
+import uuid
 
 from app_factory import db as _db
 from app.shared.enums import EmergencyStatus
@@ -35,7 +36,7 @@ class TestEmergencyStatusStorage:
         case = EmergencyCase(
             tenant_id=audit_patient.tenant_id,
             patient_id=audit_patient.id,
-            case_number='EC-AUDIT-001',
+            case_number=f'EC-AUDIT-{uuid.uuid4().hex[:8]}',
             chief_complaint='Audit test',
         )
         _db.session.add(case)
@@ -47,7 +48,7 @@ class TestEmergencyStatusStorage:
         case = EmergencyCase(
             tenant_id=audit_patient.tenant_id,
             patient_id=audit_patient.id,
-            case_number='EC-AUDIT-002',
+            case_number=f'EC-AUDIT-{uuid.uuid4().hex[:8]}',
             chief_complaint='Audit test',
             status=EmergencyStatus.IN_PROGRESS,
         )
