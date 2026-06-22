@@ -1,33 +1,16 @@
 """
 المدفوعات - Payment (مرتبطة بالفواتير/الزيارات)
 نسخة محسّنة مع دعم كامل لسيناريوهات الدفع
+
+P3-005: PaymentStatus/PaymentMethod are now sourced from app.shared.enums
+so that models, services, routes, and templates all reference the same
+canonical definitions. The shared enum values are preserved exactly.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import CheckConstraint, Index
 from app_factory import db
 from app.shared.mixins import TenantMixin
-from datetime import datetime, timezone
-
-
-class PaymentMethod:
-    """طرق الدفع المتاحة"""
-    CASH = "CASH"
-    CARD = "CARD"
-    WIRE = "WIRE"
-    INSURANCE = "INSURANCE"
-    FORCE = "FORCE"
-
-
-class PaymentStatus:
-    """حالات الدفع"""
-    PENDING = "PENDING"
-    CONFIRMED = "CONFIRMED"
-    PAID = "PAID"
-    PARTIAL = "PARTIAL"
-    DEBT = "DEBT"
-    EMERGENCY_DEBT = "EMERGENCY_DEBT"
-    CANCELLED = "CANCELLED"
-    REFUNDED = "REFUNDED"
+from app.shared.enums import PaymentMethod, PaymentStatus
 
 
 class Payment(TenantMixin, db.Model):
