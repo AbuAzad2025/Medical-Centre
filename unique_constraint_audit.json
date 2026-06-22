@@ -1,0 +1,1418 @@
+{
+  "generated_at": "2026-06-22",
+  "total_constraints": 90,
+  "summary": {
+    "tenant-scoped": 74,
+    "global": 13,
+    "unknown": 3
+  },
+  "constraints": [
+    {
+      "table": "appointments",
+      "type": "unique_constraint",
+      "name": "uq_appointment_patient_time",
+      "columns": [
+        "patient_id",
+        "starts_at"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "barcode_registry",
+      "type": "column_unique",
+      "name": "barcode_value",
+      "columns": [
+        "barcode_value"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "biometric_auth_challenges",
+      "type": "column_unique",
+      "name": "challenge",
+      "columns": [
+        "challenge"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "biometric_credentials",
+      "type": "column_unique",
+      "name": "credential_id",
+      "columns": [
+        "credential_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "budgets",
+      "type": "unique_constraint",
+      "name": "uq_budget_month_dept",
+      "columns": [
+        "year",
+        "month",
+        "department_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "cpt_codes",
+      "type": "column_unique",
+      "name": "code",
+      "columns": [
+        "code"
+      ],
+      "classification": "global",
+      "notes": "unique column"
+    },
+    {
+      "table": "department_workflows",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "department_name"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "department_workflows",
+      "type": "column_unique",
+      "name": "department_name",
+      "columns": [
+        "department_name"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "departments",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "name"
+      ],
+      "classification": "global",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "departments",
+      "type": "column_unique",
+      "name": "name",
+      "columns": [
+        "name"
+      ],
+      "classification": "global",
+      "notes": "unique column"
+    },
+    {
+      "table": "dicom_instances",
+      "type": "column_unique",
+      "name": "sop_instance_uid",
+      "columns": [
+        "sop_instance_uid"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "dicom_series",
+      "type": "column_unique",
+      "name": "series_instance_uid",
+      "columns": [
+        "series_instance_uid"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "dicom_studies",
+      "type": "column_unique",
+      "name": "study_instance_uid",
+      "columns": [
+        "study_instance_uid"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "drg_codes",
+      "type": "column_unique",
+      "name": "code",
+      "columns": [
+        "code"
+      ],
+      "classification": "global",
+      "notes": "unique column"
+    },
+    {
+      "table": "drug_interactions",
+      "type": "unique_constraint",
+      "name": "uq_drug_interactions_pair",
+      "columns": [
+        "medication_a_id",
+        "medication_b_id"
+      ],
+      "classification": "unknown",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "dw_daily_visit_summary",
+      "type": "column_unique",
+      "name": "date",
+      "columns": [
+        "date"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "dw_monthly_finance_summary",
+      "type": "unique_constraint",
+      "name": "uq_dw_monthly_finance",
+      "columns": [
+        "year",
+        "month"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "emergency_cases",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "case_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "emergency_cases",
+      "type": "column_unique",
+      "name": "case_number",
+      "columns": [
+        "case_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "fhir_document_references",
+      "type": "column_unique",
+      "name": "fhir_id",
+      "columns": [
+        "fhir_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "fhir_encounters",
+      "type": "column_unique",
+      "name": "fhir_id",
+      "columns": [
+        "fhir_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "fhir_observations",
+      "type": "column_unique",
+      "name": "fhir_id",
+      "columns": [
+        "fhir_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "fhir_patients",
+      "type": "column_unique",
+      "name": "fhir_id",
+      "columns": [
+        "fhir_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "fhir_patients",
+      "type": "column_unique",
+      "name": "internal_patient_id",
+      "columns": [
+        "internal_patient_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "file_categories",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "name"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "file_categories",
+      "type": "column_unique",
+      "name": "name",
+      "columns": [
+        "name"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "icd10_codes",
+      "type": "column_unique",
+      "name": "code",
+      "columns": [
+        "code"
+      ],
+      "classification": "global",
+      "notes": "unique column"
+    },
+    {
+      "table": "insurance_claims",
+      "type": "column_unique",
+      "name": "claim_number",
+      "columns": [
+        "claim_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "insurance_companies",
+      "type": "column_unique",
+      "name": "name",
+      "columns": [
+        "name"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "invoices",
+      "type": "column_unique",
+      "name": "invoice_number",
+      "columns": [
+        "invoice_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "lab_requests",
+      "type": "column_unique",
+      "name": "barcode",
+      "columns": [
+        "barcode"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "lab_requests",
+      "type": "column_unique",
+      "name": "request_number",
+      "columns": [
+        "request_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "medication_supply_requests",
+      "type": "column_unique",
+      "name": "request_number",
+      "columns": [
+        "request_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "module_definitions",
+      "type": "column_unique",
+      "name": "name",
+      "columns": [
+        "name"
+      ],
+      "classification": "global",
+      "notes": "unique column"
+    },
+    {
+      "table": "nurses",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "license_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "nurses",
+      "type": "column_unique",
+      "name": "license_number",
+      "columns": [
+        "license_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "online_booking_payment_transactions",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "transaction_reference"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "online_booking_payment_transactions",
+      "type": "column_unique",
+      "name": "transaction_reference",
+      "columns": [
+        "transaction_reference"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "online_bookings",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "booking_reference"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "online_bookings",
+      "type": "column_unique",
+      "name": "booking_reference",
+      "columns": [
+        "booking_reference"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "patient_accounts",
+      "type": "column_unique",
+      "name": "patient_id",
+      "columns": [
+        "patient_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "patient_accounts",
+      "type": "column_unique",
+      "name": "user_id",
+      "columns": [
+        "user_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "patient_satisfaction_surveys",
+      "type": "column_unique",
+      "name": "token",
+      "columns": [
+        "token"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "patients",
+      "type": "column_unique",
+      "name": "national_id",
+      "columns": [
+        "national_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "payments",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "receipt_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "payments",
+      "type": "column_unique",
+      "name": "receipt_number",
+      "columns": [
+        "receipt_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "permissions",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "name"
+      ],
+      "classification": "global",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "permissions",
+      "type": "column_unique",
+      "name": "name",
+      "columns": [
+        "name"
+      ],
+      "classification": "global",
+      "notes": "unique column"
+    },
+    {
+      "table": "pharmacy_sales",
+      "type": "column_unique",
+      "name": "sale_number",
+      "columns": [
+        "sale_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "prescriptions",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "prescription_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "prescriptions",
+      "type": "column_unique",
+      "name": "prescription_number",
+      "columns": [
+        "prescription_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "product_bundles",
+      "type": "column_unique",
+      "name": "slug",
+      "columns": [
+        "slug"
+      ],
+      "classification": "global",
+      "notes": "unique column"
+    },
+    {
+      "table": "quality_measures",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "measure_code"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "quality_measures",
+      "type": "column_unique",
+      "name": "measure_code",
+      "columns": [
+        "measure_code"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "radiology_requests",
+      "type": "column_unique",
+      "name": "request_number",
+      "columns": [
+        "request_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "receipts",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "receipt_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "receipts",
+      "type": "column_unique",
+      "name": "receipt_number",
+      "columns": [
+        "receipt_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "referrals",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "tracking_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "referrals",
+      "type": "column_unique",
+      "name": "tracking_number",
+      "columns": [
+        "tracking_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "role_permissions",
+      "type": "unique_constraint",
+      "name": "unique_role_permission",
+      "columns": [
+        "role_id",
+        "permission_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "roles",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "name"
+      ],
+      "classification": "global",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "roles",
+      "type": "column_unique",
+      "name": "name",
+      "columns": [
+        "name"
+      ],
+      "classification": "global",
+      "notes": "unique column"
+    },
+    {
+      "table": "service_master",
+      "type": "column_unique",
+      "name": "code",
+      "columns": [
+        "code"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "staff_work_schedules",
+      "type": "unique_constraint",
+      "name": "uq_staff_schedule_user_day",
+      "columns": [
+        "user_id",
+        "day_of_week"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "system_configs",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "config_key"
+      ],
+      "classification": "global",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "system_configs",
+      "type": "column_unique",
+      "name": "config_key",
+      "columns": [
+        "config_key"
+      ],
+      "classification": "global",
+      "notes": "unique column"
+    },
+    {
+      "table": "tenant_feature_flags",
+      "type": "unique_constraint",
+      "name": "uq_tenant_feature",
+      "columns": [
+        "tenant_id",
+        "feature_key"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "tenant_module_settings",
+      "type": "unique_constraint",
+      "name": "uq_tenant_module_setting",
+      "columns": [
+        "tenant_id",
+        "module_name"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "tenant_modules",
+      "type": "unique_constraint",
+      "name": "uq_tenant_module",
+      "columns": [
+        "tenant_id",
+        "module_name"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "tenants",
+      "type": "column_unique",
+      "name": "slug",
+      "columns": [
+        "slug"
+      ],
+      "classification": "unknown",
+      "notes": "unique column"
+    },
+    {
+      "table": "tenants",
+      "type": "column_unique",
+      "name": "subdomain",
+      "columns": [
+        "subdomain"
+      ],
+      "classification": "unknown",
+      "notes": "unique column"
+    },
+    {
+      "table": "user_department_access",
+      "type": "unique_constraint",
+      "name": "uq_user_department_access",
+      "columns": [
+        "user_id",
+        "department_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "user_mfa_settings",
+      "type": "column_unique",
+      "name": "user_id",
+      "columns": [
+        "user_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "user_permissions",
+      "type": "unique_constraint",
+      "name": "unique_user_permission",
+      "columns": [
+        "user_id",
+        "permission_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "users",
+      "type": "unique_constraint",
+      "name": "uq_user_tenant_email",
+      "columns": [
+        "tenant_id",
+        "email"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "users",
+      "type": "unique_constraint",
+      "name": "uq_user_tenant_username",
+      "columns": [
+        "tenant_id",
+        "username"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "vaccines",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "code"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "vaccines",
+      "type": "column_unique",
+      "name": "code",
+      "columns": [
+        "code"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "visits",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "visit_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "visits",
+      "type": "column_unique",
+      "name": "visit_number",
+      "columns": [
+        "visit_number"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "wards",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "code"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "wards",
+      "type": "column_unique",
+      "name": "code",
+      "columns": [
+        "code"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "whatsapp_config",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "config_key"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "whatsapp_config",
+      "type": "column_unique",
+      "name": "config_key",
+      "columns": [
+        "config_key"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "whatsapp_integration_messages",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "message_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "whatsapp_integration_messages",
+      "type": "column_unique",
+      "name": "message_id",
+      "columns": [
+        "message_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "whatsapp_templates",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "template_name"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "whatsapp_templates",
+      "type": "unique_constraint",
+      "name": null,
+      "columns": [
+        "template_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "multi-column unique"
+    },
+    {
+      "table": "whatsapp_templates",
+      "type": "column_unique",
+      "name": "template_id",
+      "columns": [
+        "template_id"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    },
+    {
+      "table": "whatsapp_templates",
+      "type": "column_unique",
+      "name": "template_name",
+      "columns": [
+        "template_name"
+      ],
+      "classification": "tenant-scoped",
+      "notes": "unique column"
+    }
+  ],
+  "duplicate_audit_queries": [
+    {
+      "table": "appointments",
+      "columns": [
+        "patient_id",
+        "starts_at"
+      ],
+      "query": "SELECT tenant_id, patient_id, starts_at, COUNT(*) FROM appointments GROUP BY tenant_id, patient_id, starts_at HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "barcode_registry",
+      "columns": [
+        "barcode_value"
+      ],
+      "query": "SELECT tenant_id, barcode_value, COUNT(*) FROM barcode_registry GROUP BY tenant_id, barcode_value HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "biometric_auth_challenges",
+      "columns": [
+        "challenge"
+      ],
+      "query": "SELECT tenant_id, challenge, COUNT(*) FROM biometric_auth_challenges GROUP BY tenant_id, challenge HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "biometric_credentials",
+      "columns": [
+        "credential_id"
+      ],
+      "query": "SELECT tenant_id, credential_id, COUNT(*) FROM biometric_credentials GROUP BY tenant_id, credential_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "budgets",
+      "columns": [
+        "year",
+        "month",
+        "department_id"
+      ],
+      "query": "SELECT tenant_id, year, month, department_id, COUNT(*) FROM budgets GROUP BY tenant_id, year, month, department_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "department_workflows",
+      "columns": [
+        "department_name"
+      ],
+      "query": "SELECT tenant_id, department_name, COUNT(*) FROM department_workflows GROUP BY tenant_id, department_name HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "department_workflows",
+      "columns": [
+        "department_name"
+      ],
+      "query": "SELECT tenant_id, department_name, COUNT(*) FROM department_workflows GROUP BY tenant_id, department_name HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "dicom_instances",
+      "columns": [
+        "sop_instance_uid"
+      ],
+      "query": "SELECT tenant_id, sop_instance_uid, COUNT(*) FROM dicom_instances GROUP BY tenant_id, sop_instance_uid HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "dicom_series",
+      "columns": [
+        "series_instance_uid"
+      ],
+      "query": "SELECT tenant_id, series_instance_uid, COUNT(*) FROM dicom_series GROUP BY tenant_id, series_instance_uid HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "dicom_studies",
+      "columns": [
+        "study_instance_uid"
+      ],
+      "query": "SELECT tenant_id, study_instance_uid, COUNT(*) FROM dicom_studies GROUP BY tenant_id, study_instance_uid HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "dw_daily_visit_summary",
+      "columns": [
+        "date"
+      ],
+      "query": "SELECT tenant_id, date, COUNT(*) FROM dw_daily_visit_summary GROUP BY tenant_id, date HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "dw_monthly_finance_summary",
+      "columns": [
+        "year",
+        "month"
+      ],
+      "query": "SELECT tenant_id, year, month, COUNT(*) FROM dw_monthly_finance_summary GROUP BY tenant_id, year, month HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "emergency_cases",
+      "columns": [
+        "case_number"
+      ],
+      "query": "SELECT tenant_id, case_number, COUNT(*) FROM emergency_cases GROUP BY tenant_id, case_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "emergency_cases",
+      "columns": [
+        "case_number"
+      ],
+      "query": "SELECT tenant_id, case_number, COUNT(*) FROM emergency_cases GROUP BY tenant_id, case_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "fhir_document_references",
+      "columns": [
+        "fhir_id"
+      ],
+      "query": "SELECT tenant_id, fhir_id, COUNT(*) FROM fhir_document_references GROUP BY tenant_id, fhir_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "fhir_encounters",
+      "columns": [
+        "fhir_id"
+      ],
+      "query": "SELECT tenant_id, fhir_id, COUNT(*) FROM fhir_encounters GROUP BY tenant_id, fhir_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "fhir_observations",
+      "columns": [
+        "fhir_id"
+      ],
+      "query": "SELECT tenant_id, fhir_id, COUNT(*) FROM fhir_observations GROUP BY tenant_id, fhir_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "fhir_patients",
+      "columns": [
+        "fhir_id"
+      ],
+      "query": "SELECT tenant_id, fhir_id, COUNT(*) FROM fhir_patients GROUP BY tenant_id, fhir_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "fhir_patients",
+      "columns": [
+        "internal_patient_id"
+      ],
+      "query": "SELECT tenant_id, internal_patient_id, COUNT(*) FROM fhir_patients GROUP BY tenant_id, internal_patient_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "file_categories",
+      "columns": [
+        "name"
+      ],
+      "query": "SELECT tenant_id, name, COUNT(*) FROM file_categories GROUP BY tenant_id, name HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "file_categories",
+      "columns": [
+        "name"
+      ],
+      "query": "SELECT tenant_id, name, COUNT(*) FROM file_categories GROUP BY tenant_id, name HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "insurance_claims",
+      "columns": [
+        "claim_number"
+      ],
+      "query": "SELECT tenant_id, claim_number, COUNT(*) FROM insurance_claims GROUP BY tenant_id, claim_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "insurance_companies",
+      "columns": [
+        "name"
+      ],
+      "query": "SELECT tenant_id, name, COUNT(*) FROM insurance_companies GROUP BY tenant_id, name HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "invoices",
+      "columns": [
+        "invoice_number"
+      ],
+      "query": "SELECT tenant_id, invoice_number, COUNT(*) FROM invoices GROUP BY tenant_id, invoice_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "lab_requests",
+      "columns": [
+        "barcode"
+      ],
+      "query": "SELECT tenant_id, barcode, COUNT(*) FROM lab_requests GROUP BY tenant_id, barcode HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "lab_requests",
+      "columns": [
+        "request_number"
+      ],
+      "query": "SELECT tenant_id, request_number, COUNT(*) FROM lab_requests GROUP BY tenant_id, request_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "medication_supply_requests",
+      "columns": [
+        "request_number"
+      ],
+      "query": "SELECT tenant_id, request_number, COUNT(*) FROM medication_supply_requests GROUP BY tenant_id, request_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "nurses",
+      "columns": [
+        "license_number"
+      ],
+      "query": "SELECT tenant_id, license_number, COUNT(*) FROM nurses GROUP BY tenant_id, license_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "nurses",
+      "columns": [
+        "license_number"
+      ],
+      "query": "SELECT tenant_id, license_number, COUNT(*) FROM nurses GROUP BY tenant_id, license_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "online_booking_payment_transactions",
+      "columns": [
+        "transaction_reference"
+      ],
+      "query": "SELECT tenant_id, transaction_reference, COUNT(*) FROM online_booking_payment_transactions GROUP BY tenant_id, transaction_reference HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "online_booking_payment_transactions",
+      "columns": [
+        "transaction_reference"
+      ],
+      "query": "SELECT tenant_id, transaction_reference, COUNT(*) FROM online_booking_payment_transactions GROUP BY tenant_id, transaction_reference HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "online_bookings",
+      "columns": [
+        "booking_reference"
+      ],
+      "query": "SELECT tenant_id, booking_reference, COUNT(*) FROM online_bookings GROUP BY tenant_id, booking_reference HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "online_bookings",
+      "columns": [
+        "booking_reference"
+      ],
+      "query": "SELECT tenant_id, booking_reference, COUNT(*) FROM online_bookings GROUP BY tenant_id, booking_reference HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "patient_accounts",
+      "columns": [
+        "patient_id"
+      ],
+      "query": "SELECT tenant_id, patient_id, COUNT(*) FROM patient_accounts GROUP BY tenant_id, patient_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "patient_accounts",
+      "columns": [
+        "user_id"
+      ],
+      "query": "SELECT tenant_id, user_id, COUNT(*) FROM patient_accounts GROUP BY tenant_id, user_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "patient_satisfaction_surveys",
+      "columns": [
+        "token"
+      ],
+      "query": "SELECT tenant_id, token, COUNT(*) FROM patient_satisfaction_surveys GROUP BY tenant_id, token HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "patients",
+      "columns": [
+        "national_id"
+      ],
+      "query": "SELECT tenant_id, national_id, COUNT(*) FROM patients GROUP BY tenant_id, national_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "payments",
+      "columns": [
+        "receipt_number"
+      ],
+      "query": "SELECT tenant_id, receipt_number, COUNT(*) FROM payments GROUP BY tenant_id, receipt_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "payments",
+      "columns": [
+        "receipt_number"
+      ],
+      "query": "SELECT tenant_id, receipt_number, COUNT(*) FROM payments GROUP BY tenant_id, receipt_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "pharmacy_sales",
+      "columns": [
+        "sale_number"
+      ],
+      "query": "SELECT tenant_id, sale_number, COUNT(*) FROM pharmacy_sales GROUP BY tenant_id, sale_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "prescriptions",
+      "columns": [
+        "prescription_number"
+      ],
+      "query": "SELECT tenant_id, prescription_number, COUNT(*) FROM prescriptions GROUP BY tenant_id, prescription_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "prescriptions",
+      "columns": [
+        "prescription_number"
+      ],
+      "query": "SELECT tenant_id, prescription_number, COUNT(*) FROM prescriptions GROUP BY tenant_id, prescription_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "quality_measures",
+      "columns": [
+        "measure_code"
+      ],
+      "query": "SELECT tenant_id, measure_code, COUNT(*) FROM quality_measures GROUP BY tenant_id, measure_code HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "quality_measures",
+      "columns": [
+        "measure_code"
+      ],
+      "query": "SELECT tenant_id, measure_code, COUNT(*) FROM quality_measures GROUP BY tenant_id, measure_code HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "radiology_requests",
+      "columns": [
+        "request_number"
+      ],
+      "query": "SELECT tenant_id, request_number, COUNT(*) FROM radiology_requests GROUP BY tenant_id, request_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "receipts",
+      "columns": [
+        "receipt_number"
+      ],
+      "query": "SELECT tenant_id, receipt_number, COUNT(*) FROM receipts GROUP BY tenant_id, receipt_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "receipts",
+      "columns": [
+        "receipt_number"
+      ],
+      "query": "SELECT tenant_id, receipt_number, COUNT(*) FROM receipts GROUP BY tenant_id, receipt_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "referrals",
+      "columns": [
+        "tracking_number"
+      ],
+      "query": "SELECT tenant_id, tracking_number, COUNT(*) FROM referrals GROUP BY tenant_id, tracking_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "referrals",
+      "columns": [
+        "tracking_number"
+      ],
+      "query": "SELECT tenant_id, tracking_number, COUNT(*) FROM referrals GROUP BY tenant_id, tracking_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "role_permissions",
+      "columns": [
+        "role_id",
+        "permission_id"
+      ],
+      "query": "SELECT tenant_id, role_id, permission_id, COUNT(*) FROM role_permissions GROUP BY tenant_id, role_id, permission_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "service_master",
+      "columns": [
+        "code"
+      ],
+      "query": "SELECT tenant_id, code, COUNT(*) FROM service_master GROUP BY tenant_id, code HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "staff_work_schedules",
+      "columns": [
+        "user_id",
+        "day_of_week"
+      ],
+      "query": "SELECT tenant_id, user_id, day_of_week, COUNT(*) FROM staff_work_schedules GROUP BY tenant_id, user_id, day_of_week HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "user_department_access",
+      "columns": [
+        "user_id",
+        "department_id"
+      ],
+      "query": "SELECT tenant_id, user_id, department_id, COUNT(*) FROM user_department_access GROUP BY tenant_id, user_id, department_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "user_mfa_settings",
+      "columns": [
+        "user_id"
+      ],
+      "query": "SELECT tenant_id, user_id, COUNT(*) FROM user_mfa_settings GROUP BY tenant_id, user_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "user_permissions",
+      "columns": [
+        "user_id",
+        "permission_id"
+      ],
+      "query": "SELECT tenant_id, user_id, permission_id, COUNT(*) FROM user_permissions GROUP BY tenant_id, user_id, permission_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "vaccines",
+      "columns": [
+        "code"
+      ],
+      "query": "SELECT tenant_id, code, COUNT(*) FROM vaccines GROUP BY tenant_id, code HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "vaccines",
+      "columns": [
+        "code"
+      ],
+      "query": "SELECT tenant_id, code, COUNT(*) FROM vaccines GROUP BY tenant_id, code HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "visits",
+      "columns": [
+        "visit_number"
+      ],
+      "query": "SELECT tenant_id, visit_number, COUNT(*) FROM visits GROUP BY tenant_id, visit_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "visits",
+      "columns": [
+        "visit_number"
+      ],
+      "query": "SELECT tenant_id, visit_number, COUNT(*) FROM visits GROUP BY tenant_id, visit_number HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "wards",
+      "columns": [
+        "code"
+      ],
+      "query": "SELECT tenant_id, code, COUNT(*) FROM wards GROUP BY tenant_id, code HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "wards",
+      "columns": [
+        "code"
+      ],
+      "query": "SELECT tenant_id, code, COUNT(*) FROM wards GROUP BY tenant_id, code HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "whatsapp_config",
+      "columns": [
+        "config_key"
+      ],
+      "query": "SELECT tenant_id, config_key, COUNT(*) FROM whatsapp_config GROUP BY tenant_id, config_key HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "whatsapp_config",
+      "columns": [
+        "config_key"
+      ],
+      "query": "SELECT tenant_id, config_key, COUNT(*) FROM whatsapp_config GROUP BY tenant_id, config_key HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "whatsapp_integration_messages",
+      "columns": [
+        "message_id"
+      ],
+      "query": "SELECT tenant_id, message_id, COUNT(*) FROM whatsapp_integration_messages GROUP BY tenant_id, message_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "whatsapp_integration_messages",
+      "columns": [
+        "message_id"
+      ],
+      "query": "SELECT tenant_id, message_id, COUNT(*) FROM whatsapp_integration_messages GROUP BY tenant_id, message_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "whatsapp_templates",
+      "columns": [
+        "template_name"
+      ],
+      "query": "SELECT tenant_id, template_name, COUNT(*) FROM whatsapp_templates GROUP BY tenant_id, template_name HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "whatsapp_templates",
+      "columns": [
+        "template_id"
+      ],
+      "query": "SELECT tenant_id, template_id, COUNT(*) FROM whatsapp_templates GROUP BY tenant_id, template_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "whatsapp_templates",
+      "columns": [
+        "template_id"
+      ],
+      "query": "SELECT tenant_id, template_id, COUNT(*) FROM whatsapp_templates GROUP BY tenant_id, template_id HAVING COUNT(*) > 1;"
+    },
+    {
+      "table": "whatsapp_templates",
+      "columns": [
+        "template_name"
+      ],
+      "query": "SELECT tenant_id, template_name, COUNT(*) FROM whatsapp_templates GROUP BY tenant_id, template_name HAVING COUNT(*) > 1;"
+    }
+  ]
+}
