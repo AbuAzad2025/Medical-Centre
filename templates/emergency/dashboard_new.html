@@ -1,250 +1,103 @@
-{% extends "base.html" %}
+{% extends "dashboard_base.html" %}
 {% block title %}لوحة تحكم الطوارئ{% endblock %}
 {% block content %}
-<style>
-.emg-gradient { background: linear-gradient(135deg, #3a0a0a 0%, #7a1a1a 50%, #a52a2a 100%); }
-</style>
-<div class="container-fluid py-3">
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card border-0 text-white emg-gradient">
-        <div class="card-body d-flex justify-content-between align-items-center">
-          <div>
-            <h3 class="mb-1"><i class="fas fa-ambulance me-2 text-warning"></i>قسم الطوارئ</h3>
-            <p class="mb-0 opacity-75">إدارة الحالات العاجلة والفرز والمعالجة</p>
-          </div>
-          <div class="d-flex gap-2">
-            <a href="{{ url_for('emergency.queue') }}" class="btn btn-warning btn-sm"><i class="fas fa-list me-1"></i> قائمة الانتظار</a>
-            <a href="{{ url_for('emergency.triage_list') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-stethoscope me-1"></i> الفرز</a>
-            <a href="{{ url_for('emergency.list_emergency_cases') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-folder-open me-1"></i> الحالات</a>
-          </div>
-        </div>
-      </div>
+<div class="row mb-3">
+    <div class="col-12 d-flex flex-wrap gap-2">
+        <a href="{{ url_for('emergency.patient_queue') }}" class="btn btn-danger"><i class="fas fa-ambulance me-1"></i> طابور الطوارئ</a>
+        <a href="{{ url_for('emergency.reports') }}" class="btn btn-secondary"><i class="fas fa-chart-bar me-1"></i> تقارير الطوارئ</a>
     </div>
-  </div>
-
-  <div class="row g-3 mb-4">
-    <div class="col-xl-3 col-md-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-              <h6 class="text-muted text-uppercase small mb-1">حالات اليوم</h6>
-              <h3 class="mb-0 fw-bold">{{ stats.today_emergencies or 0 }}</h3>
-            </div>
-            <div class="bg-danger bg-opacity-10 p-3 rounded"><i class="fas fa-ambulance text-danger fa-lg"></i></div>
-          </div>
-          <div class="small text-muted">نشطة: <strong class="text-warning">{{ stats.active_emergencies or 0 }}</strong></div>
-          <canvas id="sparkToday" height="40" class="mt-2"></canvas>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card card-stat bg-danger">
+            <div class="icon-bg"><i class="fas fa-ambulance"></i></div>
+            <h6>حالات اليوم</h6>
+            <h3>{{ stats.today_emergencies }}</h3>
         </div>
-      </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-              <h6 class="text-muted text-uppercase small mb-1">مكتملة اليوم</h6>
-              <h3 class="mb-0 fw-bold">{{ stats.completed_today or 0 }}</h3>
-            </div>
-            <div class="bg-success bg-opacity-10 p-3 rounded"><i class="fas fa-check-circle text-success fa-lg"></i></div>
-          </div>
-          <div class="small text-muted">أسبوعي: <strong class="text-info">{{ stats.weekly_emergencies or 0 }}</strong></div>
-          <canvas id="sparkCompleted" height="40" class="mt-2"></canvas>
+    <div class="col-md-3">
+        <div class="card card-stat bg-warning">
+            <div class="icon-bg"><i class="fas fa-heartbeat"></i></div>
+            <h6>الحالات النشطة</h6>
+            <h3>{{ stats.active_emergencies }}</h3>
         </div>
-      </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-              <h6 class="text-muted text-uppercase small mb-1">حرجة / عاجلة</h6>
-              <h3 class="mb-0 fw-bold">{{ (stats.critical_cases or 0) + (stats.urgent_cases or 0) }}</h3>
-            </div>
-            <div class="bg-warning bg-opacity-10 p-3 rounded"><i class="fas fa-exclamation-triangle text-warning fa-lg"></i></div>
-          </div>
-          <div class="small text-muted">حرجة: <strong class="text-danger">{{ stats.critical_cases or 0 }}</strong> — عاجلة: <strong class="text-warning">{{ stats.urgent_cases or 0 }}</strong></div>
-          <canvas id="sparkCritical" height="40" class="mt-2"></canvas>
+    <div class="col-md-3">
+        <div class="card card-stat bg-success">
+            <div class="icon-bg"><i class="fas fa-check-circle"></i></div>
+            <h6>مكتملة اليوم</h6>
+            <h3>{{ stats.completed_today }}</h3>
         </div>
-      </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-              <h6 class="text-muted text-uppercase small mb-1">وصفات / معامل</h6>
-              <h3 class="mb-0 fw-bold">{{ (stats.prescriptions_today or 0) + (stats.pending_lab_requests or 0) + (stats.pending_radiology_requests or 0) }}</h3>
-            </div>
-            <div class="bg-info bg-opacity-10 p-3 rounded"><i class="fas fa-prescription text-info fa-lg"></i></div>
-          </div>
-          <div class="small text-muted">وصفات: <strong>{{ stats.prescriptions_today or 0 }}</strong> — معمل: <strong>{{ stats.pending_lab_requests or 0 }}</strong> — أشعة: <strong>{{ stats.pending_radiology_requests or 0 }}</strong></div>
-          <canvas id="sparkRx" height="40" class="mt-2"></canvas>
+    <div class="col-md-3">
+        <div class="card card-stat bg-info">
+            <div class="icon-bg"><i class="fas fa-calendar-week"></i></div>
+            <h6>مكتملة هذا الأسبوع</h6>
+            <h3>{{ stats.weekly_emergencies }}</h3>
         </div>
-      </div>
     </div>
-  </div>
-
-  <div class="row g-3 mb-4">
-    <div class="col-md-8">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-danger me-2"></i>أداء الطوارئ</h6></div>
-        <div class="card-body"><canvas id="emgMainChart" height="260"></canvas></div>
-      </div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card card-stat bg-dark">
+            <div class="icon-bg"><i class="fas fa-exclamation-triangle"></i></div>
+            <h6>حالات حرجة</h6>
+            <h3>{{ stats.critical_cases }}</h3>
+        </div>
     </div>
     <div class="col-md-4">
-      <div class="row g-3">
-        <div class="col-12">
-          <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-clock text-warning me-2"></i>مؤشرات الوقت</h6></div>
-            <div class="card-body">
-              <div class="small text-start">
-                <div class="d-flex justify-content-between mb-1"><span>متوسط وقت الفرز</span><strong>{{ stats.time_metrics.avg_triage_time or '-' }} د</strong></div>
-                <div class="d-flex justify-content-between mb-1"><span>متوسط وقت المعالجة</span><strong>{{ stats.time_metrics.avg_treatment_time or '-' }} د</strong></div>
-                <div class="d-flex justify-content-between mb-1"><span>متوسط وقت التحويل</span><strong>{{ stats.time_metrics.avg_disposition_time or '-' }} د</strong></div>
-                <div class="d-flex justify-content-between"><span>نسبة التصريف في الساعة</span><strong class="text-success">{{ stats.time_metrics.door_to_disposition_rate or 0 }}%</strong></div>
-              </div>
-            </div>
-          </div>
+        <div class="card card-stat bg-primary">
+            <div class="icon-bg"><i class="fas fa-procedures"></i></div>
+            <h6>حالات عاجلة</h6>
+            <h3>{{ stats.urgent_cases }}</h3>
         </div>
-        <div class="col-12">
-          <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-brain text-info me-2"></i>بروتوكولات نشطة</h6></div>
-            <div class="card-body">
-              <div class="small text-start">
-                {% for p in stats.protocols.active_protocols %}
-                <div class="d-flex justify-content-between mb-1"><span>{{ p.name or 'بروتوكول' }}</span><span class="badge bg-primary">{{ p.usage_count or 0 }}</span></div>
-                {% else %}<p class="text-muted text-center my-2">لا توجد بروتوكولات نشطة</p>{% endfor %}
-              </div>
-            </div>
-          </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-stat bg-secondary">
+            <div class="icon-bg"><i class="fas fa-flask"></i></div>
+            <h6>طلبات مختبر معلّقة</h6>
+            <h3>{{ stats.pending_lab_requests }}</h3>
         </div>
-      </div>
     </div>
-  </div>
-
-  <!-- Quality & Compliance -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">امتثال وقت الفرز</div>
-          <h3 class="fw-bold text-success">{{ stats.time_metrics.triage_sla_compliance or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="امتثال الفرز"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="امتثال الفرز" data-width="{{ stats.time_metrics.triage_sla_compliance or 0 }}"></div></div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">دقة التشخيص</div>
-          <h3 class="fw-bold text-primary">{{ stats.ems_metrics.diagnosis_accuracy or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="دقة التشخيص"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="دقة التشخيص" data-width="{{ stats.ems_metrics.diagnosis_accuracy or 0 }}"></div></div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">بروتوكولات مفعلة</div>
-          <h3 class="fw-bold text-info">{{ stats.protocols.active_protocols_count or 0 }}</h3>
-          <div class="small text-muted">الاستخدام: <strong>{{ stats.protocols.total_usage or 0 }}</strong></div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">رضا المرضى</div>
-          <h3 class="fw-bold text-warning">{{ stats.ems_metrics.patient_satisfaction or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="رضا المرضى"><div class="progress-bar bg-warning progress-dynamic" role="progressbar" title="رضا المرضى" data-width="{{ stats.ems_metrics.patient_satisfaction or 0 }}"></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-3 mb-4">
-    <div class="col-md-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle text-warning me-2"></i>تنبيهات</h6></div>
-        <div class="card-body">
-          {% if stats.ems_metrics.active_transports %}<div class="list-group list-group-flush">{% for t in stats.ems_metrics.active_transports %}<div class="list-group-item px-0"><i class="fas fa-ambulance text-danger me-2"></i>نقل نشط #{{ t.id or '' }} — {{ t.status or '' }}</div>{% endfor %}</div>{% else %}<p class="text-muted text-center my-3">لا توجد تنبيهات حالية</p>{% endif %}
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-bolt text-primary me-2"></i>إجراءات سريعة</h6></div>
-        <div class="card-body">
-          <div class="d-grid gap-2">
-            <a href="{{ url_for('emergency.patient_queue') }}" class="btn btn-danger btn-sm"><i class="fas fa-plus me-1"></i> حالة جديدة</a>
-            <a href="{{ url_for('emergency.patient_queue') }}" class="btn btn-primary btn-sm"><i class="fas fa-list me-1"></i> قائمة الانتظار</a>
-            <a href="{{ url_for('emergency.triage_list') }}" class="btn btn-warning btn-sm"><i class="fas fa-stethoscope me-1"></i> الفرز</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-hospital text-secondary me-2"></i>EMS</h6></div>
-        <div class="card-body text-center">
-          <h2 class="fw-bold text-danger">{{ stats.ems_metrics.active_transports|length or 0 }}</h2>
-          <p class="text-muted small">نقل نشط</p>
-          <div class="small text-start">
-            <div class="d-flex justify-content-between"><span>استجابة اليوم</span><strong>{{ stats.ems_metrics.today_responses or 0 }}</strong></div>
-            <div class="d-flex justify-content-between"><span>معدل الاستجابة</span><strong class="text-success">{{ stats.ems_metrics.avg_response_time or 0 }} د</strong></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card border-0 shadow-sm">
-    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-      <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-danger"></i>الحالات الحرجة القادمة</h6>
-      <a href="{{ url_for('emergency.list_emergency_cases') }}" class="small text-decoration-none">الكل</a>
-    </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr><th>#</th><th>المريض</th><th>الأولوية</th><th>الحالة</th><th>الوقت</th><th>الإجراءات</th></tr>
-          </thead>
-          <tbody>
-            {% for case in upcoming_cases %}
-            <tr>
-              <td>{{ case.id }}</td>
-              <td>
-                <div class="fw-bold">{{ case.patient.full_name if case.patient else '-' }}</div>
-                <div class="small text-muted">{{ case.patient.medical_record_number if case.patient else '' }}</div>
-              </td>
-              <td><span class="badge bg-{% if case.severity=='CRITICAL' %}danger{% elif case.severity=='HIGH' %}warning{% else %}info{% endif %}">{{ case.severity or 'NORMAL' }}</span></td>
-              <td><span class="badge bg-{% if case.status=='COMPLETED' %}success{% elif case.status=='TREATMENT' %}primary{% elif case.status=='WAITING' %}warning{% else %}secondary{% endif %}">{{ case.status or 'NEW' }}</span></td>
-              <td class="small text-muted">{{ case.created_at.strftime('%Y-%m-%d %H:%M') if case.created_at else '-' }}</td>
-              <td>
-                <div class="d-flex gap-1">
-                  <a href="{{ url_for('emergency.view_emergency_case', id=case.id) }}" class="btn btn-sm btn-outline-primary" title="تفاصيل"><i class="fas fa-eye"></i> <span class="btn-label">عرض</span></a>
-                  <a href="{{ url_for('emergency.treatment', emergency_id=case.id) }}" class="btn btn-sm btn-outline-success" title="معالجة"><i class="fas fa-user-md"></i> <span class="btn-label">طبيب</span></a>
-                </div>
-              </td>
-            </tr>
-            {% else %}<tr><td colspan="6" class="text-muted text-center py-4">لا توجد حالات</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script id="emg-chart-data" type="application/json">{{ {
-  'spark': [stats.today_emergencies or 0, stats.completed_today or 0, (stats.critical_cases or 0)+(stats.urgent_cases or 0), stats.active_emergencies or 0],
-  'mainData': [stats.today_emergencies or 0, stats.active_emergencies or 0, stats.completed_today or 0, stats.urgent_cases or 0, stats.critical_cases or 0]
-}|tojson }}</script>
-<script src="{{ url_for('static', filename='js/pages/emergency/dashboard_new.js') }}"></script>
-
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2 text-danger"></i>قائمة الانتظار — الحالات الحرجة والعاجلة</h5></div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>#</th><th>المريض</th><th>الشكوى</th><th>الخطورة</th><th>الحالة</th><th>الوقت</th><th>الإجراء</th></tr></thead>
+                    <tbody>
+                    {% for c in upcoming_cases %}
+                    <tr>
+                        <td>{{ c.id }}</td>
+                        <td>{{ c.patient.full_name if c.patient else '-' }}</td>
+                        <td class="small text-muted">{{ c.chief_complaint or '-' }}</td>
+                        <td><span class="badge bg-{% if c.severity=='CRITICAL' %}dark{% elif c.severity=='HIGH' %}danger{% elif c.severity=='MODERATE' %}warning{% else %}info{% endif %}">{{ c.severity or 'غير محدد' }}</span></td>
+                        <td><span class="badge bg-secondary">{{ c.status or '-' }}</span></td>
+                        <td class="small text-muted">{{ c.created_at.strftime('%H:%M') if c.created_at else '-' }}</td>
+                        <td><a href="{{ url_for('emergency.patient_details', emergency_id=c.id) }}" class="btn btn-sm btn-primary">عرض</a></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7"><div class="text-center text-muted py-4">لا توجد حالات حرجة في قائمة الانتظار</div></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-stopwatch me-2 text-warning"></i>مؤشرات الوقت</h5></div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between"><span>متوسط وقت الانتظار</span><strong>{{ stats.time_metrics.avg_wait_time or 0 }} د</strong></li>
+                    <li class="list-group-item d-flex justify-content-between"><span>متوسط وقت العلاج</span><strong>{{ stats.time_metrics.avg_treatment_time or 0 }} د</strong></li>
+                    <li class="list-group-item d-flex justify-content-between"><span>إجمالي الحالات (7 أيام)</span><strong>{{ stats.ems_metrics.ems_cases_7d or 0 }}</strong></li>
+                    <li class="list-group-item d-flex justify-content-between"><span>استجابات اليوم</span><strong>{{ stats.ems_metrics.today_responses or 0 }}</strong></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
