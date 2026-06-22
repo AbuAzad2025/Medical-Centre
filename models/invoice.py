@@ -47,7 +47,16 @@ class Invoice(TenantMixin, db.Model):
 
     def __repr__(self) -> str:
         return f"<Invoice #{self.invoice_number or self.id}>"
-    
+
+    @property
+    def balance_due(self):
+        """P3-003: Remaining balance on this invoice (controlled projection)."""
+        from decimal import Decimal
+        total = Decimal(str(self.total_amount or 0))
+        paid = Decimal(str(self.paid_amount or 0))
+        due = total - paid
+        return float(due) if due > 0 else 0.0
+
     def to_dict(self) -> dict:
         return {
             "id": self.id,
@@ -58,6 +67,7 @@ class Invoice(TenantMixin, db.Model):
             "currency": self.currency,
             "total_amount": float(self.total_amount or 0),
             "paid_amount": float(self.paid_amount or 0),
+            "balance_due": self.balance_due,
             "posted_at": self.posted_at.isoformat() if self.posted_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

@@ -46,6 +46,49 @@ class FinancialService:
             return {"total_billed": 0, "total_collected": 0, "total_expenses": 0, "pending": 0}
 
     @staticmethod
+    def reconcile_visit_payments(visit_id: int) -> dict:
+        """P3-003: Recompute paid_amount for every invoice in a visit.
+
+        Resets invoice allocations, re-applies confirmed visit payments in FIFO
+        order, and updates invoice status (PAID/PARTIAL/ISSUED). The caller is
+        responsible for committing the transaction.
+        """
+        from decimal import Decimal
+        from models.invoice import Invoice
+        from models.payment import Payment
+        from models.visit import Visit
+        from services.billing_state_service import PaymentAllocationService
+
+        try:
+            visit = db.session.get(Visit, visit_id)
+            if not visit:
+                return {"ok": False, "error": "Visit not found"}
+
+            invoices = Invoice.query.filter_by(visit_id=visit.id).order_by(Invoice.created_at.asc()).all()
+            for inv in invoices:
+                inv.paid_amount = Decimal(0)
+
+            payments = Payment.query.filter_by(visit_id=visit.id, status="CONFIRMED").order_by(
+                Payment.created_at.asc()
+            ).all()
+            for payment in payments:
+                PaymentAllocationService.allocate(payment, visit)
+
+            for inv in invoices:
+                if Decimal(str(inv.paid_amount or 0)) >= Decimal(str(inv.total_amount or 0)):
+                    inv.status = "PAID"
+                elif Decimal(str(inv.paid_amount or 0)) > 0:
+                    inv.status = "PARTIAL"
+                else:
+                    inv.status = "ISSUED"
+
+            return {"ok": True, "invoices": [inv.to_dict() for inv in invoices]}
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error reconciling visit payments: {str(e)}")
+            return {"ok": False, "error": str(e)}
+
+    @staticmethod
     def get_revenue_by_period(period: str = "monthly", limit: int = 12) -> list:
         from models.invoice import Invoice
         try:
