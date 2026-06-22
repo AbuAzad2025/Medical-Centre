@@ -3987,6 +3987,34 @@ def upgrade():
         batch_op.create_index(batch_op.f('ix_receipts_tenant_id'), ['tenant_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_receipts_visit_id'), ['visit_id'], unique=False)
 
+    op.create_table('refund_requests',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('payment_id', sa.Integer(), nullable=False),
+    sa.Column('amount', sa.Numeric(precision=12, scale=2), nullable=False),
+    sa.Column('reason', sa.Text(), nullable=False),
+    sa.Column('requested_by', sa.Integer(), nullable=True),
+    sa.Column('approved_by', sa.Integer(), nullable=True),
+    sa.Column('executed_by', sa.Integer(), nullable=True),
+    sa.Column('status', sa.String(length=20), nullable=False),
+    sa.Column('requested_at', sa.DateTime(), nullable=False),
+    sa.Column('approved_at', sa.DateTime(), nullable=True),
+    sa.Column('executed_at', sa.DateTime(), nullable=True),
+    sa.Column('notes', sa.Text(), nullable=True),
+    sa.Column('tenant_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['payment_id'], ['payments.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['requested_by'], ['users.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['approved_by'], ['users.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['executed_by'], ['users.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.CheckConstraint('amount > 0', name='chk_refund_amount_positive'),
+    sa.CheckConstraint("status IN ('PENDING', 'APPROVED', 'REJECTED', 'EXECUTED')", name='chk_refund_status'),
+    )
+    with op.batch_alter_table('refund_requests', schema=None) as batch_op:
+        batch_op.create_index('ix_refund_requests_payment_id', ['payment_id'], unique=False)
+        batch_op.create_index('ix_refund_requests_status', ['status'], unique=False)
+        batch_op.create_index('ix_refund_requests_tenant_id', ['tenant_id'], unique=False)
+
     op.create_table('referrals',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('patient_id', sa.Integer(), nullable=False),

@@ -39,6 +39,7 @@ from .nurse import Nurse, VitalSigns, MedicationAdministrationLog
 from .online_booking import OnlineBooking, PaymentTransaction
 from .patient_account import PatientAccount
 from .receipt import Receipt
+from .refund_request import RefundRequest, RefundStatus
 from .reporting import Report
 from .request_workflow import RequestWorkflow
 from .supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
@@ -110,6 +111,7 @@ __all__ = [
     "Nurse", "VitalSigns", "MedicationAdministrationLog",
     "OnlineBooking", "PaymentTransaction", "PatientAccount",
     "Receipt",
+    "RefundRequest", "RefundStatus",
     "Report",
     "RequestWorkflow", "MedicationSupplyRequest", "MedicationSupplyRequestItem",
     "Task",
