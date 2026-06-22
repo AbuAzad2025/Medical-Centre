@@ -506,6 +506,7 @@ def create_app(config_name: str | None = None) -> Flask:
     from routes.what_if_routes import what_if_bp
     from routes.quality_compliance import quality_bp
     from routes.reception_currency import reception_currency_bp
+    from routes.inbox import inbox_bp
 
     # Module guards — must be added BEFORE register_blueprint, and only ONCE
     def _guard_factory(module_name):
@@ -646,6 +647,7 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(what_if_bp, url_prefix='/what-if')
     app.register_blueprint(quality_bp, url_prefix='/quality')
     app.register_blueprint(reception_currency_bp, url_prefix='/reception')
+    app.register_blueprint(inbox_bp)
 
     # Tenant middleware — safe fallback if tables don't exist yet
     @app.before_request
