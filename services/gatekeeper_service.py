@@ -307,7 +307,11 @@ class GatekeeperService:
     @staticmethod
     def archive_visit(visit_id, user_id):
         """
-        أرشفة الزيارة
+        أرشفة الزيارة.
+
+        P1-002: This is the single owner of writes to Visit.archive_status.
+        Archival is an administrative/financial closure action; it is NOT a
+        clinical state transition and must remain separate from Visit.status.
         """
         try:
             visit = db.session.get(Visit, visit_id)
