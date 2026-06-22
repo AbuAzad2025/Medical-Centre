@@ -57,14 +57,14 @@ def _check_bundle_limits_on_create(instance, tenant_id):
     table = instance.__tablename__
     if table == 'users':
         current_count = db.session.execute(
-            db.text('SELECT COUNT(*) FROM users WHERE tenant_id = :tid AND deleted_at IS NULL'),
+            db.text('SELECT COUNT(*) FROM users WHERE tenant_id = :tid'),
             {'tid': tenant_id}
         ).scalar() or 0
         if bundle.max_users is not None and (current_count + 1) > bundle.max_users:
             raise ValueError(f"Bundle limit exceeded: maximum {bundle.max_users} users allowed")
     elif table == 'patients':
         current_count = db.session.execute(
-            db.text('SELECT COUNT(*) FROM patients WHERE tenant_id = :tid AND deleted_at IS NULL'),
+            db.text('SELECT COUNT(*) FROM patients WHERE tenant_id = :tid'),
             {'tid': tenant_id}
         ).scalar() or 0
         if bundle.max_patients is not None and (current_count + 1) > bundle.max_patients:
