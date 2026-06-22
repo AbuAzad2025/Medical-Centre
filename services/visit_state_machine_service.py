@@ -20,10 +20,13 @@ class VisitStateMachineService:
     """Canonical visit lifecycle transitions."""
 
     TRANSITIONS: dict[VisitState, set[VisitState]] = {
+        # Clinical lifecycle ends at COMPLETED. Archival is an administrative
+        # action tracked by Visit.archive_status (GatekeeperService), not by
+        # Visit.status. See P1-002 decision.
         VisitState.OPEN: {VisitState.CHECKED_IN, VisitState.CANCELLED, VisitState.NO_SHOW},
         VisitState.CHECKED_IN: {VisitState.IN_PROGRESS, VisitState.CANCELLED, VisitState.NO_SHOW},
         VisitState.IN_PROGRESS: {VisitState.COMPLETED, VisitState.CANCELLED},
-        VisitState.COMPLETED: {VisitState.ARCHIVED},
+        VisitState.COMPLETED: set(),
         VisitState.ARCHIVED: set(),
         VisitState.CANCELLED: set(),
         VisitState.NO_SHOW: set(),
