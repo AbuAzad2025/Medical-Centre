@@ -1,10 +1,10 @@
 {
   "generated_at": "2026-06-22",
-  "total_routes": 601,
+  "total_routes": 602,
   "summary": {
     "public": 2,
     "internal": 4,
-    "authenticated": 431,
+    "authenticated": 432,
     "admin": 38,
     "super-admin": 126
   },
@@ -4901,6 +4901,14 @@
         "GET"
       ],
       "classification": "super-admin"
+    },
+    {
+      "endpoint": "inbox.dashboard",
+      "path": "/inbox",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
     }
   ]
 }
