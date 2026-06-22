@@ -38,8 +38,8 @@ def list_medications():
         page = request.args.get('page', type=int) or 1
         page = max(1, page)
         
-        query = Medication.query
-        
+        query = Medication.query.filter(Medication.tenant_id == current_user.tenant_id)
+
         if search:
             query = query.filter(
                 Medication.trade_name.contains(search) |
@@ -90,10 +90,8 @@ def add_medication():
                     exp_val = datetime.strptime(expiry_date, '%Y-%m-%d').date()
                 except Exception:
                     exp_val = None
-            _tid_input = current_user.tenant_id
-            import sys; print(f"[DD] cur_user.id={current_user.id}, cur_user.role={current_user.role}, tenant_id_from_user={_tid_input}", file=sys.stderr, flush=True)
             medication = Medication(
-                tenant_id=_tid_input,
+                tenant_id=current_user.tenant_id,
                 trade_name=(request.form.get('trade_name') or '').strip(),
                 scientific_name=(request.form.get('scientific_name') or '').strip(),
                 generic_name=(request.form.get('generic_name') or '').strip() or None,
@@ -130,7 +128,10 @@ def add_medication():
 def edit_medication(medication_id):
     """تعديل دواء"""
     
-    medication = db.session.get(Medication, medication_id)
+    medication = Medication.query.filter(
+        Medication.tenant_id == current_user.tenant_id,
+        Medication.id == medication_id
+    ).first()
     if not medication:
         flash('الدواء غير موجود', 'error')
         return redirect(url_for('medication.list_medications'))
