@@ -74,6 +74,14 @@ def dashboard():
         sec = _get_super_admin_security_stats()
         cfg = _get_super_admin_config_stats()
 
+        from routes.super_admin.system import get_database_size, get_last_backup_time
+        from routes.super_admin.analytics import (
+            get_security_threats,
+            get_performance_optimization,
+            get_user_behavior_analysis,
+            get_resource_utilization,
+        )
+
         database_size = get_database_size()
         last_backup = get_last_backup_time()
         security_threats = get_security_threats()
