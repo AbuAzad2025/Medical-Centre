@@ -82,15 +82,20 @@ class ReceiptService:
 class PaymentAllocationService:
     @staticmethod
     def allocate(payment, visit):
+        """Allocate a confirmed payment against visit invoices (FIFO).
+
+        P3-002: This method intentionally does NOT commit; it is the caller's
+        responsibility to commit inside the same transaction boundary as the
+        payment creation.
+        """
         from models.invoice import Invoice
         invoices = Invoice.query.filter_by(visit_id=visit.id).order_by(Invoice.created_at.asc()).all()
         remaining = Decimal(str(payment.amount))
         for inv in invoices:
-            due = Decimal(str(inv.total or 0)) - Decimal(str(inv.paid_amount or 0))
+            due = Decimal(str(inv.total_amount or 0)) - Decimal(str(inv.paid_amount or 0))
             if due > 0:
                 alloc = min(remaining, due)
                 inv.paid_amount = float(Decimal(str(inv.paid_amount or 0)) + alloc)
                 remaining -= alloc
                 if remaining <= 0:
                     break
-        db.session.commit()
