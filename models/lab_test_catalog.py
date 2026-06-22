@@ -60,7 +60,7 @@ class LabTestPanel(TenantMixin, db.Model):
         return f"<LabTestPanel {self.name_ar}>"
 
 
-class LabTestPanelItem(TenantMixin, db.Model):
+class LabTestPanelItem(db.Model):
     __tablename__ = 'lab_test_panel_items'
 
     id = db.Column(db.Integer, primary_key=True)

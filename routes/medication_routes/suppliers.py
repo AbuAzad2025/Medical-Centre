@@ -14,7 +14,9 @@ from app_factory import db
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def suppliers():
-    suppliers = Supplier.query.order_by(Supplier.name).all()
+    suppliers = Supplier.query.filter(
+        Supplier.tenant_id == current_user.tenant_id
+    ).order_by(Supplier.name).all()
     return render_template('pharmacy/suppliers.html', suppliers=suppliers)
 
 
@@ -48,7 +50,10 @@ def add_supplier():
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def edit_supplier(supplier_id):
-    supplier = db.session.get(Supplier, supplier_id)
+    supplier = Supplier.query.filter(
+        Supplier.tenant_id == current_user.tenant_id,
+        Supplier.id == supplier_id
+    ).first()
     if not supplier:
         flash('المورد غير موجود', 'error')
         return redirect(url_for('medication.suppliers'))
@@ -71,7 +76,10 @@ def edit_supplier(supplier_id):
 @login_required
 @role_required('admin', 'manager')
 def delete_supplier(supplier_id):
-    supplier = db.session.get(Supplier, supplier_id)
+    supplier = Supplier.query.filter(
+        Supplier.tenant_id == current_user.tenant_id,
+        Supplier.id == supplier_id
+    ).first()
     if not supplier:
         flash('المورد غير موجود', 'error')
         return redirect(url_for('medication.suppliers'))
@@ -85,7 +93,9 @@ def delete_supplier(supplier_id):
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def purchases():
-    purchases = MedicationPurchase.query.order_by(MedicationPurchase.created_at.desc()).all()
+    purchases = MedicationPurchase.query.filter(
+        MedicationPurchase.tenant_id == current_user.tenant_id
+    ).order_by(MedicationPurchase.created_at.desc()).all()
     return render_template('pharmacy/purchases.html', purchases=purchases)
 
 
@@ -107,6 +117,24 @@ def add_purchase():
         if not medication_id or not batch_number or not quantity:
             flash('الدواء ورقم التشغيلة والكمية مطلوبة', 'error')
             return redirect(url_for('medication.add_purchase'))
+
+        tenant_id = current_user.tenant_id
+        medication = Medication.query.filter(
+            Medication.tenant_id == tenant_id,
+            Medication.id == medication_id
+        ).first()
+        if not medication:
+            flash('الدواء غير موجود', 'error')
+            return redirect(url_for('medication.add_purchase'))
+
+        if supplier_id:
+            supplier = Supplier.query.filter(
+                Supplier.tenant_id == tenant_id,
+                Supplier.id == supplier_id
+            ).first()
+            if not supplier:
+                flash('المورد غير موجود', 'error')
+                return redirect(url_for('medication.add_purchase'))
 
         expiry_date = None
         if expiry_date_str:
@@ -133,15 +161,20 @@ def add_purchase():
         )
         db.session.add(purchase)
 
-        med = db.session.get(Medication, medication_id)
-        if med:
-            med.stock_quantity = (med.stock_quantity or 0) + quantity
-            med.updated_at = datetime.now(timezone.utc)
+        if medication:
+            medication.stock_quantity = (medication.stock_quantity or 0) + quantity
+            medication.updated_at = datetime.now(timezone.utc)
 
         db.session.commit()
         flash('تم إضافة المشتريات بنجاح', 'success')
         return redirect(url_for('medication.purchases'))
 
-    medications = Medication.query.filter(Medication.is_active == True).order_by(Medication.trade_name).all()
-    suppliers = Supplier.query.filter(Supplier.is_active == True).order_by(Supplier.name).all()
+    medications = Medication.query.filter(
+        Medication.tenant_id == current_user.tenant_id,
+        Medication.is_active == True
+    ).order_by(Medication.trade_name).all()
+    suppliers = Supplier.query.filter(
+        Supplier.tenant_id == current_user.tenant_id,
+        Supplier.is_active == True
+    ).order_by(Supplier.name).all()
     return render_template('pharmacy/add_purchase.html', medications=medications, suppliers=suppliers)

@@ -18,6 +18,7 @@ from app_factory import db
 def pos():
     """Point of Sale interface"""
     medications = Medication.query.filter(
+        Medication.tenant_id == current_user.tenant_id,
         Medication.is_active == True,
         Medication.stock_quantity > 0
     ).order_by(Medication.trade_name).all()
@@ -31,6 +32,7 @@ def api_medications_search():
     if not q or len(q) < 1:
         return jsonify([])
     items = Medication.query.filter(
+        Medication.tenant_id == current_user.tenant_id,
         Medication.is_active == True,
         Medication.stock_quantity > 0,
         db.or_(
@@ -84,7 +86,10 @@ def pos_sell():
             if not med_id or qty < 1:
                 continue
 
-            med = db.session.get(Medication, med_id)
+            med = Medication.query.filter(
+                Medication.tenant_id == current_user.tenant_id,
+                Medication.id == med_id
+            ).first()
             if not med:
                 return jsonify({'success': False, 'message': f'الدواء غير موجود (الرقم {med_id})'}), 400
             if med.stock_quantity < qty:
@@ -132,7 +137,9 @@ def pos_sell():
 def sales_history():
     page = request.args.get('page', 1, type=int)
     per_page = 25
-    pagination = PharmacySale.query.order_by(
+    pagination = PharmacySale.query.filter(
+        PharmacySale.tenant_id == current_user.tenant_id
+    ).order_by(
         PharmacySale.created_at.desc()
     ).paginate(page=page, per_page=per_page, error_out=False)
     return render_template('pharmacy/sales_history.html', pagination=pagination)
@@ -142,7 +149,10 @@ def sales_history():
 @login_required
 @role_required('pharmacist', 'admin', 'manager', 'accountant')
 def sale_detail(sale_id):
-    sale = db.session.get(PharmacySale, sale_id)
+    sale = PharmacySale.query.filter(
+        PharmacySale.tenant_id == current_user.tenant_id,
+        PharmacySale.id == sale_id
+    ).first()
     if not sale:
         flash('الفاتورة غير موجودة', 'error')
         return redirect(url_for('medication.sales_history'))
@@ -157,7 +167,7 @@ def api_sales_list():
     per_page = request.args.get('per_page', 50, type=int)
     date_from = request.args.get('date_from', '')
     date_to = request.args.get('date_to', '')
-    q = PharmacySale.query
+    q = PharmacySale.query.filter(PharmacySale.tenant_id == current_user.tenant_id)
     if date_from:
         try:
             q = q.filter(PharmacySale.created_at >= datetime.strptime(date_from, '%Y-%m-%d'))
@@ -192,14 +202,18 @@ def api_sales_list():
 @role_required('pharmacist', 'admin', 'manager')
 def api_sales_totals():
     today = date.today()
-    today_sales = db.session.query(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
-        func.date(PharmacySale.created_at) == today
-    ).scalar()
+    base_q = db.session.query(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
+        PharmacySale.tenant_id == current_user.tenant_id
+    )
+    today_sales = base_q.filter(func.date(PharmacySale.created_at) == today).scalar()
     month_sales = db.session.query(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
+        PharmacySale.tenant_id == current_user.tenant_id,
         func.extract('month', PharmacySale.created_at) == today.month,
         func.extract('year', PharmacySale.created_at) == today.year
     ).scalar()
-    total_sales = db.session.query(func.coalesce(func.sum(PharmacySale.total_amount), 0)).scalar()
+    total_sales = db.session.query(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
+        PharmacySale.tenant_id == current_user.tenant_id
+    ).scalar()
     return jsonify({
         'success': True,
         'today': float(today_sales),
@@ -218,7 +232,7 @@ def api_sales_report():
         func.date(PharmacySale.created_at).label('sale_date'),
         func.count(PharmacySale.id).label('count'),
         func.sum(PharmacySale.total_amount).label('total'),
-    )
+    ).filter(PharmacySale.tenant_id == current_user.tenant_id)
     if from_date:
         try:
             q = q.filter(func.date(PharmacySale.created_at) >= datetime.strptime(from_date, '%Y-%m-%d').date())
@@ -242,7 +256,10 @@ def api_sales_report():
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def sale_receipt(sale_id):
-    sale = db.session.get(PharmacySale, sale_id)
+    sale = PharmacySale.query.filter(
+        PharmacySale.tenant_id == current_user.tenant_id,
+        PharmacySale.id == sale_id
+    ).first()
     if not sale:
         return jsonify({'success': False, 'message': 'الفاتورة غير موجودة'}), 404
     data = {

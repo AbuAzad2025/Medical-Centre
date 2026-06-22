@@ -1453,17 +1453,15 @@ def upgrade():
     sa.Column('panel_id', sa.Integer(), nullable=False),
     sa.Column('test_id', sa.Integer(), nullable=False),
     sa.Column('sort_order', sa.Integer(), nullable=True),
-    sa.Column('tenant_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['panel_id'], ['lab_test_panels.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['test_id'], ['lab_test_catalog.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('lab_test_panel_items', schema=None) as batch_op:
         batch_op.create_index('idx_lab_panel_item_unique', ['panel_id', 'test_id'], unique=True)
         batch_op.create_index(batch_op.f('ix_lab_test_panel_items_panel_id'), ['panel_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_lab_test_panel_items_tenant_id'), ['tenant_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_lab_test_panel_items_test_id'), ['test_id'], unique=False)
+
 
     op.create_table('login_attempts',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -6241,11 +6239,11 @@ def downgrade():
     op.drop_table('login_attempts')
     with op.batch_alter_table('lab_test_panel_items', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_lab_test_panel_items_test_id'))
-        batch_op.drop_index(batch_op.f('ix_lab_test_panel_items_tenant_id'))
         batch_op.drop_index(batch_op.f('ix_lab_test_panel_items_panel_id'))
         batch_op.drop_index('idx_lab_panel_item_unique')
 
     op.drop_table('lab_test_panel_items')
+
     with op.batch_alter_table('lab_quality_control_entries', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_lab_quality_control_entries_test_code'))
         batch_op.drop_index(batch_op.f('ix_lab_quality_control_entries_tenant_id'))
