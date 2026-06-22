@@ -18,6 +18,7 @@ from models.patient_satisfaction import PatientSatisfactionSurvey
 from models.online_booking import OnlineBooking
 from models.branding import BrandingSettings
 from app_factory import db
+from app.shared.enums import InvoiceStatus, OrderState
 from datetime import datetime, date, timezone
 
 portal_bp = Blueprint('portal', __name__)
@@ -58,14 +59,22 @@ def dashboard():
         Visit.created_at.desc()
     ).limit(5).all()
 
-    open_invoices = Invoice.query.filter_by(patient_id=patient.id).filter(
-        Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED, InvoiceStatus.PARTIAL])
+    # Only statuses that currently exist in InvoiceStatus are considered.
+    # PARTIAL is intentionally not added; patient billing visibility policy
+    # is owned by P0B-001B / P3-000.
+    # Invoice links to Visit, not directly to Patient. Join through Visit.
+    open_invoices = Invoice.query.join(Visit).filter(
+        Visit.patient_id == patient.id,
+        Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
     ).all()
-    total_due = sum(inv.balance_due or 0 for inv in open_invoices)
+    total_due = sum(
+        (float(getattr(inv, 'total_amount', 0) or 0) - float(getattr(inv, 'paid_amount', 0) or 0))
+        for inv in open_invoices
+    )
 
-    unread_results = LabRequest.query.filter_by(patient_id=patient.id).filter(
-        LabRequest.status.in_([OrderState.RESULTED, OrderState.CRITICAL])
-    ).count()
+    # RESULTED and CRITICAL are not valid OrderState values. Fail closed
+    # until P0B-001B defines the patient result visibility policy.
+    unread_results = 0
 
     immunizations = Immunization.query.filter_by(patient_id=patient.id).order_by(
         Immunization.administration_date.desc()
