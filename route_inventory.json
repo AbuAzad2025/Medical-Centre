@@ -1,8 +1,8 @@
 {
   "generated_at": "2026-06-22",
-  "total_routes": 584,
+  "total_routes": 587,
   "summary": {
-    "authenticated": 428,
+    "authenticated": 431,
     "internal": 4,
     "admin": 38,
     "public": 2,
@@ -2977,6 +2977,30 @@
       "path": "/payment/reports",
       "methods": [
         "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "payment.request_refund",
+      "path": "/payment/payments/<int:payment_id>/refund",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "payment.approve_refund",
+      "path": "/payment/refund-requests/<int:refund_id>/approve",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "payment.execute_refund",
+      "path": "/payment/refund-requests/<int:refund_id>/execute",
+      "methods": [
+        "POST"
       ],
       "classification": "authenticated"
     },

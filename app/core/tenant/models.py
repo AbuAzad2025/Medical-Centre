@@ -25,7 +25,10 @@ class Tenant(db.Model):
     storage_mode = db.Column(db.Enum(StorageMode), default=StorageMode.LOCAL, nullable=False)
 
     # Product Profile
-    product_profile_code = db.Column(db.Enum(ProductProfile), nullable=True, default=None)
+    # S0-000: Stored as a free-form profile code string so that the 21 seeded
+    # ProductBundle slugs can coexist with the 7 canonical ProductProfile enum
+    # categories. Runtime validation is against _PRODUCT_PROFILE_SEED keys.
+    product_profile_code = db.Column(db.String(40), nullable=True, default=None, index=True)
 
     # Subscription
     subscription_type = db.Column(db.Enum(SubscriptionType), nullable=True)
@@ -63,6 +66,58 @@ class Tenant(db.Model):
 
     def __repr__(self):
         return f"<Tenant {self.slug}>"
+
+    @property
+    def product_profile(self):
+        """Return the canonical ProductProfile enum member if the stored code
+        matches one of the 7 canonical categories, otherwise None.
+        """
+        if not self.product_profile_code:
+            return None
+        try:
+            return ProductProfile(self.product_profile_code)
+        except ValueError:
+            return None
+
+    @staticmethod
+    def canonical_profile_for(profile_code: str | None) -> ProductProfile | None:
+        """Map any of the 21 seeded profile codes to one of the 7 canonical
+        ProductProfile categories. Returns None for unknown codes.
+        """
+        if not profile_code:
+            return None
+        mapping = {
+            # Doctor/clinic variants
+            "private_doctor_clinic": ProductProfile.PRIVATE_DOCTOR_CLINIC,
+            "doctor_clinic_reception": ProductProfile.PRIVATE_DOCTOR_CLINIC,
+            "doctor_clinic_full": ProductProfile.PRIVATE_DOCTOR_CLINIC,
+            "small_clinic": ProductProfile.SMALL_CLINIC,
+            "clinic_with_lab": ProductProfile.SMALL_CLINIC,
+            "clinic_with_radiology": ProductProfile.SMALL_CLINIC,
+            "clinic_with_lab_radiology": ProductProfile.SMALL_CLINIC,
+            "walkin_clinic": ProductProfile.SMALL_CLINIC,
+            # Lab variants
+            "standalone_lab": ProductProfile.STANDALONE_LAB,
+            "lab_with_reception": ProductProfile.STANDALONE_LAB,
+            "diagnostic_center": ProductProfile.STANDALONE_LAB,
+            # Radiology variants
+            "standalone_radiology": ProductProfile.STANDALONE_RADIOLOGY,
+            "radiology_with_reception": ProductProfile.STANDALONE_RADIOLOGY,
+            # Pharmacy variants
+            "standalone_pharmacy": ProductProfile.STANDALONE_PHARMACY,
+            # Emergency / urgent care / community / nursing home / hospital-like
+            "standalone_emergency": ProductProfile.MULTI_DEPARTMENT_CENTER,
+            "urgent_care": ProductProfile.MULTI_DEPARTMENT_CENTER,
+            "community_clinic": ProductProfile.MULTI_DEPARTMENT_CENTER,
+            "nursing_home": ProductProfile.MULTI_DEPARTMENT_CENTER,
+            "multi_department_center": ProductProfile.MULTI_DEPARTMENT_CENTER,
+            "polyclinic": ProductProfile.MULTI_DEPARTMENT_CENTER,
+            "hospital": ProductProfile.MULTI_DEPARTMENT_CENTER,
+            # Billing only
+            "billing_only": ProductProfile.CUSTOM,
+            "custom": ProductProfile.CUSTOM,
+        }
+        return mapping.get(profile_code)
 
 
 class SubscriptionPlan(db.Model):

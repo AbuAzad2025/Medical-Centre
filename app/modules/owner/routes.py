@@ -205,7 +205,7 @@ def owner_create_tenant():
                 contact_email=request.form.get('contact_email', '').strip(),
                 contact_phone=request.form.get('contact_phone', '').strip() or None,
                 tax_number=request.form.get('tax_number', '').strip() or None,
-                product_profile_code=ProductProfile(profile_code) if profile_code else None,
+                product_profile_code=profile_code if profile_code else None,
                 plan_id=int(request.form.get('plan_id')) if request.form.get('plan_id') else None,
                 subscription_type=SubscriptionType(request.form.get('subscription_type', 'monthly')),
                 subscription_start=date.today(),
@@ -748,8 +748,8 @@ def api_update_profile(tenant_id):
 
     tenant = Tenant.query.get_or_404(tenant_id)
     profile_code = request.json.get("product_profile") or request.form.get("product_profile")
-    from app.shared.enums import ProductProfile
-    if profile_code and profile_code not in ProductProfile.__members__.values() and profile_code not in [e.value for e in ProductProfile]:
+    from app.core.tenant.models import _PRODUCT_PROFILE_SEED
+    if profile_code and profile_code not in _PRODUCT_PROFILE_SEED:
         return jsonify({"error": "Invalid profile"}), 400
     try:
         tenant.product_profile_code = profile_code
