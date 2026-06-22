@@ -10,8 +10,9 @@ from services.gatekeeper_service import GatekeeperService
 from models.audit_trail import AuditTrail
 from services.report_service import ReportService
 from app_factory import db
+from app.shared.enums import PaymentStatus, InvoiceStatus
 import logging
-from datetime import datetime
+from datetime import datetime, date
 
 finance_bp = Blueprint('finance', __name__)
 
@@ -31,31 +32,61 @@ def index():
 @role_required('accountant', 'admin', 'manager')
 def dashboard():
     """لوحة تحكم المالية"""
-    
-    
     try:
+        today = date.today()
+
         # إحصائيات مالية
         total_revenue = db.session.query(db.func.sum(Payment.amount)).filter(
             Payment.is_provisional == False
         ).scalar() or 0
-        
+
         pending_payments = Payment.query.filter(
             Payment.is_provisional == True
         ).count()
-        
+
         locked_visits = Visit.query.filter(
             Visit.receipt_printed == False,
             Visit.payment_status != PaymentStatus.PAID
         ).count()
-        
+
+        today_invoices = Invoice.query.filter(
+            db.func.date(Invoice.created_at) == today
+        ).count()
+
+        today_payments = Payment.query.filter(
+            Payment.is_provisional == False,
+            db.func.date(Payment.created_at) == today
+        ).count()
+
+        pending_invoices = Invoice.query.filter(
+            Invoice.status.in_([InvoiceStatus.ISSUED, InvoiceStatus.POSTED]),
+            Invoice.paid_amount < Invoice.total_amount
+        ).count()
+
+        refunded_count = Payment.query.filter(
+            Payment.status == PaymentStatus.REFUNDED
+        ).count()
+
+        recent_invoices = Invoice.query.order_by(
+            Invoice.created_at.desc()
+        ).limit(10).all()
+
         stats = {
             'total_revenue': total_revenue,
             'pending_payments': pending_payments,
             'locked_visits': locked_visits
         }
-        
-        return render_template('billing/dashboard_new.html', stats=stats)
-        
+
+        return render_template(
+            'billing/dashboard_new.html',
+            stats=stats,
+            today_invoices=today_invoices,
+            today_payments=today_payments,
+            pending_invoices=pending_invoices,
+            refunded_count=refunded_count,
+            recent_invoices=recent_invoices,
+        )
+
     except Exception as e:
         logging.error(f"Error loading finance dashboard: {str(e)}")
         flash('حدث خطأ في تحميل لوحة التحكم المالية', 'error')

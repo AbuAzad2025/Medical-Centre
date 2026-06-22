@@ -11,7 +11,7 @@ from models.invoice import Invoice
 from models.user import User
 from services.report_service import ReportService
 from utils.decorators import accountant_only, can_access_financial_reports
-from app.shared.enums import InsuranceClaimStatus
+from app.shared.enums import InsuranceClaimStatus, InvoiceStatus
 from app_factory import db
 import logging
 from datetime import datetime, date, timedelta, timezone

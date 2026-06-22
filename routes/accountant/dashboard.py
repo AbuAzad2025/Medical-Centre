@@ -15,6 +15,7 @@ from services.report_service import ReportService
 from services.financial_service import financial_service
 from services.core_queries import core_queries
 from app_factory import db
+from app.shared.enums import InvoiceStatus
 from sqlalchemy import func, and_
 import logging
 from datetime import datetime, date, timedelta, timezone
@@ -39,6 +40,8 @@ def dashboard():
     
     
     try:
+        today = date.today()
+
         # إحصائيات أساسية عبر CoreQueryService
         base_stats = core_queries.get_basic_dashboard_stats()
         today_total = base_stats["revenue_today"]
@@ -48,29 +51,75 @@ def dashboard():
             net_profit = float(month_total) * 0.22
         except Exception:
             net_profit = 0.0
-        
+
         # الفواتير المفتوحة
         open_invoices = Invoice.query.filter(
             Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
         ).count()
-        
+
         # المبالغ المستحقة
         pending_amount = db.session.query(
             db.func.sum(Invoice.total_amount - Invoice.paid_amount)
         ).filter(
             Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
         ).scalar() or 0
-        
-        # الميزات الذكية
-        smart_analytics = get_accounting_smart_analytics()
-        financial_forecasting = get_financial_forecasting()
-        cash_flow_analysis = get_cash_flow_analysis()
-        payment_optimization = get_payment_optimization()
-        financial_health = get_financial_health_monitoring()
-        smart_recommendations = get_smart_recommendations()
-        revenue_cycle = get_revenue_cycle_metrics()
-        erp_integration = get_erp_integration_status()
-        margin_analytics = get_margin_analytics()
+
+        # دفعات اليوم
+        today_payments = Payment.query.filter(
+            func.date(Payment.created_at) == today
+        ).all()
+
+        # الميزات الذكية — imported here to avoid circular imports during blueprint registration.
+        from routes.accountant import (
+            get_accounting_smart_analytics,
+            get_financial_forecasting,
+            get_cash_flow_analysis,
+            get_payment_optimization,
+            get_financial_health_monitoring,
+            get_smart_recommendations,
+            get_revenue_cycle_metrics,
+            get_erp_integration_status,
+            get_margin_analytics,
+        )
+
+        def _with_defaults(value, **defaults):
+            d = value if isinstance(value, dict) else {}
+            for k, v in defaults.items():
+                d.setdefault(k, v)
+            return d
+
+        smart_analytics = _with_defaults(
+            get_accounting_smart_analytics(),
+            billing_accuracy=0, audit_compliance=0, collection_rate=0, efficiency_score=0,
+            total_payments=0, today_payments=0, total_invoices=0, open_invoices=0,
+            paid_invoices=0, payment_methods=[], weekly_trend=0, monthly_trend=0,
+        )
+        financial_forecasting = _with_defaults(
+            get_financial_forecasting(),
+            monthly_forecast=0, annual_forecast=0, growth_rate=0, monthly_data=[],
+        )
+        cash_flow_analysis = _with_defaults(get_cash_flow_analysis(), net_cash_flow=0, inflow=0, outflow=0)
+        payment_optimization = _with_defaults(
+            get_payment_optimization(), automation_rate=0, time_saved=0, late_payments=0,
+        )
+        financial_health = _with_defaults(
+            get_financial_health_monitoring(),
+            overall_score=100, health_score=100, collection_rate=0,
+            outstanding_amount=0, total_revenue=0, risk_indicators=[], financial_alerts=[],
+        )
+        smart_recommendations = _with_defaults(
+            get_smart_recommendations(), recommendations=[], total_recommendations=0, high_priority=0, medium_priority=0,
+        )
+        revenue_cycle = _with_defaults(
+            get_revenue_cycle_metrics(),
+            avg_collection_time=0, collection_rate=0, denial_rate=0,
+            total_claims=0, submitted=0, approved=0, rejected=0, paid=0, outstanding_amount=0,
+        )
+        erp_integration = _with_defaults(get_erp_integration_status(), status='idle', last_sync=None)
+        margin_analytics = _with_defaults(
+            get_margin_analytics(),
+            total_invoiced=0, total_revenue=0, collection_rate=0, gross_margin=0,
+        )
 
         # تحليل العملات المتعددة
         currency_breakdown = {}
@@ -159,6 +208,8 @@ def dashboard():
         
         return render_template('accountant/dashboard_new.html', stats=stats, recent_transactions=recent_transactions, debt_alerts=debt_alerts)
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         logging.error(f"Error in accountant dashboard: {str(e)}")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return render_template('accountant/dashboard_new.html', stats={}, recent_transactions=[], debt_alerts={})
