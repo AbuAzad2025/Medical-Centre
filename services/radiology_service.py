@@ -17,6 +17,48 @@ from werkzeug.utils import secure_filename
 class RadiologyService:
     """Centralized radiology business logic"""
 
+    # ==================== REQUEST CREATION ====================
+
+    @staticmethod
+    def create_request(visit_id: int, *, requested_by: int | None = None,
+                       modality: str | None = None, body_part: str | None = None,
+                       notes: str | None = None, tenant_id: int | None = None) -> tuple[bool, dict]:
+        """Create a structured RadiologyRequest from a clinician order.
+
+        P2-003: Canonical path for ordering radiology studies. Free-text notes
+        are still preserved in the linked Visit record (P2-000 contract).
+        """
+        from models.radiology_request import RadiologyRequest
+        from models.visit import Visit
+
+        visit = db.session.get(Visit, visit_id)
+        if not visit:
+            return False, {"error": "Visit not found"}
+
+        tenant_id = tenant_id or visit.tenant_id
+        now = datetime.now(timezone.utc)
+        request_number = f"RAD-{visit_id}-{int(now.timestamp())}"
+
+        rad_request = RadiologyRequest(
+            tenant_id=tenant_id,
+            visit_id=visit.id,
+            patient_id=visit.patient_id,
+            requested_by=requested_by,
+            request_number=request_number,
+            status="REQUESTED",
+            modality=(modality or '').upper() or None,
+            body_part=(body_part or '').strip() or None,
+            notes=notes or "",
+            created_at=now,
+            updated_at=now,
+        )
+        db.session.add(rad_request)
+        db.session.flush()
+        return True, {
+            "radiology_request_id": rad_request.id,
+            "request_number": request_number,
+        }
+
     # ==================== WORKLIST QUERIES ====================
 
     @staticmethod
