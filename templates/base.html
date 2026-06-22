@@ -86,7 +86,7 @@
     window.__TENANT = {
         slug: {{ (current_tenant.slug if current_tenant else 'null')|tojson }},
         name: {{ (current_tenant.name if current_tenant else 'null')|tojson }},
-        product_profile: {{ (current_tenant.product_profile_code.value if current_tenant and current_tenant.product_profile_code else 'null')|tojson }},
+        product_profile: {{ ((current_tenant.product_profile_code.value if current_tenant.product_profile_code.value is defined else current_tenant.product_profile_code) if current_tenant and current_tenant.product_profile_code else 'null')|tojson }},
         enabled_modules: {{ enabled_modules|list|tojson }},
         saas_mode: {{ 'true' if config.get('ENABLE_SAAS_MODE', False) else 'false' }}
     };

@@ -64,6 +64,15 @@ def dashboard():
         low_stock_list = Medication.query.filter(
             Medication.stock_quantity <= Medication.minimum_stock
         ).limit(10).all()
+
+        pending_prescriptions = Prescription.query.filter(
+            Prescription.status == 'active'
+        ).order_by(Prescription.created_at.desc()).limit(10).all()
+
+        recent_sales = PharmacySale.query.filter(
+            func.date(PharmacySale.created_at) == today
+        ).order_by(PharmacySale.created_at.desc()).limit(10).all()
+
         return render_template('pharmacy/dashboard_new.html',
             medications_count=total_medications,
             low_stock_count=low_stock_medications,
@@ -72,6 +81,8 @@ def dashboard():
             today_sales=float(today_sales or 0),
             month_sales=float(month_sales or 0),
             low_stock_list=low_stock_list,
+            pending_prescriptions=pending_prescriptions,
+            recent_sales=recent_sales,
         )
     except Exception as e:
         logging.error(f"Error in medication dashboard: {str(e)}", exc_info=True)
