@@ -17,7 +17,9 @@ class TenantStatus(str, Enum):
     ACTIVE = "active"
     SUSPENDED = "suspended"
     PENDING = "pending"
+    TRIAL = "trial"
     EXPIRED = "expired"
+    CANCELLED = "cancelled"
     DELETED = "deleted"
 
 class StorageMode(str, Enum):

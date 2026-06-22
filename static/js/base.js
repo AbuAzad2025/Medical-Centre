@@ -52,6 +52,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Mobile sidebar overlay toggle (Clinical Clean shell)
+    const mobileToggle = document.getElementById('mobileSidebarToggle');
+    const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    function openSidebar() {
+        if (sidebar) sidebar.classList.add('show');
+        if (sidebarOverlay) sidebarOverlay.classList.add('active');
+        document.body.classList.add('sidebar-open');
+    }
+    function closeSidebar() {
+        if (sidebar) sidebar.classList.remove('show');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+        document.body.classList.remove('sidebar-open');
+    }
+    if (mobileToggle) mobileToggle.addEventListener('click', openSidebar);
+    if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+
     // Form submit: disable button + show loading
     document.querySelectorAll('form').forEach(function(form) {
         var handled = form.hasAttribute('data-submit-handled');

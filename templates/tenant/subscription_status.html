@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}حالة الاشتراك{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col"><h4><i class="fas fa-id-card-alt me-2 text-primary"></i>حالة الاشتراك</h4></div>
+        <div class="col-auto">
+            <a href="{{ url_for('super_admin.dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> لوحة التحكم</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="mb-1">{{ tenant.name }}</h5>
+                    <p class="text-muted mb-0">{{ tenant.slug }}</p>
+                </div>
+                <span class="badge bg-{{ status_class }} fs-6">{{ status_label }}</span>
+            </div>
+            <hr>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <p class="mb-1 text-muted">الخطّة الحالية</p>
+                    <p class="fw-bold">
+                        {% if base_line %}
+                            {{ base_line.package_version.package.name }} v{{ base_line.package_version.version }}
+                        {% else %}
+                            غير محددة
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1 text-muted">نوع الفوترة</p>
+                    <p class="fw-bold">{{ base_line.billing_type or '-' }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1 text-muted">تاريخ انتهاء الفترة</p>
+                    <p class="fw-bold">{{ base_line.current_period_end or '-' }}</p>
+                </div>
+            </div>
+            {% if in_grace %}
+            <div class="alert alert-warning mt-3 mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                أنت ضمن فترة سماح حتى {{ tenant.grace_period_end }}. يرجى التجديد قبل انتهائها.
+            </div>
+            {% endif %}
+            {% if tenant.status.value in ('expired', 'cancelled') %}
+            <div class="alert alert-danger mt-3 mb-0">
+                <i class="fas fa-times-circle me-2"></i>
+                الاشتراك غير نشط. تواصل مع إدارة المنصة للتجديد.
+            </div>
+            {% endif %}
+            <div class="mt-3">
+                <a href="{{ url_for('super_admin.change_plan') }}" class="btn btn-primary"><i class="fas fa-arrow-up me-1"></i> ترقية / تغيير الخطة</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

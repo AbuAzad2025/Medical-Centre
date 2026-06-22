@@ -7,6 +7,7 @@ from flask import render_template, request, jsonify, flash, redirect, url_for
 from flask.typing import ResponseReturnValue
 from flask_login import login_required, current_user
 from utils.decorators import manager_or_admin_only, can_approve_force_payment, prevent_self_approval, role_required, role_required_json
+from app.shared.enums import VisitState
 from models.patient import Patient
 from models.visit import Visit
 from models.user import User, StaffWorkSchedule, StaffAbsence
@@ -36,9 +37,16 @@ from datetime import datetime, date, timedelta, timezone
 @role_required('manager', 'admin', 'super_admin')
 def dashboard() -> ResponseReturnValue:
     """لوحة تحكم المدير"""
-    
-    
     try:
+        # Imported here to avoid circular import during blueprint registration.
+        from routes.manager import (
+            get_smart_analytics,
+            get_business_insights,
+            get_performance_metrics,
+            get_financial_forecasting,
+            get_bi_insights,
+        )
+
         # إحصائيات أساسية عبر CoreQueryService
         base_stats = core_queries.get_basic_dashboard_stats()
         total_patients = base_stats["total_patients"]
@@ -143,7 +151,19 @@ def dashboard() -> ResponseReturnValue:
             Visit.is_force_payment == True,
             Visit.force_payment_approved_by.is_(None)
         ).count()
-        
+        pending_force_payment_list = Visit.query.filter(
+            Visit.is_force_payment == True,
+            Visit.force_payment_approved_by.is_(None)
+        ).order_by(Visit.created_at.desc()).limit(10).all()
+
+        today = date.today()
+        day_start = datetime.combine(today, datetime.min.time())
+        day_end = datetime.combine(today, datetime.max.time())
+        today_appointments = Appointment.query.filter(
+            Appointment.starts_at >= day_start,
+            Appointment.starts_at <= day_end
+        ).order_by(Appointment.starts_at.asc()).limit(15).all()
+
         stats = {
             'total_patients': total_patients,
             'new_patients_today': new_patients_today,
@@ -156,6 +176,8 @@ def dashboard() -> ResponseReturnValue:
             'active_users': active_users,
             'departments': departments,
             'pending_force_payment_approvals': pending_force_payment_approvals,
+            'pending_force_payment_list': pending_force_payment_list,
+            'today_appointments': today_appointments,
             'smart_analytics': smart_analytics,
             'business_insights': business_insights,
             'performance_metrics': performance_metrics,

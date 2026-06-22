@@ -7,8 +7,9 @@ from routes.reception import reception_bp
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import func
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from models.user import User, StaffWorkSchedule, StaffAbsence
+from app.shared.enums import VisitState, QueueState, BookingState, AppointmentState
 from models.patient import Patient
 from models.visit import Visit
 from models.appointment import Appointment
@@ -86,7 +87,16 @@ def dashboard():
         OnlineBooking.appointment_date == db.func.current_date(),
         OnlineBooking.status.in_([BookingState.PENDING, BookingState.CONFIRMED])
     ).order_by(OnlineBooking.appointment_time.asc()).limit(20).all()
-    
+
+    today = date.today()
+    day_start = datetime.combine(today, datetime.min.time())
+    day_end = datetime.combine(today, datetime.max.time())
+    today_appointments = Appointment.query.filter(
+        Appointment.starts_at >= day_start,
+        Appointment.starts_at <= day_end,
+        Appointment.status.in_([AppointmentState.SCHEDULED, AppointmentState.CONFIRMED, AppointmentState.CHECKED_IN])
+    ).order_by(Appointment.starts_at.asc()).limit(20).all()
+
     # الميزات الذكية
     smart_analytics = get_smart_queue_management()
     patient_flow = get_patient_flow_analysis()
@@ -117,6 +127,7 @@ def dashboard():
                          today_visits=today_visits,
                          today_visits_list=today_visits_list,
                          pending_appointments=pending_appointments,
+                         today_appointments=today_appointments,
                          departments=departments,
                          queue_stats=queue_stats,
                          active_queue_items=active_queue_items,

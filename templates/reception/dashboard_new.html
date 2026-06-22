@@ -69,4 +69,62 @@
         </table>
     </div>
 </div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-calendar-day me-2 text-info"></i>مواعيد اليوم</h5>
+                <a href="{{ url_for('reception.appointments') }}" class="btn btn-sm btn-outline-info">إدارة المواعيد</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead><tr><th>المريض</th><th>الطبيب</th><th>الوقت</th><th>الحالة</th></tr></thead>
+                        <tbody>
+                        {% for a in today_appointments %}
+                        <tr>
+                            <td>{{ a.patient.full_name if a.patient else '-' }}</td>
+                            <td>{{ a.doctor.full_name if a.doctor else '-' }}</td>
+                            <td class="text-muted small">{{ a.starts_at.strftime('%H:%M') if a.starts_at else '-' }}</td>
+                            <td><span class="badge bg-{% if a.status=='CHECKED_IN' %}success{% elif a.status=='CONFIRMED' %}primary{% else %}secondary{% endif %}">{{ a.status }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4"><div class="text-center text-muted py-4">لا توجد مواعيد اليوم</div></td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-list-ol me-2 text-warning"></i>الطابور النشط</h5>
+                <a href="{{ url_for('reception.queue_management') }}" class="btn btn-sm btn-outline-warning">إدارة الطابور</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead><tr><th>#</th><th>المريض</th><th>القسم</th><th>الأولوية</th><th>الحالة</th></tr></thead>
+                        <tbody>
+                        {% for q in active_queue_items %}
+                        <tr>
+                            <td>{{ q.queue_number }}</td>
+                            <td>{{ q.patient.full_name if q.patient else '-' }}</td>
+                            <td>{{ q.department.name_ar if q.department else '-' }}</td>
+                            <td><span class="badge bg-{% if q.priority_level=='urgent' %}danger{% elif q.priority_level=='high' %}warning{% else %}info{% endif %}">{{ q.get_priority_display() }}</span></td>
+                            <td><span class="badge bg-{% if q.status=='in_progress' %}primary{% elif q.status=='called' %}success{% else %}secondary{% endif %}">{{ q.status }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5"><div class="text-center text-muted py-4">لا يوجد مرضى في الطابور</div></td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

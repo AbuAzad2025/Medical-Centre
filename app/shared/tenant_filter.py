@@ -82,6 +82,13 @@ def tenant_filter_query(query):
     if tid is None:
         return query  # super-admin or single-tenant mode — skip
 
+    # SQLAlchemy disallows adding filters after LIMIT/OFFSET have been applied.
+    # Capture and temporarily remove them, inject tenant filters, then restore.
+    limit_clause = getattr(query, '_limit_clause', None)
+    offset_clause = getattr(query, '_offset_clause', None)
+    if limit_clause is not None or offset_clause is not None:
+        query = query.limit(None).offset(None)
+
     for desc in query.column_descriptions:
         entity = desc.get('entity')
         if entity is None or not isinstance(entity, type):
@@ -90,6 +97,11 @@ def tenant_filter_query(query):
             continue
         if _model_has_tenant_column(entity):
             query = query.filter(entity.tenant_id == tid)
+
+    if limit_clause is not None:
+        query = query.limit(limit_clause)
+    if offset_clause is not None:
+        query = query.offset(offset_clause)
 
     return query
 
