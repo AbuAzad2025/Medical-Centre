@@ -39,7 +39,11 @@ class Treatment(TenantMixin, db.Model):
     follow_up_date = db.Column(db.Date, nullable=True)
     follow_up_instructions = db.Column(db.Text, nullable=True)
     
-    # الفحوصات المطلوبة
+    # الفحوصات المطلوبة (free-text)
+    # P2-000: These fields are temporary/legacy. They must remain writable until
+    # P2-001 (LabRequest) and P2-003 (RadiologyRequest) vertical slices are fully
+    # rolled out. Historical values must never be deleted; new structured orders
+    # should be created in addition to, not instead of, the original text.
     requested_labs = db.Column(db.Text, nullable=True)
     requested_radiology = db.Column(db.Text, nullable=True)
     
