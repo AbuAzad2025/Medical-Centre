@@ -11,8 +11,9 @@ from models.medical_record import MedicalRecord
 from models.medication import Prescription
 from models.invoice import Invoice
 from models.payment import Payment
-from models.lab_request import LabRequest
+from models.lab_request import LabRequest, LabResult
 from models.radiology_request import RadiologyRequest
+from models.radiology_result import RadiologyResult
 from models.vaccination import Immunization
 from models.patient_satisfaction import PatientSatisfactionSurvey
 from models.online_booking import OnlineBooking
@@ -34,6 +35,47 @@ def _get_patient_from_user():
     if not hasattr(current_user, 'linked_patient_id') or not current_user.linked_patient_id:
         return None
     return Patient.query.get(current_user.linked_patient_id)
+
+
+def _patient_visible_invoice_query(patient):
+    """P0B-001B: Patient-visible invoices are DRAFT, ISSUED, or POSTED."""
+    return Invoice.query.join(Visit).filter(
+        Visit.patient_id == patient.id,
+        Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED, InvoiceStatus.POSTED])
+    )
+
+
+def _patient_visible_lab_requests(patient):
+    """P0B-001B: Lab results are visible only when APPROVED and not critical."""
+    reqs = LabRequest.query.filter(
+        LabRequest.patient_id == patient.id,
+        LabRequest.status == OrderState.APPROVED.value,
+    ).order_by(LabRequest.created_at.desc()).all()
+    return [req for req in reqs if not any(r.is_critical for r in req.results)]
+
+
+def _patient_visible_radiology_requests(patient):
+    """P0B-001B: Radiology results are visible only when DONE and not critical."""
+    reqs = RadiologyRequest.query.filter(
+        RadiologyRequest.patient_id == patient.id,
+        RadiologyRequest.status == 'DONE'
+    ).order_by(RadiologyRequest.created_at.desc()).all()
+    return [req for req in reqs if not any(r.is_critical for r in req.results)]
+
+
+def _patient_has_critical_results(patient):
+    """P0B-001B: Returns True if the patient has any critical lab/radiology result."""
+    critical_labs = LabResult.query.join(LabRequest).filter(
+        LabRequest.patient_id == patient.id,
+        LabResult.is_critical.is_(True)
+    ).count()
+    if critical_labs:
+        return True
+    critical_rads = RadiologyResult.query.join(RadiologyRequest).filter(
+        RadiologyRequest.patient_id == patient.id,
+        RadiologyResult.is_critical.is_(True)
+    ).count()
+    return critical_rads > 0
 
 @portal_bp.route('/')
 @login_required
@@ -59,22 +101,20 @@ def dashboard():
         Visit.created_at.desc()
     ).limit(5).all()
 
-    # Only statuses that currently exist in InvoiceStatus are considered.
-    # PARTIAL is intentionally not added; patient billing visibility policy
-    # is owned by P0B-001B / P3-000.
-    # Invoice links to Visit, not directly to Patient. Join through Visit.
-    open_invoices = Invoice.query.join(Visit).filter(
-        Visit.patient_id == patient.id,
-        Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
-    ).all()
+    # P0B-001B: Patient-visible invoices are DRAFT, ISSUED, or POSTED.
+    # PAID and VOID are hidden. PARTIAL is intentionally not defined here.
+    open_invoices = _patient_visible_invoice_query(patient).all()
     total_due = sum(
         (float(getattr(inv, 'total_amount', 0) or 0) - float(getattr(inv, 'paid_amount', 0) or 0))
         for inv in open_invoices
     )
 
-    # RESULTED and CRITICAL are not valid OrderState values. Fail closed
-    # until P0B-001B defines the patient result visibility policy.
-    unread_results = 0
+    # P0B-001B: Visible results = APPROVED non-critical labs + DONE non-critical radiology.
+    # Critical results are never shown in the portal.
+    visible_labs = _patient_visible_lab_requests(patient)
+    visible_rads = _patient_visible_radiology_requests(patient)
+    unread_results = len(visible_labs) + len(visible_rads)
+    critical_results = _patient_has_critical_results(patient)
 
     immunizations = Immunization.query.filter_by(patient_id=patient.id).order_by(
         Immunization.administration_date.desc()
@@ -86,6 +126,7 @@ def dashboard():
                            recent_visits=recent_visits,
                            total_due=total_due,
                            unread_results=unread_results,
+                           critical_results=critical_results,
                            immunizations=immunizations)
 
 @portal_bp.route('/appointments')
@@ -163,9 +204,7 @@ def lab_results():
     patient = _get_patient_from_user()
     if not patient:
         return redirect(url_for('portal.index'))
-    requests = LabRequest.query.filter_by(patient_id=patient.id).order_by(
-        LabRequest.created_at.desc()
-    ).limit(50).all()
+    requests = _patient_visible_lab_requests(patient)[:50]
     return render_template('portal/lab_results.html', patient=patient, lab_requests=requests)
 
 @portal_bp.route('/radiology-results')
@@ -174,9 +213,7 @@ def radiology_results():
     patient = _get_patient_from_user()
     if not patient:
         return redirect(url_for('portal.index'))
-    requests = RadiologyRequest.query.filter_by(patient_id=patient.id).order_by(
-        RadiologyRequest.created_at.desc()
-    ).limit(50).all()
+    requests = _patient_visible_radiology_requests(patient)[:50]
     return render_template('portal/radiology_results.html', patient=patient, radiology_requests=requests)
 
 @portal_bp.route('/bills')
@@ -185,7 +222,7 @@ def bills():
     patient = _get_patient_from_user()
     if not patient:
         return redirect(url_for('portal.index'))
-    invoices = Invoice.query.filter_by(patient_id=patient.id).order_by(
+    invoices = _patient_visible_invoice_query(patient).order_by(
         Invoice.created_at.desc()
     ).limit(50).all()
     payments = Payment.query.filter_by(patient_id=patient.id).order_by(

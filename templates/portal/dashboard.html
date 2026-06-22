@@ -1,6 +1,11 @@
 {% extends "portal/base.html" %}
 {% block title %}الرئيسية{% endblock %}
 {% block content %}
+{% if critical_results %}
+<div class="alert alert-warning" role="alert">
+  <strong>نتيجة تتطلب متابعة سريرية:</strong> سيتواصل معكم الفريق الطبي قريباً. لا تُعرض التفاصيل في البوابة.
+</div>
+{% endif %}
 <div class="row g-3">
   <div class="col-md-3">
     <div class="portal-card p-3 text-center">

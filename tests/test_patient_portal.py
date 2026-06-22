@@ -1,12 +1,15 @@
-"""Tests for P0B-001A: patient portal crash containment."""
+"""Tests for P0B-001A/B: patient portal crash containment and visibility policy."""
 
 import pytest
 import uuid
 
 from app_factory import db as _db
-from app.shared.enums import InvoiceStatus
+from app.shared.enums import InvoiceStatus, OrderState
 from models.invoice import Invoice
+from models.lab_request import LabRequest, LabResult
 from models.patient import Patient
+from models.radiology_request import RadiologyRequest
+from models.radiology_result import RadiologyResult
 from models.user import User
 from models.visit import Visit
 
@@ -93,8 +96,8 @@ class TestPatientPortalDashboard:
 
         resp = portal_auth_client.get('/portal/dashboard')
         assert resp.status_code == 200
-        # DRAFT 100 + ISSUED 150 = 250; POSTED and PAID must be excluded.
-        assert b'250.00' in resp.data or b'250' in resp.data
+        # P0B-001B: DRAFT 100 + ISSUED 150 + POSTED 300 = 550; PAID excluded.
+        assert b'550.00' in resp.data or b'550' in resp.data
 
     def test_total_due_computed_from_total_minus_paid(self, portal_auth_client, portal_patient, portal_visit, test_tenant, monkeypatch):
         from routes import patient_portal
@@ -126,3 +129,131 @@ class TestPatientPortalDashboard:
         assert resp.status_code == 200
         # RESULTED/CRITICAL do not exist, so unread_results fails closed to 0.
         assert b'0' in resp.data
+
+    def test_unread_lab_results_only_includes_approved_non_critical(
+        self, portal_auth_client, portal_patient, portal_visit, test_tenant, monkeypatch
+    ):
+        from routes import patient_portal
+        monkeypatch.setattr(
+            patient_portal, '_get_patient_from_user', lambda: portal_patient
+        )
+
+        visible = LabRequest(
+            tenant_id=test_tenant.id,
+            visit_id=portal_visit.id,
+            patient_id=portal_patient.id,
+            status=OrderState.APPROVED.value,
+        )
+        hidden_reviewed = LabRequest(
+            tenant_id=test_tenant.id,
+            visit_id=portal_visit.id,
+            patient_id=portal_patient.id,
+            status=OrderState.REVIEWED.value,
+        )
+        hidden_critical = LabRequest(
+            tenant_id=test_tenant.id,
+            visit_id=portal_visit.id,
+            patient_id=portal_patient.id,
+            status=OrderState.APPROVED.value,
+        )
+        _db.session.add_all([visible, hidden_reviewed, hidden_critical])
+        _db.session.flush()
+        _db.session.add(LabResult(
+            tenant_id=test_tenant.id,
+            request_id=visible.id,
+            patient_id=portal_patient.id,
+            test_code='T1',
+            test_name='Test',
+            is_critical=False,
+        ))
+        _db.session.add(LabResult(
+            tenant_id=test_tenant.id,
+            request_id=hidden_critical.id,
+            patient_id=portal_patient.id,
+            test_code='T2',
+            test_name='Test Critical',
+            is_critical=True,
+        ))
+        _db.session.commit()
+
+        resp = portal_auth_client.get('/portal/dashboard')
+        assert resp.status_code == 200
+        assert b'1' in resp.data
+
+    def test_unread_radiology_results_only_includes_done_non_critical(
+        self, portal_auth_client, portal_patient, portal_visit, test_tenant, monkeypatch
+    ):
+        from routes import patient_portal
+        monkeypatch.setattr(
+            patient_portal, '_get_patient_from_user', lambda: portal_patient
+        )
+
+        done_visible = RadiologyRequest(
+            tenant_id=test_tenant.id,
+            visit_id=portal_visit.id,
+            patient_id=portal_patient.id,
+            status='DONE',
+        )
+        done_critical = RadiologyRequest(
+            tenant_id=test_tenant.id,
+            visit_id=portal_visit.id,
+            patient_id=portal_patient.id,
+            status='DONE',
+        )
+        in_progress = RadiologyRequest(
+            tenant_id=test_tenant.id,
+            visit_id=portal_visit.id,
+            patient_id=portal_patient.id,
+            status='IN_PROGRESS',
+        )
+        _db.session.add_all([done_visible, done_critical, in_progress])
+        _db.session.flush()
+        _db.session.add(RadiologyResult(
+            tenant_id=test_tenant.id,
+            request_id=done_visible.id,
+            patient_id=portal_patient.id,
+            findings='Normal',
+            is_critical=False,
+        ))
+        _db.session.add(RadiologyResult(
+            tenant_id=test_tenant.id,
+            request_id=done_critical.id,
+            patient_id=portal_patient.id,
+            findings='Critical',
+            is_critical=True,
+        ))
+        _db.session.commit()
+
+        resp = portal_auth_client.get('/portal/dashboard')
+        assert resp.status_code == 200
+        assert b'1' in resp.data
+
+    def test_critical_results_flag_shown(
+        self, portal_auth_client, portal_patient, portal_visit, test_tenant, monkeypatch
+    ):
+        from routes import patient_portal
+        monkeypatch.setattr(
+            patient_portal, '_get_patient_from_user', lambda: portal_patient
+        )
+
+        critical_lab = LabRequest(
+            tenant_id=test_tenant.id,
+            visit_id=portal_visit.id,
+            patient_id=portal_patient.id,
+            status=OrderState.APPROVED.value,
+        )
+        _db.session.add(critical_lab)
+        _db.session.flush()
+        _db.session.add(LabResult(
+            tenant_id=test_tenant.id,
+            request_id=critical_lab.id,
+            patient_id=portal_patient.id,
+            test_code='T',
+            test_name='Critical Test',
+            is_critical=True,
+        ))
+        _db.session.commit()
+
+        resp = portal_auth_client.get('/portal/dashboard')
+        assert resp.status_code == 200
+        assert 'متابعة سريرية'.encode('utf-8') in resp.data
