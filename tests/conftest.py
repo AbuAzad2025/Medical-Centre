@@ -50,6 +50,18 @@ def app():
             _db.session.execute(text(
                 'ALTER TABLE pharmacy_sales ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(80)'
             ))
+            # SaaS S0-003: exclusion constraint (not created by db.create_all)
+            _db.session.execute(text('CREATE EXTENSION IF NOT EXISTS btree_gist'))
+            _db.session.execute(text(
+                'ALTER TABLE subscription_lines DROP CONSTRAINT IF EXISTS subscription_lines_no_base_overlap'
+            ))
+            _db.session.execute(text(
+                "ALTER TABLE subscription_lines ADD CONSTRAINT subscription_lines_no_base_overlap "
+                "EXCLUDE USING gist ("
+                "tenant_id WITH =, "
+                "tstzrange(effective_from, COALESCE(effective_to, 'infinity'::timestamptz), '[)') WITH &&"
+                ") WHERE (line_type = 'base' AND status IN ('scheduled', 'active'))"
+            ))
             _db.session.commit()
         except Exception:
             _db.session.rollback()
