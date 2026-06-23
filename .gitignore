@@ -67,7 +67,7 @@ audit_reports/
 htmlcov/
 coverage.json
 
-# Local SQLite databases (keep names explicit)
+# Local SQLite databases
 tmp_*.db
 local_*.db
 medical_system.db
