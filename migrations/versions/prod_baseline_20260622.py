@@ -3966,7 +3966,6 @@ def upgrade():
     sa.ForeignKeyConstraint(['created_by'], ['users.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['debt_approved_by'], ['users.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['patient_id'], ['patients.id'], ),
-    sa.ForeignKeyConstraint(['payment_id'], ['payments.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['printed_by'], ['users.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['visit_id'], ['visits.id'], ),
@@ -4002,7 +4001,6 @@ def upgrade():
     sa.Column('executed_at', sa.DateTime(), nullable=True),
     sa.Column('notes', sa.Text(), nullable=True),
     sa.Column('tenant_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['payment_id'], ['payments.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['requested_by'], ['users.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['approved_by'], ['users.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['executed_by'], ['users.id'], ondelete='SET NULL'),
@@ -4790,6 +4788,20 @@ def upgrade():
         batch_op.create_index(batch_op.f('ix_payments_status'), ['status'], unique=False)
         batch_op.create_index(batch_op.f('ix_payments_tenant_id'), ['tenant_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_payments_visit_id'), ['visit_id'], unique=False)
+
+    # payments must exist before FKs from receipts / refund_requests
+    op.create_foreign_key(
+        'fk_receipts_payment_id_payments',
+        'receipts', 'payments',
+        ['payment_id'], ['id'],
+        ondelete='SET NULL',
+    )
+    op.create_foreign_key(
+        'fk_refund_requests_payment_id_payments',
+        'refund_requests', 'payments',
+        ['payment_id'], ['id'],
+        ondelete='CASCADE',
+    )
 
     op.create_table('pharmacy_sales',
     sa.Column('id', sa.Integer(), nullable=False),

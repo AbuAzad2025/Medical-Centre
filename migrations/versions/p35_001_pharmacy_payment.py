@@ -6,8 +6,8 @@ Revises: p11_001_user_preferences
 from alembic import op
 import sqlalchemy as sa
 
-import sys
 import os
+import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from migration_utils import column_exists
 
