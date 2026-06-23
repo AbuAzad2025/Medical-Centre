@@ -1,35 +1,11 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}مراقبة المرضى{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-heartbeat me-2"></i>
-                                مراقبة المرضى
-                            </h2>
-                            <p class="text-muted mb-0">مرحباً {{ current_user.full_name }}</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left me-1"></i>
-                                    العودة للوحة التحكم
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('مراقبة المرضى', subtitle='مرحباً ' ~ current_user.full_name, icon='fas fa-heartbeat', actions=[{'label': 'العودة للوحة التحكم', 'icon': 'fas fa-arrow-left', 'url': url_for('nurse.dashboard'), 'style': 'secondary'}]) }}
 
     <!-- Patient Monitoring -->
     <div class="row">

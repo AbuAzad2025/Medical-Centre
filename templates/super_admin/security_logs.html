@@ -1,39 +1,14 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}سجلات الأمان - السوبر أدمن{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-shield-alt me-2"></i>
-                                سجلات الأمان
-                            </h2>
-                            <p class="text-muted mb-0">مراقبة شاملة لأحداث الأمان</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary" data-action="refresh-logs">
-                                    <i class="fas fa-sync-alt me-1"></i>
-                                    تحديث
-                                </button>
-                                <button class="btn btn-success" data-action="export-logs">
-                                    <i class="fas fa-download me-1"></i>
-                                    تصدير السجلات
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('سجلات الأمان', subtitle='مراقبة شاملة لأحداث الأمان', icon='fas fa-shield-alt', actions=[
+        {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-logs', 'style': 'primary'},
+        {'type': 'button', 'label': 'تصدير السجلات', 'icon': 'fas fa-download', 'data_action': 'export-logs', 'style': 'success'}
+    ]) }}
 
     <!-- Security Overview -->
     <div class="row mb-4">

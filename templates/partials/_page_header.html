@@ -22,7 +22,10 @@
         {% for action in actions %}
             {% if action.type == 'button' %}
             <button type="button" class="btn btn-{{ action.style|default('primary') }} btn-sm"
-                {% if action.data_action %}data-action="{{ action.data_action }}"{% endif %}>
+                {% if action.id %}id="{{ action.id }}"{% endif %}
+                {% if action.data_action %}data-action="{{ action.data_action }}"{% endif %}
+                {% if action.data_bs_toggle %}data-bs-toggle="{{ action.data_bs_toggle }}"{% endif %}
+                {% if action.data_bs_target %}data-bs-target="{{ action.data_bs_target }}"{% endif %}>
                 {% if action.icon %}<i class="{{ action.icon }} me-1" aria-hidden="true"></i>{% endif %}{{ action.label }}
             </button>
             {% else %}

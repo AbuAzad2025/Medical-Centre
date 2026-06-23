@@ -1,25 +1,14 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}صلاحيات الأقسام{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body d-flex justify-content-between align-items-center">
-          <div>
-            <h2 class="mb-1 text-primary"><i class="fas fa-building me-2"></i>صلاحيات الأقسام</h2>
-            <div class="text-muted">الدور: <strong>{{ role.display_name or role.name_ar or role.name }}</strong></div>
-          </div>
-          <div class="d-flex gap-2">
-            <a href="{{ url_for('super_admin.manage_role_permissions', role_id=role.id) }}" class="btn btn-outline-primary">صلاحيات عامة</a>
-            <a href="{{ url_for('super_admin.roles') }}" class="btn btn-secondary">رجوع</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  {{ page_header('صلاحيات الأقسام', subtitle='الدور: ' ~ (role.display_name or role.name_ar or role.name), icon='fas fa-building', actions=[
+    {'label': 'صلاحيات عامة', 'url': url_for('super_admin.manage_role_permissions', role_id=role.id), 'style': 'outline-primary'},
+    {'label': 'رجوع', 'url': url_for('super_admin.roles'), 'style': 'secondary'}
+  ]) }}
 
   <form method="POST" class="card border-0 shadow-sm">
     <div class="card-body">

@@ -1,44 +1,16 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 {% from 'partials/_payment_status_badge.html' import payment_status_badge %}
 
 {% block title %}إدارة المدفوعات{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-credit-card me-2"></i>
-                                إدارة المدفوعات
-                            </h2>
-                            <p class="text-muted mb-0">مرحباً {{ current_user.full_name }}</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <a href="{{ url_for('accountant.dashboard') }}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left me-1"></i>
-                                    العودة للوحة التحكم
-                                </a>
-                                <a href="{{ url_for('accountant.daily_audit_report') }}" class="btn btn-outline-primary">
-                                    <i class="fas fa-calendar-day me-1"></i>
-                                    إقفال اليوم
-                                </a>
-                                <a href="{{ url_for('accountant.debt_tracking_report') }}" class="btn btn-outline-danger">
-                                    <i class="fas fa-hand-holding-usd me-1"></i>
-                                    الديون
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('إدارة المدفوعات', subtitle='مرحباً ' ~ current_user.full_name, icon='fas fa-credit-card', actions=[
+        {'label': 'العودة للوحة التحكم', 'icon': 'fas fa-arrow-left', 'url': url_for('accountant.dashboard'), 'style': 'secondary'},
+        {'label': 'إقفال اليوم', 'icon': 'fas fa-calendar-day', 'url': url_for('accountant.daily_audit_report'), 'style': 'outline-primary'},
+        {'label': 'الديون', 'icon': 'fas fa-hand-holding-usd', 'url': url_for('accountant.debt_tracking_report'), 'style': 'outline-danger'}
+    ]) }}
 
     <!-- Payment Management -->
     <div class="row">

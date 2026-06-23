@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}
 {% if radiology_request %}
@@ -11,35 +12,10 @@
 {% block content %}
 <div class="container-fluid">
     {% if radiology_request %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-x-ray me-2"></i>
-                                إدخال تقرير الأشعة
-                            </h2>
-                            <div class="text-muted">
-                                {{ radiology_request.patient.full_name }} — طلب رقم: {{ radiology_request.request_number or radiology_request.id }}
-                            </div>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <a href="{{ url_for('radiology.worklist') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-right me-1"></i>
-                                العودة للطابور
-                            </a>
-                            <a href="{{ url_for('radiology.print_report', radiology_scan_id=radiology_request.id) }}" class="btn btn-primary" target="_blank">
-                                <i class="fas fa-print me-1"></i>
-                                طباعة
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('إدخال تقرير الأشعة', subtitle=radiology_request.patient.full_name ~ ' — طلب رقم: ' ~ (radiology_request.request_number or radiology_request.id), icon='fas fa-x-ray', actions=[
+        {'label': 'العودة للطابور', 'icon': 'fas fa-arrow-right', 'url': url_for('radiology.worklist'), 'style': 'secondary'},
+        {'label': 'طباعة', 'icon': 'fas fa-print', 'url': url_for('radiology.print_report', radiology_scan_id=radiology_request.id), 'style': 'primary'}
+    ]) }}
 
     <div class="row mb-4">
         <div class="col-12">
@@ -438,29 +414,12 @@
         </script>
 <script src="{{ url_for('static', filename='js/pages/radiology/process.js') }}"></script>
     {% else %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-x-ray me-2"></i>
-                                قائمة عمل الأشعة
-                            </h2>
-                            <div class="text-muted">طلبات الأشعة حسب الحالة</div>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <a class="btn btn-outline-primary" href="{{ url_for('radiology.worklist', status='REQUESTED') }}">قيد الطلب ({{ counts.requested if counts else 0 }})</a>
-                            <a class="btn btn-outline-warning" href="{{ url_for('radiology.worklist', status='IN_PROGRESS') }}">قيد التنفيذ ({{ counts.in_progress if counts else 0 }})</a>
-                            <a class="btn btn-outline-success" href="{{ url_for('radiology.worklist', status='DONE_TODAY') }}">مكتمل اليوم ({{ counts.done_today if counts else 0 }})</a>
-                            <a class="btn btn-secondary" href="{{ url_for('radiology.dashboard') }}">لوحة الأشعة</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('قائمة عمل الأشعة', subtitle='طلبات الأشعة حسب الحالة', icon='fas fa-x-ray', actions=[
+        {'label': 'قيد الطلب (' ~ (counts.requested if counts else 0) ~ ')', 'url': url_for('radiology.worklist', status='REQUESTED'), 'style': 'outline-primary'},
+        {'label': 'قيد التنفيذ (' ~ (counts.in_progress if counts else 0) ~ ')', 'url': url_for('radiology.worklist', status='IN_PROGRESS'), 'style': 'outline-warning'},
+        {'label': 'مكتمل اليوم (' ~ (counts.done_today if counts else 0) ~ ')', 'url': url_for('radiology.worklist', status='DONE_TODAY'), 'style': 'outline-success'},
+        {'label': 'لوحة الأشعة', 'url': url_for('radiology.dashboard'), 'style': 'secondary'}
+    ]) }}
 
     <div class="row">
         <div class="col-12">

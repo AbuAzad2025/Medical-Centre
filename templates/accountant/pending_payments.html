@@ -1,40 +1,15 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 {% from 'partials/_payment_status_badge.html' import payment_status_badge %}
 
 {% block title %}الفواتير المعلقة{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-money-bill-wave me-2"></i>
-                                الفواتير المعلقة
-                            </h2>
-                            <p class="text-muted mb-0">المرضى الذين يحتاجون دفع</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <a href="{{ url_for('accountant.dashboard') }}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-right me-1"></i>
-                                    العودة للوحة التحكم
-                                </a>
-                                <button class="btn btn-primary" data-action="refresh-page">
-                                    <i class="fas fa-sync me-1"></i>
-                                    تحديث
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('الفواتير المعلقة', subtitle='المرضى الذين يحتاجون دفع', icon='fas fa-money-bill-wave', actions=[
+        {'label': 'العودة للوحة التحكم', 'icon': 'fas fa-arrow-right', 'url': url_for('accountant.dashboard'), 'style': 'secondary'},
+        {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync', 'data_action': 'refresh-page', 'style': 'primary'}
+    ]) }}
 
     <!-- Summary Cards -->
     <div class="row mb-4">

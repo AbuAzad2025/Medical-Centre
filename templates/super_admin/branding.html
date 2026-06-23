@@ -1,39 +1,14 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}إدارة العلامة التجارية - السوبر أدمن{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-palette me-2"></i>
-                                إدارة العلامة التجارية
-                            </h2>
-                            <p class="text-muted mb-0">تخصيص مظهر النظام والعلامة التجارية</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary" onclick="saveBranding()">
-                                    <i class="fas fa-save me-1"></i>
-                                    حفظ التغييرات
-                                </button>
-                                <button class="btn btn-secondary" onclick="resetBranding()">
-                                    <i class="fas fa-undo me-1"></i>
-                                    إعادة تعيين
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('إدارة العلامة التجارية', subtitle='تخصيص مظهر النظام والعلامة التجارية', icon='fas fa-palette', actions=[
+        {'type': 'button', 'label': 'حفظ التغييرات', 'icon': 'fas fa-save', 'data_action': 'saveBranding', 'style': 'primary'},
+        {'type': 'button', 'label': 'إعادة تعيين', 'icon': 'fas fa-undo', 'data_action': 'resetBranding', 'style': 'secondary'}
+    ]) }}
 
     <!-- Branding Overview -->
     <div class="row mb-4">

@@ -1,39 +1,14 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}فرز المريض - {{ visit.patient.full_name }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-sort-amount-down me-2"></i>
-                                فرز المريض (Triage)
-                            </h2>
-                            <p class="text-muted mb-0">{{ visit.patient.full_name }} - رقم الزيارة: {{ visit.visit_id_number or visit.id }}</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <a href="{{ url_for('emergency.patient_queue') }}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-right me-1"></i>
-                                    العودة للطوارئ
-                                </a>
-                                <button class="btn btn-primary" onclick="window.print()">
-                                    <i class="fas fa-print me-1"></i>
-                                    طباعة
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('فرز المريض (Triage)', subtitle=visit.patient.full_name ~ ' - رقم الزيارة: ' ~ (visit.visit_id_number or visit.id), icon='fas fa-sort-amount-down', actions=[
+        {'label': 'العودة للطوارئ', 'icon': 'fas fa-arrow-right', 'url': url_for('emergency.patient_queue'), 'style': 'secondary'},
+        {'type': 'button', 'label': 'طباعة', 'icon': 'fas fa-print', 'data_action': 'print', 'style': 'primary'}
+    ]) }}
 
     <!-- Triage Form -->
     <div class="row">

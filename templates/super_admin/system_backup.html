@@ -1,39 +1,14 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}النسخ الاحتياطية - السوبر أدمن{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-archive me-2"></i>
-                                النسخ الاحتياطية
-                            </h2>
-                            <p class="text-muted mb-0">إدارة شاملة للنسخ الاحتياطية</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary" data-action="create-backup">
-                                    <i class="fas fa-plus me-1"></i>
-                                    إنشاء نسخة احتياطية
-                                </button>
-                                <button class="btn btn-success" data-action="schedule-backup">
-                                    <i class="fas fa-clock me-1"></i>
-                                    جدولة نسخة احتياطية
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('النسخ الاحتياطية', subtitle='إدارة شاملة للنسخ الاحتياطية', icon='fas fa-archive', actions=[
+        {'type': 'button', 'label': 'إنشاء نسخة احتياطية', 'icon': 'fas fa-plus', 'data_action': 'create-backup', 'style': 'primary'},
+        {'type': 'button', 'label': 'جدولة نسخة احتياطية', 'icon': 'fas fa-clock', 'data_action': 'schedule-backup', 'style': 'success'}
+    ]) }}
 
     <!-- Backup Status -->
     <div class="row mb-4">

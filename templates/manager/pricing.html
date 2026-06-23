@@ -1,41 +1,13 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}إدارة الأسعار - المدير{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-dollar-sign me-2"></i>
-                                إدارة الأسعار والتسعير
-                            </h2>
-                            <p class="text-muted mb-0">إدارة شاملة لأسعار الخدمات الطبية وقواعد التسعير لكافة أقسام المركز</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2 justify-content-end">
-                                <button class="btn btn-primary" onclick="openAddModal()">
-                                    <i class="fas fa-plus me-1"></i>
-                                    إضافة خدمة جديدة
-                                </button>
-                                <!--
-                                <button class="btn btn-success" onclick="exportPricing()">
-                                    <i class="fas fa-file-excel me-1"></i>
-                                    تصدير الأسعار
-                                </button>
-                                -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('إدارة الأسعار والتسعير', subtitle='إدارة شاملة لأسعار الخدمات الطبية وقواعد التسعير لكافة أقسام المركز', icon='fas fa-dollar-sign', actions=[
+        {'type': 'button', 'label': 'إضافة خدمة جديدة', 'icon': 'fas fa-plus', 'data_action': 'open-add-modal', 'style': 'primary'}
+    ]) }}
 
     <!-- Pricing Categories Stats -->
     <div class="row mb-4">

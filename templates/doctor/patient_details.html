@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}تفاصيل المريض - {{ visit.patient.full_name }}{% endblock %}
 
@@ -12,45 +13,12 @@
     {{ patient_context_panel(visit.patient) }}
     {{ workflow_next_actions(visit) }}
 
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-user-injured me-2"></i>
-                                شاشة الزيارة
-                            </h2>
-                            <p class="text-muted mb-0">
-                                {{ visit.patient.full_name }} - رقم الزيارة: {{ visit.visit_number or visit.id }}
-                            </p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left me-1"></i>
-                                    العودة للطابور
-                                </a>
-                                <a href="{{ url_for('doctor.patient_timeline', patient_id=visit.patient_id) }}" class="btn btn-outline-primary">
-                                    <i class="fas fa-stream me-1"></i>
-                                    الخط الزمني
-                                </a>
-                                <a href="{{ url_for('doctor.diagnosis', visit_id=visit.id) }}" class="btn btn-primary">
-                                    <i class="fas fa-stethoscope me-1"></i>
-                                    التشخيص
-                                </a>
-                                <a href="{{ url_for('doctor.dental_chart', patient_id=visit.patient_id) }}" class="btn btn-info">
-                                    <i class="fas fa-tooth me-1"></i>
-                                    خريطة الأسنان
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('شاشة الزيارة', subtitle=(visit.patient.full_name ~ ' - رقم الزيارة: ' ~ (visit.visit_number or visit.id)), icon='fas fa-user-injured', actions=[
+        {'label': 'العودة للطابور', 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.patient_queue'), 'style': 'secondary'},
+        {'label': 'الخط الزمني', 'icon': 'fas fa-stream', 'url': url_for('doctor.patient_timeline', patient_id=visit.patient_id), 'style': 'outline-primary'},
+        {'label': 'التشخيص', 'icon': 'fas fa-stethoscope', 'url': url_for('doctor.diagnosis', visit_id=visit.id), 'style': 'primary'},
+        {'label': 'خريطة الأسنان', 'icon': 'fas fa-tooth', 'url': url_for('doctor.dental_chart', patient_id=visit.patient_id), 'style': 'info'}
+    ]) }}
 
     {% if patient_allergies and patient_allergies|length > 0 %}
     <div class="row mb-4">

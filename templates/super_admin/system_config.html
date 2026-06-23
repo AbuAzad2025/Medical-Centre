@@ -1,39 +1,14 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}إعدادات النظام - السوبر أدمن{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-cogs me-2"></i>
-                                إعدادات النظام
-                            </h2>
-                            <p class="text-muted mb-0">إدارة شاملة لإعدادات النظام</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary" onclick="saveSettings()">
-                                    <i class="fas fa-save me-1"></i>
-                                    حفظ الإعدادات
-                                </button>
-                                <button class="btn btn-secondary" onclick="resetSettings()">
-                                    <i class="fas fa-undo me-1"></i>
-                                    إعادة تعيين
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('إعدادات النظام', subtitle='إدارة شاملة لإعدادات النظام', icon='fas fa-cogs', actions=[
+        {'type': 'button', 'label': 'حفظ الإعدادات', 'icon': 'fas fa-save', 'data_action': 'saveSettings', 'style': 'primary'},
+        {'type': 'button', 'label': 'إعادة تعيين', 'icon': 'fas fa-undo', 'data_action': 'resetSettings', 'style': 'secondary'}
+    ]) }}
 
     <!-- System Settings Tabs -->
     <div class="row">
