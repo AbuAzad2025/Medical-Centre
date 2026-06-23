@@ -449,6 +449,17 @@ def create_app(config_name: str | None = None) -> Flask:
                 'FLASK_ENV': 'production',
             }
 
+    @app.context_processor
+    def inject_user_preferences():
+        try:
+            from flask_login import current_user
+            from app.shared.user_preferences import get_user_preferences
+            if current_user.is_authenticated:
+                return {'user_preferences': get_user_preferences(current_user)}
+        except Exception:
+            pass
+        return {'user_preferences': {'theme': 'light'}}
+
     # تسجيل الـ blueprints المتاحة فقط
     from routes.main import main_bp
     from routes.auth_routes import auth_bp
@@ -599,6 +610,8 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(api_search_bp, url_prefix='/api/search')
     from routes.api_dashboard import api_dashboard_bp
     app.register_blueprint(api_dashboard_bp, url_prefix='/api/dashboard')
+    from routes.api_user import api_user_bp
+    app.register_blueprint(api_user_bp, url_prefix='/api/user')
     app.register_blueprint(owner_bp, url_prefix='/owner')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(super_admin_bp, url_prefix='/super-admin')

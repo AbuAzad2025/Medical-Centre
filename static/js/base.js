@@ -145,8 +145,9 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         e.preventDefault();
         const target = document.querySelector(this.getAttribute('href'));
         if (target) {
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             target.scrollIntoView({
-                behavior: 'smooth',
+                behavior: reduced ? 'auto' : 'smooth',
                 block: 'start'
             });
         }
@@ -155,7 +156,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 try {
     var theme = localStorage.getItem('theme');
-    if (theme) document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
     var density = localStorage.getItem('ui_density');
     if (density) document.documentElement.setAttribute('data-density', density);
     var radius = localStorage.getItem('ui_radius');
@@ -163,6 +164,8 @@ try {
 } catch (e) {}
 
 window.addEventListener('load', function() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (typeof gsap === 'undefined') return;
     gsap.from('.card-modern', {
         duration: 0.8,
         y: 50,

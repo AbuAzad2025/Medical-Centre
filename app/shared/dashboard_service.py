@@ -18,17 +18,11 @@ def _enabled_modules() -> set:
 
 
 def _user_hidden_widgets(user) -> set:
-    prefs = getattr(user, 'preferences', None)
-    if isinstance(prefs, dict):
-        dash = prefs.get('dashboard') or {}
+    from app.shared.user_preferences import get_user_preferences
+    prefs = get_user_preferences(user)
+    dash = prefs.get('dashboard') or {}
+    if isinstance(dash, dict):
         return set(dash.get('hidden_widgets') or [])
-    if isinstance(prefs, str):
-        try:
-            import json
-            data = json.loads(prefs)
-            return set((data.get('dashboard') or {}).get('hidden_widgets') or [])
-        except Exception:
-            pass
     return set()
 
 

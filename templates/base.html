@@ -47,6 +47,14 @@
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="app-env" content="{{ APP_ENV or 'development' }}">
+    <script>window.__USER_PREFS__ = {{ user_preferences|default({'theme': 'light'})|tojson }};</script>
+    <script>
+    (function () {
+      var t = (window.__USER_PREFS__ && window.__USER_PREFS__.theme) || null;
+      try { if (!t) t = localStorage.getItem('theme'); } catch (e) {}
+      if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+    </script>
     <link rel="icon" href="{{ url_for('static', filename='img/azad_logo.png') }}" type="image/png">
     
     {% block extra_css %}{% endblock %}
@@ -87,6 +95,7 @@
     <script src="{{ url_for('static', filename='js/performance.js') }}"></script>
     <script src="{{ url_for('static', filename='js/security.js') }}"></script>
     <script src="{{ url_for('static', filename='js/form-validation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
     <script>
     window.__TENANT = {
         slug: {{ (current_tenant.slug if current_tenant else 'null')|tojson }},

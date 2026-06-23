@@ -44,6 +44,7 @@ class User(TenantMixin, UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True, index=True)
     is_admin = db.Column(db.Boolean, default=False, index=True)
     digital_signature = db.Column(db.Text, nullable=True)
+    preferences = db.Column(db.JSON, nullable=True)
 
     last_login = db.Column(db.DateTime, nullable=True)
     session_version = db.Column(db.Integer, default=0, nullable=False, index=True)
