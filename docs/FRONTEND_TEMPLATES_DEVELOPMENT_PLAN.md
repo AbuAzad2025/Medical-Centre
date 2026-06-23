@@ -4239,17 +4239,17 @@ flowchart TD
 
 ---
 
-#### مرحلة 11 — تفضيلات المستخدم + وضع ليلي
+#### مرحلة 11 — تفضيلات المستخدم + وضع ليلي ✅ (MVP 2026-06-23)
 
 | | |
 |--|--|
-| **النواقص** | G-61, G-63, G-64 |
-| **المراجع** | §19, §20 |
+| **الحالة** | ✅ theme + `users.preferences` + هجرة `p11_001` |
+| **متبقي** | تخصيص widgets؛ density/radius UI |
 
 **Gate 11:**
-- [ ] زر navbar يبدّل dark/light
-- [ ] `User.preferences` يبقى بعد re-login
-- [ ] `prefers-reduced-motion` لا يُكسر
+- [x] زر navbar يبدّل dark/light
+- [x] `User.preferences` يبقى بعد re-login (مُختبر على DB)
+- [x] `prefers-reduced-motion` لا يُكسر GSAP/scroll
 
 ---
 
