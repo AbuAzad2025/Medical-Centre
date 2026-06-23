@@ -121,6 +121,14 @@ ENUM_LABELS_AR: dict[str, dict[str, str]] = {
         'cancelled': 'ملغاة',
         'expired': 'منتهية',
     },
+    'LabResultStatus': {
+        'PENDING': 'معلق',
+        'READY': 'جاهز',
+        'VALIDATED': 'مُعتمد',
+        'pending': 'معلق',
+        'ready': 'جاهز',
+        'validated': 'مُعتمد',
+    },
     'BillingState': {
         'PENDING': 'قيد الانتظار',
         'PAID': 'مدفوع',

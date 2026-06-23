@@ -82,6 +82,52 @@ class TestPrescriptionPrintBranding:
         assert 'print-doc--prescription' in html
 
 
+class TestLabResultPrintTemplate:
+    def test_lab_result_uses_print_shell_and_localizes_status(self, app):
+        with app.app_context():
+            from flask import render_template
+            from types import SimpleNamespace
+
+            lab_request = SimpleNamespace(
+                id=7,
+                request_number='LAB-7',
+                status='DONE',
+                notes='فحص دوري',
+                created_at=datetime.now(timezone.utc),
+                completed_at=datetime.now(timezone.utc),
+                patient=SimpleNamespace(
+                    full_name='مريض مختبر',
+                    national_id='999',
+                    phone='0599111222',
+                ),
+                requester=SimpleNamespace(full_name='د. سارة'),
+                results=[
+                    SimpleNamespace(
+                        test_name='CBC',
+                        value='5.2',
+                        unit='10^9/L',
+                        reference_range='4-11',
+                        status='VALIDATED',
+                        performer=SimpleNamespace(full_name='فني المختبر'),
+                    ),
+                ],
+            )
+            html = render_template(
+                'print/lab_result.html',
+                lab_request=lab_request,
+                qr_data_uri=None,
+                age_years=30,
+                printed_at='2026-06-23 22:30',
+            )
+        assert 'print-doc--lab_result' in html
+        assert 'print.css' in html
+        assert 'مريض مختبر' in html
+        assert 'منتهٍ' in html  # OrderState.DONE localized
+        assert 'مُعتمد' in html  # LabResultStatus.VALIDATED localized
+        assert 'DONE' not in html
+        assert 'VALIDATED' not in html
+
+
 class TestPharmacySalePrintRoute:
     def test_print_route_renders_print_shell(self, auth_client, test_medications):
         med = test_medications[0]

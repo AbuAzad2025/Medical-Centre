@@ -65,7 +65,7 @@ def print_request(id: int):
         img.save(buf, format='PNG')
         qr_data_uri = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('utf-8')
         printed_at = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')
-        html = render_template('lab/lab_requests_results_print_standalone.html', lab_request=lab_request, qr_data_uri=qr_data_uri, age_years=age_years, printed_at=printed_at)
+        html = render_template('print/lab_result.html', lab_request=lab_request, qr_data_uri=qr_data_uri, age_years=age_years, printed_at=printed_at)
         resp = make_response(html)
         resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         resp.headers['Pragma'] = 'no-cache'

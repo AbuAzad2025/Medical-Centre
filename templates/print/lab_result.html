@@ -1,0 +1,100 @@
+{% extends 'print/print_base.html' %}
+{% set doc_type = 'lab_result' %}
+
+{% block doc_title %}تقرير نتائج التحاليل — {{ lab_request.patient.full_name }}{% endblock %}
+{% block print_button_label %}طباعة التقرير{% endblock %}
+{% block doc_heading %}تقرير نتائج التحاليل{% endblock %}
+
+{% block extra_print_head %}
+{% if qr_data_uri %}
+<style>.print-qr { text-align: center; } .print-qr img { max-width: 96px; height: auto; }</style>
+{% endif %}
+{% endblock %}
+
+{% block doc_meta %}
+<span class="print-doc-meta__item"><strong>المنشأة:</strong> {{ branding.organization_name if branding and branding.organization_name else (ui.organization_name if ui else '—') }}</span>
+<span class="print-doc-meta__item"><strong>رقم الطلب:</strong> {{ lab_request.request_number or lab_request.id }}</span>
+<span class="print-doc-meta__item"><strong>تاريخ الطباعة:</strong> {{ printed_at or '—' }}</span>
+<span class="print-doc-meta__item"><strong>الحالة:</strong> {{ lab_request.status | enum_label('OrderState') if lab_request.status else '—' }}</span>
+{% if qr_data_uri %}
+<span class="print-doc-meta__item print-qr"><img src="{{ qr_data_uri }}" alt="QR"></span>
+{% endif %}
+{% endblock %}
+
+{% block subject_strip %}
+<div class="print-subject-strip__grid">
+    <div class="print-subject-strip__item"><span>المريض</span><span>{{ lab_request.patient.full_name }}</span></div>
+    <div class="print-subject-strip__item"><span>العمر</span><span>{% if age_years is not none %}{{ age_years }} سنة{% else %}—{% endif %}</span></div>
+    <div class="print-subject-strip__item"><span>الهوية</span><span>{{ lab_request.patient.national_id or '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>الهاتف</span><span>{{ lab_request.patient.phone or '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>الطبيب</span><span>{{ lab_request.requester.full_name if lab_request.requester else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>تاريخ الطلب</span><span>{{ lab_request.created_at.strftime('%Y-%m-%d') if lab_request.created_at else '—' }}</span></div>
+</div>
+{% endblock %}
+
+{% block body %}
+{% if lab_request.notes %}
+<div class="print-section">
+    <h3 class="print-section__title">سبب التحليل</h3>
+    <div>{{ lab_request.notes }}</div>
+</div>
+{% endif %}
+
+<div class="print-section">
+    <h3 class="print-section__title">نتائج التحاليل</h3>
+    <table class="print-table">
+        <thead>
+            <tr>
+                <th>اسم التحليل</th>
+                <th>النتيجة</th>
+                <th>الوحدة</th>
+                <th>القيمة الطبيعية</th>
+                <th>الحالة</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in lab_request.results %}
+            <tr>
+                <td class="text-end">{{ result.test_name }}</td>
+                <td>{{ result.value }}</td>
+                <td>{{ result.unit or '—' }}</td>
+                <td>{{ result.reference_range or '—' }}</td>
+                <td>{{ result.status | enum_label('LabResultStatus') if result.status else '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">لا توجد نتائج متاحة</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="print-section">
+    <h3 class="print-section__title">معلومات ضبط الجودة</h3>
+    <div class="print-subject-strip__grid">
+        <div class="print-subject-strip__item"><span>تاريخ إجراء التحليل</span><span>{{ lab_request.completed_at.strftime('%Y-%m-%d') if lab_request.completed_at else '—' }}</span></div>
+        <div class="print-subject-strip__item"><span>وقت إجراء التحليل</span><span>{{ lab_request.completed_at.strftime('%H:%M') if lab_request.completed_at else '—' }}</span></div>
+        <div class="print-subject-strip__item"><span>الفني المسؤول</span><span>{{ lab_request.results[0].performer.full_name if lab_request.results and lab_request.results[0].performer else '—' }}</span></div>
+        <div class="print-subject-strip__item"><span>حالة التقرير</span><span>{{ lab_request.status | enum_label('OrderState') if lab_request.status else '—' }}</span></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block signatures %}
+<div class="print-signature-box">
+    <div class="print-signature-line"></div>
+    <div class="print-signature-label">توقيع الفني</div>
+</div>
+<div class="print-signature-box">
+    <div class="print-signature-line"></div>
+    <div class="print-signature-label">توقيع الطبيب</div>
+</div>
+<div class="print-signature-box">
+    <div class="print-signature-line"></div>
+    <div class="print-signature-label">ختم المركز</div>
+</div>
+{% endblock %}
+
+{% block legal_footer %}
+<p>{{ branding.organization_name if branding and branding.organization_name else (ui.organization_name if ui else 'المركز الصحي المتخصص') }}</p>
+<p>{{ branding.address if branding and branding.address else '—' }}{% if branding and branding.phone %} | {{ branding.phone }}{% endif %}</p>
+{% endblock %}
