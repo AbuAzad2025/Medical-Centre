@@ -73,10 +73,10 @@ function saveChart() {
     })
     .then(r => r.json())
     .then(data => {
-        if (data.success) window.notify.success('تم الحفظ');
-        else window.notify.error('خطأ: ' + data.message);
+        if (data.success) window.notify.success('تم حفظ مخطط الأسنان');
+        else window.notify.error(data.message || 'تعذّر حفظ مخطط الأسنان. حاول مرة أخرى.');
     })
-    .catch(() => window.notify.error('خطأ في الاتصال'));
+    .catch(function () { window.notify.error('انقطع الاتصال. تحقق من الشبكة وحاول مرة أخرى.'); });
 }
 
 updateSummary();

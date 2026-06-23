@@ -1,0 +1,15 @@
+{# G-129: friendly empty states — not a bare table row #}
+{% macro empty_state(icon='fas fa-inbox', title='لا توجد بيانات', description='', action_url='', action_label='', action_class='btn-primary') %}
+<div class="empty-state text-center py-5 px-3 animate-in" role="status">
+    <i class="{{ icon }} fa-3x text-muted mb-3" aria-hidden="true"></i>
+    <h5 class="text-muted mb-2">{{ title }}</h5>
+    {% if description %}
+    <p class="text-muted small mb-3">{{ description }}</p>
+    {% endif %}
+    {% if action_url and action_label %}
+    <a href="{{ action_url }}" class="btn {{ action_class }} btn-sm">
+        {{ action_label }}
+    </a>
+    {% endif %}
+</div>
+{% endmacro %}

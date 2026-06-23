@@ -174,7 +174,9 @@ def create_app(config_name: str | None = None) -> Flask:
     app.jinja_env.filters['format_money'] = _fmt_money
 
     from app.shared.enum_labels import enum_label, resolve_visit_payment_status_badge
+    from app.shared.user_messages import resolve_user_message
     app.jinja_env.filters['enum_label'] = enum_label
+    app.jinja_env.filters['user_message'] = resolve_user_message
     app.jinja_env.globals['resolve_visit_payment_status_badge'] = resolve_visit_payment_status_badge
 
     from app.shared.print_context import resolve_print_context

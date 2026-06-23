@@ -42,7 +42,9 @@ async function loadLayout() {
         applyLayout(data.items);
         renderSettings(data.items);
     } catch (err) {
-        console.error('خطأ في الاتصال:', err);
+        if (window.notify && window.notify.warning) {
+            window.notify.warning('تعذّر تحميل إعدادات اللوحة. حاول تحديث الصفحة.');
+        }
     }
 }
 
@@ -69,7 +71,9 @@ async function saveLayout() {
             renderSettings(data.items);
         }
     } catch (err) {
-        console.error('خطأ في الاتصال:', err);
+        if (window.notify && window.notify.error) {
+            window.notify.error('تعذّر حفظ إعدادات اللوحة. حاول مرة أخرى.');
+        }
     }
 }
 
