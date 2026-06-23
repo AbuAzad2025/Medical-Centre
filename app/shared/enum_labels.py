@@ -184,3 +184,36 @@ def enum_label(value: Any, enum_name: str = '') -> str:
             return table[key.lower()]
 
     return key.replace('_', ' ')
+
+
+def resolve_visit_payment_status_badge(
+    status: Any,
+    paid_amount: Any = 0,
+    remaining_amount: Any = None,
+) -> dict[str, str]:
+    """Bootstrap variant + Arabic label for visit payment status (G-120)."""
+    paid = float(paid_amount or 0)
+    rem = float(remaining_amount if remaining_amount is not None else 1)
+    key = _member_key(status) if status else ''
+
+    if key == 'PAID' or rem <= 0:
+        label = _lookup_label('PaymentStatus', 'PAID') or 'مدفوع'
+        return {'variant': 'success', 'label': label}
+
+    if key == 'PARTIAL' or (paid > 0 and rem > 0):
+        return {
+            'variant': 'info',
+            'label': enum_label('PARTIAL', 'PaymentStatus'),
+        }
+
+    variant_by_status = {
+        'PENDING': 'warning',
+        'DEBT': 'danger',
+        'EMERGENCY_DEBT': 'danger',
+        'REFUNDED': 'secondary',
+        'CANCELLED': 'secondary',
+        'CONFIRMED': 'info',
+    }
+    variant = variant_by_status.get(key.upper(), 'secondary')
+    label = enum_label(status, 'PaymentStatus') or key
+    return {'variant': variant, 'label': label}

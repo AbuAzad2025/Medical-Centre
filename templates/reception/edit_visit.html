@@ -39,7 +39,7 @@
               </div>
               <div class="col-md-3">
                 <label class="form-label">الحالة</label>
-                <input type="text" class="form-control" value="{{ visit.status }}" readonly>
+                <input type="text" class="form-control" value="{{ visit.status | enum_label('VisitState') }}" readonly>
               </div>
             </div>
 
@@ -76,16 +76,16 @@
               <div class="col-md-6">
                 <label class="form-label">طريقة الدفع</label>
                 <select name="payment_method" class="form-select">
-                  <option value="CASH" {% if visit.payment_method == 'CASH' %}selected{% endif %}>نقداً</option>
-                  <option value="CARD" {% if visit.payment_method == 'CARD' %}selected{% endif %}>بطاقة</option>
-                  <option value="INSURANCE" {% if visit.payment_method == 'INSURANCE' %}selected{% endif %}>تأمين</option>
-                  <option value="FORCE" {% if visit.payment_method == 'FORCE' %}selected{% endif %}>قسري</option>
-                  <option value="WIRE" {% if visit.payment_method == 'WIRE' %}selected{% endif %}>تحويل</option>
+                  <option value="CASH" {% if visit.payment_method == 'CASH' %}selected{% endif %}>{{ 'CASH' | enum_label('PaymentMethod') }}</option>
+                  <option value="CARD" {% if visit.payment_method == 'CARD' %}selected{% endif %}>{{ 'CARD' | enum_label('PaymentMethod') }}</option>
+                  <option value="INSURANCE" {% if visit.payment_method == 'INSURANCE' %}selected{% endif %}>{{ 'INSURANCE' | enum_label('PaymentMethod') }}</option>
+                  <option value="FORCE" {% if visit.payment_method == 'FORCE' %}selected{% endif %}>{{ 'FORCE' | enum_label('PaymentMethod') }}</option>
+                  <option value="WIRE" {% if visit.payment_method == 'WIRE' %}selected{% endif %}>{{ 'WIRE' | enum_label('PaymentMethod') }}</option>
                 </select>
               </div>
               <div class="col-md-6">
                 <label class="form-label">الحالة المالية</label>
-                <input type="text" class="form-control" value="{{ visit.payment_status }}" readonly>
+                <input type="text" class="form-control" value="{{ visit.payment_status | enum_label('PaymentStatus') }}" readonly>
               </div>
             </div>
 

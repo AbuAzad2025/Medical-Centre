@@ -1,0 +1,5 @@
+{# G-120: unified visit payment status badge — enum_label + colors #}
+{% macro payment_status_badge(visit) %}
+{% set badge = resolve_visit_payment_status_badge(visit.payment_status, visit.paid_amount, visit.remaining_amount) %}
+<span class="badge bg-{{ badge.variant }}">{{ badge.label }}</span>
+{% endmacro %}
