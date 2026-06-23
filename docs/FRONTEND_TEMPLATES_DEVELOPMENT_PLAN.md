@@ -1182,16 +1182,76 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 11 جزئي)
+## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 11)
 
 | البند | الحالة |
 |-------|--------|
-| **مرحلة 10** | ✅ Command Center MVP |
-| **مرحلة 11** Gate 11 | ✅ زر theme + `users.preferences` + reduced-motion |
+| **مرحلة 8** | ✅ stepper استقبال + context bar طبيب + portal rebuild |
+| **مرحلة 9** | ✅ `print_base` + 5 مطبوعات + `resolve_print_context` |
+| **مرحلة 10** | ✅ Command Center MVP — 8 dashboards محوّلة |
+| **مرحلة 11** Gate 11 | ✅ theme toggle + `users.preferences` + هجرة `p11_001` |
 | Gate 11 متبقي | ⚠️ تخصيص widgets؛ density/radius UI |
-| **دين 6b** | ⚠️ manager sidebar |
+| **دين 6b** | ⚠️ manager sidebar + `audit_nav_links` |
+| **إصلاحات ما قبل 12** | 🔶 **جارية — لم تُغلق بعد** (انظر §11.5) |
 
-**الخطوة التالية:** **مرحلة 12** — PWA (بحذر).
+**Git HEAD (محلي = remote `main`):** `7e26c36`  
+**هجرة DB:** `p11_001_user_preferences` (مُطبَّقة محلياً على `medical_system`)
+
+**الخطوة التالية (بعد إغلاق §11.5):** **مرحلة 12** — PWA.
+
+### 11.5 نقطة حفظ — إصلاحات معلّقة قبل مرحلة 12 (2026-06-23)
+
+> **لم يُنفَّذ أي كود إصلاح بعد** — القائمة أدناه جاهزة للجلسة التالية.
+
+#### 1) `notif-processor` — ImportError عند الإقلاع
+
+```
+ImportError: cannot import name 'process_notification_queue' from 'services.notification_service'
+```
+
+| الملف | الإجراء المطلوب |
+|-------|-----------------|
+| `services/notification_service.py` | إضافة wrapper على مستوى الموديول يستدعي `NotificationService.process_notification_queue` ويرجع `int` (عدد المعالَج) لـ `routes/super_admin/system.py` |
+| `app_factory.py` ~1110 | يبقى كما هو بعد إضافة الـ wrapper |
+
+#### 2) اختبارات فاشلة (~10) بعد تحويل dashboards → Command Center
+
+تشغيل مرجعي: `SUPPRESS_BACKGROUND_WORKER=1 pytest tests/ -q`
+
+| الاختبار | النصوص/المسارات المتوقعة | الإصلاح المقترح |
+|----------|---------------------------|-----------------|
+| `test_ux1_002a` reception | `لوحة تحكم الاستقبال`، `الطابور النشط` | `ROLE_DASHBOARD_TITLES` + عنوان `command_center.html` |
+| `test_ux1_002b` doctor | `لوحة تحكم الأطباء`، `مواعيدي اليوم`، `طلبات المختبر/الأشعة المعلّقة` | عناوين widgets حسب `dashboard_role` |
+| `test_ux1_002c` lab/radiology | `قسم المختبر`، `آخر طلبات المختبر`، `قسم الأشعة` | widget `lab_recent` + عناوين |
+| `test_ux1_002d` pharmacy | `لوحة تحكم الصيدلية`، مخزون/روشتات/مبيعات | widgets صيدلية + `_load_role_data` للصيدلي |
+| `test_ux1_002d` finance | `لوحة تحكم الفوترة` | **لم يُحوَّل** — ما زال `billing/dashboard_new.html` (يجب أن يمر) |
+| `test_ux1_002e` emergency | `لوحة تحكم الطوارئ`، `الحالات النشطة`، `حالات حرجة`، `قائمة الانتظار` | widgets طوارئ + عناوين |
+| `test_ux1_shell` | `tenant-branding-vars` على `/owner/packages` | إضافة `<style id="tenant-branding-vars">` في `layouts/platform_shell.html` |
+| `test_route_inventory` | مسارات جديدة | تحديث `route_inventory.json`: `/api/dashboard/snapshot`، `/api/user/preferences` |
+
+**ملفات Command Center الرئيسية:** `app/shared/dashboard_registry.py`، `dashboard_service.py`، `templates/dashboards/command_center.html`، `templates/dashboards/widgets/_*.html`
+
+**manager:** ما زال `manager/dashboard.html` القديم (اختبار manager يتوقع `موافقات الدفع القسري` — يجب أن يمر دون تحويل).
+
+#### 3) `route_inventory.json`
+
+إضافة بعد `/api/search`:
+
+```json
+{ "endpoint": "api_dashboard.dashboard_snapshot", "path": "/api/dashboard/snapshot", "methods": ["GET"], "classification": "authenticated" },
+{ "endpoint": "api_user.user_preferences", "path": "/api/user/preferences", "methods": ["GET", "POST"], "classification": "authenticated" }
+```
+
+#### 4) معايير إغلاق §11.5 (Gate قبل 12)
+
+- [ ] `pytest tests/ -q` أخضر (مع `SUPPRESS_BACKGROUND_WORKER=1`)
+- [ ] إقلاع التطبيق بدون خطأ `notif-processor`
+- [ ] commit + push للإصلاحات
+- [ ] ثم **مرحلة 12** PWA حسب §17.1
+
+#### 5) ملفات مؤقتة — لا تُلتزَم
+
+`apply_s0_003_*.py`، `debug_suspend.py`، `tmp_*.py`، `mockups/`، `mig_out.txt`
 
 ### 11.4 مرحلة 11 — ما نُفّذ (2026-06-23)
 
