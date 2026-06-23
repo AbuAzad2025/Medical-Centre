@@ -10,8 +10,12 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.get('/')
 def index():
-    """الصفحة الرئيسية"""
-    return redirect(url_for('auth.login'))
+    """الصفحة الرئيسية — حجز عام + دخول"""
+    if current_user.is_authenticated:
+        if current_user.role == 'patient':
+            return redirect(url_for('portal.dashboard'))
+        return redirect(url_for('main.dashboard'))
+    return render_template('main/landing.html')
 
 @main_bp.route('/dashboard')
 @login_required
@@ -40,6 +44,8 @@ def dashboard():
         return redirect(url_for('owner.owner_dashboard'))
     elif current_user.role == 'pharmacist':
         return redirect(url_for('medication.dashboard'))
+    elif current_user.role == 'patient':
+        return redirect(url_for('portal.dashboard'))
     elif current_user.role == 'technician':
         return redirect(url_for('lab.dashboard'))
     else:

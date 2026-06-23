@@ -87,7 +87,11 @@ def register():
             existing_link = PatientAccount.query.filter_by(patient_id=patient.id).first()
             if existing_link:
                 raise ValueError('هذا المريض مرتبط بحساب آخر')
-            db.session.add(PatientAccount(user_id=user.id, patient_id=patient.id))
+            db.session.add(PatientAccount(
+                user_id=user.id,
+                patient_id=patient.id,
+                tenant_id=patient.tenant_id or getattr(user, 'tenant_id', None),
+            ))
             db.session.commit()
 
             login_user(user, remember=True)

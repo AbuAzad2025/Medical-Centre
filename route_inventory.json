@@ -1,10 +1,10 @@
 {
   "generated_at": "2026-06-23",
-  "total_routes": 610,
+  "total_routes": 615,
   "summary": {
-    "public": 2,
+    "public": 3,
     "internal": 4,
-    "authenticated": 440,
+    "authenticated": 442,
     "admin": 38,
     "super-admin": 126
   },
@@ -15,7 +15,7 @@
       "methods": [
         "GET"
       ],
-      "classification": "authenticated"
+      "classification": "public"
     },
     {
       "endpoint": "__health",
@@ -3072,6 +3072,40 @@
     {
       "endpoint": "portal.feedback",
       "path": "/portal/feedback",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "portal.documents",
+      "path": "/portal/documents",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "portal.download_document",
+      "path": "/portal/documents/<int:file_id>",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "portal.link_account",
+      "path": "/portal/link-account",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "portal.settings",
+      "path": "/portal/settings",
       "methods": [
         "GET",
         "POST"
