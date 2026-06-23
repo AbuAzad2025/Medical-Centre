@@ -1,0 +1,30 @@
+{% extends "portal/base.html" %}
+{% block title %}الإعدادات والموافقات{% endblock %}
+{% block content %}
+<h4 class="mb-3"><i class="fas fa-user-shield me-2 text-primary"></i>الإعدادات والموافقات</h4>
+<div class="portal-card p-4" style="max-width:640px">
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h6 class="mb-3">التنبيهات</h6>
+    <div class="form-check mb-2">
+      <input class="form-check-input" type="checkbox" name="notify_results" value="1" id="notify_results" {% if preferences.notify_results %}checked{% endif %}>
+      <label class="form-check-label" for="notify_results">إشعاري عند توفر نتائج جديدة (غير حرجة)</label>
+    </div>
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" name="notify_appointments" value="1" id="notify_appointments" {% if preferences.notify_appointments %}checked{% endif %}>
+      <label class="form-check-label" for="notify_appointments">تذكيري بالمواعيد القادمة</label>
+    </div>
+    <hr>
+    <h6 class="mb-3">الخصوصية والموافقات</h6>
+    <div class="form-check mb-2">
+      <input class="form-check-input" type="checkbox" name="marketing_contact" value="1" id="marketing_contact" {% if preferences.marketing_contact %}checked{% endif %}>
+      <label class="form-check-label" for="marketing_contact">السماح بالتواصل الترويجي من المركز</label>
+    </div>
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" name="telemedicine_consent" value="1" id="telemedicine_consent" {% if preferences.telemedicine_consent %}checked{% endif %}>
+      <label class="form-check-label" for="telemedicine_consent">الموافقة على جلسات التطبيب عن بُعد</label>
+    </div>
+    <button type="submit" class="btn btn-primary">حفظ التفضيلات</button>
+  </form>
+</div>
+{% endblock %}

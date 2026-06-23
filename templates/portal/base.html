@@ -38,11 +38,16 @@
         <a class="nav-link {% if request.endpoint == 'portal.lab_results' %}active{% endif %}" href="{{ url_for('portal.lab_results') }}">المختبر</a>
         <a class="nav-link {% if request.endpoint == 'portal.radiology_results' %}active{% endif %}" href="{{ url_for('portal.radiology_results') }}">الأشعة</a>
         <a class="nav-link {% if request.endpoint == 'portal.bills' %}active{% endif %}" href="{{ url_for('portal.bills') }}">الفواتير</a>
+        <a class="nav-link {% if request.endpoint == 'portal.documents' %}active{% endif %}" href="{{ url_for('portal.documents') }}">الوثائق</a>
         <a class="nav-link {% if request.endpoint == 'portal.vaccinations' %}active{% endif %}" href="{{ url_for('portal.vaccinations') }}">التطعيمات</a>
+        <a class="nav-link {% if request.endpoint == 'portal.settings' %}active{% endif %}" href="{{ url_for('portal.settings') }}">الإعدادات</a>
         <a class="nav-link {% if request.endpoint == 'portal.feedback' %}active{% endif %}" href="{{ url_for('portal.feedback') }}">التقييم</a>
+        <hr class="my-2 mx-3">
+        <a class="nav-link" href="{{ url_for('booking.index') }}"><i class="fas fa-calendar-plus me-1"></i>حجز موعد</a>
       </nav>
     </div>
     <div class="col-lg-10 py-4">
+      {% include 'partials/_flash.html' %}
       {% block content %}{% endblock %}
     </div>
   </div>
@@ -50,7 +55,7 @@
 <script src="{{ url_for('static', filename='adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pages/portal/base.js') }}"></script>
 {% block scripts %}{% endblock %}
-<footer class="portal-footer" class="portal-footer"n:center;margin-top:auto;">
+<footer class="portal-footer text-center py-3 mt-4 border-top">
     <strong>{{ developer_company or 'شركة آزاد للأنظمة الذكية' }}</strong>
     <span class="mx-2">|</span>
     <span>بإدارة {{ developer_name or 'المهندس أحمد غنام' }}</span>

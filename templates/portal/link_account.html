@@ -1,9 +1,27 @@
 {% extends "portal/base.html" %}
 {% block title %}ربط الحساب{% endblock %}
 {% block content %}
-<div class="portal-card p-4 mx-auto portal-card-centered">
-  <h3 class="mb-3">ربط حسابك بملف المريض</h3>
-  <p class="text-muted">حسابك غير مرتبط بملف مريض حالياً. يرجى التواصل مع الاستقبال لربط حسابك.</p>
-  <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">العودة للنظام</a>
+<div class="portal-card p-4 mx-auto" style="max-width:520px">
+  <h3 class="mb-3"><i class="fas fa-link me-2 text-primary"></i>التحقق من هوية المريض</h3>
+  <p class="text-muted">للوصول إلى بوابة المريض، يجب ربط حسابك بملفك الطبي المسجّل في المركز.</p>
+  <form method="post" class="mt-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <label class="form-label" for="national_id">رقم الهوية</label>
+      <input type="text" class="form-control" id="national_id" name="national_id" placeholder="رقم الهوية الوطنية" aria-label="رقم الهوية">
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="phone">رقم الهاتف</label>
+      <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone or '' }}" placeholder="05xxxxxxxx" aria-label="رقم الهاتف">
+      <div class="form-text">أدخل الهوية أو الهاتف المسجّل في ملفك</div>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">تحقق وربط الحساب</button>
+  </form>
+  <hr class="my-4">
+  <p class="small text-muted mb-2">ليس لديك حساب مريض بعد؟</p>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{{ url_for('booking.register') }}" class="btn btn-outline-primary btn-sm">إنشاء حساب وحجز</a>
+    <a href="{{ url_for('booking.index') }}" class="btn btn-outline-secondary btn-sm">حجز موعد بدون تسجيل</a>
+  </div>
 </div>
 {% endblock %}
