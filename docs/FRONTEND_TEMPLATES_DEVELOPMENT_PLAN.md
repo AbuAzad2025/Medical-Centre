@@ -1182,19 +1182,20 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 1–3)
+## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 1–4)
 
 | البند | الحالة |
 |-------|--------|
 | **مرحلة 1** Gate 1 | ✅ G-156, G-06, G-159 |
 | **مرحلة 2** Gate 2 | ✅ `ui.*`, `enum_label`, `__ENUMS__`, عينات reception/doctor/billing، `logo_url` على BrandingSettings، خطوط G-66 |
-| **مرحلة 3** Gate 3 | ✅ 20→0 `dashboard_base`، `clinical.css` في base، حذف `dashboard_base.html` |
-| Gate 3 متبقي | ⚠️ G-16 (`_footer` inline CSS)، `clinical.css` في portal |
-| **مرحلة 4** | ⏳ NavResolver — التالية |
+| **مرحلة 3** Gate 3 | ✅ 20→0 `dashboard_base`، `clinical.css` في base + portal، حذف `dashboard_base.html` |
+| Gate 3 متبقي | ⚠️ G-16 (`_footer` inline CSS)، اختبار يدوي modal/z-index |
+| **مرحلة 4** Gate 4 | ✅ `nav_resolver.py`, `_sidebar_dynamic.html`, `inject_nav`, `can()`؛ G-03 فصل owner/super_admin |
+| Gate 4 متبقي | ⚠️ `navbar.css` (إن وُجد CSS inline)، `_breadcrumb.html`، اختبار 403 من sidebar |
 
 **لماذا كان Gate 2 «جزئي» سابقاً؟** البنية (backend) كانت جاهزة لكن القوالب كانت تعرض `COMPLETED` خام — أُصلح في عينات Gate 2؛ باقي القوالب تُرحَّل تدريجياً في مرحلة 8.
 
-**الخطوة التالية:** **مرحلة 4** — `nav_resolver.py` + `_sidebar_dynamic.html`.
+**الخطوة التالية:** **مرحلة 5** — استوديو tenant (branding + حقول ترويسة المستندات).
 
 ---
 
@@ -4078,14 +4079,14 @@ flowchart TD
 |--|--|
 | **النواقص** | G-97–G-101, G-03, G-57 (إكمال), G-105 |
 | **يعتمد على** | Gate 3 (`app_shell`) + Gate 2 (`ui.*`) |
-| **الوضع الحالي** | `_sidebar.html` 54 سطر؛ حلقة `module_registry` 19–29؛ أقسام يدوية 31–50 |
+| **الوضع الحالي** | ✅ `nav_resolver` + `_sidebar_dynamic` في `base.html`؛ G-03؛ `_sidebar.html` legacy |
 
 | الملف | الإجراء |
 |-------|---------|
-| `app/shared/nav_resolver.py` | **إنشاء** — `resolve_nav_for_user()` |
-| `partials/_sidebar_dynamic.html` | يستبدل الفروع اليدوية تدريجياً |
-| `_owner_sidebar.html` | فصل G-03 — لا يظهر لـ super_admin |
-| `static/css/navbar.css` | نقل أي CSS متبقي من partials |
+| `app/shared/nav_resolver.py` | ✅ `resolve_nav_for_user()` + `_tenant_path()` |
+| `partials/_sidebar_dynamic.html` | ✅ مفعّل في `base.html` |
+| `_owner_sidebar.html` | ⏭️ دُمج في nav_resolver (G-03) بدل ملف منفصل |
+| `static/css/navbar.css` | ⏳ إن وُجد CSS inline في navbar |
 
 **Gate 4:** §33 v1.8 — صفر 403 من sidebar؛ صفر inline style في navbar
 

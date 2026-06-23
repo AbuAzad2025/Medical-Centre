@@ -729,7 +729,18 @@ def create_app(config_name: str | None = None) -> Flask:
         def has_permission(permission: str):
             return PermissionService.has_permission(current_user, permission)
 
-        return dict(is_entitled=is_entitled, has_permission=has_permission)
+        def can(permission: str):
+            return PermissionService.has_permission(current_user, permission)
+
+        return dict(is_entitled=is_entitled, has_permission=has_permission, can=can)
+
+    @app.context_processor
+    def inject_nav():
+        from flask_login import current_user
+        from app.shared.nav_resolver import resolve_nav_for_user
+        if current_user.is_authenticated:
+            return {'nav_sections': resolve_nav_for_user(current_user)}
+        return {'nav_sections': []}
 
     # Enum helpers for templates
     @app.context_processor
