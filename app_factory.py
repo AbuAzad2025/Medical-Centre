@@ -612,6 +612,10 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(api_dashboard_bp, url_prefix='/api/dashboard')
     from routes.api_user import api_user_bp
     app.register_blueprint(api_user_bp, url_prefix='/api/user')
+    from routes.pwa import pwa_bp
+    app.register_blueprint(pwa_bp, url_prefix='/pwa')
+    from routes.kiosk import kiosk_bp
+    app.register_blueprint(kiosk_bp, url_prefix='/kiosk')
     app.register_blueprint(owner_bp, url_prefix='/owner')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(super_admin_bp, url_prefix='/super-admin')
@@ -765,6 +769,12 @@ def create_app(config_name: str | None = None) -> Flask:
         if current_user.is_authenticated:
             return {'nav_sections': resolve_nav_for_user(current_user)}
         return {'nav_sections': []}
+
+    @app.context_processor
+    def inject_mobile_nav():
+        from flask_login import current_user
+        from app.shared.mobile_nav import resolve_mobile_nav_items
+        return {'mobile_nav_items': resolve_mobile_nav_items(current_user)}
 
     @app.context_processor
     def inject_owner_nav():

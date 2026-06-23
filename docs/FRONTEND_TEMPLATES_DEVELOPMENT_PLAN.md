@@ -1182,7 +1182,7 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 11)
+## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 12)
 
 | البند | الحالة |
 |-------|--------|
@@ -1190,14 +1190,36 @@ document.body.classList.toggle('sidebar-open');
 | **مرحلة 9** | ✅ `print_base` + 5 مطبوعات + `resolve_print_context` |
 | **مرحلة 10** | ✅ Command Center MVP — 8 dashboards محوّلة |
 | **مرحلة 11** Gate 11 | ✅ theme toggle + `users.preferences` + هجرة `p11_001` |
+| **مرحلة 12** Gate 12 | ✅ PWA موحّد + mobile nav + kiosk check-in |
 | Gate 11 متبقي | ⚠️ تخصيص widgets؛ density/radius UI |
 | **دين 6b** | ⚠️ manager sidebar + `audit_nav_links` |
-| **إصلاحات ما قبل 12** | ✅ **مُغلقة** (§11.5 — commit بعد `96ef5fa`) |
 
-**Git HEAD:** يُحدَّث بعد commit إصلاحات §11.5  
+**Git HEAD:** يُحدَّث بعد commit مرحلة 12  
 **هجرة DB:** `p11_001_user_preferences`
 
-**الخطوة التالية:** **مرحلة 12** — PWA.
+**الخطوة التالية:** **مرحلة 13** — حيوية + macros.
+
+### 11.6 مرحلة 12 — ما نُفّذ (2026-06-23)
+
+| الملف | الإجراء |
+|-------|---------|
+| `static/pwa/sw.js` | SW موحّد (staff + portal) — G-78 |
+| `static/js/pwa-install.js` | Install prompt بعد زيارتين — G-79 |
+| `static/css/mobile.css` + `touch.css` | أهداف لمس 48px + kiosk — G-80, G-89 |
+| `partials/_mobile_bottom_nav.html` | bottom nav حسب الدور |
+| `app/shared/mobile_nav.py` | resolver للتنقل السريع |
+| `routes/pwa.py` | manifest ديناميكي + `/pwa/offline` |
+| `routes/kiosk.py` + `kiosk/check_in.html` | تسجيل وصول ذاتي — G-91 |
+| `services/kiosk_checkin_service.py` | هوية → موعد → طابور |
+| `templates/reception/waiting_display.html` | tokens موحّدة — G-96 |
+| `static/css/components.css` | `.table-stack` — G-85 |
+| `tests/test_phase12_pwa.py` | 9 اختبارات |
+
+**Gate 12:**
+- [x] manifest + SW واحد في `base.html` / portal / owner
+- [x] Install prompt (`pwa-install.js`)
+- [x] touch targets ≥ 48px (`touch.css`)
+- [x] kiosk `check_in` يعمل (`/kiosk/check-in`)
 
 ### 11.5 نقطة حفظ — إصلاحات ما قبل مرحلة 12 ✅ (2026-06-23)
 
@@ -4275,18 +4297,18 @@ flowchart TD
 
 ---
 
-#### مرحلة 12 — موبايل + PWA + لمس
+#### مرحلة 12 — موبايل + PWA + لمس ✅ (2026-06-23)
 
 | | |
 |--|--|
-| **النواقص** | G-78, G-79, G-80, G-85, G-89–G-91, G-96, G-75 |
+| **النواقص** | G-75 (motion waiting_display جزئي), push PWA — P3 |
 | **المراجع** | §25, §28 |
 
 **Gate 12:**
-- [ ] manifest + SW **واحد** في `base.html`
-- [ ] Install prompt يظهر
-- [ ] touch targets ≥ 48px على استقبال tablet
-- [ ] kiosk `check_in` يعمل
+- [x] manifest + SW **واحد** في `base.html`
+- [x] Install prompt يظهر
+- [x] touch targets ≥ 48px على استقبال tablet
+- [x] kiosk `check_in` يعمل
 
 ---
 

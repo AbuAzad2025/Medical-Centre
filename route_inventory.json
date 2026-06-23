@@ -1,8 +1,8 @@
 {
   "generated_at": "2026-06-23",
-  "total_routes": 621,
+  "total_routes": 625,
   "summary": {
-    "public": 3,
+    "public": 7,
     "internal": 4,
     "authenticated": 446,
     "admin": 38,
@@ -1536,6 +1536,22 @@
         "GET"
       ],
       "classification": "authenticated"
+    },
+    {
+      "endpoint": "kiosk.api_check_in",
+      "path": "/kiosk/api/check-in",
+      "methods": [
+        "POST"
+      ],
+      "classification": "public"
+    },
+    {
+      "endpoint": "kiosk.check_in",
+      "path": "/kiosk/check-in",
+      "methods": [
+        "GET"
+      ],
+      "classification": "public"
     },
     {
       "endpoint": "lab.index",
@@ -3298,6 +3314,22 @@
         "GET"
       ],
       "classification": "authenticated"
+    },
+    {
+      "endpoint": "pwa.manifest",
+      "path": "/pwa/manifest.webmanifest",
+      "methods": [
+        "GET"
+      ],
+      "classification": "public"
+    },
+    {
+      "endpoint": "pwa.offline",
+      "path": "/pwa/offline",
+      "methods": [
+        "GET"
+      ],
+      "classification": "public"
     },
     {
       "endpoint": "quality.api_quality_metrics",

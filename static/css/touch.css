@@ -1,0 +1,85 @@
+/* Touch + kiosk targets — §28.3 */
+@media (pointer: coarse) {
+  .btn,
+  .nav-link-luxury,
+  .clinical-action-tile,
+  .mobile-bottom-nav a,
+  .kiosk-key {
+    min-height: 48px;
+    min-width: 48px;
+    touch-action: manipulation;
+  }
+
+  .table-hover tbody tr:hover {
+    background: inherit;
+  }
+
+  .table-hover tbody tr:active {
+    background: color-mix(in srgb, var(--color-primary, #0f4c81) 12%, transparent);
+  }
+}
+
+[data-kiosk="true"] {
+  --font-size-base: 1.125rem;
+  --touch-target: 56px;
+}
+
+[data-kiosk="true"] .btn,
+[data-kiosk="true"] .kiosk-key {
+  min-height: 56px;
+  min-width: 56px;
+  font-size: 1.25rem;
+}
+
+[data-touch="coarse"] button,
+[data-touch="coarse"] a.btn {
+  -webkit-tap-highlight-color: transparent;
+}
+
+[data-touch="coarse"] button:active,
+[data-touch="coarse"] a.btn:active,
+[data-touch="coarse"] .clinical-action-tile:active {
+  transform: scale(0.98);
+  transition: transform 120ms ease;
+}
+
+.clinical-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .clinical-action-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+[data-kiosk="true"] .clinical-action-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.clinical-action-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+  text-decoration: none;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  color: inherit;
+  min-height: 96px;
+}
+
+.clinical-action-tile i {
+  font-size: 1.5rem;
+  color: var(--color-primary, #0f4c81);
+}
+
+.clinical-action-tile small {
+  color: var(--color-text-muted, #64748b);
+}

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1a1f3a">
+    <link rel="manifest" href="{{ url_for('pwa.manifest') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icon-192x192.png') }}">
     <title>{% block title %}لوحة المنصة — AZAD{% endblock %}</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -15,6 +17,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/platform.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
     <style id="tenant-branding-vars">
     :root {
       --color-primary: {{ ui.primary_color if ui else '#1a1f3a' }};
@@ -43,6 +46,7 @@
     <script src="{{ url_for('static', filename='js/events.js') }}"></script>
     <script>window.__VALIDATION_RULES__ = {{ validation_rules|default({})|tojson }};</script>
     <script src="{{ url_for('static', filename='js/form-validation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
