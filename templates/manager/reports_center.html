@@ -63,6 +63,38 @@
     </div>
   </form>
 
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>قوالب التقارير المحفوظة</h5>
+        <a href="{{ url_for('report_builder.builder') }}" class="btn btn-outline-primary btn-sm">
+          <i class="fas fa-plus me-1"></i>منشئ تقارير جديد
+        </a>
+      </div>
+      {% if saved_templates %}
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead><tr><th>الاسم</th><th>الوصف</th><th>آخر تحديث</th><th></th></tr></thead>
+            <tbody>
+              {% for tpl in saved_templates %}
+                <tr>
+                  <td>{{ tpl.name }}</td>
+                  <td class="text-muted">{{ tpl.description or '—' }}</td>
+                  <td>{{ tpl.updated_at.strftime('%Y-%m-%d') if tpl.updated_at else '—' }}</td>
+                  <td class="text-end">
+                    <a href="{{ url_for('report_builder.builder', template=tpl.id) }}" class="btn btn-sm btn-primary">فتح في المنشئ</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">لا توجد قوالب محفوظة بعد. أنشئ تقريراً مخصصاً واحفظه من <a href="{{ url_for('report_builder.builder') }}">منشئ التقارير</a>.</p>
+      {% endif %}
+    </div>
+  </div>
+
   {% if result and report %}
     <div class="card border-0 shadow-sm">
       <div class="card-body">

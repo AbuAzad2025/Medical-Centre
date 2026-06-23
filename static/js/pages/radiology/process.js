@@ -275,7 +275,7 @@ var __M = window.__M || [];
             applyBtn.addEventListener('click', function () {
                 const id = templateEl.value;
                 if (!id) {
-                    window.alert('اختر قالباً أولاً');
+                    if (window.notify) window.notify.warning('اختر قالباً أولاً.');
                     return;
                 }
                 applyTemplateById(id);
@@ -335,7 +335,7 @@ var __M = window.__M || [];
                             body: JSON.stringify(payload)
                         });
                         if (!r.ok) {
-                            window.alert('فشل الحفظ');
+                            if (window.notify) window.notify.error('تعذّر حفظ الماكرو. حاول مرة أخرى.');
                             return;
                         }
                         resetMacroForm();
@@ -367,7 +367,7 @@ var __M = window.__M || [];
                                 headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
                             });
                             if (!r.ok) {
-                                window.alert('فشل الحذف');
+                                if (window.notify) window.notify.error('تعذّر الحذف. حاول مرة أخرى.');
                                 return;
                             }
                             await refreshMacrosUI();
@@ -412,7 +412,7 @@ var __M = window.__M || [];
                                 headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
                             });
                             if (!r.ok) {
-                                window.alert('فشل الحذف');
+                                if (window.notify) window.notify.error('تعذّر الحذف. حاول مرة أخرى.');
                                 return;
                             }
                             await refreshTemplatesUI();
@@ -441,7 +441,7 @@ var __M = window.__M || [];
                             body: JSON.stringify(payload)
                         });
                         if (!r.ok) {
-                            window.alert('فشل الحفظ');
+                            if (window.notify) window.notify.error('تعذّر حفظ الماكرو. حاول مرة أخرى.');
                             return;
                         }
                         resetTemplateForm();

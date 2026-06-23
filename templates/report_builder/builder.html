@@ -2,16 +2,40 @@
 {% block title %}منشئ التقارير{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">منشئ التقارير المخصصة</h2>
-  <div class="card">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">منشئ التقارير المخصصة</h2>
+    <a href="{{ url_for('manager.reports_center') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-chart-bar me-1"></i>مركز التقارير
+    </a>
+  </div>
+  <div class="card animate-in">
     <div class="card-body">
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label" for="templateSelect">قالب محفوظ</label>
+          <select class="form-select" id="templateSelect" title="تحميل قالب محفوظ">
+            <option value="">— جديد —</option>
+            {% for tpl in saved_templates or [] %}
+              <option value="{{ tpl.id }}" {% if active_template and active_template.id == tpl.id %}selected{% endif %}>{{ tpl.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="templateName">اسم القالب</label>
+          <input type="text" class="form-control" id="templateName" placeholder="مثال: تقرير المرضى الشهري">
+        </div>
+        <div class="col-md-4 d-flex align-items-end gap-2">
+          <button type="button" class="btn btn-success" id="saveTemplateBtn">حفظ القالب</button>
+          <button type="button" class="btn btn-outline-primary" id="runTemplateBtn" {% if not active_template %}disabled{% endif %}>تشغيل القالب</button>
+        </div>
+      </div>
       <div class="row g-3">
         <div class="col-md-3">
           <label class="form-label" for="entitySelect">الكيان</label>
           <select class="form-select" id="entitySelect" title="اختر الكيان">
             <option value="">اختر الكيان</option>
             {% for key, info in entities.items() %}
-              <option value="{{ key }}">{{ info.label }}</option>
+              <option value="{{ key }}" {% if active_config and active_config.entity == key %}selected{% endif %}>{{ info.label }}</option>
             {% endfor %}
           </select>
         </div>
@@ -21,10 +45,10 @@
         </div>
         <div class="col-md-2">
           <label class="form-label" for="limitInput">الحد</label>
-          <input type="number" class="form-control" id="limitInput" value="100">
+          <input type="number" class="form-control" id="limitInput" value="{{ active_config.limit if active_config else 100 }}">
         </div>
         <div class="col-md-1 d-flex align-items-end">
-          <button class="btn btn-primary" onclick="generateReport()">توليد</button>
+          <button type="button" class="btn btn-primary w-100" id="generateBtn">توليد</button>
         </div>
       </div>
       <div class="mt-3">
@@ -35,7 +59,14 @@
 </div>
 <script>
         window.__M = window.__M || [];
-        __M0__={{ entities|tojson }}; __M1__='{{ url_for('report_builder.preview') }}'; __M2__='{{ csrf_token() }}';
+        __M0__={{ entities|tojson }};
+        __M1__='{{ url_for('report_builder.preview') }}';
+        __M2__='{{ csrf_token() }}';
+        __M3__='{{ url_for('report_builder.templates_save') }}';
+        __M4__='{{ url_for('report_builder.templates_list') }}';
+        __M5__={{ (active_config or {})|tojson }};
+        __M6__={{ active_template.id if active_template else 'null' }};
+        __M7__='/report-builder/templates/';
         </script>
 <script src="{{ url_for('static', filename='js/pages/report_builder/builder.js') }}"></script>
 {% endblock %}
