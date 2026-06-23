@@ -65,6 +65,7 @@ audit_reports/
 .pytest_cache/
 .coverage
 htmlcov/
+coverage.json
 
 # Local SQLite databases (keep names explicit)
 tmp_*.db
@@ -78,14 +79,10 @@ medical_system.db
 
 # Local Artifacts
 debug/
-scripts/
 seeds/
 reports/
-tests/
 
-# Tests & Development (excluded from production)
+# Ad-hoc scripts at repo root only (tests/ and scripts/ are tracked)
 dev/
-test_*.py
-test_*.html
 
 .tests_deleted/
