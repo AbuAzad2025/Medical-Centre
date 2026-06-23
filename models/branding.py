@@ -48,6 +48,20 @@ class BrandingSettings(TenantMixin, db.Model):
     
     def __repr__(self):
         return f'<BrandingSettings {self.organization_name}>'
+
+    @property
+    def logo_url(self):
+        """Unified logo URL for templates (G-05) — mirrors ``ui.logo_url`` resolution."""
+        if not self.logo_path:
+            return None
+        path = self.logo_path
+        if path.startswith(('http://', 'https://', '/')):
+            return path
+        try:
+            from flask import url_for
+            return url_for('static', filename=path.lstrip('/'))
+        except Exception:
+            return path
     
     def to_dict(self):
         return {

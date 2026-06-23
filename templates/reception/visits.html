@@ -96,7 +96,7 @@
                                 {% elif visit.payment_status == 'DEBT' %}
                                 <span class="badge bg-danger">دين</span>
                                 {% else %}
-                                <span class="badge bg-secondary">{{ visit.payment_status }}</span>
+                                <span class="badge bg-secondary">{{ visit.payment_status | enum_label('PaymentStatus') }}</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -112,7 +112,7 @@
                                 {% elif visit.status == 'ARCHIVED' %}
                                 <span class="badge bg-secondary">مؤرشفة</span>
                                 {% else %}
-                                <span class="badge bg-light text-dark">{{ visit.status }}</span>
+                                <span class="badge bg-light text-dark">{{ visit.status | enum_label('VisitState') }}</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -284,7 +284,7 @@
                                         {% elif visit.payment_status == 'DEBT' %}
                                         <span class="badge bg-danger">دين</span>
                                         {% else %}
-                                        <span class="badge bg-secondary">{{ visit.payment_status }}</span>
+                                        <span class="badge bg-secondary">{{ visit.payment_status | enum_label('PaymentStatus') }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -297,7 +297,7 @@
                                         {% elif visit.status == 'ARCHIVED' %}
                                         <span class="badge bg-secondary">مؤرشفة</span>
                                         {% else %}
-                                        <span class="badge bg-light text-dark">{{ visit.status }}</span>
+                                        <span class="badge bg-light text-dark">{{ visit.status | enum_label('VisitState') }}</span>
                                         {% endif %}
                                     </td>
                                     <td>

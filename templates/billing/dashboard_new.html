@@ -1,4 +1,4 @@
-{% extends "dashboard_base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}لوحة تحكم الفوترة{% endblock %}
 {% block content %}
 <div class="row g-3 mb-4">
@@ -42,7 +42,7 @@
                 <td>{{ inv.id }}</td>
                 <td>{{ inv.visit.patient.full_name if inv.visit and inv.visit.patient else '-' }}</td>
                 <td>{{ inv.total_amount }}</td>
-                <td><span class="badge bg-{% if inv.status=='PAID' %}success{% elif inv.status=='POSTED' %}primary{% else %}warning{% endif %}">{{ inv.status or 'DRAFT' }}</span></td>
+                <td><span class="badge bg-{% if inv.status=='PAID' %}success{% elif inv.status=='POSTED' %}primary{% else %}warning{% endif %}">{{ (inv.status or 'DRAFT') | enum_label('InvoiceStatus') }}</span></td>
                 <td class="text-muted small">{{ inv.created_at.strftime('%Y-%m-%d') if inv.created_at else '-' }}</td>
             </tr>
             {% endfor %}

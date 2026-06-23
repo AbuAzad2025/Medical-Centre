@@ -1,4 +1,4 @@
-{% extends "dashboard_base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}لوحة تحكم الاستقبال{% endblock %}
 {% block content %}
 <div class="row mb-3">
@@ -51,7 +51,7 @@
                 <td>{{ v.visit_number or v.id }}</td>
                 <td>{{ v.patient.full_name if v.patient else '-' }}</td>
                 <td>{{ v.department.name_ar if v.department else '-' }}</td>
-                <td><span class="badge bg-{% if v.status=='COMPLETED' %}success{% elif v.status=='IN_PROGRESS' %}primary{% else %}secondary{% endif %}">{{ v.status }}</span></td>
+                <td><span class="badge bg-{% if v.status=='COMPLETED' %}success{% elif v.status=='IN_PROGRESS' %}primary{% else %}secondary{% endif %}">{{ v.status | enum_label('VisitState') }}</span></td>
                 <td class="text-muted small">{{ v.created_at.strftime('%H:%M') if v.created_at else '-' }}</td>
             </tr>
             {% else %}
@@ -87,7 +87,7 @@
                             <td>{{ a.patient.full_name if a.patient else '-' }}</td>
                             <td>{{ a.doctor.full_name if a.doctor else '-' }}</td>
                             <td class="text-muted small">{{ a.starts_at.strftime('%H:%M') if a.starts_at else '-' }}</td>
-                            <td><span class="badge bg-{% if a.status=='CHECKED_IN' %}success{% elif a.status=='CONFIRMED' %}primary{% else %}secondary{% endif %}">{{ a.status }}</span></td>
+                            <td><span class="badge bg-{% if a.status=='CHECKED_IN' %}success{% elif a.status=='CONFIRMED' %}primary{% else %}secondary{% endif %}">{{ a.status | enum_label('AppointmentState') }}</span></td>
                         </tr>
                         {% else %}
                         <tr><td colspan="4"><div class="text-center text-muted py-4">لا توجد مواعيد اليوم</div></td></tr>
@@ -115,7 +115,7 @@
                             <td>{{ q.patient.full_name if q.patient else '-' }}</td>
                             <td>{{ q.department.name_ar if q.department else '-' }}</td>
                             <td><span class="badge bg-{% if q.priority_level=='urgent' %}danger{% elif q.priority_level=='high' %}warning{% else %}info{% endif %}">{{ q.get_priority_display() }}</span></td>
-                            <td><span class="badge bg-{% if q.status=='in_progress' %}primary{% elif q.status=='called' %}success{% else %}secondary{% endif %}">{{ q.status }}</span></td>
+                            <td><span class="badge bg-{% if q.status=='in_progress' %}primary{% elif q.status=='called' %}success{% else %}secondary{% endif %}">{{ q.status | enum_label('QueueState') }}</span></td>
                         </tr>
                         {% else %}
                         <tr><td colspan="5"><div class="text-center text-muted py-4">لا يوجد مرضى في الطابور</div></td></tr>
