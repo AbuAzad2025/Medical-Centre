@@ -1182,28 +1182,28 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 10)
+## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 11 جزئي)
 
 | البند | الحالة |
 |-------|--------|
-| **مرحلة 9** Gate 9 | ✅ MVP (§11.2) |
-| **مرحلة 10** Gate 10 | ✅ Command Center + registry + 8 أدوار |
-| Gate 10 متبقي | ⚠️ manager charts؛ `User.preferences`؛ SSE |
-| **دين 6b** | ⚠️ manager sidebar + `audit_nav_links` |
+| **مرحلة 10** | ✅ Command Center MVP |
+| **مرحلة 11** Gate 11 | ✅ زر theme + `users.preferences` + reduced-motion |
+| Gate 11 متبقي | ⚠️ تخصيص widgets؛ density/radius UI |
+| **دين 6b** | ⚠️ manager sidebar |
 
-**الخطوة التالية:** **مرحلة 11** — تفضيلات المستخدم + وضع ليلي.
+**الخطوة التالية:** **مرحلة 12** — PWA (بحذر).
 
-### 11.3 مرحلة 10 — ما نُفّذ (2026-06-23)
+### 11.4 مرحلة 11 — ما نُفّذ (2026-06-23)
 
 | الملف | الإجراء |
 |-------|---------|
-| `app/shared/dashboard_registry.py` | WidgetMeta + ROLE_LAYOUTS |
-| `app/shared/dashboard_service.py` | `render_command_center()` |
-| `templates/dashboards/command_center.html` | extends `base.html` |
-| `static/js/dashboard-live.js` | poll `/api/dashboard/snapshot` |
-| routes | reception, doctor, lab, emergency, radiology, nurse, accountant, pharmacist |
+| `users.preferences` JSON | هجرة `p11_001_user_preferences` |
+| `app/shared/user_preferences.py` | get/save theme |
+| `routes/api_user.py` | `GET/POST /api/user/preferences` |
+| `static/js/theme-toggle.js` | زر navbar |
+| `base.js` | احترام `prefers-reduced-motion` لـ GSAP |
 
-**Gate 10 (جزئي):** widgets لكل دور؛ panel «الآن»؛ shell موحّد — انظر §17 مرحلة 10
+---
 
 ### 11.2 مرحلة 9 — ما نُفّذ (2026-06-23)
 

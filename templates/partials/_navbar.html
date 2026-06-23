@@ -22,6 +22,9 @@
             </span>
 
             {% if current_user.is_authenticated %}
+            <button type="button" class="btn btn-light btn-sm" id="themeToggleBtn" aria-label="تبديل الوضع الليلي" title="وضع ليلي / نهاري">
+                <i class="fas fa-moon" data-theme-icon></i>
+            </button>
             <div class="dropdown">
                 <button class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-user-circle"></i>
