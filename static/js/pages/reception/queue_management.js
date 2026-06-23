@@ -118,7 +118,14 @@ function displayQueueStatusAll(status) {
         `);
     };
     if (status.tickets && status.tickets.length) status.tickets.forEach(addRow);
-    const tbodyHtml = rows.length ? rows.join('') : `<tr><td colspan="10" class="text-center text-muted">لا يوجد مرضى في الطابور</td></tr>`;
+    const tbodyHtml = rows.length ? rows.join('') : (
+        '<tr><td colspan="10">' +
+        '<div class="empty-state text-center py-4 text-muted">' +
+        '<i class="fas fa-user-clock fa-2x mb-2 d-block" aria-hidden="true"></i>' +
+        '<strong class="d-block">لا مرضى في الطابور</strong>' +
+        '<small>يمكنك إضافة مريض من شاشة الاستقبال.</small>' +
+        '</div></td></tr>'
+    );
     tbody.innerHTML = tbodyHtml;
 }
 

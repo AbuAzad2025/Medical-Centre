@@ -150,13 +150,13 @@ if (dntForm) {
                 body: JSON.stringify(payload)
             });
             if (!r.ok) {
-                window.notify.error('فشل الحفظ');
+                window.notify.error('تعذّر حفظ القالب. حاول مرة أخرى.');
                 return;
             }
             resetTemplateForm();
             await refreshTemplatesUI();
         } catch (err) {
-            console.error('خطأ في الاتصال:', err);
+            window.notify.error('انقطع الاتصال. تحقق من الشبكة وحاول مرة أخرى.');
         }
     });
 }
@@ -174,21 +174,21 @@ if (dntTableBody) {
             dntTextEl.value = t.text || '';
             dntActiveEl.checked = t.is_active !== false;
         } else if (action === 'delete') {
-            const ok = window.confirm('حذف القالب؟');
-            if (!ok) return;
+            window.notify.confirm('هل تريد حذف هذا القالب؟', async function () {
             try {
                 const r = await fetch(`__M2__`.replace('__T__', encodeURIComponent(id)), {
                     method: 'POST',
                     headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
                 });
                 if (!r.ok) {
-                    window.notify.error('فشل الحذف');
+                    window.notify.error('تعذّر حذف القالب. حاول مرة أخرى.');
                     return;
                 }
                 await refreshTemplatesUI();
             } catch (err) {
-                console.error('خطأ في الاتصال:', err);
+                window.notify.error('انقطع الاتصال. تحقق من الشبكة وحاول مرة أخرى.');
             }
+            });
         }
     });
 }
