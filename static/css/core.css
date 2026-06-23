@@ -217,6 +217,22 @@
   --radius-xl: 28px;
 }
 
+/* ── Density Variants ── */
+[data-density="compact"] {
+  --space-xs: 0.2rem;
+  --space-sm: 0.35rem;
+  --space-md: 0.65rem;
+  --space-lg: 1rem;
+  --font-size-base: 0.875rem;
+}
+[data-density="comfortable"] {
+  --space-xs: 0.35rem;
+  --space-sm: 0.65rem;
+  --space-md: 1.1rem;
+  --space-lg: 1.75rem;
+  --font-size-base: 1.05rem;
+}
+
 /* ── Reset ── */
 *, *::before, *::after {
   margin: 0;

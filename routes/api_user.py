@@ -15,10 +15,12 @@ def user_preferences():
 
     data = request.get_json(silent=True) or {}
     updates = {}
-    if 'theme' in data:
-        updates['theme'] = data['theme']
+    for key in ('theme', 'density', 'radius', 'dashboard'):
+        if key in data:
+            updates[key] = data[key]
     if not updates:
         return jsonify({'success': False, 'error': 'لا توجد حقول صالحة'}), 400
     if not save_user_preferences(current_user, updates):
         return jsonify({'success': False}), 500
-    return jsonify({'success': True, 'preferences': get_user_preferences(current_user)})
+    prefs = get_user_preferences(current_user)
+    return jsonify({'success': True, 'preferences': prefs})

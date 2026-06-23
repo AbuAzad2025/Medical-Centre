@@ -1194,7 +1194,7 @@ document.body.classList.toggle('sidebar-open');
 | **مرحلة 13** Gate 13 | ✅ motion.js + macros في 3 قوالب |
 | **مرحلة 14** Gate 14 | ✅ ReportTemplate + G-134 + BS4 debt |
 | **مرحلة 6b** Gate 6b | ✅ manager sidebar (23 رابط) + audit + إصلاحات routes |
-| Gate 11 متبقي | ⚠️ تخصيص widgets؛ density/radius UI |
+| Gate 11 متبقي | ✅ density/radius UI + تخصيص widgets |
 | **دين 6b** | ✅ *(2026-06-23)* — انظر §11.9 |
 | **CI GitHub** | ✅ workflow موحّد — syntax lint + pytest + migrations |
 

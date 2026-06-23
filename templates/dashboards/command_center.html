@@ -8,18 +8,48 @@
 
 {% block content %}
 <div class="command-center" data-dashboard-role="{{ dashboard_role }}">
+  <div class="d-flex justify-content-end mb-2">
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#ccCustomizePanel" aria-expanded="false">
+      <i class="fas fa-th-large me-1"></i>تخصيص اللوحة
+    </button>
+  </div>
+  <div class="collapse mb-3" id="ccCustomizePanel">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <p class="text-muted small mb-2">اختر العناصر الظاهرة في لوحتك. يُحفظ تلقائياً.</p>
+        <div class="row g-2" id="ccWidgetToggles">
+          {% for w in customizable_widgets or [] %}
+          <div class="col-md-4 col-lg-3">
+            <div class="form-check">
+              <input class="form-check-input cc-widget-toggle" type="checkbox" value="{{ w.id }}" id="cc-w-{{ w.id }}" {% if not w.hidden %}checked{% endif %}>
+              <label class="form-check-label" for="cc-w-{{ w.id }}">{{ w.title }}</label>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
   {% include 'dashboards/_hero.html' %}
   {% include 'dashboards/_now_panel.html' %}
   {% include 'dashboards/_quick_actions.html' %}
 
   <div class="cc-widgets-grid">
     {% for w in body_widgets %}
-      {% include w.template %}
+      <div class="cc-widget-shell" data-widget-id="{{ w.id }}">
+        {% include w.template %}
+      </div>
     {% endfor %}
   </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script>
+  window.__CC_WIDGETS__ = {{ customizable_widgets|default([])|tojson }};
+  window.__CC_HIDDEN__ = {{ hidden_widget_ids|default([])|tojson }};
+</script>
 <script src="{{ url_for('static', filename='js/dashboard-live.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard-customize.js') }}"></script>
 {% endblock %}

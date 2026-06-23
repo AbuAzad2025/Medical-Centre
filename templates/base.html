@@ -55,9 +55,16 @@
     <script>window.__USER_PREFS__ = {{ user_preferences|default({'theme': 'light'})|tojson }};</script>
     <script>
     (function () {
-      var t = (window.__USER_PREFS__ && window.__USER_PREFS__.theme) || null;
+      var p = window.__USER_PREFS__ || {};
+      var t = p.theme;
       try { if (!t) t = localStorage.getItem('theme'); } catch (e) {}
       if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      var d = p.density;
+      try { if (!d) d = localStorage.getItem('ui_density'); } catch (e) {}
+      if (d && d !== 'normal') document.documentElement.setAttribute('data-density', d);
+      var r = p.radius;
+      try { if (!r) r = localStorage.getItem('ui_radius'); } catch (e) {}
+      if (r && r !== 'md') document.documentElement.setAttribute('data-radius', r);
     })();
     </script>
     <link rel="icon" href="{{ url_for('static', filename='img/azad_logo.png') }}" type="image/png">
@@ -102,6 +109,7 @@
     <script src="{{ url_for('static', filename='js/security.js') }}"></script>
     <script src="{{ url_for('static', filename='js/form-validation.js') }}"></script>
     <script src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui-preferences.js') }}"></script>
     <script src="{{ url_for('static', filename='js/touch-mode.js') }}"></script>
     <script src="{{ url_for('static', filename='js/motion.js') }}"></script>
     <script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>

@@ -8,7 +8,9 @@ from flask import g, render_template, url_for
 
 from app.shared.dashboard_registry import (
     ROLE_DASHBOARD_TITLES,
+    ROLE_LAYOUTS,
     ROLE_QUICK_ACTIONS,
+    WIDGETS,
     WidgetMeta,
     resolve_dashboard_widgets,
 )
@@ -260,6 +262,16 @@ def build_command_center_context(user, role: Optional[str] = None, **extra) -> d
     enabled = _enabled_modules()
     hidden = _user_hidden_widgets(user)
     widgets = resolve_dashboard_widgets(role, enabled, hidden)
+    layout_ids = ROLE_LAYOUTS.get(role) or ROLE_LAYOUTS.get('manager', [])
+    customizable_widgets = []
+    for wid in layout_ids:
+        meta = WIDGETS.get(wid)
+        if meta:
+            customizable_widgets.append({
+                'id': meta.id,
+                'title': meta.title_ar,
+                'hidden': wid in hidden,
+            })
     now_widgets = [w for w in widgets if w.priority == 1]
     body_widgets = [w for w in widgets if w.size in ('md', 'lg', 'full')]
     data = _load_role_data(role, user)
@@ -280,6 +292,8 @@ def build_command_center_context(user, role: Optional[str] = None, **extra) -> d
         'quick_actions': quick_actions,
         'dashboard_role': role,
         'dashboard_title': ROLE_DASHBOARD_TITLES.get(role, 'لوحة القيادة'),
+        'customizable_widgets': customizable_widgets,
+        'hidden_widget_ids': list(hidden),
     }
     ctx.update(extra)
     return ctx
