@@ -8,6 +8,9 @@ Create Date: 2026-06-23
 from alembic import op
 import sqlalchemy as sa
 
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from migration_utils import table_exists
 
 

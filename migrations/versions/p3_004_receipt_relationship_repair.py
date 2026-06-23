@@ -7,7 +7,10 @@ Create Date: 2026-06-22
 from alembic import op
 import sqlalchemy as sa
 
-from migration_utils import column_exists, index_exists, fk_exists, check_constraint_exists
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from migration_utils import column_exists, index_exists, fk_exists, check_constraint_exists, table_exists
 
 
 revision = 'p3_004_receipt_relationship_repair'
@@ -24,7 +27,7 @@ def upgrade() -> None:
     if not column_exists('receipts', 'void_reason'):
         op.add_column('receipts', sa.Column('void_reason', sa.Text(), nullable=True))
 
-    if not fk_exists('receipts', 'fk_receipts_payment_id_payments'):
+    if table_exists('payments') and not fk_exists('receipts', 'fk_receipts_payment_id_payments'):
         op.create_foreign_key(
             'fk_receipts_payment_id_payments',
             'receipts', 'payments',

@@ -11,9 +11,57 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      SECRET_KEY: ci-test-secret-key
+      APP_ENV: testing
+      FLASK_ENV: testing
+      FLASK_APP: wsgi:app
+      SUPPRESS_BACKGROUND_WORKER: "1"
+      SUPPRESS_LOGGING: "1"
+      MIGRATE_ADMIN_URL: postgresql://postgres:testpass@localhost:5432/postgres
+      MIGRATE_DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_migrate_ci
+      DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_migrate_ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify Alembic upgrade (fresh DB)
+        run: python scripts/verify_migrations.py
+
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    needs: migrate
+    timeout-minutes: 25
 
     services:
       postgres:
@@ -57,7 +105,7 @@ jobs:
 
       - name: Syntax lint (flake8 E9/F63/F7)
         run: |
-          python -m flake8 app routes services models utils tests --count --select=E9,F63,F7 --statistics
+          python -m flake8 app routes services models utils tests scripts --count --select=E9,F63,F7 --statistics
 
       - name: Run tests
         run: python -m pytest tests/ -q --tb=short
