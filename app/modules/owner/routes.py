@@ -51,6 +51,27 @@ def _log_action(action, entity_type, entity_id=None, details=None):
         db.session.rollback()
 
 
+def _compute_platform_revenue():
+    """MRR/ARR snapshot for owner billing dashboard."""
+    all_tenants = Tenant.query.all()
+    mrr = 0.0
+    for t in all_tenants:
+        if t.is_active_and_paid() and t.plan:
+            price = float(t.plan.base_price or 0)
+            if t.subscription_type == SubscriptionType.YEARLY:
+                price = price / 12.0
+            elif t.subscription_type == SubscriptionType.PERPETUAL:
+                price = 0
+            mrr += price
+    return {
+        'tenant_count': len(all_tenants),
+        'active_paid': sum(1 for t in all_tenants if t.is_active_and_paid()),
+        'mrr': mrr,
+        'arr': mrr * 12,
+        'currency': 'SAR',
+    }
+
+
 @owner_bp.route("/dashboard")
 @login_required
 @owner_required
@@ -606,22 +627,11 @@ def owner_webhooks():
 
 
     webhooks = []
-    api_keys = []
-    tenants = Tenant.query.all()
     try:
         from models.system_config import SystemConfig
         cfg_wh = SystemConfig.query.filter_by(config_key='owner_webhooks').first()
         if cfg_wh and cfg_wh.config_value:
-            import json
             webhooks = json.loads(cfg_wh.config_value)
-        cfg_key = SystemConfig.query.filter_by(config_key='owner_api_keys').first()
-        if cfg_key and cfg_key.config_value:
-            import json
-            api_keys_raw = json.loads(cfg_key.config_value)
-            api_keys = []
-            for k in api_keys_raw:
-                tenant = Tenant.query.get(k.get('tenant_id'))
-                api_keys.append({'name': k.get('name'), 'scopes': k.get('scopes'), 'tenant': tenant})
     except Exception:
         pass
 
@@ -655,47 +665,121 @@ def owner_webhooks():
             flash(f'خطأ: {e}', 'error')
         return redirect(url_for('owner.owner_webhooks'))
 
-    return render_template('owner/webhooks.html', webhooks=webhooks, api_keys=api_keys, tenants=tenants)
+    return render_template('owner/webhooks.html', webhooks=webhooks)
 
 
-@owner_bp.route("/api-keys", methods=["POST"])
+@owner_bp.route("/api-keys", methods=["GET", "POST"])
 @login_required
 @owner_required
-def owner_api_keys():
-
-
+def owner_api_keys_page():
+    """إدارة API Keys — صفحة مستقلة (G-141)."""
+    api_keys = []
+    tenants = Tenant.query.all()
     try:
-        import secrets
-        new_key = {
-            'id': int(datetime.now(timezone.utc).timestamp()),
-            'tenant_id': int(request.form.get('tenant_id', 0)),
-            'name': request.form.get('name', '').strip(),
-            'key': 'ak_' + secrets.token_urlsafe(32),
-            'scopes': request.form.get('scopes', 'read').strip(),
-            'created_at': datetime.now(timezone.utc).isoformat(),
-            'created_by': current_user.id,
-        }
         from models.system_config import SystemConfig
-        cfg = SystemConfig.query.filter_by(config_key='owner_api_keys').first()
-        import json
-        keys = []
-        if cfg and cfg.config_value:
-            keys = json.loads(cfg.config_value)
-        keys.insert(0, new_key)
-        keys = keys[:100]
-        if cfg:
-            cfg.config_value = json.dumps(keys)
-            cfg.updated_by = current_user.id
-        else:
-            cfg = SystemConfig(config_key='owner_api_keys', config_value=json.dumps(keys), config_type='json', category='owner', created_by=current_user.id, updated_by=current_user.id)
-            db.session.add(cfg)
-        db.session.commit()
-        _log_action('CREATE_API_KEY', 'system', new_key['tenant_id'], new_key['name'])
-        flash(f"تم إنشاء API Key: {new_key['key'][:20]}...", 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'خطأ: {e}', 'error')
-    return redirect(url_for('owner.owner_webhooks'))
+        cfg_key = SystemConfig.query.filter_by(config_key='owner_api_keys').first()
+        if cfg_key and cfg_key.config_value:
+            api_keys_raw = json.loads(cfg_key.config_value)
+            for k in api_keys_raw:
+                tenant = Tenant.query.get(k.get('tenant_id'))
+                api_keys.append({
+                    'name': k.get('name'),
+                    'scopes': k.get('scopes'),
+                    'key': k.get('key'),
+                    'created_at': k.get('created_at'),
+                    'tenant': tenant,
+                })
+    except Exception:
+        pass
+
+    if request.method == 'POST':
+        try:
+            import secrets as _secrets
+            new_key = {
+                'id': int(datetime.now(timezone.utc).timestamp()),
+                'tenant_id': int(request.form.get('tenant_id', 0)),
+                'name': request.form.get('name', '').strip(),
+                'key': 'ak_' + _secrets.token_urlsafe(32),
+                'scopes': request.form.get('scopes', 'read').strip(),
+                'created_at': datetime.now(timezone.utc).isoformat(),
+                'created_by': current_user.id,
+            }
+            from models.system_config import SystemConfig
+            cfg = SystemConfig.query.filter_by(config_key='owner_api_keys').first()
+            keys = []
+            if cfg and cfg.config_value:
+                keys = json.loads(cfg.config_value)
+            keys.insert(0, new_key)
+            keys = keys[:100]
+            if cfg:
+                cfg.config_value = json.dumps(keys)
+                cfg.updated_by = current_user.id
+            else:
+                cfg = SystemConfig(
+                    config_key='owner_api_keys',
+                    config_value=json.dumps(keys),
+                    config_type='json',
+                    category='owner',
+                    created_by=current_user.id,
+                    updated_by=current_user.id,
+                )
+                db.session.add(cfg)
+            db.session.commit()
+            _log_action('CREATE_API_KEY', 'system', new_key['tenant_id'], new_key['name'])
+            flash(f"تم إنشاء API Key: {new_key['key'][:20]}...", 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'خطأ: {e}', 'error')
+        return redirect(url_for('owner.owner_api_keys_page'))
+
+    return render_template('owner/api_keys.html', api_keys=api_keys, tenants=tenants)
+
+
+@owner_bp.route("/themes", methods=["GET", "POST"])
+@login_required
+@owner_required
+def owner_themes():
+    """إدارة ثيمات النظام (SystemTheme)."""
+    from models.branding import SystemTheme
+
+    if request.method == 'POST':
+        try:
+            theme = SystemTheme(
+                name=request.form.get('name', '').strip(),
+                name_ar=request.form.get('name_ar', '').strip(),
+                description=request.form.get('description', '').strip() or None,
+                primary_color=request.form.get('primary_color', '#2563eb'),
+                secondary_color=request.form.get('secondary_color', '#10b981'),
+                accent_color=request.form.get('accent_color', '#f59e0b'),
+                background_color=request.form.get('background_color', '#f8fafc'),
+                text_color=request.form.get('text_color', '#1f2937'),
+                is_active=True,
+            )
+            db.session.add(theme)
+            db.session.commit()
+            _log_action('CREATE_THEME', 'theme', theme.id, theme.name_ar)
+            flash('تم إنشاء الثيم', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'خطأ: {e}', 'error')
+        return redirect(url_for('owner.owner_themes'))
+
+    themes = SystemTheme.query.order_by(SystemTheme.is_default.desc(), SystemTheme.name_ar).all()
+    return render_template('owner/themes.html', themes=themes)
+
+
+@owner_bp.route("/billing")
+@login_required
+@owner_required
+def owner_billing():
+    """ملخص الفوترة والإيرادات المتكررة."""
+    stats = _compute_platform_revenue()
+    plans = SubscriptionPlan.query.all()
+    plan_rows = []
+    for plan in plans:
+        count = sum(1 for t in Tenant.query.all() if t.plan_id == plan.id and t.is_active_and_paid())
+        plan_rows.append({'plan': plan, 'active_count': count})
+    return render_template('owner/billing.html', stats=stats, plan_rows=plan_rows)
 
 
 # ─────────────────────────────────────────────

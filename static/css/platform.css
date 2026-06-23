@@ -1,0 +1,25 @@
+/* AZAD platform owner shell (phase 6) */
+body.platform-theme {
+    --color-primary: #1a1f3a;
+    --color-secondary: #d4af37;
+    --color-accent: #2c3e50;
+}
+
+body.platform-theme .clinical-sidebar {
+    background: linear-gradient(180deg, #1a1f3a 0%, #12162b 100%);
+}
+
+body.platform-theme .clinical-sidebar .nav-link.active,
+body.platform-theme .clinical-sidebar .nav-link:hover {
+    background: rgba(212, 175, 55, 0.15);
+    color: #f5e6b8;
+}
+
+body.platform-theme .platform-navbar {
+    background: #1a1f3a;
+    border-bottom: 2px solid #d4af37;
+}
+
+.owner-header-gradient {
+    background: linear-gradient(135deg, #1a1f3a 0%, #2c3e50 100%);
+}

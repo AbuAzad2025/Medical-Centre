@@ -1,0 +1,55 @@
+{% extends "owner/base.html" %}
+{% block title %}ثيمات النظام{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3"><div class="col"><h4><i class="fas fa-paint-brush me-2"></i>ثيمات النظام</h4></div></div>
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header fw-bold">ثيم جديد</div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('owner.owner_themes') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-2"><label class="form-label">الاسم (EN)</label><input name="name" class="form-control" required></div>
+                        <div class="mb-2"><label class="form-label">الاسم (AR)</label><input name="name_ar" class="form-control" required></div>
+                        <div class="mb-2"><label class="form-label">الوصف</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+                        <div class="row g-2">
+                            <div class="col-6"><label class="form-label small">أساسي</label><input type="color" name="primary_color" class="form-control form-control-color" value="#2563eb"></div>
+                            <div class="col-6"><label class="form-label small">ثانوي</label><input type="color" name="secondary_color" class="form-control form-control-color" value="#10b981"></div>
+                            <div class="col-6"><label class="form-label small">تمييز</label><input type="color" name="accent_color" class="form-control form-control-color" value="#f59e0b"></div>
+                            <div class="col-6"><label class="form-label small">خلفية</label><input type="color" name="background_color" class="form-control form-control-color" value="#f8fafc"></div>
+                        </div>
+                        <input type="hidden" name="text_color" value="#1f2937">
+                        <button type="submit" class="btn btn-primary mt-3">حفظ الثيم</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header fw-bold">الثيمات المسجّلة</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for theme in themes %}
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 h-100">
+                                <div class="d-flex gap-1 mb-2">
+                                    <span class="rounded-circle d-inline-block" style="width:24px;height:24px;background:{{ theme.primary_color }}"></span>
+                                    <span class="rounded-circle d-inline-block" style="width:24px;height:24px;background:{{ theme.secondary_color }}"></span>
+                                    <span class="rounded-circle d-inline-block" style="width:24px;height:24px;background:{{ theme.accent_color }}"></span>
+                                </div>
+                                <strong>{{ theme.name_ar }}</strong>
+                                <div class="small text-muted">{{ theme.name }}</div>
+                                {% if theme.is_default %}<span class="badge bg-warning text-dark">افتراضي</span>{% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">لا ثيمات — أنشئ الأول من النموذج.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

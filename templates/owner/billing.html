@@ -1,0 +1,32 @@
+{% extends "owner/base.html" %}
+{% block title %}الفوترة والإيرادات{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3"><div class="col"><h4><i class="fas fa-coins me-2 text-warning"></i>الفوترة والإيرادات</h4></div></div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">MRR</div><h3>{{ "%.0f"|format(stats.mrr) }} {{ stats.currency }}</h3></div></div></div>
+        <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">ARR</div><h3>{{ "%.0f"|format(stats.arr) }} {{ stats.currency }}</h3></div></div></div>
+        <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">عملاء نشطون مدفوعون</div><h3>{{ stats.active_paid }}</h3></div></div></div>
+        <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">إجمالي العملاء</div><h3>{{ stats.tenant_count }}</h3></div></div></div>
+    </div>
+    <div class="card shadow-sm">
+        <div class="card-header fw-bold">الإيراد حسب الخطة</div>
+        <div class="card-body p-0">
+            <table class="table mb-0">
+                <thead><tr><th>الخطة</th><th>عملاء نشطون</th><th>السعر الشهري</th></tr></thead>
+                <tbody>
+                {% for row in plan_rows %}
+                <tr>
+                    <td>{{ row.plan.name_ar or row.plan.name }}</td>
+                    <td>{{ row.active_count }}</td>
+                    <td>{{ row.plan.base_price }} {{ stats.currency }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" class="text-muted text-center py-3">لا خطط</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{# Owner platform sidebar — G-137 #}
+<aside class="clinical-sidebar" id="appSidebar">
+    <div class="sidebar-header d-lg-none p-3 border-bottom border-secondary d-flex justify-content-between align-items-center text-white">
+        <strong>قائمة المنصة</strong>
+        <button type="button" class="btn btn-sm btn-outline-light" id="closeSidebarBtn" aria-label="إغلاق القائمة">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <nav class="sidebar-nav p-2" aria-label="تنقل المنصة">
+        <ul class="nav flex-column">
+            {% for section in owner_nav_sections %}
+                {% if section.title_ar %}
+                <li class="nav-item mt-2">
+                    <span class="nav-section-title text-white-50">{{ section.title_ar }}</span>
+                </li>
+                {% endif %}
+                {% for item in section.items %}
+                {% set href = owner_nav_href(item) if owner_nav_href is defined else url_for(item.endpoint) %}
+                {% set is_active = item.active_prefix and request.path.startswith(item.active_prefix) %}
+                <li class="nav-item">
+                    <a class="nav-link text-white-50 {{ 'active text-white' if is_active else '' }}" href="{{ href }}">
+                        <i class="{{ item.icon }} nav-icon"></i>
+                        <span>{{ item.label_ar }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </nav>
+</aside>

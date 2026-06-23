@@ -742,6 +742,17 @@ def create_app(config_name: str | None = None) -> Flask:
             return {'nav_sections': resolve_nav_for_user(current_user)}
         return {'nav_sections': []}
 
+    @app.context_processor
+    def inject_owner_nav():
+        from flask_login import current_user
+        from app.shared.owner_nav_registry import resolve_owner_nav, owner_nav_href
+        if current_user.is_authenticated and getattr(current_user, 'role', None) == 'owner':
+            return {
+                'owner_nav_sections': resolve_owner_nav(),
+                'owner_nav_href': owner_nav_href,
+            }
+        return {'owner_nav_sections': [], 'owner_nav_href': lambda item: '#'}
+
     # Enum helpers for templates
     @app.context_processor
     def inject_enum_helpers():
