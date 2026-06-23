@@ -14,7 +14,10 @@ const apiUrl = __M0__;
             }
             items.forEach(it => {
                 const card = document.createElement('div');
-                card.className = 'p-3 rounded bg-dark-subtle text-dark';
+                card.className = 'p-3 rounded bg-dark-subtle text-dark queue-card-enter';
+                if (window.__MOTION_ENABLED__ && !window.__MOTION_ENABLED__()) {
+                    card.classList.remove('queue-card-enter');
+                }
                 card.innerHTML = `
                     <div class="queue-number">${it.queue_number || '-'}</div>
                     <div class="ticker">${it.department_name || ''}</div>

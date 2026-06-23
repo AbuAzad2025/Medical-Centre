@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% import 'macros/forms.html' as forms %}
+{% from 'partials/_patient_context_panel.html' import patient_context_panel %}
+{% from 'partials/_workflow_next_actions.html' import workflow_next_actions %}
 
 {% block title %}
 {% if lab_request %}
@@ -12,6 +14,8 @@
 {% block content %}
 <div class="container-fluid">
     {% if lab_request %}
+    {{ patient_context_panel(lab_request.patient) }}
+    {% if lab_request.visit %}{{ workflow_next_actions(lab_request.visit) }}{% endif %}
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">

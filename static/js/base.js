@@ -163,17 +163,7 @@ try {
     if (radius) document.documentElement.setAttribute('data-radius', radius);
 } catch (e) {}
 
-window.addEventListener('load', function() {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if (typeof gsap === 'undefined') return;
-    gsap.from('.card-modern', {
-        duration: 0.8,
-        y: 50,
-        opacity: 0,
-        stagger: 0.1,
-        ease: "power2.out"
-    });
-});
+// GSAP entrance animations moved to static/js/motion.js (§22)
 
 function debounce(func, wait) {
     let timeout;
