@@ -187,6 +187,17 @@ body.clinical-theme {
   color: var(--clinical-text);
 }
 
+/* Hero variant — department dashboard banners (gradient background) */
+.clinical-page-header--hero {
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  align-items: center;
+}
+
+.clinical-page-header--hero h1 {
+  color: #fff;
+}
+
 .clinical-breadcrumb {
   font-size: 0.8rem;
   color: var(--clinical-muted);

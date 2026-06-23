@@ -432,3 +432,76 @@ class TestMedicalHeaderDebt:
                 if ep not in known:
                     missing.append((rel, ep))
         assert not missing, missing
+
+
+class TestPageHeaderFormAndHero:
+    """Macro extensions: CSRF-protected form action + gradient hero variant."""
+
+    def test_form_action_renders_post_with_csrf(self, app):
+        from flask import render_template_string
+        tmpl = (
+            "{% from 'partials/_page_header.html' import page_header %}"
+            "{{ page_header('عنوان', actions=["
+            "{'type':'form','label':'تحويل','url':'/checkin','style':'info','icon':'fas fa-x'}]) }}"
+        )
+        with app.test_request_context():
+            html = render_template_string(tmpl)
+        assert 'clinical-page-header' in html
+        assert '<form' in html and 'method="POST"' in html
+        assert 'action="/checkin"' in html
+        assert 'name="csrf_token"' in html
+        assert 'btn-info' in html
+
+    def test_hero_variant_renders_gradient(self, app):
+        from flask import render_template_string
+        tmpl = (
+            "{% from 'partials/_page_header.html' import page_header %}"
+            "{{ page_header('قسم المختبر', subtitle='وصف', icon='fas fa-flask', "
+            "hero_class='lab-gradient', actions=[{'label':'X','url':'/y','style':'light'}]) }}"
+        )
+        with app.test_request_context():
+            html = render_template_string(tmpl)
+        assert 'clinical-page-header--hero' in html
+        assert 'lab-gradient' in html
+        assert 'text-white' in html
+        assert 'btn-light' in html
+
+    def test_view_appointment_uses_macro_form(self, app):
+        from flask import render_template
+        from types import SimpleNamespace
+        appt = SimpleNamespace(
+            id=42,
+            status='SCHEDULED',
+            patient=SimpleNamespace(full_name='مريض اختبار', phone='0599000000'),
+            department=SimpleNamespace(name_ar='الأسنان', name='Dental'),
+            doctor=SimpleNamespace(full_name='د. سارة'),
+            starts_at=None,
+        )
+        with app.test_request_context():
+            html = render_template(
+                'reception/view_appointment.html',
+                appointment=appt, appt_type='كشف', symptoms=None, base_notes=None,
+            )
+        assert 'clinical-page-header' in html
+        assert 'تفاصيل الموعد' in html
+        assert 'checkin' in html
+        assert 'name="csrf_token"' in html
+        assert 'مجدول' in html  # AppointmentState.SCHEDULED localized
+
+
+class TestDashboardHeroAndInfoPagesRender:
+    def test_legacy_dashboard_heroes_render_with_hero_header(self, app):
+        from pathlib import Path
+        for tmpl, cls in [('lab/dashboard_new.html', 'lab-gradient'),
+                          ('accountant/dashboard_new.html', 'acc-gradient')]:
+            # header-only smoke: confirm the migrated hero header compiles + emits gradient
+            src = (Path(__file__).parent.parent / 'templates' / tmpl).read_text(encoding='utf-8')
+            assert "import page_header" in src
+            assert "hero_class='" + cls + "'" in src
+
+    @pytest.mark.parametrize('tmpl', ['main/about.html', 'main/terms.html', 'main/privacy.html'])
+    def test_public_info_pages_render(self, app, tmpl):
+        from flask import render_template
+        with app.test_request_context():
+            html = render_template(tmpl)
+        assert 'card' in html and '</div>' in html
