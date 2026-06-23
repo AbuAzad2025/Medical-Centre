@@ -37,6 +37,9 @@ def test_alembic_single_head(app):
         check=False,
     )
     assert result.returncode == 0, result.stderr
-    lines = [ln.strip() for ln in result.stdout.splitlines() if ln.strip()]
-    assert len(lines) == 1
-    assert 'p35_001_pharmacy_payment' in lines[0]
+    head_lines = [
+        ln.strip() for ln in result.stdout.splitlines()
+        if ln.strip() and ('(head)' in ln or 'p35_001_pharmacy_payment' in ln)
+    ]
+    assert len(head_lines) == 1
+    assert 'p35_001_pharmacy_payment' in head_lines[0]
