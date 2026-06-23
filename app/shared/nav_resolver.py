@@ -170,6 +170,11 @@ def resolve_nav_for_user(user) -> List[NavSection]:
     if modules.items:
         sections.append(modules)
 
+    # Gate 6b — manager/admin reporting hub (G-142)
+    if role in ('manager', 'admin') and 'reporting' in allowed:
+        from app.shared.manager_nav_registry import resolve_manager_nav_sections
+        sections.extend(resolve_manager_nav_sections())
+
     # G-03: super_admin/admin ≠ platform owner role
     if role in ('super_admin', 'admin'):
         admin = NavSection(id='admin', title_ar='الإدارة')

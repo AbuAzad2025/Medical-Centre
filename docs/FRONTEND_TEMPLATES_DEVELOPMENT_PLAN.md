@@ -1193,13 +1193,34 @@ document.body.classList.toggle('sidebar-open');
 | **مرحلة 12** Gate 12 | ✅ PWA موحّد + mobile nav + kiosk check-in |
 | **مرحلة 13** Gate 13 | ✅ motion.js + macros في 3 قوالب |
 | **مرحلة 14** Gate 14 | ✅ ReportTemplate + G-134 + BS4 debt |
+| **مرحلة 6b** Gate 6b | ✅ manager sidebar (23 رابط) + audit + إصلاحات routes |
 | Gate 11 متبقي | ⚠️ تخصيص widgets؛ density/radius UI |
-| **دين 6b** | ⚠️ manager sidebar + `audit_nav_links` |
+| **دين 6b** | ✅ *(2026-06-23)* — انظر §11.9 |
 
 **Git HEAD:** `c5f9a36` → يُحدَّث بعد دفع مرحلة 14  
 **هجرة DB:** `p11_001_user_preferences`
 
-**الخطوة التالية:** صيانة ما بعد الإطلاق (codemod BS4، Gate 11، دين 6b).
+**الخطوة التالية:** Gate 11 متبقي (widgets UI) أو codemod BS4 أو §35 POS.
+
+### 11.9 مرحلة 6b — ما نُفّذ (2026-06-23)
+
+| الملف | الإجراء |
+|-------|---------|
+| `app/shared/manager_nav_registry.py` | 3 أقسام: مالية \| موارد بشرية \| تقارير (G-142) |
+| `app/shared/nav_resolver.py` | ربط manager nav لـ manager/admin |
+| `app/shared/nav_audit.py` | تدقيق تغطية وروابط (G-143) |
+| `scripts/audit_nav_links.py` | CLI — صفر broken endpoints |
+| `scripts/audit_nav_coverage.py` | CLI — تغطية manager routes |
+| `tests/test_gate_6b_nav.py` | 10 اختبارات (G-147) |
+| `routes/manager/financial.py` | إصلاح `PaymentStatus` + dead code |
+| `routes/manager/staff.py` | إصلاح `user_management` + `staff` |
+| `routes/manager/reports.py` | `analytics` يمرّر `units_status` |
+| `app/shared/mobile_nav.py` | `manager.analytics` بدل monitoring |
+
+**Gate 6b:**
+- [x] manager sidebar — 14+ route من §15.4
+- [x] `audit_nav_links` — صفر broken
+- [x] E2E manager sidebar → 200
 
 ### 11.8 مرحلة 14 — ما نُفّذ (2026-06-23)
 
@@ -1227,7 +1248,7 @@ document.body.classList.toggle('sidebar-open');
 
 **Git HEAD:** *(يُحدَّث بعد الدفع)*
 
-**الخطوة التالية:** صيانة ما بعد الإطلاق — codemod BS4، Gate 11 متبقي، دين 6b.
+**الخطوة التالية:** Gate 11 متبقي (widgets UI) أو codemod BS4 أو §35 POS.
 
 ### 11.7 مرحلة 13 — ما نُفّذ (2026-06-23)
 
@@ -4263,7 +4284,7 @@ flowchart TD
 | **النواقص** | G-142, G-143, G-147 |
 | **المراجع** | §37.6, §15.4 |
 
-**Gate 6b — §37.8:** manager routes مغطاة؛ `audit_nav_links` صفر broken
+**Gate 6b — §37.8:** manager routes مغطاة؛ `audit_nav_links` صفر broken — ✅ (2026-06-23)
 
 ---
 

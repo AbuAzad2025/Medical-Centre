@@ -123,8 +123,46 @@ def analytics():
     if current_user.role not in ['manager', 'admin']:
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
-    
-    return render_template('manager/monitoring.html')
+
+    try:
+        from app.shared.enums import VisitState
+        units_status = {
+            'reception': {
+                'name': 'الاستقبال',
+                'status': 'active',
+                'pending_visits': Visit.query.filter(Visit.status == VisitState.OPEN).count(),
+            },
+            'doctor': {
+                'name': 'الأطباء',
+                'status': 'active',
+                'in_progress_visits': Visit.query.filter(Visit.status == VisitState.IN_PROGRESS).count(),
+            },
+            'emergency': {
+                'name': 'الطوارئ',
+                'status': 'active',
+                'emergency_visits': Visit.query.filter(Visit.visit_type == 'emergency').count(),
+            },
+            'lab': {
+                'name': 'المختبر',
+                'status': 'active',
+                'lab_requests': LabRequest.query.count(),
+            },
+            'radiology': {
+                'name': 'الأشعة',
+                'status': 'active',
+                'radiology_requests': RadiologyRequest.query.count(),
+            },
+            'accountant': {
+                'name': 'المحاسبة',
+                'status': 'active',
+                'open_invoices': Invoice.query.filter(Invoice.status != 'paid').count(),
+            },
+        }
+        return render_template('manager/monitoring.html', units_status=units_status)
+    except Exception as e:
+        logging.error(f"Error in analytics monitoring: {str(e)}")
+        flash('حدث خطأ في تحميل التحليلات', 'error')
+        return redirect(url_for('manager.dashboard'))
 
 @manager_bp.route('/self-service')
 @login_required
