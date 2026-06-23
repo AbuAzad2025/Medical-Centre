@@ -1182,16 +1182,28 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 9)
+## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 10)
 
 | البند | الحالة |
 |-------|--------|
-| **مرحلة 8** Gate 8 | ✅ MVP (انظر §11.1 السابق) |
-| **مرحلة 9** Gate 9 | ✅ `print_base` + 5 قوالب + `print.css` + ختم AZAD + معاينة branding |
-| Gate 9 متبقي | ⚠️ `sale_receipt` صيدلية؛ lab print unify؛ 80mm tickets |
+| **مرحلة 9** Gate 9 | ✅ MVP (§11.2) |
+| **مرحلة 10** Gate 10 | ✅ Command Center + registry + 8 أدوار |
+| Gate 10 متبقي | ⚠️ manager charts؛ `User.preferences`؛ SSE |
 | **دين 6b** | ⚠️ manager sidebar + `audit_nav_links` |
 
-**الخطوة التالية:** **مرحلة 10** — Command Center.
+**الخطوة التالية:** **مرحلة 11** — تفضيلات المستخدم + وضع ليلي.
+
+### 11.3 مرحلة 10 — ما نُفّذ (2026-06-23)
+
+| الملف | الإجراء |
+|-------|---------|
+| `app/shared/dashboard_registry.py` | WidgetMeta + ROLE_LAYOUTS |
+| `app/shared/dashboard_service.py` | `render_command_center()` |
+| `templates/dashboards/command_center.html` | extends `base.html` |
+| `static/js/dashboard-live.js` | poll `/api/dashboard/snapshot` |
+| routes | reception, doctor, lab, emergency, radiology, nurse, accountant, pharmacist |
+
+**Gate 10 (جزئي):** widgets لكل دور؛ panel «الآن»؛ shell موحّد — انظر §17 مرحلة 10
 
 ### 11.2 مرحلة 9 — ما نُفّذ (2026-06-23)
 
