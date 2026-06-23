@@ -1191,13 +1191,33 @@ document.body.classList.toggle('sidebar-open');
 | **مرحلة 10** | ✅ Command Center MVP — 8 dashboards محوّلة |
 | **مرحلة 11** Gate 11 | ✅ theme toggle + `users.preferences` + هجرة `p11_001` |
 | **مرحلة 12** Gate 12 | ✅ PWA موحّد + mobile nav + kiosk check-in |
+| **مرحلة 13** Gate 13 | ✅ motion.js + macros في 3 قوالب |
 | Gate 11 متبقي | ⚠️ تخصيص widgets؛ density/radius UI |
 | **دين 6b** | ⚠️ manager sidebar + `audit_nav_links` |
 
-**Git HEAD:** يُحدَّث بعد commit مرحلة 12  
+**Git HEAD:** `c5f9a36` (main على GitHub)  
 **هجرة DB:** `p11_001_user_preferences`
 
-**الخطوة التالية:** **مرحلة 13** — حيوية + macros.
+**الخطوة التالية:** **مرحلة 14** — تعميم وتنظيف.
+
+### 11.7 مرحلة 13 — ما نُفّذ (2026-06-23)
+
+| الملف | الإجراء |
+|-------|---------|
+| `static/css/motion.css` | `.animate-in`, skeleton, reduced-motion — G-72 |
+| `static/js/motion.js` | GSAP خلف `motionEnabled` + `__USER_PREFS__` |
+| `static/js/base.js` | إزالة GSAP المكرر على `.card-modern` |
+| `_patient_context_panel.html` | ماكرو محسّن + `animate-in` |
+| `_workflow_next_actions.html` | `visit_next_actions()` + `enum_label` |
+| `doctor/patient_details.html` | كلا الماكروهين |
+| `reception/visits.html` | كلا الماكروهين (وضع عرض زيارة) |
+| `lab/process.html` | كلا الماكروهين |
+| `waiting_display.js` | fade عند تحديث الطابور |
+| `tests/test_phase13_motion.py` | 6 اختبارات |
+
+**Gate 13:**
+- [x] GSAP خلف `motionEnabled` + reduced-motion
+- [x] `_patient_context_panel`, `_workflow_next_actions` في ≥3 قوالب
 
 ### 11.6 مرحلة 12 — ما نُفّذ (2026-06-23)
 
@@ -4312,16 +4332,16 @@ flowchart TD
 
 ---
 
-#### مرحلة 13 — حيوية + macros
+#### مرحلة 13 — حيوية + macros ✅ (2026-06-23)
 
 | | |
 |--|--|
-| **النواقص** | G-14, G-72, G-23 |
+| **النواقص** | تعميم `animate-in` — مرحلة 14 |
 | **المراجع** | §22 |
 
 **Gate 13:**
-- [ ] GSAP خلف `motionEnabled` + reduced-motion
-- [ ] `_patient_context_panel`, `_workflow_next_actions` **مستوردة** في ≥3 قوالب
+- [x] GSAP خلف `motionEnabled` + reduced-motion
+- [x] `_patient_context_panel`, `_workflow_next_actions` **مستوردة** في ≥3 قوالب
 
 ---
 

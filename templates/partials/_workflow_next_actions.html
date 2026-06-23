@@ -1,18 +1,21 @@
-{% macro workflow_next_actions(visit, next_actions) %}
-<div class="card mb-3">
+{% macro workflow_next_actions(visit, next_actions=none) %}
+{% if visit %}
+<div class="card mb-3 animate-in">
     <div class="card-header">
         <i class="fas fa-arrow-right"></i> الإجراءات التالية
     </div>
     <div class="card-body">
-        {% if next_actions %}
+        {% set actions = next_actions if next_actions is not none else visit_next_actions(visit) %}
+        {% if actions %}
         <div class="d-flex flex-wrap gap-2">
-            {% for action in next_actions %}
-            <span class="badge bg-info">{{ action }}</span>
+            {% for action in actions %}
+            <span class="badge bg-info">{{ action | enum_label('VisitState') }}</span>
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-muted mb-0">لا توجد إجراءات متاحة - الزيارة مكتملة</p>
+        <p class="text-muted mb-0">لا توجد إجراءات متاحة — الزيارة مكتملة</p>
         {% endif %}
     </div>
 </div>
+{% endif %}
 {% endmacro %}

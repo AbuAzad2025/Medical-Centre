@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% import 'macros/forms.html' as forms %}
+{% from 'partials/_patient_context_panel.html' import patient_context_panel %}
+{% from 'partials/_workflow_next_actions.html' import workflow_next_actions %}
 
 {% block title %}قائمة الزيارات - الاستقبال{% endblock %}
 
@@ -38,6 +40,8 @@
     </div>
 
     {% if visit %}
+    {{ patient_context_panel(visit.patient) }}
+    {{ workflow_next_actions(visit) }}
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">

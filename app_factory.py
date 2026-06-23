@@ -777,6 +777,11 @@ def create_app(config_name: str | None = None) -> Flask:
         return {'mobile_nav_items': resolve_mobile_nav_items(current_user)}
 
     @app.context_processor
+    def inject_workflow_helpers():
+        from services.workflow_orchestrator import WorkflowOrchestrator
+        return {'visit_next_actions': WorkflowOrchestrator.next_actions}
+
+    @app.context_processor
     def inject_owner_nav():
         from flask_login import current_user
         from app.shared.owner_nav_registry import resolve_owner_nav, owner_nav_href

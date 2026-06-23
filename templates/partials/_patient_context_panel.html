@@ -1,5 +1,5 @@
 {% macro patient_context_panel(patient) %}
-<div class="card mb-3">
+<div class="card mb-3 animate-in">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="fas fa-user me-1"></i> {{ patient.full_name }}</span>
         {% if patient.national_id %}
@@ -8,14 +8,10 @@
     </div>
     <div class="card-body py-2">
         <div class="row small">
-            <div class="col-md-3"><strong>الهاتف:</strong> {{ patient.phone or '-' }}</div>
-            <div class="col-md-3"><strong>العمر:</strong> 
-                {% if patient.birth_date %}
-                {{ ((now().year) - patient.birth_date.year) }} سنة
-                {% else %}-{% endif %}
-            </div>
-            <div class="col-md-3"><strong>الجنس:</strong> {{ patient.get_gender_display() if patient.get_gender_display else patient.gender or '-' }}</div>
-            <div class="col-md-3"><strong>العنوان:</strong> {{ patient.address or '-' }}</div>
+            <div class="col-md-3"><strong>الهاتف:</strong> {{ patient.phone or '—' }}</div>
+            <div class="col-md-3"><strong>العمر:</strong> {{ patient.age if patient.age is not none else '—' }}</div>
+            <div class="col-md-3"><strong>الجنس:</strong> {{ patient.gender or '—' }}</div>
+            <div class="col-md-3"><strong>العنوان:</strong> {{ patient.address or '—' }}</div>
         </div>
     </div>
 </div>
