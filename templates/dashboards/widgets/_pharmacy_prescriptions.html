@@ -1,0 +1,19 @@
+<div class="cc-widget cc-widget--md" data-widget-id="pharmacy_prescriptions">
+  <div class="cc-widget__head"><span><i class="fas fa-prescription me-1"></i> روشتات في الانتظار</span></div>
+  <div class="cc-widget__body table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>المريض</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+      <tbody>
+      {% for p in widget_data.lists.pending_prescriptions or [] %}
+      <tr>
+        <td>{{ p.patient.full_name if p.patient else '—' }}</td>
+        <td><span class="badge bg-secondary">{{ p.status or '—' }}</span></td>
+        <td class="small text-muted">{{ p.created_at.strftime('%m-%d %H:%M') if p.created_at else '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="text-center text-muted py-3">لا توجد روشتات في الانتظار</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

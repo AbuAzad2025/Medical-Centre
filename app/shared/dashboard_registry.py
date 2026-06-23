@@ -75,7 +75,7 @@ WIDGETS: dict[str, WidgetMeta] = {
         action_url='lab.worklist', action_label='قائمة العمل',
     ),
     'triage_board': WidgetMeta(
-        id='triage_board', title_ar='لوحة الفرز', roles=('emergency',),
+        id='triage_board', title_ar='الحالات النشطة', roles=('emergency',),
         modules=('emergency',), size='lg', priority=1,
         template='dashboards/widgets/_triage_board.html', icon='fa-ambulance',
         action_url='emergency.queue', action_label='حالات الطوارئ',
@@ -103,22 +103,63 @@ WIDGETS: dict[str, WidgetMeta] = {
     ),
     'pharmacy_dispense': WidgetMeta(
         id='pharmacy_dispense', title_ar='صرف اليوم', roles=('pharmacist',),
-        modules=('pharmacy',), size='md', priority=1,
+        modules=(), size='md', priority=1,
         template='dashboards/widgets/_pharmacy_dispense.html', icon='fa-pills',
         action_url='medication.pos', action_label='نقطة البيع',
     ),
+    'pharmacy_low_stock': WidgetMeta(
+        id='pharmacy_low_stock', title_ar='أدوية منخفضة المخزون', roles=('pharmacist',),
+        modules=(), size='md', priority=2,
+        template='dashboards/widgets/_pharmacy_low_stock.html', icon='fa-exclamation-triangle',
+        action_url='medication.stock_alerts', action_label='عرض الكل',
+    ),
+    'pharmacy_prescriptions': WidgetMeta(
+        id='pharmacy_prescriptions', title_ar='روشتات في الانتظار', roles=('pharmacist',),
+        modules=(), size='md', priority=2,
+        template='dashboards/widgets/_pharmacy_prescriptions.html', icon='fa-prescription',
+    ),
+    'pharmacy_sales': WidgetMeta(
+        id='pharmacy_sales', title_ar='مبيعات اليوم', roles=('pharmacist',),
+        modules=(), size='md', priority=2,
+        template='dashboards/widgets/_pharmacy_sales.html', icon='fa-shopping-cart',
+        action_url='medication.pos', action_label='نقطة البيع',
+    ),
+    'lab_recent': WidgetMeta(
+        id='lab_recent', title_ar='آخر طلبات المختبر', roles=('lab', 'technician'),
+        modules=('lab',), size='lg', priority=2,
+        template='dashboards/widgets/_lab_recent.html', icon='fa-vial',
+        action_url='lab.worklist', action_label='قائمة العمل',
+    ),
+    'emergency_waitlist': WidgetMeta(
+        id='emergency_waitlist', title_ar='قائمة الانتظار', roles=('emergency',),
+        modules=('emergency',), size='lg', priority=2,
+        template='dashboards/widgets/_emergency_waitlist.html', icon='fa-list',
+        action_url='emergency.queue', action_label='حالات الطوارئ',
+    ),
+}
+
+ROLE_DASHBOARD_TITLES: dict[str, str] = {
+    'reception': 'لوحة تحكم الاستقبال',
+    'doctor': 'لوحة تحكم الأطباء',
+    'lab': 'قسم المختبر',
+    'radiology': 'قسم الأشعة',
+    'pharmacist': 'لوحة تحكم الصيدلية',
+    'emergency': 'لوحة تحكم الطوارئ',
+    'accountant': 'لوحة تحكم الفوترة',
+    'manager': 'لوحة القيادة',
+    'nurse': 'لوحة القيادة',
 }
 
 ROLE_LAYOUTS: dict[str, list[str]] = {
     'reception': ['queue_live', 'cash_summary', 'visits_today', 'appointments_pending'],
     'doctor': ['my_queue', 'appointments_pending', 'lab_pending', 'radiology_pending'],
-    'lab': ['worklist_urgent', 'lab_pending'],
+    'lab': ['lab_recent', 'lab_pending'],
     'radiology': ['radiology_pending'],
     'nurse': ['nurse_assigned'],
     'accountant': ['pending_payments', 'cash_summary'],
     'manager': ['kpi_strip', 'queue_live', 'visits_today'],
-    'emergency': ['critical_count', 'triage_board'],
-    'pharmacist': ['pharmacy_dispense'],
+    'emergency': ['critical_count', 'triage_board', 'emergency_waitlist'],
+    'pharmacist': ['pharmacy_low_stock', 'pharmacy_prescriptions', 'pharmacy_sales'],
     'technician': ['worklist_urgent', 'lab_pending'],
 }
 
@@ -165,6 +206,8 @@ def resolve_dashboard_widgets(role: str, enabled_modules: set, hidden: Optional[
         if role not in meta.roles and role != 'manager':
             continue
         if meta.modules and not all(m in enabled_modules for m in meta.modules):
-            continue
+            # Staff role dashboards: layout is authoritative (role already gates access).
+            if role == 'manager' or wid not in layout:
+                continue
         out.append(meta)
     return out

@@ -15,6 +15,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/platform.css') }}">
+    <style id="tenant-branding-vars">
+    :root {
+      --color-primary: {{ ui.primary_color if ui else '#1a1f3a' }};
+      --color-secondary: {{ ui.secondary_color if ui else '#10b981' }};
+      --color-accent: {{ ui.accent_color if ui else '#00a6a6' }};
+      --brand-logo-url: url('{{ ui.logo_url if ui else url_for('static', filename='img/azad_logo.png') }}');
+    }
+    </style>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {% block extra_css %}{% endblock %}
 </head>

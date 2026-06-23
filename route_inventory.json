@@ -1,12 +1,12 @@
 {
   "generated_at": "2026-06-23",
-  "total_routes": 615,
+  "total_routes": 621,
   "summary": {
     "public": 3,
     "internal": 4,
-    "authenticated": 442,
+    "authenticated": 446,
     "admin": 38,
-    "super-admin": 126
+    "super-admin": 130
   },
   "routes": [
     {
@@ -210,6 +210,14 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "api_dashboard.dashboard_snapshot",
+      "path": "/api/dashboard/snapshot",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
       "endpoint": "fhir.fhir_encounters",
       "path": "/api/fhir/Encounter",
       "methods": [
@@ -246,6 +254,23 @@
       "path": "/api/search",
       "methods": [
         "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "api_search.search_patients",
+      "path": "/api/search/patients",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "api_user.user_preferences",
+      "path": "/api/user/preferences",
+      "methods": [
+        "GET",
+        "POST"
       ],
       "classification": "authenticated"
     },
@@ -1505,6 +1530,14 @@
       "classification": "public"
     },
     {
+      "endpoint": "inbox.dashboard",
+      "path": "/inbox",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
       "endpoint": "lab.index",
       "path": "/lab/",
       "methods": [
@@ -2727,6 +2760,14 @@
       "classification": "super-admin"
     },
     {
+      "endpoint": "owner.owner_billing",
+      "path": "/owner/billing",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
       "endpoint": "owner.owner_branding",
       "path": "/owner/branding",
       "methods": [
@@ -2768,6 +2809,38 @@
       "classification": "super-admin"
     },
     {
+      "endpoint": "owner.owner_packages",
+      "path": "/owner/packages",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_create_package_version",
+      "path": "/owner/packages/<int:package_id>/versions/create",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_create_package",
+      "path": "/owner/packages/create",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_deprecate_package_version",
+      "path": "/owner/packages/versions/<int:version_id>/deprecate",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
       "endpoint": "owner.owner_plans",
       "path": "/owner/plans",
       "methods": [
@@ -2776,10 +2849,59 @@
       "classification": "super-admin"
     },
     {
+      "endpoint": "owner.owner_provision",
+      "path": "/owner/provision",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
       "endpoint": "owner.owner_resource_usage",
       "path": "/owner/resource-usage",
       "methods": [
         "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_subscriptions",
+      "path": "/owner/subscriptions",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_add_addon",
+      "path": "/owner/subscriptions/<int:tenant_id>/addon",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_cancel_subscription",
+      "path": "/owner/subscriptions/<int:tenant_id>/cancel",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_renew_subscription",
+      "path": "/owner/subscriptions/<int:tenant_id>/renew",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_upgrade_subscription",
+      "path": "/owner/subscriptions/<int:tenant_id>/upgrade",
+      "methods": [
+        "POST"
       ],
       "classification": "super-admin"
     },
@@ -2796,6 +2918,14 @@
       "path": "/owner/support-tickets/<int:ticket_id>/update",
       "methods": [
         "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_tenant_usage",
+      "path": "/owner/tenant-usage/<int:tenant_id>",
+      "methods": [
+        "GET"
       ],
       "classification": "super-admin"
     },
@@ -2834,6 +2964,15 @@
     {
       "endpoint": "owner.owner_create_tenant",
       "path": "/owner/tenants/create",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_themes",
+      "path": "/owner/themes",
       "methods": [
         "GET",
         "POST"
@@ -2964,26 +3103,18 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "payment.process_payment",
-      "path": "/payment/process/<int:visit_id>",
+      "endpoint": "payment.request_refund",
+      "path": "/payment/payments/<int:payment_id>/refund",
       "methods": [
-        "GET",
         "POST"
       ],
       "classification": "authenticated"
     },
     {
-      "endpoint": "payment.payment_reports",
-      "path": "/payment/reports",
+      "endpoint": "payment.process_payment",
+      "path": "/payment/process/<int:visit_id>",
       "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "payment.request_refund",
-      "path": "/payment/payments/<int:payment_id>/refund",
-      "methods": [
+        "GET",
         "POST"
       ],
       "classification": "authenticated"
@@ -3001,6 +3132,14 @@
       "path": "/payment/refund-requests/<int:refund_id>/execute",
       "methods": [
         "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "payment.payment_reports",
+      "path": "/payment/reports",
+      "methods": [
+        "GET"
       ],
       "classification": "authenticated"
     },
@@ -3070,15 +3209,6 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "portal.feedback",
-      "path": "/portal/feedback",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "classification": "authenticated"
-    },
-    {
       "endpoint": "portal.documents",
       "path": "/portal/documents",
       "methods": [
@@ -3095,17 +3225,8 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "portal.link_account",
-      "path": "/portal/link-account",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "portal.settings",
-      "path": "/portal/settings",
+      "endpoint": "portal.feedback",
+      "path": "/portal/feedback",
       "methods": [
         "GET",
         "POST"
@@ -3117,6 +3238,15 @@
       "path": "/portal/lab-results",
       "methods": [
         "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "portal.link_account",
+      "path": "/portal/link-account",
+      "methods": [
+        "GET",
+        "POST"
       ],
       "classification": "authenticated"
     },
@@ -3141,6 +3271,15 @@
       "path": "/portal/radiology-results",
       "methods": [
         "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "portal.settings",
+      "path": "/portal/settings",
+      "methods": [
+        "GET",
+        "POST"
       ],
       "classification": "authenticated"
     },
@@ -4053,28 +4192,18 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "sso.config",
-      "path": "/sso/config",
+      "endpoint": "specialty_forms.list_forms",
+      "path": "/specialty-forms",
       "methods": [
-        "GET",
-        "POST"
+        "GET"
       ],
       "classification": "authenticated"
     },
     {
-      "endpoint": "sso.toggle",
-      "path": "/sso/toggle/<int:config_id>",
+      "endpoint": "specialty_forms.view_form",
+      "path": "/specialty-forms/<int:form_id>",
       "methods": [
-        "POST"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "specialty_forms.edit_version",
-      "path": "/specialty-forms/<int:form_id>/versions/<int:version_id>/edit",
-      "methods": [
-        "GET",
-        "POST"
+        "GET"
       ],
       "classification": "authenticated"
     },
@@ -4088,14 +4217,6 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "specialty_forms.list_forms",
-      "path": "/specialty-forms",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
       "endpoint": "specialty_forms.list_submissions",
       "path": "/specialty-forms/<int:form_id>/submissions",
       "methods": [
@@ -4104,8 +4225,8 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "specialty_forms.new_form",
-      "path": "/specialty-forms/new",
+      "endpoint": "specialty_forms.edit_version",
+      "path": "/specialty-forms/<int:form_id>/versions/<int:version_id>/edit",
       "methods": [
         "GET",
         "POST"
@@ -4121,10 +4242,11 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "specialty_forms.view_form",
-      "path": "/specialty-forms/<int:form_id>",
+      "endpoint": "specialty_forms.new_form",
+      "path": "/specialty-forms/new",
       "methods": [
-        "GET"
+        "GET",
+        "POST"
       ],
       "classification": "authenticated"
     },
@@ -4133,6 +4255,23 @@
       "path": "/specialty-forms/submissions/<int:submission_id>",
       "methods": [
         "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "sso.config",
+      "path": "/sso/config",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "sso.toggle",
+      "path": "/sso/toggle/<int:config_id>",
+      "methods": [
+        "POST"
       ],
       "classification": "authenticated"
     },
@@ -4299,9 +4438,34 @@
       "classification": "super-admin"
     },
     {
+      "endpoint": "super_admin.apply_branding_theme",
+      "path": "/super-admin/branding/apply-theme/<int:theme_id>",
+      "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "super_admin.branding_print_preview",
+      "path": "/super-admin/branding/preview",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
       "endpoint": "super_admin.update_branding",
       "path": "/super-admin/branding/update",
       "methods": [
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "super_admin.change_plan",
+      "path": "/super-admin/change-plan",
+      "methods": [
+        "GET",
         "POST"
       ],
       "classification": "super-admin"
@@ -4653,6 +4817,14 @@
       "classification": "super-admin"
     },
     {
+      "endpoint": "super_admin.subscription_status",
+      "path": "/super-admin/subscription-status",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
       "endpoint": "super_admin.system",
       "path": "/super-admin/system",
       "methods": [
@@ -4730,6 +4902,14 @@
       "path": "/super-admin/system/sms/test",
       "methods": [
         "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "super_admin.tenant_usage",
+      "path": "/super-admin/usage",
+      "methods": [
+        "GET"
       ],
       "classification": "super-admin"
     },
@@ -4886,128 +5066,6 @@
       "methods": [
         "GET",
         "POST"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "owner.owner_packages",
-      "path": "/owner/packages",
-      "methods": [
-        "GET"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "owner.owner_create_package",
-      "path": "/owner/packages/create",
-      "methods": [
-        "POST"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "owner.owner_create_package_version",
-      "path": "/owner/packages/<int:package_id>/versions/create",
-      "methods": [
-        "POST"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "owner.owner_deprecate_package_version",
-      "path": "/owner/packages/versions/<int:version_id>/deprecate",
-      "methods": [
-        "POST"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "owner.owner_subscriptions",
-      "path": "/owner/subscriptions",
-      "methods": [
-        "GET"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "owner.owner_upgrade_subscription",
-      "path": "/owner/subscriptions/<int:tenant_id>/upgrade",
-      "methods": [
-        "POST"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "owner.owner_add_addon",
-      "path": "/owner/subscriptions/<int:tenant_id>/addon",
-      "methods": [
-        "POST"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "owner.owner_renew_subscription",
-      "path": "/owner/subscriptions/<int:tenant_id>/renew",
-      "methods": [
-        "POST"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "owner.owner_cancel_subscription",
-      "path": "/owner/subscriptions/<int:tenant_id>/cancel",
-      "methods": [
-        "POST"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "owner.owner_provision",
-      "path": "/owner/provision",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "owner.owner_tenant_usage",
-      "path": "/owner/tenant-usage/<int:tenant_id>",
-      "methods": [
-        "GET"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "super_admin.subscription_status",
-      "path": "/super-admin/subscription-status",
-      "methods": [
-        "GET"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "super_admin.change_plan",
-      "path": "/super-admin/change-plan",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "super_admin.tenant_usage",
-      "path": "/super-admin/usage",
-      "methods": [
-        "GET"
-      ],
-      "classification": "super-admin"
-    },
-    {
-      "endpoint": "inbox.dashboard",
-      "path": "/inbox",
-      "methods": [
-        "GET"
       ],
       "classification": "authenticated"
     }

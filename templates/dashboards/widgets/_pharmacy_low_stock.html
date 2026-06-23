@@ -1,0 +1,19 @@
+<div class="cc-widget cc-widget--md" data-widget-id="pharmacy_low_stock">
+  <div class="cc-widget__head"><span><i class="fas fa-exclamation-triangle me-1"></i> أدوية منخفضة المخزون</span></div>
+  <div class="cc-widget__body table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>الدواء</th><th>المخزون</th><th>الحد الأدنى</th></tr></thead>
+      <tbody>
+      {% for m in widget_data.lists.low_stock or [] %}
+      <tr>
+        <td>{{ m.trade_name }}</td>
+        <td><span class="badge bg-warning text-dark">{{ m.stock_quantity }}</span></td>
+        <td>{{ m.minimum_stock }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="text-center text-muted py-3">لا توجد أدوية منخفضة المخزون</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

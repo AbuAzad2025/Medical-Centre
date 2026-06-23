@@ -1,5 +1,5 @@
 <div class="cc-widget cc-widget--md" data-widget-id="radiology_pending">
-  <div class="cc-widget__head"><span><i class="fas fa-x-ray me-1"></i> طلبات الأشعة</span></div>
+  <div class="cc-widget__head"><span><i class="fas fa-x-ray me-1"></i> {% if dashboard_role == 'doctor' %}طلبات الأشعة المعلّقة{% else %}طلبات الأشعة{% endif %}</span></div>
   <div class="cc-widget__body table-responsive">
     <table class="table table-sm table-hover mb-0">
       <thead><tr><th>المريض</th><th>الحالة</th><th>التاريخ</th></tr></thead>

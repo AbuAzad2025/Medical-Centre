@@ -527,12 +527,12 @@ class NotificationService:
             
             db.session.commit()
             
-            return {'success': True, 'message': f'تم معالجة {processed_count} إشعار'}
+            return {'success': True, 'message': f'تم معالجة {processed_count} إشعار', 'processed_count': processed_count}
             
         except Exception as e:
             db.session.rollback()
             logging.error(f"Error processing notification queue: {str(e)}")
-            return {'success': False, 'message': 'تعذر معالجة طابور الإشعارات حالياً'}
+            return {'success': False, 'message': 'تعذر معالجة طابور الإشعارات حالياً', 'processed_count': 0}
     
     @staticmethod
     def get_notification_queue_status():
@@ -1020,3 +1020,11 @@ class NotificationService:
         except Exception as e:
             logging.error(f"Error sending online booking reminders: {str(e)}")
             return {'success': False, 'message': 'تعذر إرسال تذكيرات الحجز حالياً'}
+
+
+def process_notification_queue(tenant_id: int | None = None) -> int:
+    """Module-level entry for background worker and admin routes."""
+    result = NotificationService.process_notification_queue(tenant_id=tenant_id)
+    if isinstance(result, dict):
+        return int(result.get('processed_count', 0))
+    return int(result or 0)

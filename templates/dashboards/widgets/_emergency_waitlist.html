@@ -1,0 +1,20 @@
+<div class="cc-widget cc-widget--lg" data-widget-id="emergency_waitlist">
+  <div class="cc-widget__head"><span><i class="fas fa-list me-1"></i> قائمة الانتظار</span></div>
+  <div class="cc-widget__body table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>#</th><th>المريض</th><th>الشدة</th><th>الشكوى</th></tr></thead>
+      <tbody>
+      {% for e in widget_data.lists.emergency_queue or [] %}
+      <tr>
+        <td>{{ e.case_number or e.id }}</td>
+        <td>{{ e.patient.full_name if e.patient else '—' }}</td>
+        <td>{{ e.severity or '—' }}</td>
+        <td class="small">{{ (e.chief_complaint or '')[:60] }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center text-muted py-3">لا توجد حالات في قائمة الانتظار</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
