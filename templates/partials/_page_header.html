@@ -1,6 +1,7 @@
-{# Phase 5 — unified page header (clinical-page-header) #}
-{% macro page_header(title, subtitle='', icon='', breadcrumbs=[], actions=[]) %}
-<div class="clinical-page-header fade-in-up">
+{# Phase 5 — unified page header (clinical-page-header).
+   hero_class: optional gradient/hero wrapper class for department dashboards. #}
+{% macro page_header(title, subtitle='', icon='', breadcrumbs=[], actions=[], hero_class='') %}
+<div class="clinical-page-header fade-in-up{% if hero_class %} clinical-page-header--hero text-white {{ hero_class }}{% endif %}">
     <div>
         {% if breadcrumbs %}
         <nav class="clinical-breadcrumb" aria-label="مسار التنقل">
@@ -15,7 +16,7 @@
         </nav>
         {% endif %}
         <h1>{% if icon %}<i class="{{ icon }} me-2" aria-hidden="true"></i>{% endif %}{{ title }}</h1>
-        {% if subtitle %}<p class="text-muted mb-0">{{ subtitle }}</p>{% endif %}
+        {% if subtitle %}<p class="{% if hero_class %}opacity-75{% else %}text-muted{% endif %} mb-0">{{ subtitle }}</p>{% endif %}
     </div>
     {% if actions %}
     <div class="clinical-actions d-flex flex-wrap gap-2 align-items-center">
@@ -28,6 +29,15 @@
                 {% if action.data_bs_target %}data-bs-target="{{ action.data_bs_target }}"{% endif %}>
                 {% if action.icon %}<i class="{{ action.icon }} me-1" aria-hidden="true"></i>{% endif %}{{ action.label }}
             </button>
+            {% elif action.type == 'form' %}
+            <form method="{{ action.method|default('POST') }}" action="{{ action.url }}" class="d-inline"
+                {% if action.confirm %}onsubmit="return confirm('{{ action.confirm }}')"{% endif %}>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-{{ action.style|default('primary') }} btn-sm"
+                    {% if action.id %}id="{{ action.id }}"{% endif %}>
+                    {% if action.icon %}<i class="{{ action.icon }} me-1" aria-hidden="true"></i>{% endif %}{{ action.label }}
+                </button>
+            </form>
             {% else %}
             <a href="{{ action.url }}" class="btn btn-{{ action.style|default('primary') }} btn-sm">
                 {% if action.icon %}<i class="{{ action.icon }} me-1" aria-hidden="true"></i>{% endif %}{{ action.label }}
