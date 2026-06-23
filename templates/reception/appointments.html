@@ -1,41 +1,16 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}قائمة المواعيد - الاستقبال{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-calendar-check me-2"></i>
-                                قائمة المواعيد
-                            </h2>
-                            <p class="text-muted mb-0">إدارة شاملة لمواعيد المرضى</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                {% if current_user.is_authenticated and current_user.role in ['reception','manager'] %}
-                                <button class="btn btn-primary" data-action="new-appointment">
-                                    <i class="fas fa-plus me-1"></i>
-                                    موعد جديد
-                                </button>
-                                {% endif %}
-                                <button class="btn btn-success" data-action="export-appointments">
-                                    <i class="fas fa-file-excel me-1"></i>
-                                    تصدير
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% set hdr_actions = [] %}
+    {% if current_user.is_authenticated and current_user.role in ['reception','manager'] %}
+        {% set _ = hdr_actions.append({'type': 'button', 'label': 'موعد جديد', 'icon': 'fas fa-plus', 'data_action': 'new-appointment', 'style': 'primary'}) %}
+    {% endif %}
+    {% set _ = hdr_actions.append({'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-file-excel', 'data_action': 'export-appointments', 'style': 'success'}) %}
+    {{ page_header('قائمة المواعيد', subtitle='إدارة شاملة لمواعيد المرضى', icon='fas fa-calendar-check', actions=hdr_actions) }}
 
     <!-- Search and Filters -->
     <div class="row mb-4">
@@ -411,6 +386,6 @@
 }
 </style>
 
-<script>window.__M=window.__M||[];__M0__={{ appointments|tojson }};__M1__={{ per_page|tojson }};</script>
+<script>window.__M=window.__M||[];__M0__={{ appointments_json|tojson }};__M1__={{ per_page|tojson }};</script>
 <script src="{{ url_for('static', filename='js/pages/reception/appointments.js') }}"></script>
 {% endblock %}
