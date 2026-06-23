@@ -1182,16 +1182,38 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 1–7)
+## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 8)
 
 | البند | الحالة |
 |-------|--------|
-| **مرحلة 3** Gate 3 | ✅ + G-16 footer CSS → `layout.css` |
-| **مرحلة 6** Gate 6 | ✅ shell كامل، tabs `tenant_detail`، SweetAlert، G-145 |
 | **مرحلة 7** Gate 7 | ✅ `/api/search/patients`, smart-search, Tom Select, validators |
 | Gate 7 متبقي | ⚠️ select2 للموظف/تحاليل في create_visit (ترحيل لاحق) |
+| **مرحلة 8** Gate 8 | ✅ stepper استقبال، context bar طبيب، portal BS5، `api-feedback.js`، `_status_badge` |
+| Gate 8 متبقي | ⚠️ §35 PosTerminalService؛ ~40 قالب status خام؛ partial macros أخرى (G-14) |
+| **دين 6b** | ⚠️ manager sidebar + `audit_nav_links` — لم يُغلق بعد |
 
-**الخطوة التالية:** **مرحلة 8** — رحلات سريرية + portal rebuild.
+**الخطوة التالية:** **مرحلة 9** — طباعة (`print_base` + branding headers).
+
+### 11.1 مرحلة 8 — ما نُفّذ (2026-06-23)
+
+| الملف | الإجراء |
+|-------|---------|
+| `templates/portal/base.html` | إعادة بناء BS5 RTL + FA 6.5 + `ui.*` + clinical stack + bottom nav |
+| `static/css/portal.css` | أنماط shell البوابة (G-18, G-73) |
+| `templates/partials/_form_stepper.html` + `static/js/form-stepper.js` | stepper 4 خطوات في `create_visit` (G-20) |
+| `templates/partials/_patient_context_bar.html` | شريط سياق مريض sticky في `patient_details` (G-21) |
+| `templates/partials/_status_badge.html` | ماكرو `status_badge` يغلف `enum_label` (G-14) |
+| `static/js/api-feedback.js` | `window.notify.*` بدل `alert()` — base + portal + doctor JS |
+| `static/css/components.css` | أنماط stepper + context bar |
+
+**Gate 8 (جزئي — MVP):**
+- [x] `create_visit` stepper 4 خطوات (مريض → قسم → زيارة → دفع)
+- [x] `patient_details` — `_patient_context_bar` + حساسية
+- [x] `portal/base.html` — BS5 + branding + SweetAlert + api-feedback
+- [x] `notify` في `dental_chart.js` / `notes.js`
+- [ ] §35.8 دفع POS كامل
+- [ ] تعميم `_status_badge` على باقي القوالب
+- [ ] تفعيل باقي ماكروهات G-14 (`_workflow_next_actions`, …)
 
 ---
 
@@ -4152,28 +4174,28 @@ flowchart TD
 | **المراجع** | §26, §27 |
 
 **Gate 7:**
-- [ ] `/api/search/patients` يعمل من `create_visit`
-- [ ] Tom Select موحّد — لا select2 CDN جديد
-- [ ] validator مشترك: national_id + phone على نموذج عينة
+- [x] `/api/search/patients` يعمل من `create_visit`
+- [x] Tom Select موحّد — select2 باقٍ للموظف/تحاليل (ترحيل لاحق)
+- [x] validator مشترك: national_id + phone على نموذج عينة
 
 ---
 
-#### مرحلة 8 — رحلات سريرية + portal rebuild
+#### مرحلة 8 — رحلات سريرية + portal rebuild ✅ (MVP 2026-06-23)
 
 | | |
 |--|--|
-| **النواقص** | G-14, G-17–G-21, G-73, G-116–G-135 |
-| **portal اليوم** | 14 قالب؛ BS4 shell؛ G-18 مفتوح |
+| **النواقص المتبقية** | §35 POS؛ تعميم G-14؛ G-117–G-135 جزئياً |
+| **portal** | ✅ BS5 shell + `portal.css` + `ui.*` |
 
 | الرحلة | مخرج + ملفات |
 |--------|----------------|
-| استقبال | stepper `create_visit.html`؛ G-20 |
-| طبيب | `patient_details.html` 688 سطر → context bar + 7 partial macros |
-| portal | `portal/base.html` rebuild BS5 + FA + `ui.*` |
-| دفع | §35 — `PosTerminalService` |
-| رسائل | `api-feedback.js`؛ لا `alert()` |
+| استقبال | ✅ stepper `create_visit.html`؛ G-20 |
+| طبيب | ✅ `patient_details.html` — context bar (G-21) |
+| portal | ✅ `portal/base.html` rebuild BS5 + FA + `ui.*` |
+| دفع | ⏳ §35 — `PosTerminalService` |
+| رسائل | ✅ `api-feedback.js`؛ doctor JS بدون `alert()` |
 
-**Gate 8:** §35.8 + §36.7 + portal بدون نص تقني
+**Gate 8:** §35.8 + §36.7 + portal بدون نص تقني — **جزئي** (انظر §11.1)
 
 ---
 

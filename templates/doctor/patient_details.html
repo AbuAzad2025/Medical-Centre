@@ -2,8 +2,12 @@
 
 {% block title %}تفاصيل المريض - {{ visit.patient.full_name }}{% endblock %}
 
+{% from 'partials/_patient_context_bar.html' import patient_context_bar %}
+
 {% block content %}
 <div class="container-fluid">
+    {{ patient_context_bar(visit.patient, visit, patient_allergies) }}
+
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">

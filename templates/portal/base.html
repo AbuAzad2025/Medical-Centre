@@ -1,77 +1,103 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="manifest" href="/static/manifest.json">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="apple-touch-icon" href="/static/img/icon-192x192.png">
-  <link rel="stylesheet" href="/static/css/bootstrap.rtl.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="theme-color" content="{{ ui.primary_color if ui else '#0f4c81' }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icon-192x192.png') }}">
+  <title>{% block title %}بوابة المريض{% endblock %} — {{ ui.organization_name if ui else 'Azad Medical' }}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+
   <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/clinical.css') }}">
-  <title>{% block title %}بوابة المريض{% endblock %} — Azad Medical</title>
-  <style>
-:root {
-  --primary: {{ ui.primary_color if ui else '#0d6efd' }};
-  --color-primary: {{ ui.primary_color if ui else '#0d6efd' }};
-}
-    body{background:#f7f9fc;font-family:'Segoe UI',sans-serif}
-    .portal-navbar{background:linear-gradient(135deg,#0d6efd,#0b5ed7);padding:.75rem 1rem;color:#fff}
-    .portal-navbar a{color:#fff;text-decoration:none}
-    .portal-sidebar{background:#fff;border-left:1px solid #e2e8f0;min-height:100vh}
-    .portal-sidebar .nav-link{color:#475569;border-radius:.5rem;margin:.25rem .5rem}
-    .portal-sidebar .nav-link.active{background:var(--primary);color:#fff}
-    .portal-card{background:#fff;border-radius:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06);border:none}
-</style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/core.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/portal.css') }}">
+
+  <style id="tenant-branding-vars">
+  :root {
+    --color-primary: {{ ui.primary_color if ui else '#0f4c81' }};
+    --color-secondary: {{ ui.secondary_color if ui else '#10b981' }};
+    --color-accent: {{ ui.accent_color if ui else '#00a6a6' }};
+    --brand-logo-url: url('{{ ui.logo_url if ui else url_for('static', filename='img/azad_logo.png') }}');
+  }
+  </style>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="clinical-theme portal-theme">
 <nav class="portal-navbar d-flex justify-content-between align-items-center">
-  <a href="{{ url_for('portal.dashboard') }}"><strong>Azad Medical</strong> — بوابة المريض</a>
+  <a href="{{ url_for('portal.dashboard') }}" class="d-flex align-items-center gap-2">
+    {% if ui and ui.logo_url %}
+    <img src="{{ ui.logo_url }}" alt="" class="portal-logo">
+    {% endif %}
+    <strong>{{ ui.organization_name if ui else 'Azad Medical' }}</strong>
+    <span class="opacity-75 small d-none d-md-inline">— بوابة المريض</span>
+  </a>
   <div class="d-flex gap-3 align-items-center">
-    <span>{{ current_user.full_name }}</span>
+    <span class="small d-none d-md-inline">{{ current_user.full_name }}</span>
     <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-light">خروج</a>
   </div>
 </nav>
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-lg-2 portal-sidebar py-3">
+
+<div class="container-fluid portal-layout">
+  <div class="row g-0">
+    <div class="col-lg-2 portal-sidebar py-3 d-none d-lg-block">
       <nav class="nav flex-column">
-        <a class="nav-link {% if request.endpoint == 'portal.dashboard' %}active{% endif %}" href="{{ url_for('portal.dashboard') }}">الرئيسية</a>
-        <a class="nav-link {% if request.endpoint == 'portal.appointments' %}active{% endif %}" href="{{ url_for('portal.appointments') }}">المواعيد</a>
-        <a class="nav-link {% if request.endpoint == 'portal.medical_records' %}active{% endif %}" href="{{ url_for('portal.medical_records') }}">السجل الطبي</a>
-        <a class="nav-link {% if request.endpoint == 'portal.prescriptions' %}active{% endif %}" href="{{ url_for('portal.prescriptions') }}">الوصفات</a>
-        <a class="nav-link {% if request.endpoint == 'portal.lab_results' %}active{% endif %}" href="{{ url_for('portal.lab_results') }}">المختبر</a>
-        <a class="nav-link {% if request.endpoint == 'portal.radiology_results' %}active{% endif %}" href="{{ url_for('portal.radiology_results') }}">الأشعة</a>
-        <a class="nav-link {% if request.endpoint == 'portal.bills' %}active{% endif %}" href="{{ url_for('portal.bills') }}">الفواتير</a>
-        <a class="nav-link {% if request.endpoint == 'portal.documents' %}active{% endif %}" href="{{ url_for('portal.documents') }}">الوثائق</a>
-        <a class="nav-link {% if request.endpoint == 'portal.vaccinations' %}active{% endif %}" href="{{ url_for('portal.vaccinations') }}">التطعيمات</a>
-        <a class="nav-link {% if request.endpoint == 'portal.settings' %}active{% endif %}" href="{{ url_for('portal.settings') }}">الإعدادات</a>
-        <a class="nav-link {% if request.endpoint == 'portal.feedback' %}active{% endif %}" href="{{ url_for('portal.feedback') }}">التقييم</a>
-        <hr class="my-2 mx-3">
-        <a class="nav-link" href="{{ url_for('booking.index') }}"><i class="fas fa-calendar-plus me-1"></i>حجز موعد</a>
+        <a class="nav-link {% if request.endpoint == 'portal.dashboard' %}active{% endif %}" href="{{ url_for('portal.dashboard') }}"><i class="fas fa-home me-2"></i>الرئيسية</a>
+        <a class="nav-link {% if request.endpoint == 'portal.appointments' %}active{% endif %}" href="{{ url_for('portal.appointments') }}"><i class="fas fa-calendar me-2"></i>المواعيد</a>
+        <a class="nav-link {% if request.endpoint == 'portal.medical_records' %}active{% endif %}" href="{{ url_for('portal.medical_records') }}"><i class="fas fa-file-medical me-2"></i>السجل الطبي</a>
+        <a class="nav-link {% if request.endpoint == 'portal.prescriptions' %}active{% endif %}" href="{{ url_for('portal.prescriptions') }}"><i class="fas fa-pills me-2"></i>الوصفات</a>
+        <a class="nav-link {% if request.endpoint == 'portal.lab_results' %}active{% endif %}" href="{{ url_for('portal.lab_results') }}"><i class="fas fa-flask me-2"></i>المختبر</a>
+        <a class="nav-link {% if request.endpoint == 'portal.radiology_results' %}active{% endif %}" href="{{ url_for('portal.radiology_results') }}"><i class="fas fa-x-ray me-2"></i>الأشعة</a>
+        <a class="nav-link {% if request.endpoint == 'portal.bills' %}active{% endif %}" href="{{ url_for('portal.bills') }}"><i class="fas fa-file-invoice me-2"></i>الفواتير</a>
+        <a class="nav-link {% if request.endpoint == 'portal.documents' %}active{% endif %}" href="{{ url_for('portal.documents') }}"><i class="fas fa-folder me-2"></i>الوثائق</a>
+        <a class="nav-link {% if request.endpoint == 'portal.vaccinations' %}active{% endif %}" href="{{ url_for('portal.vaccinations') }}"><i class="fas fa-syringe me-2"></i>التطعيمات</a>
+        <a class="nav-link {% if request.endpoint == 'portal.settings' %}active{% endif %}" href="{{ url_for('portal.settings') }}"><i class="fas fa-cog me-2"></i>الإعدادات</a>
+        <a class="nav-link {% if request.endpoint == 'portal.feedback' %}active{% endif %}" href="{{ url_for('portal.feedback') }}"><i class="fas fa-star me-2"></i>التقييم</a>
+        <hr class="my-2 mx-2">
+        <a class="nav-link" href="{{ url_for('booking.index') }}"><i class="fas fa-calendar-plus me-2"></i>حجز موعد</a>
       </nav>
     </div>
-    <div class="col-lg-10 py-4">
+    <div class="col-lg-10 portal-main py-4 px-3">
       {% include 'partials/_flash.html' %}
       {% block content %}{% endblock %}
     </div>
   </div>
 </div>
-<script src="{{ url_for('static', filename='adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/pages/portal/base.js') }}"></script>
-{% block scripts %}{% endblock %}
-<footer class="portal-footer text-center py-3 mt-4 border-top">
-    <strong>{{ developer_company or 'شركة آزاد للأنظمة الذكية' }}</strong>
-    <span class="mx-2">|</span>
-    <span>بإدارة {{ developer_name or 'المهندس أحمد غنام' }}</span>
-    <br>
-    <small>
-        <i class="fas fa-phone me-1"></i> {{ developer_mobile or '+ --------' }}
-        <span class="mx-2">|</span>
-        <i class="fas fa-map-marker-alt me-1"></i> {{ developer_location or 'رام الله - فلسطين' }}
-        <span class="mx-2">|</span>
-        &copy; {{ current_year or 2025 }} جميع الحقوق محفوظة
-    </small>
+
+<nav class="portal-bottom-nav" aria-label="تنقل سريع">
+  <a href="{{ url_for('portal.dashboard') }}" class="{% if request.endpoint == 'portal.dashboard' %}active{% endif %}"><i class="fas fa-home"></i>الرئيسية</a>
+  <a href="{{ url_for('portal.appointments') }}" class="{% if request.endpoint == 'portal.appointments' %}active{% endif %}"><i class="fas fa-calendar"></i>مواعيد</a>
+  <a href="{{ url_for('portal.lab_results') }}" class="{% if request.endpoint == 'portal.lab_results' %}active{% endif %}"><i class="fas fa-flask"></i>مختبر</a>
+  <a href="{{ url_for('portal.bills') }}" class="{% if request.endpoint == 'portal.bills' %}active{% endif %}"><i class="fas fa-file-invoice"></i>فواتير</a>
+  <a href="{{ url_for('portal.settings') }}" class="{% if request.endpoint == 'portal.settings' %}active{% endif %}"><i class="fas fa-cog"></i>إعدادات</a>
+</nav>
+
+<footer class="portal-footer text-center py-3 mt-2">
+  <strong>{{ developer_company or 'شركة آزاد للأنظمة الذكية' }}</strong>
+  {% if developer_name %}<span class="mx-2">|</span><span>{{ developer_name }}</span>{% endif %}
+  <br>
+  <small>
+    {% if developer_mobile %}<i class="fas fa-phone me-1"></i>{{ developer_mobile }}{% endif %}
+    {% if developer_location %}<span class="mx-2">|</span><i class="fas fa-map-marker-alt me-1"></i>{{ developer_location }}{% endif %}
+    <span class="mx-2">|</span>&copy; {{ current_year or 2025 }}
+  </small>
 </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='adminlte/plugins/sweetalert2/sweetalert2.all.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/api-feedback.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pages/portal/base.js') }}"></script>
+<script>
+  window.__VALIDATION_RULES__ = {{ validation_rules|default({})|tojson }};
+</script>
+{% block scripts %}{% endblock %}
 </body>
 </html>

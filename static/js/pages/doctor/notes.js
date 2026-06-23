@@ -150,7 +150,7 @@ if (dntForm) {
                 body: JSON.stringify(payload)
             });
             if (!r.ok) {
-                window.alert('فشل الحفظ');
+                window.notify.error('فشل الحفظ');
                 return;
             }
             resetTemplateForm();
@@ -182,7 +182,7 @@ if (dntTableBody) {
                     headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {}
                 });
                 if (!r.ok) {
-                    window.alert('فشل الحذف');
+                    window.notify.error('فشل الحذف');
                     return;
                 }
                 await refreshTemplatesUI();

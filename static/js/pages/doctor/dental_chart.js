@@ -73,10 +73,10 @@ function saveChart() {
     })
     .then(r => r.json())
     .then(data => {
-        if (data.success) alert('تم الحفظ');
-        else alert('خطأ: ' + data.message);
+        if (data.success) window.notify.success('تم الحفظ');
+        else window.notify.error('خطأ: ' + data.message);
     })
-    .catch(() => alert('خطأ في الاتصال'));
+    .catch(() => window.notify.error('خطأ في الاتصال'));
 }
 
 updateSummary();

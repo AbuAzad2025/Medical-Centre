@@ -1642,3 +1642,36 @@ tr[data-href]:hover {
 
 /* --- ws-pre-line --- */
 .ws-pre-line { white-space: pre-line; }
+
+/* ═══════════════════════════════════════════════
+   FORM STEPPER + PATIENT CONTEXT (phase 8 — G-20, G-21)
+   ═══════════════════════════════════════════════ */
+
+.form-stepper-list { counter-reset: step; }
+.form-stepper-item .form-stepper-btn {
+  border: 1px solid var(--color-border, #e2e8f0);
+  background: #fff;
+  color: var(--color-text-muted, #64748b);
+  border-radius: 2rem;
+  padding: 0.35rem 0.85rem;
+}
+.form-stepper-item.active .form-stepper-btn {
+  background: var(--color-primary, #0f4c81);
+  border-color: var(--color-primary, #0f4c81);
+  color: #fff;
+}
+.form-stepper-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.08);
+  font-size: 0.75rem;
+  margin-inline-end: 0.35rem;
+}
+.form-stepper-item.active .form-stepper-num { background: rgba(255, 255, 255, 0.25); }
+
+.patient-context-bar .card { border-inline-start: 4px solid var(--color-primary, #0f4c81); }
+.patient-context-avatar { flex-shrink: 0; }

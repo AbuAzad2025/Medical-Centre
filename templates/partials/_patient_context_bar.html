@@ -1,0 +1,37 @@
+{# Sticky patient + visit context bar (G-21) #}
+{% macro patient_context_bar(patient, visit=None, allergies=None) %}
+<div class="patient-context-bar sticky-top mb-3" style="top: 4.5rem; z-index: 1020;">
+  <div class="card border-0 shadow-sm">
+    <div class="card-body py-2 px-3">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="d-flex align-items-center gap-3">
+          <div class="patient-context-avatar rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width:44px;height:44px;">
+            <i class="fas fa-user-injured"></i>
+          </div>
+          <div>
+            <div class="fw-bold">{{ patient.full_name }}</div>
+            <div class="small text-muted">
+              {% if patient.national_id %}<span class="me-2">هوية: {{ patient.national_id }}</span>{% endif %}
+              {% if patient.phone %}<span class="me-2">هاتف: {{ patient.phone }}</span>{% endif %}
+              {% if patient.birth_date and patient.age is defined %}<span>عمر: {{ patient.age }}</span>{% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          {% if visit %}
+          <span class="badge bg-light text-dark border">زيارة #{{ visit.visit_number or visit.id }}</span>
+          {% if visit.status is defined %}
+          <span class="badge bg-primary">{{ visit.status | enum_label('VisitState') }}</span>
+          {% endif %}
+          {% endif %}
+          {% if allergies %}
+          {% for a in allergies[:3] %}
+          <span class="badge bg-danger"><i class="fas fa-allergies me-1"></i>{{ a.allergen or a.name }}</span>
+          {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endmacro %}

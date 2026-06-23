@@ -1,0 +1,19 @@
+{# Form stepper chrome — fields stay in DOM; panels toggled via JS (G-20) #}
+{% macro form_stepper(steps) %}
+<nav class="form-stepper mb-4" aria-label="خطوات النموذج" data-form-stepper>
+  <ol class="form-stepper-list list-unstyled d-flex flex-wrap gap-2 mb-0">
+    {% for label, icon in steps %}
+    <li class="form-stepper-item{% if loop.first %} active{% endif %}" data-step-index="{{ loop.index0 }}" role="presentation">
+      <button type="button" class="form-stepper-btn btn btn-sm" data-step-go="{{ loop.index0 }}">
+        <span class="form-stepper-num">{{ loop.index }}</span>
+        <i class="fas {{ icon }} me-1"></i>{{ label }}
+      </button>
+    </li>
+    {% endfor %}
+  </ol>
+  <div class="d-flex justify-content-between mt-3 gap-2">
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-stepper-prev disabled>السابق</button>
+    <button type="button" class="btn btn-primary btn-sm" data-stepper-next>التالي</button>
+  </div>
+</nav>
+{% endmacro %}

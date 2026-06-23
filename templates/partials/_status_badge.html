@@ -1,0 +1,8 @@
+{# Generic status badge — wraps enum_label (G-14) #}
+{% macro status_badge(value, enum_name, extra_class='bg-secondary') %}
+{% if value %}
+<span class="badge {{ extra_class }}">{{ value | enum_label(enum_name) }}</span>
+{% else %}
+<span class="text-muted">—</span>
+{% endif %}
+{% endmacro %}
