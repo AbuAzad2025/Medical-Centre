@@ -1,0 +1,85 @@
+{% extends "dashboard_base.html" %}
+{% block title %}{{ form.name }}{% endblock %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h4 class="mb-0"><i class="fas fa-file-medical me-2 text-primary"></i>{{ form.name }}</h4>
+            {% if form.specialty %}<span class="badge bg-info mt-1">{{ form.specialty }}</span>{% endif %}
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            {% if version %}
+            <a href="{{ url_for('specialty_forms.fill_form', form_id=form.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-pen me-1"></i>تعبئة</a>
+            {% endif %}
+            <a href="{{ url_for('specialty_forms.list_submissions', form_id=form.id) }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-inbox me-1"></i>الإجابات</a>
+            {% if user_role in ['manager','admin','super_admin'] %}
+            {% for ver in form.versions %}
+            {% if ver.status == 'draft' %}
+            <a href="{{ url_for('specialty_forms.edit_version', form_id=form.id, version_id=ver.id) }}" class="btn btn-outline-warning btn-sm">تعديل مسودة</a>
+            {% endif %}
+            {% endfor %}
+            {% endif %}
+            <a href="{{ url_for('specialty_forms.list_forms') }}" class="btn btn-outline-secondary btn-sm">القائمة</a>
+        </div>
+    </div>
+</div>
+{% if form.description %}
+<div class="alert alert-light border mb-3">{{ form.description }}</div>
+{% endif %}
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-white">
+        <h6 class="mb-0">النسخة المنشورة الحالية</h6>
+    </div>
+    <div class="card-body">
+        {% if version %}
+        <p class="text-muted small mb-3">
+            النسخة {{ version.version_number }}
+            {% if version.published_at %}— نُشرت {{ version.published_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
+        </p>
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>التسمية</th>
+                        <th>المعرّف</th>
+                        <th>النوع</th>
+                        <th>مطلوب</th>
+                        <th>خيارات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for field in version.fields %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ field.label }}</td>
+                        <td><code>{{ field.name }}</code></td>
+                        <td><span class="badge bg-secondary">{{ field.field_type }}</span></td>
+                        <td>{% if field.required %}<i class="fas fa-check text-success"></i>{% else %}—{% endif %}</td>
+                        <td class="small text-muted">{% if field.options %}{{ field.options|join('، ') }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">لا توجد نسخة منشورة بعد</div>
+        {% endif %}
+    </div>
+</div>
+{% if form.versions|length > 1 %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white"><h6 class="mb-0">سجل النسخ</h6></div>
+    <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+            {% for ver in form.versions|sort(attribute='version_number', reverse=true) %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>v{{ ver.version_number }}</span>
+                <span class="badge bg-{{ 'success' if ver.status == 'published' else ('warning text-dark' if ver.status == 'draft' else 'secondary') }}">{{ ver.status }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-22",
-  "total_routes": 602,
+  "generated_at": "2026-06-23",
+  "total_routes": 610,
   "summary": {
     "public": 2,
     "internal": 4,
-    "authenticated": 432,
+    "authenticated": 440,
     "admin": 38,
     "super-admin": 126
   },
@@ -4032,6 +4032,73 @@
       "path": "/sso/toggle/<int:config_id>",
       "methods": [
         "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "specialty_forms.edit_version",
+      "path": "/specialty-forms/<int:form_id>/versions/<int:version_id>/edit",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "specialty_forms.fill_form",
+      "path": "/specialty-forms/<int:form_id>/fill",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "specialty_forms.list_forms",
+      "path": "/specialty-forms",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "specialty_forms.list_submissions",
+      "path": "/specialty-forms/<int:form_id>/submissions",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "specialty_forms.new_form",
+      "path": "/specialty-forms/new",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "specialty_forms.publish_version",
+      "path": "/specialty-forms/<int:form_id>/versions/<int:version_id>/publish",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "specialty_forms.view_form",
+      "path": "/specialty-forms/<int:form_id>",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "specialty_forms.view_submission",
+      "path": "/specialty-forms/submissions/<int:submission_id>",
+      "methods": [
+        "GET"
       ],
       "classification": "authenticated"
     },

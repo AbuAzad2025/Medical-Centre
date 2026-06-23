@@ -1,0 +1,51 @@
+{# Shared dynamic field builder for new/edit forms #}
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="fas fa-list-ul me-1 text-primary"></i>حقول النموذج</h6>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="add-field-btn"><i class="fas fa-plus me-1"></i>حقل جديد</button>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle" id="fields-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>التسمية</th>
+                        <th>المعرّف</th>
+                        <th>النوع</th>
+                        <th>مطلوب</th>
+                        <th>خيارات (سطر/خيار)</th>
+                        <th>افتراضي</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="fields-body">
+                    {% set initial_fields = fields if fields else [none] %}
+                    {% for field in initial_fields %}
+                    <tr class="field-row">
+                        <td><input type="text" name="field_label[]" class="form-control form-control-sm" value="{{ field.label if field else '' }}" required aria-label="تسمية الحقل"></td>
+                        <td><input type="text" name="field_name[]" class="form-control form-control-sm field-name" value="{{ field.name if field else '' }}" pattern="[a-z0-9_]+" title="أحرف إنجليزية صغيرة وأرقام و _ فقط" aria-label="معرّف الحقل"></td>
+                        <td>
+                            <select name="field_type[]" class="form-select form-select-sm field-type" aria-label="نوع الحقل">
+                                {% for t in ['text','number','date','select','checkbox','textarea'] %}
+                                <option value="{{ t }}" {% if field and field.field_type == t %}selected{% endif %}>{{ t }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <select name="field_required[]" class="form-select form-select-sm" aria-label="حقل مطلوب">
+                                <option value="0" {% if not field or not field.required %}selected{% endif %}>لا</option>
+                                <option value="1" {% if field and field.required %}selected{% endif %}>نعم</option>
+                            </select>
+                        </td>
+                        <td>
+                            <textarea name="field_options[]" class="form-control form-control-sm field-options" rows="2" placeholder="خيار 1&#10;خيار 2" aria-label="خيارات الحقل">{% if field and field.options %}{{ field.options|join('\n') }}{% endif %}</textarea>
+                        </td>
+                        <td><input type="text" name="field_default[]" class="form-control form-control-sm" value="{{ field.default_value if field and field.default_value else '' }}" aria-label="القيمة الافتراضية"></td>
+                        <td><input type="hidden" name="field_order[]" class="field-order" value="{{ field.sort_order if field else loop.index0 }}"><button type="button" class="btn btn-sm btn-outline-danger remove-field-btn" title="حذف"><i class="fas fa-trash"></i></button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,47 @@
+{% extends "dashboard_base.html" %}
+{% block title %}إجابات — {{ form.name }}{% endblock %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="fas fa-inbox me-2 text-primary"></i>إجابات: {{ form.name }}</h4>
+        <div class="d-flex gap-2">
+            {% if form.latest_published_version %}
+            <a href="{{ url_for('specialty_forms.fill_form', form_id=form.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-pen me-1"></i>تعبئة جديدة</a>
+            {% endif %}
+            <a href="{{ url_for('specialty_forms.view_form', form_id=form.id) }}" class="btn btn-outline-secondary btn-sm">النموذج</a>
+        </div>
+    </div>
+</div>
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>المريض</th>
+                        <th>النسخة</th>
+                        <th>التاريخ</th>
+                        <th>الزيارة</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in submissions %}
+                    <tr>
+                        <td>{{ s.id }}</td>
+                        <td>{{ s.patient.first_name }} {{ s.patient.last_name }}</td>
+                        <td>v{{ s.version.version_number }}</td>
+                        <td>{{ s.submitted_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{% if s.visit_id %}#{{ s.visit_id }}{% else %}—{% endif %}</td>
+                        <td><a href="{{ url_for('specialty_forms.view_submission', submission_id=s.id) }}" class="btn btn-sm btn-outline-primary">عرض</a></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6"><div class="text-center text-muted py-5">لا توجد إجابات بعد</div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

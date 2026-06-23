@@ -1,0 +1,95 @@
+{% extends "dashboard_base.html" %}
+{% block title %}نموذج تخصصي جديد{% endblock %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="fas fa-file-medical me-2 text-primary"></i>نموذج تخصصي جديد</h4>
+        <a href="{{ url_for('specialty_forms.list_forms') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-right me-1"></i>القائمة</a>
+    </div>
+</div>
+<form method="post" id="form-builder">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="name">اسم النموذج <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="name" name="name" required aria-label="اسم النموذج">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="slug">المعرّف (slug) <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="slug" name="slug" required pattern="[a-z0-9\-]+" placeholder="cardiology-intake" aria-label="معرّف النموذج">
+                    <div class="form-text">أحرف إنجليزية صغيرة وأرقام وشرطة فقط</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="specialty">التخصص</label>
+                    <input type="text" class="form-control" id="specialty" name="specialty" placeholder="قلب، عيون، ..." aria-label="التخصص">
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="description">الوصف</label>
+                    <textarea class="form-control" id="description" name="description" rows="2" aria-label="وصف النموذج"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include 'specialty_forms/_field_builder.html' %}
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>إنشاء وحفظ كمسودة</button>
+        <a href="{{ url_for('specialty_forms.list_forms') }}" class="btn btn-outline-secondary">إلغاء</a>
+    </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+    var body = document.getElementById('fields-body');
+    var nameInput = document.getElementById('name');
+    var slugInput = document.getElementById('slug');
+    var slugTouched = false;
+    if (slugInput) {
+        slugInput.addEventListener('input', function () { slugTouched = true; });
+    }
+    if (nameInput && slugInput) {
+        nameInput.addEventListener('input', function () {
+            if (slugTouched) return;
+            slugInput.value = nameInput.value.trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9\u0600-\u06FF\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-');
+        });
+    }
+    function toggleOptions(row) {
+        var type = row.querySelector('.field-type').value;
+        var opts = row.querySelector('.field-options');
+        var show = type === 'select' || type === 'checkbox';
+        opts.disabled = !show;
+        opts.closest('td').style.opacity = show ? '1' : '0.45';
+    }
+    function bindRow(row) {
+        row.querySelector('.field-type').addEventListener('change', function () { toggleOptions(row); });
+        row.querySelector('.remove-field-btn').addEventListener('click', function () {
+            if (body.querySelectorAll('.field-row').length > 1) row.remove();
+            reindexOrders();
+        });
+        toggleOptions(row);
+    }
+    function reindexOrders() {
+        body.querySelectorAll('.field-row').forEach(function (row, i) {
+            row.querySelector('.field-order').value = i;
+        });
+    }
+    document.getElementById('add-field-btn').addEventListener('click', function () {
+        var tpl = body.querySelector('.field-row');
+        var clone = tpl.cloneNode(true);
+        clone.querySelectorAll('input[type="text"], textarea').forEach(function (el) { el.value = ''; });
+        clone.querySelector('.field-type').selectedIndex = 0;
+        clone.querySelector('select[name="field_required[]"]').value = '0';
+        body.appendChild(clone);
+        bindRow(clone);
+        reindexOrders();
+    });
+    body.querySelectorAll('.field-row').forEach(bindRow);
+})();
+</script>
+{% endblock %}
