@@ -239,6 +239,106 @@ class TestLabRadiologyEmergencyPageHeader:
         assert 'زيارات الطوارئ' in text
         assert 'clinical-breadcrumb' in text
 
+    def test_lab_quality_header(self, lab_client):
+        resp = lab_client.get('/lab/quality')
+        assert resp.status_code == 200
+        text = resp.get_data(as_text=True)
+        assert 'clinical-page-header' in text
+        assert 'جودة المختبر' in text
+
+    def test_radiology_quality_header(self, radiology_client):
+        resp = radiology_client.get('/radiology/quality')
+        assert resp.status_code == 200
+        text = resp.get_data(as_text=True)
+        assert 'clinical-page-header' in text
+        assert 'جودة الأشعة' in text
+
+
+class TestNurseSuperAdminPageHeader:
+    @pytest.fixture
+    def nurse_client(self, app, client, test_tenant):
+        from app.core.rate_limiter import _shared_store
+        from app_factory import db as _db
+        from models.user import User
+
+        _shared_store.clear()
+        u = User.query.filter_by(username='nurse_ph5').first()
+        if not u:
+            u = User(
+                username='nurse_ph5',
+                email='nurse_ph5@test.local',
+                full_name='ممرض PH5',
+                role='nurse',
+                is_active=True,
+                tenant_id=test_tenant.id,
+            )
+            u.set_password('test123')
+            _db.session.add(u)
+            _db.session.commit()
+
+        client.post('/auth/login', data={
+            'username': 'nurse_ph5',
+            'password': 'test123',
+            'tenant_slug': test_tenant.slug,
+        })
+        return client
+
+    @pytest.fixture
+    def superadmin_client(self, app, client, test_tenant):
+        from app.core.rate_limiter import _shared_store
+        from app_factory import db as _db
+        from models.user import User
+
+        _shared_store.clear()
+        u = User.query.filter_by(username='superadmin_ph5').first()
+        if not u:
+            u = User(
+                username='superadmin_ph5',
+                email='superadmin_ph5@test.local',
+                full_name='سوبر أدمن PH5',
+                role='super_admin',
+                is_active=True,
+                tenant_id=test_tenant.id,
+            )
+            u.set_password('test123')
+            _db.session.add(u)
+            _db.session.commit()
+
+        client.post('/auth/login', data={
+            'username': 'superadmin_ph5',
+            'password': 'test123',
+            'tenant_slug': test_tenant.slug,
+        })
+        return client
+
+    def test_nurse_reports_header(self, nurse_client):
+        resp = nurse_client.get('/nurse/reports')
+        assert resp.status_code == 200
+        text = resp.get_data(as_text=True)
+        assert 'clinical-page-header' in text
+        assert 'تقرير التمريض' in text
+
+    def test_superadmin_permissions_header(self, superadmin_client):
+        resp = superadmin_client.get('/super-admin/permissions')
+        assert resp.status_code == 200
+        text = resp.get_data(as_text=True)
+        assert 'clinical-page-header' in text
+        assert 'إدارة الصلاحيات' in text
+
+    def test_superadmin_performance_header(self, superadmin_client):
+        resp = superadmin_client.get('/super-admin/performance')
+        assert resp.status_code == 200
+        text = resp.get_data(as_text=True)
+        assert 'clinical-page-header' in text
+        assert 'مراقبة الأداء' in text
+
+    def test_superadmin_maintenance_header(self, superadmin_client):
+        resp = superadmin_client.get('/super-admin/system/maintenance')
+        assert resp.status_code == 200
+        text = resp.get_data(as_text=True)
+        assert 'clinical-page-header' in text
+        assert 'صيانة النظام' in text
+
 
 class TestMedicalHeaderDebt:
     """Phase 5 — migrated templates must not keep legacy medical-header blocks."""
@@ -250,6 +350,12 @@ class TestMedicalHeaderDebt:
         'doctor/notes.html',
         'lab/process.html',
         'emergency/emergency_visits.html',
+        'nurse/reports.html',
+        'lab/quality.html',
+        'radiology/quality.html',
+        'super_admin/permissions.html',
+        'super_admin/performance.html',
+        'super_admin/system_maintenance.html',
     )
 
     def test_migrated_templates_drop_medical_header(self):
@@ -259,3 +365,4 @@ class TestMedicalHeaderDebt:
             text = (root / rel).read_text(encoding='utf-8')
             assert 'medical-header' not in text, rel
             assert 'content-header' not in text, rel
+            assert 'class="page-title"' not in text, rel

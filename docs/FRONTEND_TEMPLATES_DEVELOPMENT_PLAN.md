@@ -1193,16 +1193,35 @@ document.body.classList.toggle('sidebar-open');
 | **§35 POS** | ✅ G-116…G-125 |
 | **§36 UX** | ✅ G-126…G-129 |
 | **BS4 codemod** | ✅ G-06/G-34 |
-| **المرحلة 5** | 🟡 **13 صفحة** — `_page_header` (استقبال، طبيب، صيدلية، مختبر، أشعة، طوارئ) |
-| **CI GitHub** | ✅ migrate + flake8 + pytest (~**385** حالة) |
+| **المرحلة 5** | 🟡 **19 صفحة** — `_page_header` (استقبال، طبيب، صيدلية، مختبر، أشعة، طوارئ، تمريض، جودة، سوبر أدمن) |
+| **CI GitHub** | ✅ migrate + flake8 + pytest (~**391** حالة) |
 
 **Git HEAD:** *(يُحدَّث بعد الدفع)*  
-**اختبارات المرحلة 5:** `test_gate_5_page_header` — 11 حالة
+**اختبارات المرحلة 5:** `test_gate_5_page_header` — 17 حالة
 
 **الخطوة التالية:**
-1. تعميم `_page_header` على بقية القوالب (~140 صفحة)
+1. تعميم `_page_header` على بقية القوالب (~130 صفحة)
 2. `status_label` شامل + حذف `static/adminlte/`
 3. Gate 9 — مطبوعات المختبر standalone
+
+### 11.12 دفعة 2026-06-23 (مساء) — المرحلة 5 دفعة 3 + إصلاح أخطاء كامنة
+
+| القوالب | المسارات |
+|---------|----------|
+| `nurse/reports.html` | `/nurse/reports` |
+| `lab/quality.html` | `/lab/quality` |
+| `radiology/quality.html` | `/radiology/quality` |
+| `super_admin/permissions.html` | `/super-admin/permissions` |
+| `super_admin/performance.html` | `/super-admin/performance` |
+| `super_admin/system_maintenance.html` | `/super-admin/system/maintenance` |
+
+**أخطاء كامنة أُصلحت (كانت تُعيد 302/500):**
+- `routes/lab/quality.py` — استيراد `OrderState`, `LabResultStatus`
+- `routes/radiology/quality.py` — استيراد `OrderState`, `RadiologyResultStatus` (كان `LabResultStatus` خطأ)
+- `routes/nurse_routes/protocols.py` — استيراد `TaskState`
+- `routes/super_admin/system.py` — تعريف `get_system_uptime` المفقود
+
+**اختبارات:** `test_gate_5_page_header` — 17 حالة (تشمل تحميل فعلي 200 لكل صفحة)
 
 ### 11.11 دفعة 2026-06-23 (مساء) — المرحلة 5 دفعة 2
 

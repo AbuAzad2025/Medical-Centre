@@ -1,15 +1,10 @@
 {% extends "base.html" %}
+{% from 'partials/_page_header.html' import page_header %}
 
 {% block title %}صيانة النظام - السوبر أدمن{% endblock %}
 
 {% block content %}
-<div class="page-header fade-in-up">
-    <h1 class="page-title">
-        <i class="fas fa-tools"></i>
-        صيانة النظام
-    </h1>
-    <p class="page-subtitle">تنظيف النظام والصيانة الدورية</p>
-</div>
+{{ page_header(title='صيانة النظام', subtitle='تنظيف النظام والصيانة الدورية', icon='fas fa-tools') }}
 
 <!-- إحصائيات النظام -->
 <div class="stats-grid fade-in-up">
