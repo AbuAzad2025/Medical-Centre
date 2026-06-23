@@ -1,33 +1,11 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}إضافة فحص أشعة جديد{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-plus me-2"></i>
-                                إضافة فحص أشعة جديد
-                            </h2>
-                            <p class="text-muted mb-0">إضافة طلب فحص أشعة جديد للمريض</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <a href="{{ url_for('radiology.requests') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-1"></i>
-                                العودة للقائمة
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('إضافة فحص أشعة جديد', subtitle='إضافة طلب فحص أشعة جديد للمريض', icon='fas fa-plus', actions=[{'label': 'العودة للقائمة', 'icon': 'fas fa-arrow-left', 'url': url_for('radiology.requests'), 'style': 'secondary'}]) }}
 
     <!-- Form -->
     <div class="row">

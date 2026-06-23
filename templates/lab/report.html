@@ -1,37 +1,15 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}تقرير التحليل{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-file-medical me-2"></i>
-                                تقرير التحليل
-                            </h2>
-                            <p class="text-muted mb-0">عرض نتائج المختبر وطباعة التقارير</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                {% if lab_request %}
-                                <a class="btn btn-primary" href="{{ url_for('lab.print_request', id=lab_request.id) }}">
-                                    <i class="fas fa-print me-1"></i>
-                                    طباعة التقرير
-                                </a>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% set hdr_actions = [] %}
+    {% if lab_request %}
+        {% set _ = hdr_actions.append({'label': 'طباعة التقرير', 'icon': 'fas fa-print', 'url': url_for('lab.print_request', id=lab_request.id), 'style': 'primary'}) %}
+    {% endif %}
+    {{ page_header('تقرير التحليل', subtitle='عرض نتائج المختبر وطباعة التقارير', icon='fas fa-file-medical', actions=hdr_actions) }}
 
     <div class="row mb-4">
         <div class="col-lg-4">

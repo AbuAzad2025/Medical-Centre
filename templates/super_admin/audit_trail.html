@@ -1,39 +1,14 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}سجل التدقيق - السوبر أدمن{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-clipboard-list me-2"></i>
-                                سجل التدقيق
-                            </h2>
-                            <p class="text-muted mb-0">مراقبة شاملة لجميع أنشطة النظام</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary" data-action="refresh-audit-logs">
-                                    <i class="fas fa-sync-alt me-1"></i>
-                                    تحديث
-                                </button>
-                                <button class="btn btn-success" data-action="export-audit-logs">
-                                    <i class="fas fa-download me-1"></i>
-                                    تصدير السجلات
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('سجل التدقيق', subtitle='مراقبة شاملة لجميع أنشطة النظام', icon='fas fa-clipboard-list', actions=[
+        {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-audit-logs', 'style': 'primary'},
+        {'type': 'button', 'label': 'تصدير السجلات', 'icon': 'fas fa-download', 'data_action': 'export-audit-logs', 'style': 'success'}
+    ]) }}
 
     <!-- Audit Overview -->
     <div class="row mb-4">

@@ -1,25 +1,14 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}حساب الحجز{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body d-flex justify-content-between align-items-center">
-          <div>
-            <h2 class="mb-1 text-primary"><i class="fas fa-calendar-alt me-2"></i>حجوزاتي</h2>
-            <div class="text-muted">{{ patient.full_name if patient else 'غير مرتبط بمريض' }}</div>
-          </div>
-          <div class="d-flex gap-2">
-            <a class="btn btn-primary" href="{{ url_for('booking.index') }}">حجز جديد</a>
-            <a class="btn btn-outline-secondary" href="{{ url_for('auth.logout') }}">تسجيل الخروج</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  {{ page_header('حجوزاتي', subtitle=(patient.full_name if patient else 'غير مرتبط بمريض'), icon='fas fa-calendar-alt', actions=[
+      {'label': 'حجز جديد', 'url': url_for('booking.index'), 'style': 'primary'},
+      {'label': 'تسجيل الخروج', 'url': url_for('auth.logout'), 'style': 'outline-secondary'}
+  ]) }}
 
   {% if not patient %}
     <div class="alert alert-warning">لا يوجد ربط بمريض. راجع الإدارة.</div>

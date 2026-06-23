@@ -1,38 +1,15 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}الخط الزمني - {{ patient.full_name }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body d-flex justify-content-between align-items-center">
-          <div>
-            <h2 class="mb-1 text-primary">
-              <i class="fas fa-stream me-2"></i>
-              الخط الزمني للمريض
-            </h2>
-            <div class="text-muted">{{ patient.full_name }}{% if patient.phone %} - {{ patient.phone }}{% endif %}</div>
-          </div>
-          <div class="d-flex gap-2">
-            <a href="{{ url_for('doctor.patients') }}" class="btn btn-secondary">
-              <i class="fas fa-arrow-left me-1"></i>
-              العودة
-            </a>
-            <a href="{{ url_for('doctor.medical_history', patient_id=patient.id) }}" class="btn btn-outline-primary">
-              <i class="fas fa-notes-medical me-1"></i>
-              السجل الطبي
-            </a>
-            <a href="{{ url_for('doctor.prescriptions_history', patient_id=patient.id) }}" class="btn btn-outline-info">
-              <i class="fas fa-file-prescription me-1"></i>
-              الوصفات
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  {{ page_header('الخط الزمني للمريض', subtitle=(patient.full_name ~ (' - ' ~ patient.phone if patient.phone else '')), icon='fas fa-stream', actions=[
+      {'label': 'العودة', 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.patients'), 'style': 'secondary'},
+      {'label': 'السجل الطبي', 'icon': 'fas fa-notes-medical', 'url': url_for('doctor.medical_history', patient_id=patient.id), 'style': 'outline-primary'},
+      {'label': 'الوصفات', 'icon': 'fas fa-file-prescription', 'url': url_for('doctor.prescriptions_history', patient_id=patient.id), 'style': 'outline-info'}
+  ]) }}
 
   <div class="row mb-3">
     <div class="col-12">

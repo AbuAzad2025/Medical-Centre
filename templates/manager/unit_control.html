@@ -1,39 +1,14 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}التحكم في الوحدات - المدير{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-cogs me-2"></i>
-                                التحكم في الوحدات
-                            </h2>
-                            <p class="text-muted mb-0">إدارة شاملة لجميع وحدات النظام</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary" data-action="refresh-units">
-                                    <i class="fas fa-sync-alt me-1"></i>
-                                    تحديث
-                                </button>
-                                <button class="btn btn-success" data-action="export-units-report">
-                                    <i class="fas fa-file-excel me-1"></i>
-                                    تصدير تقرير
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('التحكم في الوحدات', subtitle='إدارة شاملة لجميع وحدات النظام', icon='fas fa-cogs', actions=[
+        {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-units', 'style': 'primary'},
+        {'type': 'button', 'label': 'تصدير تقرير', 'icon': 'fas fa-file-excel', 'data_action': 'export-units-report', 'style': 'success'}
+    ]) }}
 
     <!-- Units Overview -->
     <div class="row mb-4">

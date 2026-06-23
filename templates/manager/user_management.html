@@ -1,39 +1,14 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}إدارة المستخدمين - المدير{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-users me-2"></i>
-                                إدارة المستخدمين
-                            </h2>
-                            <p class="text-muted mb-0">إدارة شاملة لمستخدمي النظام</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary" data-action="add-user">
-                                    <i class="fas fa-user-plus me-1"></i>
-                                    إضافة مستخدم
-                                </button>
-                                <button class="btn btn-success" data-action="export-users">
-                                    <i class="fas fa-file-excel me-1"></i>
-                                    تصدير المستخدمين
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('إدارة المستخدمين', subtitle='إدارة شاملة لمستخدمي النظام', icon='fas fa-users', actions=[
+        {'type': 'button', 'label': 'إضافة مستخدم', 'icon': 'fas fa-user-plus', 'data_action': 'add-user', 'style': 'primary'},
+        {'type': 'button', 'label': 'تصدير المستخدمين', 'icon': 'fas fa-file-excel', 'data_action': 'export-users', 'style': 'success'}
+    ]) }}
 
     <!-- Users Statistics -->
     <div class="row mb-4">

@@ -1,39 +1,14 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}مراقبة النظام - المدير{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-eye me-2"></i>
-                                مراقبة النظام
-                            </h2>
-                            <p class="text-muted mb-0">مراقبة شاملة لحالة جميع وحدات النظام</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary" onclick="refreshMonitoring()">
-                                    <i class="fas fa-sync-alt me-1"></i>
-                                    تحديث
-                                </button>
-                                <button class="btn btn-success" onclick="exportMonitoringReport()">
-                                    <i class="fas fa-file-excel me-1"></i>
-                                    تصدير تقرير
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('مراقبة النظام', subtitle='مراقبة شاملة لحالة جميع وحدات النظام', icon='fas fa-eye', actions=[
+        {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-monitoring', 'style': 'primary'},
+        {'type': 'button', 'label': 'تصدير تقرير', 'icon': 'fas fa-file-excel', 'data_action': 'export-monitoring-report', 'style': 'success'}
+    ]) }}
 
     <!-- System Status Overview -->
     <div class="row mb-4">

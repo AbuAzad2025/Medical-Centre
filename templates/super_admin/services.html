@@ -1,39 +1,14 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}إدارة الخدمات - السوبر أدمن{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-cogs me-2"></i>
-                                إدارة الخدمات
-                            </h2>
-                            <p class="text-muted mb-0">إدارة وتنظيم جميع خدمات المركز الصحي</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addServiceModal">
-                                    <i class="fas fa-plus me-1"></i>
-                                    إضافة خدمة جديدة
-                                </button>
-                                <button class="btn btn-success" data-action="export-services">
-                                    <i class="fas fa-download me-1"></i>
-                                    تصدير
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('إدارة الخدمات', subtitle='إدارة وتنظيم جميع خدمات المركز الصحي', icon='fas fa-cogs', actions=[
+        {'type': 'button', 'label': 'إضافة خدمة جديدة', 'icon': 'fas fa-plus', 'data_bs_toggle': 'modal', 'data_bs_target': '#addServiceModal', 'style': 'primary'},
+        {'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-download', 'data_action': 'export-services', 'style': 'success'}
+    ]) }}
 
     <!-- Statistics Cards -->
     <div class="row mb-4">

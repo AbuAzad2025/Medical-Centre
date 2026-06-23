@@ -381,3 +381,54 @@ class TestMedicalHeaderDebt:
             assert 'medical-header' not in text, rel
             assert 'content-header' not in text, rel
             assert 'class="page-title"' not in text, rel
+
+    def test_all_macro_importers_use_macro_and_drop_legacy(self):
+        """Self-maintaining: every template importing page_header must call it
+        and must not retain legacy header markers."""
+        from pathlib import Path
+        root = Path(__file__).parent.parent / 'templates'
+        for path in root.rglob('*.html'):
+            text = path.read_text(encoding='utf-8')
+            if 'import page_header' not in text:
+                continue
+            rel = path.relative_to(root).as_posix()
+            assert 'page_header(' in text, rel
+            assert 'medical-header' not in text, rel
+            assert 'content-header' not in text, rel
+            assert 'class="page-title"' not in text, rel
+
+    def test_all_macro_importers_compile(self, app):
+        """Every template using the macro must compile (Jinja syntax check)."""
+        from pathlib import Path
+        root = Path(__file__).parent.parent / 'templates'
+        errors = []
+        with app.app_context():
+            for path in root.rglob('*.html'):
+                text = path.read_text(encoding='utf-8')
+                if 'import page_header' not in text:
+                    continue
+                rel = path.relative_to(root).as_posix()
+                try:
+                    app.jinja_env.get_template(rel)
+                except Exception as e:
+                    errors.append((rel, type(e).__name__, str(e)[:160]))
+        assert not errors, errors
+
+    def test_macro_templates_url_for_endpoints_exist(self, app):
+        """Catch url_for BuildErrors: every endpoint referenced in a migrated
+        template must be registered in the URL map."""
+        import re
+        from pathlib import Path
+        root = Path(__file__).parent.parent / 'templates'
+        known = set(app.url_map._rules_by_endpoint.keys())
+        pattern = re.compile(r"url_for\(\s*['\"]([a-zA-Z0-9_.]+)['\"]")
+        missing = []
+        for path in root.rglob('*.html'):
+            text = path.read_text(encoding='utf-8')
+            if 'import page_header' not in text:
+                continue
+            rel = path.relative_to(root).as_posix()
+            for ep in pattern.findall(text):
+                if ep not in known:
+                    missing.append((rel, ep))
+        assert not missing, missing

@@ -1,43 +1,15 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}التقارير - المدير{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-chart-bar me-2"></i>
-                                التقارير والإحصائيات
-                            </h2>
-                            <p class="text-muted mb-0">تقارير شاملة وإحصائيات مفصلة</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <a class="btn btn-outline-primary" href="{{ url_for('manager.reports_center') }}">
-                                    <i class="fas fa-chart-line me-1"></i>
-                                    مركز التقارير
-                                </a>
-                                <button class="btn btn-primary" data-action="generate-report">
-                                    <i class="fas fa-file-alt me-1"></i>
-                                    إنشاء تقرير
-                                </button>
-                                <button class="btn btn-success" data-action="export-all-reports">
-                                    <i class="fas fa-download me-1"></i>
-                                    تصدير جميع التقارير
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('التقارير والإحصائيات', subtitle='تقارير شاملة وإحصائيات مفصلة', icon='fas fa-chart-bar', actions=[
+        {'label': 'مركز التقارير', 'icon': 'fas fa-chart-line', 'url': url_for('manager.reports_center'), 'style': 'outline-primary'},
+        {'type': 'button', 'label': 'إنشاء تقرير', 'icon': 'fas fa-file-alt', 'data_action': 'generate-report', 'style': 'primary'},
+        {'type': 'button', 'label': 'تصدير جميع التقارير', 'icon': 'fas fa-download', 'data_action': 'export-all-reports', 'style': 'success'}
+    ]) }}
 
     <!-- Report Categories -->
     <div class="row mb-4">

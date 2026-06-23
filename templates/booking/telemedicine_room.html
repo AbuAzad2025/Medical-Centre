@@ -1,11 +1,11 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 {% block title %}جلسة التطبيب عن بُعد{% endblock %}
 {% block content %}
 <div class="container">
+  {{ page_header('جلسة التطبيب عن بُعد', subtitle='الحجز رقم ' ~ booking.id, icon='fas fa-video') }}
   <div class="card shadow-sm">
     <div class="card-body">
-      <h3 class="mb-2 text-primary"><i class="fas fa-video me-2"></i>جلسة التطبيب عن بُعد</h3>
-      <div class="text-muted mb-3">الحجز رقم {{ booking.id }}</div>
       {% if meeting_link %}
         <div class="alert alert-info">رابط الجلسة: <a href="{{ meeting_link }}">{{ meeting_link }}</a></div>
       {% else %}

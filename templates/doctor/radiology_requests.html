@@ -1,35 +1,11 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 
 {% block title %}طلبات الأشعة{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-x-ray me-2"></i>
-                                طلبات الأشعة
-                            </h2>
-                            <p class="text-muted mb-0">إدارة طلبات الأشعة</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left me-1"></i>
-                                    العودة للوحة التحكم
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header('طلبات الأشعة', subtitle='إدارة طلبات الأشعة', icon='fas fa-x-ray', actions=[{'label': 'العودة للوحة التحكم', 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.dashboard'), 'style': 'secondary'}]) }}
 
     <!-- Radiology Requests List -->
     <div class="row">
