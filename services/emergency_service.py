@@ -9,7 +9,7 @@ from datetime import datetime, date, timezone
 from typing import Any
 
 from app_factory import db
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, case
 
 
 class EmergencyService:

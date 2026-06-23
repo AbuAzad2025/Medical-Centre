@@ -1,0 +1,22 @@
+[flake8]
+max-line-length = 120
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    static,
+    mockups,
+    migrations/versions,
+    migrations/manual_scripts,
+    .tests_deleted,
+    apply_s0_003_exclusion.py,
+    apply_s0_003_test.py,
+    debug_suspend.py,
+    tmp_stamp.py,
+    tmp_upgrade.py,
+    mig_out.txt,
+    convert_backref.py,
+# F821 (undefined names): legacy debt — CI runs E9/F63/F7 only; full scan via scripts/lint_debt.py
+per-file-ignores =
+    tests/*:F401,F811
