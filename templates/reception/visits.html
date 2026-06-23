@@ -3,42 +3,27 @@
 {% from 'partials/_patient_context_panel.html' import patient_context_panel %}
 {% from 'partials/_payment_status_badge.html' import payment_status_badge %}
 {% from 'partials/_workflow_next_actions.html' import workflow_next_actions %}
+{% from 'partials/_page_header.html' import page_header %}
 
 {% block title %}قائمة الزيارات - الاستقبال{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-list-alt me-2"></i>
-                                قائمة الزيارات
-                            </h2>
-                            <p class="text-muted mb-0">إدارة وعرض جميع زيارات المرضى</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                {% if current_user.role == 'reception' %}
-                                <a href="{{ url_for('reception.create_visit') }}" class="btn btn-primary">
-                                    <i class="fas fa-plus me-1"></i>
-                                    زيارة جديدة
-                                </a>
-                                {% endif %}
-                                <button class="btn btn-success" data-action="export-visits">
-                                    <i class="fas fa-download me-1"></i>
-                                    تصدير
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% set visit_header_actions = [
+        {'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-download', 'style': 'success', 'data_action': 'export-visits'}
+    ] %}
+    {% if current_user.role == 'reception' %}
+    {% set visit_header_actions = [
+        {'url': url_for('reception.create_visit'), 'label': 'زيارة جديدة', 'icon': 'fas fa-plus', 'style': 'primary'},
+        {'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-download', 'style': 'success', 'data_action': 'export-visits'}
+    ] %}
+    {% endif %}
+    {{ page_header(
+        title='قائمة الزيارات',
+        subtitle='إدارة وعرض جميع زيارات المرضى',
+        icon='fas fa-list-alt',
+        actions=visit_header_actions
+    ) }}
 
     {% if visit %}
     {{ patient_context_panel(visit.patient) }}

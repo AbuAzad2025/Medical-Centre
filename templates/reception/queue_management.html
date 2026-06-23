@@ -1,25 +1,21 @@
 {% extends "base.html" %}
+{% from 'partials/_page_header.html' import page_header %}
 
 {% block title %}إدارة الطابور الموحد{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
+    {{ page_header(
+        title='إدارة الطابور الموحد',
+        subtitle='لجميع الأقسام',
+        icon='fas fa-users',
+        actions=[
+            {'url': url_for('reception.add_patient_to_queue'), 'label': 'إضافة مريض للطابور', 'icon': 'fas fa-plus', 'style': 'primary'}
+        ]
+    ) }}
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-users"></i>
-                        إدارة الطابور الموحد
-                        <small class="text-muted">- لجميع الأقسام</small>
-                    </h3>
-                    <div class="card-tools">
-                        <a href="{{ url_for('reception.add_patient_to_queue') }}" class="btn btn-primary">
-                            <i class="fas fa-plus"></i>
-                            إضافة مريض للطابور
-                        </a>
-                    </div>
-                </div>
                 <div class="card-body">
                     <!-- إحصائيات سريعة -->
                     <div class="row mb-4">

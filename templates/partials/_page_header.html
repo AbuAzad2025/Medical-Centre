@@ -1,0 +1,37 @@
+{# Phase 5 — unified page header (clinical-page-header) #}
+{% macro page_header(title, subtitle='', icon='', breadcrumbs=[], actions=[]) %}
+<div class="clinical-page-header fade-in-up">
+    <div>
+        {% if breadcrumbs %}
+        <nav class="clinical-breadcrumb" aria-label="مسار التنقل">
+            {% for crumb in breadcrumbs %}
+                {% if crumb.url %}
+                <a href="{{ crumb.url }}">{{ crumb.label }}</a>
+                {% else %}
+                {{ crumb.label }}
+                {% endif %}
+                {% if not loop.last %} / {% endif %}
+            {% endfor %}
+        </nav>
+        {% endif %}
+        <h1>{% if icon %}<i class="{{ icon }} me-2" aria-hidden="true"></i>{% endif %}{{ title }}</h1>
+        {% if subtitle %}<p class="text-muted mb-0">{{ subtitle }}</p>{% endif %}
+    </div>
+    {% if actions %}
+    <div class="clinical-actions d-flex flex-wrap gap-2 align-items-center">
+        {% for action in actions %}
+            {% if action.type == 'button' %}
+            <button type="button" class="btn btn-{{ action.style|default('primary') }} btn-sm"
+                {% if action.data_action %}data-action="{{ action.data_action }}"{% endif %}>
+                {% if action.icon %}<i class="{{ action.icon }} me-1" aria-hidden="true"></i>{% endif %}{{ action.label }}
+            </button>
+            {% else %}
+            <a href="{{ action.url }}" class="btn btn-{{ action.style|default('primary') }} btn-sm">
+                {% if action.icon %}<i class="{{ action.icon }} me-1" aria-hidden="true"></i>{% endif %}{{ action.label }}
+            </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}
