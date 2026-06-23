@@ -1,9 +1,8 @@
 ﻿{% extends "base.html" %}
+{% from 'partials/_page_header.html' import page_header %}
 {% block title %}نقطة البيع - الصيدلية{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0"><i class="fas fa-cash-register ms-2"></i>نقطة البيع</h4>
-</div>
+{{ page_header(title='نقطة البيع', icon='fas fa-cash-register') }}
 <div class="row g-3">
     <div class="col-md-7">
         <div class="card">

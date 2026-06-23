@@ -7,38 +7,17 @@
 {% set queue_stats = {'total_patients':0,'ready_patients':0,'in_progress':0,'average_wait_time':15} %}
 {% endif %}
 {% from 'partials/_empty_state.html' import empty_state %}
+{% from 'partials/_page_header.html' import page_header %}
 <div class="container-fluid" data-dept="{{ current_user.department_id or 0 }}">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-users me-2"></i>
-                                طابور المرضى
-                            </h2>
-                            <p class="text-muted mb-0">إدارة المرضى المخصصين للطبيب</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2">
-                                <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left me-1"></i>
-                                    العودة للوحة التحكم
-                                </a>
-                                <button class="btn btn-primary" onclick="refreshQueue()">
-                                    <i class="fas fa-sync me-1"></i>
-                                    تحديث
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    {{ page_header(
+        title='طابور المرضى',
+        subtitle='إدارة المرضى المخصصين للطبيب',
+        icon='fas fa-users',
+        actions=[
+            {'url': url_for('doctor.dashboard'), 'label': 'العودة للوحة التحكم', 'icon': 'fas fa-arrow-left', 'style': 'secondary'},
+            {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync', 'style': 'primary', 'data_action': 'refreshQueue'}
+        ]
+    ) }}
     <!-- Doctor Patient Search -->
     <div class="row mb-4">
         <div class="col-12">
