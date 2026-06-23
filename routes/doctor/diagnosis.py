@@ -491,7 +491,7 @@ def get_clinical_decision_support():
         diagnosis_success = db.session.query(
             MedicalRecord.diagnosis,
             func.count(MedicalRecord.id).label('total_cases'),
-            func.sum(case([(Visit.status == VisitState.ARCHIVED, 1)], else_=0)).label('successful_cases')
+            func.sum(case((Visit.status == VisitState.ARCHIVED, 1), else_=0)).label('successful_cases')
         ).join(Visit, MedicalRecord.visit_id == Visit.id).filter(
             Visit.doctor_id == current_user.id,
             MedicalRecord.created_at >= datetime.now() - timedelta(days=30)
@@ -512,7 +512,7 @@ def get_clinical_decision_support():
         medication_effectiveness = db.session.query(
             Medication.trade_name.label('medication_name'),
             func.count(func.distinct(Prescription.id)).label('total_prescriptions'),
-            func.sum(case([(Visit.status == VisitState.ARCHIVED, 1)], else_=0)).label('successful_treatments')
+            func.sum(case((Visit.status == VisitState.ARCHIVED, 1), else_=0)).label('successful_treatments')
         ).join(PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
         ).join(Medication, Medication.id == PrescriptionItem.medication_id
         ).join(Visit, Prescription.visit_id == Visit.id

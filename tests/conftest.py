@@ -235,3 +235,53 @@ def manager_auth_client(app, client, manager_user, test_tenant):
         'tenant_slug': test_tenant.slug,
     })
     return client
+
+
+# ── Centralized lightweight mocks for pure-logic / workflow tests ───
+class FakeSession:
+    """In-memory stand-in for db.session — no engine, records side effects.
+
+    Seed ``store`` with {id: obj} so ``get(Model, id)`` resolves; ``add`` /
+    ``commit`` / ``rollback`` / ``flush`` are recorded for transactional asserts.
+    """
+
+    def __init__(self, store=None):
+        self.store = dict(store or {})
+        self.added = []
+        self.commits = 0
+        self.rollbacks = 0
+        self.flushes = 0
+
+    def get(self, model, ident):
+        return self.store.get(ident)
+
+    def add(self, obj):
+        self.added.append(obj)
+
+    def commit(self):
+        self.commits += 1
+
+    def rollback(self):
+        self.rollbacks += 1
+
+    def flush(self):
+        self.flushes += 1
+
+
+@pytest.fixture
+def fake_session():
+    """A fresh FakeSession; tests seed `.store` as needed."""
+    return FakeSession()
+
+
+@pytest.fixture
+def patch_db_session(monkeypatch):
+    """Patch app.extensions.db.session with a FakeSession and return it."""
+    import app.extensions as ext
+
+    def _apply(session=None):
+        session = session or FakeSession()
+        monkeypatch.setattr(ext.db, 'session', session, raising=False)
+        return session
+
+    return _apply

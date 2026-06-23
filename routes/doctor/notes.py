@@ -127,10 +127,14 @@ def api_dashboard_layout():
         panel_id = item.get('id')
         if panel_id not in allowed:
             continue
+        try:
+            order_val = int(item.get('order') or 0)
+        except (TypeError, ValueError):
+            order_val = 0
         normalized.append({
             'id': panel_id,
             'title': item.get('title') or '',
-            'order': int(item.get('order') or 0),
+            'order': order_val,
             'enabled': bool(item.get('enabled', True))
         })
     if not normalized:

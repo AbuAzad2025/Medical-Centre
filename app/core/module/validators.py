@@ -20,10 +20,11 @@ def validate_reception_required(tenant_id: int, proposed_modules: list[str]):
     clinical = set(get_clinical_modules())
     proposed_set = set(proposed_modules)
     active = get_active_modules_for_tenant(tenant_id)
-    all_clinical = (proposed_set | active) & clinical
+    all_modules = proposed_set | active
+    all_clinical = all_modules & clinical
 
     if len(all_clinical) > 3:
-        if "reception" not in all_clinical:
+        if "reception" not in all_modules:
             raise ModuleValidationError(
                 "Reception module is mandatory when more than 3 clinical modules are active."
             )
