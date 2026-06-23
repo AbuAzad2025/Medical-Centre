@@ -4,6 +4,7 @@
 
 {% block content %}
 {% import 'macros/forms.html' as forms %}
+{% from 'partials/_payment_method_select.html' import payment_method_select %}
 <div class="container">
   <div class="row">
     <div class="col-lg-8 mx-auto">
@@ -23,13 +24,7 @@
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label class="form-label" for="paymentMethodSelect">طريقة الدفع</label>
-                <select class="form-select" name="payment_method" id="paymentMethodSelect" required title="طريقة الدفع">
-                  <option value="">اختر</option>
-                  <option value="CASH">نقداً</option>
-                  <option value="CARD">بطاقة</option>
-                  <option value="INSURANCE">تأمين</option>
-                  <option value="WIRE">تحويل بنكي</option>
-                </select>
+                {{ payment_method_select(name='payment_method', id='paymentMethodSelect', css_class='form-select', placeholder='اختر') }}
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">العملة</label>
@@ -39,7 +34,7 @@
                 <div id="exchangeRateInfo" class="small text-muted mt-1 d-none"></div>
               </div>
             </div>
-            <div class="row">
+            <div class="row d-none" id="cardFieldsRow">
               <div class="col-md-4 mb-3">
                 <label class="form-label" for="cardLastDigits">آخر 4 أرقام</label>
                 <input type="text" class="form-control" name="card_last_digits" id="cardLastDigits" maxlength="4" title="آخر 4 أرقام البطاقة">
@@ -53,19 +48,15 @@
                 <input type="text" class="form-control" name="payment_reference" id="paymentReference" title="مرجع العملية">
               </div>
             </div>
-            <div class="row">
+            <div class="row d-none" id="insuranceFieldsRow">
               <div class="col-md-6 mb-3">
-                <label class="form-label" for="insuranceCompanyId">شركة التأمين (مرجعي)</label>
-                <select class="form-control" name="insurance_company_id" id="insuranceCompanyId" title="شركة التأمين">
+                <label class="form-label" for="insuranceCompanyId">شركة التأمين</label>
+                <select class="form-select" name="insurance_company_id" id="insuranceCompanyId" title="شركة التأمين">
                   <option value="">بدون</option>
                   {% for ic in insurance_companies or [] %}
                   <option value="{{ ic.id }}">{{ ic.name_ar or ic.name }}</option>
                   {% endfor %}
                 </select>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label" for="insuranceProvider">شركة التأمين</label>
-                <input type="text" class="form-control" name="insurance_provider" id="insuranceProvider" title="شركة التأمين">
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label" for="insurancePolicyNumber">رقم البوليصة</label>

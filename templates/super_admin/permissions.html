@@ -75,7 +75,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <h3 id="modalTitle">إضافة صلاحية جديدة</h3>
-            <span class="close" data-action="close-modal">&times;</span>
+            <button type="button" class="btn-close" data-action="close-modal" aria-label="إغلاق"></button>
         </div>
         <div class="modal-body">
             <form id="permissionForm" method="POST" action="{{ url_for('super_admin.create_permission') }}">

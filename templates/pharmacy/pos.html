@@ -58,18 +58,8 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label small">طريقة الدفع</label>
-                    <div class="d-flex gap-3 flex-wrap">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="paymentMethod" id="payCash" value="cash" checked>
-                            <label class="form-check-label" for="payCash">نقداً</label>
-                        </div>
-                        {% if pos_enabled %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="paymentMethod" id="payCard" value="card">
-                            <label class="form-check-label" for="payCard">بطاقة</label>
-                        </div>
-                        {% endif %}
-                    </div>
+                    {% from 'partials/_payment_method_select.html' import payment_method_radios %}
+                    {{ payment_method_radios(show_card=pos_enabled) }}
                 </div>
                 {% if pos_enabled %}
                 <div class="mb-3 d-none" id="cardChargeBlock">

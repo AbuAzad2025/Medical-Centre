@@ -210,9 +210,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">تأكيد الإضافة للطابور</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
             </div>
             <div class="modal-body">
                 <div id="confirmInfo">
@@ -220,8 +218,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
-                <button type="button" class="btn btn-primary" data-action="submit-form">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" data-action="submitForm">
                     <i class="fas fa-check"></i>
                     تأكيد الإضافة
                 </button>
@@ -231,6 +229,6 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_js %}
 <script src="{{ url_for('static', filename='js/pages/reception/add_patient_to_queue.js') }}"></script>
 {% endblock %}

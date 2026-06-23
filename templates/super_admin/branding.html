@@ -42,10 +42,10 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">
                                 اسم المؤسسة
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ branding.organization_name or 'غير محدد' }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ branding.organization_name or 'غير محدد' }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-building fa-2x text-gray-300"></i>
@@ -60,10 +60,10 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            <div class="text-xs fw-bold text-success text-uppercase mb-1">
                                 اللون الأساسي
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ branding.primary_color or '#4e73df' }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ branding.primary_color or '#4e73df' }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-palette fa-2x text-gray-300"></i>
@@ -78,10 +78,10 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            <div class="text-xs fw-bold text-info text-uppercase mb-1">
                                 الشعار
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ 'محدد' if branding.logo_url else 'غير محدد' }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ 'محدد' if branding.logo_url else 'غير محدد' }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-image fa-2x text-gray-300"></i>
@@ -96,10 +96,10 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">
                                 الثيم
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ themes|length }} ثيم</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ themes|length }} ثيم</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-paint-brush fa-2x text-gray-300"></i>
@@ -115,7 +115,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">استوديو العلامة التجارية</h6>
+                    <h6 class="m-0 fw-bold text-primary">استوديو العلامة التجارية</h6>
                     <ul class="nav nav-pills card-header-pills" id="brandingMainTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="tab-appearance" data-bs-toggle="pill" data-bs-target="#pane-appearance" type="button" role="tab">المظهر</button>
@@ -385,7 +385,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">معاينة التغييرات</h6>
+                    <h6 class="m-0 fw-bold text-primary">معاينة التغييرات</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">

@@ -148,3 +148,59 @@ class TestPharmacyPosSell:
         resp = auth_client.post('/medication/pos/charge', data={'amount': '25'})
         assert resp.status_code == 200
         assert resp.get_json()['transaction_id'] == 'P1'
+
+
+class TestPaymentMethodMacro:
+    def test_macro_renders_arabic_options(self, app):
+        with app.app_context():
+            from flask import render_template_string
+            html = render_template_string(
+                "{% from 'partials/_payment_method_select.html' import payment_method_select %}"
+                "{{ payment_method_select(id='pm', include_force=true) }}"
+            )
+        assert 'نقداً' in html
+        assert 'بطاقة' in html
+        assert 'تأمين' in html
+        assert 'دفع قوي' in html
+        assert 'value="CASH"' in html
+
+
+class TestProcessPaymentTemplate:
+    def test_no_duplicate_insurance_provider_field(self, app):
+        with app.app_context():
+            from flask import render_template_string
+            html = render_template_string(
+                "{% from 'partials/_payment_method_select.html' import payment_method_select %}"
+                "{{ payment_method_select(id='paymentMethodSelect') }}"
+                '<div id="insuranceFieldsRow" class="d-none">'
+                '<select name="insurance_company_id" id="insuranceCompanyId"></select>'
+                '</div>'
+            )
+        assert 'insurance_provider' not in html
+        assert 'insurance_company_id' in html
+
+
+class TestPharmacyPosPage:
+    def test_pos_page_uses_external_js_and_macro(self, auth_client):
+        resp = auth_client.get('/medication/pos')
+        assert resp.status_code == 200
+        text = resp.get_data(as_text=True)
+        assert 'js/pages/pharmacy/pos.js' in text
+        assert 'payment_method_radios' not in text  # rendered, not raw macro name
+        assert 'name="paymentMethod"' in text
+        assert 'alert(' not in text
+
+    def test_insufficient_stock_arabic_message(self, auth_client, test_medications):
+        med = test_medications[2]  # low stock ibuprofen (5 units)
+        resp = auth_client.post(
+            '/medication/pos/sell',
+            data=json.dumps({
+                'items': [{'medication_id': med.id, 'quantity': 99}],
+                'payment_method': 'cash',
+            }),
+            content_type='application/json',
+        )
+        assert resp.status_code == 400
+        msg = resp.get_json().get('message', '')
+        assert 'medication_id' not in msg.lower()
+        assert 'المخزون' in msg or med.trade_name in msg

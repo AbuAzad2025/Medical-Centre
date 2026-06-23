@@ -27,3 +27,22 @@ const baseCurrency = __M0__;
 
   currencySelect.addEventListener('change', checkRate);
   checkRate();
+
+  const methodSelect = document.getElementById('paymentMethodSelect');
+  const insuranceRow = document.getElementById('insuranceFieldsRow');
+  const cardRow = document.getElementById('cardFieldsRow');
+
+  function togglePaymentFields() {
+    const method = methodSelect ? methodSelect.value : '';
+    if (insuranceRow) {
+      insuranceRow.classList.toggle('d-none', method !== 'INSURANCE');
+    }
+    if (cardRow) {
+      cardRow.classList.toggle('d-none', method !== 'CARD');
+    }
+  }
+
+  if (methodSelect) {
+    methodSelect.addEventListener('change', togglePaymentFields);
+    togglePaymentFields();
+  }
