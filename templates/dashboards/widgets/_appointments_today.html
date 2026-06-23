@@ -1,5 +1,5 @@
 <div class="cc-widget cc-widget--md" data-widget-id="appointments_pending">
-  <div class="cc-widget__head"><span><i class="fas fa-calendar me-1"></i> مواعيد اليوم</span></div>
+  <div class="cc-widget__head"><span><i class="fas fa-calendar me-1"></i> {% if dashboard_role == 'doctor' %}مواعيدي اليوم{% else %}مواعيد اليوم{% endif %}</span></div>
   <div class="cc-widget__body table-responsive">
     <table class="table table-hover mb-0">
       <thead><tr><th>المريض</th><th>الطبيب</th><th>الوقت</th><th>الحالة</th></tr></thead>

@@ -1,0 +1,19 @@
+<div class="cc-widget cc-widget--md" data-widget-id="pharmacy_sales">
+  <div class="cc-widget__head"><span><i class="fas fa-shopping-cart me-1"></i> مبيعات اليوم</span></div>
+  <div class="cc-widget__body table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>#</th><th>المبلغ</th><th>الوقت</th></tr></thead>
+      <tbody>
+      {% for s in widget_data.lists.recent_sales or [] %}
+      <tr>
+        <td>{{ s.id }}</td>
+        <td>{{ s.total_amount or 0 }} ₪</td>
+        <td class="small text-muted">{{ s.created_at.strftime('%H:%M') if s.created_at else '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="text-center text-muted py-3">لا توجد مبيعات اليوم</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

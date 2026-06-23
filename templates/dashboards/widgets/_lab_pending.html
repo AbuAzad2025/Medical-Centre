@@ -1,5 +1,5 @@
 <div class="cc-widget cc-widget--md" data-widget-id="lab_pending">
-  <div class="cc-widget__head"><span><i class="fas fa-flask me-1"></i> طلبات المختبر</span></div>
+  <div class="cc-widget__head"><span><i class="fas fa-flask me-1"></i> {% if dashboard_role == 'doctor' %}طلبات المختبر المعلّقة{% else %}طلبات المختبر{% endif %}</span></div>
   <div class="cc-widget__body table-responsive">
     <table class="table table-sm table-hover mb-0">
       <thead><tr><th>المريض</th><th>الحالة</th><th>التاريخ</th></tr></thead>

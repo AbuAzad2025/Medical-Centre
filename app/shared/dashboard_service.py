@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 from flask import g, render_template, url_for
 
 from app.shared.dashboard_registry import (
+    ROLE_DASHBOARD_TITLES,
     ROLE_QUICK_ACTIONS,
     WidgetMeta,
     resolve_dashboard_widgets,
@@ -151,10 +152,15 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             data['lists']['emergency_cases'] = EmergencyCase.query.filter(
                 EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED'])
             ).order_by(EmergencyCase.created_at.desc()).limit(10).all()
+            data['lists']['emergency_queue'] = EmergencyCase.query.filter(
+                EmergencyCase.severity.in_(['HIGH', 'CRITICAL', 'URGENT']),
+                EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED']),
+            ).order_by(EmergencyCase.created_at.asc()).limit(10).all()
         except Exception:
             data['metrics']['critical_count'] = 0
             data['metrics']['active_cases'] = 0
             data['lists']['emergency_cases'] = []
+            data['lists']['emergency_queue'] = []
 
     if role == 'accountant':
         try:
@@ -171,7 +177,29 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
         ).order_by(Visit.created_at.desc()).limit(12).all()
 
     if role == 'pharmacist':
-        data['metrics']['dispense_today'] = 0
+        try:
+            from models.medication import Medication, Prescription, PharmacySale
+            from sqlalchemy import func
+
+            data['lists']['low_stock'] = Medication.query.filter(
+                Medication.stock_quantity <= Medication.minimum_stock
+            ).order_by(Medication.stock_quantity.asc()).limit(10).all()
+            data['lists']['pending_prescriptions'] = Prescription.query.filter(
+                Prescription.status == 'active'
+            ).order_by(Prescription.created_at.desc()).limit(10).all()
+            data['lists']['recent_sales'] = PharmacySale.query.filter(
+                func.date(PharmacySale.created_at) == today
+            ).order_by(PharmacySale.created_at.desc()).limit(10).all()
+            data['metrics']['dispense_today'] = len(data['lists']['recent_sales'])
+            data['metrics']['today_sales'] = db.session.query(
+                func.coalesce(func.sum(PharmacySale.total_amount), 0)
+            ).filter(func.date(PharmacySale.created_at) == today).scalar()
+        except Exception:
+            data['lists']['low_stock'] = []
+            data['lists']['pending_prescriptions'] = []
+            data['lists']['recent_sales'] = []
+            data['metrics']['dispense_today'] = 0
+            data['metrics']['today_sales'] = 0
 
     return data
 
@@ -206,6 +234,8 @@ def build_now_cards(widgets: List[WidgetMeta], data: dict) -> list[dict]:
             value = len(data.get('lists', {}).get('assigned') or [])
         elif w.id == 'pharmacy_dispense':
             value = metrics.get('dispense_today', 0)
+        elif w.id == 'pharmacy_sales':
+            value = metrics.get('today_sales', 0)
         else:
             value = '—'
         action_href = None
@@ -249,6 +279,7 @@ def build_command_center_context(user, role: Optional[str] = None, **extra) -> d
         'widget_data': data,
         'quick_actions': quick_actions,
         'dashboard_role': role,
+        'dashboard_title': ROLE_DASHBOARD_TITLES.get(role, 'لوحة القيادة'),
     }
     ctx.update(extra)
     return ctx
