@@ -1,0 +1,60 @@
+{% extends "owner/base.html" %}
+{% block title %}API Keys{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col">
+            <h4><i class="fas fa-key me-2 text-dark"></i>API Keys</h4>
+        </div>
+    </div>
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header fw-bold">إنشاء مفتاح</div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('owner.owner_api_keys_page') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label class="form-label">العميل</label>
+                            <select name="tenant_id" class="form-select" required>
+                                {% for t in tenants %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">الوصف</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">الصلاحيات</label>
+                            <input type="text" name="scopes" class="form-control" value="read" placeholder="read, write">
+                        </div>
+                        <button type="submit" class="btn btn-primary">إنشاء</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header fw-bold">المفاتيح النشطة</div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>العميل</th><th>الاسم</th><th>الصلاحيات</th><th>المفتاح</th></tr></thead>
+                        <tbody>
+                        {% for k in api_keys %}
+                        <tr>
+                            <td>{{ k.tenant.name if k.tenant else '-' }}</td>
+                            <td>{{ k.name }}</td>
+                            <td class="small">{{ k.scopes }}</td>
+                            <td class="small font-monospace">{{ (k.key or '')[:24] }}…</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-muted text-center py-4">لا مفاتيح</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

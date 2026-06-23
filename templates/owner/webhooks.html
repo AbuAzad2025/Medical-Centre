@@ -1,70 +1,42 @@
-{% extends "base.html" %}
-{% block title %}Webhooks و API Keys{% endblock %}
+{% extends "owner/base.html" %}
+{% block title %}Webhooks{% endblock %}
 {% block content %}
-
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-code me-2 text-dark"></i>Webhooks و API Keys</h4></div>
-        <div class="col-auto">
-            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+        <div class="col">
+            <h4><i class="fas fa-plug me-2 text-dark"></i>Webhooks</h4>
+            <p class="text-muted small mb-0">نقاط نهاية الأحداث — لإدارة API Keys انتقل إلى <a href="{{ url_for('owner.owner_api_keys_page') }}">صفحة المفاتيح</a>.</p>
         </div>
     </div>
     <div class="row g-3">
-        <div class="col-md-6">
+        <div class="col-lg-5">
             <div class="card h-100">
-                <div class="card-header fw-bold">Webhook Endpoints</div>
+                <div class="card-header fw-bold">إضافة Webhook</div>
                 <div class="card-body">
                     <form method="post" action="{{ url_for('owner.owner_webhooks') }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
                             <label class="form-label">الاسم</label>
-                            <input type="text" name="name" class="form-control" title="اسم الـ Webhook" placeholder="اسم الـ Webhook" required>
+                            <input type="text" name="name" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">الرابط (URL)</label>
                             <input type="url" name="url" class="form-control" placeholder="https://..." required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">الأحداث (مفصولة بفاصلة)</label>
+                            <label class="form-label">الأحداث</label>
                             <input type="text" name="events" class="form-control" placeholder="tenant.created, subscription.renewed">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">السر (Secret)</label>
+                            <label class="form-label">السر</label>
                             <input type="text" name="secret" class="form-control" placeholder="whsec_...">
                         </div>
-                        <button type="submit" class="btn btn-success">إضافة Webhook</button>
+                        <button type="submit" class="btn btn-success">إضافة</button>
                     </form>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header fw-bold">API Keys للعميل</div>
-                <div class="card-body">
-                    <form method="post" action="{{ url_for('owner.owner_api_keys') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <div class="mb-3">
-                            <label class="form-label">العميل</label>
-                            <select name="tenant_id" class="form-select" title="اختيار العميل" required>
-                                {% for t in tenants %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">الاسم / الوصف</label>
-                            <input type="text" name="name" class="form-control" title="اسم الـ API Key" placeholder="وصف الـ API Key" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">الصلاحيات (مفصولة بفاصلة)</label>
-                            <input type="text" name="scopes" class="form-control" placeholder="read, write">
-                        </div>
-                        <button type="submit" class="btn btn-primary">إنشاء API Key</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row g-3 mt-3">
-        <div class="col-md-6">
+        <div class="col-lg-7">
             <div class="card">
                 <div class="card-header fw-bold">قائمة Webhooks</div>
                 <div class="card-body p-0">
@@ -72,24 +44,9 @@
                         <thead><tr><th>الاسم</th><th>الرابط</th><th>الأحداث</th></tr></thead>
                         <tbody>
                         {% for w in webhooks %}
-                        <tr><td>{{ w.name }}</td><td class="small cell-truncate-sm">{{ w.url }}</td><td class="small">{{ w.events }}</td></tr>
-                        {% else %}<tr><td colspan="3" class="text-muted text-center">لا Webhooks</td></tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header fw-bold">قائمة API Keys</div>
-                <div class="card-body p-0">
-                    <table class="table table-sm mb-0">
-                        <thead><tr><th>العميل</th><th>الاسم</th><th>الصلاحيات</th></tr></thead>
-                        <tbody>
-                        {% for k in api_keys %}
-                        <tr><td>{{ k.tenant.name if k.tenant else '-' }}</td><td>{{ k.name }}</td><td class="small">{{ k.scopes }}</td></tr>
-                        {% else %}<tr><td colspan="3" class="text-muted text-center">لا API Keys</td></tr>
+                        <tr><td>{{ w.name }}</td><td class="small">{{ w.url }}</td><td class="small">{{ w.events }}</td></tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-muted text-center py-4">لا Webhooks مسجّلة</td></tr>
                         {% endfor %}
                         </tbody>
                     </table>

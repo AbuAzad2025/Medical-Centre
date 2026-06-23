@@ -1182,19 +1182,15 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 1–5)
+## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 1–6)
 
 | البند | الحالة |
 |-------|--------|
-| **مرحلة 1** Gate 1 | ✅ G-156, G-06, G-159 |
-| **مرحلة 2** Gate 2 | ✅ `ui.*`, `enum_label`, `__ENUMS__`, عينات reception/doctor/billing، `logo_url` على BrandingSettings، خطوط G-66 |
-| **مرحلة 3** Gate 3 | ✅ 20→0 `dashboard_base`، `clinical.css` في base + portal، حذف `dashboard_base.html` |
-| Gate 3 متبقي | ⚠️ G-16 (`_footer` inline CSS)، اختبار يدوي modal/z-index |
-| **مرحلة 4** Gate 4 | ✅ `nav_resolver.py`, `_sidebar_dynamic.html`, `inject_nav`, `can()`؛ G-03 |
-| **مرحلة 5** Gate 5 | ✅ G-106 هجرة، تبويب مستندات، `selectTheme` حفظ، معاينة iframe، عزل tenant |
-| Gate 5 متبقي | ⚠️ ربط حقول print بقوالب `print/*.html` (مرحلة 9) |
+| **مرحلة 5** Gate 5 | ✅ استوديو tenant + G-106 |
+| **مرحلة 6** Gate 6 | ✅ `platform_shell`, `owner/base`, `_owner_sidebar`, 19 قالب، themes/billing/api_keys |
+| Gate 6 متبقي | ⚠️ `tenant_detail` tabs، E2E يدوي، manager (مرحلة 6b) |
 
-**الخطوة التالية:** **مرحلة 6** — Owner AZAD shell (16 قالب).
+**الخطوة التالية:** **مرحلة 6b** — manager sidebar + `audit_nav_links`.
 
 ---
 
