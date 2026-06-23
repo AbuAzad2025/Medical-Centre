@@ -654,6 +654,21 @@ class WorkflowStatus(str, Enum):
     TRANSFERRED = "transferred"
 
 # =============================================================================
+# Print documents (§34.2)
+# =============================================================================
+
+class PrintDocType(str, Enum):
+    INVOICE = "invoice"
+    RECEIPT = "receipt"
+    PRESCRIPTION = "prescription"
+    QUEUE_TICKET = "queue_ticket"
+    BARCODE_LABEL = "barcode_label"
+    LAB_RESULT = "lab_result"
+    RADIOLOGY_REPORT = "radiology_report"
+    EMERGENCY_REPORT = "emergency_report"
+    MEDICAL_REPORT = "report"
+
+# =============================================================================
 # Helper: export all enum values as a JSON-serializable dict
 # =============================================================================
 

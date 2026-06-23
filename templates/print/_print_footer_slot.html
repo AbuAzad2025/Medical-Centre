@@ -1,0 +1,4 @@
+{# Tenant dynamic footer — optional custom HTML per doc type #}
+{% if print_footer_html %}
+<div class="print-footer-tenant">{{ print_footer_html|safe }}</div>
+{% endif %}

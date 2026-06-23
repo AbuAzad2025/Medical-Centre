@@ -4,22 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>معاينة ترويسة — {{ doc_type_label }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    {% set doc_type = doc_type %}
+    {% set pc = get_print_context(doc_type) %}
+    {% set print_header_html = print_header_html or pc.header_html %}
+    {% set print_footer_html = print_footer_html or pc.footer_html %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
+    <style id="print-brand-vars">:root { --print-primary: {{ pc.primary_color }}; }</style>
     <style>
-        body { margin: 0; padding: 1rem; background: #f8fafc; font-family: 'Cairo', sans-serif; }
+        body { margin: 0; padding: 1rem; background: #f8fafc; }
         .preview-frame { background: #fff; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; max-width: 800px; margin: 0 auto; }
         .doc-badge { font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; }
+        .preview-sample { font-size: 0.85rem; color: #475569; padding: 1rem; border: 1px dashed #cbd5e1; margin: 1rem 0; border-radius: 0.35rem; }
     </style>
 </head>
-<body>
+<body class="print-doc print-doc--{{ doc_type }}">
     <div class="preview-frame">
-        <div class="doc-badge">معاينة: {{ doc_type_label }}</div>
-        {% include 'print/_print_header_slot.html' %}
-        {% if print_footer_html %}
-        <div style="margin-top:1rem;padding-top:0.5rem;border-top:1px solid #e2e8f0;font-size:0.8rem;color:#64748b;">
-            {{ print_footer_html|safe }}
+        <div class="doc-badge">معاينة: {{ doc_type_label }} (نفس مخرج الطباعة)</div>
+        <header class="print-header">
+            {% include 'print/_print_header_slot.html' %}
+        </header>
+        <div class="preview-sample">
+            <p><strong>محتوى نموذجي</strong> — يظهر هنا محتوى الفاتورة / الروشتة / التقرير عند الطباعة الفعلية.</p>
         </div>
-        {% endif %}
+        <footer class="print-footer">
+            {% include 'print/_print_footer_slot.html' %}
+            {% include 'print/_print_platform_stamp.html' %}
+        </footer>
     </div>
 </body>
 </html>

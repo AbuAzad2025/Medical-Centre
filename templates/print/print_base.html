@@ -1,0 +1,44 @@
+{# Unified print shell — §34.4; child templates set doc_type and fill blocks #}
+{% set doc_type = doc_type|default('report') %}
+{% set pc = get_print_context(doc_type) %}
+{% set print_header_html = print_header_html|default(pc.header_html) %}
+{% set print_footer_html = print_footer_html|default(pc.footer_html) %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block doc_title %}مستند{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
+    <style id="print-brand-vars">:root { --print-primary: {{ pc.primary_color }}; }</style>
+    {% block extra_print_head %}{% endblock %}
+</head>
+<body class="print-doc print-doc--{{ doc_type }}" data-doc-type="{{ doc_type }}">
+    <button type="button" class="print-action-btn no-print" data-action="print">{% block print_button_label %}طباعة{% endblock %}</button>
+
+    <div class="print-page">
+        <header class="print-header">
+            {% include 'print/_print_header_slot.html' %}
+        </header>
+
+        <h1 class="print-doc-title">{% block doc_heading %}{% endblock %}</h1>
+
+        <div class="print-doc-meta">{% block doc_meta %}{% endblock %}</div>
+        <section class="print-subject-strip">{% block subject_strip %}{% endblock %}</section>
+        <main class="print-body">{% block body %}{% endblock %}</main>
+        <footer class="print-totals">{% block totals %}{% endblock %}</footer>
+        <section class="print-signatures">{% block signatures %}{% endblock %}</section>
+
+        <footer class="print-footer">
+            <div class="print-legal">{% block legal_footer %}{% endblock %}</div>
+            {% include 'print/_print_footer_slot.html' %}
+            {% include 'print/_print_platform_stamp.html' %}
+        </footer>
+    </div>
+
+    <script>
+    document.querySelector('[data-action="print"]')?.addEventListener('click', function () { window.print(); });
+    </script>
+    {% block extra_print_js %}{% endblock %}
+</body>
+</html>

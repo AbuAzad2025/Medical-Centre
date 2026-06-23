@@ -1,0 +1,284 @@
+/* Unified print documents — phase 9 (G-67, §34) */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap');
+
+@page {
+  size: A4;
+  margin: 12mm;
+}
+
+:root {
+  --print-primary: #0f4c81;
+  --print-muted: #64748b;
+  --print-border: #e2e8f0;
+  --print-bg-soft: #f8fafc;
+}
+
+* { box-sizing: border-box; }
+
+body.print-doc {
+  font-family: 'IBM Plex Sans Arabic', 'Cairo', 'Segoe UI', sans-serif;
+  font-size: 11pt;
+  line-height: 1.45;
+  color: #1e293b;
+  margin: 0;
+  padding: 0;
+  background: #fff;
+}
+
+.print-page {
+  max-width: 190mm;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.print-action-btn {
+  position: fixed;
+  top: 1rem;
+  inset-inline-end: 1rem;
+  z-index: 100;
+  background: var(--print-primary);
+  color: #fff;
+  border: none;
+  padding: 0.55rem 1.1rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.print-action-btn:hover { filter: brightness(0.92); }
+
+/* Header */
+.print-header { margin-bottom: 1rem; max-height: 120px; overflow: hidden; }
+
+.print-header-default {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 3px solid var(--print-primary);
+}
+
+.print-header-default__logo {
+  max-height: 72px;
+  max-width: 120px;
+  object-fit: contain;
+}
+
+.print-header-default__body { flex: 1; text-align: center; }
+
+.print-header-default__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--print-primary);
+}
+
+.print-header-default__sub,
+.print-header-default__meta,
+.print-header-default__ids {
+  font-size: 0.8rem;
+  color: var(--print-muted);
+}
+
+.print-header-custom :is(img) { max-height: 72px; }
+
+/* Doc chrome */
+.print-doc-title {
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--print-primary);
+  margin: 0.5rem 0 1rem;
+}
+
+.print-doc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.print-doc-meta__item strong { color: #334155; }
+
+.print-subject-strip {
+  background: var(--print-bg-soft);
+  border: 1px solid var(--print-border);
+  border-radius: 0.35rem;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+
+.print-subject-strip__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.35rem 1rem;
+}
+
+.print-subject-strip__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px dotted var(--print-border);
+  padding: 0.2rem 0;
+}
+
+.print-body { margin-bottom: 1rem; }
+
+.print-section {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--print-border);
+  border-radius: 0.35rem;
+  background: #fff;
+}
+
+.print-section__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--print-primary);
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid var(--print-primary);
+}
+
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.print-table th {
+  background: var(--print-primary);
+  color: #fff;
+  padding: 0.45rem 0.5rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.print-table td {
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--print-border);
+  text-align: center;
+  vertical-align: top;
+}
+
+.print-table tr:nth-child(even) td { background: var(--print-bg-soft); }
+
+.print-table .text-end { text-align: end; }
+
+.print-totals {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background: var(--print-bg-soft);
+  border-radius: 0.35rem;
+}
+
+.print-total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.print-total-row--final {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--print-primary);
+  border-top: 2px solid var(--print-primary);
+  margin-top: 0.35rem;
+  padding-top: 0.5rem;
+}
+
+.print-signatures {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--print-border);
+}
+
+.print-signature-box {
+  text-align: center;
+  width: 45%;
+}
+
+.print-signature-line {
+  border-bottom: 1px solid #334155;
+  height: 2.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.print-signature-label { font-size: 0.8rem; color: var(--print-muted); }
+
+.print-footer-tenant {
+  font-size: 8pt;
+  color: var(--print-muted);
+  text-align: center;
+  margin-top: 0.75rem;
+  max-width: 55%;
+  margin-inline: auto;
+}
+
+.print-legal {
+  text-align: center;
+  font-size: 8pt;
+  color: var(--print-muted);
+  margin-top: 0.5rem;
+}
+
+.print-platform-stamp {
+  position: fixed;
+  bottom: 8mm;
+  inset-inline-start: 8mm;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  font-size: 7pt;
+  color: var(--print-muted);
+  opacity: 0.9;
+  z-index: 1;
+  max-width: 45%;
+}
+
+.print-platform-stamp__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.print-platform-stamp__name { font-weight: 600; }
+
+/* Doc-type accents */
+.print-doc--prescription .print-doc-title::before {
+  content: '℞ ';
+  opacity: 0.85;
+}
+
+.print-doc--prescription .print-header-default,
+.print-doc--prescription .print-table th { border-color: var(--print-primary); }
+
+.print-doc--invoice .print-totals { border-inline-start: 4px solid var(--print-primary); }
+
+.print-doc--receipt .print-page { max-width: 190mm; }
+
+.print-doc--report .print-section--highlight {
+  background: #fff8f8;
+  border-color: #fecaca;
+}
+
+.badge-sev-low { background: #e2f0d9; color: #2e7d32; padding: 0.1rem 0.45rem; border-radius: 0.75rem; font-size: 0.75rem; }
+.badge-sev-mod { background: #fff3cd; color: #856404; padding: 0.1rem 0.45rem; border-radius: 0.75rem; font-size: 0.75rem; }
+.badge-sev-high { background: #f8d7da; color: #721c24; padding: 0.1rem 0.45rem; border-radius: 0.75rem; font-size: 0.75rem; }
+.badge-sev-critical { background: #dc3545; color: #fff; padding: 0.1rem 0.45rem; border-radius: 0.75rem; font-size: 0.75rem; }
+
+.ws-pre-line { white-space: pre-line; word-break: break-word; }
+
+@media print {
+  .no-print, .print-action-btn { display: none !important; }
+  body.print-doc { font-size: 10pt; }
+  .print-platform-stamp { position: fixed; }
+}

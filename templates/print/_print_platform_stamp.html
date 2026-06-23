@@ -1,0 +1,10 @@
+{# AZAD platform stamp — corner, every print doc (§34.10) #}
+{% if pc is defined and pc.show_platform_stamp %}
+<div class="print-platform-stamp" aria-hidden="true">
+  <img src="{{ url_for('static', filename='img/azad-stamp.svg') }}" alt="" width="40" height="40" class="print-platform-stamp__logo">
+  <div class="print-platform-stamp__text">
+    <span class="print-platform-stamp__name">{{ pc.platform_copyright_name }}</span>
+    <span class="print-platform-stamp__copyright">© {{ pc.copyright_year }} جميع الحقوق محفوظة</span>
+  </div>
+</div>
+{% endif %}

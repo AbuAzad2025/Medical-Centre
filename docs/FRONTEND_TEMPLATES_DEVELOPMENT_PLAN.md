@@ -1182,38 +1182,35 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 8)
+## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 9)
 
 | البند | الحالة |
 |-------|--------|
-| **مرحلة 7** Gate 7 | ✅ `/api/search/patients`, smart-search, Tom Select, validators |
-| Gate 7 متبقي | ⚠️ select2 للموظف/تحاليل في create_visit (ترحيل لاحق) |
-| **مرحلة 8** Gate 8 | ✅ stepper استقبال، context bar طبيب، portal BS5، `api-feedback.js`، `_status_badge` |
-| Gate 8 متبقي | ⚠️ §35 PosTerminalService؛ ~40 قالب status خام؛ partial macros أخرى (G-14) |
-| **دين 6b** | ⚠️ manager sidebar + `audit_nav_links` — لم يُغلق بعد |
+| **مرحلة 8** Gate 8 | ✅ MVP (انظر §11.1 السابق) |
+| **مرحلة 9** Gate 9 | ✅ `print_base` + 5 قوالب + `print.css` + ختم AZAD + معاينة branding |
+| Gate 9 متبقي | ⚠️ `sale_receipt` صيدلية؛ lab print unify؛ 80mm tickets |
+| **دين 6b** | ⚠️ manager sidebar + `audit_nav_links` |
 
-**الخطوة التالية:** **مرحلة 9** — طباعة (`print_base` + branding headers).
+**الخطوة التالية:** **مرحلة 10** — Command Center.
 
-### 11.1 مرحلة 8 — ما نُفّذ (2026-06-23)
+### 11.2 مرحلة 9 — ما نُفّذ (2026-06-23)
 
 | الملف | الإجراء |
 |-------|---------|
-| `templates/portal/base.html` | إعادة بناء BS5 RTL + FA 6.5 + `ui.*` + clinical stack + bottom nav |
-| `static/css/portal.css` | أنماط shell البوابة (G-18, G-73) |
-| `templates/partials/_form_stepper.html` + `static/js/form-stepper.js` | stepper 4 خطوات في `create_visit` (G-20) |
-| `templates/partials/_patient_context_bar.html` | شريط سياق مريض sticky في `patient_details` (G-21) |
-| `templates/partials/_status_badge.html` | ماكرو `status_badge` يغلف `enum_label` (G-14) |
-| `static/js/api-feedback.js` | `window.notify.*` بدل `alert()` — base + portal + doctor JS |
-| `static/css/components.css` | أنماط stepper + context bar |
+| `templates/print/print_base.html` | هيكل blocks موحّد §34.4 |
+| `static/css/print.css` | أنماط A4 + variants حسب `doc_type` |
+| `app/shared/print_context.py` | `resolve_print_context()` + ختم دائم |
+| `templates/print/_print_platform_stamp.html` | ختم AZAD زاوية + © |
+| `templates/print/{prescription,invoice,receipt,emergency_report,radiology_report}.html` | `extends print_base` — صفر inline CSS |
+| `app/shared/enums.py` | `PrintDocType` enum |
+| `templates/super_admin/branding_preview.html` | معاينة = ترويسة tenant + ختم AZAD |
 
-**Gate 8 (جزئي — MVP):**
-- [x] `create_visit` stepper 4 خطوات (مريض → قسم → زيارة → دفع)
-- [x] `patient_details` — `_patient_context_bar` + حساسية
-- [x] `portal/base.html` — BS5 + branding + SweetAlert + api-feedback
-- [x] `notify` في `dental_chart.js` / `notes.js`
-- [ ] §35.8 دفع POS كامل
-- [ ] تعميم `_status_badge` على باقي القوالب
-- [ ] تفعيل باقي ماكروهات G-14 (`_workflow_next_actions`, …)
+**Gate 9 (جزئي — MVP):**
+- [x] روشتة/فاتورة/إيصال/تقارير على `print_base`
+- [x] ترويسة tenant ديناميكية (`_print_header_slot`)
+- [x] ختم AZAD في كل المطبوعات
+- [ ] `sale_receipt` pharmacy على print_base (G-114)
+- [ ] توحيد lab standalone prints
 
 ---
 
@@ -4199,29 +4196,22 @@ flowchart TD
 
 ---
 
-#### مرحلة 9 — طباعة (5 قوالب standalone اليوم)
+#### مرحلة 9 — طباعة ✅ (MVP 2026-06-23)
 
 | | |
 |--|--|
-| **الوضع الحالي** | `print/{prescription,receipt,invoice,emergency_report,radiology_report}.html` — كلها standalone |
-| **النواقص** | G-67–G-74, G-107–G-114, G-149–G-155 |
-| **يعتمد على** | Gate 5 (حقول branding) |
+| **الوضع** | ✅ 5 قوالب على `print_base` + `print.css` |
+| **متبقي** | G-114 sale_receipt؛ lab standalone unify |
 
-| الملف | الإجراء |
-|-------|---------|
-| `print/print_base.html` | هيكل blocks §34.4 |
-| `print/prescription.html` | إعادة كتابة — Rx طبي |
-| `print/invoice.html`, `receipt.html` | extends base |
-| `print.css` | variants لكل `PrintDocType` |
-| `print_context.py` | `resolve_print_header(doc_type)` |
+| الملف | الحالة |
+|-------|--------|
+| `print/print_base.html` | ✅ |
+| `print/prescription.html` | ✅ إعادة كتابة Rx |
+| `print/invoice.html`, `receipt.html` | ✅ extends base |
+| `print.css` + `print_context.py` | ✅ |
+| `_print_platform_stamp.html` | ✅ |
 
-**Gate 9 — §33 v1.9 + §34.10:**
-- [ ] روشتة A4: صفر inline CSS؛ ترويسة tenant
-- [ ] فاتورة + إيصال: `extends print_base`
-- [ ] **كل** المطبوعات: ختم AZAD زاوية + © (فاتورة، إيصال، روشتة، تقرير، تذكرة)
-- [ ] ترويسة كل مطبوعة = tenant فقط (لا شعار AZAD في الأعلى)
-- [ ] tenant بدون `lab` → لا زر طباعة مختبر
-- [ ] معاينة استوديو branding = نفس مخرج الطباعة (مع الختم)
+**Gate 9:** §33 v1.9 + §34.10 — **جزئي** (انظر §11.2)
 
 ---
 

@@ -176,6 +176,13 @@ def create_app(config_name: str | None = None) -> Flask:
     from app.shared.enum_labels import enum_label
     app.jinja_env.filters['enum_label'] = enum_label
 
+    from app.shared.print_context import resolve_print_context
+    from app.shared.branding_context import get_branding_row
+
+    @app.template_global('get_print_context')
+    def get_print_context(doc_type='report'):
+        return resolve_print_context(doc_type, get_branding_row())
+
     @app.after_request
     def _compress_json_response(response):
         try:
