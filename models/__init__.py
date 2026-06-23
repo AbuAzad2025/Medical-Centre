@@ -83,6 +83,7 @@ from .biometric_auth import BiometricCredential, BiometricAuthChallenge
 from .data_warehouse import DataWarehouseSync, DailyVisitSummary, MonthlyFinanceSummary
 from .what_if_scenario import WhatIfScenario
 from .exchange_rate import ExchangeRate, CurrencySettings
+from .specialty_form import SpecialtyForm, SpecialtyFormVersion, SpecialtyFormField, SpecialtyFormSubmission
 
 __all__ = [
     "Department", "User", "StaffWorkSchedule", "StaffAbsence",
@@ -149,4 +150,5 @@ __all__ = [
     "DataWarehouseSync", "DailyVisitSummary", "MonthlyFinanceSummary",
     "WhatIfScenario",
     "ExchangeRate", "CurrencySettings",
+    "SpecialtyForm", "SpecialtyFormVersion", "SpecialtyFormField", "SpecialtyFormSubmission",
 ]

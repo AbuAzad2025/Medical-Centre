@@ -254,6 +254,7 @@ def create_app(config_name: str | None = None) -> Flask:
             import models.lab_reagent
             import models.lab_test_catalog
             import models.exchange_rate
+            import models.specialty_form
         except Exception as e:
             app.logger.warning(f"Model import registration skipped: {e}")
 
@@ -507,6 +508,7 @@ def create_app(config_name: str | None = None) -> Flask:
     from routes.quality_compliance import quality_bp
     from routes.reception_currency import reception_currency_bp
     from routes.inbox import inbox_bp
+    from routes.specialty_forms import specialty_forms_bp
 
     # Module guards — must be added BEFORE register_blueprint, and only ONCE
     def _guard_factory(module_name):
@@ -599,6 +601,7 @@ def create_app(config_name: str | None = None) -> Flask:
     _add_guard_once(bed_bp, "nursing")
     _add_guard_once(or_bp, "nursing")
     _add_guard_once(nursing_assessment_bp, "nursing")
+    _add_guard_once(specialty_forms_bp, "doctor")
     _add_guard_once(sso_bp, "integration")
     _add_guard_once(reception_currency_bp, "reception")
     _add_guard_once(fhir_bp, "integration")
@@ -637,6 +640,7 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(security_bp, url_prefix='/security')
     app.register_blueprint(mfa_bp, url_prefix='/mfa')
     app.register_blueprint(nursing_assessment_bp, url_prefix='/nursing-assessment')
+    app.register_blueprint(specialty_forms_bp)
     app.register_blueprint(patient_education_bp, url_prefix='/patient-education')
     app.register_blueprint(backup_restore_bp, url_prefix='/backup-restore')
     app.register_blueprint(telemedicine_bp, url_prefix='/telemedicine')

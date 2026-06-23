@@ -1,0 +1,91 @@
+{% extends "dashboard_base.html" %}
+{% block title %}تعديل — {{ form.name }}{% endblock %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h4 class="mb-0"><i class="fas fa-edit me-2 text-primary"></i>تعديل: {{ form.name }}</h4>
+            <small class="text-muted">نسخة {{ version.version_number }} — <span class="badge bg-warning text-dark">مسودة</span></small>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('specialty_forms.view_form', form_id=form.id) }}" class="btn btn-outline-primary btn-sm">عرض</a>
+            <a href="{{ url_for('specialty_forms.list_forms') }}" class="btn btn-outline-secondary btn-sm">القائمة</a>
+        </div>
+    </div>
+</div>
+<form method="post" id="form-builder">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="name">اسم النموذج</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ form.name }}" required aria-label="اسم النموذج">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">المعرّف</label>
+                    <input type="text" class="form-control" value="{{ form.slug }}" disabled aria-label="معرّف النموذج">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="specialty">التخصص</label>
+                    <input type="text" class="form-control" id="specialty" name="specialty" value="{{ form.specialty or '' }}" aria-label="التخصص">
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="description">الوصف</label>
+                    <textarea class="form-control" id="description" name="description" rows="2" aria-label="وصف النموذج">{{ form.description or '' }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% set fields = version.fields if version.fields else [none] %}
+    {% include 'specialty_forms/_field_builder.html' %}
+    <div class="d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>حفظ المسودة</button>
+        <a href="{{ url_for('specialty_forms.list_forms') }}" class="btn btn-outline-secondary">إلغاء</a>
+    </div>
+</form>
+{% if version.fields %}
+<form method="post" action="{{ url_for('specialty_forms.publish_version', form_id=form.id, version_id=version.id) }}" class="mt-2" onsubmit="return confirm('نشر هذه النسخة؟ لن يمكن تعديلها بعد النشر.');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-success"><i class="fas fa-upload me-1"></i>نشر النسخة v{{ version.version_number }}</button>
+</form>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+    var body = document.getElementById('fields-body');
+    function toggleOptions(row) {
+        var type = row.querySelector('.field-type').value;
+        var opts = row.querySelector('.field-options');
+        var show = type === 'select' || type === 'checkbox';
+        opts.disabled = !show;
+        opts.closest('td').style.opacity = show ? '1' : '0.45';
+    }
+    function bindRow(row) {
+        row.querySelector('.field-type').addEventListener('change', function () { toggleOptions(row); });
+        row.querySelector('.remove-field-btn').addEventListener('click', function () {
+            if (body.querySelectorAll('.field-row').length > 1) row.remove();
+            reindexOrders();
+        });
+        toggleOptions(row);
+    }
+    function reindexOrders() {
+        body.querySelectorAll('.field-row').forEach(function (row, i) {
+            row.querySelector('.field-order').value = i;
+        });
+    }
+    document.getElementById('add-field-btn').addEventListener('click', function () {
+        var tpl = body.querySelector('.field-row');
+        var clone = tpl.cloneNode(true);
+        clone.querySelectorAll('input[type="text"], textarea').forEach(function (el) { el.value = ''; });
+        clone.querySelector('.field-type').selectedIndex = 0;
+        clone.querySelector('select[name="field_required[]"]').value = '0';
+        body.appendChild(clone);
+        bindRow(clone);
+        reindexOrders();
+    });
+    body.querySelectorAll('.field-row').forEach(bindRow);
+})();
+</script>
+{% endblock %}

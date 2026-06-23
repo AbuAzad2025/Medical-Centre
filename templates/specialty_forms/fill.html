@@ -1,0 +1,71 @@
+{% extends "dashboard_base.html" %}
+{% block title %}تعبئة — {{ form.name }}{% endblock %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="fas fa-pen me-2 text-primary"></i>تعبئة: {{ form.name }}</h4>
+        <a href="{{ url_for('specialty_forms.view_form', form_id=form.id) }}" class="btn btn-outline-secondary btn-sm">عرض النموذج</a>
+    </div>
+</div>
+<form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="patient_id">المريض <span class="text-danger">*</span></label>
+                    <select class="form-select" id="patient_id" name="patient_id" required aria-label="اختيار المريض">
+                        <option value="">— اختر مريضاً —</option>
+                        {% for p in patients %}
+                        <option value="{{ p.id }}">{{ p.first_name }} {{ p.last_name }}{% if p.national_id %} ({{ p.national_id }}){% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="visit_id">الزيارة (اختياري)</label>
+                    <input type="number" class="form-control" id="visit_id" name="visit_id" min="1" placeholder="رقم الزيارة" aria-label="رقم الزيارة">
+                </div>
+            </div>
+            <hr>
+            <h6 class="mb-3">الحقول — نسخة {{ version.version_number }}</h6>
+            {% for field in version.fields %}
+            <div class="mb-3">
+                <label class="form-label" for="field_{{ field.name }}">
+                    {{ field.label }}{% if field.required %} <span class="text-danger">*</span>{% endif %}
+                </label>
+                {% if field.field_type == 'textarea' %}
+                <textarea class="form-control" id="field_{{ field.name }}" name="field_{{ field.name }}" rows="3" {% if field.required %}required{% endif %} aria-label="{{ field.label }}">{{ field.default_value or '' }}</textarea>
+                {% elif field.field_type == 'select' %}
+                <select class="form-select" id="field_{{ field.name }}" name="field_{{ field.name }}" {% if field.required %}required{% endif %} aria-label="{{ field.label }}">
+                    <option value="">— اختر —</option>
+                    {% for opt in field.options or [] %}
+                    <option value="{{ opt }}" {% if field.default_value == opt %}selected{% endif %}>{{ opt }}</option>
+                    {% endfor %}
+                </select>
+                {% elif field.field_type == 'checkbox' %}
+                <div>
+                    {% for opt in field.options or [] %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="field_{{ field.name }}" id="field_{{ field.name }}_{{ loop.index }}" value="{{ opt }}" aria-label="{{ opt }}">
+                        <label class="form-check-label" for="field_{{ field.name }}_{{ loop.index }}">{{ opt }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% elif field.field_type == 'number' %}
+                <input type="number" class="form-control" id="field_{{ field.name }}" name="field_{{ field.name }}" value="{{ field.default_value or '' }}" {% if field.required %}required{% endif %} aria-label="{{ field.label }}">
+                {% elif field.field_type == 'date' %}
+                <input type="date" class="form-control" id="field_{{ field.name }}" name="field_{{ field.name }}" value="{{ field.default_value or '' }}" {% if field.required %}required{% endif %} aria-label="{{ field.label }}">
+                {% else %}
+                <input type="text" class="form-control" id="field_{{ field.name }}" name="field_{{ field.name }}" value="{{ field.default_value or '' }}" {% if field.required %}required{% endif %} aria-label="{{ field.label }}">
+                {% endif %}
+            </div>
+            {% else %}
+            <p class="text-muted">لا توجد حقول في هذه النسخة.</p>
+            {% endfor %}
+        </div>
+    </div>
+  {% if version.fields %}
+    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>حفظ الإجابات</button>
+  {% endif %}
+</form>
+{% endblock %}
