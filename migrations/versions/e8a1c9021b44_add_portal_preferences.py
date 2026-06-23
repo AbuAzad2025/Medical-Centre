@@ -8,6 +8,8 @@ Create Date: 2026-06-23
 from alembic import op
 import sqlalchemy as sa
 
+from migration_utils import column_exists
+
 
 revision = 'e8a1c9021b44'
 down_revision = 'dfdad7fc3407'
@@ -16,6 +18,8 @@ depends_on = None
 
 
 def upgrade():
+    if column_exists('patient_accounts', 'portal_preferences'):
+        return
     with op.batch_alter_table('patient_accounts', schema=None) as batch_op:
         batch_op.add_column(sa.Column('portal_preferences', sa.JSON(), nullable=True))
 

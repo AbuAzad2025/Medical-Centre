@@ -8,15 +8,20 @@ Create Date: 2026-06-23
 from alembic import op
 import sqlalchemy as sa
 
+from migration_utils import table_exists
+
 
 # revision identifiers, used by Alembic.
 revision = 'dfdad7fc3407'
-down_revision = 'f0ca021c3e4f'
+down_revision = 's0_005'
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
+    if table_exists('specialty_forms'):
+        return
+
     op.create_table('specialty_forms',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('tenant_id', sa.Integer(), nullable=True),

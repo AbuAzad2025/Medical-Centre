@@ -7,8 +7,9 @@ Create Date: 2026-06-22
 from alembic import op
 import sqlalchemy as sa
 
+from migration_utils import table_exists, index_exists
 
-# revision identifiers, used by Alembic.
+
 revision = 'p3_006_refund_request'
 down_revision = 'p3_004_receipt_relationship_repair'
 branch_labels = None
@@ -16,6 +17,9 @@ depends_on = None
 
 
 def upgrade() -> None:
+    if table_exists('refund_requests'):
+        return
+
     op.create_table(
         'refund_requests',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -49,7 +53,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index('ix_refund_requests_tenant_id', table_name='refund_requests')
-    op.drop_index('ix_refund_requests_status', table_name='refund_requests')
-    op.drop_index('ix_refund_requests_payment_id', table_name='refund_requests')
+    if not table_exists('refund_requests'):
+        return
+    for idx in ('ix_refund_requests_tenant_id', 'ix_refund_requests_status', 'ix_refund_requests_payment_id'):
+        if index_exists('refund_requests', idx):
+            op.drop_index(idx, table_name='refund_requests')
     op.drop_table('refund_requests')
