@@ -30,6 +30,8 @@ class ClinicalContextService:
         lab_reqs = LabRequest.query.filter_by(visit_id=visit_id).all()
         rad_reqs = RadiologyRequest.query.filter_by(visit_id=visit_id).all()
         prescriptions = Prescription.query.filter_by(visit_id=visit_id).all()
+        from models.icd_coding import CodedDiagnosis
+        diagnoses = CodedDiagnosis.query.filter_by(visit_id=visit_id).all()
 
         return {
             "visit": visit.to_dict() if hasattr(visit, 'to_dict') else {"id": visit.id, "status": visit.status},
@@ -37,7 +39,14 @@ class ClinicalContextService:
             "vitals": [{"bp": f"{v.blood_pressure_systolic}/{v.blood_pressure_diastolic}", "hr": v.heart_rate, "temp": v.temperature,
                         "rr": v.respiratory_rate, "spo2": v.oxygen_saturation, "recorded_at": str(v.recorded_at)} for v in vitals],
             "allergies": [{"medication": a.allergen, "severity": a.severity} for a in allergies],
-            "diagnoses": [{"code": d.icd_code, "name": d.diagnosis_name, "type": d.diagnosis_type} for d in diagnoses],
+            "diagnoses": [
+                {
+                    "code": d.icd_code.code if d.icd_code else "",
+                    "name": d.icd_code.description if d.icd_code else "",
+                    "type": d.diagnosis_type,
+                }
+                for d in diagnoses
+            ],
             "lab_requests": [{"id": r.id, "test": r.test_name, "status": r.status} for r in lab_reqs],
             "radiology_requests": [{"id": r.id, "test": r.test_name, "status": r.status} for r in rad_reqs],
             "prescriptions": [{"id": p.id, "status": p.status} for p in prescriptions],

@@ -1196,6 +1196,7 @@ document.body.classList.toggle('sidebar-open');
 | **مرحلة 6b** Gate 6b | ✅ manager sidebar (23 رابط) + audit + إصلاحات routes |
 | Gate 11 متبقي | ⚠️ تخصيص widgets؛ density/radius UI |
 | **دين 6b** | ✅ *(2026-06-23)* — انظر §11.9 |
+| **CI GitHub** | ✅ workflow موحّد — syntax lint + pytest + migrations |
 
 **Git HEAD:** `c5f9a36` → يُحدَّث بعد دفع مرحلة 14  
 **هجرة DB:** `p11_001_user_preferences`
