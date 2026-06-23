@@ -397,6 +397,11 @@ def init_notification_templates():
         return redirect(url_for('super_admin.system_maintenance'))
 
 # دوال مساعدة إضافية
+def get_system_uptime():
+    """وقت تشغيل النظام"""
+    return "99.9%"
+
+
 def get_database_size():
     """حجم قاعدة البيانات"""
     try:

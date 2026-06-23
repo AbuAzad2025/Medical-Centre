@@ -1,15 +1,10 @@
 {% extends "base.html" %}
+{% from 'partials/_page_header.html' import page_header %}
 
 {% block title %}إدارة الصلاحيات - السوبر أدمن{% endblock %}
 
 {% block content %}
-<div class="page-header fade-in-up">
-    <h1 class="page-title">
-        <i class="fas fa-key"></i>
-        إدارة الصلاحيات
-    </h1>
-    <p class="page-subtitle">إدارة صلاحيات النظام والأدوار</p>
-</div>
+{{ page_header(title='إدارة الصلاحيات', subtitle='إدارة صلاحيات النظام والأدوار', icon='fas fa-key') }}
 
 <div class="card fade-in-up">
     <div class="card-header">

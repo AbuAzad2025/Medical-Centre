@@ -13,6 +13,7 @@ from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
 from models.file_management import FileUpload
 from models.system_config import SystemConfig
+from app.shared.enums import OrderState, RadiologyResultStatus
 from app_factory import db
 import logging, json, os, base64, secrets
 from datetime import datetime, date, timezone, timedelta
@@ -67,7 +68,7 @@ def quality():
         RadiologyRequest.status == OrderState.DONE,
         RadiologyRequest.updated_at >= start_dt,
         RadiologyRequest.updated_at <= end_dt,
-        RadiologyResult.status == LabResultStatus.VALIDATED
+        RadiologyResult.status == RadiologyResultStatus.VALIDATED
     ).scalar() or 0
 
     critical_validated_results = db.session.query(db.func.count(RadiologyResult.id)).join(
@@ -76,7 +77,7 @@ def quality():
         RadiologyRequest.status == OrderState.DONE,
         RadiologyRequest.updated_at >= start_dt,
         RadiologyRequest.updated_at <= end_dt,
-        RadiologyResult.status == LabResultStatus.VALIDATED,
+        RadiologyResult.status == RadiologyResultStatus.VALIDATED,
         RadiologyResult.is_critical == True
     ).scalar() or 0
 
