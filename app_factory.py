@@ -173,6 +173,9 @@ def create_app(config_name: str | None = None) -> Flask:
             return f"{amount} {currency or app.config.get('DEFAULT_CURRENCY', 'ILS')}"
     app.jinja_env.filters['format_money'] = _fmt_money
 
+    from app.shared.enum_labels import enum_label
+    app.jinja_env.filters['enum_label'] = enum_label
+
     @app.after_request
     def _compress_json_response(response):
         try:
@@ -405,46 +408,24 @@ def create_app(config_name: str | None = None) -> Flask:
     @app.context_processor
     def inject_branding():
         try:
-            from models.branding import BrandingSettings
-            from models.system_config import SystemConfig
             import time
-            cache = getattr(app, '_branding_cache', None)
+            from flask import g
+            from app.shared.branding_context import build_branding_payload
+
+            tenant = getattr(g, 'current_tenant', None)
+            cache_key = f'tenant:{tenant.id}' if tenant and getattr(tenant, 'id', None) else 'platform'
+            caches = getattr(app, '_branding_cache_v2', None)
+            if caches is None:
+                caches = {}
+                app._branding_cache_v2 = caches
             now = time.time()
-            if not cache or (now - cache.get('ts', 0) > 60):
-                branding = BrandingSettings.get_active_settings()
-                dev_company = None; dev_name = None; dev_logo = None
-                dev_mobile = None; dev_location = None
-                if _sa_inspect(db.engine).has_table("system_configs"):
-                    dc = SystemConfig.query.filter_by(config_key="developer_company").first()
-                    dn = SystemConfig.query.filter_by(config_key="developer_name").first()
-                    dl = SystemConfig.query.filter_by(config_key="developer_logo_url").first()
-                    dm = SystemConfig.query.filter_by(config_key="developer_mobile").first()
-                    dloc = SystemConfig.query.filter_by(config_key="developer_location").first()
-                    dev_company = dc.get_value() if dc else None
-                    dev_name = dn.get_value() if dn else None
-                    dev_logo = dl.get_value() if dl else None
-                    dev_mobile = dm.get_value() if dm else None
-                    dev_location = dloc.get_value() if dloc else None
-                if not dev_company:
-                    dev_company = "شركة آزاد للأنظمة الذكية"
-                if not dev_name:
-                    dev_name = "المهندس أحمد غنام"
-                if not dev_mobile:
-                    dev_mobile = "+ --------"
-                if not dev_location:
-                    dev_location = "رام الله - فلسطين"
-                app._branding_cache = {
+            entry = caches.get(cache_key)
+            if not entry or (now - entry.get('ts', 0) > 60):
+                caches[cache_key] = {
                     'ts': now,
-                    'data': dict(
-                        branding=branding,
-                        developer_company=dev_company,
-                        developer_name=dev_name,
-                        developer_logo_url=dev_logo,
-                        developer_mobile=dev_mobile,
-                        developer_location=dev_location
-                    )
+                    'data': build_branding_payload(db, db.engine),
                 }
-            return app._branding_cache['data']
+            return caches[cache_key]['data']
         except Exception:
             return {}
 
@@ -755,9 +736,18 @@ def create_app(config_name: str | None = None) -> Flask:
     def inject_enum_helpers():
         """Provide enum label/color lookups from app/shared/enums.py to all templates."""
         try:
-            from app.shared.enums import get_enum_values
+            from app.shared.enums import get_enum_values, get_all_enums_json
+            import time
+            cache = getattr(app, '_enums_json_cache', None)
+            now = time.time()
+            if not cache or (now - cache.get('ts', 0) > 300):
+                app._enums_json_cache = {
+                    'ts': now,
+                    'data': get_all_enums_json(),
+                }
             return {
                 'enum_values': get_enum_values,
+                'enums_json': app._enums_json_cache['data'],
             }
         except Exception:
             return {}
