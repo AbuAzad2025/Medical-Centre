@@ -59,6 +59,13 @@ def user_management():
     if current_user.role not in ['manager', 'admin']:
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
+    try:
+        users = User.query.filter(User.role != 'super_admin').all()
+        return render_template('manager/user_management.html', users=users)
+    except Exception as e:
+        logging.error(f"Error in user management: {str(e)}")
+        flash('حدث خطأ في تحميل إدارة المستخدمين', 'error')
+        return redirect(url_for('manager.dashboard'))
 
 @manager_bp.route('/staff/schedule', methods=['GET', 'POST'])
 @login_required
@@ -258,5 +265,10 @@ def staff():
     if current_user.role not in ['manager', 'admin']:
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
-    
-    return render_template('manager/user_management.html')
+    try:
+        users = User.query.filter(User.role != 'super_admin').all()
+        return render_template('manager/user_management.html', users=users)
+    except Exception as e:
+        logging.error(f"Error in staff management: {str(e)}")
+        flash('حدث خطأ في تحميل الموظفين', 'error')
+        return redirect(url_for('manager.dashboard'))

@@ -36,7 +36,7 @@ _ROLE_MOBILE_NAV = {
     ],
     'manager': [
         ('manager.dashboard', 'fa-home', 'الرئيسية'),
-        ('manager.monitoring', 'fa-chart-line', 'المراقبة'),
+        ('manager.analytics', 'fa-chart-line', 'المراقبة'),
         ('reception.queue_management', 'fa-list-ol', 'الطابور'),
         ('reception.appointments', 'fa-calendar', 'مواعيد'),
     ],

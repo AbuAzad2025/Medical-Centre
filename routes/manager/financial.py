@@ -11,6 +11,7 @@ from models.visit import Visit
 from models.user import User, StaffWorkSchedule, StaffAbsence
 from models.department import Department
 from models.payment import Payment
+from app.shared.enums import PaymentStatus
 from models.invoice import Invoice
 from models.appointment import Appointment
 from models.lab_request import LabRequest
@@ -246,16 +247,6 @@ def settlements_export():
     except Exception as e:
         logging.error(f"Error exporting settlements: {str(e)}")
         flash('حدث خطأ في تصدير التسويات', 'error')
-        return redirect(url_for('manager.dashboard'))
-    
-    try:
-        # جلب المستخدمين (باستثناء السوبر أدمن)
-        users = User.query.filter(User.role != 'super_admin').all()
-        
-        return render_template('manager/user_management.html', users=users)
-    except Exception as e:
-        logging.error(f"Error in user management: {str(e)}")
-        flash('حدث خطأ في تحميل إدارة المستخدمين', 'error')
         return redirect(url_for('manager.dashboard'))
 
 @manager_bp.route('/financial-reports')
