@@ -8,6 +8,8 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 {% endblock %}
 
+{% from 'partials/_form_stepper.html' import form_stepper %}
+
 {% block content %}
 <div class="container-fluid">
     <!-- Header -->
@@ -65,7 +67,15 @@
                     </div>
                     <form id="visitForm" method="POST" action="{{ url_for('reception.create_visit') }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        
+
+                        {{ form_stepper([
+                            ('المريض', 'fa-user'),
+                            ('القسم والطبيب', 'fa-hospital'),
+                            ('الزيارة والفحوصات', 'fa-clipboard-list'),
+                            ('الدفع', 'fa-credit-card'),
+                        ]) }}
+
+                        <div class="form-step-panel" data-step="0">
                         <!-- البحث الذكي عن المريض -->
                         <div class="row mb-4">
                             <div class="col-12">
@@ -110,6 +120,10 @@
                             </div>
                         </div>
 
+                        </div>
+                        </div>{# end step 0 #}
+
+                        <div class="form-step-panel d-none" data-step="1" hidden>
                         {% if current_user.is_authenticated and current_user.role in ['reception','manager'] %}
                         <div class="row mb-4">
                             <div class="col-md-6">
@@ -134,7 +148,9 @@
                             </div>
                         </div>
                         {% endif %}
+                        </div>{# end step 1 #}
 
+                        <div class="form-step-panel d-none" data-step="2" hidden>
                         <div class="row mb-4" id="test_selection_section" class="d-none">
                             <div class="col-md-8">
                                 <div class="mb-3">
@@ -230,7 +246,10 @@
                             </div>
                         </div>
 
+                        </div>{# end step 2 #}
+
                         <!-- طرق الدفع -->
+                        <div class="form-step-panel d-none" data-step="3" hidden>
                         <div class="row mb-4">
                             <div class="col-12">
                                 <div class="card">
@@ -375,7 +394,7 @@
                                 </div>
                             </div>
                         </div>
-
+                        </div>{# end step 3 #}
 
                         <!-- أزرار العمل -->
                         <div class="row mt-4">
@@ -518,6 +537,7 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="{{ url_for('static', filename='js/smart-search.js') }}"></script>
 <script src="{{ url_for('static', filename='js/smart-select.js') }}"></script>
+<script src="{{ url_for('static', filename='js/form-stepper.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pages/reception/create_visit.js') }}"></script>
 {% endblock %}
 
