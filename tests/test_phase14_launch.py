@@ -169,6 +169,16 @@ class TestSection8LaunchChecks:
         hero = (ROOT / 'templates' / 'dashboards' / '_hero.html').read_text(encoding='utf-8')
         assert 'animate-in' in hero
 
+    def test_no_template_references_deleted_adminlte_vendor(self):
+        """static/adminlte/ was deleted; sweetalert2 now lives under vendor/."""
+        assert not (ROOT / 'static' / 'adminlte').exists()
+        assert (ROOT / 'static' / 'vendor' / 'sweetalert2' / 'sweetalert2.all.min.js').exists()
+        offenders = []
+        for html in (ROOT / 'templates').rglob('*.html'):
+            if 'adminlte' in html.read_text(encoding='utf-8', errors='ignore'):
+                offenders.append(str(html.relative_to(ROOT)))
+        assert not offenders, f'templates still reference adminlte: {offenders}'
+
     def test_bs4_compat_layer_in_clinical_css(self):
         css = (ROOT / 'static' / 'css' / 'clinical.css').read_text(encoding='utf-8')
         assert '.font-weight-bold' in css
