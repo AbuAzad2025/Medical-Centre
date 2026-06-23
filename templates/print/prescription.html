@@ -6,6 +6,7 @@
 {% block doc_heading %}روشتة طبية{% endblock %}
 
 {% block doc_meta %}
+<span class="print-doc-meta__item"><strong>المنشأة:</strong> {{ branding.organization_name if branding and branding.organization_name else (ui.organization_name if ui else '—') }}</span>
 <span class="print-doc-meta__item"><strong>رقم الروشتة:</strong> {{ prescription.prescription_number or prescription.id }}</span>
 <span class="print-doc-meta__item"><strong>التاريخ:</strong> {{ prescription.created_at.strftime('%Y-%m-%d %H:%M') if prescription.created_at else '—' }}</span>
 <span class="print-doc-meta__item"><strong>الحالة:</strong> {{ prescription.status | enum_label('PrescriptionState') if prescription.status else '—' }}</span>

@@ -24,7 +24,9 @@
             <tfoot><tr class="fw-bold"><td colspan="3">الإجمالي</td><td>{{ '%.2f'|format(sale.total_amount|float) }} ₪</td></tr></tfoot>
         </table>
         <div class="mt-4">
-            <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print ms-1"></i>طباعة</button>
+            <a href="{{ url_for('medication.print_sale_receipt', sale_id=sale.id) }}" class="btn btn-primary" target="_blank" rel="noopener">
+                <i class="fas fa-print ms-1"></i>طباعة الإيصال
+            </a>
             <a href="{{ url_for('medication.pos') }}" class="btn btn-success"><i class="fas fa-cash-register ms-1"></i>بيع جديد</a>
             <a href="{{ url_for('medication.sales_history') }}" class="btn btn-outline-secondary"><i class="fas fa-list ms-1"></i>المبيعات</a>
         </div>
