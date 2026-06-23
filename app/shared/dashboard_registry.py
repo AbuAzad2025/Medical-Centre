@@ -186,8 +186,8 @@ ROLE_QUICK_ACTIONS: dict[str, list[tuple[str, str, str]]] = {
         ('emergency.triage', 'fa-heart-pulse', 'الفرز'),
     ],
     'manager': [
-        ('manager.monitoring', 'fa-chart-line', 'المراقبة'),
-        ('manager.analytics', 'fa-chart-pie', 'التحليلات'),
+        ('manager.analytics', 'fa-chart-line', 'المراقبة'),
+        ('manager.reports_center', 'fa-chart-bar', 'التقارير'),
     ],
 }
 
