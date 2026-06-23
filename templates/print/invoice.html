@@ -1,299 +1,72 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فاتورة - {{ invoice.visit.patient.full_name if invoice.visit and invoice.visit.patient else 'غير محدد' }}</title>
-    <style>
-@page {
-            size: A4;
-            margin: 1cm;
-        }
-        body {
-            font-family: 'Arial', sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-        .header {
-            text-align: center;
-            border-bottom: 3px solid #28a745;
-            padding-bottom: 20px;
-            margin-bottom: 25px;
-        }
-        .header h1 {
-            color: #28a745;
-            margin: 0;
-            font-size: 28px;
-        }
-        .header h2 {
-            color: #666;
-            margin: 8px 0;
-            font-size: 20px;
-        }
-        .invoice-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 25px;
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-        }
-        .invoice-info .info-section {
-            flex: 1;
-            margin: 0 15px;
-        }
-        .invoice-info h3 {
-            color: #28a745;
-            margin: 0 0 12px 0;
-            font-size: 16px;
-            border-bottom: 2px solid #28a745;
-            padding-bottom: 8px;
-        }
-        .invoice-info p {
-            margin: 6px 0;
-            font-size: 12px;
-        }
-        .patient-info {
-            background: #e8f5e8;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-        }
-        .patient-info h3 {
-            color: #155724;
-            margin: 0 0 15px 0;
-            font-size: 18px;
-        }
-        .patient-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        .patient-details .detail {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px dotted #28a745;
-        }
-        .services-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 25px;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .services-table th {
-            background: #28a745;
-            color: white;
-            padding: 12px;
-            text-align: center;
-            font-weight: bold;
-        }
-        .services-table td {
-            padding: 10px 12px;
-            text-align: center;
-            border-bottom: 1px solid #dee2e6;
-        }
-        .services-table tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-        .services-table tr:hover {
-            background: #e8f5e8;
-        }
-        .totals-section {
-            background: #f1f8e9;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-        }
-        .totals-section h3 {
-            color: #388e3c;
-            margin: 0 0 15px 0;
-            font-size: 18px;
-        }
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px dotted #388e3c;
-            font-size: 14px;
-        }
-        .total-row.final {
-            font-weight: bold;
-            font-size: 16px;
-            color: #28a745;
-            border-top: 2px solid #28a745;
-            margin-top: 10px;
-            padding-top: 15px;
-        }
-        .payment-info {
-            background: #fff3e0;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-        }
-        .payment-info h3 {
-            color: #f57c00;
-            margin: 0 0 15px 0;
-            font-size: 18px;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 3px solid #28a745;
-            color: #666;
-            font-size: 11px;
-        }
-        .print-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .print-button:hover {
-            background: #218838;
-        }
-        @media print {
-            .print-button {
-                display: none;
-            }
-            body {
-                font-size: 11px;
-            }
-        }
-</style>
-</head>
-<body>
-    <button class="print-button" data-action="print">طباعة الفاتورة</button>
-    
-    <div class="header">
-        {% if branding and branding.logo_url %}
-        <img src="{{ branding.logo_url }}" alt="Logo" class="max-h-80 mb-3">
-        {% endif %}
-        <h1>{{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}</h1>
-        <h2>فاتورة خدمات طبية</h2>
-    </div>
-    
-    <div class="invoice-info">
-        <div class="info-section">
-            <h3>معلومات الفاتورة</h3>
-            <p><strong>رقم الفاتورة:</strong> {{ invoice.invoice_number }}</p>
-            <p><strong>تاريخ الإصدار:</strong> {{ invoice.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
-            <p><strong>حالة الفاتورة:</strong> 
-                {% if invoice.status == 'PAID' %}
-                    <span class="text-success">مدفوعة</span>
-                {% elif invoice.status == 'ISSUED' %}
-                    <span class="text-warning">معلقة</span>
-                {% else %}
-                    <span class="text-danger">غير مدفوعة</span>
-                {% endif %}
-            </p>
-        </div>
-        
-        <div class="info-section">
-            <h3>معلومات المركز</h3>
-            <p><strong>المركز:</strong> المركز الصحي المتخصص</p>
-            <p><strong>العنوان:</strong> العنوان الكامل للمركز</p>
-            <p><strong>الهاتف:</strong> +970-XX-XXXXXXX</p>
-            <p><strong>البريد الإلكتروني:</strong> info@medical-center.com</p>
-        </div>
-    </div>
-    
-    <div class="patient-info">
-        <h3>معلومات المريض</h3>
-        <div class="patient-details">
-            <div class="detail">
-                <span><strong>الاسم:</strong></span>
-                <span>{{ invoice.visit.patient.full_name if invoice.visit and invoice.visit.patient else 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>رقم الهوية:</strong></span>
-                <span>{{ invoice.visit.patient.national_id if invoice.visit and invoice.visit.patient else 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>تاريخ الميلاد:</strong></span>
-                <span>{{ invoice.visit.patient.birth_date.strftime('%Y-%m-%d') if invoice.visit and invoice.visit.patient and invoice.visit.patient.birth_date else 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>الهاتف:</strong></span>
-                <span>{{ invoice.visit.patient.phone if invoice.visit and invoice.visit.patient else 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>العنوان:</strong></span>
-                <span>{{ invoice.visit.patient.address if invoice.visit and invoice.visit.patient else 'غير محدد' }}</span>
-            </div>
-        </div>
-    </div>
-    
-    <table class="services-table">
-        <thead>
-            <tr>
-                <th>الخدمة</th>
-                <th>الوصف</th>
-                <th>الكمية</th>
-                <th>السعر</th>
-                <th>المجموع</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for service in invoice.lines %}
-            <tr>
-                <td>{{ service.service_name }}</td>
-                <td>{{ service.notes or 'خدمة طبية' }}</td>
-                <td>{{ service.quantity }}</td>
-                <td>{{ "%.2f"|format(service.unit_price) }} {{ invoice.currency }}</td>
-                <td>{{ "%.2f"|format(service.total_price) }} {{ invoice.currency }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    
-    <div class="totals-section">
-        <h3>تفصيل المبالغ</h3>
-        <div class="total-row final">
-            <span>المجموع الكلي:</span>
-            <span>{{ "%.2f"|format(invoice.total_amount) }} {{ invoice.currency }}</span>
-        </div>
-    </div>
-    
-    <div class="payment-info">
-        <h3>معلومات الدفع</h3>
-        <div class="patient-details">
-            <div class="detail">
-                <span><strong>المبلغ المدفوع:</strong></span>
-                <span>{{ "%.2f"|format(invoice.paid_amount) }} {{ invoice.currency }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>المبلغ المتبقي:</strong></span>
-                <span>{{ "%.2f"|format(invoice.total_amount - invoice.paid_amount) }} {{ invoice.currency }}</span>
-            </div>
-        </div>
-    </div>
-    
-    <div class="footer">
-        <p><strong>شكراً لثقتكم في المركز الصحي المتخصص</strong></p>
-        <p>هذه الفاتورة صالحة للاستخدام القانوني</p>
-        <p>تاريخ الطباعة: {{ (invoice.updated_at or invoice.created_at).strftime('%Y-%m-%d %H:%M') if (invoice.updated_at or invoice.created_at) else '' }}</p>
-        <p>للاستفسارات: info@medical-center.com | +970-XX-XXXXXXX</p>
-        <hr class="my-2 border border-dark">
-        <p class="text-xs text-muted my-1">
-            <strong>تطوير:</strong> {{ developer_company or 'شركة أزاد للأنظمة الذكية' }} | 
-            <strong>مطور:</strong> {{ developer_name or 'أحمد غنام' }}
-        </p>
-    </div>
-    <script src="{{ url_for('static', filename='js/pages/print/invoice.js') }}"></script>
-</body>
-</html>
+{% extends 'print/print_base.html' %}
+{% set doc_type = 'invoice' %}
+
+{% block doc_title %}فاتورة — {{ invoice.visit.patient.full_name if invoice.visit and invoice.visit.patient else 'غير محدد' }}{% endblock %}
+{% block print_button_label %}طباعة الفاتورة{% endblock %}
+{% block doc_heading %}فاتورة خدمات طبية{% endblock %}
+
+{% block doc_meta %}
+<span class="print-doc-meta__item"><strong>رقم الفاتورة:</strong> {{ invoice.invoice_number }}</span>
+<span class="print-doc-meta__item"><strong>التاريخ:</strong> {{ invoice.created_at.strftime('%Y-%m-%d %H:%M') if invoice.created_at else '—' }}</span>
+<span class="print-doc-meta__item"><strong>الحالة:</strong> {{ (invoice.status or 'DRAFT') | enum_label('InvoiceStatus') }}</span>
+{% endblock %}
+
+{% block subject_strip %}
+<div class="print-subject-strip__grid">
+    <div class="print-subject-strip__item"><span>المريض</span><span>{{ invoice.visit.patient.full_name if invoice.visit and invoice.visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>الهوية</span><span>{{ invoice.visit.patient.national_id if invoice.visit and invoice.visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>الهاتف</span><span>{{ invoice.visit.patient.phone if invoice.visit and invoice.visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>العنوان</span><span>{{ invoice.visit.patient.address if invoice.visit and invoice.visit.patient else '—' }}</span></div>
+</div>
+{% endblock %}
+
+{% block body %}
+<table class="print-table">
+    <thead>
+        <tr>
+            <th>الخدمة</th>
+            <th>الوصف</th>
+            <th>الكمية</th>
+            <th>السعر</th>
+            <th>المجموع</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for service in invoice.lines %}
+        <tr>
+            <td class="text-end">{{ service.service_name }}</td>
+            <td class="text-end">{{ service.notes or 'خدمة طبية' }}</td>
+            <td>{{ service.quantity }}</td>
+            <td>{{ "%.2f"|format(service.unit_price) }} {{ invoice.currency }}</td>
+            <td>{{ "%.2f"|format(service.total_price) }} {{ invoice.currency }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">لا توجد بنود</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block totals %}
+<div class="print-total-row print-total-row--final">
+    <span>المجموع الكلي</span>
+    <span>{{ "%.2f"|format(invoice.total_amount) }} {{ invoice.currency }}</span>
+</div>
+<div class="print-total-row">
+    <span>المدفوع</span>
+    <span>{{ "%.2f"|format(invoice.paid_amount) }} {{ invoice.currency }}</span>
+</div>
+<div class="print-total-row">
+    <span>المتبقي</span>
+    <span>{{ "%.2f"|format(invoice.total_amount - invoice.paid_amount) }} {{ invoice.currency }}</span>
+</div>
+{% endblock %}
+
+{% block legal_footer %}
+<p><strong>شكراً لثقتكم في {{ branding.organization_name if branding else (ui.organization_name if ui else 'المركز') }}</strong></p>
+<p>هذه الفاتورة صالحة للاستخدام القانوني</p>
+{% endblock %}
+
+{% block extra_print_js %}
+<script src="{{ url_for('static', filename='js/pages/print/invoice.js') }}"></script>
+{% endblock %}

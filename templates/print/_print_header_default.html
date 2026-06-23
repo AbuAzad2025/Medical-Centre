@@ -1,24 +1,24 @@
 {# Default print header when tenant has no custom HTML (G-106 fallback) #}
-<div class="print-header-default" style="display:flex;align-items:center;gap:1rem;padding:0.75rem 0;border-bottom:3px solid {{ ui.primary_color if ui else '#0f4c81' }};font-family:'Cairo',sans-serif;">
+<div class="print-header-default">
     {% if ui and ui.logo_url %}
-    <img src="{{ ui.logo_url }}" alt="{{ branding.organization_name if branding else ui.organization_name }}" style="max-height:72px;max-width:120px;object-fit:contain;">
+    <img src="{{ ui.logo_url }}" alt="{{ branding.organization_name if branding else ui.organization_name }}" class="print-header-default__logo">
     {% endif %}
-    <div style="flex:1;text-align:center;">
-        <div style="font-size:1.35rem;font-weight:700;color:{{ ui.primary_color if ui else '#0f4c81' }};">
+    <div class="print-header-default__body">
+        <div class="print-header-default__title">
             {{ branding.organization_name if branding and branding.organization_name else (ui.organization_name if ui else 'المركز الصحي') }}
         </div>
         {% if branding and branding.organization_name_en %}
-        <div style="font-size:0.95rem;color:#64748b;">{{ branding.organization_name_en }}</div>
+        <div class="print-header-default__sub">{{ branding.organization_name_en }}</div>
         {% endif %}
         {% if branding and branding.organization_address %}
-        <div style="font-size:0.85rem;color:#475569;">{{ branding.organization_address }}</div>
+        <div class="print-header-default__meta">{{ branding.organization_address }}</div>
         {% endif %}
-        <div style="font-size:0.8rem;color:#64748b;">
+        <div class="print-header-default__meta">
             {% if branding and branding.organization_phone %}<span>هاتف: {{ branding.organization_phone }}</span>{% endif %}
             {% if branding and branding.organization_email %}<span> — {{ branding.organization_email }}</span>{% endif %}
         </div>
         {% if branding and (branding.tax_number or branding.license_number) %}
-        <div style="font-size:0.75rem;color:#64748b;margin-top:0.25rem;">
+        <div class="print-header-default__ids">
             {% if branding.tax_number %}رقم ضريبي: {{ branding.tax_number }}{% endif %}
             {% if branding.license_number %}{% if branding.tax_number %} | {% endif %}ترخيص: {{ branding.license_number }}{% endif %}
         </div>

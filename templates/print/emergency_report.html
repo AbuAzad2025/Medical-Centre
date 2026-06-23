@@ -1,106 +1,62 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقرير الطوارئ - {{ emergency.patient.full_name if emergency.patient else 'غير محدد' }}</title>
-    <style>
-@page { size: A4; margin: 1cm; }
-        body { font-family: 'Arial', sans-serif; font-size: 12px; line-height: 1.5; color: #333; margin: 0; padding: 0; }
-        .header { text-align: center; border-bottom: 3px solid #dc3545; padding-bottom: 20px; margin-bottom: 25px; }
-        .header h1 { color: #dc3545; margin: 0; font-size: 28px; }
-        .header h2 { color: #666; margin: 8px 0; font-size: 20px; }
-        .section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .section h3 { color: #dc3545; margin: 0 0 12px 0; font-size: 16px; border-bottom: 2px solid #dc3545; padding-bottom: 8px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .detail { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dotted #dc3545; }
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; }
-        .sev-low { background: #e2f0d9; color: #2e7d32; }
-        .sev-mod { background: #fff3cd; color: #856404; }
-        .sev-high { background: #f8d7da; color: #721c24; }
-        .sev-critical { background: #dc3545; color: #fff; }
-        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 3px solid #dc3545; color: #666; font-size: 11px; }
-        .print-button { position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
-        .print-button:hover { background: #c82333; }
-        @media print { .print-button { display: none; } body { font-size: 11px; } }
-</style>
-</head>
-<body>
-    <button class="print-button" data-action="print">طباعة التقرير</button>
+{% extends 'print/print_base.html' %}
+{% set doc_type = 'emergency_report' %}
 
-    <div class="header">
-        <h1>المركز الصحي المتخصص</h1>
-        <h2>تقرير حالة طوارئ</h2>
+{% block doc_title %}تقرير طوارئ — {{ emergency.patient.full_name if emergency.patient else 'غير محدد' }}{% endblock %}
+{% block print_button_label %}طباعة التقرير{% endblock %}
+{% block doc_heading %}تقرير حالة طوارئ{% endblock %}
+
+{% block doc_meta %}
+<span class="print-doc-meta__item"><strong>رقم الحالة:</strong> {{ emergency.case_number }}</span>
+<span class="print-doc-meta__item"><strong>التاريخ:</strong> {{ emergency.created_at.strftime('%Y-%m-%d %H:%M') if emergency.created_at else '—' }}</span>
+<span class="print-doc-meta__item"><strong>الحالة:</strong> {{ emergency.status or '—' }}</span>
+{% endblock %}
+
+{% block subject_strip %}
+<div class="print-subject-strip__grid">
+    <div class="print-subject-strip__item"><span>المريض</span><span>{{ emergency.patient.full_name if emergency.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>الهوية</span><span>{{ emergency.patient.national_id if emergency.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>الهاتف</span><span>{{ emergency.patient.phone if emergency.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>الشدة</span>
+        <span>
+            {% set sev = emergency.severity %}
+            {% if sev == 'LOW' %}<span class="badge-sev-low">منخفضة</span>
+            {% elif sev == 'MODERATE' %}<span class="badge-sev-mod">متوسطة</span>
+            {% elif sev == 'HIGH' %}<span class="badge-sev-high">مرتفعة</span>
+            {% elif sev == 'CRITICAL' %}<span class="badge-sev-critical">حرجة</span>
+            {% else %}{{ sev or '—' }}{% endif %}
+        </span>
     </div>
+</div>
+{% endblock %}
 
-    <div class="section">
-        <h3>معلومات الحالة</h3>
-        <div class="grid">
-            <div class="detail"><span><strong>رقم الحالة:</strong></span><span>{{ emergency.case_number }}</span></div>
-            <div class="detail"><span><strong>تاريخ الإنشاء:</strong></span><span>{{ emergency.created_at.strftime('%Y-%m-%d %H:%M') }}</span></div>
-            <div class="detail"><span><strong>تاريخ الإكمال:</strong></span><span>{{ emergency.completed_at.strftime('%Y-%m-%d %H:%M') if emergency.completed_at else 'غير مكتمل' }}</span></div>
-            <div class="detail"><span><strong>الحالة:</strong></span><span>{{ emergency.status }}</span></div>
-            <div class="detail"><span><strong>شدة الحالة:</strong></span>
-                <span>
-                    {% set sev = emergency.severity %}
-                    {% if sev == 'LOW' %}<span class="badge sev-low">منخفضة</span>
-                    {% elif sev == 'MODERATE' %}<span class="badge sev-mod">متوسطة</span>
-                    {% elif sev == 'HIGH' %}<span class="badge sev-high">مرتفعة</span>
-                    {% elif sev == 'CRITICAL' %}<span class="badge sev-critical">حرجة</span>
-                    {% else %}{{ sev }}{% endif %}
-                </span>
-            </div>
-        </div>
-    </div>
+{% block body %}
+<div class="print-section print-section--highlight">
+    <h3 class="print-section__title">الشكوى الرئيسية</h3>
+    <div>{{ emergency.chief_complaint or '—' }}</div>
+</div>
+<div class="print-section">
+    <h3 class="print-section__title">ملاحظات الفرز</h3>
+    <div>{{ emergency.triage_notes or 'لا توجد ملاحظات' }}</div>
+</div>
+<div class="print-section">
+    <h3 class="print-section__title">العلامات الحيوية</h3>
+    <div>{{ emergency.vital_signs or 'غير محدد' }}</div>
+</div>
+<div class="print-section">
+    <h3 class="print-section__title">التشخيص</h3>
+    <div>{{ emergency.diagnosis or 'لم يتم تحديد التشخيص' }}</div>
+</div>
+<div class="print-section">
+    <h3 class="print-section__title">خطة العلاج</h3>
+    <div>{{ emergency.treatment_plan or 'لا توجد خطة علاج محددة' }}</div>
+</div>
+{% endblock %}
 
-    <div class="section" class="alert alert-danger text-center p-2 mb-0">
-        <h3>الشكوى الرئيسية</h3>
-        <div>{{ emergency.chief_complaint }}</div>
-    </div>
+{% block legal_footer %}
+<p><strong>هذا التقرير صالح للاستخدام الطبي</strong></p>
+<p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else '—' }}{% if branding and branding.organization_phone %} | {{ branding.organization_phone }}{% endif %}</p>
+{% endblock %}
 
-    <div class="section" class="alert alert-success text-center p-2 mb-0">
-        <h3>ملاحظات الفرز</h3>
-        <div>{{ emergency.triage_notes or 'لا توجد ملاحظات' }}</div>
-    </div>
-
-    <div class="section" class="alert alert-warning text-center p-2 mb-0">
-        <h3>العلامات الحيوية</h3>
-        <div>{{ emergency.vital_signs or 'غير محدد' }}</div>
-    </div>
-
-    <div class="section" class="alert alert-info text-center p-2 mb-0">
-        <h3>بيانات المريض</h3>
-        <div class="grid">
-            <div class="detail"><span><strong>الاسم:</strong></span><span>{{ emergency.patient.full_name if emergency.patient else 'غير محدد' }}</span></div>
-            <div class="detail"><span><strong>رقم الهوية:</strong></span><span>{{ emergency.patient.national_id if emergency.patient else 'غير محدد' }}</span></div>
-            <div class="detail"><span><strong>تاريخ الميلاد:</strong></span><span>{{ emergency.patient.birth_date.strftime('%Y-%m-%d') if emergency.patient and emergency.patient.birth_date else 'غير محدد' }}</span></div>
-            <div class="detail"><span><strong>الهاتف:</strong></span><span>{{ emergency.patient.phone if emergency.patient else 'غير محدد' }}</span></div>
-            <div class="detail"><span><strong>القسم/الزيارة:</strong></span><span>{{ emergency.visit.department.name_ar if emergency.visit and emergency.visit.department else 'غير محدد' }}</span></div>
-            <div class="detail"><span><strong>الطبيب:</strong></span><span>{{ emergency.visit.doctor.full_name if emergency.visit and emergency.visit.doctor else 'غير محدد' }}</span></div>
-        </div>
-    </div>
-
-    <div class="section">
-        <h3>التشخيص</h3>
-        <div>{{ emergency.diagnosis or 'لم يتم تحديد التشخيص' }}</div>
-    </div>
-
-    <div class="section">
-        <h3>خطة العلاج</h3>
-        <div>{{ emergency.treatment_plan or 'لا توجد خطة علاج محددة' }}</div>
-    </div>
-
-    <div class="footer">
-        <p><strong>هذا التقرير صالح للاستخدام الطبي</strong></p>
-        <p>تاريخ الطباعة: {{ moment().format('YYYY-MM-DD HH:mm') }}</p>
-        <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else 'info@medical-center.com' }} | {{ branding.organization_phone if branding and branding.organization_phone else '+970-XX-XXXXXXX' }}</p>
-        <hr class="my-2 border border-dark">
-        <p class="text-xs text-muted my-1">
-            <strong>تطوير:</strong> {{ developer_company or 'شركة أزاد للأنظمة الذكية' }} |
-            <strong>مطور:</strong> {{ developer_name or 'أحمد غنام' }}
-        </p>
-    </div>
-
-    <script src="{{ url_for('static', filename='js/pages/print/emergency_report.js') }}"></script>
-</body>
-</html>
+{% block extra_print_js %}
+<script src="{{ url_for('static', filename='js/pages/print/emergency_report.js') }}"></script>
+{% endblock %}

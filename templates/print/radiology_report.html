@@ -1,412 +1,67 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقرير الأشعة - {{ radiology_result.patient.full_name }}</title>
-    <style>
-@page {
-            size: A4;
-            margin: 1cm;
-        }
-        body {
-            font-family: 'Arial', sans-serif;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-        .header {
-            text-align: center;
-            border-bottom: 3px solid #6f42c1;
-            padding-bottom: 20px;
-            margin-bottom: 25px;
-        }
-        .header h1 {
-            color: #6f42c1;
-            margin: 0;
-            font-size: 28px;
-        }
-        .header h2 {
-            color: #666;
-            margin: 8px 0;
-            font-size: 20px;
-        }
-        .radiology-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 25px;
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-        }
-        .radiology-info .info-section {
-            flex: 1;
-            margin: 0 15px;
-        }
-        .radiology-info h3 {
-            color: #6f42c1;
-            margin: 0 0 12px 0;
-            font-size: 16px;
-            border-bottom: 2px solid #6f42c1;
-            padding-bottom: 8px;
-        }
-        .radiology-info p {
-            margin: 6px 0;
-            font-size: 12px;
-        }
-        .patient-info {
-            background: #e2d9f3;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-        }
-        .patient-info h3 {
-            color: #4a2c7a;
-            margin: 0 0 15px 0;
-            font-size: 18px;
-        }
-        .patient-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        .patient-details .detail {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px dotted #6f42c1;
-        }
-        .doctor-info {
-            background: #d1ecf1;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-        }
-        .doctor-info h3 {
-            color: #0c5460;
-            margin: 0 0 15px 0;
-            font-size: 18px;
-        }
-        .examination-info {
-            background: #fff3cd;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-        }
-        .examination-info h3 {
-            color: #856404;
-            margin: 0 0 15px 0;
-            font-size: 18px;
-        }
-        .examination-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        .examination-details .detail {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px dotted #856404;
-        }
-        .findings-section {
-            background: #f8d7da;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-        }
-        .findings-section h3 {
-            color: #721c24;
-            margin: 0 0 15px 0;
-            font-size: 18px;
-        }
-        .findings-content {
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
-            border: 1px solid #f5c6cb;
-            min-height: 100px;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-        .impression-section {
-            background: #d4edda;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-        }
-        .impression-section h3 {
-            color: #155724;
-            margin: 0 0 15px 0;
-            font-size: 18px;
-        }
-        .impression-content {
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
-            border: 1px solid #c3e6cb;
-            min-height: 100px;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-        .recommendations-section {
-            background: #e2e3e5;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-        }
-        .recommendations-section h3 {
-            color: #383d41;
-            margin: 0 0 15px 0;
-            font-size: 18px;
-        }
-        .recommendations-content {
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
-            border: 1px solid #d6d8db;
-            min-height: 80px;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-        .signature-section {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid #6f42c1;
-        }
-        .signature-box {
-            text-align: center;
-            width: 200px;
-        }
-        .signature-line {
-            border-bottom: 1px solid #333;
-            height: 40px;
-            margin-bottom: 10px;
-        }
-        .signature-label {
-            font-size: 12px;
-            color: #666;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 3px solid #6f42c1;
-            color: #666;
-            font-size: 11px;
-        }
-        .print-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #6f42c1;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .print-button:hover {
-            background: #5a32a3;
-        }
-        @media print {
-            .print-button {
-                display: none;
-            }
-            body {
-                font-size: 11px;
-            }
-        }
-</style>
-</head>
-<body>
-    <button class="print-button" data-action="print">طباعة التقرير</button>
-    
-    <div class="header">
-        <h1>المركز الصحي المتخصص</h1>
-        <h2>تقرير الأشعة</h2>
-        {% if qr_data_uri %}
-        <div class="mt-2">
-            <img src="{{ qr_data_uri }}" alt="QR" class="lab-thumb-lg" />
-        </div>
-        {% endif %}
-    </div>
-    
-    <div class="radiology-info">
-        <div class="info-section">
-            <h3>معلومات التقرير</h3>
-            <p><strong>رقم التقرير:</strong> {{ radiology_result.request.request_number if radiology_result.request else 'غير محدد' }}</p>
-            <p><strong>تاريخ التقرير:</strong> {{ radiology_result.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
-            <p><strong>تاريخ الإكمال:</strong> {{ radiology_result.updated_at.strftime('%Y-%m-%d %H:%M') if radiology_result.updated_at else 'غير مكتمل' }}</p>
-            <p><strong>حالة التقرير:</strong> 
-                {% if radiology_result.status == 'VALIDATED' %}
-                    <span class="text-success">مكتمل</span>
-                {% elif radiology_result.status == 'READY' %}
-                    <span class="text-warning">قيد التنفيذ</span>
-                {% else %}
-                    <span class="text-danger">معلق</span>
-                {% endif %}
-            </p>
-        </div>
-        
-        <div class="info-section">
-            <h3>معلومات المركز</h3>
-            <p><strong>المركز:</strong> المركز الصحي المتخصص</p>
-            <p><strong>العنوان:</strong> العنوان الكامل للمركز</p>
-            <p><strong>الهاتف:</strong> +970-XX-XXXXXXX</p>
-            <p><strong>البريد الإلكتروني:</strong> radiology@medical-center.com</p>
-        </div>
-    </div>
-    
-    <div class="patient-info">
-        <h3>معلومات المريض</h3>
-        <div class="patient-details">
-            <div class="detail">
-                <span><strong>الاسم:</strong></span>
-                <span>{{ radiology_result.patient.full_name }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>رقم الهوية:</strong></span>
-                <span>{{ radiology_result.patient.national_id or 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>تاريخ الميلاد:</strong></span>
-                <span>{{ radiology_result.patient.birth_date.strftime('%Y-%m-%d') if radiology_result.patient and radiology_result.patient.birth_date else 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>العمر:</strong></span>
-                <span>
-                    {% if radiology_result.patient.birth_date %}
-                        {{ moment().diff(moment(radiology_result.patient.birth_date), 'years') }} سنة
-                    {% else %}
-                        غير محدد
-                    {% endif %}
-                </span>
-            </div>
-            <div class="detail">
-                <span><strong>الجنس:</strong></span>
-                <span>{{ radiology_result.patient.gender or 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>الهاتف:</strong></span>
-                <span>{{ radiology_result.patient.phone or 'غير محدد' }}</span>
-            </div>
-        </div>
-    </div>
-    
-    <div class="doctor-info">
-        <h3>معلومات الطبيب</h3>
-        <div class="patient-details">
-            <div class="detail">
-                <span><strong>اسم الطبيب:</strong></span>
-                <span>{{ radiology_result.request.requester.full_name if radiology_result.request and radiology_result.request.requester else 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>التخصص:</strong></span>
-                <span>{{ radiology_result.performer.specialization if radiology_result.performer else 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>رقم الترخيص:</strong></span>
-                <span>{{ radiology_result.performer.license_number if radiology_result.performer else 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>القسم:</strong></span>
-                <span>{{ radiology_result.performer.department.name_ar if radiology_result.performer and radiology_result.performer.department else 'غير محدد' }}</span>
-            </div>
-        </div>
-    </div>
-    
-    <div class="examination-info">
-        <h3>معلومات الفحص</h3>
-        <div class="examination-details">
-            <div class="detail">
-                <span><strong>نوع الفحص:</strong></span>
-                <span>{{ radiology_result.request.modality if radiology_result.request else 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>منطقة الفحص:</strong></span>
-                <span>{{ radiology_result.request.body_part if radiology_result.request else 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>تاريخ الفحص:</strong></span>
-                <span>{{ radiology_result.created_at.strftime('%Y-%m-%d') }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>وقت الفحص:</strong></span>
-                <span>{{ radiology_result.created_at.strftime('%H:%M') }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>الفني المسؤول:</strong></span>
-                <span>{{ radiology_result.performer.full_name if radiology_result.performer else 'غير محدد' }}</span>
-            </div>
-            <div class="detail">
-                <span><strong>الطبيب المشرف:</strong></span>
-                <span>{{ radiology_result.request.requester.full_name if radiology_result.request and radiology_result.request.requester else 'غير محدد' }}</span>
-            </div>
-            {% if radiology_result.study_uid %}
-            <div class="detail">
-                <span><strong>Study UID:</strong></span>
-                <span>{{ radiology_result.study_uid }}</span>
-            </div>
-            {% endif %}
-            {% if radiology_result.pacs_url %}
-            <div class="detail">
-                <span><strong>رابط PACS:</strong></span>
-                <span>{{ radiology_result.pacs_url }}</span>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <div class="findings-section">
-        <h3>النتائج والملاحظات</h3>
-        <div class="findings-content">
-            {{ radiology_result.findings or 'لم يتم تحديد النتائج بعد' }}
-        </div>
-    </div>
-    
-    <div class="impression-section">
-        <h3>الانطباع والتشخيص</h3>
-        <div class="impression-content">
-            {{ radiology_result.impression or 'لم يتم تحديد الانطباع بعد' }}
-        </div>
-    </div>
-    
-    <div class="recommendations-section">
-        <h3>التوصيات</h3>
-        <div class="recommendations-content">
-            {{ radiology_result.notes or 'لا توجد توصيات إضافية' }}
-        </div>
-    </div>
-    
-    <div class="signature-section">
-        <div class="signature-box">
-            <div class="signature-line"></div>
-            <div class="signature-label">توقيع الطبيب المشرف</div>
-        </div>
-        <div class="signature-box">
-            <div class="signature-line"></div>
-            <div class="signature-label">ختم المركز</div>
-        </div>
-    </div>
-    
-    <div class="footer">
-        <p><strong>هذا التقرير صالح للاستخدام الطبي</strong></p>
-        <p>تاريخ الطباعة: {{ moment().format('YYYY-MM-DD HH:mm') }}</p>
-        <p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else 'radiology@medical-center.com' }} | {{ branding.organization_phone if branding and branding.organization_phone else '+970-XX-XXXXXXX' }}</p>
-        <hr class="my-2 border border-dark">
-        <p class="text-xs text-muted my-1">
-            <strong>تطوير:</strong> {{ developer_company or 'شركة أزاد للأنظمة الذكية' }} | 
-            <strong>مطور:</strong> {{ developer_name or 'أحمد غنام' }}
-        </p>
-</div>
+{% extends 'print/print_base.html' %}
+{% set doc_type = 'radiology_report' %}
 
-    <script src="{{ url_for('static', filename='js/pages/print/radiology_report.js') }}"></script>
-</body>
-</html>
+{% block doc_title %}تقرير أشعة — {{ radiology_result.patient.full_name }}{% endblock %}
+{% block print_button_label %}طباعة التقرير{% endblock %}
+{% block doc_heading %}تقرير الأشعة{% endblock %}
+
+{% block extra_print_head %}
+{% if qr_data_uri %}
+<style>.print-qr { text-align: center; margin-bottom: 0.5rem; } .print-qr img { max-width: 96px; height: auto; }</style>
+{% endif %}
+{% endblock %}
+
+{% block doc_meta %}
+<span class="print-doc-meta__item"><strong>رقم الطلب:</strong> {{ radiology_result.request.request_number if radiology_result.request else '—' }}</span>
+<span class="print-doc-meta__item"><strong>تاريخ التقرير:</strong> {{ radiology_result.created_at.strftime('%Y-%m-%d %H:%M') if radiology_result.created_at else '—' }}</span>
+<span class="print-doc-meta__item"><strong>الحالة:</strong> {{ radiology_result.status | enum_label('OrderState') if radiology_result.status else '—' }}</span>
+{% if qr_data_uri %}
+<span class="print-doc-meta__item print-qr"><img src="{{ qr_data_uri }}" alt="QR"></span>
+{% endif %}
+{% endblock %}
+
+{% block subject_strip %}
+<div class="print-subject-strip__grid">
+    <div class="print-subject-strip__item"><span>المريض</span><span>{{ radiology_result.patient.full_name }}</span></div>
+    <div class="print-subject-strip__item"><span>الهوية</span><span>{{ radiology_result.patient.national_id or '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>نوع الفحص</span><span>{{ radiology_result.request.modality if radiology_result.request else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>المنطقة</span><span>{{ radiology_result.request.body_part if radiology_result.request else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>الطبيب المشرف</span><span>{{ radiology_result.request.requester.full_name if radiology_result.request and radiology_result.request.requester else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>الفني</span><span>{{ radiology_result.performer.full_name if radiology_result.performer else '—' }}</span></div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="print-section">
+    <h3 class="print-section__title">النتائج والملاحظات</h3>
+    <div class="ws-pre-line">{{ radiology_result.findings or 'لم يتم تحديد النتائج بعد' }}</div>
+</div>
+<div class="print-section">
+    <h3 class="print-section__title">الانطباع والتشخيص</h3>
+    <div class="ws-pre-line">{{ radiology_result.impression or 'لم يتم تحديد الانطباع بعد' }}</div>
+</div>
+<div class="print-section">
+    <h3 class="print-section__title">التوصيات</h3>
+    <div class="ws-pre-line">{{ radiology_result.notes or 'لا توجد توصيات إضافية' }}</div>
+</div>
+{% endblock %}
+
+{% block signatures %}
+<div class="print-signature-box">
+    <div class="print-signature-line"></div>
+    <div class="print-signature-label">توقيع الطبيب المشرف</div>
+</div>
+<div class="print-signature-box">
+    <div class="print-signature-line"></div>
+    <div class="print-signature-label">ختم المركز</div>
+</div>
+{% endblock %}
+
+{% block legal_footer %}
+<p><strong>هذا التقرير صالح للاستخدام الطبي</strong></p>
+<p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else '—' }}{% if branding and branding.organization_phone %} | {{ branding.organization_phone }}{% endif %}</p>
+{% endblock %}
+
+{% block extra_print_js %}
+<script src="{{ url_for('static', filename='js/pages/print/radiology_report.js') }}"></script>
+{% endblock %}
