@@ -29,9 +29,28 @@ from io import BytesIO
 @role_required('radiology', 'manager')
 def requests():
     """طلبات الأشعة"""
-    
-    
-    return render_template('radiology/radiology_requests.html')
+    try:
+        stats = {
+            'pending': RadiologyRequest.query.filter_by(status='REQUESTED').count(),
+            'in_progress': RadiologyRequest.query.filter_by(status='IN_PROGRESS').count(),
+            'completed': RadiologyRequest.query.filter_by(status='DONE').count(),
+            'urgent': 0,
+        }
+        requests_list = (
+            RadiologyRequest.query
+            .order_by(RadiologyRequest.created_at.desc())
+            .limit(100)
+            .all()
+        )
+        return render_template(
+            'radiology/radiology_requests.html',
+            stats=stats,
+            requests=requests_list,
+        )
+    except Exception as e:
+        logging.error(f"Error loading radiology requests: {str(e)}")
+        flash('حدث خطأ في تحميل طلبات الأشعة', 'error')
+        return redirect(url_for('radiology.dashboard'))
 
 @radiology_bp.route('/tests')
 @login_required

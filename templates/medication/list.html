@@ -1,33 +1,23 @@
 {% extends "base.html" %}
+{% from 'partials/_page_header.html' import page_header %}
 
 {% block title %}قائمة الأدوية{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="medical-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="medical-title">
-                    <i class="fas fa-list me-2"></i>
-                    قائمة الأدوية
-                </h1>
-                <p class="medical-subtitle">إدارة جميع الأدوية في النظام</p>
-            </div>
-            <div class="header-actions">
-                {% if current_user.role in ['pharmacist','admin','manager'] %}
-                <a href="{{ url_for('medication.add_medication') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i>
-                    إضافة دواء جديد
-                </a>
-                <a href="{{ url_for('medication.create_supply_request') }}" class="btn btn-outline-primary">
-                    <i class="fas fa-truck-loading me-1"></i>
-                    طلب توريد
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+    {% set med_list_actions = [] %}
+    {% if current_user.role in ['pharmacist','admin','manager'] %}
+    {% set med_list_actions = [
+        {'url': url_for('medication.add_medication'), 'label': 'إضافة دواء جديد', 'icon': 'fas fa-plus', 'style': 'primary'},
+        {'url': url_for('medication.create_supply_request'), 'label': 'طلب توريد', 'icon': 'fas fa-truck-loading', 'style': 'outline-primary'}
+    ] %}
+    {% endif %}
+    {{ page_header(
+        title='قائمة الأدوية',
+        subtitle='إدارة جميع الأدوية في النظام',
+        icon='fas fa-list',
+        actions=med_list_actions
+    ) }}
 
     <!-- Filters -->
     <div class="row mb-4">
