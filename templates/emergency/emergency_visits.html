@@ -1,29 +1,18 @@
 {% extends "base.html" %}
+{% from 'partials/_page_header.html' import page_header %}
 
 {% block title %}زيارات الطوارئ{% endblock %}
 
 {% block content %}
-<div class="content-wrapper">
-    <!-- Content Header -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">زيارات الطوارئ</h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ url_for('emergency.dashboard') }}">الطوارئ</a></li>
-                        <li class="breadcrumb-item active">الزيارات</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main content -->
-    <section class="content">
-        <div class="container-fluid">
+<div class="container-fluid">
+    {{ page_header(
+        title='زيارات الطوارئ',
+        icon='fas fa-ambulance',
+        breadcrumbs=[
+            {'label': 'الطوارئ', 'url': url_for('emergency.dashboard')},
+            {'label': 'الزيارات'}
+        ]
+    ) }}
             {% if report %}
             <div class="row mb-3">
                 <div class="col-12">
@@ -202,7 +191,6 @@
                 </div>
             </div>
         </div>
-    </section>
 </div>
 
 <script>

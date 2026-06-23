@@ -1,27 +1,18 @@
 {% extends "base.html" %}
+{% from 'partials/_page_header.html' import page_header %}
 
 {% block title %}نتائج التحاليل{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="medical-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="medical-title">
-                    <i class="fas fa-chart-line me-2"></i>
-                    نتائج التحاليل
-                </h1>
-                <p class="medical-subtitle">عرض نتائج التحاليل المطلوبة</p>
-            </div>
-            <div class="header-actions">
-                <a href="{{ url_for('lab.dashboard') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-right me-1"></i>
-                    العودة للوحة التحكم
-                </a>
-            </div>
-        </div>
-    </div>
+    {{ page_header(
+        title='نتائج التحاليل',
+        subtitle='عرض نتائج التحاليل المطلوبة',
+        icon='fas fa-chart-line',
+        actions=[
+            {'url': url_for('lab.dashboard'), 'label': 'العودة للوحة التحكم', 'icon': 'fas fa-arrow-right', 'style': 'secondary'}
+        ]
+    ) }}
 
     <!-- Patient Information -->
     <div class="row mb-4">

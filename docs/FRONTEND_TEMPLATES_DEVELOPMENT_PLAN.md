@@ -1182,33 +1182,39 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — **توقف مؤقت** بعد §35/§36 + Gate 9 + بداية المرحلة 5)
+## 11. حالة التنفيذ الحالية (2026-06-23 — **المرحلة 5 دفعة 2**)
 
 | البند | الحالة |
 |-------|--------|
 | **مرحلة 8** | ✅ stepper استقبال + context bar طبيب + portal rebuild |
-| **مرحلة 9** Gate 9 | ✅ `print_base` + 5 مطبوعات + **G-114** إيصال صيدلية + **G-155** منشأة في الروشتة |
-| **مرحلة 10** | ✅ Command Center MVP — 8 dashboards محوّلة |
-| **مرحلة 11** Gate 11 | ✅ theme + preferences + density/radius + widgets |
-| **مرحلة 12** Gate 12 | ✅ PWA + mobile nav + kiosk |
-| **مرحلة 13** Gate 13 | ✅ motion + ماكروهات سياق المريض |
-| **مرحلة 14** Gate 14 | ✅ ReportTemplate + G-134 |
-| **مرحلة 6b** | ✅ manager sidebar + nav audit |
-| **§35 POS** | ✅ G-116…G-125 (POS، ماكرو دفع، اختبارات `test_phase35_pos.py`) |
-| **§36 UX** | ✅ G-126…G-129 (`notify.*`، `user_message` filter، doctor JS، `_empty_state`) |
-| **BS4 codemod** | ✅ G-06/G-34 — modals + `fw-bold` + `scripts/bs4_audit.py` |
-| **G-120** | ✅ تسميات دفع عربية |
-| **المرحلة 5** | 🟡 **جزئي** — `_page_header.html` على 4 مسارات (visits، queue، doctor queue، POS) |
-| **CI GitHub** | ✅ migrate + flake8 + pytest (~**374** حالة) — إصلاح `route_inventory` لمسار `/print` |
+| **مرحلة 9** Gate 9 | ✅ `print_base` + G-114 + G-155 |
+| **مرحلة 10** | ✅ Command Center MVP — 8 dashboards |
+| **مرحلة 11–14** | ✅ Gates 11–14 |
+| **§35 POS** | ✅ G-116…G-125 |
+| **§36 UX** | ✅ G-126…G-129 |
+| **BS4 codemod** | ✅ G-06/G-34 |
+| **المرحلة 5** | 🟡 **13 صفحة** — `_page_header` (استقبال، طبيب، صيدلية، مختبر، أشعة، طوارئ) |
+| **CI GitHub** | ✅ migrate + flake8 + pytest (~**385** حالة) |
 
-**Git HEAD:** `d1939f5`  
-**اختبارات جديدة (هذه الدفعة):** `test_gate_bs4_codemod`، `test_phase35_pos`، `test_gate_36_ux`، `test_gate_9_print`، `test_gate_5_page_header`
+**Git HEAD:** *(يُحدَّث بعد الدفع)*  
+**اختبارات المرحلة 5:** `test_gate_5_page_header` — 11 حالة
 
-**الخطوة التالية (عند الاستئناف):**
-1. تأكيد CI أخضر على `d1939f5`
-2. تعميم `_page_header` + `_empty_state` (باقي المرحلة 5)
-3. حذف/تنظيف `static/adminlte/` بعد تدقيق الاستخدام
-4. S0-003/004 SaaS (خارج نطاق الواجهة — `PLAN_2026-06-21.md`)
+**الخطوة التالية:**
+1. تعميم `_page_header` على بقية القوالب (~140 صفحة)
+2. `status_label` شامل + حذف `static/adminlte/`
+3. Gate 9 — مطبوعات المختبر standalone
+
+### 11.11 دفعة 2026-06-23 (مساء) — المرحلة 5 دفعة 2
+
+| القوالب | المسارات |
+|---------|----------|
+| `medication/list.html`, `add.html` | `/medication/list`, `/medication/add` |
+| `radiology/radiology_requests.html` | `/radiology/requests` (+ إصلاح حقول النموذج) |
+| `lab/process.html`, `lab_requests_*.html` | `/lab/worklist` |
+| `emergency/emergency_visits.html` | `/emergency/emergency-visits` |
+| `doctor/notes.html` | `/doctor/notes/<id>` |
+
+**اختبارات:** `test_gate_5_page_header` — 11 حالة + `TestMedicalHeaderDebt`
 
 ### 11.10 دفعة 2026-06-23 (مساء) — ما نُفّذ قبل التوقف
 

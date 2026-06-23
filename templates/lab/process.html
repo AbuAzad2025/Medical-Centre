@@ -2,6 +2,7 @@
 {% import 'macros/forms.html' as forms %}
 {% from 'partials/_patient_context_panel.html' import patient_context_panel %}
 {% from 'partials/_workflow_next_actions.html' import workflow_next_actions %}
+{% from 'partials/_page_header.html' import page_header %}
 
 {% block title %}
 {% if lab_request %}
@@ -16,36 +17,15 @@
     {% if lab_request %}
     {{ patient_context_panel(lab_request.patient) }}
     {% if lab_request.visit %}{{ workflow_next_actions(lab_request.visit) }}{% endif %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-flask me-2"></i>
-                                إدخال نتائج المختبر
-                            </h2>
-                            <div class="text-muted">
-                                {{ lab_request.patient.full_name }} — طلب رقم: {{ lab_request.request_number or lab_request.id }}
-                            </div>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <a href="{{ url_for('lab.worklist') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-right me-1"></i>
-                                العودة للطابور
-                            </a>
-                            <a href="{{ url_for('lab.print_request', id=lab_request.id) }}" class="btn btn-primary" target="_blank">
-                                <i class="fas fa-print me-1"></i>
-                                طباعة
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    {{ page_header(
+        title='إدخال نتائج المختبر',
+        subtitle=lab_request.patient.full_name ~ ' — طلب رقم: ' ~ (lab_request.request_number or lab_request.id),
+        icon='fas fa-flask',
+        actions=[
+            {'url': url_for('lab.worklist'), 'label': 'العودة للطابور', 'icon': 'fas fa-arrow-right', 'style': 'secondary'},
+            {'url': url_for('lab.print_request', id=lab_request.id), 'label': 'طباعة', 'icon': 'fas fa-print', 'style': 'primary'}
+        ]
+    ) }}
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow">
@@ -346,34 +326,22 @@
     }
     </script>
     {% else %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="mb-1 text-primary">
-                                <i class="fas fa-flask me-2"></i>
-                                قائمة عمل المختبر
-                            </h2>
-                            <div class="text-muted">طلبات المختبر حسب الحالة</div>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <a class="btn btn-outline-primary" href="{{ url_for('lab.worklist', status='REQUESTED') }}">قيد الطلب ({{ counts.requested if counts else 0 }})</a>
-                            <a class="btn btn-outline-info" href="{{ url_for('lab.worklist', status='COLLECTED') }}">تم جمع العينة</a>
-                            <a class="btn btn-outline-warning" href="{{ url_for('lab.worklist', status='RECEIVED') }}">تم الاستلام</a>
-                            <a class="btn btn-outline-info" href="{{ url_for('lab.worklist', status='ANALYZING') }}">قيد التحليل</a>
-                            <a class="btn btn-outline-secondary" href="{{ url_for('lab.worklist', status='REVIEWED') }}">قيد المراجعة</a>
-                            <a class="btn btn-outline-success" href="{{ url_for('lab.worklist', status='APPROVED') }}">قيد الاعتماد</a>
-                            <a class="btn btn-outline-warning" href="{{ url_for('lab.worklist', status='IN_PROGRESS') }}">قيد التنفيذ ({{ counts.in_progress if counts else 0 }})</a>
-                            <a class="btn btn-outline-success" href="{{ url_for('lab.worklist', status='DONE_TODAY') }}">مكتمل اليوم ({{ counts.done_today if counts else 0 }})</a>
-                            <a class="btn btn-secondary" href="{{ url_for('lab.dashboard') }}">لوحة المختبر</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ page_header(
+        title='قائمة عمل المختبر',
+        subtitle='طلبات المختبر حسب الحالة',
+        icon='fas fa-flask',
+        actions=[
+            {'url': url_for('lab.worklist', status='REQUESTED'), 'label': 'قيد الطلب (' ~ (counts.requested if counts else 0) ~ ')', 'style': 'outline-primary'},
+            {'url': url_for('lab.worklist', status='COLLECTED'), 'label': 'تم جمع العينة', 'style': 'outline-info'},
+            {'url': url_for('lab.worklist', status='RECEIVED'), 'label': 'تم الاستلام', 'style': 'outline-warning'},
+            {'url': url_for('lab.worklist', status='ANALYZING'), 'label': 'قيد التحليل', 'style': 'outline-info'},
+            {'url': url_for('lab.worklist', status='REVIEWED'), 'label': 'قيد المراجعة', 'style': 'outline-secondary'},
+            {'url': url_for('lab.worklist', status='APPROVED'), 'label': 'قيد الاعتماد', 'style': 'outline-success'},
+            {'url': url_for('lab.worklist', status='IN_PROGRESS'), 'label': 'قيد التنفيذ (' ~ (counts.in_progress if counts else 0) ~ ')', 'style': 'outline-warning'},
+            {'url': url_for('lab.worklist', status='DONE_TODAY'), 'label': 'مكتمل اليوم (' ~ (counts.done_today if counts else 0) ~ ')', 'style': 'outline-success'},
+            {'url': url_for('lab.dashboard'), 'label': 'لوحة المختبر', 'style': 'secondary'}
+        ]
+    ) }}
 
     <div class="row">
         <div class="col-12">

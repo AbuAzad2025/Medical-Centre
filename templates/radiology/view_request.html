@@ -1,27 +1,18 @@
 {% extends "base.html" %}
+{% from 'partials/_page_header.html' import page_header %}
 
 {% block title %}تفاصيل طلب الأشعة{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="medical-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="medical-title">
-                    <i class="fas fa-x-ray me-2"></i>
-                    تفاصيل طلب الأشعة
-                </h1>
-                <p class="medical-subtitle">طلب رقم {{ request.id }}</p>
-            </div>
-            <div class="header-actions">
-                <a href="{{ url_for('radiology.worklist') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left me-1"></i>
-                    العودة للطابور
-                </a>
-            </div>
-        </div>
-    </div>
+    {{ page_header(
+        title='تفاصيل طلب الأشعة',
+        subtitle='طلب رقم ' ~ request.id,
+        icon='fas fa-x-ray',
+        actions=[
+            {'url': url_for('radiology.worklist'), 'label': 'العودة للطابور', 'icon': 'fas fa-arrow-left', 'style': 'secondary'}
+        ]
+    ) }}
 
     <!-- Request Details -->
     <div class="row">
