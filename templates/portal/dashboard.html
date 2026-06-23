@@ -53,7 +53,7 @@
       {% for a in upcoming_appointments[:5] %}
         <div class="d-flex justify-content-between py-2 border-bottom">
           <span>{{ a.starts_at.strftime('%Y-%m-%d %H:%M') if a.starts_at else '' }}</span>
-          <span class="badge bg-primary">{{ a.status }}</span>
+          <span class="badge bg-primary">{{ a.status | enum_label('AppointmentState') }}</span>
         </div>
       {% else %}
         <p class="text-muted">لا يوجد مواعيد قادمة</p>

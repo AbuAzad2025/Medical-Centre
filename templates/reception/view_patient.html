@@ -101,7 +101,7 @@
                                                 {% elif req.status == 'CANCELLED' %}
                                                     <span class="badge badge-danger">ملغي</span>
                                                 {% else %}
-                                                    <span class="badge badge-secondary">{{ req.status }}</span>
+                                                    <span class="badge badge-secondary">{{ req.status | enum_label('OrderState') }}</span>
                                                 {% endif %}
                                             </td>
                                             <td>{{ req.notes or '-' }}</td>
@@ -147,7 +147,7 @@
                                                 {% elif req.status == 'CANCELLED' %}
                                                     <span class="badge badge-danger">ملغي</span>
                                                 {% else %}
-                                                    <span class="badge badge-secondary">{{ req.status }}</span>
+                                                    <span class="badge badge-secondary">{{ req.status | enum_label('OrderState') }}</span>
                                                 {% endif %}
                                             </td>
                                         </tr>

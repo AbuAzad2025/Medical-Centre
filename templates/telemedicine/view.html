@@ -8,7 +8,7 @@
         <div class="col-md-6"><strong>المريض:</strong> {{ tm.patient.full_name }}</div>
         <div class="col-md-6"><strong>الطبيب:</strong> {{ tm.doctor.full_name if tm.doctor else '—' }}</div>
         <div class="col-md-6"><strong>التاريخ:</strong> {{ tm.scheduled_start.strftime('%Y-%m-%d %H:%M') }}</div>
-        <div class="col-md-6"><strong>الحالة:</strong> {{ tm.status }}</div>
+        <div class="col-md-6"><strong>الحالة:</strong> {{ tm.status | enum_label }}</div>
         <div class="col-md-6"><strong>المنصة:</strong> {{ tm.meeting_provider }}</div>
         <div class="col-md-6"><strong>المدة:</strong> {{ tm.duration_minutes or '—' }} دقيقة</div>
       </div>

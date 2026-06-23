@@ -12,7 +12,7 @@
     {% for a in appointments %}
       <tr>
         <td>{{ a.starts_at.strftime('%Y-%m-%d %H:%M') if a.starts_at else '-' }}</td>
-        <td><span class="badge bg-secondary">{{ a.status }}</span></td>
+        <td><span class="badge bg-secondary">{{ a.status | enum_label('AppointmentState') }}</span></td>
         <td>{{ a.notes or '-' }}</td>
       </tr>
     {% else %}

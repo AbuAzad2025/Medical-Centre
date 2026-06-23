@@ -172,7 +172,7 @@
                                                 <td>{{ result.reference_range or '-' }}</td>
                                                 <td>
                                                     <span class="badge {% if result.status == 'normal' %}bg-success{% elif result.status == 'abnormal' %}bg-danger{% elif result.status == 'high' %}bg-warning{% elif result.status == 'low' %}bg-info{% else %}bg-secondary{% endif %}">
-                                                        {% if result.status == 'PENDING' %} معلق {% elif result.status == 'READY' %} جاهز {% elif result.status == 'VALIDATED' %} مُعتمد {% else %} {{ result.status }} {% endif %}
+                                                        {{ result.status | enum_label('LabResultStatus') }}
                                                     </span>
                                                 </td>
                                             </tr>

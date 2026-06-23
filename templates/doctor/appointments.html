@@ -7,7 +7,7 @@
     <div class="table-responsive">
       <table class="table table-striped"><thead><tr><th>#</th><th>المريض</th><th>التاريخ</th><th>الوقت</th><th>الحالة</th></tr></thead><tbody>
         {% for a in appointments or [] %}
-        <tr><td>{{ a.id }}</td><td>{{ a.patient.full_name if a.patient else '' }}</td><td>{{ a.starts_at.date() if a.starts_at else '' }}</td><td>{{ a.starts_at.strftime('%H:%M') if a.starts_at else '' }}</td><td>{{ a.status }}</td></tr>
+        <tr><td>{{ a.id }}</td><td>{{ a.patient.full_name if a.patient else '' }}</td><td>{{ a.starts_at.date() if a.starts_at else '' }}</td><td>{{ a.starts_at.strftime('%H:%M') if a.starts_at else '' }}</td><td>{{ a.status | enum_label('AppointmentState') }}</td></tr>
         {% else %}
         <tr><td colspan="5" class="text-center">لا توجد مواعيد</td></tr>
         {% endfor %}

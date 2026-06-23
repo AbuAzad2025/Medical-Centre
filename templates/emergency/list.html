@@ -420,7 +420,7 @@
                             {% elif emergency.status == 'transferred' %}
                                 منقول
                             {% else %}
-                                {{ emergency.status }}
+                                {{ emergency.status | enum_label('EmergencyStatus') }}
                             {% endif %}
                         </span>
                         <span class="priority-badge priority-{{ emergency.priority }}">

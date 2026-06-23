@@ -406,7 +406,7 @@
                             </div>
                         </div>
                         <div class="col-6">
-                            <h4 class="text-success">{{ emergency.status|title }}</h4>
+                            <h4 class="text-success">{{ emergency.status | enum_label('EmergencyStatus') }}</h4>
                             <small class="text-muted">الحالة</small>
                         </div>
                     </div>

@@ -185,6 +185,40 @@ class TestSection8LaunchChecks:
         assert 'BS4' in css or 'compat' in css.lower()
 
 
+class TestStatusLocalization:
+    def test_enum_label_templates_compile(self, app):
+        """Every template using the enum_label status filter must compile."""
+        root = ROOT / 'templates'
+        errors = []
+        with app.app_context():
+            for path in root.rglob('*.html'):
+                text = path.read_text(encoding='utf-8', errors='ignore')
+                if 'enum_label' not in text:
+                    continue
+                rel = path.relative_to(root).as_posix()
+                try:
+                    app.jinja_env.get_template(rel)
+                except Exception as e:  # noqa: BLE001
+                    errors.append((rel, type(e).__name__, str(e)[:160]))
+        assert not errors, errors
+
+    def test_no_raw_displayed_status_in_clinical_templates(self):
+        """No raw `>{{ x.status }}<` display leaks in clinical/patient-facing dirs."""
+        import re
+        dirs = ['doctor', 'reception', 'nurse', 'lab', 'radiology', 'emergency', 'portal', 'pharmacy']
+        pattern = re.compile(r'>\s*\{\{\s*[a-zA-Z_][\w.]*\.status\s*\}\}\s*<')
+        offenders = []
+        for d in dirs:
+            base = ROOT / 'templates' / d
+            if not base.exists():
+                continue
+            for html in base.rglob('*.html'):
+                text = html.read_text(encoding='utf-8', errors='ignore')
+                if pattern.search(text):
+                    offenders.append(str(html.relative_to(ROOT)))
+        assert not offenders, f'raw displayed status in: {offenders}'
+
+
 class TestBS4DocumentedDebt:
     def test_legacy_marker_count_within_ceiling(self):
         count = 0

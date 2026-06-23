@@ -60,7 +60,7 @@
                     </div>
                     <div class="mb-3">
                         <strong>الحالة:</strong>
-                        <span class="badge bg-info">{{ lab_request.status }}</span>
+                        <span class="badge bg-info">{{ lab_request.status | enum_label('OrderState') }}</span>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-striped">
@@ -83,7 +83,7 @@
                                     <td>{{ r.value or '-' }}</td>
                                     <td>{{ r.unit or '-' }}</td>
                                     <td>{{ r.reference_range or '-' }}</td>
-                                    <td>{{ r.status }}</td>
+                                    <td>{{ r.status | enum_label('LabResultStatus') }}</td>
                                     <td>{{ 'نعم' if r.is_critical else 'لا' }}</td>
                                 </tr>
                                 {% else %}

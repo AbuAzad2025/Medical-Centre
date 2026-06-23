@@ -232,7 +232,7 @@
                                             <td class="ps-3">{{ a.patient.full_name if a.patient else '-' }}</td>
                                             <td>{{ a.doctor.full_name if a.doctor else '-' }}</td>
                                             <td>{{ a.starts_at.strftime('%H:%M') if a.starts_at else '-' }}</td>
-                                            <td><span class="badge bg-{% if a.status=='CHECKED_IN' %}success{% elif a.status=='CONFIRMED' %}primary{% else %}secondary{% endif %}">{{ a.status }}</span></td>
+                                            <td><span class="badge bg-{% if a.status=='CHECKED_IN' %}success{% elif a.status=='CONFIRMED' %}primary{% else %}secondary{% endif %}">{{ a.status | enum_label }}</span></td>
                                         </tr>
                                         {% else %}
                                         <tr><td colspan="4" class="text-center text-muted py-4">لا توجد مواعيد اليوم</td></tr>

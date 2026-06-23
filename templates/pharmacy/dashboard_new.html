@@ -75,7 +75,7 @@
                     {% for rx in pending_prescriptions %}
                     <tr>
                         <td>{{ rx.patient.full_name if rx.patient else '-' }}</td>
-                        <td><span class="badge bg-warning">{{ rx.status }}</span></td>
+                        <td><span class="badge bg-warning">{{ rx.status | enum_label('PrescriptionState') }}</span></td>
                         <td class="small text-muted">{{ rx.created_at.strftime('%Y-%m-%d') if rx.created_at else '-' }}</td>
                     </tr>
                     {% else %}

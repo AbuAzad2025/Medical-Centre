@@ -146,7 +146,7 @@
                 <td>{{ r.title }}</td>
                 <td>{{ r.nurse_name }}</td>
                 <td>{{ r.priority }}</td>
-                <td>{{ r.status }}</td>
+                <td>{{ r.status | enum_label }}</td>
                 <td class="text-danger">{{ r.due_date|format_datetime }}</td>
               </tr>
             {% else %}

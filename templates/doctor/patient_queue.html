@@ -175,7 +175,7 @@
                                             {% elif patient.status == 'ARCHIVED' %}
                                                 <span class="badge badge-secondary">مؤرشف</span>
                                             {% else %}
-                                                <span class="badge badge-secondary">{{ patient.status }}</span>
+                                                <span class="badge badge-secondary">{{ patient.status | enum_label('VisitState') }}</span>
                                             {% endif %}
                                         </td>
                                         <td>

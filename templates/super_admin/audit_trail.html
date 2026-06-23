@@ -217,7 +217,7 @@
                                         {% elif log.status == 'WARNING' %}
                                             <span class="badge bg-warning">تحذير</span>
                                         {% else %}
-                                            <span class="badge bg-light text-dark">{{ log.status }}</span>
+                                            <span class="badge bg-light text-dark">{{ log.status | enum_label }}</span>
                                         {% endif %}
                                     </td>
                                     <td>

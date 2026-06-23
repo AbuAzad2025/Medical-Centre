@@ -12,7 +12,7 @@
           <p><strong>الإجراء:</strong> {{ surgery.procedure_name }}</p>
           <p><strong>التاريخ:</strong> {{ surgery.scheduled_date }} {{ surgery.scheduled_start_time or '' }}</p>
           <p><strong>الغرفة:</strong> {{ surgery.or_room or '-' }}</p>
-          <p><strong>الحالة:</strong> <span class="badge bg-primary">{{ surgery.status }}</span></p>
+          <p><strong>الحالة:</strong> <span class="badge bg-primary">{{ surgery.status | enum_label }}</span></p>
           <p><strong>الأولوية:</strong> {{ surgery.priority }}</p>
         </div>
       </div>

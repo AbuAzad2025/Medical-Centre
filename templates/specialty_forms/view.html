@@ -75,7 +75,7 @@
             {% for ver in form.versions|sort(attribute='version_number', reverse=true) %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <span>v{{ ver.version_number }}</span>
-                <span class="badge bg-{{ 'success' if ver.status == 'published' else ('warning text-dark' if ver.status == 'draft' else 'secondary') }}">{{ ver.status }}</span>
+                <span class="badge bg-{{ 'success' if ver.status == 'published' else ('warning text-dark' if ver.status == 'draft' else 'secondary') }}">{{ ver.status | enum_label }}</span>
             </li>
             {% endfor %}
         </ul>
