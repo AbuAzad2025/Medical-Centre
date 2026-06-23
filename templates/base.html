@@ -37,8 +37,10 @@
 
     <style id="tenant-branding-vars">
     :root {
-      --color-primary: {{ current_tenant.primary_color if current_tenant and current_tenant.primary_color else '#0f4c81' }};
-      --brand-logo-url: url('{{ current_tenant.logo_url if current_tenant and current_tenant.logo_url else url_for('static', filename='img/azad_logo.png') }}');
+      --color-primary: {{ ui.primary_color if ui else '#0f4c81' }};
+      --color-secondary: {{ ui.secondary_color if ui else '#10b981' }};
+      --color-accent: {{ ui.accent_color if ui else '#00a6a6' }};
+      --brand-logo-url: url('{{ ui.logo_url if ui else url_for('static', filename='img/azad_logo.png') }}');
     }
     </style>
 
@@ -90,6 +92,7 @@
         enabled_modules: {{ enabled_modules|list|tojson }},
         saas_mode: {{ 'true' if config.get('ENABLE_SAAS_MODE', False) else 'false' }}
     };
+    window.__ENUMS__ = {{ enums_json|default({})|tojson }};
     function exitImpersonation() {
         var token = document.querySelector('meta[name="csrf-token"]');
         fetch('/auth/impersonate/exit', {

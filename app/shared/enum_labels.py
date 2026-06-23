@@ -1,0 +1,133 @@
+"""Arabic labels for shared enums — Jinja ``enum_label`` filter."""
+from __future__ import annotations
+
+from enum import Enum
+from typing import Any, Optional
+
+from app.shared import enums as enums_module
+
+ENUM_LABELS_AR: dict[str, dict[str, str]] = {
+    'VisitState': {
+        'OPEN': 'مفتوح',
+        'CHECKED_IN': 'حضور مسجّل',
+        'IN_PROGRESS': 'قيد المعالجة',
+        'COMPLETED': 'مكتمل',
+        'ARCHIVED': 'مؤرشف',
+        'CANCELLED': 'ملغى',
+        'NO_SHOW': 'لم يحضر',
+    },
+    'VisitWorkflowStatus': {
+        'REGISTERED': 'مسجّل',
+        'WAITING': 'في الانتظار',
+        'IN_PROGRESS': 'قيد المعالجة',
+        'COMPLETED': 'مكتمل',
+        'ARCHIVED': 'مؤرشف',
+        'CANCELLED': 'ملغى',
+    },
+    'PaymentStatus': {
+        'PENDING': 'قيد الانتظار',
+        'PAID': 'مدفوع',
+        'PARTIAL': 'دفع جزئي',
+        'DEBT': 'دين',
+        'EMERGENCY_DEBT': 'دين طوارئ',
+        'CONFIRMED': 'مؤكّد',
+        'REFUNDED': 'مسترد',
+        'CANCELLED': 'ملغى',
+    },
+    'PaymentMethod': {
+        'CASH': 'نقداً',
+        'CARD': 'بطاقة',
+        'VISA': 'فيزا',
+        'MADA': 'مدى',
+        'WIRE': 'تحويل',
+        'INSURANCE': 'تأمين',
+        'FORCE': 'إدخال قسري',
+    },
+    'AppointmentState': {
+        'SCHEDULED': 'مجدول',
+        'CONFIRMED': 'مؤكّد',
+        'CHECKED_IN': 'حضور مسجّل',
+        'DONE': 'منتهٍ',
+        'COMPLETED': 'مكتمل',
+        'CANCELLED': 'ملغى',
+        'NO_SHOW': 'لم يحضر',
+    },
+    'TenantStatus': {
+        'ACTIVE': 'نشط',
+        'SUSPENDED': 'موقوف',
+        'PENDING': 'قيد الانتظار',
+        'TRIAL': 'تجريبي',
+        'EXPIRED': 'منتهي',
+        'CANCELLED': 'ملغى',
+        'DELETED': 'محذوف',
+    },
+    'UserRole': {
+        'owner': 'مالك المنصة',
+        'super_admin': 'مدير المركز',
+        'admin': 'مسؤول',
+        'manager': 'مدير تشغيل',
+        'reception': 'استقبال',
+        'doctor': 'طبيب',
+        'nurse': 'تمريض',
+        'lab': 'مختبر',
+        'radiology': 'أشعة',
+        'pharmacy': 'صيدلية',
+        'accountant': 'محاسبة',
+        'patient': 'مريض',
+        'emergency': 'طوارئ',
+    },
+}
+
+
+def _member_key(value: Any) -> str:
+    if isinstance(value, Enum):
+        return value.name
+    return str(value).strip()
+
+
+def _lookup_label(enum_name: str, member_key: str) -> Optional[str]:
+    table = ENUM_LABELS_AR.get(enum_name, {})
+    if member_key in table:
+        return table[member_key]
+    upper = member_key.upper()
+    if upper in table:
+        return table[upper]
+    lower = member_key.lower()
+    if lower in table:
+        return table[lower]
+    return None
+
+
+def enum_label(value: Any, enum_name: str = '') -> str:
+    """Jinja filter: ``{{ visit.status | enum_label('VisitState') }}``."""
+    if value is None or value == '':
+        return ''
+    key = _member_key(value)
+
+    if enum_name:
+        label = _lookup_label(enum_name, key)
+        if label:
+            return label
+        enum_cls = getattr(enums_module, enum_name, None)
+        if isinstance(enum_cls, type) and issubclass(enum_cls, Enum):
+            try:
+                member = enum_cls(key)
+                if hasattr(member, 'label_ar'):
+                    return member.label_ar
+            except (ValueError, KeyError):
+                try:
+                    member = enum_cls(key.lower())
+                    if hasattr(member, 'label_ar'):
+                        return member.label_ar
+                except (ValueError, KeyError):
+                    pass
+
+    for table in ENUM_LABELS_AR.values():
+        if key in table:
+            return table[key]
+        if key.upper() in table:
+            return table[key.upper()]
+        if key.lower() in table:
+            return table[key.lower()]
+
+    return key.replace('_', ' ')

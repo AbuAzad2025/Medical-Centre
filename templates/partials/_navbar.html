@@ -5,13 +5,14 @@
         </button>
 
         <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('main.index') }}">
-            {% if current_tenant and current_tenant.logo_url %}
-            <img src="{{ current_tenant.logo_url }}" alt="logo" height="36">
+            {% set nav_logo = ui.logo_url if ui else (current_tenant.logo_url if current_tenant and current_tenant.logo_url else none) %}
+            {% if nav_logo %}
+            <img src="{{ nav_logo }}" alt="logo" height="36">
             {% else %}
             <img src="{{ url_for('static', filename='img/azad_logo.png') }}" alt="logo" height="36">
             {% endif %}
             <span class="brand-text">
-                {{ current_tenant.name if current_tenant else (branding.organization_name if branding else 'نظام آزاد الطبي') }}
+                {{ ui.organization_name if ui else (current_tenant.name if current_tenant else (branding.organization_name if branding else 'نظام آزاد الطبي')) }}
             </span>
         </a>
 
