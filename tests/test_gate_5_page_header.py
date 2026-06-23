@@ -71,6 +71,21 @@ class TestReceptionPagesUsePageHeader:
         assert 'clinical-page-header' in text
         assert 'إدارة الطابور الموحد' in text
 
+    def test_appointments_page_has_clinical_page_header(self, reception_client):
+        resp = reception_client.get('/reception/appointments')
+        assert resp.status_code == 200
+        text = resp.get_data(as_text=True)
+        assert 'clinical-page-header' in text
+        assert 'قائمة المواعيد' in text
+        assert 'data-action="export-appointments"' in text
+
+    def test_follow_ups_page_has_clinical_page_header(self, reception_client):
+        resp = reception_client.get('/reception/follow-ups')
+        assert resp.status_code == 200
+        text = resp.get_data(as_text=True)
+        assert 'clinical-page-header' in text
+        assert 'المتابعات' in text
+
 
 class TestDoctorQueuePageHeader:
     @pytest.fixture

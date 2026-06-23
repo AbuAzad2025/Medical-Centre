@@ -1194,7 +1194,8 @@ document.body.classList.toggle('sidebar-open');
 | **§36 UX** | ✅ G-126…G-129 |
 | **BS4 codemod** | ✅ G-06/G-34 |
 | **المرحلة 5** | 🟡 **19 صفحة** — `_page_header` (استقبال، طبيب، صيدلية، مختبر، أشعة، طوارئ، تمريض، جودة، سوبر أدمن) |
-| **CI GitHub** | ✅ migrate + flake8 + pytest (~**391** حالة) |
+| **تحصين Lean** | ✅ تغطية عالية الكثافة للوحدات عالية الخطورة + إصلاح 3 أخطاء كامنة (`04de18c`) |
+| **CI GitHub** | ✅ migrate + flake8 + pytest (~**536** حالة) |
 
 **Git HEAD:** *(يُحدَّث بعد الدفع)*  
 **اختبارات المرحلة 5:** `test_gate_5_page_header` — 17 حالة
@@ -1203,6 +1204,25 @@ document.body.classList.toggle('sidebar-open');
 1. تعميم `_page_header` على بقية القوالب (~130 صفحة)
 2. `status_label` شامل + حذف `static/adminlte/`
 3. Gate 9 — مطبوعات المختبر standalone
+
+### 11.13 دفعة 2026-06-23 (ليلاً) — تدخل Lean للاختبارات (تأمين النواة الطبية)
+
+منهجية: عزل منطق صافٍ، `@pytest.mark.parametrize` عالي الكثافة، Mock مركزي في `conftest.py`، بدون DB/شبكة حقيقية (<10ms/حالة). **145 حالة جديدة**.
+
+| ملف الاختبار | الهدف | حالات |
+|--------------|--------|-------|
+| `test_unified_mixins.py` | `models/unified_mixins.py` (كان 0%) — dummy classes | 40 |
+| `test_module_validators.py` | `app/core/module/validators.py` | 18 |
+| `test_tenant_service.py` | `app/core/tenant/service.py` (عزل المستأجر) | 18 |
+| `test_workflow_state_machines.py` | مواعيد + مختبر — مصفوفة الانتقالات | 30 |
+| `test_pharmacy_billing_workflows.py` | حراس المخزون/الفوترة (rollback) | 25 |
+| `test_whatsapp_integration.py` | عميل + خدمة (mock `requests`) | 14 |
+
+**أخطاء كامنة كشفتها الاختبارات وأُصلحت:**
+- `routes/doctor/diagnosis.py` — صيغة `case([...])` (SQLAlchemy 1.x) كانت تُعطّل دعم القرار السريري بصمت ← `case((cond, 1), else_=0)`.
+- `routes/doctor/patients.py` — `save_dental_chart` كان يُعيد **500** ويسرّب `str(e)` على إدخال خاطئ ← **422 JSON** آمن.
+- `app/core/module/validators.py` — قاعدة "الاستقبال إلزامي عند >3 وحدات سريرية" كانت **غير قابلة للتحقيق** (الاستقبال يُحذف بفلتر clinical) ← فحص على الاتحاد الكامل.
+- `app/modules/workflows/appointment.py` — `convert_to_visit` يمرّر `appointment_id` غير موجود في `Visit()` ← تعطّل مؤكد عند كل تحويل.
 
 ### 11.12 دفعة 2026-06-23 (مساء) — المرحلة 5 دفعة 3 + إصلاح أخطاء كامنة
 

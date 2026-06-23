@@ -12,6 +12,7 @@ from models.user import User, StaffWorkSchedule, StaffAbsence
 from models.patient import Patient
 from models.visit import Visit
 from models.appointment import Appointment
+from app.shared.enums import AppointmentState
 from models.follow_up import FollowUpRequest
 from models.online_booking import OnlineBooking
 from models.department import Department
@@ -327,8 +328,18 @@ def appointments():
     confirmed_count = db.session.query(func.count(Appointment.id)).filter(Appointment.status == AppointmentState.CONFIRMED).scalar() or 0
     pending_count = db.session.query(func.count(Appointment.id)).filter(Appointment.status == AppointmentState.SCHEDULED).scalar() or 0
 
+    appointments_json = [{
+        'id': a.id,
+        'patient': {'full_name': a.patient.full_name} if getattr(a, 'patient', None) else None,
+        'doctor': {'full_name': a.doctor.full_name} if getattr(a, 'doctor', None) else None,
+        'starts_at': a.starts_at.isoformat() if a.starts_at else None,
+        'status': (a.status or '').lower(),
+        'appointment_type': appt_meta.get(a.id, {}).get('appointment_type'),
+    } for a in appointments]
+
     return render_template('reception/appointments.html', 
                          appointments=appointments, 
+                         appointments_json=appointments_json,
                          departments=departments,
                          doctors=doctors,
                          search=search,
