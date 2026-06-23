@@ -8,7 +8,7 @@ from app.shared.branding_context import get_branding_row, resolve_ui_context
 
 PLATFORM_COPYRIGHT = 'شركة ازاد للأنظمة الذكية'
 
-DOC_TYPES = ('invoice', 'receipt', 'prescription', 'report', 'queue_ticket', 'lab_result', 'radiology_report', 'emergency_report')
+DOC_TYPES = ('invoice', 'receipt', 'prescription', 'report', 'queue_ticket', 'lab_result', 'radiology_report', 'emergency_report', 'pharmacy_sale')
 
 _HEADER_FIELDS = {
     'invoice': 'invoice_header_html',
@@ -19,6 +19,7 @@ _HEADER_FIELDS = {
     'lab_result': 'report_header_html',
     'radiology_report': 'report_header_html',
     'emergency_report': 'report_header_html',
+    'pharmacy_sale': 'receipt_header_html',
 }
 
 _FOOTER_FIELDS = {
@@ -30,6 +31,7 @@ _FOOTER_FIELDS = {
     'lab_result': 'report_footer_html',
     'radiology_report': 'report_footer_html',
     'emergency_report': 'report_footer_html',
+    'pharmacy_sale': None,
 }
 
 

@@ -1,0 +1,73 @@
+{% extends 'print/print_base.html' %}
+{% set doc_type = 'pharmacy_sale' %}
+
+{% block doc_title %}إيصال صيدلية — {{ sale.sale_number or sale.id }}{% endblock %}
+{% block print_button_label %}طباعة الإيصال{% endblock %}
+{% block doc_heading %}إيصال بيع صيدلية{% endblock %}
+
+{% block doc_meta %}
+<span class="print-doc-meta__item"><strong>رقم الفاتورة:</strong> {{ sale.sale_number or ('#' + '%06d' % sale.id) }}</span>
+<span class="print-doc-meta__item"><strong>التاريخ:</strong> {{ sale.created_at.strftime('%Y-%m-%d %H:%M') if sale.created_at else '—' }}</span>
+<span class="print-doc-meta__item"><strong>طريقة الدفع:</strong>
+  {{ (sale.payment_method or 'cash')|upper | enum_label('PaymentMethod') }}
+</span>
+{% if sale.customer_name %}
+<span class="print-doc-meta__item"><strong>العميل:</strong> {{ sale.customer_name }}</span>
+{% endif %}
+{% endblock %}
+
+{% block subject_strip %}
+<div class="print-subject-strip__grid">
+    <div class="print-subject-strip__item"><span>الكاشير</span><span>{{ cashier.full_name if cashier else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>عدد الأصناف</span><span>{{ sale.items|length }}</span></div>
+    {% if sale.transaction_id %}
+    <div class="print-subject-strip__item"><span>مرجع البطاقة</span><span>{{ sale.transaction_id }}</span></div>
+    {% endif %}
+    {% if sale.card_last_digits %}
+    <div class="print-subject-strip__item"><span>آخر 4 أرقام</span><span>{{ sale.card_last_digits }}</span></div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block body %}
+<table class="print-table">
+    <thead>
+        <tr>
+            <th>الدواء</th>
+            <th>الكمية</th>
+            <th>السعر</th>
+            <th>المجموع</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in sale.items %}
+        <tr>
+            <td class="text-end">{{ item.medication_name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ '%.2f'|format(item.unit_price|float) }} ₪</td>
+            <td>{{ '%.2f'|format(item.total_price|float) }} ₪</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">لا توجد أصناف</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% if sale.notes %}
+<div class="print-section">
+    <h3 class="print-section__title">ملاحظات</h3>
+    <div>{{ sale.notes }}</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block totals %}
+<div class="print-total-row print-total-row--final">
+    <span>الإجمالي</span>
+    <span>{{ '%.2f'|format(sale.total_amount|float) }} ₪</span>
+</div>
+{% endblock %}
+
+{% block legal_footer %}
+<p>شكراً لتعاملكم مع {{ branding.organization_name if branding and branding.organization_name else (ui.organization_name if ui else 'صيدليتنا') }}</p>
+<p>تاريخ الطباعة: {{ printed_at.strftime('%Y-%m-%d %H:%M') if printed_at else '—' }}</p>
+{% endblock %}

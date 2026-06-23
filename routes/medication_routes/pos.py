@@ -192,6 +192,33 @@ def sale_detail(sale_id):
     return render_template('pharmacy/sale_receipt.html', sale=sale)
 
 
+@medication_bp.route('/sales/<int:sale_id>/print')
+@login_required
+@role_required('pharmacist', 'admin', 'manager', 'accountant')
+def print_sale_receipt(sale_id):
+    """Printable pharmacy sale receipt on print_base (G-114)."""
+    sale = PharmacySale.query.filter(
+        PharmacySale.tenant_id == current_user.tenant_id,
+        PharmacySale.id == sale_id
+    ).first()
+    if not sale:
+        flash('الفاتورة غير موجودة', 'error')
+        return redirect(url_for('medication.sales_history'))
+    cashier = None
+    if sale.created_by:
+        from models.user import User
+        cashier = User.query.filter_by(
+            id=sale.created_by,
+            tenant_id=current_user.tenant_id,
+        ).first()
+    return render_template(
+        'print/pharmacy_sale_receipt.html',
+        sale=sale,
+        cashier=cashier,
+        printed_at=datetime.now(timezone.utc),
+    )
+
+
 @medication_bp.route('/sales/api/list')
 @login_required
 @role_required('pharmacist', 'admin', 'manager')

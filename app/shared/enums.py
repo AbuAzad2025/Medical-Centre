@@ -667,6 +667,7 @@ class PrintDocType(str, Enum):
     RADIOLOGY_REPORT = "radiology_report"
     EMERGENCY_REPORT = "emergency_report"
     MEDICAL_REPORT = "report"
+    PHARMACY_SALE = "pharmacy_sale"
 
 # =============================================================================
 # Helper: export all enum values as a JSON-serializable dict
