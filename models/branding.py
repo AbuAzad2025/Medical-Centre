@@ -34,6 +34,15 @@ class BrandingSettings(TenantMixin, db.Model):
     # ترويسة التقارير
     report_header_html = db.Column(db.Text, nullable=True)
     report_footer_html = db.Column(db.Text, nullable=True)
+
+    # ترويسات المستندات (G-106)
+    invoice_header_html = db.Column(db.Text, nullable=True)
+    invoice_footer_html = db.Column(db.Text, nullable=True)
+    receipt_header_html = db.Column(db.Text, nullable=True)
+    prescription_header_html = db.Column(db.Text, nullable=True)
+    prescription_footer_html = db.Column(db.Text, nullable=True)
+    tax_number = db.Column(db.String(50), nullable=True)
+    license_number = db.Column(db.String(50), nullable=True)
     
     # إعدادات إضافية
     is_active = db.Column(db.Boolean, default=True)
@@ -80,20 +89,46 @@ class BrandingSettings(TenantMixin, db.Model):
             'accent_color': self.accent_color,
             'report_header_html': self.report_header_html,
             'report_footer_html': self.report_footer_html,
+            'invoice_header_html': self.invoice_header_html,
+            'invoice_footer_html': self.invoice_footer_html,
+            'receipt_header_html': self.receipt_header_html,
+            'prescription_header_html': self.prescription_header_html,
+            'prescription_footer_html': self.prescription_footer_html,
+            'tax_number': self.tax_number,
+            'license_number': self.license_number,
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
     
     @classmethod
+    def _tenant_id(cls):
+        try:
+            from flask import g
+            tenant = getattr(g, 'current_tenant', None)
+            if tenant and getattr(tenant, 'id', None):
+                return tenant.id
+        except Exception:
+            pass
+        return None
+
+    @classmethod
     def get_active_settings(cls):
-        """الحصول على الإعدادات النشطة"""
-        return cls.query.filter_by(is_active=True).first()
-    
+        """الحصول على الإعدادات النشطة — معزولة حسب tenant عند توفره."""
+        tenant_id = cls._tenant_id()
+        q = cls.query.filter_by(is_active=True)
+        if tenant_id:
+            row = q.filter_by(tenant_id=tenant_id).first()
+            if row:
+                return row
+        return q.filter(cls.tenant_id.is_(None)).first() or q.first()
+
     @classmethod
     def create_default(cls, user_id):
         """إنشاء إعدادات افتراضية"""
+        tenant_id = cls._tenant_id()
         default_branding = cls(
+            tenant_id=tenant_id,
             organization_name='المركز الصحي المتخصص',
             organization_name_en='Specialized Medical Center',
             organization_address='فلسطين',

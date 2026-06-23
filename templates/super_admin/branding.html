@@ -114,13 +114,22 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">إعدادات العلامة التجارية</h6>
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">استوديو العلامة التجارية</h6>
+                    <ul class="nav nav-pills card-header-pills" id="brandingMainTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="tab-appearance" data-bs-toggle="pill" data-bs-target="#pane-appearance" type="button" role="tab">المظهر</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-documents" data-bs-toggle="pill" data-bs-target="#pane-documents" type="button" role="tab">مستندات الطباعة</button>
+                        </li>
+                    </ul>
                 </div>
                 <div class="card-body">
-                    <form id="brandingForm" method="POST" enctype="multipart/form-data">
+                    <form id="brandingForm" method="POST" action="{{ url_for('super_admin.update_branding') }}" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        
+                        <div class="tab-content">
+                        <div class="tab-pane fade show active" id="pane-appearance" role="tabpanel">
                         <!-- Organization Information -->
                         <div class="row mb-4">
                             <div class="col-12">
@@ -240,29 +249,7 @@
                             </div>
                         </div>
 
-                        <!-- Report Header/Footer -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h6 class="text-primary mb-3">ترويسة وتذييل التقارير</h6>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="report_header_html" class="form-label">ترويسة التقارير (HTML)</label>
-                                    <textarea class="form-control" id="report_header_html" name="report_header_html" 
-                                              rows="4" placeholder="أدخل HTML للترويسة">{{ branding.report_header_html or '' }}</textarea>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="report_footer_html" class="form-label">تذييل التقارير (HTML)</label>
-                                    <textarea class="form-control" id="report_footer_html" name="report_footer_html" 
-                                              rows="4" placeholder="أدخل HTML للتذييل">{{ branding.report_footer_html or '' }}</textarea>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Report Header/Footer moved to documents tab -->
 
                         <!-- Theme Selection -->
                         <div class="row mb-4">
@@ -294,6 +281,89 @@
                             </div>
                             {% endfor %}
                         </div>
+                        </div>{# end pane-appearance #}
+
+                        <div class="tab-pane fade" id="pane-documents" role="tabpanel">
+                            <div class="row">
+                                <div class="col-lg-7 mb-3">
+                                    <ul class="nav nav-tabs mb-3" id="docTypeTabs" role="tablist">
+                                        {% if module_active('billing') or not current_tenant %}
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" data-doc-type="invoice" type="button">فاتورة</button>
+                                        </li>
+                                        {% endif %}
+                                        {% if module_active('billing') or not current_tenant %}
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" data-doc-type="receipt" type="button">إيصال</button>
+                                        </li>
+                                        {% endif %}
+                                        {% if module_active('doctor') or module_active('pharmacy') or not current_tenant %}
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" data-doc-type="prescription" type="button">روشتة</button>
+                                        </li>
+                                        {% endif %}
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" data-doc-type="report" type="button">تقرير طبي</button>
+                                        </li>
+                                    </ul>
+                                    <iframe id="printPreviewFrame" title="معاينة الترويسة"
+                                            src="{{ url_for('super_admin.branding_print_preview', doc_type='invoice') }}"
+                                            style="width:100%;height:280px;border:1px solid #e2e8f0;border-radius:0.35rem;background:#fff;"></iframe>
+                                    <p class="form-text mt-2">تُحدَّث المعاينة بعد الحفظ. الترويسة الفارغة تستخدم القالب الافتراضي.</p>
+                                </div>
+                                <div class="col-lg-5">
+                                    <div class="doc-fields" data-doc="invoice">
+                                        <h6 class="text-primary mb-3">فاتورة</h6>
+                                        <div class="mb-3">
+                                            <label for="tax_number" class="form-label">الرقم الضريبي</label>
+                                            <input type="text" class="form-control" id="tax_number" name="tax_number" value="{{ branding.tax_number or '' }}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="license_number" class="form-label">رقم الترخيص</label>
+                                            <input type="text" class="form-control" id="license_number" name="license_number" value="{{ branding.license_number or '' }}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="invoice_header_html" class="form-label">ترويسة الفاتورة (HTML)</label>
+                                            <textarea class="form-control" id="invoice_header_html" name="invoice_header_html" rows="3">{{ branding.invoice_header_html or '' }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="invoice_footer_html" class="form-label">تذييل الفاتورة (HTML)</label>
+                                            <textarea class="form-control" id="invoice_footer_html" name="invoice_footer_html" rows="3">{{ branding.invoice_footer_html or '' }}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="doc-fields d-none" data-doc="receipt">
+                                        <h6 class="text-primary mb-3">إيصال</h6>
+                                        <div class="mb-3">
+                                            <label for="receipt_header_html" class="form-label">ترويسة الإيصال (HTML)</label>
+                                            <textarea class="form-control" id="receipt_header_html" name="receipt_header_html" rows="4">{{ branding.receipt_header_html or '' }}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="doc-fields d-none" data-doc="prescription">
+                                        <h6 class="text-primary mb-3">روشتة</h6>
+                                        <div class="mb-3">
+                                            <label for="prescription_header_html" class="form-label">ترويسة الروشتة (HTML)</label>
+                                            <textarea class="form-control" id="prescription_header_html" name="prescription_header_html" rows="3">{{ branding.prescription_header_html or '' }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="prescription_footer_html" class="form-label">تذييل الروشتة (HTML)</label>
+                                            <textarea class="form-control" id="prescription_footer_html" name="prescription_footer_html" rows="3">{{ branding.prescription_footer_html or '' }}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="doc-fields d-none" data-doc="report">
+                                        <h6 class="text-primary mb-3">تقرير طبي</h6>
+                                        <div class="mb-3">
+                                            <label for="report_header_html" class="form-label">ترويسة التقارير (HTML)</label>
+                                            <textarea class="form-control" id="report_header_html" name="report_header_html" rows="3">{{ branding.report_header_html or '' }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="report_footer_html" class="form-label">تذييل التقارير (HTML)</label>
+                                            <textarea class="form-control" id="report_footer_html" name="report_footer_html" rows="3">{{ branding.report_footer_html or '' }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>{# end pane-documents #}
+                        </div>{# end tab-content #}
 
                         <!-- Submit Button -->
                         <div class="row mt-4">
@@ -412,6 +482,9 @@
 <script>
 window.__M = window.__M || [];
 __M0__='{{ url_for("super_admin.update_branding") }}';
+__M1__='{{ url_for("super_admin.branding_print_preview") }}';
+__M2__='{{ url_for("super_admin.apply_branding_theme", theme_id=0) }}'.replace('/0', '');
+__CSRF__='{{ csrf_token() }}';
 </script>
 <script src="{{ url_for('static', filename='js/pages/super_admin/branding.js') }}"></script>
 {% endblock %}

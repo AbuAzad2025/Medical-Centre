@@ -1,0 +1,6 @@
+{# Tenant dynamic header — custom HTML or default #}
+{% if print_header_html %}
+<div class="print-header-custom">{{ print_header_html|safe }}</div>
+{% else %}
+{% include 'print/_print_header_default.html' %}
+{% endif %}

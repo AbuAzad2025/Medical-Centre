@@ -1182,7 +1182,7 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 1–4)
+## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 1–5)
 
 | البند | الحالة |
 |-------|--------|
@@ -1190,12 +1190,11 @@ document.body.classList.toggle('sidebar-open');
 | **مرحلة 2** Gate 2 | ✅ `ui.*`, `enum_label`, `__ENUMS__`, عينات reception/doctor/billing، `logo_url` على BrandingSettings، خطوط G-66 |
 | **مرحلة 3** Gate 3 | ✅ 20→0 `dashboard_base`، `clinical.css` في base + portal، حذف `dashboard_base.html` |
 | Gate 3 متبقي | ⚠️ G-16 (`_footer` inline CSS)، اختبار يدوي modal/z-index |
-| **مرحلة 4** Gate 4 | ✅ `nav_resolver.py`, `_sidebar_dynamic.html`, `inject_nav`, `can()`؛ G-03 فصل owner/super_admin |
-| Gate 4 متبقي | ⚠️ `navbar.css` (إن وُجد CSS inline)، `_breadcrumb.html`، اختبار 403 من sidebar |
+| **مرحلة 4** Gate 4 | ✅ `nav_resolver.py`, `_sidebar_dynamic.html`, `inject_nav`, `can()`؛ G-03 |
+| **مرحلة 5** Gate 5 | ✅ G-106 هجرة، تبويب مستندات، `selectTheme` حفظ، معاينة iframe، عزل tenant |
+| Gate 5 متبقي | ⚠️ ربط حقول print بقوالب `print/*.html` (مرحلة 9) |
 
-**لماذا كان Gate 2 «جزئي» سابقاً؟** البنية (backend) كانت جاهزة لكن القوالب كانت تعرض `COMPLETED` خام — أُصلح في عينات Gate 2؛ باقي القوالب تُرحَّل تدريجياً في مرحلة 8.
-
-**الخطوة التالية:** **مرحلة 5** — استوديو tenant (branding + حقول ترويسة المستندات).
+**الخطوة التالية:** **مرحلة 6** — Owner AZAD shell (16 قالب).
 
 ---
 
@@ -4099,13 +4098,15 @@ flowchart TD
 | **الهدف** | المدير يخصّص المظهر + **حقول ترويسة** المستندات (هجرة DB) |
 | **النواقص** | G-12, G-62, **G-106** (هجرة حقول print headers) |
 | **المراجع** | §13, §34.3 |
-| **ممنوع** | إعادة كتابة قوالب print (المرحلة 9) — **معاينة فقط** إن وُجدت |
+| **الوضع الحالي** | ✅ هجرة `p5_001`، تبويب مستندات + iframe، `apply-theme`، عزل tenant |
 
 | الملف | الإجراء |
 |-------|---------|
-| `super_admin/branding.html` | توسيع + تبويب مستندات (معاينة) |
-| `models/branding.py` | `invoice_*`, `receipt_*`, `prescription_*` |
-| `branding.js` | إصلاح `selectTheme()` حفظ فعلي |
+| `super_admin/branding.html` | ✅ تبويب مستندات + معاينة |
+| `models/branding.py` | ✅ `invoice_*`, `receipt_*`, `prescription_*`, `tax_number` |
+| `branding.js` | ✅ `selectTheme()` + حفظ AJAX |
+| `print/_print_header_default.html` | ✅ |
+| `app/shared/print_context.py` | ✅ |
 
 **Gate 5:**
 - [ ] حفظ شعار + ألوان + عزل tenant
