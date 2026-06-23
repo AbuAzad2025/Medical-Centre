@@ -180,14 +180,12 @@
 </div>
 
 <!-- نافذة استدعاء المريض -->
-<div class="modal fade" id="callPatientModal" tabindex="-1">
+<div class="modal fade" id="callPatientModal" tabindex="-1" aria-labelledby="callPatientModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">استدعاء المريض</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <h5 class="modal-title" id="callPatientModalLabel">استدعاء المريض</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
             </div>
             <div class="modal-body">
                 <div id="patient-info">
@@ -195,7 +193,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">إغلاق</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
                 <button type="button" class="btn btn-success" onclick="startTreatment()">
                     <i class="fas fa-play"></i>
                     بدء العلاج
@@ -206,24 +204,22 @@
 </div>
 
 <!-- نافذة تخطي المريض -->
-<div class="modal fade" id="skipPatientModal" tabindex="-1">
+<div class="modal fade" id="skipPatientModal" tabindex="-1" aria-labelledby="skipPatientModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">تخطي المريض</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <h5 class="modal-title" id="skipPatientModalLabel">تخطي المريض</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
             </div>
             <form id="skipPatientForm">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="skip_reason">سبب التخطي:</label>
+                    <div class="mb-3">
+                        <label for="skip_reason" class="form-label">سبب التخطي:</label>
                         <textarea id="skip_reason" class="form-control" name="reason" rows="3" placeholder="أدخل سبب تخطي المريض..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
                     <button type="submit" class="btn btn-warning">
                         <i class="fas fa-forward"></i>
                         تخطي المريض
@@ -235,24 +231,22 @@
 </div>
 
 <!-- نافذة إلغاء التذكرة -->
-<div class="modal fade" id="cancelTicketModal" tabindex="-1">
+<div class="modal fade" id="cancelTicketModal" tabindex="-1" aria-labelledby="cancelTicketModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">إلغاء التذكرة</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <h5 class="modal-title" id="cancelTicketModalLabel">إلغاء التذكرة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
             </div>
             <form id="cancelTicketForm">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="cancel_reason">سبب الإلغاء:</label>
+                    <div class="mb-3">
+                        <label for="cancel_reason" class="form-label">سبب الإلغاء:</label>
                         <textarea id="cancel_reason" class="form-control" name="reason" rows="3" placeholder="أدخل سبب الإلغاء..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
                     <button type="submit" class="btn btn-danger" data-confirm="هل أنت متأكد من إلغاء التذكرة؟">
                         <i class="fas fa-times"></i>
                         إلغاء التذكرة
@@ -264,24 +258,22 @@
 </div>
 
 <!-- نافذة الموافقة على دين الطوارئ -->
-<div class="modal fade" id="approveEmergencyDebtModal" tabindex="-1">
+<div class="modal fade" id="approveEmergencyDebtModal" tabindex="-1" aria-labelledby="approveEmergencyDebtModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">الموافقة على دين الطوارئ</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <h5 class="modal-title" id="approveEmergencyDebtModalLabel">الموافقة على دين الطوارئ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
             </div>
             <form id="approveEmergencyDebtForm">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="max_amount">الحد الأقصى للمبلغ:</label>
+                    <div class="mb-3">
+                        <label for="max_amount" class="form-label">الحد الأقصى للمبلغ:</label>
                         <input id="max_amount" type="number" class="form-control" name="max_amount" step="0.01" placeholder="أدخل الحد الأقصى للمبلغ">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
                     <button type="submit" class="btn btn-success">
                         <i class="fas fa-check"></i>
                         الموافقة
@@ -293,24 +285,22 @@
 </div>
 
 <!-- نافذة الموافقة على الدخول القوي -->
-<div class="modal fade" id="approveForceEntryModal" tabindex="-1">
+<div class="modal fade" id="approveForceEntryModal" tabindex="-1" aria-labelledby="approveForceEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">الموافقة على الدخول القوي</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <h5 class="modal-title" id="approveForceEntryModalLabel">الموافقة على الدخول القوي</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
             </div>
             <form id="approveForceEntryForm">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="force_reason">سبب الدخول القوي:</label>
+                    <div class="mb-3">
+                        <label for="force_reason" class="form-label">سبب الدخول القوي:</label>
                         <textarea id="force_reason" class="form-control" name="reason" rows="3" placeholder="أدخل سبب الدخول القوي..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
                     <button type="submit" class="btn btn-success">
                         <i class="fas fa-check"></i>
                         الموافقة
