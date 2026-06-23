@@ -1,4 +1,20 @@
 (function() {
+    function confirmAction(message, onConfirm) {
+        var msg = message || 'هل أنت متأكد؟';
+        if (window.Swal && typeof window.Swal.fire === 'function') {
+            window.Swal.fire({
+                title: 'تأكيد',
+                text: msg,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'نعم',
+                cancelButtonText: 'إلغاء',
+            }).then(function(res) { if (res.isConfirmed) onConfirm(); });
+            return;
+        }
+        if (window.confirm(msg)) onConfirm();
+    }
+
     document.addEventListener('click', function(e) {
         var el = e.target.closest('[data-action]');
         if (!el) return;
@@ -16,21 +32,24 @@
                 if (f) f.submit();
                 return;
             case 'confirm':
-                if (confirm(el.dataset.message || 'Confirm?')) {
+                e.preventDefault();
+                confirmAction(el.dataset.message, function() {
                     var f = el.closest('form');
                     if (f) f.submit(); else if (el.href) location.href = el.href;
-                }
+                });
                 return;
             case 'confirm-submit':
-                if (confirm(el.dataset.message || 'Confirm?')) {
+                e.preventDefault();
+                confirmAction(el.dataset.message, function() {
                     var f = el.closest('form');
                     if (f) f.submit();
-                }
+                });
                 return;
             case 'confirm-navigate':
-                if (confirm(el.dataset.message || 'Confirm?')) {
+                e.preventDefault();
+                confirmAction(el.dataset.message, function() {
                     if (el.href) location.href = el.href;
-                }
+                });
                 return;
             case 'toggle-password':
                 var t = document.getElementById(el.dataset.target);

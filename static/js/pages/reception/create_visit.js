@@ -1,14 +1,9 @@
 var __M = window.__M || [];
 
 document.addEventListener('DOMContentLoaded', function() {
-    // البحث الذكي عن المرضى
-    const patientSearch = document.getElementById('patient_search');
-    const searchResults = document.getElementById('patient_suggestions');
     const selectedPatientId = document.getElementById('selectedPatientId');
     const selectedPatientInfo = document.getElementById('selectedPatientInfo');
     const addNewPatientBtn = document.getElementById('addNewPatientBtn');
-
-    let searchTimeout;
 
     var prePid = __M0__;
     var preDept = __M1__;
@@ -22,68 +17,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 الهوية: ${PRESELECTED_PATIENT.national_id} | 
                 الهاتف: ${PRESELECTED_PATIENT.phone}
             `;
+            selectedPatientInfo.classList.remove('d-none');
             selectedPatientInfo.style.display = 'block';
         })();
     }
 
-    patientSearch.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        const query = this.value.trim();
-        
-        if (query.length < 2) {
-            searchResults.style.display = 'none';
-            return;
-        }
-
-        searchTimeout = setTimeout(() => {
-            fetch(`/reception/api/smart-patient-search?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.patients && data.patients.length > 0) {
-                        displaySearchResults(data.patients);
-                    } else {
-                        searchResults.innerHTML = '<div class="list-group-item text-muted">لا توجد نتائج</div>';
-                        searchResults.style.display = 'block';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    searchResults.innerHTML = '<div class="list-group-item text-danger">خطأ في البحث</div>';
-                    searchResults.style.display = 'block';
-                });
-        }, 300);
-    });
-
-    function displaySearchResults(patients) {
-        searchResults.innerHTML = '';
-        patients.forEach(patient => {
-            const item = document.createElement('div');
-            item.className = 'list-group-item list-group-item-action';
-            item.innerHTML = `
-                <div class="d-flex w-100 justify-content-between">
-                    <h6 class="mb-1">${patient.full_name}</h6>
-                    <small>${patient.national_id}</small>
-                </div>
-                <p class="mb-1">${patient.phone} | ${patient.gender}</p>
-                <small>${patient.birth_date || 'تاريخ الميلاد غير محدد'}</small>
-            `;
-            item.addEventListener('click', () => selectPatient(patient));
-            searchResults.appendChild(item);
-        });
-        searchResults.style.display = 'block';
-    }
-
-    function selectPatient(patient) {
-        selectedPatientId.value = patient.id;
-        selectedPatientInfo.innerHTML = `
-            <strong>المريض المحدد:</strong> ${patient.full_name} | 
-            الهوية: ${patient.national_id} | 
-            الهاتف: ${patient.phone}
-        `;
-        selectedPatientInfo.style.display = 'block';
-        searchResults.style.display = 'none';
-        patientSearch.value = '';
-    }
+    // البحث الذكي — يُدار عبر smart-search.js + /api/search/patients
 
     // إضافة مريض جديد
     addNewPatientBtn.addEventListener('click', function() {
@@ -530,12 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // إخفاء نتائج البحث عند النقر خارجها
-    document.addEventListener('click', function(e) {
-        if (!patientSearch.contains(e.target) && !searchResults.contains(e.target)) {
-            searchResults.style.display = 'none';
-        }
-    });
+    // إخفاء نتائج البحث — smart-search.js
 
     // ====== خدمات يدوية ======
     let customServiceCounter = 0;

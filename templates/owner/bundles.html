@@ -195,23 +195,36 @@ document.getElementById('createBundleForm')?.addEventListener('submit', async fu
 });
 
 document.querySelectorAll('.delete-bundle-btn').forEach(btn => {
-    btn.addEventListener('click', async function() {
+    btn.addEventListener('click', function() {
         const id = this.dataset.id;
         const name = this.dataset.name;
-        if (!confirm('تأكيد حذف الباقة "' + name + '"؟')) return;
-        try {
-            const r = await fetch('/owner/api/bundles/' + id, {
-                method: 'DELETE',
-                headers: {'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content},
-            });
-            if (!r.ok) {
-                const err = await r.json();
-                alert('خطأ: ' + (err.error || 'فشل الحذف'));
-                return;
+        const runDelete = async () => {
+            try {
+                const r = await fetch('/owner/api/bundles/' + id, {
+                    method: 'DELETE',
+                    headers: {'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content},
+                });
+                if (!r.ok) {
+                    const err = await r.json();
+                    Swal.fire({ title: 'خطأ', text: err.error || 'فشل الحذف', icon: 'error' });
+                    return;
+                }
+                location.reload();
+            } catch (err) {
+                Swal.fire({ title: 'خطأ', text: 'خطأ في الاتصال', icon: 'error' });
             }
-            location.reload();
-        } catch (err) {
-            alert('خطأ في الاتصال');
+        };
+        if (window.Swal) {
+            Swal.fire({
+                title: 'تأكيد',
+                text: 'تأكيد حذف الباقة "' + name + '"؟',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، حذف',
+                cancelButtonText: 'إلغاء',
+            }).then((res) => { if (res.isConfirmed) runDelete(); });
+        } else if (confirm('تأكيد حذف الباقة "' + name + '"؟')) {
+            runDelete();
         }
     });
 });

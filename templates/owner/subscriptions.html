@@ -72,11 +72,11 @@
                                     {% if t.status.value == 'suspended' %}
                                     <a href="{{ url_for('owner.owner_activate_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-success">تفعيل</a>
                                     {% else %}
-                                    <a href="{{ url_for('owner.owner_suspend_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-warning" data-confirm="تأكيد الإيقاف؟">إيقاف</a>
+                                    <a href="{{ url_for('owner.owner_suspend_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-warning" data-action="confirm-navigate" data-message="تأكيد الإيقاف؟">إيقاف</a>
                                     {% endif %}
-                                    <form method="post" action="{{ url_for('owner.owner_cancel_subscription', tenant_id=t.id) }}" class="d-inline" onsubmit="return confirm('تأكيد إلغاء الاشتراك؟');">
+                                    <form method="post" action="{{ url_for('owner.owner_cancel_subscription', tenant_id=t.id) }}" class="d-inline">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">إلغاء</button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-action="confirm-submit" data-message="تأكيد إلغاء الاشتراك؟">إلغاء</button>
                                     </form>
                                     {% endif %}
                                 </div>

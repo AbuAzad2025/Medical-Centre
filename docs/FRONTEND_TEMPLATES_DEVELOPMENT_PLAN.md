@@ -1182,15 +1182,16 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 1–6)
+## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 1–7)
 
 | البند | الحالة |
 |-------|--------|
-| **مرحلة 5** Gate 5 | ✅ استوديو tenant + G-106 |
-| **مرحلة 6** Gate 6 | ✅ `platform_shell`, `owner/base`, `_owner_sidebar`, 19 قالب، themes/billing/api_keys |
-| Gate 6 متبقي | ⚠️ `tenant_detail` tabs، E2E يدوي، manager (مرحلة 6b) |
+| **مرحلة 3** Gate 3 | ✅ + G-16 footer CSS → `layout.css` |
+| **مرحلة 6** Gate 6 | ✅ shell كامل، tabs `tenant_detail`، SweetAlert، G-145 |
+| **مرحلة 7** Gate 7 | ✅ `/api/search/patients`, smart-search, Tom Select, validators |
+| Gate 7 متبقي | ⚠️ select2 للموظف/تحاليل في create_visit (ترحيل لاحق) |
 
-**الخطوة التالية:** **مرحلة 6b** — manager sidebar + `audit_nav_links`.
+**الخطوة التالية:** **مرحلة 8** — رحلات سريرية + portal rebuild.
 
 ---
 
@@ -4115,17 +4116,18 @@ flowchart TD
 
 | | |
 |--|--|
-| **النواقص** | G-13, G-136–G-146, G-148 |
-| **الوضع الحالي** | **16** ملف `templates/owner/*.html` → `extends "base.html"` |
+| **الوضع الحالي** | ✅ `platform_shell`, `owner/base`, `_owner_sidebar`, 19 قالب، G-148 tabs |
 
-| المخرج | القائمة |
-|--------|---------|
-| `owner/base.html` + `platform_shell.html` | shell جديد |
-| `_owner_sidebar.html` | 1:1 مع routes في `app/modules/owner/routes.py` |
-| ترحيل 16 قالب | تغيير extends → `owner/base.html` |
-| صفحات ناقصة | `themes`, `billing`, `api_keys` (G-30–G-32) |
+#### مرحلة 7 — بحث ذكي + تحقق إدخال
+
+| | |
+|--|--|
+| **الوضع الحالي** | ✅ `search_service`, `/api/search/patients`, `smart-search.js`, `validators.py`, `form-validation.js` |
+| **عينة** | `create_visit` + `patients` modal (هوية/جوال) |
 
 **Gate 6:** §37.8 — owner sidebar كامل؛ لا `super_admin.*` لدور owner
+
+**Gate 7:** `/api/search/patients` + Tom Select قسم + validators عينة
 
 ---
 

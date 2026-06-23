@@ -85,6 +85,7 @@
     <script src="{{ url_for('static', filename='js/events.js') }}"></script>
     <script src="{{ url_for('static', filename='js/performance.js') }}"></script>
     <script src="{{ url_for('static', filename='js/security.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/form-validation.js') }}"></script>
     <script>
     window.__TENANT = {
         slug: {{ (current_tenant.slug if current_tenant else 'null')|tojson }},
@@ -94,6 +95,7 @@
         saas_mode: {{ 'true' if config.get('ENABLE_SAAS_MODE', False) else 'false' }}
     };
     window.__ENUMS__ = {{ enums_json|default({})|tojson }};
+    window.__VALIDATION_RULES__ = {{ validation_rules|default({})|tojson }};
     function exitImpersonation() {
         var token = document.querySelector('meta[name="csrf-token"]');
         fetch('/auth/impersonate/exit', {

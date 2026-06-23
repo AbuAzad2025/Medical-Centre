@@ -107,16 +107,18 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="patientFormModal" method="POST" action="{{ url_for('reception.add_patient') }}">
+                    <form id="patientFormModal" method="POST" action="{{ url_for('reception.add_patient') }}" data-validate-form>
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="row">
                             <div class="col-md-6">
                                 <label class="form-label" for="national_id_modal">رقم الهوية الوطنية</label>
-                                <input class="form-control" id="national_id_modal" name="national_id">
+                                <input class="form-control" id="national_id_modal" name="national_id" data-validate="national_id" inputmode="numeric" maxlength="9">
+                                <div class="invalid-feedback" data-error-for="national_id"></div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="phone_modal">رقم الهاتف</label>
-                                <input class="form-control" id="phone_modal" name="phone" required>
+                                <input class="form-control" id="phone_modal" name="phone" required data-validate="phone" inputmode="tel">
+                                <div class="invalid-feedback" data-error-for="phone"></div>
                             </div>
                         </div>
                         <div class="row mt-2">

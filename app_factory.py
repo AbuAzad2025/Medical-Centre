@@ -588,6 +588,8 @@ def create_app(config_name: str | None = None) -> Flask:
     _add_guard_once(fhir_bp, "integration")
 
     app.register_blueprint(main_bp)
+    from routes.api_search import api_search_bp
+    app.register_blueprint(api_search_bp, url_prefix='/api/search')
     app.register_blueprint(owner_bp, url_prefix='/owner')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(super_admin_bp, url_prefix='/super-admin')
@@ -752,6 +754,11 @@ def create_app(config_name: str | None = None) -> Flask:
                 'owner_nav_href': owner_nav_href,
             }
         return {'owner_nav_sections': [], 'owner_nav_href': lambda item: '#'}
+
+    @app.context_processor
+    def inject_validation_rules():
+        from app.shared.validators import get_rules_json
+        return {'validation_rules': get_rules_json()}
 
     # Enum helpers for templates
     @app.context_processor
