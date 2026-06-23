@@ -41,6 +41,15 @@ def app():
         try:
             from sqlalchemy import text
             _db.session.execute(text('ALTER TABLE tenants ADD COLUMN IF NOT EXISTS settings JSONB'))
+            _db.session.execute(text(
+                "ALTER TABLE pharmacy_sales ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20) DEFAULT 'cash'"
+            ))
+            _db.session.execute(text(
+                'ALTER TABLE pharmacy_sales ADD COLUMN IF NOT EXISTS card_last_digits VARCHAR(4)'
+            ))
+            _db.session.execute(text(
+                'ALTER TABLE pharmacy_sales ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(80)'
+            ))
             _db.session.commit()
         except Exception:
             _db.session.rollback()

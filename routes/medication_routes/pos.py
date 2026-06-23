@@ -10,6 +10,9 @@ import logging, json
 from routes.medication_routes import medication_bp
 from models.medication import Medication, PharmacySale, PharmacySaleItem, PharmacyReturn
 from app_factory import db
+from app.shared.pos_charge import execute_pos_charge
+from app.shared.user_messages import user_message
+from services.pos_terminal_service import PosTerminalService
 
 
 @medication_bp.route('/pos')
@@ -22,7 +25,25 @@ def pos():
         Medication.is_active == True,
         Medication.stock_quantity > 0
     ).order_by(Medication.trade_name).all()
-    return render_template('pharmacy/pos.html', medications=medications)
+    return render_template(
+        'pharmacy/pos.html',
+        medications=medications,
+        pos_enabled=PosTerminalService.is_enabled(),
+    )
+
+
+@medication_bp.route('/pos/charge', methods=['POST'])
+@login_required
+@role_required('pharmacist', 'admin', 'manager')
+def pharmacy_pos_charge():
+    """Charge card via local POS terminal (same device as reception)."""
+    amount_raw = None
+    if request.is_json:
+        amount_raw = (request.json or {}).get('amount')
+    else:
+        amount_raw = request.form.get('amount')
+    result, status = execute_pos_charge(amount_raw)
+    return jsonify(result), status
 
 
 @medication_bp.route('/api/medications/search')
@@ -66,10 +87,22 @@ def pos_sell():
         items_data = data['items']
         customer_name = data.get('customer_name', '').strip()
         notes = data.get('notes', '').strip()
+        payment_method = (data.get('payment_method') or 'cash').strip().lower()
+        card_last_digits = (data.get('card_last_digits') or '').strip() or None
+        transaction_id = (data.get('transaction_id') or '').strip() or None
+
+        if payment_method in ('card', 'visa', 'mada') and not transaction_id:
+            return jsonify({
+                'success': False,
+                'message': 'يرجى تحصيل المبلغ عبر جهاز البطاقة قبل إتمام البيع',
+            }), 400
 
         sale = PharmacySale(
             tenant_id=current_user.tenant_id,
             total_amount=0,
+            payment_method=payment_method,
+            card_last_digits=card_last_digits,
+            transaction_id=transaction_id,
             status='completed',
             customer_name=customer_name or None,
             notes=notes,
