@@ -1,0 +1,38 @@
+{# Dynamic sidebar — nav_sections from app/shared/nav_resolver.py #}
+<aside class="clinical-sidebar" id="appSidebar">
+    <div class="sidebar-header d-lg-none p-3 border-bottom d-flex justify-content-between align-items-center">
+        <strong>القائمة</strong>
+        <button type="button" class="btn btn-sm btn-light" id="closeSidebarBtn" aria-label="إغلاق القائمة">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <nav class="sidebar-nav p-2" aria-label="التنقل الرئيسي">
+        <ul class="nav flex-column">
+            {% for section in nav_sections %}
+                {% if section.title_ar %}
+                <li class="nav-item mt-2">
+                    <span class="nav-section-title">{{ section.title_ar }}</span>
+                </li>
+                {% endif %}
+                {% for item in section.items %}
+                {% set is_active = false %}
+                {% if item.active_prefix == '__home__' %}
+                    {% if request.endpoint in ('main.index', 'main.dashboard') %}
+                        {% set is_active = true %}
+                    {% endif %}
+                {% elif item.active_prefix and request.path.startswith(item.active_prefix) %}
+                    {% set is_active = true %}
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if is_active else '' }}"
+                       href="{% if item.id == 'home' %}{{ url_for('main.index') }}{% else %}{{ item.href }}{% endif %}">
+                        <i class="{{ item.icon }} nav-icon"></i>
+                        <span>{{ item.label_ar }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </nav>
+</aside>
