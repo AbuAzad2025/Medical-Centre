@@ -2,7 +2,7 @@
 
 **اسم الخطة:** Frontend & Templates Development Plan  
 **الإصدار:** v2.8  
-**التاريخ:** 2026-06-23 (مرحلة 1 ✅ + مرحلة 2 ✅ — 2026-06-23)  
+**التاريخ:** 2026-06-23 (مرحلة 1 ✅ + مرحلة 2 ✅ — محدّث 2026-06-23 مساءً — **توقف مؤقت**)  
 **النطاق السابق:** v2.7 — تحقق post UX1-005/006  
 **منهجية:** اعتماد v2.8 → **§17** (موجات 0→14، بلا تناقض) → Gates — **§39–§40**
 
@@ -1182,26 +1182,53 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 14)
+## 11. حالة التنفيذ الحالية (2026-06-23 — **توقف مؤقت** بعد §35/§36 + Gate 9 + بداية المرحلة 5)
 
 | البند | الحالة |
 |-------|--------|
 | **مرحلة 8** | ✅ stepper استقبال + context bar طبيب + portal rebuild |
-| **مرحلة 9** | ✅ `print_base` + 5 مطبوعات + `resolve_print_context` |
+| **مرحلة 9** Gate 9 | ✅ `print_base` + 5 مطبوعات + **G-114** إيصال صيدلية + **G-155** منشأة في الروشتة |
 | **مرحلة 10** | ✅ Command Center MVP — 8 dashboards محوّلة |
-| **مرحلة 11** Gate 11 | ✅ theme toggle + `users.preferences` + هجرة `p11_001` |
-| **مرحلة 12** Gate 12 | ✅ PWA موحّد + mobile nav + kiosk check-in |
-| **مرحلة 13** Gate 13 | ✅ motion.js + macros في 3 قوالب |
-| **مرحلة 14** Gate 14 | ✅ ReportTemplate + G-134 + BS4 debt |
-| **مرحلة 6b** Gate 6b | ✅ manager sidebar (23 رابط) + audit + إصلاحات routes |
-| Gate 11 متبقي | ✅ density/radius UI + تخصيص widgets |
-| **دين 6b** | ✅ *(2026-06-23)* — انظر §11.9 |
-| **CI GitHub** | ✅ workflow موحّد — syntax lint + pytest + migrations |
+| **مرحلة 11** Gate 11 | ✅ theme + preferences + density/radius + widgets |
+| **مرحلة 12** Gate 12 | ✅ PWA + mobile nav + kiosk |
+| **مرحلة 13** Gate 13 | ✅ motion + ماكروهات سياق المريض |
+| **مرحلة 14** Gate 14 | ✅ ReportTemplate + G-134 |
+| **مرحلة 6b** | ✅ manager sidebar + nav audit |
+| **§35 POS** | ✅ G-116…G-125 (POS، ماكرو دفع، اختبارات `test_phase35_pos.py`) |
+| **§36 UX** | ✅ G-126…G-129 (`notify.*`، `user_message` filter، doctor JS، `_empty_state`) |
+| **BS4 codemod** | ✅ G-06/G-34 — modals + `fw-bold` + `scripts/bs4_audit.py` |
+| **G-120** | ✅ تسميات دفع عربية |
+| **المرحلة 5** | 🟡 **جزئي** — `_page_header.html` على 4 مسارات (visits، queue، doctor queue، POS) |
+| **CI GitHub** | ✅ migrate + flake8 + pytest (~**374** حالة) — إصلاح `route_inventory` لمسار `/print` |
 
-**Git HEAD:** `c5f9a36` → يُحدَّث بعد دفع مرحلة 14  
-**هجرة DB:** `p11_001_user_preferences`
+**Git HEAD:** `d1939f5`  
+**اختبارات جديدة (هذه الدفعة):** `test_gate_bs4_codemod`، `test_phase35_pos`، `test_gate_36_ux`، `test_gate_9_print`، `test_gate_5_page_header`
 
-**الخطوة التالية:** Gate 11 متبقي (widgets UI) أو codemod BS4 أو §35 POS.
+**الخطوة التالية (عند الاستئناف):**
+1. تأكيد CI أخضر على `d1939f5`
+2. تعميم `_page_header` + `_empty_state` (باقي المرحلة 5)
+3. حذف/تنظيف `static/adminlte/` بعد تدقيق الاستخدام
+4. S0-003/004 SaaS (خارج نطاق الواجهة — `PLAN_2026-06-21.md`)
+
+### 11.10 دفعة 2026-06-23 (مساء) — ما نُفّذ قبل التوقف
+
+| الموضوع | Commits | ملفات/اختبارات رئيسية |
+|---------|---------|------------------------|
+| BS4 + §35 | `970fcad` | `bs4_audit.py`، `_payment_method_select.html`، `test_gate_bs4_codemod`، `test_phase35_pos` |
+| §36 | `369f197` | `user_messages.py` + filter، `api-feedback.js`، `_empty_state.html`، `test_gate_36_ux` |
+| Gate 9 | `6a90853` | `print/pharmacy_sale_receipt.html`، `/sales/<id>/print`، `test_gate_9_print` |
+| المرحلة 5 | `a0788ca` | `partials/_page_header.html`، 4 قوالب، `test_gate_5_page_header` |
+| إصلاح CI | `d1939f5` | `route_inventory.json` — مسار `medication.print_sale_receipt` |
+
+**Gate 9 (محدّث):**
+- [x] روشتة/فاتورة/إيصال/تقارير على `print_base`
+- [x] **G-114** — `pharmacy_sale_receipt` + route طباعة
+- [x] **G-155** — سطر المنشأة الديناميكي في `prescription.html`
+- [ ] توحيد مطبوعات المختبر standalone (متبقي)
+
+**دين BS4:** ✅ مُغلق في القوالب (codemod) — compat في `clinical.css` يبقى لـ JS/HTML ديناميكي؛ `form-group` في ~7 قوالب legacy.
+
+**الخطوة التالية:** تعميم المرحلة 5 — ليس BS4 ولا §35 (مكتملان).
 
 ### 11.9 مرحلة 6b — ما نُفّذ (2026-06-23)
 
@@ -1239,13 +1266,13 @@ document.body.classList.toggle('sidebar-open');
 | `static/js/pages/radiology/process.js` | إزالة `window.alert` |
 | `tests/test_phase14_launch.py` | G-134 (20 شاشة) + ReportTemplate + §8 |
 
-**دين BS4 (مقبول — Gate 14):** ~250+ `font-weight-bold` / `data-dismiss` في قوالب legacy؛ طبقة compat في `clinical.css` حتى codemod لاحق.
+**دين BS4:** ✅ مُغلق في القوالب (2026-06-23 — `970fcad`)؛ طبقة compat في `clinical.css` للكود الديناميكي فقط.
 
 **Gate 14:**
 - [x] §8.1–8.3 آلياً عبر `test_phase14_launch.py`
 - [x] **G-134** — مسح 20 شاشة عينة
 - [x] `ReportTemplate` مربوط بـ report_builder + reports-center
-- [x] BS4 legacy — compat layer + دين مُوثّق
+- [x] BS4 legacy — codemod + compat layer (§11.10)
 
 **Git HEAD:** *(يُحدَّث بعد الدفع)*
 
@@ -1332,11 +1359,12 @@ document.body.classList.toggle('sidebar-open');
 | `app/shared/enums.py` | `PrintDocType` enum |
 | `templates/super_admin/branding_preview.html` | معاينة = ترويسة tenant + ختم AZAD |
 
-**Gate 9 (جزئي — MVP):**
+**Gate 9 (جزئي — MVP+):**
 - [x] روشتة/فاتورة/إيصال/تقارير على `print_base`
 - [x] ترويسة tenant ديناميكية (`_print_header_slot`)
 - [x] ختم AZAD في كل المطبوعات
-- [ ] `sale_receipt` pharmacy على print_base (G-114)
+- [x] `sale_receipt` صيدلية على `print_base` (G-114) — `print/pharmacy_sale_receipt.html`
+- [x] G-155 — منشأة ديناميكية في `prescription.html`
 - [ ] توحيد lab standalone prints
 
 ---
