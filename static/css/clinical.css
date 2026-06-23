@@ -753,7 +753,7 @@ body.clinical-theme .user-profile-btn {
   }
 }
 
-/* BS4 → BS5 compat (phase 14 debt bridge — see §11.8) */
+/* BS4 → BS5 compat bridge (phase 14 — keep until static/JS strings are migrated) */
 .font-weight-bold { font-weight: var(--font-weight-bold, 700) !important; }
 .font-weight-normal { font-weight: 400 !important; }
 .text-gray-800 { color: var(--color-text, #1e293b) !important; }

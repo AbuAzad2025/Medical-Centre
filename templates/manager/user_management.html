@@ -42,10 +42,10 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">
                                 إجمالي المستخدمين
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ users|length }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ users|length }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-users fa-2x text-gray-300"></i>
@@ -60,10 +60,10 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            <div class="text-xs fw-bold text-success text-uppercase mb-1">
                                 المستخدمين النشطين
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <div class="h5 mb-0 fw-bold text-gray-800">
                                 {{ users|selectattr('is_active', 'equalto', True)|list|length }}
                             </div>
                         </div>
@@ -80,10 +80,10 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">
                                 المستخدمين المعطلين
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <div class="h5 mb-0 fw-bold text-gray-800">
                                 {{ users|selectattr('is_active', 'equalto', False)|list|length }}
                             </div>
                         </div>
@@ -100,10 +100,10 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            <div class="text-xs fw-bold text-info text-uppercase mb-1">
                                 المديرين
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <div class="h5 mb-0 fw-bold text-gray-800">
                                 {{ users|selectattr('is_admin', 'equalto', True)|list|length }}
                             </div>
                         </div>
@@ -121,7 +121,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">قائمة المستخدمين</h6>
+                    <h6 class="m-0 fw-bold text-primary">قائمة المستخدمين</h6>
                     <div class="d-flex gap-2">
                         <button class="btn btn-sm btn-outline-primary" data-action="filter-users" data-value="all">الكل</button>
                         <button class="btn btn-sm btn-outline-success" data-action="filter-users" data-value="active">النشطين</button>
@@ -155,7 +155,7 @@
                                                 {{ user.full_name[0] if user.full_name else 'U' }}
                                             </div>
                                             <div>
-                                                <div class="font-weight-bold">{{ user.full_name or 'غير محدد' }}</div>
+                                                <div class="fw-bold">{{ user.full_name or 'غير محدد' }}</div>
                                                 <small class="text-muted">{{ user.phone or 'لا يوجد رقم' }}</small>
                                             </div>
                                         </div>
@@ -227,7 +227,7 @@
         <div class="col-lg-8">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">توزيع الأدوار</h6>
+                    <h6 class="m-0 fw-bold text-primary">توزيع الأدوار</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -278,25 +278,25 @@
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">إحصائيات سريعة</h6>
+                    <h6 class="m-0 fw-bold text-primary">إحصائيات سريعة</h6>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
                         <div class="d-flex justify-content-between">
                             <span>المستخدمين الجدد اليوم</span>
-                            <span class="font-weight-bold text-success">3</span>
+                            <span class="fw-bold text-success">3</span>
                         </div>
                     </div>
                     <div class="mb-3">
                         <div class="d-flex justify-content-between">
                             <span>آخر تسجيل دخول</span>
-                            <span class="font-weight-bold text-info">منذ 5 دقائق</span>
+                            <span class="fw-bold text-info">منذ 5 دقائق</span>
                         </div>
                     </div>
                     <div class="mb-3">
                         <div class="d-flex justify-content-between">
                             <span>معدل النشاط</span>
-                            <span class="font-weight-bold text-warning">85%</span>
+                            <span class="fw-bold text-warning">85%</span>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -315,7 +315,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">إجراءات جماعية</h6>
+                    <h6 class="m-0 fw-bold text-primary">إجراءات جماعية</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">

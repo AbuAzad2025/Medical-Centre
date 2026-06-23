@@ -40,7 +40,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">معلومات الموعد</h6>
+                    <h6 class="m-0 fw-bold text-primary">معلومات الموعد</h6>
                 </div>
                 <div class="card-body">
                     <form id="appointmentForm" method="POST" action="{% if mode == 'edit' and appointment %}{{ url_for('reception.edit_appointment', appointment_id=appointment.id) }}{% else %}{{ url_for('reception.create_appointment') }}{% endif %}">

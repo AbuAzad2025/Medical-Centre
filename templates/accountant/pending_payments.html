@@ -43,9 +43,9 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">
                                 إجمالي الفواتير</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ visits|length }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ visits|length }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-file-invoice fa-2x text-gray-300"></i>
@@ -59,9 +59,9 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">
                                 المبلغ الإجمالي</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <div class="h5 mb-0 fw-bold text-gray-800">
                                 {{ "%.2f"|format(visits|sum(attribute='total_amount')) }} ريال
                             </div>
                         </div>
@@ -77,9 +77,9 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            <div class="text-xs fw-bold text-info text-uppercase mb-1">
                                 المدفوع</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <div class="h5 mb-0 fw-bold text-gray-800">
                                 {{ "%.2f"|format(visits|sum(attribute='paid_amount')) }} ريال
                             </div>
                         </div>
@@ -95,9 +95,9 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            <div class="text-xs fw-bold text-danger text-uppercase mb-1">
                                 المتبقي</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <div class="h5 mb-0 fw-bold text-gray-800">
                                 {{ "%.2f"|format((visits|sum(attribute='total_amount')) - (visits|sum(attribute='paid_amount'))) }} ريال
                             </div>
                         </div>
@@ -115,7 +115,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
+                    <h6 class="m-0 fw-bold text-primary">
                         <i class="fas fa-list me-2"></i>
                         الفواتير المعلقة
                     </h6>

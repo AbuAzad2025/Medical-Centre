@@ -52,7 +52,7 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">معلومات الزيارة</h6>
+                    <h6 class="m-0 fw-bold text-primary">معلومات الزيارة</h6>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-secondary mb-4">
@@ -263,14 +263,8 @@
                                             <div class="col-md-4">
                                                 <div class="mb-3">
                                                     <label for="payment_method" class="form-label">طريقة الدفع <span class="text-danger">*</span></label>
-                                                    <select class="form-control" id="payment_method" name="payment_method" required>
-                                                        <option value="">اختر طريقة الدفع...</option>
-                                                        <option value="CASH">نقداً</option>
-                                                        <option value="CARD">فيزا</option>
-                                                        <option value="INSURANCE">تأمين</option>
-                                                        <option value="WIRE">تحويل بنكي</option>
-                                                        <option value="FORCE">دفع قوي</option>
-                                                    </select>
+                                                    {% from 'partials/_payment_method_select.html' import payment_method_select %}
+                                                    {{ payment_method_select(id='payment_method', css_class='form-control', placeholder='اختر طريقة الدفع...', include_force=true) }}
                                                 </div>
                                             </div>
                                             <div class="col-md-4">

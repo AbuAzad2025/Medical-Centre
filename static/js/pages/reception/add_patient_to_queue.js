@@ -124,7 +124,10 @@ function showConfirmModal(formData) {
     confirmInfo += '</div>';
     
     document.getElementById('confirmInfo').innerHTML = confirmInfo;
-    $('#confirmAddModal').modal('show');
+    const modalEl = document.getElementById('confirmAddModal');
+    if (modalEl && window.bootstrap) {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
 }
 
 // إرسال النموذج
@@ -149,12 +152,11 @@ function submitForm() {
     });
 }
 
-// تحميل أولي
-$(document).ready(function() {
-    // إضافة التحقق من صحة النموذج
+// تحميل أولي — التحقق من صحة الحقول المطلوبة
+document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('addPatientForm');
+    if (!form) return;
     const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
-    
     inputs.forEach(input => {
         input.addEventListener('blur', function() {
             if (!this.value) {

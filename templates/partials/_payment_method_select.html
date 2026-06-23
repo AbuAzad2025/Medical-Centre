@@ -1,0 +1,28 @@
+{# G-123: unified payment method UI — select (forms) + radios (pharmacy POS) #}
+
+{% macro payment_method_select(name='payment_method', id=None, selected='', required=true, css_class='form-select', placeholder='اختر طريقة الدفع...', include_wire=true, include_force=false, include_insurance=true) %}
+{% set field_id = id or name %}
+<select class="{{ css_class }}" name="{{ name }}" id="{{ field_id }}" {% if required %}required title="طريقة الدفع"{% endif %}>
+  {% if placeholder %}<option value="">{{ placeholder }}</option>{% endif %}
+  <option value="CASH" {% if selected == 'CASH' %}selected{% endif %}>نقداً</option>
+  <option value="CARD" {% if selected == 'CARD' %}selected{% endif %}>بطاقة</option>
+  {% if include_insurance %}<option value="INSURANCE" {% if selected == 'INSURANCE' %}selected{% endif %}>تأمين</option>{% endif %}
+  {% if include_wire %}<option value="WIRE" {% if selected == 'WIRE' %}selected{% endif %}>تحويل بنكي</option>{% endif %}
+  {% if include_force %}<option value="FORCE" {% if selected == 'FORCE' %}selected{% endif %}>دفع قوي</option>{% endif %}
+</select>
+{% endmacro %}
+
+{% macro payment_method_radios(name='paymentMethod', cash_id='payCash', card_id='payCard', show_card=true, checked='cash') %}
+<div class="d-flex gap-3 flex-wrap">
+  <div class="form-check">
+    <input class="form-check-input" type="radio" name="{{ name }}" id="{{ cash_id }}" value="cash" {% if checked == 'cash' %}checked{% endif %}>
+    <label class="form-check-label" for="{{ cash_id }}">نقداً</label>
+  </div>
+  {% if show_card %}
+  <div class="form-check">
+    <input class="form-check-input" type="radio" name="{{ name }}" id="{{ card_id }}" value="card" {% if checked == 'card' %}checked{% endif %}>
+    <label class="form-check-label" for="{{ card_id }}">بطاقة</label>
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}
