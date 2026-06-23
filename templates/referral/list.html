@@ -15,7 +15,7 @@
             <td>{{ r.receiving_facility or '-' }}</td>
             <td>{{ r.receiving_specialty or '-' }}</td>
             <td><span class="badge bg-{% if r.urgency=='URGENT' %}danger{% elif r.urgency=='STAT' %}dark{% else %}info{% endif %}">{{ r.urgency }}</span></td>
-            <td><span class="badge bg-secondary">{{ r.status }}</span></td>
+            <td><span class="badge bg-secondary">{{ r.status | enum_label }}</span></td>
             <td><a href="{{ url_for('referral.detail', referral_id=r.id) }}" class="btn btn-sm btn-outline-primary">عرض</a></td>
           </tr>
         {% else %}

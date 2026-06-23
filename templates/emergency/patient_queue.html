@@ -231,7 +231,7 @@
                                             {% elif emergency.status == 'OBSERVATION' %}
                                                 <span class="badge badge-success">تحت المراقبة</span>
                                             {% else %}
-                                                <span class="badge badge-secondary">{{ emergency.status }}</span>
+                                                <span class="badge badge-secondary">{{ emergency.status | enum_label('EmergencyStatus') }}</span>
                                             {% endif %}
                                         </td>
                                         <td>

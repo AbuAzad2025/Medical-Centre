@@ -17,7 +17,7 @@
               <option value="">اختر زيارة</option>
               {% for v in visits or [] %}
                 <option value="{{ v.id }}" {% if selected_visit and selected_visit.id == v.id %}selected{% endif %}>
-                  #{{ v.id }} — {{ v.patient.full_name if v.patient else v.patient_id }} — {{ v.status }}
+                  #{{ v.id }} — {{ v.patient.full_name if v.patient else v.patient_id }} — {{ v.status | enum_label('VisitState') }}
                 </option>
               {% endfor %}
             </select>

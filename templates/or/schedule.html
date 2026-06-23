@@ -15,7 +15,7 @@
             <td>{{ s.procedure_name }}</td>
             <td>{{ s.or_room or '-' }}</td>
             <td>{{ s.surgeon.full_name if s.surgeon else '-' }}</td>
-            <td><span class="badge bg-{% if s.status=='COMPLETED' %}success{% elif s.status=='IN_PROGRESS' %}primary{% elif s.status=='CANCELLED' %}danger{% else %}warning{% endif %}">{{ s.status }}</span></td>
+            <td><span class="badge bg-{% if s.status=='COMPLETED' %}success{% elif s.status=='IN_PROGRESS' %}primary{% elif s.status=='CANCELLED' %}danger{% else %}warning{% endif %}">{{ s.status | enum_label }}</span></td>
             <td><a href="{{ url_for('or.surgery_detail', surgery_id=s.id) }}" class="btn btn-sm btn-outline-primary">عرض</a></td>
           </tr>
         {% else %}

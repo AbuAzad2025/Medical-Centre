@@ -132,7 +132,7 @@
                                 {% elif visit.status == 'ARCHIVED' %}
                                     <span class="badge badge-secondary">مؤرشف</span>
                                 {% else %}
-                                    <span class="badge badge-secondary">{{ visit.status }}</span>
+                                    <span class="badge badge-secondary">{{ visit.status | enum_label('VisitState') }}</span>
                                 {% endif %}
                             </div>
                             <div class="mb-3">
@@ -526,7 +526,7 @@
                                                     {% elif lab.status == 'CANCELLED' %}
                                                         <span class="badge badge-danger">ملغي</span>
                                                     {% else %}
-                                                        <span class="badge badge-secondary">{{ lab.status }}</span>
+                                                        <span class="badge badge-secondary">{{ lab.status | enum_label('OrderState') }}</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>{{ lab.created_at.strftime('%Y-%m-%d') if lab.created_at else 'غير محدد' }}</td>
@@ -577,7 +577,7 @@
                                                     {% elif radiology.status == 'CANCELLED' %}
                                                         <span class="badge badge-danger">ملغي</span>
                                                     {% else %}
-                                                        <span class="badge badge-secondary">{{ radiology.status }}</span>
+                                                        <span class="badge badge-secondary">{{ radiology.status | enum_label('OrderState') }}</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>{{ radiology.created_at.strftime('%Y-%m-%d') if radiology.created_at else 'غير محدد' }}</td>

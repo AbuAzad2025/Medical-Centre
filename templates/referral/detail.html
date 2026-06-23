@@ -7,7 +7,7 @@
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-6"><strong>المريض:</strong> {{ referral.patient.full_name if referral.patient else '-' }}</div>
-        <div class="col-md-6"><strong>الحالة:</strong> <span class="badge bg-primary">{{ referral.status }}</span></div>
+        <div class="col-md-6"><strong>الحالة:</strong> <span class="badge bg-primary">{{ referral.status | enum_label }}</span></div>
         <div class="col-md-6"><strong>الجهة المُحال إليها:</strong> {{ referral.receiving_facility or '-' }}</div>
         <div class="col-md-6"><strong>الطبيب المستقبل:</strong> {{ referral.receiving_doctor_name or '-' }}</div>
         <div class="col-md-6"><strong>التخصص:</strong> {{ referral.receiving_specialty or '-' }}</div>

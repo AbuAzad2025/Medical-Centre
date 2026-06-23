@@ -48,7 +48,7 @@
                     {% if radiology_request %}
                     <div class="row g-3">
                         <div class="col-md-6"><strong>رقم الطلب:</strong> {{ radiology_request.request_number or radiology_request.id }}</div>
-                        <div class="col-md-6"><strong>الحالة:</strong> <span class="badge bg-info">{{ radiology_request.status }}</span></div>
+                        <div class="col-md-6"><strong>الحالة:</strong> <span class="badge bg-info">{{ radiology_request.status | enum_label('OrderState') }}</span></div>
                         <div class="col-md-6"><strong>المريض:</strong> {{ radiology_request.patient.full_name if radiology_request.patient else radiology_request.patient_id }}</div>
                         <div class="col-md-6"><strong>الهاتف:</strong> {{ radiology_request.patient.phone if radiology_request.patient else '-' }}</div>
                         <div class="col-md-6"><strong>نوع الفحص:</strong> {{ radiology_request.modality or '-' }}</div>
@@ -64,7 +64,7 @@
                         <strong>رابط PACS:</strong> {{ radiology_result.pacs_url if radiology_result and radiology_result.pacs_url else '-' }}
                     </div>
                     <div class="mb-3">
-                        <strong>الحالة التشخيصية:</strong> {{ radiology_result.status if radiology_result else 'PENDING' }}
+                        <strong>الحالة التشخيصية:</strong> {{ (radiology_result.status if radiology_result else 'PENDING') | enum_label }}
                     </div>
                     <div class="mb-3">
                         <strong>حرج:</strong> {{ 'نعم' if radiology_result and radiology_result.is_critical else 'لا' }}

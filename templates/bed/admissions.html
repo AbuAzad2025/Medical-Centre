@@ -14,7 +14,7 @@
             <td>{{ a.admission_type }}</td>
             <td>{{ a.admission_datetime.strftime('%Y-%m-%d %H:%M') if a.admission_datetime else '-' }}</td>
             <td>{{ a.bed.bed_number if a.bed else '-' }}</td>
-            <td><span class="badge bg-secondary">{{ a.status }}</span></td>
+            <td><span class="badge bg-secondary">{{ a.status | enum_label }}</span></td>
           </tr>
         {% else %}
           <tr><td colspan="5" class="text-muted text-center">لا يوجد رقود</td></tr>

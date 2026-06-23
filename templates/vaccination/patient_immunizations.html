@@ -15,7 +15,7 @@
             <td>{{ i.vaccine.name if i.vaccine else '-' }}</td>
             <td>{{ i.dose_number }}</td>
             <td>{{ i.administration_site or '-' }}</td>
-            <td><span class="badge bg-success">{{ i.status }}</span></td>
+            <td><span class="badge bg-success">{{ i.status | enum_label }}</span></td>
           </tr>
         {% else %}
           <tr><td colspan="5" class="text-muted text-center">لا يوجد تطعيمات</td></tr>

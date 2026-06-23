@@ -164,7 +164,7 @@
                                                 {% elif visit.status == 'IN_PROGRESS' %}
                                                     <span class="badge badge-warning">قيد التنفيذ</span>
                                                 {% else %}
-                                                    <span class="badge badge-info">{{ visit.status }}</span>
+                                                    <span class="badge badge-info">{{ visit.status | enum_label('EmergencyStatus') }}</span>
                                                 {% endif %}
                                             </td>
                                             <td>

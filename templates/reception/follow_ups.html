@@ -67,7 +67,7 @@
                   {% elif f.status == 'CANCELLED' %}
                     <span class="badge bg-secondary">ملغي</span>
                   {% else %}
-                    <span class="badge bg-light text-dark">{{ f.status }}</span>
+                    <span class="badge bg-light text-dark">{{ f.status | enum_label('AppointmentState') }}</span>
                   {% endif %}
                 </td>
                 <td class="text-end">

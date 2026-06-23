@@ -13,7 +13,7 @@
             <td>{{ d.coded_at.strftime('%Y-%m-%d') if d.coded_at else '-' }}</td>
             <td><code>{{ d.icd_code.code if d.icd_code else '-' }}</code></td>
             <td><span class="badge bg-info">{{ d.diagnosis_type }}</span></td>
-            <td><span class="badge bg-secondary">{{ d.status }}</span></td>
+            <td><span class="badge bg-secondary">{{ d.status | enum_label }}</span></td>
             <td>{{ d.notes or '-' }}</td>
           </tr>
         {% else %}

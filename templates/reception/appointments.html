@@ -245,7 +245,7 @@
                                         {% elif appointment.status == 'NO_SHOW' %}
                                             <span class="badge bg-secondary">لم يحضر</span>
                                         {% else %}
-                                            <span class="badge bg-light text-dark">{{ appointment.status }}</span>
+                                            <span class="badge bg-light text-dark">{{ appointment.status | enum_label('AppointmentState') }}</span>
                                         {% endif %}
                                     </td>
                                     <td>

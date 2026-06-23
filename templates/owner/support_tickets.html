@@ -29,7 +29,7 @@
                             <td><strong>{{ t.title }}</strong><br><small class="text-muted">{{ t.category }}</small></td>
                             <td>{{ t.tenant.name if t.tenant else 'عام' }}</td>
                             <td><span class="badge bg-{{ 'danger' if t.priority=='critical' else 'warning' if t.priority=='high' else 'info' if t.priority=='medium' else 'secondary' }}">{{ t.priority }}</span></td>
-                            <td><span class="badge bg-{{ 'success' if t.status=='resolved' else 'primary' if t.status=='open' else 'warning' if t.status=='in_progress' else 'secondary' }}">{{ t.status }}</span></td>
+                            <td><span class="badge bg-{{ 'success' if t.status=='resolved' else 'primary' if t.status=='open' else 'warning' if t.status=='in_progress' else 'secondary' }}">{{ t.status | enum_label }}</span></td>
                             <td class="small">{{ t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else '-' }}</td>
                             <td>
                                 <form method="post" action="{{ url_for('owner.owner_update_ticket', ticket_id=t.id) }}" class="d-flex gap-1">

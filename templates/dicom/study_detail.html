@@ -10,7 +10,7 @@
       <p><strong>التاريخ:</strong> {{ study.study_date or '-' }}</p>
       <p><strong>النوع:</strong> <span class="badge bg-info">{{ study.modality }}</span></p>
       <p><strong>الوصف:</strong> {{ study.study_description or '-' }}</p>
-      <p><strong>الحالة:</strong> <span class="badge bg-primary">{{ study.status }}</span></p>
+      <p><strong>الحالة:</strong> <span class="badge bg-primary">{{ study.status | enum_label }}</span></p>
       <p><strong>عدد السلاسل:</strong> {{ study.series_count }} — <strong>عدد الصور:</strong> {{ study.instance_count }}</p>
       <a href="{{ url_for('dicom.viewer', study_id=study.id) }}" class="btn btn-primary">فتح الـ Viewer</a>
     </div>

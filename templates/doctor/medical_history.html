@@ -19,7 +19,7 @@
       <div class="card shadow-sm"><div class="card-header">زيارات سابقة</div><div class="card-body">
         <ul class="list-group">
           {% for v in previous_visits or [] %}
-          <li class="list-group-item">{{ v.visit_date }} — {{ v.visit_type }} — {{ v.status }}</li>
+          <li class="list-group-item">{{ v.visit_date }} — {{ v.visit_type }} — {{ v.status | enum_label('VisitState') }}</li>
           {% else %}
           <li class="list-group-item text-center">لا زيارات</li>
           {% endfor %}

@@ -202,7 +202,7 @@
                                     <td>{{ transaction.date }}</td>
                                     <td>
                                         <span class="badge bg-{{ transaction.status_color }} bg-opacity-10 text-{{ transaction.status_color }}">
-                                            {{ transaction.status }}
+                                            {{ transaction.status | enum_label('PaymentStatus') }}
                                         </span>
                                     </td>
                                     <td>

@@ -121,6 +121,23 @@ ENUM_LABELS_AR: dict[str, dict[str, str]] = {
         'cancelled': 'ملغاة',
         'expired': 'منتهية',
     },
+    'EmergencyStatus': {
+        'NEW': 'جديد',
+        'WAITING': 'في الانتظار',
+        'TRIAGE': 'فرز',
+        'RESUSCITATION': 'إنعاش',
+        'TREATMENT': 'قيد العلاج',
+        'OBSERVATION': 'تحت الملاحظة',
+        'IN_PROGRESS': 'قيد المعالجة',
+        'COMPLETED': 'مكتمل',
+        'TRANSFERRED': 'محوّل',
+    },
+    'EmergencySeverity': {
+        'LOW': 'منخفضة',
+        'MODERATE': 'متوسطة',
+        'HIGH': 'عالية',
+        'CRITICAL': 'حرجة',
+    },
     'LabResultStatus': {
         'PENDING': 'معلق',
         'READY': 'جاهز',

@@ -67,7 +67,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="text-muted small">الحالة</div>
-                            <div class="fw-bold">{{ appointment.status }}</div>
+                            <div class="fw-bold">{{ appointment.status | enum_label('AppointmentState') }}</div>
                         </div>
                         <div class="col-md-6">
                             <div class="text-muted small">نوع الموعد</div>

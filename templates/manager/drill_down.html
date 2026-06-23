@@ -37,7 +37,7 @@
                     <td>{{ r.department.name_ar if r.department else '-' }}</td>
                     <td>{{ r.doctor.full_name if r.doctor else '-' }}</td>
                     <td>{{ r.visit_date }}</td>
-                    <td><span class="badge bg-{{ 'success' if r.status=='COMPLETED' else 'primary' if r.status=='IN_PROGRESS' else 'secondary' }}">{{ r.status }}</span></td>
+                    <td><span class="badge bg-{{ 'success' if r.status=='COMPLETED' else 'primary' if r.status=='IN_PROGRESS' else 'secondary' }}">{{ r.status | enum_label('VisitState') }}</span></td>
                     {% elif report_type == 'revenue' %}
                     <td>{{ r.id }}</td>
                     <td>{{ r.visit_id }}</td>

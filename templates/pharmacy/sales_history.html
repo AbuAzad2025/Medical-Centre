@@ -18,7 +18,7 @@
                 <td>{{ sale.items|length }}</td>
                 <td>{{ '%.2f'|format(sale.total_amount|float) }} ₪</td>
                 <td class="text-muted small">{{ sale.created_at.strftime('%Y-%m-%d %H:%M') if sale.created_at else '-' }}</td>
-                <td><span class="badge bg-success">{{ sale.status }}</span></td>
+                <td><span class="badge bg-success">{{ sale.status | enum_label }}</span></td>
                 <td><a href="{{ url_for('medication.sale_detail', sale_id=sale.id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a></td>
             </tr>
             {% else %}
