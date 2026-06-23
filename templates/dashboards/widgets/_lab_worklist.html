@@ -1,0 +1,18 @@
+<div class="cc-widget cc-widget--md" data-widget-id="worklist_urgent">
+  <div class="cc-widget__head"><span><i class="fas fa-vial me-1"></i> قائمة العمل</span></div>
+  <div class="cc-widget__body table-responsive">
+    <table class="table table-sm table-hover mb-0">
+      <thead><tr><th>المريض</th><th>الحالة</th></tr></thead>
+      <tbody>
+      {% for r in widget_data.lists.lab_pending or [] %}
+      <tr>
+        <td>{{ r.visit.patient.full_name if r.visit and r.visit.patient else '—' }}</td>
+        <td><span class="badge bg-warning text-dark">{{ r.status | enum_label('OrderState') }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="2" class="text-center text-muted py-3">لا طلبات</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

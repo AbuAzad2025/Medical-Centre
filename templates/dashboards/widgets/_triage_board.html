@@ -1,0 +1,20 @@
+<div class="cc-widget cc-widget--lg" data-widget-id="triage_board">
+  <div class="cc-widget__head"><span><i class="fas fa-ambulance me-1"></i> حالات الطوارئ النشطة</span></div>
+  <div class="cc-widget__body table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>الحالة</th><th>المريض</th><th>الشدة</th><th>الشكوى</th></tr></thead>
+      <tbody>
+      {% for e in widget_data.lists.emergency_cases or [] %}
+      <tr>
+        <td>{{ e.case_number }}</td>
+        <td>{{ e.patient.full_name if e.patient else '—' }}</td>
+        <td>{{ e.severity or '—' }}</td>
+        <td class="small">{{ (e.chief_complaint or '')[:60] }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center text-muted py-3">لا حالات نشطة</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

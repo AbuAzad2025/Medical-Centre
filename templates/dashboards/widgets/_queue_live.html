@@ -1,0 +1,20 @@
+<div class="cc-widget cc-widget--md" data-widget-id="queue_live">
+  <div class="cc-widget__head"><span><i class="fas fa-list-ol me-1"></i> الطابور النشط</span></div>
+  <div class="cc-widget__body table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>#</th><th>المريض</th><th>القسم</th><th>الحالة</th></tr></thead>
+      <tbody>
+      {% for q in widget_data.lists.active_queue or [] %}
+      <tr>
+        <td>{{ q.queue_number }}</td>
+        <td>{{ q.patient.full_name if q.patient else '—' }}</td>
+        <td>{{ q.department.name_ar if q.department else '—' }}</td>
+        <td><span class="badge bg-secondary">{{ q.status | enum_label('QueueState') }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center text-muted py-3">لا يوجد أحد بالانتظار</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

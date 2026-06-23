@@ -1,0 +1,21 @@
+<div class="cc-widget cc-widget--lg" data-widget-id="visits_today">
+  <div class="cc-widget__head"><span><i class="fas fa-calendar-check me-1"></i> زيارات اليوم</span></div>
+  <div class="cc-widget__body table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>#</th><th>المريض</th><th>القسم</th><th>الحالة</th><th>الوقت</th></tr></thead>
+      <tbody>
+      {% for v in widget_data.lists.today_visits or [] %}
+      <tr>
+        <td>{{ v.visit_number or v.id }}</td>
+        <td>{{ v.patient.full_name if v.patient else '—' }}</td>
+        <td>{{ v.department.name_ar if v.department else '—' }}</td>
+        <td><span class="badge bg-secondary">{{ v.status | enum_label('VisitState') }}</span></td>
+        <td class="text-muted small">{{ v.created_at.strftime('%H:%M') if v.created_at else '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-center text-muted py-3">لا توجد زيارات اليوم</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

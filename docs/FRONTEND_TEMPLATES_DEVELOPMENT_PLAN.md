@@ -4215,19 +4215,15 @@ flowchart TD
 
 ---
 
-#### مرحلة 10 — Command Center
+#### مرحلة 10 — Command Center ✅ (MVP 2026-06-23)
 
 | | |
 |--|--|
 | **الهدف** | لوحة قيادة **حسب الدور** — تستبدل `*_dashboard_new` |
-| **النواقص** | G-92–G-95, G-35 (دمج dashboards) |
-| **المراجع** | §29 |
-| **يعتمد على** | مرحلة 4 (nav) + 8 (بيانات حقيقية) |
+| **الحالة** | ✅ shell + registry + 8 routes محوّلة |
+| **متبقي** | manager charts؛ `User.preferences`؛ SSE |
 
-**Gate 10:**
-- [ ] كل دور widgets مختلفة
-- [ ] panel «الآن» &lt; 1s
-- [ ] `command_center.html` extends `base.html` فقط
+**Gate 10:** §29 — **جزئي** (انظر §11.3)
 
 ---
 

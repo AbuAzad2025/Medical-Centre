@@ -1,0 +1,19 @@
+<div class="cc-widget cc-widget--lg" data-widget-id="nurse_assigned">
+  <div class="cc-widget__head"><span><i class="fas fa-user-nurse me-1"></i> زيارات اليوم</span></div>
+  <div class="cc-widget__body table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>المريض</th><th>القسم</th><th>الحالة</th></tr></thead>
+      <tbody>
+      {% for v in widget_data.lists.assigned or [] %}
+      <tr>
+        <td>{{ v.patient.full_name if v.patient else '—' }}</td>
+        <td>{{ v.department.name_ar if v.department else '—' }}</td>
+        <td><span class="badge bg-secondary">{{ v.status | enum_label('VisitState') }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="text-center text-muted py-3">لا زيارات</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

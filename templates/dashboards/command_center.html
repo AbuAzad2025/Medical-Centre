@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة القيادة{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard-command.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="command-center" data-dashboard-role="{{ dashboard_role }}">
+  {% include 'dashboards/_hero.html' %}
+  {% include 'dashboards/_now_panel.html' %}
+  {% include 'dashboards/_quick_actions.html' %}
+
+  <div class="cc-widgets-grid">
+    {% for w in body_widgets %}
+      {% include w.template %}
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard-live.js') }}"></script>
+{% endblock %}

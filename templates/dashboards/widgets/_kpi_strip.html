@@ -1,0 +1,18 @@
+<div class="cc-widget cc-widget--full" data-widget-id="kpi_strip">
+  <div class="cc-widget__body p-3">
+    <div class="row g-3 text-center">
+      <div class="col-md-4">
+        <div class="text-muted small">زيارات اليوم</div>
+        <div class="fs-3 fw-bold text-primary" data-metric-value>{{ widget_data.metrics.visits_today or 0 }}</div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-muted small">بالانتظار</div>
+        <div class="fs-3 fw-bold text-warning">{{ widget_data.metrics.queue_count or 0 }}</div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-muted small">المرضى</div>
+        <div class="fs-3 fw-bold text-success">{{ widget_data.metrics.total_patients or 0 }}</div>
+      </div>
+    </div>
+  </div>
+</div>

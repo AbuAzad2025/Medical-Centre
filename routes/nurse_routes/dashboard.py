@@ -258,17 +258,8 @@ def dashboard():
             'workload_prediction': workload_prediction
         }
         
-        return render_template(
-            'nurse/dashboard_new.html',
-            stats=stats,
-            total_patients=total_patients,
-            today_visits=today_visits,
-            active_visits_list=active_visits_list,
-            recent_visits=recent_visits,
-            open_tasks=open_tasks,
-            task_items=task_items[:20],
-            safety_alerts=safety_alerts,
-        )
+        from app.shared.dashboard_service import render_command_center
+        return render_command_center(current_user)
     except Exception as e:
         logging.error(f"Error in nurse dashboard: {str(e)}")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
