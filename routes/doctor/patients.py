@@ -360,16 +360,31 @@ def dental_chart(patient_id):
 def save_dental_chart():
     """حفظ خريطة الأسنان"""
     from models.dental import DentalChart, DentalTooth
-    try:
-        data = request.get_json() or request.form
-        patient_id = int(data.get('patient_id'))
-        visit_id = data.get('visit_id')
-        teeth_data = data.get('teeth', {})
-        notes = data.get('notes', '')
+    data = request.get_json(silent=True) or request.form
 
+    raw_patient_id = (data.get('patient_id') if hasattr(data, 'get') else None)
+    try:
+        patient_id = int(str(raw_patient_id).strip())
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'رقم المريض غير صالح'}), 422
+
+    raw_visit_id = data.get('visit_id')
+    visit_id = None
+    if raw_visit_id not in (None, '', 'null'):
+        try:
+            visit_id = int(str(raw_visit_id).strip())
+        except (TypeError, ValueError):
+            return jsonify({'success': False, 'message': 'رقم الزيارة غير صالح'}), 422
+
+    teeth_data = data.get('teeth', {}) or {}
+    if not isinstance(teeth_data, dict):
+        return jsonify({'success': False, 'message': 'بيانات الأسنان غير صالحة'}), 422
+    notes = data.get('notes', '')
+
+    try:
         chart = DentalChart(
             patient_id=patient_id,
-            visit_id=int(visit_id) if visit_id else None,
+            visit_id=visit_id,
             doctor_id=current_user.id,
             notes=notes
         )
@@ -377,6 +392,8 @@ def save_dental_chart():
         db.session.flush()
 
         for fdi, info in teeth_data.items():
+            if not isinstance(info, dict):
+                continue
             if info.get('state') == 'sound' and not info.get('notes') and not info.get('surfaces'):
                 continue
             tooth = DentalTooth(
@@ -393,4 +410,4 @@ def save_dental_chart():
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error saving dental chart: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'تعذّر حفظ خريطة الأسنان'}), 500

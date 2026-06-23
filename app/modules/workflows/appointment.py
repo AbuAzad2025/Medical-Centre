@@ -56,7 +56,6 @@ class AppointmentService:
             doctor_id=appointment.doctor_id,
             department_id=appointment.department_id,
             status="registered",
-            appointment_id=appointment.id,
             created_by=created_by,
         )
         db.session.add(visit)
