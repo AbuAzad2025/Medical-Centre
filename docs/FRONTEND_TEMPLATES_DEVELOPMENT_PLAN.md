@@ -1182,7 +1182,7 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 12)
+## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 14)
 
 | البند | الحالة |
 |-------|--------|
@@ -1192,13 +1192,42 @@ document.body.classList.toggle('sidebar-open');
 | **مرحلة 11** Gate 11 | ✅ theme toggle + `users.preferences` + هجرة `p11_001` |
 | **مرحلة 12** Gate 12 | ✅ PWA موحّد + mobile nav + kiosk check-in |
 | **مرحلة 13** Gate 13 | ✅ motion.js + macros في 3 قوالب |
+| **مرحلة 14** Gate 14 | ✅ ReportTemplate + G-134 + BS4 debt |
 | Gate 11 متبقي | ⚠️ تخصيص widgets؛ density/radius UI |
 | **دين 6b** | ⚠️ manager sidebar + `audit_nav_links` |
 
-**Git HEAD:** `c5f9a36` (main على GitHub)  
+**Git HEAD:** `c5f9a36` → يُحدَّث بعد دفع مرحلة 14  
 **هجرة DB:** `p11_001_user_preferences`
 
-**الخطوة التالية:** **مرحلة 14** — تعميم وتنظيف.
+**الخطوة التالية:** صيانة ما بعد الإطلاق (codemod BS4، Gate 11، دين 6b).
+
+### 11.8 مرحلة 14 — ما نُفّذ (2026-06-23)
+
+| الملف | الإجراء |
+|-------|---------|
+| `app/shared/report_template_service.py` | حفظ/تحميل/تشغيل `ReportTemplate` — §21.3 |
+| `routes/custom_report_builder_routes.py` | `/templates` CRUD + `/templates/<id>/run` |
+| `templates/report_builder/builder.html` | واجهة حفظ/تحميل القوالب |
+| `static/js/pages/report_builder/builder.js` | حفظ وتشغيل القوالب |
+| `templates/manager/reports_center.html` | قسم «قوالب التقارير المحفوظة» |
+| `routes/manager/reports.py` | تمرير `saved_templates` |
+| `static/css/clinical.css` | طبقة BS4→BS5 compat (دين مُوثّق) |
+| `templates/dashboards/_hero.html` | `animate-in` على hero |
+| `static/js/pages/super_admin/queue_settings.js` | إزالة `window.alert` |
+| `static/js/pages/radiology/process.js` | إزالة `window.alert` |
+| `tests/test_phase14_launch.py` | G-134 (20 شاشة) + ReportTemplate + §8 |
+
+**دين BS4 (مقبول — Gate 14):** ~250+ `font-weight-bold` / `data-dismiss` في قوالب legacy؛ طبقة compat في `clinical.css` حتى codemod لاحق.
+
+**Gate 14:**
+- [x] §8.1–8.3 آلياً عبر `test_phase14_launch.py`
+- [x] **G-134** — مسح 20 شاشة عينة
+- [x] `ReportTemplate` مربوط بـ report_builder + reports-center
+- [x] BS4 legacy — compat layer + دين مُوثّق
+
+**Git HEAD:** *(يُحدَّث بعد الدفع)*
+
+**الخطوة التالية:** صيانة ما بعد الإطلاق — codemod BS4، Gate 11 متبقي، دين 6b.
 
 ### 11.7 مرحلة 13 — ما نُفّذ (2026-06-23)
 
@@ -4353,10 +4382,10 @@ flowchart TD
 | **المراجع** | §8 كامل, §21.3 ReportTemplate |
 
 **Gate 14 — إطلاق:**
-- [ ] §8.1–8.3 **كامل**
-- [ ] **G-134** — مسح 20 شاشة عينة عبر كل الأدوار
-- [ ] `ReportTemplate` مربوط بـ report_builder
-- [ ] BS4 legacy codemod أو مقبول كدين مُوثّق
+- [x] §8.1–8.3 **كامل** (آلي: `test_phase14_launch.py`)
+- [x] **G-134** — مسح 20 شاشة عينة عبر كل الأدوار
+- [x] `ReportTemplate` مربوط بـ report_builder
+- [x] BS4 legacy compat + دين مُوثّق في §11.8
 
 ---
 

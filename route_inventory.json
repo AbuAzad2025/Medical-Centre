@@ -1,10 +1,10 @@
 {
   "generated_at": "2026-06-23",
-  "total_routes": 625,
+  "total_routes": 629,
   "summary": {
     "public": 7,
     "internal": 4,
-    "authenticated": 446,
+    "authenticated": 450,
     "admin": 38,
     "super-admin": 130
   },
@@ -4186,6 +4186,38 @@
     {
       "endpoint": "report_builder.preview",
       "path": "/report-builder/preview",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "report_builder.templates_list",
+      "path": "/report-builder/templates",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "report_builder.templates_save",
+      "path": "/report-builder/templates",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "report_builder.templates_get",
+      "path": "/report-builder/templates/<int:template_id>",
+      "methods": [
+        "GET"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "report_builder.templates_run",
+      "path": "/report-builder/templates/<int:template_id>/run",
       "methods": [
         "POST"
       ],

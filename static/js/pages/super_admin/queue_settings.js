@@ -89,16 +89,16 @@ if (saveBtn) {
       });
       saveBtn.disabled = false;
       if (!r.ok) {
-        window.alert('فشل الحفظ');
+        if (window.notify) window.notify.error('تعذّر حفظ الإعدادات. حاول مرة أخرى.');
         return;
       }
       const data = await r.json().catch(() => ({}));
       if (data && data.success) {
-        window.alert('تم الحفظ');
+        if (window.notify) window.notify.success('تم حفظ الإعدادات.');
         loadSettings();
         return;
       }
-      window.alert('فشل الحفظ');
+      if (window.notify) window.notify.error('تعذّر حفظ الإعدادات. حاول مرة أخرى.');
     } catch (err) {
       console.error('خطأ في الاتصال:', err);
     }

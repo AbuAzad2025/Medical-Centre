@@ -100,6 +100,8 @@ def reports_center():
             result = {'radiology_revision': ReportCenterService.radiology_revision_rate(start_dt, end_dt)}
 
         departments = Department.query.filter_by(is_active=True).all()
+        from app.shared.report_template_service import list_templates
+        saved_templates = list_templates()
         return render_template(
             'manager/reports_center.html',
             report=report,
@@ -107,11 +109,12 @@ def reports_center():
             end_date=end_date,
             department_id=department_id,
             departments=departments,
-            result=result
+            result=result,
+            saved_templates=saved_templates,
         )
     except Exception as e:
         logging.error(f"Manager reports center error: {str(e)}")
-        return render_template('manager/reports_center.html', report='', start_date=None, end_date=None, departments=[], result=None)
+        return render_template('manager/reports_center.html', report='', start_date=None, end_date=None, departments=[], result=None, saved_templates=[])
 
 @manager_bp.route('/analytics')
 @login_required
