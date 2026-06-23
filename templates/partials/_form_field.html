@@ -1,0 +1,13 @@
+{# Validated form field — G-86 #}
+{% macro form_field(name, label, type='text', value='', validate='', required=false, extra_class='', placeholder='', feedback_id='') %}
+<div class="mb-3">
+    <label class="form-label" for="{{ name }}">{{ label }}{% if required %} <span class="text-danger">*</span>{% endif %}</label>
+    <input type="{{ type }}" class="form-control {{ extra_class }}" id="{{ name }}" name="{{ name }}"
+           value="{{ value }}" placeholder="{{ placeholder }}"
+           {% if validate %}data-validate="{{ validate }}"{% endif %}
+           {% if required %}required{% endif %}
+           {% if validate == 'national_id' %}inputmode="numeric" maxlength="9" autocomplete="off"{% endif %}
+           {% if validate == 'phone' %}inputmode="tel" autocomplete="tel"{% endif %}>
+    <div class="invalid-feedback" {% if feedback_id %}id="{{ feedback_id }}"{% else %}data-error-for="{{ name }}"{% endif %}></div>
+</div>
+{% endmacro %}

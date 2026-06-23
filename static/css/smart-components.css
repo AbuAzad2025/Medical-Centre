@@ -1,0 +1,29 @@
+/* Smart search + Tom Select — RTL (G-81, G-82) */
+.smart-search { position: relative; }
+.smart-search-results,
+#patient_suggestions {
+  position: absolute;
+  z-index: 1050;
+  width: 100%;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+}
+.smart-search-results .list-group-item,
+#patient_suggestions .list-group-item {
+  cursor: pointer;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+}
+.smart-search-results .list-group-item:hover,
+#patient_suggestions .list-group-item:hover {
+  background: #f8fafc;
+}
+.ts-wrapper { direction: rtl; }
+.ts-control { min-height: 42px; }
+@media (max-width: 576px) {
+  .ts-dropdown { max-height: 50vh; }
+}

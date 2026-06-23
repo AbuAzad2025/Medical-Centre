@@ -499,45 +499,14 @@ def delete_patient(patient_id):
 @reception_bp.route('/api/smart-patient-search')
 @login_required
 def api_smart_patient_search():
-    """API للبحث الذكي عن المرضى"""
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
+    """API للبحث الذكي عن المرضى — يفوّض إلى SearchService الموحّد."""
+    if current_user.role not in ['reception', 'super_admin', 'manager', 'admin', 'doctor']:
         return jsonify({'error': 'ليس لديك الصلاحيات'}), 403
-    
+
     search_term = request.args.get('q', '').strip()
-    if not search_term:
-        return jsonify({'patients': []})
-    
     try:
-        from datetime import datetime
-        parsed_date = None
-        try:
-            if len(search_term) >= 8:
-                parsed_date = datetime.strptime(search_term, '%Y-%m-%d').date()
-        except Exception:
-            parsed_date = None
-        filters = [
-            Patient.first_name.ilike(f'%{search_term}%'),
-            Patient.last_name.ilike(f'%{search_term}%'),
-            Patient.national_id.ilike(f'%{search_term}%'),
-            Patient.phone.ilike(f'%{search_term}%')
-        ]
-        query = Patient.query
-        if parsed_date:
-            query = query.filter(db.or_(*filters, Patient.birth_date == parsed_date))
-        else:
-            query = query.filter(db.or_(*filters))
-        patients = query.order_by(Patient.created_at.desc()).limit(10).all()
-        results = []
-        for patient in patients:
-            results.append({
-                'id': patient.id,
-                'full_name': patient.full_name,
-                'national_id': patient.national_id,
-                'phone': patient.phone,
-                'birth_date': patient.birth_date.strftime('%Y-%m-%d') if patient.birth_date else None,
-                'gender': patient.gender,
-                'address': patient.address
-            })
+        from app.shared.search_service import SearchService
+        results = SearchService.search_patients(search_term, limit=10)
         return jsonify({'patients': results})
     except Exception as e:
         logging.error(f"Error in smart patient search: {str(e)}")
