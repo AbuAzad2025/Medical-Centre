@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% import 'macros/forms.html' as forms %}
 {% from 'partials/_patient_context_panel.html' import patient_context_panel %}
+{% from 'partials/_payment_status_badge.html' import payment_status_badge %}
 {% from 'partials/_workflow_next_actions.html' import workflow_next_actions %}
 
 {% block title %}قائمة الزيارات - الاستقبال{% endblock %}
@@ -91,17 +92,7 @@
                         <div class="col-md-3">
                             <div class="fw-bold">حالة الدفع</div>
                             <div>
-                                {% if visit.payment_status == 'PAID' or visit.remaining_amount <= 0 %}
-                                <span class="badge bg-success">مدفوع</span>
-                                {% elif visit.payment_status == 'PARTIAL' or (visit.paid_amount > 0 and visit.remaining_amount > 0) %}
-                                <span class="badge bg-info">جزئي</span>
-                                {% elif visit.payment_status == 'PENDING' %}
-                                <span class="badge bg-warning">معلق</span>
-                                {% elif visit.payment_status == 'DEBT' %}
-                                <span class="badge bg-danger">دين</span>
-                                {% else %}
-                                <span class="badge bg-secondary">{{ visit.payment_status | enum_label('PaymentStatus') }}</span>
-                                {% endif %}
+                                {{ payment_status_badge(visit) }}
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -279,17 +270,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        {% if visit.payment_status == 'PAID' or visit.remaining_amount <= 0 %}
-                                        <span class="badge bg-success">مدفوع</span>
-                                        {% elif visit.payment_status == 'PARTIAL' or (visit.paid_amount > 0 and visit.remaining_amount > 0) %}
-                                        <span class="badge bg-info">جزئي</span>
-                                        {% elif visit.payment_status == 'PENDING' %}
-                                        <span class="badge bg-warning">معلق</span>
-                                        {% elif visit.payment_status == 'DEBT' %}
-                                        <span class="badge bg-danger">دين</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">{{ visit.payment_status | enum_label('PaymentStatus') }}</span>
-                                        {% endif %}
+                                        {{ payment_status_badge(visit) }}
                                     </td>
                                     <td>
                                         {% if visit.status == 'OPEN' %}

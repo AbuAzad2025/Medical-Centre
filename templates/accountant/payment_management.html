@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'partials/_payment_status_badge.html' import payment_status_badge %}
 
 {% block title %}إدارة المدفوعات{% endblock %}
 
@@ -160,7 +161,7 @@
                                                     <td class="text-end">{{ "%.2f"|format(v.total_amount or 0) }}</td>
                                                     <td class="text-end">{{ "%.2f"|format(v.paid_amount or 0) }}</td>
                                                     <td class="text-end">{{ "%.2f"|format(v.remaining_amount or 0) }}</td>
-                                                    <td>{{ v.payment_status }}</td>
+                                                    <td>{{ payment_status_badge(v) }}</td>
                                                 </tr>
                                                 {% endfor %}
                                             </tbody>

@@ -173,8 +173,9 @@ def create_app(config_name: str | None = None) -> Flask:
             return f"{amount} {currency or app.config.get('DEFAULT_CURRENCY', 'ILS')}"
     app.jinja_env.filters['format_money'] = _fmt_money
 
-    from app.shared.enum_labels import enum_label
+    from app.shared.enum_labels import enum_label, resolve_visit_payment_status_badge
     app.jinja_env.filters['enum_label'] = enum_label
+    app.jinja_env.globals['resolve_visit_payment_status_badge'] = resolve_visit_payment_status_badge
 
     from app.shared.print_context import resolve_print_context
     from app.shared.branding_context import get_branding_row

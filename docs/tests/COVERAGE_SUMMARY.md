@@ -7,7 +7,7 @@
 | المقياس | القيمة |
 |---------|--------|
 | ملفات الاختبار | **49** (`tests/test_*.py` + `conftest.py`) |
-| حالات الاختبار | **327** (326 ناجح + 1 متخطى) |
+| حالات الاختبار | **340** (339 ناجح + 1 متخطى) |
 | متخطى | `test_auth.py::test_logout` — تسريب جلسة Flask-Login بين الاختبارات |
 
 ## تغطية الأسطر (line coverage)
@@ -32,6 +32,7 @@
 | مختبر / أشعة | `test_lab_*`, `test_radiology_*` | ~24 |
 | استقبال / زيارات | `test_visit_*`, vertical slices | ~18 |
 | أمان / عزل | `test_tenant_*`, `test_background_*` | ~19 |
+| تسميات دفع G-120 | `test_gate_120_payment_labels` | ~13 |
 | بنية تحتية | `test_route_inventory`, `test_migrations_*`, `test_debug_*` | ~28 |
 | بوابة مريض | `test_patient_portal*` | ~16 |
 
