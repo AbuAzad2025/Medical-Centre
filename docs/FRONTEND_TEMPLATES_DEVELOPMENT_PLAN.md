@@ -1200,10 +1200,17 @@ document.body.classList.toggle('sidebar-open');
 **Git HEAD:** *(يُحدَّث بعد الدفع)*  
 **اختبارات المرحلة 5:** `test_gate_5_page_header` — 17 حالة
 
-**الخطوة التالية:**
-1. تعميم `_page_header` على بقية القوالب (~130 صفحة)
-2. `status_label` شامل + حذف `static/adminlte/`
-3. Gate 9 — مطبوعات المختبر standalone
+**الخطوة التالية:** ✅ اكتملت البنود الثلاثة (انظر §11.15).
+
+### 11.15 دفعة 2026-06-23 (ليلاً متأخراً) — إغلاق بنود الخطة المتبقية
+
+أُنجزت البنود الثلاثة المتبقية:
+
+1. **بوابة 9 — توحيد طباعة المختبر** (`f09dbc4`): استبدال صفحة `lab_requests_results_print_standalone.html` المستقلة بـ`print/lab_result.html` تمتد `print_base` (ترويسة tenant + ختم AZAD + هوية IBM Plex + `print.css` موحّد)، وإعادة توجيه `/lab/print_request/<id>`. تعريب الحالات عبر `enum_label('OrderState'/'LabResultStatus')`.
+2. **حذف `static/adminlte/`** (`b67cec6`): المرجع الوحيد وقت التشغيل كان `sweetalert2` — نُقل إلى `static/vendor/sweetalert2/`، وحُذف **56MB** (~1980 ملفاً: jQuery/DataTables/BS4/plugins). حارس إطلاق يمنع عودته.
+3. **تعريب الحالات الشامل** (`e105a8f`): لفّ `{{ x.status }}` الخام بفلتر `enum_label` عبر **~60 قالباً** (زيارات، مواعيد، طلبات مختبر/أشعة، روشتات، فواتير، مدفوعات، طوارئ، بوابة المريض). إضافة جداول `EmergencyStatus`/`EmergencySeverity`/`LabResultStatus`. تُركت روابط JS/CSS (`data-status`, `status-*`) ومؤشر صحة النظام خاماً عمداً.
+
+**حُرّاس جديدة:** قوالب `enum_label` يجب أن تُترجم؛ لا حالة خام معروضة في مجلدات clinical/portal؛ ضمان غياب `adminlte`.
 
 ### 11.14 دفعة 2026-06-23 (ليلاً) — إكمال المرحلة 5: تعميم `_page_header`
 
