@@ -307,43 +307,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     })();
 
-    const posBtn = document.getElementById('posChargeBtn');
-    if (posBtn) {
-        posBtn.addEventListener('click', function() {
-            const amtEl = document.getElementById('amount_paid');
-            const amount = parseFloat(amtEl.value || document.getElementById('visitCost').value || '0');
-            const statusEl = document.getElementById('posStatus');
-            statusEl.textContent = '';
-            if (!amount || amount <= 0) {
-                Swal.fire({ title: 'تنبيه', text: 'يرجى تحديد المبلغ المراد تحصيله', icon: 'warning' });
-                return;
-            }
-            fetch('/reception/api/pos/charge', {
-                method: 'POST',
-                headers: { 'Accept': 'application/json' },
-                body: new URLSearchParams({ amount: amount })
-            })
-            .then(r => r.json())
-            .then(d => {
-                if (d.success) {
-                    if (d.card_last_digits) document.getElementById('card_last_digits').value = d.card_last_digits;
-                    if (d.card_holder_name) document.getElementById('card_holder_name').value = d.card_holder_name;
-                    if (typeof d.amount !== 'undefined') amtEl.value = d.amount;
-                    statusEl.textContent = 'تم التحصيل: ' + (d.transaction_id || d.approval_code || 'نجاح');
-                    statusEl.className = 'text-success';
-                } else {
-                    statusEl.textContent = 'فشل التحصيل: ' + (d.message || '');
-                    statusEl.className = 'text-danger';
-                    Swal.fire({ title: 'فشل التحصيل', text: d.message || '', icon: 'error' });
-                }
-            })
-            .catch(err => {
-                statusEl.textContent = 'خطأ في الاتصال بالجهاز';
-                statusEl.className = 'text-danger';
-                Swal.fire({ title: 'خطأ', text: 'خطأ في الاتصال بالجهاز', icon: 'error' });
-            });
-        });
-    }
+    initPosCharge({
+        button: 'posChargeBtn',
+        amountInput: 'amount_paid',
+        amountFallback: 'visitCost',
+        statusElement: 'posStatus',
+        chargeUrl: document.getElementById('posChargeBtn')?.dataset.chargeUrl || '/reception/pos/charge',
+        cardLastDigitsId: 'card_last_digits',
+        cardHolderId: 'card_holder_name',
+    });
     // حفظ وطباعة الوصل
     document.getElementById('saveAndPrintBtn').addEventListener('click', function() {
         // إضافة حقل مخفي للإشارة للطباعة

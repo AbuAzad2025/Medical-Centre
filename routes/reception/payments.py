@@ -24,7 +24,8 @@ from utils.decorators import can_create_visits, reception_only, role_required, r
 from app_factory import db
 import logging
 from services.access_control_service import AccessControlService
-from services.pos_terminal_service import PosTerminalService
+from app.shared.pos_charge import execute_pos_charge
+from app.shared.user_messages import user_message
 
 
 
@@ -35,18 +36,15 @@ from services.pos_terminal_service import PosTerminalService
 @reception_bp.route('/pos/charge', methods=['POST'])
 @login_required
 def pos_charge():
-    if current_user.role not in ['accountant', 'super_admin']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
-    try:
-        amount_raw = request.form.get('amount') or request.json.get('amount') if request.is_json else None
-        amount = float(amount_raw or 0)
-        if amount <= 0:
-            return jsonify({'success': False, 'message': 'قيمة المبلغ غير صحيحة'}), 400
-        result = PosTerminalService.charge(amount)
-        return jsonify(result), (200 if result.get('success') else 500)
-    except Exception as e:
-        logging.error(f"POS charge error: {str(e)}")
-        return jsonify({'success': False, 'message': 'تعذر تنفيذ عملية الدفع حالياً'}), 500
+    if current_user.role not in ['reception', 'accountant', 'super_admin', 'manager']:
+        return jsonify({'success': False, 'message': user_message('pos_unauthorized')}), 403
+    amount_raw = None
+    if request.is_json:
+        amount_raw = (request.json or {}).get('amount')
+    else:
+        amount_raw = request.form.get('amount')
+    result, status = execute_pos_charge(amount_raw)
+    return jsonify(result), status
 
 @reception_bp.route('/visits/<int:visit_id>/send-to-accounting', methods=['POST'])
 @login_required

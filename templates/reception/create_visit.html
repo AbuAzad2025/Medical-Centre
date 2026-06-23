@@ -310,7 +310,8 @@
                                                         </div>
                                                     </div>
                                                     <div class="col-12">
-                                                        <button type="button" class="btn btn-outline-primary" id="posChargeBtn">
+                                                        <button type="button" class="btn btn-outline-primary" id="posChargeBtn"
+                                                            data-charge-url="{{ url_for('reception.pos_charge') }}">
                                                             <i class="fas fa-credit-card"></i> تحصيل عبر جهاز البطاقة
                                                         </button>
                                                         <small class="text-muted ms-2" id="posStatus"></small>
@@ -538,6 +539,8 @@
 <script src="{{ url_for('static', filename='js/smart-search.js') }}"></script>
 <script src="{{ url_for('static', filename='js/smart-select.js') }}"></script>
 <script src="{{ url_for('static', filename='js/form-stepper.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/api-feedback.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/pos-charge.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pages/reception/create_visit.js') }}"></script>
 {% endblock %}
 

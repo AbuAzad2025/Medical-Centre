@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-23",
-  "total_routes": 629,
+  "total_routes": 630,
   "summary": {
     "public": 7,
     "internal": 4,
@@ -2233,6 +2233,14 @@
     {
       "endpoint": "medication.pos_sell",
       "path": "/medication/pos/sell",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "medication.pharmacy_pos_charge",
+      "path": "/medication/pos/charge",
       "methods": [
         "POST"
       ],
