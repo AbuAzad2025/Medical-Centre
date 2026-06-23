@@ -1182,17 +1182,19 @@ document.body.classList.toggle('sidebar-open');
 
 ---
 
-## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 1+2)
+## 11. حالة التنفيذ الحالية (2026-06-23 — post مرحلة 1–3)
 
-| البند | الحالة | دليل |
-|-------|--------|------|
-| **مرحلة 1** Gate 1 | ✅ | G-156, G-06, G-159 — commit `frontend-phase-1` |
-| **مرحلة 2** Branding + Enums | ✅ | `branding_context.py`, `enum_labels.py`, `ui.*`, `__ENUMS__` |
-| Gate 2 (تعريب قوالب) | ⚠️ جزئي | filter جاهز؛ ترحيل القوالب في مرحلة 8 |
-| `clinical.css` / dashboard_base | ❌ | **مرحلة 3** التالية |
-| owner shell | ❌ | مرحلة 6 |
+| البند | الحالة |
+|-------|--------|
+| **مرحلة 1** Gate 1 | ✅ G-156, G-06, G-159 |
+| **مرحلة 2** Gate 2 | ✅ `ui.*`, `enum_label`, `__ENUMS__`, عينات reception/doctor/billing، `logo_url` على BrandingSettings، خطوط G-66 |
+| **مرحلة 3** Gate 3 | ✅ 20→0 `dashboard_base`، `clinical.css` في base، حذف `dashboard_base.html` |
+| Gate 3 متبقي | ⚠️ G-16 (`_footer` inline CSS)، `clinical.css` في portal |
+| **مرحلة 4** | ⏳ NavResolver — التالية |
 
-**الخطوة التالية:** **مرحلة 3** — إلغاء `dashboard_base` (20 ملف) + ربط `clinical.css`.
+**لماذا كان Gate 2 «جزئي» سابقاً؟** البنية (backend) كانت جاهزة لكن القوالب كانت تعرض `COMPLETED` خام — أُصلح في عينات Gate 2؛ باقي القوالب تُرحَّل تدريجياً في مرحلة 8.
+
+**الخطوة التالية:** **مرحلة 4** — `nav_resolver.py` + `_sidebar_dynamic.html`.
 
 ---
 
@@ -4025,14 +4027,19 @@ flowchart TD
 
 **Gate 2:**
 - [x] `ui.primary_color` / `ui.logo_url` في base + navbar
-- [x] `enum_label` filter مسجّل
+- [x] `enum_label` filter + عينات reception/doctor/billing/visits
 - [x] `window.__ENUMS__` في base
-- [ ] ترحيل عرض الحالات في القوالب (مرحلة 8)
+- [x] `BrandingSettings.logo_url` (G-05) + خطوط G-66
+- [ ] باقي القوالب (~40 status خام) — مرحلة 8
 - [ ] tenant A ≠ tenant B (اختبار يدوي بعد حفظ branding)
 
 ---
 
-#### مرحلة 3 — قشرة موحّدة (إلغاء dashboard_base)
+#### مرحلة 3 — قشرة موحّدة (إلغاء dashboard_base) ✅
+
+| | |
+|--|--|
+| **الحالة** | **منجزة** 2026-06-23 |
 
 | | |
 |--|--|
@@ -4058,9 +4065,10 @@ flowchart TD
 | `z-index.css`, `layout-containment.css` | جديد §32.3 |
 
 **Gate 3:**
-- [ ] `rg 'extends "dashboard_base"'` = 0
-- [ ] `clinical.css` + `design-tokens.css` في base
-- [ ] modal فوق navbar؛ لا scroll أفقي 1280px
+- [x] `rg 'extends "dashboard_base"'` = **0**؛ حذف `dashboard_base.html`
+- [x] `clinical.css` + `design-tokens.css` في `base.html` و`portal/base.html`
+- [ ] modal فوق navbar؛ لا scroll أفقي 1280px (اختبار يدوي)
+- [ ] G-16: نقل `_footer` inline CSS
 
 ---
 
