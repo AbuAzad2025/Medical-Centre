@@ -1,0 +1,20 @@
+<div class="cc-widget cc-widget--md" data-widget-id="my_queue">
+  <div class="cc-widget__head"><span><i class="fas fa-stethoscope me-1"></i> قائمة الانتظار</span></div>
+  <div class="cc-widget__body table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>#</th><th>المريض</th><th>الحالة</th><th></th></tr></thead>
+      <tbody>
+      {% for v in widget_data.lists.waiting_list or [] %}
+      <tr>
+        <td>{{ v.visit_number or v.id }}</td>
+        <td>{{ v.patient.full_name if v.patient else '—' }}</td>
+        <td><span class="badge bg-secondary">{{ v.status | enum_label('VisitState') }}</span></td>
+        <td><a href="{{ url_for('doctor.patient_details', visit_id=v.id) }}" class="btn btn-sm btn-primary">فتح</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center text-muted py-3">لا مرضى بالانتظار</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

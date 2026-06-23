@@ -1,0 +1,19 @@
+<div class="cc-widget cc-widget--md" data-widget-id="radiology_pending">
+  <div class="cc-widget__head"><span><i class="fas fa-x-ray me-1"></i> طلبات الأشعة</span></div>
+  <div class="cc-widget__body table-responsive">
+    <table class="table table-sm table-hover mb-0">
+      <thead><tr><th>المريض</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+      <tbody>
+      {% for r in widget_data.lists.pending_radiology or [] %}
+      <tr>
+        <td>{{ r.visit.patient.full_name if r.visit and r.visit.patient else (r.patient.full_name if r.patient else '—') }}</td>
+        <td><span class="badge bg-secondary">{{ r.status | enum_label('OrderState') }}</span></td>
+        <td class="small text-muted">{{ r.created_at.strftime('%m-%d %H:%M') if r.created_at else '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="text-center text-muted py-3">لا طلبات معلقة</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

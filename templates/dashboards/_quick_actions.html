@@ -1,0 +1,10 @@
+{% if quick_actions %}
+<section class="cc-quick-actions" aria-label="إجراءات سريعة">
+  {% for a in quick_actions %}
+  <a href="{{ a.href }}" class="cc-quick-tile">
+    <i class="fas {{ a.icon }}"></i>
+    <span>{{ a.label }}</span>
+  </a>
+  {% endfor %}
+</section>
+{% endif %}

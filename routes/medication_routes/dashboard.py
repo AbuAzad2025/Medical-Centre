@@ -73,17 +73,8 @@ def dashboard():
             func.date(PharmacySale.created_at) == today
         ).order_by(PharmacySale.created_at.desc()).limit(10).all()
 
-        return render_template('pharmacy/dashboard_new.html',
-            medications_count=total_medications,
-            low_stock_count=low_stock_medications,
-            prescriptions_count=today_prescriptions,
-            expired_count=expired,
-            today_sales=float(today_sales or 0),
-            month_sales=float(month_sales or 0),
-            low_stock_list=low_stock_list,
-            pending_prescriptions=pending_prescriptions,
-            recent_sales=recent_sales,
-        )
+        from app.shared.dashboard_service import render_command_center
+        return render_command_center(current_user)
     except Exception as e:
         logging.error(f"Error in medication dashboard: {str(e)}", exc_info=True)
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')

@@ -206,10 +206,12 @@ def dashboard():
             'currency_breakdown': currency_breakdown
         }
         
-        return render_template('accountant/dashboard_new.html', stats=stats, recent_transactions=recent_transactions, debt_alerts=debt_alerts)
+        from app.shared.dashboard_service import render_command_center
+        return render_command_center(current_user)
     except Exception as e:
         import traceback
         traceback.print_exc()
         logging.error(f"Error in accountant dashboard: {str(e)}")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
-        return render_template('accountant/dashboard_new.html', stats={}, recent_transactions=[], debt_alerts={})
+        from app.shared.dashboard_service import render_command_center
+        return render_command_center(current_user)

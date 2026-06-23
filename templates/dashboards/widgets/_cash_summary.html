@@ -1,0 +1,7 @@
+<div class="cc-widget cc-widget--sm" data-widget-id="cash_summary">
+  <div class="cc-widget__head"><span><i class="fas fa-cash-register me-1"></i> ملخص اليوم</span></div>
+  <div class="cc-widget__body p-3">
+    <div class="d-flex justify-content-between mb-2"><span>زيارات اليوم</span><strong data-metric-value>{{ widget_data.metrics.visits_today or 0 }}</strong></div>
+    <div class="d-flex justify-content-between"><span>إجمالي المرضى</span><strong>{{ widget_data.metrics.total_patients or 0 }}</strong></div>
+  </div>
+</div>

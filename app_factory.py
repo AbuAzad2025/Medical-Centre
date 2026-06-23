@@ -597,6 +597,8 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(main_bp)
     from routes.api_search import api_search_bp
     app.register_blueprint(api_search_bp, url_prefix='/api/search')
+    from routes.api_dashboard import api_dashboard_bp
+    app.register_blueprint(api_dashboard_bp, url_prefix='/api/dashboard')
     app.register_blueprint(owner_bp, url_prefix='/owner')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(super_admin_bp, url_prefix='/super-admin')

@@ -223,9 +223,8 @@ def dashboard():
             'ems_metrics': get_ems_metrics()
         }
         
-        return render_template('emergency/dashboard_new.html', 
-                             stats=stats, 
-                             upcoming_cases=upcoming_cases)
+        from app.shared.dashboard_service import render_command_center
+        return render_command_center(current_user)
     except Exception as e:
         logging.error(f"Error in emergency dashboard: {str(e)}")
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')

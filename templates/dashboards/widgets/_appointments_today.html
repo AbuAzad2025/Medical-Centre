@@ -1,0 +1,20 @@
+<div class="cc-widget cc-widget--md" data-widget-id="appointments_pending">
+  <div class="cc-widget__head"><span><i class="fas fa-calendar me-1"></i> مواعيد اليوم</span></div>
+  <div class="cc-widget__body table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>المريض</th><th>الطبيب</th><th>الوقت</th><th>الحالة</th></tr></thead>
+      <tbody>
+      {% for a in widget_data.lists.today_appointments or [] %}
+      <tr>
+        <td>{{ a.patient.full_name if a.patient else '—' }}</td>
+        <td>{{ a.doctor.full_name if a.doctor else '—' }}</td>
+        <td class="text-muted small">{{ a.starts_at.strftime('%H:%M') if a.starts_at else '—' }}</td>
+        <td><span class="badge bg-secondary">{{ a.status | enum_label('AppointmentState') }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center text-muted py-3">لا مواعيد اليوم</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

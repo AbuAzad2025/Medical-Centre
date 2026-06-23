@@ -56,88 +56,9 @@ def index():
 @login_required
 @role_required('reception', 'super_admin', 'manager')
 def dashboard():
-    """لوحة تحكم الاستقبال - الوحدة المركزية"""
-    
-    
-    # إحصائيات شاملة عبر CoreQueryService
-    stats = core_queries.get_basic_dashboard_stats()
-    total_patients = stats["total_patients"]
-    today_visits = stats["visits_today"]
-    pending_appointments = Appointment.query.filter_by(status='SCHEDULED').count()
-    today_visits_list = Visit.query.filter(
-        Visit.visit_date == db.func.current_date(),
-        Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS, VisitState.COMPLETED])
-    ).order_by(Visit.created_at.desc()).limit(20).all()
-    
-    # إحصائيات الطوابير لكل قسم
-    departments = Department.query.all()
-    queue_stats = {}
-    for dept in departments:
-        queue_stats[dept.id] = {
-            'name': dept.name_ar,
-            'total_queue': 0,  
-            'waiting': 0,
-            'in_progress': 0
-        }
-    active_queue_items = QueueManagement.query.filter(
-        QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS])
-    ).order_by(QueueManagement.queued_at.asc()).limit(50).all()
-
-    today_online_bookings = OnlineBooking.query.filter(
-        OnlineBooking.appointment_date == db.func.current_date(),
-        OnlineBooking.status.in_([BookingState.PENDING, BookingState.CONFIRMED])
-    ).order_by(OnlineBooking.appointment_time.asc()).limit(20).all()
-
-    today = date.today()
-    day_start = datetime.combine(today, datetime.min.time())
-    day_end = datetime.combine(today, datetime.max.time())
-    today_appointments = Appointment.query.filter(
-        Appointment.starts_at >= day_start,
-        Appointment.starts_at <= day_end,
-        Appointment.status.in_([AppointmentState.SCHEDULED, AppointmentState.CONFIRMED, AppointmentState.CHECKED_IN])
-    ).order_by(Appointment.starts_at.asc()).limit(20).all()
-
-    # الميزات الذكية
-    smart_analytics = get_smart_queue_management()
-    patient_flow = get_patient_flow_analysis()
-    appointment_optimization = get_appointment_optimization()
-    real_time_alerts = get_real_time_alerts()
-    workflow_automation = get_workflow_automation()
-    patient_satisfaction_ai = get_patient_satisfaction_ai()
-    resource_planning = get_resource_planning()
-    smart_recommendations = get_smart_recommendations()
-    patient_demand_forecast = get_patient_demand_forecast()
-    
-    # تجميع الإحصائيات
-    stats = {
-        'smart_queue_management': smart_analytics,
-        'patient_flow': patient_flow,
-        'patient_flow_analysis': patient_flow,
-        'appointment_optimization': appointment_optimization,
-        'real_time_alerts': real_time_alerts,
-        'workflow_automation': workflow_automation,
-        'patient_satisfaction_ai': patient_satisfaction_ai,
-        'resource_planning': resource_planning,
-        'patient_demand_forecast': patient_demand_forecast,
-        'smart_recommendations': smart_recommendations
-    }
-    
-    return render_template('reception/dashboard_new.html',
-                         total_patients=total_patients,
-                         today_visits=today_visits,
-                         today_visits_list=today_visits_list,
-                         pending_appointments=pending_appointments,
-                         today_appointments=today_appointments,
-                         departments=departments,
-                         queue_stats=queue_stats,
-                         active_queue_items=active_queue_items,
-                         today_online_bookings=today_online_bookings,
-                         smart_analytics=smart_analytics,
-                         patient_flow=patient_flow,
-                         appointment_optimization=appointment_optimization,
-                         real_time_alerts=real_time_alerts,
-                         stats=stats,
-                         patient_demand_forecast=patient_demand_forecast)
+    """لوحة قيادة الاستقبال — Command Center"""
+    from app.shared.dashboard_service import render_command_center
+    return render_command_center(current_user)
 
 @reception_bp.route('/staff/schedule', methods=['GET', 'POST'])
 @login_required

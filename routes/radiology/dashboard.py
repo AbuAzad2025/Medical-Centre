@@ -87,7 +87,8 @@ def dashboard():
             'workflow_automation': workflow_automation,
             'predictive_insights': predictive_insights
         }
-        return render_template('radiology/dashboard_new.html', stats=stats, recent_requests=recent_requests)
+        from app.shared.dashboard_service import render_command_center
+        return render_command_center(current_user)
     
     except Exception as e:
         logging.error(f"Error in radiology dashboard: {str(e)}")
