@@ -399,7 +399,7 @@ window.addEventListener('error', function(e) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/static/sw.js')
+        navigator.serviceWorker.register('/static/pwa/sw.js', { scope: '/' })
             .then(function(registration) {
                 console.log('ServiceWorker registration successful');
             })

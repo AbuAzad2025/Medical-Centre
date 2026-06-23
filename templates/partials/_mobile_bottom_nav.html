@@ -1,0 +1,10 @@
+{% if current_user.is_authenticated and mobile_nav_items %}
+<nav class="mobile-bottom-nav d-lg-none" aria-label="تنقل سريع">
+  {% for item in mobile_nav_items %}
+  <a href="{{ item.href }}" class="{% if item.active %}active{% endif %}">
+    <i class="fas {{ item.icon }}"></i>
+    <span>{{ item.label }}</span>
+  </a>
+  {% endfor %}
+</nav>
+{% endif %}

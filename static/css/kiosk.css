@@ -1,0 +1,38 @@
+.kiosk-main {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--color-primary, #0f4c81) 8%, #f8fafc), #f8fafc);
+}
+
+.kiosk-checkin__panel {
+  max-width: 420px;
+  width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.1);
+}
+
+.kiosk-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.kiosk-keypad button {
+  min-height: 56px;
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+.kiosk-result--ok {
+  color: var(--color-secondary, #10b981);
+  font-size: 1.1rem;
+}
+
+.kiosk-result--err {
+  color: #dc3545;
+}

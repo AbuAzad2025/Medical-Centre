@@ -1671,6 +1671,32 @@ tr[data-href]:hover {
   font-size: 0.75rem;
   margin-inline-end: 0.35rem;
 }
+
+/* Mobile table stack — §25.3 / G-85 */
+@media (max-width: 767.98px) {
+  .table-stack thead {
+    display: none;
+  }
+  .table-stack tbody tr {
+    display: block;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 8px;
+    padding: 0.5rem;
+  }
+  .table-stack tbody td {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border: none;
+    padding: 0.35rem 0.25rem;
+  }
+  .table-stack tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--color-text-muted, #64748b);
+  }
+}
 .form-stepper-item.active .form-stepper-num { background: rgba(255, 255, 255, 0.25); }
 
 .patient-context-bar .card { border-inline-start: 4px solid var(--color-primary, #0f4c81); }

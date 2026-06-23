@@ -1,0 +1,28 @@
+{% extends "layouts/kiosk_shell.html" %}
+
+{% block title %}تسجيل الوصول{% endblock %}
+
+{% block content %}
+<div class="kiosk-checkin text-center">
+  <h1 class="mb-2"><i class="fas fa-id-card me-2"></i>تسجيل الوصول الذاتي</h1>
+  <p class="text-muted mb-4">أدخل رقم الهوية لتسجيل موعدك اليوم</p>
+
+  <div class="kiosk-checkin__panel mx-auto">
+    <label for="nationalId" class="form-label visually-hidden">رقم الهوية</label>
+    <input type="text" id="nationalId" class="form-control form-control-lg text-center mb-3 kiosk-key"
+           inputmode="numeric" autocomplete="off" placeholder="رقم الهوية" maxlength="32">
+
+    <div class="kiosk-keypad mb-3" id="kioskKeypad" aria-label="لوحة أرقام"></div>
+
+    <button type="button" class="btn btn-primary btn-lg w-100 kiosk-key" id="kioskSubmit">
+      <i class="fas fa-check me-2"></i>تسجيل الوصول
+    </button>
+
+    <div id="kioskResult" class="mt-4" hidden></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pages/kiosk/check_in.js') }}"></script>
+{% endblock %}
