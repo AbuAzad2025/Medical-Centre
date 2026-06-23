@@ -7,6 +7,8 @@ Create Date: 2026-06-22
 from alembic import op
 import sqlalchemy as sa
 
+from migration_utils import table_exists
+
 
 # revision identifiers, used by Alembic.
 revision = 's0_003_saas_data_contracts'
@@ -16,6 +18,9 @@ depends_on = None
 
 
 def upgrade() -> None:
+    if table_exists('packages'):
+        return
+
     op.execute("CREATE EXTENSION IF NOT EXISTS btree_gist")
 
     op.create_table(

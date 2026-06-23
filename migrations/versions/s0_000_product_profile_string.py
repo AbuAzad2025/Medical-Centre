@@ -7,8 +7,9 @@ Create Date: 2026-06-22
 from alembic import op
 import sqlalchemy as sa
 
+from migration_utils import index_exists, column_exists
 
-# revision identifiers, used by Alembic.
+
 revision = 's0_000_product_profile_string'
 down_revision = 'p3_006_refund_request'
 branch_labels = None
@@ -16,16 +17,25 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.create_index('ix_tenants_product_profile_code', 'tenants', ['product_profile_code'], unique=False)
-    op.execute(
-        "ALTER TABLE tenants ALTER COLUMN product_profile_code TYPE VARCHAR(40) "
-        "USING product_profile_code::text"
-    )
+    if not index_exists('tenants', 'ix_tenants_product_profile_code'):
+        op.create_index('ix_tenants_product_profile_code', 'tenants', ['product_profile_code'], unique=False)
+
+    if column_exists('tenants', 'product_profile_code'):
+        conn = op.get_bind()
+        col = next(c for c in sa.inspect(conn).get_columns('tenants') if c['name'] == 'product_profile_code')
+        col_type = str(col['type']).upper()
+        if 'VARCHAR' not in col_type and 'CHARACTER VARYING' not in col_type:
+            op.execute(
+                "ALTER TABLE tenants ALTER COLUMN product_profile_code TYPE VARCHAR(40) "
+                "USING product_profile_code::text"
+            )
 
 
 def downgrade() -> None:
-    op.execute(
-        "ALTER TABLE tenants ALTER COLUMN product_profile_code TYPE VARCHAR(7) "
-        "USING product_profile_code::varchar(7)"
-    )
-    op.drop_index('ix_tenants_product_profile_code', table_name='tenants')
+    if index_exists('tenants', 'ix_tenants_product_profile_code'):
+        op.drop_index('ix_tenants_product_profile_code', table_name='tenants')
+    if column_exists('tenants', 'product_profile_code'):
+        op.execute(
+            "ALTER TABLE tenants ALTER COLUMN product_profile_code TYPE VARCHAR(7) "
+            "USING product_profile_code::varchar(7)"
+        )
