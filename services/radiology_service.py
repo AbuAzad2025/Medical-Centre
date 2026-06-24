@@ -134,9 +134,9 @@ class RadiologyService:
                 patient_id=req.patient_id,
                 status="PENDING"
             )
-            result.report_text = report_text
+            result.findings = report_text
             if conclusion is not None:
-                result.conclusion = conclusion
+                result.impression = conclusion
             result.is_critical = is_critical
             if not result.id:
                 db.session.add(result)
@@ -174,7 +174,6 @@ class RadiologyService:
             req = RadiologyRequest.query.get(request_id)
             if not req or req.status != "REQUESTED":
                 return False
-            req.assigned_to = user_id
             req.status = "IN_PROGRESS"
             db.session.commit()
             return True
@@ -252,9 +251,12 @@ class RadiologyService:
     @staticmethod
     def log_action(action: str, details: str, user_id: int | None = None) -> None:
         from models.audit_trail import AuditTrail
+        _allowed = {"create", "update", "delete", "view", "export", "import", "security"}
         try:
             log = AuditTrail(
-                action=action, details=details,
+                entity_type="radiology_test", entity_id=0,
+                action=action if action in _allowed else "update",
+                description=f"[radiology] {action}: {details}" if details else f"[radiology] {action}",
                 user_id=user_id, created_at=datetime.now(timezone.utc),
             )
             db.session.add(log)
