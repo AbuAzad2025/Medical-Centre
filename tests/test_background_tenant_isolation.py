@@ -54,7 +54,7 @@ class TestTenantJobRunner:
 class TestNotificationQueueTenantIsolation:
     """Notification queue processing must be scoped to a single tenant."""
 
-    def test_process_notification_queue_filters_by_tenant(self, app):
+    def test_process_notification_queue_filters_by_tenant(self, app, monkeypatch):
         from services.notification_service import NotificationService
         from models.notification import NotificationQueue
         from models.user import User
@@ -79,8 +79,12 @@ class TestNotificationQueueTenantIsolation:
             db.session.add_all([n1, n2])
             db.session.commit()
 
-            # Suppress actual email sending by mocking the helper
-            NotificationService.send_email_message = MagicMock(return_value={'success': True})
+            # Suppress actual email sending; monkeypatch restores after test.
+            monkeypatch.setattr(
+                NotificationService,
+                'send_email_message',
+                MagicMock(return_value={'success': True}),
+            )
 
             result = NotificationService.process_notification_queue(tenant_id=t1.id)
             assert result['success'] is True
@@ -93,7 +97,7 @@ class TestNotificationQueueTenantIsolation:
 class TestAppointmentRemindersTenantIsolation:
     """Appointment reminder worker must be scoped to a single tenant."""
 
-    def test_send_appointment_reminders_filters_by_tenant(self, app):
+    def test_send_appointment_reminders_filters_by_tenant(self, app, monkeypatch):
         from services.notification_service import NotificationService
         from models.appointment import Appointment
         from models.patient import Patient
@@ -124,11 +128,12 @@ class TestAppointmentRemindersTenantIsolation:
             db.session.add_all([a1, a2])
             db.session.commit()
 
-            NotificationService.add_to_notification_queue = MagicMock()
+            mock_add = MagicMock()
+            monkeypatch.setattr(NotificationService, 'add_to_notification_queue', mock_add)
 
             result = NotificationService.send_appointment_reminders(tenant_id=t1.id)
             assert result['success'] is True
             assert result['sent'] == 1
 
-            called_tenant_ids = {call.kwargs.get('tenant_id') for call in NotificationService.add_to_notification_queue.call_args_list}
+            called_tenant_ids = {call.kwargs.get('tenant_id') for call in mock_add.call_args_list}
             assert t2.id not in called_tenant_ids
