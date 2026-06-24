@@ -93,13 +93,13 @@ class AccessControlService:
                 return True
             
             # المختبر والأشعة يمكنهم الوصول للزيارات الموجهة لهم
-            if user.role == 'lab' and visit.requested_labs:
+            if user.role == 'lab' and visit.lab_tests_ordered:
                 return True
-            elif user.role == 'radiology' and visit.requested_radiology:
+            elif user.role == 'radiology' and visit.radiology_ordered:
                 return True
             
             # الطوارئ يمكنهم الوصول لحالات الطوارئ
-            if user.role == 'emergency' and visit.status == 'EMERGENCY':
+            if user.role == 'emergency' and visit.is_emergency:
                 return True
             
             return False
@@ -127,7 +127,12 @@ class AccessControlService:
             # الاستقبال يمكنه تعديل الزيارات خلال 30 دقيقة
             if user.role == 'reception':
                 if visit.created_at:
-                    time_diff = datetime.now(timezone.utc) - visit.created_at
+                    created = visit.created_at
+                    # created_at is stored naive (UTC); normalise to avoid a
+                    # naive/aware subtraction TypeError that would deny edits.
+                    if created.tzinfo is None:
+                        created = created.replace(tzinfo=timezone.utc)
+                    time_diff = datetime.now(timezone.utc) - created
                     return time_diff <= timedelta(minutes=30)
             
             # الأطباء يمكنهم تعديل زياراتهم غير المؤرشفة
