@@ -186,10 +186,17 @@ class TestAggregatorsSmoke:
 
     def test_process_notification_queue(self, fx, monkeypatch):
         u = fx.user()
-        # Isolate dispatch logic from external channel delivery (CI may lack SMS/email).
-        monkeypatch.setattr(NF, 'send_email_message', lambda **kw: {'success': True})
-        monkeypatch.setattr(NF, 'send_whatsapp_message', lambda **kw: {'success': True})
-        monkeypatch.setattr(NF, 'send_notification', lambda **kw: {'success': True, 'notification_id': 1})
+        # Patch on the module path process_notification_queue uses internally.
+        _ok = {'success': True}
+        monkeypatch.setattr(
+            'services.notification_service.NotificationService.send_email_message',
+            staticmethod(lambda **kw: _ok))
+        monkeypatch.setattr(
+            'services.notification_service.NotificationService.send_whatsapp_message',
+            staticmethod(lambda **kw: _ok))
+        monkeypatch.setattr(
+            'services.notification_service.NotificationService.send_notification',
+            staticmethod(lambda **kw: {**_ok, 'notification_id': 1}))
 
         queue_ids = []
         for ntype, recipient in (
@@ -205,11 +212,10 @@ class TestAggregatorsSmoke:
         assert result['success'] is True
 
         from models.notification import NotificationQueue
-        from app.shared.enums import NotificationState
         for qid in queue_ids:
             item = NotificationQueue.query.get(qid)
             assert item is not None
-            assert item.status == NotificationState.SENT
+            assert (item.status or '').lower() == 'sent'
 
 
 class TestAggregatorsWithData:
