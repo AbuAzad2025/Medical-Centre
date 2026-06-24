@@ -184,14 +184,32 @@ class TestAggregatorsSmoke:
         result = getattr(NF, method)(tenant_id=None)
         assert result is None or isinstance(result, (dict, list, int))
 
-    def test_process_notification_queue(self, fx):
+    def test_process_notification_queue(self, fx, monkeypatch):
         u = fx.user()
-        NF.add_to_notification_queue(u.id, 'email', 'a@b.com', 'subj', 'content')
-        NF.add_to_notification_queue(u.id, 'whatsapp', '+970599000111', 'subj', 'content')
-        NF.add_to_notification_queue(u.id, 'inapp', None, 'subj', 'content')
+        # Isolate dispatch logic from external channel delivery (CI may lack SMS/email).
+        monkeypatch.setattr(NF, 'send_email_message', lambda **kw: {'success': True})
+        monkeypatch.setattr(NF, 'send_whatsapp_message', lambda **kw: {'success': True})
+        monkeypatch.setattr(NF, 'send_notification', lambda **kw: {'success': True, 'notification_id': 1})
+
+        queue_ids = []
+        for ntype, recipient in (
+            ('email', 'a@b.com'),
+            ('whatsapp', '+970599000111'),
+            ('inapp', str(u.id)),
+        ):
+            res = NF.add_to_notification_queue(u.id, ntype, recipient, 'subj', 'content')
+            assert res['success'] is True
+            queue_ids.append(res['queue_id'])
+
         result = NF.process_notification_queue(tenant_id=None)
         assert result['success'] is True
-        assert result['processed_count'] >= 3
+
+        from models.notification import NotificationQueue
+        from app.shared.enums import NotificationState
+        for qid in queue_ids:
+            item = NotificationQueue.query.get(qid)
+            assert item is not None
+            assert item.status == NotificationState.SENT
 
 
 class TestAggregatorsWithData:
@@ -289,13 +307,17 @@ class TestAggregatorsWithData:
         assert res['sent'] >= 1
         assert res['fallback_notified'] >= 1
 
-    def test_module_level_process_queue_entry(self, fx):
+    def test_module_level_process_queue_entry(self, fx, monkeypatch):
         from services.notification_service import process_notification_queue
         u = fx.user()
-        NF.add_to_notification_queue(u.id, 'inapp', None, 's', 'c')
+        monkeypatch.setattr(NF, 'send_notification', lambda **kw: {'success': True, 'notification_id': 1})
+        res = NF.add_to_notification_queue(u.id, 'inapp', str(u.id), 's', 'c')
+        assert res['success'] is True
         count = process_notification_queue(tenant_id=None)
-        assert isinstance(count, int)
         assert count >= 1
+        from models.notification import NotificationQueue
+        from app.shared.enums import NotificationState
+        assert NotificationQueue.query.get(res['queue_id']).status == NotificationState.SENT
 
     def test_check_and_send_alerts_wrapper(self, fx):
         res = NF.check_and_send_alerts(tenant_id=None)
