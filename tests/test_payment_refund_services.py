@@ -7,6 +7,7 @@ invoice reversal and receipt voiding. All DB work runs under ``rollback_db``.
 """
 import types
 import uuid
+from datetime import datetime, timezone
 from decimal import Decimal
 
 import pytest
@@ -58,7 +59,7 @@ def fx(rollback_db):
         pay = Payment(tenant_id=tenant_id, operation_type='visit_payment',
                       amount=Decimal(str(amount)), currency='ILS', status=status,
                       method='CASH', visit_id=visit_id,
-                      payment_date=__import__('datetime').datetime.utcnow())
+                      payment_date=datetime.now(timezone.utc))
         db.session.add(pay)
         db.session.commit()
         return pay
