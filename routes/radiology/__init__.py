@@ -13,6 +13,7 @@ from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
 from models.file_management import FileUpload
 from models.system_config import SystemConfig
+from app.shared.enums import LabResultStatus, OrderState
 from app_factory import db
 import logging
 from datetime import datetime, date, timezone

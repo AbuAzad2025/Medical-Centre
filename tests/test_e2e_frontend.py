@@ -42,6 +42,7 @@ BP_ROLE = {
     'specialty_forms': 'doctor',
     'quality': 'manager',
     'portal': 'patient',
+    'owner': 'super_admin',  # owner_required accepts super_admin/admin/owner
 }
 
 # Skip only non-HTML / binary / session-ending GET endpoints. Detail pages,

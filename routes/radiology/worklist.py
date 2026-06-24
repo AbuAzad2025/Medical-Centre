@@ -1,6 +1,6 @@
 """worklist routes - extracted from monolithic radiology.py"""
 
-from routes.radiology import radiology_bp
+from routes.radiology import radiology_bp, _log_radiology_workflow
 
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app
@@ -13,6 +13,7 @@ from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
 from models.file_management import FileUpload
 from models.system_config import SystemConfig
+from app.shared.enums import LabResultStatus, OrderState
 from services.radiology_service import radiology_service
 from app_factory import db
 import logging, json, os, base64, secrets

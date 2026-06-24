@@ -124,7 +124,7 @@ def api_note_templates():
 def api_dashboard_layout():
     if request.method == 'GET':
         return jsonify({'success': True, 'items': _get_doctor_dashboard_layout()}), 200
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     items = data.get('items') or []
     allowed = {i['id'] for i in _default_doctor_dashboard_layout()}
     normalized = []
@@ -154,7 +154,7 @@ def api_dashboard_layout():
 @login_required
 @role_required('doctor', 'admin', 'manager', 'super_admin')
 def upsert_note_template():
-    payload = request.get_json(silent=True) if request.is_json else request.form
+    payload = (request.get_json(silent=True) or {}) if request.is_json else request.form
     template_id = (payload.get('id') or '').strip() or None
     name = (payload.get('name') or '').strip()
     text = payload.get('text') or ''

@@ -15,7 +15,7 @@ reception_currency_bp = Blueprint('reception_currency', __name__)
 def save_manual_rate():
     """حفظ سعر صرف يدوي من المودال"""
     try:
-        data = request.get_json(force=True)
+        data = request.get_json(force=True, silent=True) or {}
         from_currency = data.get('from_currency', '').strip().upper()
         to_currency = data.get('to_currency', '').strip().upper()
         rate = data.get('rate')
@@ -38,7 +38,7 @@ def save_manual_rate():
         })
     except Exception as e:
         logging.error(f"Error saving manual rate: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'success': False, 'error': 'تعذر حفظ سعر الصرف'}), 500
 
 
 @reception_currency_bp.route('/api/check-rate', methods=['GET'])

@@ -18,6 +18,7 @@ from models.radiology_request import RadiologyRequest
 from services.gatekeeper_service import GatekeeperService
 from services.manager_service import manager_service
 from app_factory import db
+from app.shared.enums import VisitState
 from sqlalchemy import func
 from decimal import Decimal, ROUND_HALF_UP
 import logging
@@ -33,7 +34,7 @@ from datetime import datetime, date, timedelta, timezone
 @role_required('manager', 'admin', 'super_admin')
 def api_what_if():
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
         add_staff = int(data.get('add_staff') or 0)
         add_rooms = int(data.get('add_rooms') or 0)
         base_visits = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])).count()

@@ -31,7 +31,7 @@ from datetime import datetime, date, timedelta, timezone
 @role_required_json('emergency', 'admin', 'manager')
 def api_ems_intake():
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
         name = (data.get('patient_name') or '').strip()
         phone = (data.get('phone') or '').strip()
         complaint = (data.get('chief_complaint') or '').strip() or 'غير محدد'

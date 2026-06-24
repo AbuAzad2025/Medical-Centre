@@ -2,7 +2,7 @@
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
-from app.shared.enums import AppointmentWorkflowStatus
+from app.shared.enums import AppointmentWorkflowStatus, AppointmentState, VisitState
 from models.patient import Patient
 from models.visit import Visit
 from models.user import User, StaffWorkSchedule, StaffAbsence

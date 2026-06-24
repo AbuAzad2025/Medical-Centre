@@ -1,7 +1,7 @@
 """Patient management routes - extracted from monolithic reception.py"""
 
 # Import blueprint (absolute import avoids parent package requirement)
-from routes.reception import reception_bp
+from routes.reception import reception_bp, _wants_json
 
 # Imports
  

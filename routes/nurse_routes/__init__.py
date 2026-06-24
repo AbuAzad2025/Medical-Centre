@@ -7,6 +7,7 @@ from models.patient import Patient
 from models.visit import Visit
 from models.medication import Medication
 from app_factory import db
+from app.shared.enums import TaskState, VisitState
 import logging
 from datetime import datetime, timedelta, timezone, date
 import json

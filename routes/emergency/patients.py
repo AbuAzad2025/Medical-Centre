@@ -15,6 +15,7 @@ from models.medication import Prescription
 from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
+from app.shared.enums import EmergencyStatus
 from services.emergency_service import emergency_service
 from app_factory import db
 from sqlalchemy import and_, or_, desc, case

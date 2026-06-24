@@ -1,6 +1,6 @@
 """inventory routes - extracted from monolithic medication_routes.py"""
 
-from routes.medication_routes import medication_bp
+from routes.medication_routes import medication_bp, _generate_supply_request_number
 
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for

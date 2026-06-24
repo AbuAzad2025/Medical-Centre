@@ -12,6 +12,8 @@ from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
 from sqlalchemy import func
+from datetime import datetime, timezone, timedelta
+from app_factory import db
 
 
 # =============================================

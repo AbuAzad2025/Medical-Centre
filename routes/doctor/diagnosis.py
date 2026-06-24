@@ -1,6 +1,6 @@
 """diagnosis routes - extracted from monolithic doctor.py"""
 
-from routes.doctor import doctor_bp
+from routes.doctor import doctor_bp, _sync_follow_up_request_for_visit, calculate_medical_performance_score
 
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for, current_app

@@ -16,6 +16,7 @@ from models.lab_reagent import LabReagent
 from models.audit_trail import AuditTrail
 from services.lab_service import lab_service
 from app_factory import db
+import qrcode
 import logging, json, base64
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO

@@ -14,6 +14,7 @@ from models.lab_request import LabResult
 from models.lab_quality import LabQualityControlEntry
 from models.lab_reagent import LabReagent
 from models.audit_trail import AuditTrail
+from app.shared.enums import LabResultStatus, OrderState
 from services.lab_service import lab_service
 from app_factory import db
 import logging, json, base64

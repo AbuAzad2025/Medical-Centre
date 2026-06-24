@@ -1,6 +1,7 @@
 """visits routes - extracted from monolithic doctor.py"""
 
-from routes.doctor import doctor_bp
+from routes.doctor import doctor_bp, _sync_follow_up_request_for_visit
+from routes.doctor.diagnosis import evaluate_clinical_rules, get_standardized_pathways, get_data_based_recommendations
 
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for, current_app
@@ -20,7 +21,7 @@ from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from app_factory import db
-from app.shared.enums import VisitState, QueueState
+from app.shared.enums import VisitState, QueueState, LabResultStatus
 from services.visit_state_machine_service import VisitStateMachineService
 from sqlalchemy import and_, or_, desc, func, case
 import logging, json, secrets

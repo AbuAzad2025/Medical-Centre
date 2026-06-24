@@ -90,8 +90,8 @@ def add_service_api():
     """API لإضافة خدمة جديدة"""
     try:
         from models.service import ServiceMaster
-        data = request.get_json()
-        
+        data = request.get_json(silent=True) or {}
+
         # Validation
         if not data.get('name') or not data.get('code'):
             return jsonify({'success': False, 'message': 'الاسم وكود الخدمة مطلوبان'}), 400
@@ -133,9 +133,9 @@ def update_service_api(id):
         service = db.session.get(ServiceMaster, id)
         if not service:
             return jsonify({'success': False, 'message': 'الخدمة غير موجودة'}), 404
-            
-        data = request.get_json()
-        
+
+        data = request.get_json(silent=True) or {}
+
         if 'name' in data: service.name = data['name']
         if 'name_ar' in data: service.name_ar = data['name_ar']
         if 'description' in data: service.description = data['description']
