@@ -43,9 +43,11 @@ class TestAuth:
         test_user.is_active = True
         db.session.commit()
 
-    @pytest.mark.skip(reason="Flaky due to test ordering (Flask-Login session state leaks across test clients)")
-    def test_protected_route_redirects(self, client):
-        resp = client.get('/medication/dashboard')
+    def test_protected_route_redirects(self, app):
+        # Brand-new client => empty cookie jar; autouse _clear_flask_login_state
+        # clears any leaked g._login_user, so this is order-independent.
+        fresh = app.test_client()
+        resp = fresh.get('/medication/dashboard')
         assert resp.status_code == 302
         assert '/auth/login' in resp.headers['Location']
 
