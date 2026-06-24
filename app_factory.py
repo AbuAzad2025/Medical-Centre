@@ -420,7 +420,7 @@ def create_app(config_name: str | None = None) -> Flask:
         try:
             import time
             from flask import g
-            from app.shared.branding_context import build_branding_payload
+            from app.shared.branding_context import build_branding_payload, get_branding_row
 
             tenant = getattr(g, 'current_tenant', None)
             cache_key = f'tenant:{tenant.id}' if tenant and getattr(tenant, 'id', None) else 'platform'
@@ -435,7 +435,9 @@ def create_app(config_name: str | None = None) -> Flask:
                     'ts': now,
                     'data': build_branding_payload(db, db.engine),
                 }
-            return caches[cache_key]['data']
+            data = dict(caches[cache_key]['data'])
+            data['branding'] = get_branding_row()
+            return data
         except Exception:
             return {}
 
