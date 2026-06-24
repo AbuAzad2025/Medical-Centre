@@ -1,11 +1,12 @@
 """medication routes - extracted from monolithic nurse_routes.py"""
 
-from routes.nurse_routes import nurse_bp
+from routes.nurse_routes import nurse_bp, _accessible_department_ids
 
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
 from utils.decorators import role_required
+from app.shared.enums import VisitState
 from models.patient import Patient
 from models.visit import Visit
 from models.medication import Medication

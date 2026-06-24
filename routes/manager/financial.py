@@ -11,7 +11,7 @@ from models.visit import Visit
 from models.user import User, StaffWorkSchedule, StaffAbsence
 from models.department import Department
 from models.payment import Payment
-from app.shared.enums import PaymentStatus
+from app.shared.enums import PaymentStatus, VisitState
 from models.invoice import Invoice
 from models.appointment import Appointment
 from models.lab_request import LabRequest

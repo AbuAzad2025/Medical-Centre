@@ -1,6 +1,6 @@
 """fhir routes - extracted from monolithic lab.py"""
 
-from routes.lab import lab_bp
+from routes.lab import lab_bp, _log_lab_workflow
 
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response
@@ -14,6 +14,7 @@ from models.lab_request import LabResult
 from models.lab_quality import LabQualityControlEntry
 from models.lab_reagent import LabReagent
 from models.audit_trail import AuditTrail
+from app.shared.enums import LabResultStatus
 from app_factory import db
 import logging, json, base64
 from datetime import datetime, date, timezone, timedelta
@@ -56,7 +57,7 @@ def api_worklist():
 @role_required('lab', 'doctor', 'admin', 'manager')
 def api_fhir_lab_service_request():
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
         patient_id = data.get('patient_id')
         visit_id = data.get('visit_id')
         requester_id = data.get('requester_id') or getattr(current_user, 'id', None)
@@ -102,7 +103,7 @@ def api_fhir_lab_service_request():
 @role_required('lab', 'doctor', 'admin', 'manager')
 def api_fhir_lab_observation_import():
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
         request_id = data.get('request_id')
         patient_id = data.get('patient_id')
         test_code = (data.get('test_code') or '').strip()

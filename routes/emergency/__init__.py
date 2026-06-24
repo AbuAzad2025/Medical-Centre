@@ -15,6 +15,7 @@ from models.medication import Prescription
 from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
+from app.shared.enums import EmergencyStatus
 from app_factory import db
 import logging
 from datetime import datetime, date, timedelta, timezone

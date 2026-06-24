@@ -1,11 +1,12 @@
 """dashboard routes - extracted from monolithic nurse_routes.py"""
 
-from routes.nurse_routes import nurse_bp, _get_nursing_protocols
+from routes.nurse_routes import nurse_bp, _get_nursing_protocols, _accessible_department_ids, get_nursing_smart_analytics, get_patient_care_optimization, get_vital_signs_monitoring, get_medication_management, get_nursing_workflow_automation, get_nursing_predictive_insights, get_nursing_smart_recommendations, get_nursing_quality_indicators, get_nursing_workload_prediction
 
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
 from utils.decorators import role_required
+from app.shared.enums import PrescriptionState, TaskState, VisitState
 from models.patient import Patient
 from models.visit import Visit
 from models.medication import Medication

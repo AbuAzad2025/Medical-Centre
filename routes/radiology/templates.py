@@ -51,7 +51,7 @@ def api_report_templates():
 @login_required
 @role_required('radiology', 'manager', 'super_admin')
 def upsert_report_template():
-    payload = request.get_json(silent=True) if request.is_json else request.form
+    payload = (request.get_json(silent=True) or {}) if request.is_json else request.form
     template_id = (payload.get('id') or '').strip() or None
     name = (payload.get('name') or '').strip()
     modality = (payload.get('modality') or '').strip().upper()
@@ -131,7 +131,7 @@ def api_report_macros():
 @login_required
 @role_required('radiology', 'manager', 'super_admin')
 def upsert_report_macro():
-    payload = request.get_json(silent=True) if request.is_json else request.form
+    payload = (request.get_json(silent=True) or {}) if request.is_json else request.form
     macro_id = (payload.get('id') or '').strip() or None
     name = (payload.get('name') or '').strip()
     text = payload.get('text') or ''

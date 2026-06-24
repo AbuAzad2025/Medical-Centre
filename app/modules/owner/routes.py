@@ -927,7 +927,9 @@ def api_list_bundles():
 def api_get_bundle(bundle_id):
     """Get a single bundle detail."""
 
-    b = ProductBundle.query.get_or_404(bundle_id)
+    b = ProductBundle.query.get(bundle_id)
+    if not b:
+        return jsonify({"error": "الباقة غير موجودة"}), 404
     return jsonify({
         "id": b.id,
         "slug": b.slug,
@@ -993,9 +995,11 @@ def api_create_bundle():
 def api_update_bundle(bundle_id):
     """Update a product bundle."""
 
-    b = ProductBundle.query.get_or_404(bundle_id)
+    b = ProductBundle.query.get(bundle_id)
+    if not b:
+        return jsonify({"error": "الباقة غير موجودة"}), 404
     try:
-        data = request.get_json() or request.form
+        data = request.get_json(silent=True) or request.form
         b.name = data.get("name", b.name)
         b.name_ar = data.get("name_ar", b.name_ar)
         b.description_ar = data.get("description_ar", b.description_ar)
@@ -1027,7 +1031,9 @@ def api_update_bundle(bundle_id):
 def api_delete_bundle(bundle_id):
     """Delete (deactivate) a product bundle."""
 
-    b = ProductBundle.query.get_or_404(bundle_id)
+    b = ProductBundle.query.get(bundle_id)
+    if not b:
+        return jsonify({"error": "الباقة غير موجودة"}), 404
     try:
         b.is_active = False
         db.session.commit()
@@ -1141,8 +1147,14 @@ def api_tenant_limits(tenant_id):
 def api_record_usage(tenant_id):
     """Manually trigger a resource usage snapshot for a tenant."""
 
-    snapshot = ResourceUsage.record_snapshot(tenant_id)
-    return jsonify({"status": "recorded", "snapshot": snapshot.to_dict()})
+    if not Tenant.query.get(tenant_id):
+        return jsonify({"error": "العميل غير موجود"}), 404
+    try:
+        snapshot = ResourceUsage.record_snapshot(tenant_id)
+        return jsonify({"status": "recorded", "snapshot": snapshot.to_dict()})
+    except Exception:
+        db.session.rollback()
+        return jsonify({"error": "تعذر تسجيل الاستهلاك"}), 400
 
 
 # ---------------------------------------------------------------------------

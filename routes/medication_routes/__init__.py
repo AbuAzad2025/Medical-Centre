@@ -9,6 +9,7 @@ from models.visit import Visit
 from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
 from models.drug_interaction import DrugInteraction
 from app_factory import db
+from app.shared.enums import PrescriptionState
 import logging
 from datetime import datetime, timezone, timedelta, date
 import json

@@ -1,6 +1,6 @@
 """queue routes - extracted from monolithic emergency.py"""
 
-from routes.emergency import emergency_bp
+from routes.emergency import emergency_bp, _set_emergency_status
 
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for

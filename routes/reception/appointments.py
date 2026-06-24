@@ -1,6 +1,6 @@
 """appointments routes - extracted from monolithic reception.py"""
 
-from routes.reception import reception_bp
+from routes.reception import reception_bp, _wants_json
 
 # Imports
  

@@ -18,6 +18,7 @@ from sqlalchemy import func, and_
 import logging
 from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
+from app.shared.enums import VisitState
 
 
 # =============================================

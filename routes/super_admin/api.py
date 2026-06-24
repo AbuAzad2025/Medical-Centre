@@ -12,6 +12,7 @@ from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
 from sqlalchemy import func
+from datetime import datetime, timedelta, timezone
 
 
 # =============================================
@@ -31,7 +32,7 @@ def api_audit_log():
         from models.audit_trail import AuditTrail
         from app_factory import db
         
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         
         action = (data.get('action') or 'view')
         allowed_actions = {'create', 'update', 'delete', 'view', 'login', 'logout', 'export', 'import', 'backup', 'restore', 'security', 'login_failed', 'login_blocked', 'force_logout', 'permission_denied', 'unauthorized_access'}
@@ -58,6 +59,8 @@ def api_audit_log():
         return jsonify({'success': True, 'message': 'تم تسجيل الحدث'}), 200
         
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"API audit log error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر تسجيل الحدث حالياً'}), 500
 

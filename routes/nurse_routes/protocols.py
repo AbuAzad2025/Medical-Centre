@@ -32,7 +32,7 @@ from sqlalchemy import func, and_, or_, desc
 def api_nursing_protocols():
     if request.method == 'GET':
         return jsonify({'success': True, 'items': _get_nursing_protocols()}), 200
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     items = data.get('items') or []
     normalized = []
     for item in items:

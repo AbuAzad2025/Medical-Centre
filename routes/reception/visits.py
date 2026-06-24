@@ -23,6 +23,7 @@ from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
 from app_factory import db
 import logging
+from app.shared.enums import VisitState
 from services.access_control_service import AccessControlService
 from services.pos_terminal_service import PosTerminalService
 from routes.reception.queue import add_patient_to_queue_auto
