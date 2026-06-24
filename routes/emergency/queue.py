@@ -177,19 +177,17 @@ def triage(emergency_id):
 @emergency_bp.route('/patients')
 @login_required
 def patients():
-    """مرضى الطوارئ"""
+    """مرضى الطوارئ — تُحوِّل لطابور المرضى الكامل (يبني queue_stats)."""
     if current_user.role not in ['emergency', 'admin', 'manager']:
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
-    
-    return render_template('emergency/patient_queue.html')
+    return redirect(url_for('emergency.patient_queue'))
 
 @emergency_bp.route('/queue')
 @login_required
 def queue():
-    """طابور الطوارئ"""
+    """طابور الطوارئ — تُحوِّل لطابور المرضى الكامل (يبني queue_stats)."""
     if current_user.role not in ['emergency', 'admin', 'manager']:
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
-    
-    return render_template('emergency/patient_queue.html')
+    return redirect(url_for('emergency.patient_queue'))

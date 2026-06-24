@@ -1,6 +1,12 @@
 """templates routes - extracted from monolithic radiology.py"""
 
-from routes.radiology import radiology_bp
+from routes.radiology import (
+    radiology_bp,
+    _get_radiology_report_templates,
+    _save_radiology_report_templates,
+    _get_radiology_report_macros,
+    _save_radiology_report_macros,
+)
 
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app

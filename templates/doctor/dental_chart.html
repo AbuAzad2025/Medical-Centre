@@ -8,7 +8,7 @@
             <small class="text-muted">FDI numbering | اضغط على السن لتغيير حالته</small>
         </div>
         <div class="col-auto">
-            <a href="{{ url_for('doctor.patient_details', visit_id=visit_id) }}" class="btn btn-sm btn-outline-secondary">
+            <a href="{{ url_for('doctor.patient_details', visit_id=visit_id) if visit_id else url_for('doctor.patients') }}" class="btn btn-sm btn-outline-secondary">
                 <i class="fas fa-arrow-left me-1"></i> العودة
             </a>
             <button class="btn btn-sm btn-primary" onclick="saveChart()">

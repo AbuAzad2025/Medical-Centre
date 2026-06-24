@@ -52,7 +52,21 @@ def audit_trail():
         total = 0
         pages = 0
 
-    return render_template('super_admin/audit_trail.html', audit_logs=audit_logs, page=page, pages=pages, total=total)
+    audit_logs_json = [
+        {
+            'id': log.id,
+            'timestamp': log.created_at.isoformat() if log.created_at else None,
+            'user': {'full_name': log.user.full_name} if log.user else None,
+            'action': log.action,
+            'entity_type': log.entity_type,
+            'description': log.description,
+            'status': log.action,
+        }
+        for log in audit_logs
+    ]
+
+    return render_template('super_admin/audit_trail.html', audit_logs=audit_logs,
+                           audit_logs_json=audit_logs_json, page=page, pages=pages, total=total)
 
 
 @super_admin_bp.route('/security-center')

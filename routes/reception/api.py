@@ -17,6 +17,12 @@ from models.online_booking import OnlineBooking
 from models.department import Department
 from models.payment import Payment, PaymentMethod, PaymentStatus
 from models.queue_management import QueueManagement
+from app.shared.enums import QueueState
+from routes.reception.queue import (
+    get_smart_queue_management,
+    get_patient_satisfaction_ai,
+    get_patient_demand_forecast,
+)
 from models.patient_satisfaction import PatientSatisfactionSurvey
 from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service

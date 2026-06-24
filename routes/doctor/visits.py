@@ -525,6 +525,5 @@ def end_treatment(visit_id):
 @login_required
 @role_required('doctor', 'admin', 'manager')
 def visits():
-    """قائمة الزيارات"""
-    
-    return render_template('doctor/visit_summary.html')
+    """قائمة الزيارات — تُحوِّل لطابور المرضى لاختيار زيارة (لا قالب تفاصيل بلا بيانات)."""
+    return redirect(url_for('doctor.patient_queue'))

@@ -1,6 +1,13 @@
 """notes routes - extracted from monolithic doctor.py"""
 
-from routes.doctor import doctor_bp
+from routes.doctor import (
+    doctor_bp,
+    _get_doctor_note_templates,
+    _save_doctor_note_templates,
+    _get_doctor_dashboard_layout,
+    _save_doctor_dashboard_layout,
+    _default_doctor_dashboard_layout,
+)
 
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for, current_app

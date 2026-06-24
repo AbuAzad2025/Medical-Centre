@@ -464,6 +464,9 @@ def edit_patient(patient_id):
                          patient=patient,
                          departments=departments,
                          insurance_companies=insurance_companies,
+                         search='',
+                         selected_department=None,
+                         page=1, pages=1, total=len(patients),
                          mode='edit')
 
 @reception_bp.route('/delete_patient/<int:patient_id>', methods=['POST'])

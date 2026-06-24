@@ -1200,7 +1200,29 @@ document.body.classList.toggle('sidebar-open');
 **Git HEAD:** *(يُحدَّث بعد الدفع)*  
 **اختبارات المرحلة 5:** `test_gate_5_page_header` — 17 حالة
 
-**الخطوة التالية:** ✅ اكتملت البنود الثلاثة (انظر §11.15).
+**الخطوة التالية:** ✅ اكتملت البنود الثلاثة (انظر §11.15) + فحص E2E شامل (انظر §11.16).
+
+### 11.16 دفعة 2026-06-24 — فحص E2E شامل بلا استثناء (`tests/test_e2e_frontend.py`)
+
+تنفيذ **§8.2** (اختبار وظيفي — لا كسر) كشبكة أمان آلية تغطّي كل قالب/رابط/زر/صفحة بلا استثناء.
+
+**فحوص ساكنة (كل القوالب):**
+- كل قالب `.html` يُترجَم في Jinja.
+- كل `url_for('endpoint', ...)` (روابط/أزرار/فورمات) يشير لـ endpoint مسجّل.
+- كل `url_for('static', filename=...)` يشير لملف موجود.
+
+**فحص ديناميكي:** اكتشاف تلقائي لـ **341 مسار GET** عبر كل الـ blueprints ذات الصفحات (طاقم + admin + بوابة + main/inbox/report_builder/booking)، يشمل صفحات التفاصيل ذات المعرّفات وصفحات الطباعة (ببذر مريض+زيارة)، مع تأكيد **لا 500 ولا تسريب تقني** لكل دور. الـ blueprints التكاملية البحتة (fhir/dicom/sso/...) مغطّاة عبر الفحوص الساكنة.
+
+**أصلح 19 عطلاً كامناً سطّحها الفحص** (كانت ستُرجع 500 للمستخدم):
+- **imports مفقودة لدوال مساعدة** عبر blueprint (`_get_doctor_note_templates`/`dashboard_layout`، `_get_radiology_report_*`، `_get_nursing_protocols`، ودوال طابور الاستقبال) + **enums مفقودة** (`QueueState`/`VisitState` في reception api/queue) + `db` غير معرّف في super_admin/roles.
+- **متغيّرات قالب مفقودة:** `edit_patient` (`page`)، `view_visit` (`visit_next_actions`).
+- **روابط/أزرار مكسورة:** `_attachment_panel` (`main.download_file` → `radiology.download_file`)، `dental_chart` (`patient_details` بلا `visit_id`).
+- **ماكرو `_workflow_next_actions`** يُستورَد بلا `with context` في 3 قوالب → لم يكن يرى الـ context global.
+- **مخالفة قيد** `chk_category`: لوحة الطبيب أنشأت `SystemConfig(category='doctor')` → `general`.
+- **مسارات يتيمة** تُحمّل قوالب تفاصيل بلا بيانات (`doctor.visits`/`medical_records`، `emergency.patients`/`queue`، `radiology.images`) → تحويل لمساراتها الوظيفية.
+- **تسلسل ORM** في `super_admin.audit_trail` (تمرير قائمة JSON مُسلسلة للـ JS).
+
+**النتيجة:** `5 passed` (341 مسار) + بوابات `gate_5`/`phase14`/`phase13_motion`/`gate_120` خضراء.
 
 ### 11.15 دفعة 2026-06-23 (ليلاً متأخراً) — إغلاق بنود الخطة المتبقية
 

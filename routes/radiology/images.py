@@ -27,10 +27,8 @@ from io import BytesIO
 @login_required
 @role_required('radiology', 'manager')
 def images():
-    """صور الأشعة"""
-    
-    
-    return render_template('radiology/view_request.html')
+    """صور الأشعة — تُحوِّل لقائمة عمل الأشعة (لا قالب تفاصيل بلا بيانات)."""
+    return redirect(url_for('radiology.worklist'))
 
 @radiology_bp.route('/files/<int:file_id>')
 @login_required

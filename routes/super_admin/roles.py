@@ -187,6 +187,7 @@ def manage_role_permissions(role_id):
 @super_admin_required
 def manage_role_department_permissions(role_id):
     try:
+        from app_factory import db
         from sqlalchemy import inspect
         insp = inspect(db.engine)
         if not (insp.has_table('roles') and insp.has_table('departments') and insp.has_table('department_permissions')):
@@ -274,6 +275,7 @@ def manage_role_department_permissions(role_id):
 @super_admin_required
 def permissions_matrix():
     try:
+        from app_factory import db
         from sqlalchemy import inspect
         insp = inspect(db.engine)
         if not (insp.has_table('roles') and insp.has_table('permissions') and insp.has_table('role_permissions')):

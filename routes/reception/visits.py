@@ -780,7 +780,7 @@ def api_visit_pricing():
     TAX_RATE = 0.15  # نسبة الضريبة الافتراضية
     
     try:
-        dept = db.session.get(Department, department_id)
+        dept = db.session.get(Department, department_id) if department_id else None
         
         # خدمات يدوية من الطلب
         custom_names = request.args.getlist('custom_service_name')
@@ -871,7 +871,7 @@ def get_pricing_details(department_id, doctor_id, visit_type, is_emergency, paym
         }
         
         # حساب تكلفة الخدمة
-        department = db.session.get(Department, department_id)
+        department = db.session.get(Department, department_id) if department_id else None
         if department:
             service_type = get_service_type_by_department(department)
             service = get_service_by_department(department)
@@ -933,7 +933,7 @@ def calculate_visit_cost(department_id, doctor_id, visit_type, is_emergency, pay
         from models.service import ServiceMaster
         from models.pricing_management import PricingRule
         total_cost = 0
-        department = db.session.get(Department, department_id)
+        department = db.session.get(Department, department_id) if department_id else None
         if not department:
             return 0
         service_type = get_service_type_by_department(department)

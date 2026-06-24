@@ -1,6 +1,11 @@
 """protocols routes - extracted from monolithic nurse_routes.py"""
 
-from routes.nurse_routes import nurse_bp
+from routes.nurse_routes import (
+    nurse_bp,
+    _get_nursing_protocols,
+    _default_nursing_protocols,
+    _save_nursing_protocols,
+)
 
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for
