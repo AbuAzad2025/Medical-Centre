@@ -131,7 +131,7 @@ class LabService:
         return LabResult.query.join(LabRequest).filter(
             LabRequest.patient_id == patient_id,
             LabResult.status == "COMPLETED"
-        ).order_by(LabResult.completed_at.desc()).all()
+        ).order_by(LabResult.updated_at.desc()).all()
 
     # ==================== RESULT CREATION ====================
 
@@ -162,9 +162,13 @@ class LabService:
                         result.status = statuses[i] if i < len(statuses) else "PENDING"
                         result.notes = notes_list[i] if i < len(notes_list) else ""
                 else:
+                    test_name = test_names[i] if i < len(test_names) else ""
                     result = LabResult(
+                        tenant_id=getattr(lab_request, "tenant_id", None),
                         request_id=lab_request.id,
-                        test_name=test_names[i] if i < len(test_names) else "",
+                        patient_id=lab_request.patient_id,
+                        test_code=test_name or "NA",
+                        test_name=test_name,
                         value=values[i] if i < len(values) else "",
                         unit=units[i] if i < len(units) else "",
                         reference_range=ranges[i] if i < len(ranges) else "",
@@ -172,6 +176,7 @@ class LabService:
                         notes=notes_list[i] if i < len(notes_list) else "",
                     )
                     db.session.add(result)
+                    db.session.flush()
                 created_ids.append(result.id if not result_id else result_id)
             except Exception as e:
                 errors.append(f"Row {i}: {str(e)}")
@@ -197,7 +202,7 @@ class LabService:
             now = datetime.now(timezone.utc)
             for r in results:
                 r.status = "COMPLETED"
-                r.completed_at = now
+                r.updated_at = now
             req = LabRequest.query.get(request_id)
             if req:
                 req.status = "DONE"
@@ -215,7 +220,7 @@ class LabService:
     def get_quality_entries(limit: int = 100) -> list:
         from models.lab_quality import LabQualityControlEntry
         return LabQualityControlEntry.query.order_by(
-            LabQualityControlEntry.created_at.desc()
+            LabQualityControlEntry.recorded_at.desc()
         ).limit(limit).all()
 
     @staticmethod
@@ -243,10 +248,10 @@ class LabService:
         from models.lab_reagent import LabReagent
         q = LabReagent.query
         if threshold is not None:
-            q = q.filter(LabReagent.quantity <= threshold)
+            q = q.filter(LabReagent.stock_quantity <= threshold)
         else:
-            q = q.filter(LabReagent.quantity <= LabReagent.minimum_quantity)
-        return q.order_by(LabReagent.quantity.asc()).all()
+            q = q.filter(LabReagent.stock_quantity <= LabReagent.minimum_stock)
+        return q.order_by(LabReagent.stock_quantity.asc()).all()
 
     @staticmethod
     def update_reagent_quantity(reagent_id: int, quantity: float) -> bool:
@@ -255,7 +260,7 @@ class LabService:
             reagent = LabReagent.query.get(reagent_id)
             if not reagent:
                 return False
-            reagent.quantity = quantity
+            reagent.stock_quantity = quantity
             db.session.commit()
             return True
         except Exception as e:
@@ -290,10 +295,12 @@ class LabService:
     def log_action(action: str, details: str, user_id: int | None = None) -> None:
         """Log lab workflow action to audit trail."""
         from models.audit_trail import AuditTrail
+        _allowed = {"create", "update", "delete", "view", "export", "import", "security"}
         try:
             log = AuditTrail(
-                action=action,
-                details=details,
+                entity_type="lab_test", entity_id=0,
+                action=action if action in _allowed else "update",
+                description=f"[lab] {action}: {details}" if details else f"[lab] {action}",
                 user_id=user_id,
                 created_at=datetime.now(timezone.utc),
             )

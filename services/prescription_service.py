@@ -64,12 +64,13 @@ class PrescriptionService:
             meds = Medication.query.filter(Medication.id.in_(medication_ids)).all()
             for med in meds:
                 for allergy in allergies:
-                    if (allergy.medication_id and allergy.medication_id == med.id) or \
-                       (allergy.allergen_name and med.trade_name and allergy.allergen_name in med.trade_name):
+                    allergen = allergy.allergen
+                    names = ' '.join(filter(None, [med.trade_name, med.scientific_name]))
+                    if allergen and names and allergen.lower() in names.lower():
                         conflicts.append({
                             "medication_id": med.id,
                             "medication_name": med.trade_name,
-                            "allergen": allergy.allergen_name or allergy.allergen_type or "Unknown",
+                            "allergen": allergen,
                             "severity": getattr(allergy, "severity", "warning"),
                         })
         except Exception:
@@ -208,11 +209,10 @@ class PrescriptionService:
             if not med:
                 return None
             request = MedicationSupplyRequest(
-                medication_id=medication_id,
-                quantity_requested=quantity,
-                requested_by=requested_by,
-                status="PENDING",
+                request_number=f"SR-{uuid.uuid4().hex[:8].upper()}",
+                status="DRAFT",
                 notes=notes,
+                created_by=requested_by,
                 created_at=datetime.now(timezone.utc),
             )
             db.session.add(request)
@@ -221,7 +221,7 @@ class PrescriptionService:
             item = MedicationSupplyRequestItem(
                 request_id=request.id,
                 medication_id=medication_id,
-                quantity=quantity,
+                requested_qty=quantity,
             )
             db.session.add(item)
             db.session.commit()
@@ -269,9 +269,12 @@ class PrescriptionService:
     @staticmethod
     def log_action(action: str, details: str, user_id: int | None = None) -> None:
         from models.audit_trail import AuditTrail
+        _allowed = {"create", "update", "delete", "view", "export", "import", "security"}
         try:
             log = AuditTrail(
-                action=action, details=details,
+                entity_type="system", entity_id=0,
+                action=action if action in _allowed else "update",
+                description=f"[medication] {action}: {details}" if details else f"[medication] {action}",
                 user_id=user_id, created_at=datetime.now(timezone.utc),
             )
             db.session.add(log)

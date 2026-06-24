@@ -276,17 +276,19 @@ class QueueManagementService:
             # جلب المرضى في الطابور
             priority_rank = self._priority_rank_expr(QueueManagement)
             kind_rank = self._visit_kind_rank_expr(QueueManagement, Visit)
-            waiting_patients = query.filter_by(status=QueueState.WAITING).order_by(
+            # Use explicit column criteria: after the outerjoin, filter_by() would
+            # bind to the joined Visit entity instead of QueueManagement.
+            waiting_patients = query.filter(QueueManagement.status == QueueState.WAITING).order_by(
                 kind_rank.asc(),
                 priority_rank.asc(),
                 QueueManagement.queued_at.asc()
             ).all()
             
             # جلب المريض الحالي
-            current_patient = query.filter_by(status=QueueState.IN_PROGRESS).first()
+            current_patient = query.filter(QueueManagement.status == QueueState.IN_PROGRESS).first()
             
             # جلب المرضى المستدعين
-            called_patients = query.filter_by(status=QueueState.CALLED).all()
+            called_patients = query.filter(QueueManagement.status == QueueState.CALLED).all()
 
             def enrich(ticket: QueueManagement):
                 d = ticket.to_dict()

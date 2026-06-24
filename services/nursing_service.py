@@ -62,9 +62,14 @@ class NursingService:
         notes: str | None = None,
     ) -> Any | None:
         from models.nurse import VitalSigns
+        from models.visit import Visit
         try:
+            visit = db.session.get(Visit, visit_id)
+            if not visit:
+                return None
             record = VitalSigns(
                 visit_id=visit_id,
+                patient_id=visit.patient_id,
                 temperature=temperature,
                 heart_rate=heart_rate,
                 blood_pressure_systolic=blood_pressure_systolic,
@@ -167,7 +172,12 @@ class NursingService:
     ) -> Any | None:
         try:
             from models.clinical_pathway import PatientCarePlan
+            from models.visit import Visit
+            visit = db.session.get(Visit, visit_id)
+            if not visit:
+                return None
             plan = PatientCarePlan(
+                patient_id=visit.patient_id,
                 visit_id=visit_id,
                 assigned_by_id=created_by,
                 plan_name=plan_type,
@@ -189,9 +199,9 @@ class NursingService:
     def get_pending_tasks(nurse_id: int | None = None) -> list:
         try:
             from models.task_management import Task
-            query = Task.query.filter(Task.status != "COMPLETED")
+            query = Task.query.filter(Task.status != "completed")
             if nurse_id:
-                query = query.filter_by(assigned_to_id=nurse_id)
+                query = query.filter_by(assigned_to=nurse_id)
             return query.order_by(Task.created_at.desc()).all()
         except Exception:
             return []
@@ -203,8 +213,7 @@ class NursingService:
             task = Task.query.get(task_id)
             if not task:
                 return False
-            task.status = "COMPLETED"
-            task.completed_by_id = completed_by
+            task.status = "completed"
             task.completed_at = datetime.now(timezone.utc)
             db.session.commit()
             return True

@@ -19,10 +19,15 @@ class PricingService:
     
     @staticmethod
     def get_service_price(service_name, service_type, payment_method='cash', department_id=None):
-        """الحصول على سعر الخدمة"""
+        """الحصول على سعر الخدمة.
+
+        ``department_id`` is accepted for API compatibility but ignored:
+        ``ServicePrice`` is not department-scoped (department-specific pricing
+        lives on ``DoctorPricing``).
+        """
         try:
             # البحث عن السعر
-            query = ServicePrice.query.filter(
+            service_price = ServicePrice.query.filter(
                 and_(
                     ServicePrice.service_name == service_name,
                     ServicePrice.service_type == service_type,
@@ -32,12 +37,7 @@ class PricingService:
                         ServicePrice.effective_to > datetime.now(timezone.utc)
                     )
                 )
-            )
-            
-            if department_id:
-                query = query.filter(ServicePrice.department_id == department_id)
-            
-            service_price = query.first()
+            ).first()
             
             if service_price:
                 return service_price.get_price(payment_method)
@@ -54,20 +54,7 @@ class PricingService:
                     if alt_q:
                         return alt_q.get_price(payment_method)
                 
-                # البحث عن السعر الافتراضي
-                default_price = ServicePrice.query.filter(
-                    and_(
-                        ServicePrice.service_name == service_name,
-                        ServicePrice.service_type == service_type,
-                        ServicePrice.is_active == True,
-                        ServicePrice.department_id.is_(None)
-                    )
-                ).first()
-                
-                if default_price:
-                    return default_price.get_price(payment_method)
-                else:
-                    return 0.0
+                return 0.0
                     
         except Exception as e:
             logging.error(f"Error getting service price: {str(e)}")
@@ -259,14 +246,14 @@ class PricingService:
     
     @staticmethod
     def get_pricing_summary(department_id=None, start_date=None, end_date=None):
-        """الحصول على ملخص الأسعار"""
+        """الحصول على ملخص الأسعار.
+
+        ``department_id`` scopes only the doctor pricing (``ServicePrice`` is not
+        department-scoped).
+        """
         try:
             # أسعار الخدمات
-            service_prices_query = ServicePrice.query.filter(ServicePrice.is_active == True)
-            if department_id:
-                service_prices_query = service_prices_query.filter(ServicePrice.department_id == department_id)
-            
-            service_prices = service_prices_query.all()
+            service_prices = ServicePrice.query.filter(ServicePrice.is_active == True).all()
             
             # أسعار الأطباء
             doctor_pricing_query = DoctorPricing.query.filter(DoctorPricing.is_active == True)

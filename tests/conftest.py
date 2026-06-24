@@ -50,6 +50,9 @@ def app():
             _db.session.execute(text(
                 'ALTER TABLE pharmacy_sales ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(80)'
             ))
+            _db.session.execute(text(
+                'ALTER TABLE vital_signs ADD COLUMN IF NOT EXISTS visit_id INTEGER'
+            ))
             # SaaS S0-003: exclusion constraint (not created by db.create_all)
             _db.session.execute(text('CREATE EXTENSION IF NOT EXISTS btree_gist'))
             _db.session.execute(text(
@@ -76,6 +79,43 @@ def app():
 @pytest.fixture(scope='function')
 def db(app):
     yield _db
+
+
+@pytest.fixture(scope='function')
+def rollback_db(app):
+    """Transactional isolation: every write is rolled back after the test.
+
+    Binds the shared scoped ``db.session`` to a single connection whose outer
+    transaction we roll back on teardown. ``join_transaction_mode='create_savepoint'``
+    (SQLAlchemy 2.0) turns the service code's ``commit()`` calls into SAVEPOINT
+    releases instead of real commits, so destructive ``seed_*``/``cleanup_*``/
+    ``purge_*`` service methods can be exercised without polluting the
+    session-scoped test database. ``Model.query`` follows because it resolves
+    through the same scoped session we reconfigure here.
+    """
+    from flask_sqlalchemy.session import Session as _FSASession
+
+    connection = _db.engine.connect()
+    transaction = connection.begin()
+    _db.session.remove()
+    # FSA's Session.get_bind() resolves the engine per bind-key and ignores any
+    # bound connection, so force every bind onto our single connection while the
+    # fixture is active. create_savepoint turns the service code's commit() calls
+    # into SAVEPOINT releases; rolling back the outer transaction then discards
+    # everything, keeping the session-scoped test DB pristine.
+    _original_get_bind = _FSASession.get_bind
+    _FSASession.get_bind = lambda self, *a, **k: connection
+    _db.session.configure(join_transaction_mode='create_savepoint')
+    try:
+        yield _db
+    finally:
+        _FSASession.get_bind = _original_get_bind
+        _db.session.remove()
+        try:
+            transaction.rollback()
+        finally:
+            connection.close()
+            _db.session.configure(join_transaction_mode='conditional_savepoint')
 
 
 @pytest.fixture(scope='function', autouse=True)
