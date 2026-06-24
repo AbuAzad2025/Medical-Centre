@@ -19,7 +19,7 @@
                     <small class="text-muted d-block">{{ (f.file_size / 1024)|round(1) }} KB</small>
                 </div>
                 <div>
-                    <a href="{{ url_for('main.download_file', file_id=f.id) }}" class="btn btn-sm btn-outline-secondary">
+                    <a href="{{ url_for('radiology.download_file', file_id=f.id) }}" class="btn btn-sm btn-outline-secondary">
                         <i class="fas fa-download"></i>
                     </a>
                 </div>

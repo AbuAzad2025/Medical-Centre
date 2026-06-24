@@ -101,15 +101,17 @@ class TestReceptionVisitsPageLabels:
             _db.session.add(u)
             _db.session.commit()
 
-        p = Patient(
-            tenant_id=test_tenant.id,
-            first_name='مريض',
-            last_name='اختبار',
-            phone='0599000001',
-            national_id='G120TEST01',
-        )
-        _db.session.add(p)
-        _db.session.flush()
+        p = Patient.query.filter_by(national_id='G120TEST01').first()
+        if not p:
+            p = Patient(
+                tenant_id=test_tenant.id,
+                first_name='مريض',
+                last_name='اختبار',
+                phone='0599000001',
+                national_id='G120TEST01',
+            )
+            _db.session.add(p)
+            _db.session.flush()
         v = Visit(
             tenant_id=test_tenant.id,
             patient_id=p.id,

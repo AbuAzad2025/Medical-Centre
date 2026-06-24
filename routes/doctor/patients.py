@@ -276,9 +276,8 @@ def patient_timeline(patient_id: int):
 @login_required
 @role_required('doctor', 'admin', 'manager')
 def medical_records():
-    """السجلات الطبية"""
-    
-    return render_template('doctor/patient_details.html')
+    """السجلات الطبية — تُحوِّل لقائمة المرضى لاختيار مريض (لا قالب تفاصيل بلا بيانات)."""
+    return redirect(url_for('doctor.patients'))
 
 @doctor_bp.route('/api/patient-search')
 @login_required

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import 'macros/forms.html' as forms %}
 {% from 'partials/_patient_context_panel.html' import patient_context_panel %}
-{% from 'partials/_workflow_next_actions.html' import workflow_next_actions %}
+{% from 'partials/_workflow_next_actions.html' import workflow_next_actions with context %}
 {% from 'partials/_page_header.html' import page_header %}
 
 {% block title %}
