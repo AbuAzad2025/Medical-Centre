@@ -206,6 +206,7 @@ def test_tenant(app):
     from tests.tenant_context import ensure_default_test_tenant
 
     t = ensure_default_test_tenant(app)
+    t = _db.session.merge(t)
     t.settings = None
     _db.session.commit()
     return t

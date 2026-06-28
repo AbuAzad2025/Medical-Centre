@@ -253,6 +253,7 @@ class TestE2EProductionFlow:
         with client.session_transaction() as sess:
             sess['_user_id'] = str(super_admin.id)
             sess['_fresh'] = True
+            sess['tenant_id'] = tenant_id
 
         backup_resp = client.post(
             '/super-admin/backup/create',
