@@ -493,6 +493,7 @@ def create_app(config_name: str | None = None) -> Flask:
     from routes.reception_currency import reception_currency_bp
     from routes.inbox import inbox_bp
     from routes.saas_routes import saas_bp
+    from routes.saas_billing_routes import saas_billing_bp
     from routes.specialty_forms import specialty_forms_bp
 
     # Module guards — must be added BEFORE register_blueprint, and only ONCE
@@ -648,6 +649,7 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(reception_currency_bp, url_prefix='/reception')
     app.register_blueprint(inbox_bp)
     app.register_blueprint(saas_bp)
+    app.register_blueprint(saas_billing_bp)
 
     # Tenant middleware — safe fallback if tables don't exist yet
     @app.before_request
