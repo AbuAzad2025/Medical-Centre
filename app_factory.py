@@ -1061,4 +1061,28 @@ def create_app(config_name: str | None = None) -> Flask:
     if not app.testing and not app.config.get('SUPPRESS_BACKGROUND_WORKER'):
         _start_notification_processor(app)
 
+        def _start_backup_automation(app_ctx):
+            import threading
+            import time
+            from services.backup_automation_service import BackupAutomationService
+
+            def _run_backup_loop():
+                last_run = 0.0
+                while True:
+                    try:
+                        if BackupAutomationService.is_enabled():
+                            now = time.time()
+                            if now - last_run >= BackupAutomationService.interval_seconds():
+                                BackupAutomationService.tick(app_ctx)
+                                last_run = now
+                    except Exception as exc:
+                        app_ctx.logger.error('Backup automation loop error: %s', exc)
+                    time.sleep(60)
+
+            thread = threading.Thread(target=_run_backup_loop, daemon=True, name='backup-automation')
+            thread.start()
+            return thread
+
+        _start_backup_automation(app)
+
     return app
