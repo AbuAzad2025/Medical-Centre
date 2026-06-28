@@ -6,16 +6,31 @@ Three hooks:
   1. before_compile (Query) — auto-filters SELECT queries
   2. before_flush (Session) — auto-assigns tenant_id on INSERT + bundle limit check
   3. before_update_delete (Session) — prevents cross-tenant UPDATE/DELETE
+
+Fail-closed: in SaaS mode, queries on tenant-scoped models MUST have a
+tenant_id in context or an explicit bypass flag.  Without one, an
+AuthorizationError is raised to prevent data leaks.
 """
-from flask import g
+from flask import current_app, g
 from sqlalchemy import event
 from sqlalchemy.orm import Query
 from app.extensions import db
 
 
+class TenantIsolationError(PermissionError):
+    """Raised when a tenant-scoped query executes without tenant context in SaaS mode."""
+
+
 # ---------------------------------------------------------------------------
 # HELPERS
 # ---------------------------------------------------------------------------
+
+def _is_saas_mode() -> bool:
+    try:
+        return current_app.config.get('ENABLE_SAAS_MODE', False)
+    except RuntimeError:
+        return False
+
 
 def _current_tenant_id():
     """Return tenant_id from Flask context, or None (super-admin / single-tenant)."""
@@ -23,6 +38,14 @@ def _current_tenant_id():
         return g.get('tenant_id')
     except RuntimeError:
         return None
+
+
+def _is_tenant_bypass() -> bool:
+    """Check if the current context explicitly bypasses tenant filtering."""
+    try:
+        return g.get('_tenant_filter_bypass', False)
+    except RuntimeError:
+        return False
 
 
 def _model_has_tenant_column(model_class) -> bool:
@@ -78,7 +101,19 @@ def tenant_filter_query(query):
     """Automatically append tenant_id filter to all multi-tenant queries."""
     tid = _current_tenant_id()
     if tid is None:
-        return query  # super-admin or single-tenant mode — skip
+        if _is_saas_mode() and not _is_tenant_bypass():
+            for desc in query.column_descriptions:
+                entity = desc.get('entity')
+                if entity is None or not isinstance(entity, type):
+                    continue
+                if _skip_table(entity):
+                    continue
+                if _model_has_tenant_column(entity):
+                    raise TenantIsolationError(
+                        f"Fail-closed: query on tenant-scoped model "
+                        f"{entity.__name__} without tenant context in SaaS mode"
+                    )
+        return query
 
     # SQLAlchemy disallows adding filters after LIMIT/OFFSET have been applied.
     # Capture and temporarily remove them, inject tenant filters, then restore.
