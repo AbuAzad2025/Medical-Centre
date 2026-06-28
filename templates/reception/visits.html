@@ -183,8 +183,8 @@
                 </div>
                 <div class="card-body">
                     {% if visits %}
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover" id="visitsTable">
+                    <div class="dashboard-table-wrap table-responsive">
+                        <table class="table table-bordered table-hover table-medical-responsive" id="visitsTable">
                             <thead class="table-light">
                                 <tr>
                                     <th>رقم الزيارة</th>
@@ -317,18 +317,18 @@
                         </table>
                     </div>
                     {% set pages = (total // per_page) + (1 if (total % per_page) else 0) %}
-                    <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
                         <div class="text-muted small">صفحة {{ page }} من {{ pages if pages > 0 else 1 }}</div>
-                        <div class="btn-group">
-                            <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
+                        <nav aria-label="تصفح الزيارات" class="pagination-medical">
+                            <a class="btn btn-outline-secondary btn-sm {% if page <= 1 %}disabled{% endif %}"
                                href="{{ url_for('reception.visits', search=search, department_id=selected_department, status=selected_status, per_page=per_page, page=page-1) }}">
                                 السابق
                             </a>
-                            <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
+                            <a class="btn btn-outline-secondary btn-sm {% if page >= pages %}disabled{% endif %}"
                                href="{{ url_for('reception.visits', search=search, department_id=selected_department, status=selected_status, per_page=per_page, page=page+1) }}">
                                 التالي
                             </a>
-                        </div>
+                        </nav>
                     </div>
                     {% else %}
                     <div class="text-center py-5">

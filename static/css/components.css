@@ -1727,3 +1727,57 @@ tr[data-href]:hover {
 .patient-timeline-visual__item--lab .patient-timeline-visual__dot { background: #f59e0b; }
 .patient-timeline-visual__item--radiology .patient-timeline-visual__dot { background: #06b6d4; }
 .patient-timeline-visual__item--prescription .patient-timeline-visual__dot { background: #10b981; }
+
+/* Phase 5 — Production SaaS UI standards */
+.table-medical-responsive {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.table-medical-responsive thead th {
+  white-space: nowrap;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 991.98px) {
+  .table-medical-responsive {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+.dashboard-table-wrap {
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  background: var(--surface, #fff);
+}
+
+.pagination-medical {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.pagination-medical .page-link {
+  min-width: 2.25rem;
+  text-align: center;
+}
+
+.entitlement-lock-screen {
+  max-width: 32rem;
+  margin: 2rem auto;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  border: 1px dashed var(--border-subtle, #cbd5e1);
+  border-radius: var(--radius-lg, 0.75rem);
+  background: var(--surface-elevated, #f8fafc);
+}
+
+.entitlement-lock-screen__icon {
+  font-size: 2rem;
+  color: var(--text-secondary, #64748b);
+  margin-bottom: 0.75rem;
+}
