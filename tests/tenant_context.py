@@ -41,7 +41,7 @@ def ensure_default_test_tenant(app: Flask):
     from app.core.tenant.models import Tenant
     from app.extensions import db
 
-    with app.app_context():
+    with app.app_context(), app.test_request_context():
         tenant = Tenant.query.filter_by(slug=DEFAULT_TEST_TENANT_SLUG).first()
         if not tenant:
             tenant = Tenant(
@@ -53,6 +53,8 @@ def ensure_default_test_tenant(app: Flask):
             )
             db.session.add(tenant)
             db.session.commit()
+
+        bind_tenant_on_g(tenant, db_session=db.session)
 
         now = datetime.now(timezone.utc)
         changed = False
