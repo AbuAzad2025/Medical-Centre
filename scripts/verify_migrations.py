@@ -8,7 +8,7 @@ import sys
 
 from sqlalchemy import create_engine, text
 
-ALEMBIC_HEAD_REVISION = 'p4_002_drop_queue_payment_status'
+ALEMBIC_HEAD_REVISION = 's1_002_tenant_rls_policies'
 
 
 def main() -> int:
