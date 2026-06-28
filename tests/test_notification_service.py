@@ -345,6 +345,62 @@ class TestAggregatorsWithData:
         assert count >= 1
         assert (NotificationQueue.query.get(item.id).status or '').lower() == 'sent'
 
+    def test_process_queue_sms_branch(self, fx, monkeypatch):
+        from models.notification import NotificationQueue
+        from app.shared.enums import NotificationState
+
+        u = fx.user()
+        monkeypatch.setattr(
+            'services.sms_service.SMSService.send_sms',
+            staticmethod(lambda **kw: {'success': True}),
+        )
+        item = NotificationQueue(
+            user_id=u.id,
+            notification_type='sms',
+            recipient='+970599000000',
+            subject='s',
+            content='c',
+            status=NotificationState.PENDING,
+        )
+        fx.db.session.add(item)
+        fx.db.session.commit()
+        res = NF.process_notification_queue(tenant_id=None)
+        assert res['success'] is True
+        assert (NotificationQueue.query.get(item.id).status or '').lower() == 'sent'
+
+    def test_debt_reminder_medium_urgency_tier(self, fx):
+        from app.shared.enums import PaymentStatus
+        old = datetime.now() - timedelta(days=45)  # 30-60d tier
+        self._visit(fx, payment_status=PaymentStatus.DEBT, created_at=old,
+                    is_force_payment=True, force_payment_reason='تأخر',
+                    total_amount=200, paid_amount=0)
+        res = NF.send_debt_reminders(tenant_id=None)
+        assert res['success'] is True
+        assert res['reminders_sent'] >= 1
+
+    def test_process_queue_failure_marks_failed(self, fx, monkeypatch):
+        from models.notification import NotificationQueue
+        from app.shared.enums import NotificationState
+
+        u = fx.user()
+        monkeypatch.setattr(
+            'services.notification_service.NotificationService.send_email_message',
+            staticmethod(lambda **kw: {'success': False}),
+        )
+        item = NotificationQueue(
+            user_id=u.id,
+            notification_type='email',
+            recipient='fail@x.com',
+            subject='s',
+            content='c',
+            status=NotificationState.PENDING,
+        )
+        fx.db.session.add(item)
+        fx.db.session.commit()
+        res = NF.process_notification_queue(tenant_id=None)
+        assert res['success'] is True
+        assert (NotificationQueue.query.get(item.id).status or '').lower() == 'failed'
+
     def test_check_and_send_alerts_wrapper(self, fx):
         res = NF.check_and_send_alerts(tenant_id=None)
         assert res['success'] is True

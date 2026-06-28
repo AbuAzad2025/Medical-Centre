@@ -124,6 +124,27 @@ class TestEntityReports:
         seed.db.session.commit()
         assert RP.get_doctor_performance_report(u.id)['success'] is False
 
+    def test_doctor_performance_in_progress_pending(self, seed):
+        seed.visit(status=VisitState.IN_PROGRESS, payment_status='PENDING',
+                   total_amount=100, paid_amount=0)
+        res = RP.get_doctor_performance_report(seed.doc.id)
+        assert res['success'] is True
+        assert res['statistics'].get('pending_visits', 0) >= 1
+
+    def test_dashboard_summary_date_range(self, seed):
+        start = datetime.combine(seed.today - timedelta(days=30), datetime.min.time())
+        end = datetime.combine(seed.today, datetime.max.time())
+        res = RP.get_dashboard_summary(start_date=start, end_date=end)
+        assert res['success'] is True
+
+    def test_export_csv_exception(self, seed, monkeypatch):
+        monkeypatch.setattr(
+            'csv.DictWriter',
+            lambda *a, **k: (_ for _ in ()).throw(RuntimeError('x')),
+        )
+        res = RP.export_report('x', [{'a': 1}], format='csv')
+        assert res['success'] is False
+
 
 class TestExport:
     def test_export_json(self, seed):
@@ -193,6 +214,27 @@ class TestAuditReports:
         res = RP.get_debt_tracking_report()
         assert res['success'] is True
         assert res['summary']['total_debts'] >= 1
+
+    def test_debt_tracking_age_buckets(self, seed):
+        old = datetime.now() - timedelta(days=40)
+        seed.visit(payment_status='DEBT', total_amount=300, paid_amount=50, created_at=old)
+        res = RP.get_debt_tracking_report()
+        assert res['success'] is True
+        assert len(res.get('debts_by_age', {}).get('31-60_days', [])) >= 1
+
+    def test_financial_report_card_method(self, seed):
+        v = seed.visit()
+        seed.payment(v.id, amount=75, method='CARD', status='CONFIRMED')
+        res = RP.get_financial_report()
+        assert res['success'] is True
+        assert res['summary'].get('card_revenue', 0) >= 75
+
+    def test_monthly_audit_collection_rate_alert(self, seed, monkeypatch):
+        seed.visit(payment_status='DEBT', total_amount=1000, paid_amount=10)
+        res = RP.get_monthly_audit_report()
+        assert res['success'] is True
+        if res['kpis'].get('collection_rate', 100) < 90:
+            assert any(a.get('kpi') == 'collection_rate' for a in res.get('kpi_alerts', []))
 
 
 class TestSlowQueries:

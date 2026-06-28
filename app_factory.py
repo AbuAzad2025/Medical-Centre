@@ -765,7 +765,24 @@ def create_app(config_name: str | None = None) -> Flask:
         def can(permission: str):
             return PermissionService.has_permission(current_user, permission)
 
-        return dict(is_entitled=is_entitled, has_permission=has_permission, can=can)
+        def tenant_limit(limit_key: str):
+            if tenant is None:
+                return None
+            return EntitlementResolver.get_limit(tenant.id, limit_key)
+
+        def storage_limit_warning():
+            if tenant is None:
+                return False
+            usage = EntitlementResolver.check_usage_limits(tenant.id)
+            return bool(usage.get("storage_warning"))
+
+        return dict(
+            is_entitled=is_entitled,
+            has_permission=has_permission,
+            can=can,
+            tenant_limit=tenant_limit,
+            storage_limit_warning=storage_limit_warning,
+        )
 
     @app.context_processor
     def inject_nav():
