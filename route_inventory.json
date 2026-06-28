@@ -1,10 +1,10 @@
 {
   "generated_at": "2026-06-23",
-  "total_routes": 633,
+  "total_routes": 637,
   "summary": {
     "public": 9,
     "internal": 4,
-    "authenticated": 450,
+    "authenticated": 454,
     "admin": 38,
     "super-admin": 130
   },
