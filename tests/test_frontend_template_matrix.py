@@ -40,7 +40,7 @@ CORE_FORM_ROUTES: dict[str, set[str]] = {
 # Sample screens + role dashboards for matrix rendering (Phase 1 & 2).
 CORE_RENDER_ROUTES: list[tuple[str, str | None]] = list(SCREEN_SAMPLES) + [
     ('/super-admin/dashboard', 'super_admin'),
-    ('/reception/add_patient', 'reception'),
+    ('/reception/patients', 'reception'),
 ]
 
 _SKIP_INPUT_TYPES = frozenset({'submit', 'button', 'reset', 'image'})
@@ -94,15 +94,25 @@ class _LinkExtractor(HTMLParser):
 
     def __init__(self) -> None:
         super().__init__()
-        self.hrefs: list[str] = []
+        self.hrefs: list[tuple[str, dict[str, str]]] = []
         self.actions: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attrs_dict = {k: (v or '') for k, v in attrs}
         if tag == 'a' and 'href' in attrs_dict:
-            self.hrefs.append(attrs_dict['href'].strip())
+            self.hrefs.append((attrs_dict['href'].strip(), attrs_dict))
         elif tag == 'form' and 'action' in attrs_dict:
             self.actions.append(attrs_dict['action'].strip())
+
+
+def _is_allowed_placeholder_href(href: str, attrs: dict[str, str]) -> bool:
+    """Bootstrap toggles / JS-driven anchors may use href='#'."""
+    if href != '#':
+        return False
+    return any(attrs.get(k) for k in (
+        'data-bs-toggle', 'data-toggle', 'data-bs-target', 'data-target',
+        'onclick', 'role',
+    ))
 
 
 def _collect_form_names(html: str) -> set[str]:
@@ -175,22 +185,17 @@ def _normalize_internal_path(href: str, base_path: str = '/') -> str | None:
 
 
 def _path_matches_url_map(app, path: str) -> bool:
-    """True if path matches any registered rule (static segments only check)."""
+    """True if path matches any registered rule for GET/HEAD/POST."""
     adapter = app.url_map.bind('')
-    try:
-        adapter.match(path, method='GET')
-        return True
-    except RequestRedirect:
-        return True
-    except Exception:
-        pass
-    try:
-        adapter.match(path, method='HEAD')
-        return True
-    except RequestRedirect:
-        return True
-    except Exception:
-        return False
+    for method in ('GET', 'HEAD', 'POST'):
+        try:
+            adapter.match(path, method=method)
+            return True
+        except RequestRedirect:
+            return True
+        except Exception:
+            continue
+    return False
 
 
 # ── Phase 1: Template render + form field audit ─────────────────────
@@ -250,3 +255,121 @@ class TestTemplateRenderMatrix:
         auditor = _FormFieldAuditor()
         auditor.feed(resp.get_data(as_text=True))
         assert not auditor.issues, f'{path}: {auditor.issues}'
+
+
+# ── Phase 2: Dead links & static asset crawler ──────────────────────
+
+
+def _bad_href_reason(href: str) -> str | None:
+    href = (href or '').strip()
+    if href in _BAD_HREF_EXACT:
+        return f'empty or placeholder href={href!r}'
+    if href.lower().startswith('javascript:'):
+        return 'javascript: href'
+    return None
+
+
+def _resolve_link(app, href: str, base_path: str) -> tuple[bool, str]:
+    """Return (ok, reason) for an internal link — url_map first, then HTTP."""
+    reason = _bad_href_reason(href)
+    if reason:
+        return False, reason
+    path = _normalize_internal_path(href, base_path)
+    if path is None:
+        return True, 'external'
+    if _SKIP_LINK_RE.search(path):
+        return True, 'skipped'
+    if _path_matches_url_map(app, path):
+        return True, 'url_map'
+    return False, 'unregistered path'
+
+
+class TestLinkCrawler:
+    """Extract hrefs/actions from rendered pages; validate routes and inventory."""
+
+    def test_no_bad_hrefs_on_core_pages(self, app, test_tenant, db, e2e_seed):
+        offenders = []
+        for path, role, status, html in _render_core_pages(app, test_tenant, db, e2e_seed):
+            if status != 200:
+                continue
+            extractor = _LinkExtractor()
+            extractor.feed(html)
+            for href, attrs in extractor.hrefs:
+                if _is_allowed_placeholder_href(href, attrs):
+                    continue
+                bad = _bad_href_reason(href)
+                if bad:
+                    offenders.append(f'{path}: <a href={href!r}> — {bad}')
+        assert not offenders, '\n'.join(offenders)
+
+    def test_internal_links_resolve_on_core_pages(self, app, test_tenant, db, e2e_seed):
+        failures = []
+        checked: set[str] = set()
+        for path, role, status, html in _render_core_pages(app, test_tenant, db, e2e_seed):
+            if status != 200:
+                continue
+            extractor = _LinkExtractor()
+            extractor.feed(html)
+            for href, attrs in extractor.hrefs:
+                if _is_allowed_placeholder_href(href, attrs):
+                    continue
+                norm = _normalize_internal_path(href, path)
+                if norm is None or norm in checked or _SKIP_LINK_RE.search(href):
+                    continue
+                checked.add(norm)
+                ok, reason = _resolve_link(app, href, path)
+                if not ok:
+                    failures.append(f'{path} -> {href!r}: {reason}')
+            for href in extractor.actions:
+                norm = _normalize_internal_path(href, path)
+                if norm is None or norm in checked or _SKIP_LINK_RE.search(href):
+                    continue
+                checked.add(norm)
+                ok, reason = _resolve_link(app, href, path)
+                if not ok:
+                    failures.append(f'{path} action -> {href!r}: {reason}')
+        assert not failures, '\n'.join(failures[:40])
+
+    def test_no_legacy_sqlite_or_single_tenant_refs(self, app, test_tenant, db, e2e_seed):
+        leaks = []
+        for path, role, status, html in _render_core_pages(app, test_tenant, db, e2e_seed):
+            if status != 200:
+                continue
+            for pat in _LEGACY_REF_PATTERNS:
+                if pat.search(html):
+                    leaks.append(f'{path}: legacy ref {pat.pattern}')
+        assert not leaks, '\n'.join(leaks)
+
+    def test_route_inventory_endpoints_registered(self, app):
+        inventory = json.loads(_ROUTE_INVENTORY.read_text(encoding='utf-8'))
+        known = set(app.url_map._rules_by_endpoint.keys())
+        missing = [
+            f'{r["endpoint"]} ({r["path"]})'
+            for r in inventory['routes']
+            if r['endpoint'] not in known
+        ]
+        assert not missing, (
+            f'{len(missing)} route_inventory endpoints not in url_map:\n'
+            + '\n'.join(missing[:30])
+        )
+
+    def test_route_inventory_paths_match_url_map(self, app):
+        inventory = json.loads(_ROUTE_INVENTORY.read_text(encoding='utf-8'))
+        registered_paths = {str(rule.rule) for rule in app.url_map.iter_rules()}
+        missing_paths = [
+            r['path'] for r in inventory['routes']
+            if r['path'] not in registered_paths
+        ]
+        assert not missing_paths, (
+            f'{len(missing_paths)} inventory paths absent from url_map:\n'
+            + '\n'.join(missing_paths[:30])
+        )
+
+    def test_discovered_get_routes_in_inventory(self, app):
+        """Spot-check that page-bearing blueprints appear in route_inventory."""
+        inventory = json.loads(_ROUTE_INVENTORY.read_text(encoding='utf-8'))
+        inv_paths = {r['path'] for r in inventory['routes']}
+        sample_rules = _discover_pages(app)[:50]
+        missing = [p for p, _ in sample_rules if p not in inv_paths]
+        assert not missing, f'discovered routes missing from inventory: {missing[:20]}'
+

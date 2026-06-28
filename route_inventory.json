@@ -1,10 +1,10 @@
 {
   "generated_at": "2026-06-23",
-  "total_routes": 637,
+  "total_routes": 633,
   "summary": {
     "public": 9,
-    "internal": 4,
-    "authenticated": 458,
+    "internal": 1,
+    "authenticated": 457,
     "admin": 38,
     "super-admin": 130
   },
@@ -20,30 +20,6 @@
     {
       "endpoint": "__health",
       "path": "/__health",
-      "methods": [
-        "GET"
-      ],
-      "classification": "internal"
-    },
-    {
-      "endpoint": "__perf_finance",
-      "path": "/__perf/finance",
-      "methods": [
-        "GET"
-      ],
-      "classification": "internal"
-    },
-    {
-      "endpoint": "__ping",
-      "path": "/__ping",
-      "methods": [
-        "GET"
-      ],
-      "classification": "internal"
-    },
-    {
-      "endpoint": "list_routes",
-      "path": "/__routes",
       "methods": [
         "GET"
       ],
@@ -325,14 +301,6 @@
     {
       "endpoint": "main.appointments_redirect",
       "path": "/appointments",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "auth._auth_ping",
-      "path": "/auth/__ping",
       "methods": [
         "GET"
       ],
@@ -2712,9 +2680,10 @@
       "classification": "super-admin"
     },
     {
-      "endpoint": "owner.owner_api_keys",
+      "endpoint": "owner.owner_api_keys_page",
       "path": "/owner/api-keys",
       "methods": [
+        "GET",
         "POST"
       ],
       "classification": "super-admin"
