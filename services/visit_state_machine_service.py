@@ -5,15 +5,28 @@ legacy direct reads/writes operational during the dual-read migration window.
 
 Rules:
 - The service is the authoritative source for transition validity.
-- Legacy code may still read visit.status directly; this service provides a
-  dual-read helper that returns the canonical enum value.
+- Direct assignment to Visit.status is BLOCKED unless performed through this
+  service (which sets a thread-local authorization flag).
 - Routes being migrated should call transition() instead of mutating status.
 """
 from __future__ import annotations
 
+import threading
 from typing import Optional
 
 from app.shared.enums import VisitState, VisitArchiveStatus
+
+_vsm_authorized = threading.local()
+
+
+def is_vsm_authorized() -> bool:
+    """Check if the current thread is in a VSM-authorized transition."""
+    return getattr(_vsm_authorized, 'active', False)
+
+
+def set_vsm_authorized(value: bool) -> None:
+    """Explicitly set VSM authorization flag (for Visit model construction)."""
+    _vsm_authorized.active = value
 
 
 class VisitStateMachineService:
@@ -64,7 +77,11 @@ class VisitStateMachineService:
             raise ValueError(
                 f"Invalid visit transition from {current} to {target_state}"
             )
-        visit.status = target_state.value
+        _vsm_authorized.active = True
+        try:
+            visit.status = target_state.value
+        finally:
+            _vsm_authorized.active = False
         return True
 
     @classmethod
@@ -80,7 +97,11 @@ class VisitStateMachineService:
         """Map pre-P1 legacy status strings into the canonical enum."""
         raw = getattr(visit, "status", None)
         if raw in ("WAITING", None, ""):
-            visit.status = VisitState.OPEN.value
+            _vsm_authorized.active = True
+            try:
+                visit.status = VisitState.OPEN.value
+            finally:
+                _vsm_authorized.active = False
 
     @classmethod
     def try_transition(cls, visit, target_state: VisitState, *, actor=None) -> bool:
@@ -94,7 +115,11 @@ class VisitStateMachineService:
     @classmethod
     def initialize(cls, visit, initial_state: VisitState = VisitState.OPEN) -> None:
         """Set initial clinical status on a newly created visit."""
-        visit.status = initial_state.value
+        _vsm_authorized.active = True
+        try:
+            visit.status = initial_state.value
+        finally:
+            _vsm_authorized.active = False
 
     @classmethod
     def transition_or_archive(
