@@ -1,8 +1,8 @@
 {
   "generated_at": "2026-06-23",
-  "total_routes": 631,
+  "total_routes": 633,
   "summary": {
-    "public": 7,
+    "public": 9,
     "internal": 4,
     "authenticated": 450,
     "admin": 38,
@@ -218,6 +218,14 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "saas_billing.stripe_webhook",
+      "path": "/api/billing/stripe/webhook",
+      "methods": [
+        "POST"
+      ],
+      "classification": "public"
+    },
+    {
       "endpoint": "fhir.fhir_encounters",
       "path": "/api/fhir/Encounter",
       "methods": [
@@ -264,6 +272,14 @@
         "GET"
       ],
       "classification": "authenticated"
+    },
+    {
+      "endpoint": "saas.register_organization",
+      "path": "/api/saas/register",
+      "methods": [
+        "POST"
+      ],
+      "classification": "public"
     },
     {
       "endpoint": "api_user.user_preferences",
