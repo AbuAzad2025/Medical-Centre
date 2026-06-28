@@ -103,12 +103,27 @@ class TestVisitStateMachineService:
         (VisitState.OPEN, VisitState.CANCELLED, True),
         (VisitState.CHECKED_IN, VisitState.IN_PROGRESS, True),
         (VisitState.IN_PROGRESS, VisitState.COMPLETED, True),
+        (VisitState.IN_PROGRESS, VisitState.CHECKED_IN, True),
         (VisitState.COMPLETED, VisitState.OPEN, False),
         (VisitState.CANCELLED, VisitState.OPEN, False),
     ])
     def test_transition_matrix(self, sm_visit, start, target, ok):
         sm_visit.status = start
         assert VisitStateMachineService.can_transition(sm_visit, target) is ok
+
+    def test_ensure_in_progress_from_open(self, sm_visit):
+        sm_visit.status = VisitState.OPEN
+        VisitStateMachineService.ensure_in_progress(sm_visit)
+        assert sm_visit.status == VisitState.IN_PROGRESS
+
+    def test_ensure_in_progress_coerces_waiting(self, sm_visit):
+        sm_visit.status = 'WAITING'
+        VisitStateMachineService.ensure_in_progress(sm_visit)
+        assert sm_visit.status == VisitState.IN_PROGRESS
+
+    def test_return_to_queue_transition_checked_in(self, sm_visit):
+        VisitStateMachineService.transition(sm_visit, VisitState.CHECKED_IN)
+        assert sm_visit.status == VisitState.CHECKED_IN
 
 
 class TestDoctorEndTreatmentRoute:

@@ -21,6 +21,7 @@ from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from app_factory import db
 from app.shared.enums import VisitState
+from services.visit_state_machine_service import VisitStateMachineService
 from sqlalchemy import and_, or_, desc, func, case
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
@@ -83,7 +84,10 @@ def diagnosis(visit_id):
             else:
                 visit.follow_up_date = None
             visit.vital_signs = str(vital_signs)
-            visit.status = VisitState.IN_PROGRESS
+            try:
+                VisitStateMachineService.ensure_in_progress(visit, actor=current_user)
+            except ValueError:
+                visit.status = VisitState.IN_PROGRESS
             if additional_notes:
                 memo_text = "[ملاحظات طبية]\n" + additional_notes
                 visit.notes = (visit.notes or '')

@@ -25,7 +25,7 @@ class VisitStateMachineService:
         # Visit.status. See P1-002 decision.
         VisitState.OPEN: {VisitState.CHECKED_IN, VisitState.CANCELLED, VisitState.NO_SHOW},
         VisitState.CHECKED_IN: {VisitState.IN_PROGRESS, VisitState.CANCELLED, VisitState.NO_SHOW},
-        VisitState.IN_PROGRESS: {VisitState.COMPLETED, VisitState.CANCELLED},
+        VisitState.IN_PROGRESS: {VisitState.COMPLETED, VisitState.CANCELLED, VisitState.CHECKED_IN},
         VisitState.COMPLETED: set(),
         VisitState.ARCHIVED: set(),
         VisitState.CANCELLED: set(),
@@ -76,3 +76,33 @@ class VisitStateMachineService:
         if current is None:
             return set()
         return set(cls.TRANSITIONS.get(current, set()))
+
+    @classmethod
+    def _coerce_legacy_status(cls, visit) -> None:
+        """Map pre-P1 legacy status strings into the canonical enum."""
+        raw = getattr(visit, "status", None)
+        if raw in ("WAITING", None, ""):
+            visit.status = VisitState.OPEN.value
+
+    @classmethod
+    def ensure_in_progress(cls, visit, *, actor=None) -> bool:
+        """Transition visit to IN_PROGRESS via a valid path (handles legacy WAITING)."""
+        cls._coerce_legacy_status(visit)
+        if cls.get_status(visit) == VisitState.IN_PROGRESS:
+            return True
+        if cls.can_transition(visit, VisitState.IN_PROGRESS):
+            return cls.transition(visit, VisitState.IN_PROGRESS, actor=actor)
+        if cls.can_transition(visit, VisitState.CHECKED_IN):
+            cls.transition(visit, VisitState.CHECKED_IN, actor=actor)
+            return cls.transition(visit, VisitState.IN_PROGRESS, actor=actor)
+        raise ValueError(f"Cannot move visit to IN_PROGRESS from {getattr(visit, 'status', None)}")
+
+    @classmethod
+    def ensure_completed(cls, visit, *, actor=None) -> bool:
+        """Transition visit to COMPLETED when clinically finished."""
+        cls._coerce_legacy_status(visit)
+        if cls.get_status(visit) == VisitState.COMPLETED:
+            return True
+        if cls.can_transition(visit, VisitState.COMPLETED):
+            return cls.transition(visit, VisitState.COMPLETED, actor=actor)
+        raise ValueError(f"Cannot move visit to COMPLETED from {getattr(visit, 'status', None)}")

@@ -6,6 +6,7 @@ Medical System Queue Management Service
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import and_, or_, desc, asc, case
 from app.shared.enums import QueueState, VisitState, PaymentStatus
+from services.visit_state_machine_service import VisitStateMachineService
 from app_factory import db
 import logging
 
@@ -541,7 +542,7 @@ class QueueManagementService:
                 try:
                     visit = db.session.get(Visit, ticket.visit_id)
                     if visit:
-                        visit.status = VisitState.IN_PROGRESS
+                        VisitStateMachineService.ensure_in_progress(visit, actor=started_by)
                 except Exception:
                     pass
             
@@ -595,7 +596,7 @@ class QueueManagementService:
                 try:
                     visit = db.session.get(Visit, ticket.visit_id)
                     if visit:
-                        visit.status = VisitState.COMPLETED
+                        VisitStateMachineService.ensure_completed(visit, actor=completed_by)
                         visit.completed_at = datetime.now(timezone.utc)
                         visit.completed_by = completed_by
                         self._ensure_survey_for_visit(visit)
@@ -665,8 +666,8 @@ class QueueManagementService:
             if ticket.visit_id and old_status == QueueState.IN_PROGRESS:
                 try:
                     v = db.session.get(Visit, ticket.visit_id)
-                    if v and v.status == VisitState.IN_PROGRESS:
-                        v.status = VisitState.OPEN
+                    if v and VisitStateMachineService.get_status(v) == VisitState.IN_PROGRESS:
+                        VisitStateMachineService.transition(v, VisitState.CHECKED_IN, actor=returned_by)
                 except Exception:
                     pass
 
