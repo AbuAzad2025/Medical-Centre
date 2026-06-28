@@ -1782,6 +1782,30 @@ tr[data-href]:hover {
   margin-bottom: 0.75rem;
 }
 
+.entitlement-lock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.entitlement-lock-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.entitlement-lock-overlay__panel {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  background: var(--surface-base, #fff);
+  box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.18);
+}
+
 /* ═══════════════════════════════════════════════
    MOBILE POS GRID
    ═══════════════════════════════════════════════ */

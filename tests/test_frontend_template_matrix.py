@@ -75,11 +75,13 @@ class _FormFieldAuditor(HTMLParser):
             return
         if self._post_form_depth <= 0 or tag not in ('input', 'select', 'textarea'):
             return
+        name = (attrs_dict.get('name') or '').strip()
         if tag == 'input':
             itype = (attrs_dict.get('type') or 'text').lower()
             if itype in _SKIP_INPUT_TYPES:
                 return
-        name = (attrs_dict.get('name') or '').strip()
+            if 'disabled' in attrs_dict and not name:
+                return
         if not name:
             ident = attrs_dict.get('id') or attrs_dict.get('class') or tag
             self.issues.append(f'{tag}[{ident}] missing name')
@@ -146,14 +148,18 @@ def _collect_form_names(html: str) -> set[str]:
 
 def _render_core_pages(app, test_tenant, db, e2e_seed):
     """Yield (path, role, status_code, html_text) for each core route."""
+    from app.core.tenant.models import Tenant
+
     id_map = e2e_seed or {}
+    tenant_id = test_tenant.id
     seen: set[str] = set()
     for path, role in CORE_RENDER_ROUTES:
         if path in seen:
             continue
         seen.add(path)
+        tenant = db.session.get(Tenant, tenant_id)
         client = app.test_client()
-        _login_as(client, test_tenant, role, db)
+        _login_as(client, tenant, role, db)
         try:
             resp = client.get(path, follow_redirects=True)
         except Exception as exc:  # noqa: BLE001
@@ -372,4 +378,106 @@ class TestLinkCrawler:
         sample_rules = _discover_pages(app)[:50]
         missing = [p for p, _ in sample_rules if p not in inv_paths]
         assert not missing, f'discovered routes missing from inventory: {missing[:20]}'
+
+
+# ── Phase 3: JavaScript validation ──────────────────────────────────
+
+_JS_FETCH_PATTERNS = [
+    re.compile(r'\bfetch\s*\('),
+    re.compile(r'window\.fetch'),
+    re.compile(r'\.then\s*\('),
+]
+
+
+def _iter_js_modules():
+    for path in sorted(_STATIC_JS.glob('*.js')):
+        yield path
+    pages = _STATIC_JS / 'pages'
+    if pages.is_dir():
+        for path in sorted(pages.rglob('*.js')):
+            yield path
+
+
+def _node_syntax_check(path: Path) -> str | None:
+    try:
+        proc = subprocess.run(
+            ['node', '--check', str(path)],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        return f'{type(exc).__name__}'
+    if proc.returncode != 0:
+        return (proc.stderr or proc.stdout or 'syntax error')[:200]
+    return None
+
+
+class TestJavaScriptValidation:
+    """Structural audit of static/js modules and global error handling."""
+
+    def test_js_modules_parse_without_syntax_errors(self):
+        errors = []
+        node_missing = False
+        for js_path in _iter_js_modules():
+            rel = js_path.relative_to(ROOT).as_posix()
+            text = js_path.read_text(encoding='utf-8', errors='ignore')
+            if '<script' in text or '<!DOCTYPE' in text:
+                continue
+            err = _node_syntax_check(js_path)
+            if err == 'FileNotFoundError':
+                node_missing = True
+                break
+            if err:
+                errors.append(f'{rel}: {err}')
+        if node_missing:
+            for js_path in _iter_js_modules():
+                text = js_path.read_text(encoding='utf-8', errors='ignore')
+                if text.count('{') != text.count('}'):
+                    errors.append(f'{js_path.relative_to(ROOT)}: brace mismatch')
+                if text.count('(') != text.count(')'):
+                    errors.append(f'{js_path.relative_to(ROOT)}: paren mismatch')
+        assert not errors, 'JS syntax issues:\n' + '\n'.join(errors[:20])
+
+    def test_js_modules_use_fetch_or_dom_patterns(self):
+        """Spot-check top-level static/js modules reference fetch or DOM APIs."""
+        static_only = {'enums.js', 'digits-ar.js', 'flash.js', 'csrf.js'}
+        missing = []
+        for js_path in sorted(_STATIC_JS.glob('*.js')):
+            if js_path.name in static_only:
+                continue
+            text = js_path.read_text(encoding='utf-8', errors='ignore')
+            if not any(p.search(text) for p in _JS_FETCH_PATTERNS):
+                if not re.search(r'document\.|addEventListener|window\.', text):
+                    missing.append(js_path.relative_to(ROOT).as_posix())
+        assert not missing, f'JS modules with no fetch/DOM patterns: {missing[:15]}'
+
+    def test_base_html_includes_global_error_handler_script(self):
+        base = (ROOT / 'templates' / 'base.html').read_text(encoding='utf-8')
+        assert 'global-errors.js' in base
+        assert 'api-feedback.js' in base
+        assert base.index('api-feedback.js') < base.index('global-errors.js')
+        assert base.index('global-errors.js') < base.index('base.js')
+
+    def test_global_errors_defines_handlers_and_fetch_wrapper(self):
+        src = (_STATIC_JS / 'global-errors.js').read_text(encoding='utf-8')
+        assert 'onerror' in src
+        assert 'onunhandledrejection' in src
+        assert '__wrapFetchEntitlement' in src
+        assert '402' in src and '403' in src
+        assert 'entitlement-lock' in src
+        assert 'notify' in src
+
+    def test_base_js_applies_entitlement_fetch_wrapper(self):
+        src = (_STATIC_JS / 'base.js').read_text(encoding='utf-8')
+        assert '__wrapFetchEntitlement' in src
+        assert 'X-CSRFToken' in src
+
+    def test_entitlement_lock_partial_exists(self):
+        partial = ROOT / 'templates' / 'partials' / '_entitlement_lock.html'
+        assert partial.is_file()
+        text = partial.read_text(encoding='utf-8')
+        assert 'entitlement-lock-screen' in text
+        assert 'capability_key' in text or 'capability' in text
 

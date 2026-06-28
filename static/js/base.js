@@ -21,6 +21,9 @@
             return response;
         });
     };
+    if (window.__wrapFetchEntitlement) {
+        window.fetch = window.__wrapFetchEntitlement(window.fetch);
+    }
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -380,12 +383,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-window.addEventListener('error', function(e) {
-    if (e.filename && (e.filename.includes('.map') || e.filename.includes('favicon'))) {
-        return;
-    }
-    console.error('Global error:', e.error);
-});
+// Global JS errors handled by static/js/global-errors.js (loaded before base.js)
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
