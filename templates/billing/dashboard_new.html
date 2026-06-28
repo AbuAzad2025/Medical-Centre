@@ -15,28 +15,28 @@
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card card-stat bg-primary">
             <div class="icon-bg"><i class="fas fa-file-invoice-dollar"></i></div>
             <h6>الفواتير اليوم</h6>
             <h3>{{ today_invoices }}</h3>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card card-stat bg-success">
             <div class="icon-bg"><i class="fas fa-money-bill-wave"></i></div>
             <h6>المدفوعات</h6>
             <h3>{{ today_payments }}</h3>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card card-stat bg-warning">
             <div class="icon-bg"><i class="fas fa-hourglass-half"></i></div>
             <h6>معلقة</h6>
             <h3>{{ pending_invoices }}</h3>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card card-stat bg-danger">
             <div class="icon-bg"><i class="fas fa-undo"></i></div>
             <h6>المسترجعة</h6>
@@ -94,5 +94,28 @@
             </tbody>
         </table>
     </div>
+    {% if pagination is defined and pagination %}
+    <div class="card-footer bg-white">
+      <div class="pagination-wrapper">
+        <nav aria-label="Page navigation">
+          <ul class="pagination pagination-sm mb-0">
+            {% if pagination.has_prev %}
+            <li class="page-item"><a class="page-link" href="?page={{ pagination.prev_num }}">‹</a></li>
+            {% endif %}
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+              {% if p %}
+              <li class="page-item {% if p == pagination.page %}active{% endif %}"><a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
+              {% else %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+              {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ pagination.next_num }}">›</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
