@@ -45,30 +45,28 @@ def _skip_table(model_class) -> bool:
 
 
 def _check_bundle_limits_on_create(instance, tenant_id):
-    """Enforce bundle max_users / max_patients limits when creating User or Patient."""
-    from app.core.tenant.models import Tenant, get_bundle_for_profile
-    t = Tenant.query.get(tenant_id)
-    if t is None or not t.product_profile_code:
-        return
-    bundle = get_bundle_for_profile(t.product_profile_code)
-    if bundle is None:
-        return
+    """Enforce package max_users / max_patients via EntitlementResolver."""
+    from app.core.saas.resolver import EntitlementResolver
 
     table = instance.__tablename__
     if table == 'users':
         current_count = db.session.execute(
             db.text('SELECT COUNT(*) FROM users WHERE tenant_id = :tid'),
-            {'tid': tenant_id}
+            {'tid': tenant_id},
         ).scalar() or 0
-        if bundle.max_users is not None and (current_count + 1) > bundle.max_users:
-            raise ValueError(f"Bundle limit exceeded: maximum {bundle.max_users} users allowed")
+        ok, _ = EntitlementResolver.check_limit(tenant_id, 'max_users', current_count, increment=1)
+        if not ok:
+            cap = EntitlementResolver.get_limit(tenant_id, 'max_users')
+            raise ValueError(f"Bundle limit exceeded: maximum {cap} users allowed")
     elif table == 'patients':
         current_count = db.session.execute(
             db.text('SELECT COUNT(*) FROM patients WHERE tenant_id = :tid'),
-            {'tid': tenant_id}
+            {'tid': tenant_id},
         ).scalar() or 0
-        if bundle.max_patients is not None and (current_count + 1) > bundle.max_patients:
-            raise ValueError(f"Bundle limit exceeded: maximum {bundle.max_patients} patients allowed")
+        ok, _ = EntitlementResolver.check_limit(tenant_id, 'max_patients', current_count, increment=1)
+        if not ok:
+            cap = EntitlementResolver.get_limit(tenant_id, 'max_patients')
+            raise ValueError(f"Bundle limit exceeded: maximum {cap} patients allowed")
 
 
 # ---------------------------------------------------------------------------
@@ -161,32 +159,28 @@ def _cross_tenant_check(session, is_delete=False):
 
 
 def _check_bundle_limits_on_update(instance, tenant_id):
-    """Check bundle max_users/max_patients limits when reactivating User or Patient."""
-    from app.core.tenant.models import Tenant, get_bundle_for_profile
-    t = Tenant.query.get(tenant_id)
-    if t is None or not t.product_profile_code:
-        return
-    bundle = get_bundle_for_profile(t.product_profile_code)
-    if bundle is None:
-        return
+    """Check max_users/max_patients when reactivating User or Patient."""
+    from app.core.saas.resolver import EntitlementResolver
 
     table = instance.__tablename__
     if table == 'users':
-        if bundle.max_users is not None:
-            current_count = db.session.execute(
-                db.text('SELECT COUNT(*) FROM users WHERE tenant_id = :tid AND deleted_at IS NULL'),
-                {'tid': tenant_id}
-            ).scalar() or 0
-            if current_count > bundle.max_users:
-                raise ValueError(f"Bundle limit exceeded: maximum {bundle.max_users} users allowed")
+        current_count = db.session.execute(
+            db.text('SELECT COUNT(*) FROM users WHERE tenant_id = :tid AND deleted_at IS NULL'),
+            {'tid': tenant_id},
+        ).scalar() or 0
+        ok, _ = EntitlementResolver.check_limit(tenant_id, 'max_users', current_count)
+        if not ok:
+            cap = EntitlementResolver.get_limit(tenant_id, 'max_users')
+            raise ValueError(f"Bundle limit exceeded: maximum {cap} users allowed")
     elif table == 'patients':
-        if bundle.max_patients is not None:
-            current_count = db.session.execute(
-                db.text('SELECT COUNT(*) FROM patients WHERE tenant_id = :tid AND deleted_at IS NULL'),
-                {'tid': tenant_id}
-            ).scalar() or 0
-            if current_count > bundle.max_patients:
-                raise ValueError(f"Bundle limit exceeded: maximum {bundle.max_patients} patients allowed")
+        current_count = db.session.execute(
+            db.text('SELECT COUNT(*) FROM patients WHERE tenant_id = :tid AND deleted_at IS NULL'),
+            {'tid': tenant_id},
+        ).scalar() or 0
+        ok, _ = EntitlementResolver.check_limit(tenant_id, 'max_patients', current_count)
+        if not ok:
+            cap = EntitlementResolver.get_limit(tenant_id, 'max_patients')
+            raise ValueError(f"Bundle limit exceeded: maximum {cap} patients allowed")
 
 
 @event.listens_for(db.session.__class__, 'before_flush')

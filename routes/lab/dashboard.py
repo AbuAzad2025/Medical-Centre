@@ -6,6 +6,7 @@ from routes.lab import lab_bp
 from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response
 from flask_login import login_required, current_user
 from utils.decorators import role_required
+from app.core.saas.decorators import require_entitlement
 from models.patient import Patient
 from models.visit import Visit
 from models.user import User
@@ -34,6 +35,7 @@ def index():
 
 @lab_bp.route('/dashboard')
 @login_required
+@require_entitlement('lab_order')
 @role_required('lab', 'admin', 'manager')
 def dashboard():
     """لوحة تحكم المختبر الذكية"""

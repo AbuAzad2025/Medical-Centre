@@ -16,6 +16,11 @@ from flask_login import current_user
 
 from app.extensions import db
 from app.core.saas.exceptions import EntitlementDeniedError
+from app.core.saas.legacy_adapter import LegacyEntitlementAdapter
+
+
+HARD_LIMIT_KEYS = frozenset({"max_users", "max_patients", "api_calls_per_month"})
+WARN_LIMIT_KEYS = frozenset({"storage_gb"})
 
 
 class EntitlementResolver:
@@ -86,8 +91,10 @@ class EntitlementResolver:
         if tenant is None:
             return False, "tenant_not_found"
 
-        if tenant.status not in (TenantStatus.ACTIVE, TenantStatus.TRIAL):
-            return False, f"tenant_status_{tenant.status.value}"
+        status_raw = getattr(tenant.status, "value", tenant.status)
+        status_norm = str(status_raw or "").lower()
+        if status_norm not in (TenantStatus.ACTIVE.value, TenantStatus.TRIAL.value):
+            return False, f"tenant_status_{status_norm}"
 
         if not tenant.is_active_and_paid():
             return False, "subscription_expired"
@@ -107,9 +114,133 @@ class EntitlementResolver:
         )
 
         if projection is None:
+            if LegacyEntitlementAdapter.is_entitled(tenant, capability_key):
+                return True, ""
             return False, "capability_not_entitled"
 
         return True, ""
+
+    @classmethod
+    def get_effective_limits(cls, tenant_id: int, at: Optional[datetime] = None) -> dict[str, Optional[int]]:
+        """Merged limits from active subscription package versions, legacy bundle fallback."""
+        if at is None:
+            at = datetime.now(timezone.utc)
+
+        cache_key = ("limits", tenant_id)
+        if _has_request_context():
+            cache = getattr(g, "_entitlement_limit_cache", None)
+            if cache is None:
+                cache = {}
+                g._entitlement_limit_cache = cache
+            if cache_key in cache:
+                return cache[cache_key]
+
+        from app.core.saas.models import PackageVersionLimit, SubscriptionLine, SubscriptionLineStatus
+
+        limits: dict[str, Optional[int]] = {}
+        lines = (
+            SubscriptionLine.query.filter_by(tenant_id=tenant_id)
+            .filter(
+                SubscriptionLine.status.in_(
+                    [SubscriptionLineStatus.ACTIVE, SubscriptionLineStatus.SCHEDULED]
+                ),
+                SubscriptionLine.effective_from <= at,
+            )
+            .filter(
+                (SubscriptionLine.effective_to.is_(None))
+                | (SubscriptionLine.effective_to >= at)
+            )
+            .all()
+        )
+        for line in lines:
+            version = line.package_version
+            if version is None:
+                continue
+            for lim in version.limits:
+                prev = limits.get(lim.limit_key)
+                if prev is None or (lim.limit_value is not None and (prev is None or lim.limit_value > prev)):
+                    limits[lim.limit_key] = lim.limit_value
+
+        if not limits:
+            limits = LegacyEntitlementAdapter.get_limits(tenant_id)
+
+        if _has_request_context():
+            g._entitlement_limit_cache[cache_key] = limits
+        return limits
+
+    @classmethod
+    def get_limit(cls, tenant_id: int, limit_key: str, at: Optional[datetime] = None) -> Optional[int]:
+        return cls.get_effective_limits(tenant_id, at=at).get(limit_key)
+
+    @classmethod
+    def check_limit(
+        cls,
+        tenant_id: int,
+        limit_key: str,
+        current_count: int,
+        *,
+        increment: int = 0,
+    ) -> tuple[bool, str]:
+        """Return (ok, reason). Hard limits block; storage_gb warns only (always ok)."""
+        if limit_key in WARN_LIMIT_KEYS:
+            return True, ""
+        cap = cls.get_limit(tenant_id, limit_key)
+        if cap is None:
+            return True, ""
+        if current_count + increment > cap:
+            return False, f"limit_exceeded_{limit_key}"
+        return True, ""
+
+    @classmethod
+    def check_usage_limits(cls, tenant_id: int) -> dict[str, bool]:
+        """Snapshot of tenant usage vs limits (storage is warn-only, never False)."""
+        from app.core.tenant.models import ResourceUsage
+
+        latest = ResourceUsage.query.filter_by(tenant_id=tenant_id).order_by(
+            ResourceUsage.recorded_at.desc()
+        ).first()
+        if not latest:
+            latest = ResourceUsage.record_snapshot(tenant_id)
+
+        limits = cls.get_effective_limits(tenant_id)
+        users_cap = limits.get("max_users")
+        patients_cap = limits.get("max_patients")
+        storage_cap = limits.get("storage_gb")
+        api_cap = limits.get("api_calls_per_month")
+
+        users_ok = latest.total_users <= (users_cap if users_cap is not None else float("inf"))
+        patients_ok = latest.total_patients <= (patients_cap if patients_cap is not None else float("inf"))
+        storage_ok = True
+        if storage_cap is not None:
+            storage_gb = float(latest.storage_mb or 0) / 1024
+            if storage_gb > storage_cap:
+                storage_ok = True  # warn-only per S0-004 decision #22
+        api_monthly = int(latest.api_calls_24h or 0) * 30
+        api_ok = api_monthly <= (api_cap if api_cap is not None else float("inf"))
+
+        return {
+            "users_ok": users_ok,
+            "patients_ok": patients_ok,
+            "storage_ok": storage_ok,
+            "api_ok": api_ok,
+            "storage_warning": (
+                storage_cap is not None
+                and (float(latest.storage_mb or 0) / 1024) > storage_cap
+            ),
+        }
+
+    @classmethod
+    def assert_within_limit(
+        cls,
+        tenant_id: int,
+        limit_key: str,
+        current_count: int,
+        *,
+        increment: int = 0,
+    ) -> None:
+        ok, reason = cls.check_limit(tenant_id, limit_key, current_count, increment=increment)
+        if not ok:
+            raise EntitlementDeniedError(tenant_id, limit_key, reason)
 
     @classmethod
     def _audit_denial(cls, tenant_id: int, capability_key: str, reason: str) -> None:

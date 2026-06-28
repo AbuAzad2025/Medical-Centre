@@ -865,33 +865,19 @@ def get_bundle_for_profile(profile_code: str) -> ProductBundle | None:
 
 
 def check_tenant_limits(tenant_id: int) -> dict[str, bool]:
-    """Check if tenant is within bundle limits.
-    Returns dict with keys: users_ok, patients_ok, storage_ok, api_ok
-    Each limit is checked independently — an unlimited field does NOT bypass other limits.
-    Comparisons use <= (inclusive) so that max_users=3 allows exactly 3 users.
-    API calls compare api_calls_24h against monthly cap by dividing by 30.
-    """
-    from app.extensions import db
-    from app.core.tenant.models import ResourceUsage
+    """Check if tenant is within package limits via EntitlementResolver."""
+    from app.core.saas.resolver import EntitlementResolver
 
     tenant = db.session.get(Tenant, tenant_id)
     if not tenant:
         return {"users_ok": True, "patients_ok": True, "storage_ok": True, "api_ok": True}
 
-    bundle = get_bundle_for_profile(tenant.product_profile_code or "")
-    if not bundle:
-        return {"users_ok": True, "patients_ok": True, "storage_ok": True, "api_ok": True}
-
-    latest_usage = ResourceUsage.query.filter_by(tenant_id=tenant_id).order_by(ResourceUsage.recorded_at.desc()).first()
-    if not latest_usage:
-        latest_usage = ResourceUsage.record_snapshot(tenant_id)
-
-    # Each limit is independent — unlimited fields use float('inf') which passes <=
+    usage = EntitlementResolver.check_usage_limits(tenant_id)
     return {
-        "users_ok": latest_usage.total_users <= (bundle.max_users if bundle.max_users is not None else float('inf')),
-        "patients_ok": latest_usage.total_patients <= (bundle.max_patients if bundle.max_patients is not None else float('inf')),
-        "storage_ok": (float(latest_usage.storage_mb) / 1024) <= (bundle.storage_gb if bundle.storage_gb is not None else float('inf')),
-        "api_ok": int(latest_usage.api_calls_24h * 30) <= (bundle.api_calls_per_month if bundle.api_calls_per_month is not None else float('inf')),
+        "users_ok": usage["users_ok"],
+        "patients_ok": usage["patients_ok"],
+        "storage_ok": usage["storage_ok"],
+        "api_ok": usage["api_ok"],
     }
 
 

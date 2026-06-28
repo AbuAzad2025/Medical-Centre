@@ -10,7 +10,7 @@ Composes with existing role/permission decorators:
 
 from functools import wraps
 
-from flask import abort, g
+from flask import abort, g, current_app
 
 from app.core.saas.resolver import EntitlementResolver
 
@@ -21,7 +21,15 @@ def require_entitlement(capability_key: str):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            tenant = getattr(g, "current_tenant", None)
+            if not current_app.config.get('ENABLE_SAAS_MODE', False):
+                return f(*args, **kwargs)
+
+            from app.core.tenant.service import TenantContextService
+            from app.core.tenant.models import Tenant
+
+            tenant = getattr(g, "current_tenant", None) or TenantContextService.get_current_tenant()
+            if tenant is None and getattr(g, "tenant_id", None):
+                tenant = Tenant.query.get(g.tenant_id)
             if tenant is None:
                 abort(403, description="Tenant context required.")
 
