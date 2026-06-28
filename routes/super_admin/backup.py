@@ -113,6 +113,22 @@ def create_backup():
         db.session.add(backup)
         db.session.commit()
 
+        from celery_app import celery_is_enabled, task_always_eager
+        from services.backup_queue_service import BackupQueueError, queue_system_backup
+
+        if celery_is_enabled() or task_always_eager():
+            try:
+                task_id = queue_system_backup(backup.id)
+                return jsonify({
+                    'accepted': True,
+                    'task_id': task_id,
+                    'backup_id': backup.id,
+                    'status': 'queued',
+                    'message': 'تم إرسال النسخة الاحتياطية إلى قائمة الانتظار',
+                }), 202
+            except BackupQueueError as exc:
+                return jsonify({'success': False, 'message': str(exc)}), 503
+
         try:
             size = run_pg_dump_sql_gz(backup_path)
             backup.backup_size = size
