@@ -92,17 +92,12 @@ def archive_visit(visit_id):
     if not visit:
         flash('الزيارة غير موجودة', 'error')
         return redirect(url_for('reception.visits'))
-    can, msg = visit.can_be_archived()
-    if not can:
-        flash(msg, 'warning')
-        return redirect(url_for('reception.visits'))
     try:
-        visit.status = VisitState.ARCHIVED
-        visit.archived_by = current_user.id
-        from datetime import datetime as _dt, timezone
-        visit.archived_at = _dt.now(timezone.utc)
-        db.session.commit()
-        flash('تمت أرشفة الزيارة بنجاح', 'success')
+        ok, msg = GatekeeperService.archive_visit(visit_id, current_user.id)
+        if ok:
+            flash('تمت أرشفة الزيارة بنجاح', 'success')
+        else:
+            flash(msg or 'لا يمكن أرشفة الزيارة', 'warning')
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error archiving visit: {str(e)}")
@@ -120,22 +115,15 @@ def end_visit(visit_id):
     if not visit:
         flash('الزيارة غير موجودة', 'error')
         return redirect(url_for('reception.visits'))
-    # تأكد من أن الزيارة مكتملة قبل الأرشفة
     if visit.status != VisitState.COMPLETED:
         flash('يجب إنهاء العلاج أولاً (حالة الزيارة مكتملة) قبل إنهاء الزيارة', 'warning')
         return redirect(url_for('reception.visits'))
-    # استخدام نفس منطق الأرشفة لمنع إنهاء غير مدفوع
-    can, msg = visit.can_be_archived()
-    if not can:
-        flash(msg, 'warning')
-        return redirect(url_for('reception.visits'))
     try:
-        visit.status = VisitState.ARCHIVED
-        visit.archived_by = current_user.id
-        from datetime import datetime as _dt, timezone
-        visit.archived_at = _dt.now(timezone.utc)
-        db.session.commit()
-        flash('تم إنهاء الزيارة وأرشفتها بنجاح', 'success')
+        ok, msg = GatekeeperService.archive_visit(visit_id, current_user.id)
+        if ok:
+            flash('تم إنهاء الزيارة وأرشفتها بنجاح', 'success')
+        else:
+            flash(msg or 'لا يمكن إنهاء الزيارة', 'warning')
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error ending visit: {str(e)}")

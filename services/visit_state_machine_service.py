@@ -85,6 +85,41 @@ class VisitStateMachineService:
             visit.status = VisitState.OPEN.value
 
     @classmethod
+    def try_transition(cls, visit, target_state: VisitState, *, actor=None) -> bool:
+        """Soft-failure variant of transition() for orchestrators."""
+        try:
+            cls.transition(visit, target_state, actor=actor)
+            return True
+        except ValueError:
+            return False
+
+    @classmethod
+    def initialize(cls, visit, initial_state: VisitState = VisitState.OPEN) -> None:
+        """Set initial clinical status on a newly created visit."""
+        visit.status = initial_state.value
+
+    @classmethod
+    def transition_or_archive(
+        cls,
+        visit,
+        target_state: VisitState,
+        *,
+        actor=None,
+        user_id: int | None = None,
+    ) -> tuple[bool, str]:
+        """Clinical transitions via VSM; ARCHIVED delegates to GatekeeperService."""
+        if target_state == VisitState.ARCHIVED:
+            if user_id is None:
+                return False, "user_id required for archival"
+            from services.gatekeeper_service import GatekeeperService
+            return GatekeeperService.archive_visit(visit.id, user_id)
+        try:
+            cls.transition(visit, target_state, actor=actor)
+            return True, ""
+        except ValueError as exc:
+            return False, str(exc)
+
+    @classmethod
     def ensure_in_progress(cls, visit, *, actor=None) -> bool:
         """Transition visit to IN_PROGRESS via a valid path (handles legacy WAITING)."""
         cls._coerce_legacy_status(visit)

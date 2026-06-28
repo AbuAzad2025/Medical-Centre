@@ -182,19 +182,30 @@ class FinancialService:
         ).limit(limit).all()
 
     @staticmethod
-    def get_expenses(category: str | None = None, limit: int = 100) -> list:
-        """Expense tracking is not yet modelled in the schema; returns empty list."""
-        logging.debug("get_expenses called but no Expense model exists (category=%s)", category)
-        return []
+    def get_expenses(category: str | None = None, limit: int = 100) -> dict:
+        """Standardized stub — expense model not yet in schema."""
+        return {
+            "success": True,
+            "available": False,
+            "expenses": [],
+            "message": "Expense tracking is not yet available",
+            "category": category,
+            "limit": limit,
+        }
 
     @staticmethod
-    def record_expense(description: str, amount: float, category: str, recorded_by: int) -> Any | None:
-        """Expense tracking is not yet modelled in the schema."""
-        logging.warning(
-            "record_expense skipped: no Expense model (desc=%s amount=%s category=%s by=%s)",
+    def record_expense(description: str, amount: float, category: str, recorded_by: int) -> dict:
+        """Standardized stub — expense model not yet in schema."""
+        logging.info(
+            "record_expense stub (desc=%s amount=%s category=%s by=%s)",
             description, amount, category, recorded_by,
         )
-        return None
+        return {
+            "success": False,
+            "available": False,
+            "expense": None,
+            "message": "Expense tracking is not yet available",
+        }
 
 
 # Singleton
