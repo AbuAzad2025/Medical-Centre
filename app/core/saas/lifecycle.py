@@ -81,6 +81,11 @@ class TenantProvisioningService:
         db.session.add(tenant)
         db.session.flush()
 
+        from flask import has_request_context
+        if has_request_context():
+            from app.core.tenant.middleware import bind_g_tenant
+            bind_g_tenant(tenant)
+
         line = cls._create_base_line(tenant.id, package_version, billing_type)
         db.session.add(line)
         db.session.flush()

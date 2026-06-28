@@ -23,6 +23,7 @@ from app.core.saas.models import (
 )
 from app.core.tenant.models import Tenant
 from models.user import User
+from tests.tenant_context import tenant_test_context
 
 
 @pytest.fixture(scope='function')
@@ -37,9 +38,10 @@ def saas_tenant(app):
     )
     _db.session.add(t)
     _db.session.commit()
-    yield t
-    _db.session.delete(t)
-    _db.session.commit()
+    with tenant_test_context(app, t):
+        yield t
+        _db.session.delete(t)
+        _db.session.commit()
 
 
 @pytest.fixture(scope='function')

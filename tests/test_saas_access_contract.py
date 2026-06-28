@@ -11,6 +11,7 @@ from app.core.saas.decorators import require_entitlement
 from app.core.saas.models import TenantEntitlement
 from app.core.tenant.models import PlatformAuditLog, Tenant, TenantStatus
 from models.user import User
+from tests.tenant_context import tenant_test_context
 
 
 @pytest.fixture(scope='function')
@@ -24,9 +25,10 @@ def access_tenant(app):
     )
     db.session.add(t)
     db.session.commit()
-    yield t
-    db.session.delete(t)
-    db.session.commit()
+    with tenant_test_context(app, t):
+        yield t
+        db.session.delete(t)
+        db.session.commit()
 
 
 @pytest.fixture(scope='function')

@@ -133,6 +133,16 @@ def _clear_rate_limiter(app):
 
 
 @pytest.fixture(scope='function', autouse=True)
+def _clear_tenant_context():
+    """Clear tenant context on ``g`` to prevent cross-test RLS / isolation leaks."""
+    from tests.tenant_context import clear_tenant_g
+
+    clear_tenant_g()
+    yield
+    clear_tenant_g()
+
+
+@pytest.fixture(scope='function', autouse=True)
 def _clear_flask_login_state():
     """Clear cached Flask-Login user to prevent cross-test auth leaks.
 

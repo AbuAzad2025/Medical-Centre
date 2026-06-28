@@ -6,6 +6,8 @@ import os
 import re
 from typing import Optional, Tuple
 
+from flask import g, has_request_context
+
 from app.extensions import db
 from app.core.saas.lifecycle import ProvisioningError, TenantProvisioningService
 from app.core.saas.models import PackageVersion, PackageVersionAvailability, PackageVersionAvailabilityStatus
@@ -25,6 +27,21 @@ class SaasRegistrationService:
     """Provision an isolated tenant + primary admin without manual owner intervention."""
 
     DEFAULT_ADMIN_ROLE = 'manager'
+
+    @staticmethod
+    def _with_tenant_bypass(fn):
+        """Run cross-tenant lookups (global username/email) during public signup."""
+        if not has_request_context():
+            return fn()
+        prev = g.get('_tenant_filter_bypass', False)
+        g._tenant_filter_bypass = True
+        try:
+            return fn()
+        finally:
+            if prev:
+                g._tenant_filter_bypass = True
+            else:
+                g.pop('_tenant_filter_bypass', None)
 
     @classmethod
     def _normalize_slug(cls, slug: str) -> str:
@@ -72,10 +89,13 @@ class SaasRegistrationService:
             raise SaasRegistrationError('missing_required_fields')
         if len(admin_password) < 8:
             raise SaasRegistrationError('weak_password')
-        if User.query.filter_by(username=username).first():
-            raise SaasRegistrationError('username_taken')
-        if User.query.filter_by(email=email).first():
-            raise SaasRegistrationError('email_taken')
+        def _check_user_uniqueness():
+            if User.query.filter_by(username=username).first():
+                raise SaasRegistrationError('username_taken')
+            if User.query.filter_by(email=email).first():
+                raise SaasRegistrationError('email_taken')
+
+        cls._with_tenant_bypass(_check_user_uniqueness)
 
         pkg_id = package_version_id or cls.resolve_default_package_version_id()
 

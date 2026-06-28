@@ -119,6 +119,22 @@ def resolve_tenant() -> Tenant | None:
 
     raise TenantResolutionError("No tenant could be resolved for this request.")
 
+
+def bind_g_tenant(tenant: Tenant | None) -> None:
+    """Set ``g.tenant_id`` and PostgreSQL RLS session var for a resolved tenant."""
+    g.current_tenant = tenant
+    g.tenant_id = tenant.id if tenant else None
+    g.tenant_slug = tenant.slug if tenant else None
+    if not tenant:
+        return
+    try:
+        from app.extensions import db
+        from sqlalchemy import text
+        db.session.execute(text(f"SET LOCAL app.tenant_id = '{tenant.id}'"))
+    except Exception:
+        pass
+
+
 def set_tenant_context():
     """Flask before_request handler — injects full tenant context into g.
 
@@ -145,6 +161,7 @@ def set_tenant_context():
         '/robots.txt',
         '/owner/',
         '/super-admin/',
+        '/api/saas/',
     ]
     
     is_exempt = any(request.path.startswith(p) for p in exempt_paths)
@@ -160,20 +177,16 @@ def set_tenant_context():
                 abort(403, description=str(exc))
             tenant = None
 
-    g.current_tenant = tenant
-    g.tenant_id = tenant.id if tenant else None
-    g.tenant_slug = tenant.slug if tenant else None
     g.enabled_modules = set()
     g.product_profile = None
     g.feature_flags = {}
 
     if tenant:
-        try:
-            from app.extensions import db
-            from sqlalchemy import text
-            db.session.execute(text(f"SET LOCAL app.tenant_id = '{tenant.id}'"))
-        except Exception:
-            pass
+        bind_g_tenant(tenant)
+    else:
+        g.current_tenant = None
+        g.tenant_id = None
+        g.tenant_slug = None
 
     if not tenant:
         return
