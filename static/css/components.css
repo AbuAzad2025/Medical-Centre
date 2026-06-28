@@ -1781,3 +1781,103 @@ tr[data-href]:hover {
   color: var(--text-secondary, #64748b);
   margin-bottom: 0.75rem;
 }
+
+/* ═══════════════════════════════════════════════
+   MOBILE POS GRID
+   ═══════════════════════════════════════════════ */
+@media (max-width: 767.98px) {
+  .pos-layout { flex-direction: column; }
+  .pos-layout .col-md-7,
+  .pos-layout .col-md-5 { width: 100%; }
+
+  #quickMedications .col-md-4 { width: 50%; }
+
+  .pos-cart-sticky {
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+    background: var(--surface, #fff);
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+    border-radius: var(--radius-lg, 0.75rem) var(--radius-lg, 0.75rem) 0 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   MOBILE PATIENT TIMELINE
+   ═══════════════════════════════════════════════ */
+.patient-timeline-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  padding-inline-start: 1.5rem;
+  border-inline-start: 2px solid var(--border-subtle, #e2e8f0);
+}
+
+.patient-timeline-visual__item {
+  position: relative;
+  padding: 0.75rem 0;
+}
+
+.patient-timeline-visual__dot {
+  position: absolute;
+  inset-inline-start: -1.75rem;
+  top: 1rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary, #0f4c81);
+  border: 2px solid var(--surface, #fff);
+  box-shadow: 0 0 0 2px var(--primary, #0f4c81);
+}
+
+.patient-timeline-visual__item--lab .patient-timeline-visual__dot { background: #f59e0b; box-shadow: 0 0 0 2px #f59e0b; }
+.patient-timeline-visual__item--radiology .patient-timeline-visual__dot { background: #06b6d4; box-shadow: 0 0 0 2px #06b6d4; }
+.patient-timeline-visual__item--prescription .patient-timeline-visual__dot { background: #10b981; box-shadow: 0 0 0 2px #10b981; }
+.patient-timeline-visual__item--follow_up .patient-timeline-visual__dot { background: #ef4444; box-shadow: 0 0 0 2px #ef4444; }
+
+@media (max-width: 767.98px) {
+  .patient-timeline-visual { padding-inline-start: 1rem; }
+  .patient-timeline-visual__dot { inset-inline-start: -1.25rem; width: 10px; height: 10px; }
+  .patient-timeline-visual__content .fw-semibold { font-size: 0.875rem; }
+
+  .timeline-filter-bar .btn-sm { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+}
+
+/* ═══════════════════════════════════════════════
+   MOBILE BILLING DASHBOARD
+   ═══════════════════════════════════════════════ */
+@media (max-width: 767.98px) {
+  .card-stat { padding: 1rem; }
+  .card-stat h3 { font-size: 1.25rem; }
+  .card-stat h6 { font-size: 0.75rem; }
+  .card-stat .icon-bg { font-size: 1.5rem; }
+
+  .dashboard-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .dashboard-table-wrap table { min-width: 480px; }
+}
+
+/* ═══════════════════════════════════════════════
+   PAGINATION COMPONENT
+   ═══════════════════════════════════════════════ */
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.pagination-wrapper .pagination {
+  gap: 0.25rem;
+}
+
+.pagination-wrapper .page-link {
+  border-radius: var(--radius-sm, 0.375rem);
+  min-width: 2.25rem;
+  text-align: center;
+  border: 1px solid var(--border-subtle, #e2e8f0);
+}
+
+.pagination-wrapper .page-item.active .page-link {
+  background: var(--primary, #0f4c81);
+  border-color: var(--primary, #0f4c81);
+}

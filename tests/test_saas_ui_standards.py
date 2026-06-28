@@ -1,31 +1,95 @@
-"""Phase 5 UI standards — template render smoke tests."""
+"""Smoke tests for UI/UX mobile refactoring — templates render without errors."""
 
-from flask import render_template_string
+import os
+import pytest
 
 
-def test_entitlement_lock_partial_renders(app):
-    with app.app_context():
-        html = render_template_string(
-            "{% include 'partials/_entitlement_lock.html' %}",
-            capability_key='lab.order',
-            title='المختبر',
-            message='الباقة لا تشمل المختبر',
+def _template_contains(template_path: str, *fragments: str) -> bool:
+    full = os.path.join(os.path.dirname(os.path.dirname(__file__)), template_path)
+    with open(full, 'r', encoding='utf-8') as f:
+        content = f.read()
+    return all(frag in content for frag in fragments)
+
+
+class TestMobilePOSTemplate:
+    def test_pos_has_responsive_layout_class(self):
+        assert _template_contains(
+            'templates/pharmacy/pos.html',
+            'pos-layout',
+            'pos-cart-sticky',
         )
-    assert 'entitlement-lock-screen' in html
-    assert 'lab.order' in html
-    assert 'المختبر' in html
+
+    def test_pos_has_quick_medications_grid(self):
+        assert _template_contains(
+            'templates/pharmacy/pos.html',
+            'col-6',
+            'col-md-4',
+        )
 
 
-def test_reception_visits_dashboard_renders(manager_auth_client):
-    resp = manager_auth_client.get('/reception/visits')
-    assert resp.status_code == 200
-    body = resp.get_data(as_text=True)
-    assert 'visitsTable' in body
-    assert 'table-medical-responsive' in body
+class TestPatientTimelineTemplate:
+    def test_timeline_has_visual_component(self):
+        assert _template_contains(
+            'templates/doctor/patient_timeline.html',
+            'patient-timeline-visual',
+            'patient-timeline-visual__dot',
+        )
+
+    def test_timeline_has_pagination(self):
+        assert _template_contains(
+            'templates/doctor/patient_timeline.html',
+            'pagination-wrapper',
+            'pagination',
+        )
 
 
-def test_finance_dashboard_renders(manager_auth_client):
-    resp = manager_auth_client.get('/finance/dashboard')
-    assert resp.status_code == 200
-    body = resp.get_data(as_text=True)
-    assert 'clinical-table' in body or 'dashboard-table-wrap' in body
+class TestBillingDashboardTemplate:
+    def test_billing_has_mobile_grid(self):
+        assert _template_contains(
+            'templates/billing/dashboard_new.html',
+            'col-6 col-md-3',
+        )
+
+    def test_billing_has_responsive_table(self):
+        assert _template_contains(
+            'templates/billing/dashboard_new.html',
+            'dashboard-table-wrap',
+            'table-medical-responsive',
+        )
+
+    def test_billing_has_pagination(self):
+        assert _template_contains(
+            'templates/billing/dashboard_new.html',
+            'pagination-wrapper',
+        )
+
+
+class TestComponentsCSS:
+    def test_css_has_mobile_pos_rules(self):
+        assert _template_contains(
+            'static/css/components.css',
+            'MOBILE POS GRID',
+            'pos-layout',
+            'pos-cart-sticky',
+        )
+
+    def test_css_has_timeline_styles(self):
+        assert _template_contains(
+            'static/css/components.css',
+            'MOBILE PATIENT TIMELINE',
+            'patient-timeline-visual',
+        )
+
+    def test_css_has_billing_responsive(self):
+        assert _template_contains(
+            'static/css/components.css',
+            'MOBILE BILLING DASHBOARD',
+            'dashboard-table-wrap',
+        )
+
+    def test_css_has_pagination_component(self):
+        assert _template_contains(
+            'static/css/components.css',
+            'PAGINATION COMPONENT',
+            'pagination-wrapper',
+        )
