@@ -7,7 +7,8 @@ from routes.super_admin import super_admin_bp
 
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, abort
 from flask_login import login_required, current_user
-from utils.decorators import super_admin_required
+from utils.decorators import super_admin_required, privileged_user_manager_required
+from app.shared.user_role_policy import actor_may_assign_role, is_assignable_role
 from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
@@ -56,7 +57,7 @@ def users():
 
 @super_admin_bp.route('/users/create', methods=['GET', 'POST'])
 @login_required
-@super_admin_required
+@privileged_user_manager_required
 def create_user():
     """إنشاء مستخدم جديد"""
     if request.method == 'POST':
@@ -65,6 +66,11 @@ def create_user():
             from models.department import Department
             from models.pricing import DoctorPricing
             from werkzeug.security import generate_password_hash
+
+            requested_role = request.form.get('role')
+            if not actor_may_assign_role(current_user.role, requested_role):
+                flash('غير مصرح بتعيين هذا الدور', 'error')
+                return redirect(url_for('super_admin.create_user'))
             
             user = User(
                 username=request.form.get('username'),
@@ -139,7 +145,7 @@ def create_user():
 
 @super_admin_bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
 @login_required
-@super_admin_required
+@privileged_user_manager_required
 def edit_user(user_id):
     """تعديل مستخدم"""
     try:
@@ -158,7 +164,15 @@ def edit_user(user_id):
             user.username = request.form.get('username')
             user.email = request.form.get('email')
             user.full_name = request.form.get('full_name')
-            user.role = request.form.get('role')
+            requested_role = request.form.get('role')
+            if requested_role and requested_role != user.role:
+                if not actor_may_assign_role(current_user.role, requested_role):
+                    flash('غير مصرح بتعيين هذا الدور', 'error')
+                    return redirect(url_for('super_admin.edit_user', user_id=user.id))
+                user.role = requested_role
+            elif requested_role and not is_assignable_role(requested_role):
+                flash('دور غير صالح', 'error')
+                return redirect(url_for('super_admin.edit_user', user_id=user.id))
             user.department_id = request.form.get('department_id') or None
             user.phone = request.form.get('phone')
             user.doctor_room = request.form.get('doctor_room')
@@ -222,7 +236,7 @@ def edit_user(user_id):
 
 @super_admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
 @login_required
-@super_admin_required
+@privileged_user_manager_required
 def delete_user(user_id):
     """حذف مستخدم"""
     try:
