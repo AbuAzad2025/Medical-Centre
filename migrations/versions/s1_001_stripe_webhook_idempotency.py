@@ -1,7 +1,7 @@
 """S1-001: Stripe webhook event idempotency table.
 
 Revision: s1_001_stripe_webhook_idempotency
-Revises: s0_005
+Revises: p4_002_drop_queue_payment_status
 Create Date: 2026-06-28
 """
 from alembic import op
@@ -14,7 +14,7 @@ from migration_utils import table_exists
 
 
 revision = 's1_001_stripe_webhook_idempotency'
-down_revision = 's0_005'
+down_revision = 'p4_002_drop_queue_payment_status'
 branch_labels = None
 depends_on = None
 
