@@ -1,0 +1,11 @@
+{# SaaS entitlement lock screen — shown when premium capability is unavailable #}
+<div class="entitlement-lock-screen" role="alert" data-capability="{{ capability_key }}">
+  <div class="entitlement-lock-screen__icon" aria-hidden="true">
+    <i class="fas fa-lock"></i>
+  </div>
+  <h5 class="mb-2">{{ title or 'الميزة غير متاحة' }}</h5>
+  <p class="text-muted mb-3">{{ message or 'هذه الميزة غير مفعّلة في باقتك الحالية. تواصل مع مدير المنشأة للترقية.' }}</p>
+  {% if upgrade_url %}
+  <a href="{{ upgrade_url }}" class="btn btn-primary btn-sm">ترقية الباقة</a>
+  {% endif %}
+</div>

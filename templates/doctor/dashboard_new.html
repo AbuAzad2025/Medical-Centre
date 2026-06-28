@@ -43,8 +43,8 @@
     <div class="col-lg-6">
         <div class="card h-100">
             <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2 text-primary"></i>قائمة الانتظار</h5></div>
-            <div class="card-body p-0">
-                <table class="table table-hover mb-0">
+            <div class="card-body p-0 dashboard-table-wrap">
+                <table class="table table-hover mb-0 table-medical-responsive">
                     <thead><tr><th>#</th><th>المريض</th><th>الحالة</th><th>الإجراء</th></tr></thead>
                     <tbody>
                     {% for v in waiting_list %}
@@ -65,8 +65,8 @@
     <div class="col-lg-6">
         <div class="card h-100">
             <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-calendar-day me-2 text-info"></i>مواعيدي اليوم</h5></div>
-            <div class="card-body p-0">
-                <table class="table table-hover mb-0">
+            <div class="card-body p-0 dashboard-table-wrap">
+                <table class="table table-hover mb-0 table-medical-responsive">
                     <thead><tr><th>المريض</th><th>الوقت</th><th>الحالة</th></tr></thead>
                     <tbody>
                     {% for a in today_appointments %}
@@ -88,8 +88,8 @@
     <div class="col-lg-6">
         <div class="card h-100">
             <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-flask me-2 text-warning"></i>طلبات المختبر المعلّقة</h5></div>
-            <div class="card-body p-0">
-                <table class="table table-hover mb-0">
+            <div class="card-body p-0 dashboard-table-wrap">
+                <table class="table table-hover mb-0 table-medical-responsive">
                     <thead><tr><th>#</th><th>المريض</th><th>الحالة</th></tr></thead>
                     <tbody>
                     {% for req in pending_lab_list %}
@@ -109,8 +109,8 @@
     <div class="col-lg-6">
         <div class="card h-100">
             <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-x-ray me-2 text-secondary"></i>طلبات الأشعة المعلّقة</h5></div>
-            <div class="card-body p-0">
-                <table class="table table-hover mb-0">
+            <div class="card-body p-0 dashboard-table-wrap">
+                <table class="table table-hover mb-0 table-medical-responsive">
                     <thead><tr><th>#</th><th>المريض</th><th>الحالة</th></tr></thead>
                     <tbody>
                     {% for req in pending_radiology_list %}
