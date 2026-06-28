@@ -1,44 +1,66 @@
 """
-WorkflowOrchestrator — unified workflow state machine
+WorkflowOrchestrator — unified workflow facade over VisitStateMachineService.
+
+Clinical visit.status transitions are validated by VisitStateMachineService.
+Administrative archival is owned exclusively by GatekeeperService (P1-002).
 """
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
-from app.shared.enums import VisitState, QueueState, OrderState, BillingState
-
-WORKFLOW_TRANSITIONS: dict[str, list[str]] = {
-    VisitState.OPEN: [VisitState.CHECKED_IN, VisitState.IN_PROGRESS, VisitState.CANCELLED],
-    VisitState.CHECKED_IN: [VisitState.IN_PROGRESS, VisitState.CANCELLED],
-    VisitState.IN_PROGRESS: [VisitState.COMPLETED, VisitState.CANCELLED],
-    VisitState.COMPLETED: [VisitState.ARCHIVED],
-    VisitState.ARCHIVED: [],
-    VisitState.CANCELLED: [],
-    VisitState.NO_SHOW: [VisitState.OPEN],
-}
+from app.shared.enums import VisitState, QueueState
+from services.visit_state_machine_service import VisitStateMachineService
 
 
 class WorkflowOrchestrator:
     @staticmethod
     def valid_transitions(current_state: str) -> list[str]:
-        return WORKFLOW_TRANSITIONS.get(current_state, [])
+        class _VisitProxy:
+            status = current_state
+
+        allowed = {s.value for s in VisitStateMachineService.get_allowed_transitions(_VisitProxy())}
+        if current_state == VisitState.COMPLETED:
+            allowed.add(VisitState.ARCHIVED)
+        return sorted(allowed)
 
     @staticmethod
     def can_transition(current_state: str, next_state: str) -> bool:
-        return next_state in WORKFLOW_TRANSITIONS.get(current_state, [])
+        if next_state == VisitState.ARCHIVED:
+            return current_state == VisitState.COMPLETED
+        class _VisitProxy:
+            status = current_state
+        try:
+            target = VisitState(next_state)
+        except ValueError:
+            return False
+        return VisitStateMachineService.can_transition(_VisitProxy(), target)
 
     @staticmethod
     def transition(visit, next_state: str, user_id: int | None = None, note: str = "") -> bool:
-        if not WorkflowOrchestrator.can_transition(visit.status, next_state):
+        try:
+            target = VisitState(next_state)
+        except ValueError:
             return False
         old_state = visit.status
-        visit.status = next_state
+        if target == VisitState.ARCHIVED:
+            ok, _ = VisitStateMachineService.transition_or_archive(
+                visit, target, actor=user_id, user_id=user_id,
+            )
+            if ok:
+                WorkflowOrchestrator._emit_event(visit, old_state, next_state, user_id, note)
+            return ok
+        if not VisitStateMachineService.try_transition(visit, target, actor=user_id):
+            return False
         WorkflowOrchestrator._emit_event(visit, old_state, next_state, user_id, note)
         return True
 
     @staticmethod
     def create_case(visit, initial_state: str = VisitState.OPEN, user_id: int | None = None):
-        visit.status = initial_state
-        WorkflowOrchestrator._emit_event(visit, None, initial_state, user_id, "Case created")
+        try:
+            state = VisitState(initial_state)
+        except ValueError:
+            state = VisitState.OPEN
+        VisitStateMachineService.initialize(visit, state)
+        WorkflowOrchestrator._emit_event(visit, None, state.value, user_id, "Case created")
 
     @staticmethod
     def next_actions(visit) -> list[str]:

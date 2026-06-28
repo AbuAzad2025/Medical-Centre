@@ -144,12 +144,18 @@ class TestRecordPayment:
 
 
 class TestExpenses:
-    def test_get_expenses_empty_without_model(self, ffx):
-        assert FinancialService.get_expenses() == []
+    def test_get_expenses_stub_response(self, ffx):
+        res = FinancialService.get_expenses()
+        assert res["success"] is True
+        assert res["available"] is False
+        assert res["expenses"] == []
 
-    def test_record_expense_returns_none_without_model(self, ffx):
+    def test_record_expense_stub_response(self, ffx):
         u = ffx.user()
-        assert FinancialService.record_expense('supplies', 50, 'misc', u.id) is None
+        res = FinancialService.record_expense('supplies', 50, 'misc', u.id)
+        assert res["success"] is False
+        assert res["available"] is False
+        assert res["expense"] is None
 
 
 class TestReconcileVisitPayments:
