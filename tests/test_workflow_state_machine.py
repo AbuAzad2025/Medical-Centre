@@ -11,7 +11,14 @@ from app.modules.workflows.visit import VisitWorkflowService
 from models.patient import Patient
 from models.visit import Visit
 from services.workflow_orchestrator import WorkflowOrchestrator
-from services.visit_state_machine_service import VisitStateMachineService
+from services.visit_state_machine_service import VisitStateMachineService, set_vsm_authorized
+
+
+def _complete_visit(visit):
+    """Transition visit OPEN -> CHECKED_IN -> IN_PROGRESS -> COMPLETED via VSM."""
+    WorkflowOrchestrator.transition(visit, VisitState.CHECKED_IN)
+    WorkflowOrchestrator.transition(visit, VisitState.IN_PROGRESS)
+    WorkflowOrchestrator.transition(visit, VisitState.COMPLETED)
 
 
 @pytest.fixture(autouse=True)
@@ -42,14 +49,18 @@ class TestWorkflowOrchestrator:
         assert WorkflowOrchestrator.transition(wf_visit, VisitState.COMPLETED) is False
 
     def test_archive_delegates_to_gatekeeper(self, wf_visit):
-        wf_visit.status = VisitState.COMPLETED
+        _complete_visit(wf_visit)
         with patch('services.gatekeeper_service.GatekeeperService.archive_visit', return_value=(True, 'ok')) as arch:
             ok = WorkflowOrchestrator.transition(wf_visit, VisitArchiveStatus.ARCHIVED, user_id=1)
         assert ok is True
         arch.assert_called_once_with(wf_visit.id, 1)
 
     def test_create_case_initializes_open(self, wf_visit):
-        wf_visit.status = None
+        set_vsm_authorized(True)
+        try:
+            wf_visit.status = None
+        finally:
+            set_vsm_authorized(False)
         WorkflowOrchestrator.create_case(wf_visit, VisitState.OPEN)
         assert wf_visit.status == VisitState.OPEN
 
@@ -63,7 +74,7 @@ class TestVisitWorkflowService:
         assert wf_visit.status == VisitState.IN_PROGRESS
 
     def test_archive_via_gatekeeper(self, wf_visit):
-        wf_visit.status = VisitState.COMPLETED
+        _complete_visit(wf_visit)
         wf_visit.payment_status = 'PAID'
         with patch('services.gatekeeper_service.GatekeeperService.archive_visit', return_value=(True, 'ok')) as arch:
             VisitWorkflowService.transition(wf_visit, VisitWorkflowStatus.ARCHIVED, performed_by=1)

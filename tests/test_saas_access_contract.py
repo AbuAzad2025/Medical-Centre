@@ -129,6 +129,7 @@ class TestRequireEntitlementDecorator:
         with app.test_request_context():
             app.config['ENABLE_SAAS_MODE'] = True
             g.current_tenant = access_tenant
+            g.tenant_id = access_tenant.id
             with pytest.raises(Forbidden):
                 blocked_view()
 
@@ -154,6 +155,7 @@ class TestRequireEntitlementDecorator:
         with app.test_request_context():
             app.config['ENABLE_SAAS_MODE'] = True
             g.current_tenant = access_tenant
+            g.tenant_id = access_tenant.id
             result = allowed_view()
             assert result == ("ok", 200)
 

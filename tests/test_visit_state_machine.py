@@ -7,7 +7,16 @@ from app.shared.enums import VisitState
 from models.patient import Patient
 from models.user import User
 from models.visit import Visit
-from services.visit_state_machine_service import VisitStateMachineService
+from services.visit_state_machine_service import VisitStateMachineService, set_vsm_authorized
+
+
+def _set_visit_status(visit, status):
+    """Test helper: set visit.status bypassing the VSM lock for fixture setup."""
+    set_vsm_authorized(True)
+    try:
+        visit.status = status.value if isinstance(status, VisitState) else status
+    finally:
+        set_vsm_authorized(False)
 
 
 @pytest.fixture(autouse=True)
@@ -93,7 +102,7 @@ class TestVisitStateMachineService:
         assert VisitState.OPEN not in allowed
 
     def test_get_status_returns_none_for_unrecognised(self, sm_visit):
-        sm_visit.status = 'UNKNOWN'
+        _set_visit_status(sm_visit, 'UNKNOWN')
         assert VisitStateMachineService.get_status(sm_visit) is None
 
     @pytest.mark.parametrize('start,target,ok', [
@@ -106,16 +115,16 @@ class TestVisitStateMachineService:
         (VisitState.CANCELLED, VisitState.OPEN, False),
     ])
     def test_transition_matrix(self, sm_visit, start, target, ok):
-        sm_visit.status = start
+        _set_visit_status(sm_visit, start)
         assert VisitStateMachineService.can_transition(sm_visit, target) is ok
 
     def test_ensure_in_progress_from_open(self, sm_visit):
-        sm_visit.status = VisitState.OPEN
+        _set_visit_status(sm_visit, VisitState.OPEN)
         VisitStateMachineService.ensure_in_progress(sm_visit)
         assert sm_visit.status == VisitState.IN_PROGRESS
 
     def test_ensure_in_progress_coerces_waiting(self, sm_visit):
-        sm_visit.status = 'WAITING'
+        _set_visit_status(sm_visit, 'WAITING')
         VisitStateMachineService.ensure_in_progress(sm_visit)
         assert sm_visit.status == VisitState.IN_PROGRESS
 
