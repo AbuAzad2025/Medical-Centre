@@ -82,7 +82,20 @@ def login() -> ResponseReturnValue:
                 else:
                     flash('اسم المستخدم وكلمة المرور مطلوبان', 'error')
                     return render_template('auth/login.html')
-            
+
+            # SaaS: bind tenant from slug before tenant-scoped User lookup
+            tenant_slug = (data.get('tenant_slug') or '').strip()
+            if current_app.config.get('ENABLE_SAAS_MODE', False):
+                from flask import g
+                from app.core.tenant.middleware import _get_tenant_by_slug, bind_g_tenant
+                if tenant_slug:
+                    _login_tenant = _get_tenant_by_slug(tenant_slug)
+                    if _login_tenant:
+                        bind_g_tenant(_login_tenant)
+                else:
+                    # Platform owner / super-admin may authenticate without a tenant slug
+                    g._tenant_filter_bypass = True
+
             # البحث عن المستخدم
             user = User.query.filter_by(username=username).first()
 
@@ -209,8 +222,7 @@ def login() -> ResponseReturnValue:
                     # تحديد الصفحة المناسبة حسب الدور
                     redirect_url = get_redirect_url_by_role(user.role)
                     
-                    # handle tenant_slug for multi-tenant SaaS
-                    tenant_slug = (data.get('tenant_slug') or '').strip()
+                    # handle tenant_slug for multi-tenant SaaS (may already be set above)
                     if not tenant_slug and user.tenant_id:
                         try:
                             from app.core.tenant.models import Tenant

@@ -133,12 +133,33 @@ def _clear_rate_limiter(app):
 
 
 @pytest.fixture(scope='function', autouse=True)
-def _clear_tenant_context():
-    """Clear tenant context on ``g`` to prevent cross-test RLS / isolation leaks."""
-    from tests.tenant_context import clear_tenant_g
+def _saas_default_tenant_context(app, request):
+    """In SaaS mode, bind the default test tenant to ``g`` for service-layer tests.
+
+    HTTP tests still exercise real middleware; this covers direct ORM/service calls
+    outside an active request. Tests that require *no* tenant must opt out via
+    ``@pytest.mark.no_tenant_context``.
+    """
+    from tests.tenant_context import (
+        bind_tenant_on_g,
+        clear_tenant_g,
+        ensure_default_test_tenant,
+    )
 
     clear_tenant_g()
-    yield
+    if not app.config.get('ENABLE_SAAS_MODE', False):
+        yield
+        clear_tenant_g()
+        return
+    if request.node.get_closest_marker('no_tenant_context'):
+        yield
+        clear_tenant_g()
+        return
+
+    tenant = ensure_default_test_tenant(app)
+    with app.test_request_context():
+        bind_tenant_on_g(tenant, db_session=_db.session)
+        yield
     clear_tenant_g()
 
 

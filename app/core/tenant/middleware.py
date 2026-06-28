@@ -120,6 +120,21 @@ def resolve_tenant() -> Tenant | None:
     raise TenantResolutionError("No tenant could be resolved for this request.")
 
 
+def _tenant_from_authenticated_user() -> Tenant | None:
+    """Resolve tenant from the logged-in user's ``tenant_id`` (session-bound SaaS)."""
+    try:
+        from flask_login import current_user
+
+        if not current_user.is_authenticated:
+            return None
+        tid = getattr(current_user, 'tenant_id', None)
+        if not tid:
+            return None
+        return Tenant.query.get(tid)
+    except Exception:
+        return None
+
+
 def bind_g_tenant(tenant: Tenant | None) -> None:
     """Set ``g.tenant_id`` and PostgreSQL RLS session var for a resolved tenant."""
     g.current_tenant = tenant
@@ -162,13 +177,16 @@ def set_tenant_context():
         '/owner/',
         '/super-admin/',
         '/api/saas/',
+        '/api/billing/stripe/',
+        '/__health',
+        '/kiosk/',
+        '/pwa/',
     ]
-    
+
     is_exempt = any(request.path.startswith(p) for p in exempt_paths)
-    
-    if is_exempt:
-        tenant = None
-    else:
+
+    tenant = None
+    if not is_exempt:
         try:
             tenant = resolve_tenant()
         except TenantResolutionError as exc:
@@ -176,6 +194,13 @@ def set_tenant_context():
                 from flask import abort
                 abort(403, description=str(exc))
             tenant = None
+
+    if tenant is None:
+        tenant = _tenant_from_authenticated_user()
+
+    if saas and not is_exempt and tenant is None:
+        from flask import abort
+        abort(403, description='No tenant could be resolved for this request.')
 
     g.enabled_modules = set()
     g.product_profile = None
