@@ -4,6 +4,7 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 from sqlalchemy import Index
+from sqlalchemy.orm import validates
 from app_factory import db
 from app.shared.mixins import TenantMixin
 
@@ -252,6 +253,16 @@ class Visit(TenantMixin, db.Model):
 
 
     
+    @validates('status')
+    def _validate_status_via_vsm(self, key, value):
+        from services.visit_state_machine_service import is_vsm_authorized
+        if self.status is not None and not is_vsm_authorized():
+            raise ValueError(
+                "Direct Visit.status assignment is blocked. "
+                "Use VisitStateMachineService.transition() instead."
+            )
+        return value
+
     def __repr__(self) -> str:
         return f"<Visit #{self.visit_number or self.id} patient={self.patient_id}>"
 
