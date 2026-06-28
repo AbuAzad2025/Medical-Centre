@@ -2,7 +2,7 @@
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
-from app.shared.enums import AppointmentWorkflowStatus, AppointmentState, VisitState
+from app.shared.enums import AppointmentWorkflowStatus, AppointmentState, VisitState, VisitArchiveStatus
 from models.patient import Patient
 from models.visit import Visit
 from models.user import User, StaffWorkSchedule, StaffAbsence
@@ -80,7 +80,7 @@ def get_smart_analytics():
         
         revenue_growth = ((revenue_this_week - revenue_last_week) / revenue_last_week * 100) if revenue_last_week > 0 else 0
         
-        completion_rate = (Visit.query.filter(Visit.status == VisitState.ARCHIVED).count() / Visit.query.count() * 100) if Visit.query.count() > 0 else 0
+        completion_rate = (Visit.query.filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED).count() / Visit.query.count() * 100) if Visit.query.count() > 0 else 0
         avg_visit_minutes = 0.0
         try:
             avg_seconds = db.session.query(
@@ -188,7 +188,7 @@ def get_performance_metrics():
         
         # معدل الإنجاز
         total_visits = Visit.query.count()
-        completed_visits = Visit.query.filter(Visit.status == VisitState.ARCHIVED).count()
+        completed_visits = Visit.query.filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED).count()
         completion_rate = (completed_visits / total_visits * 100) if total_visits > 0 else 0
         
         # معدل المواعيد
@@ -386,7 +386,7 @@ def get_patient_satisfaction():
         
         # محاكاة معدل الرضا بناءً على البيانات المتاحة
         total_visits = Visit.query.count()
-        completed_visits = Visit.query.filter(Visit.status == VisitState.ARCHIVED).count()
+        completed_visits = Visit.query.filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED).count()
         
         # حساب معدل الرضا بناءً على معدل الإنجاز
         base_satisfaction = (completed_visits / total_visits * 100) if total_visits > 0 else 0
@@ -494,7 +494,7 @@ def get_bi_insights():
     try:
         start_30d = datetime.now(timezone.utc) - timedelta(days=30)
         visits_30d = Visit.query.filter(Visit.created_at >= start_30d).count()
-        completed_30d = Visit.query.filter(Visit.status == VisitState.ARCHIVED, Visit.created_at >= start_30d).count()
+        completed_30d = Visit.query.filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED, Visit.created_at >= start_30d).count()
         appointments_30d = Appointment.query.filter(Appointment.starts_at >= start_30d).count()
         no_show = Appointment.query.filter(Appointment.status == AppointmentWorkflowStatus.NO_SHOW, Appointment.starts_at >= start_30d).count()
         cancel = Appointment.query.filter(Appointment.status == AppointmentWorkflowStatus.CANCELLED, Appointment.starts_at >= start_30d).count()

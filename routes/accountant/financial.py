@@ -18,7 +18,7 @@ from sqlalchemy import func, and_
 import logging
 from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
-from app.shared.enums import VisitState
+from app.shared.enums import VisitState, VisitArchiveStatus
 
 
 # =============================================
@@ -87,7 +87,7 @@ def daily_summary():
         
         # الزيارات المكتملة اليوم
         completed_visits = Visit.query.filter(
-            Visit.status == VisitState.ARCHIVED,
+            Visit.archive_status == VisitArchiveStatus.ARCHIVED,
             Visit.completed_at >= datetime.combine(today, datetime.min.time()),
             Visit.completed_at <= datetime.combine(today, datetime.max.time())
         ).all()

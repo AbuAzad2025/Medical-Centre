@@ -61,14 +61,18 @@ class ModuleName(str, Enum):
 # =============================================================================
 
 class VisitState(str, Enum):
-    """Database-level visit states (stored in visit.status)."""
+    """Clinical lifecycle states stored in visit.status (ends at COMPLETED)."""
     OPEN = "OPEN"
     CHECKED_IN = "CHECKED_IN"
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED = "COMPLETED"
-    ARCHIVED = "ARCHIVED"
     CANCELLED = "CANCELLED"
-    NO_SHOW = "NO_SHOW"
+
+
+class VisitArchiveStatus(str, Enum):
+    """Administrative retention flag on visit.archive_status (GatekeeperService)."""
+    ACTIVE = "ACTIVE"
+    ARCHIVED = "ARCHIVED"
 
 class VisitWorkflowStatus(str, Enum):
     """Internal workflow states for visit state machine."""

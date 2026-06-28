@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from app.shared.enums import VisitState
+from app.shared.enums import VisitState, VisitArchiveStatus
 
 
 class VisitStateMachineService:
@@ -23,13 +23,11 @@ class VisitStateMachineService:
         # Clinical lifecycle ends at COMPLETED. Archival is an administrative
         # action tracked by Visit.archive_status (GatekeeperService), not by
         # Visit.status. See P1-002 decision.
-        VisitState.OPEN: {VisitState.CHECKED_IN, VisitState.CANCELLED, VisitState.NO_SHOW},
-        VisitState.CHECKED_IN: {VisitState.IN_PROGRESS, VisitState.CANCELLED, VisitState.NO_SHOW},
+        VisitState.OPEN: {VisitState.CHECKED_IN, VisitState.CANCELLED},
+        VisitState.CHECKED_IN: {VisitState.IN_PROGRESS, VisitState.CANCELLED},
         VisitState.IN_PROGRESS: {VisitState.COMPLETED, VisitState.CANCELLED, VisitState.CHECKED_IN},
         VisitState.COMPLETED: set(),
-        VisitState.ARCHIVED: set(),
         VisitState.CANCELLED: set(),
-        VisitState.NO_SHOW: set(),
     }
 
     @classmethod
@@ -102,17 +100,19 @@ class VisitStateMachineService:
     def transition_or_archive(
         cls,
         visit,
-        target_state: VisitState,
+        target_state: VisitState | VisitArchiveStatus,
         *,
         actor=None,
         user_id: int | None = None,
     ) -> tuple[bool, str]:
-        """Clinical transitions via VSM; ARCHIVED delegates to GatekeeperService."""
-        if target_state == VisitState.ARCHIVED:
+        """Clinical transitions via VSM; archival delegates to GatekeeperService."""
+        if target_state == VisitArchiveStatus.ARCHIVED:
             if user_id is None:
                 return False, "user_id required for archival"
             from services.gatekeeper_service import GatekeeperService
             return GatekeeperService.archive_visit(visit.id, user_id)
+        if not isinstance(target_state, VisitState):
+            return False, f"invalid target: {target_state}"
         try:
             cls.transition(visit, target_state, actor=actor)
             return True, ""

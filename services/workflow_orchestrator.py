@@ -7,7 +7,7 @@ Administrative archival is owned exclusively by GatekeeperService (P1-002).
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
-from app.shared.enums import VisitState, QueueState
+from app.shared.enums import VisitState, VisitArchiveStatus, QueueState
 from services.visit_state_machine_service import VisitStateMachineService
 
 
@@ -19,12 +19,12 @@ class WorkflowOrchestrator:
 
         allowed = {s.value for s in VisitStateMachineService.get_allowed_transitions(_VisitProxy())}
         if current_state == VisitState.COMPLETED:
-            allowed.add(VisitState.ARCHIVED)
+            allowed.add(VisitArchiveStatus.ARCHIVED.value)
         return sorted(allowed)
 
     @staticmethod
     def can_transition(current_state: str, next_state: str) -> bool:
-        if next_state == VisitState.ARCHIVED:
+        if next_state == VisitArchiveStatus.ARCHIVED:
             return current_state == VisitState.COMPLETED
         class _VisitProxy:
             status = current_state
@@ -36,18 +36,18 @@ class WorkflowOrchestrator:
 
     @staticmethod
     def transition(visit, next_state: str, user_id: int | None = None, note: str = "") -> bool:
-        try:
-            target = VisitState(next_state)
-        except ValueError:
-            return False
         old_state = visit.status
-        if target == VisitState.ARCHIVED:
+        if next_state == VisitArchiveStatus.ARCHIVED:
             ok, _ = VisitStateMachineService.transition_or_archive(
-                visit, target, actor=user_id, user_id=user_id,
+                visit, VisitArchiveStatus.ARCHIVED, actor=user_id, user_id=user_id,
             )
             if ok:
                 WorkflowOrchestrator._emit_event(visit, old_state, next_state, user_id, note)
             return ok
+        try:
+            target = VisitState(next_state)
+        except ValueError:
+            return False
         if not VisitStateMachineService.try_transition(visit, target, actor=user_id):
             return False
         WorkflowOrchestrator._emit_event(visit, old_state, next_state, user_id, note)
@@ -73,7 +73,6 @@ class WorkflowOrchestrator:
             VisitState.CHECKED_IN: "reception",
             VisitState.IN_PROGRESS: "doctor",
             VisitState.COMPLETED: None,
-            VisitState.ARCHIVED: None,
             VisitState.CANCELLED: None,
         }
         return ownership_map.get(visit.status)

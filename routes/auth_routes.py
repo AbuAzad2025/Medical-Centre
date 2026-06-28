@@ -17,10 +17,6 @@ from typing import Any
 # إنشاء Blueprint للمصادقة
 auth_bp = Blueprint('auth', __name__)
 
-@auth_bp.get("/__ping")
-def _auth_ping() -> ResponseReturnValue:
-    return "auth ok", 200
-
 @auth_bp.route('/api/tenants-list')
 def api_tenants_list():
     """

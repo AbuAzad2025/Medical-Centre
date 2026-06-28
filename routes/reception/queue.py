@@ -18,7 +18,7 @@ from models.department import Department
 from models.payment import Payment, PaymentMethod, PaymentStatus
 from models.queue_management import QueueManagement
 from models.patient_satisfaction import PatientSatisfactionSurvey
-from app.shared.enums import QueueState, VisitState, AppointmentState
+from app.shared.enums import QueueState, VisitState, VisitArchiveStatus, AppointmentState
 from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
@@ -681,7 +681,7 @@ def get_workflow_automation():
         
         # أتمتة المتابعة
         completed_visits = Visit.query.filter(
-            Visit.status == VisitState.ARCHIVED,
+            Visit.archive_status == VisitArchiveStatus.ARCHIVED,
             Visit.completed_at >= datetime.now() - timedelta(days=7)
         ).count()
         
@@ -709,7 +709,7 @@ def get_patient_satisfaction_ai():
         
         # تحليل عوامل الرضا
         total_visits = Visit.query.count()
-        completed_visits = Visit.query.filter(Visit.status == VisitState.ARCHIVED).count()
+        completed_visits = Visit.query.filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED).count()
         
         # معدل الإنجاز
         completion_rate = (completed_visits / total_visits * 100) if total_visits > 0 else 0

@@ -124,7 +124,7 @@ class VisitEditForm(FlaskForm):
         ('OPEN', 'مفتوحة'),
         ('IN_PROGRESS', 'قيد التنفيذ'),
         ('COMPLETED', 'مكتملة'),
-        ('ARCHIVED', 'مؤرشفة')
+        ('CANCELLED', 'ملغاة'),
     ], validators=[DataRequired()])
     
     submit = SubmitField('حفظ التعديلات')
@@ -168,7 +168,8 @@ class VisitSearchForm(FlaskForm):
         ('OPEN', 'مفتوحة'),
         ('IN_PROGRESS', 'قيد التنفيذ'),
         ('COMPLETED', 'مكتملة'),
-        ('ARCHIVED', 'مؤرشفة')
+        ('CANCELLED', 'ملغاة'),
+        ('ARCHIVED', 'مؤرشفة (إداري)'),
     ], validators=[Optional()])
     
     payment_status = SelectField('حالة الدفع', choices=[

@@ -18,7 +18,7 @@ class Visit(TenantMixin, db.Model):
     doctor_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
 
     visit_number = db.Column(db.String(40), nullable=True, unique=True)
-    status = db.Column(db.String(20), default='OPEN', index=True)  # OPEN|IN_PROGRESS|COMPLETED|ARCHIVED
+    status = db.Column(db.String(20), default='OPEN', index=True)  # OPEN|CHECKED_IN|IN_PROGRESS|COMPLETED|CANCELLED
 
     payment_status = db.Column(db.String(16), default='PENDING', nullable=False, index=True)  # PENDING|PAID|DEBT
     total_amount = db.Column(db.Numeric(12, 2), default=0, nullable=False)
@@ -198,12 +198,18 @@ class Visit(TenantMixin, db.Model):
     def visit_id_number(self):
         return self.visit_number or self.id
 
+    @property
+    def is_archived(self) -> bool:
+        from app.shared.enums import VisitArchiveStatus
+        return (self.archive_status or VisitArchiveStatus.ACTIVE) == VisitArchiveStatus.ARCHIVED
+
     def get_status_display(self):
         status_map = {
             'OPEN': 'مفتوحة',
+            'CHECKED_IN': 'حضور مسجّل',
             'IN_PROGRESS': 'قيد التنفيذ',
             'COMPLETED': 'مكتملة',
-            'ARCHIVED': 'مؤرشفة',
+            'CANCELLED': 'ملغاة',
             'READY': 'جاهز',
             'PENDING': 'في الانتظار'
         }
