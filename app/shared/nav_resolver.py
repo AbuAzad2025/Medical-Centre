@@ -149,6 +149,14 @@ def resolve_nav_for_user(user) -> List[NavSection]:
         href='/',
         active_prefix='__home__',
     ))
+    if role not in ('patient', 'owner'):
+        main.items.append(NavItem(
+            id='inbox',
+            label_ar='صندوق العمل',
+            icon='fas fa-inbox',
+            href=_tenant_path('/inbox'),
+            active_prefix='/inbox',
+        ))
     sections.append(main)
 
     modules = NavSection(id='modules', title_ar='الوحدات')

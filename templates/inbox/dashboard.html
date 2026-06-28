@@ -4,20 +4,34 @@
 <div class="row mb-4">
     <div class="col-12">
         <div class="card border-0 shadow-sm">
-            <div class="card-body d-flex justify-content-between align-items-center">
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div>
                     <h4 class="mb-1"><i class="fas fa-inbox me-2 text-primary"></i>صندوق العمل الموحد</h4>
-                    <p class="mb-0 text-muted">المهام والإجراءات المعلّقة التي تتطلب متابعة</p>
+                    <p class="mb-0 text-muted">مهام قابلة للتنفيذ حسب دورك وحالة سير العمل (VSM)</p>
                 </div>
                 <span class="badge bg-primary fs-6">{{ items|length }} مهمة</span>
             </div>
         </div>
     </div>
 </div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-sm {% if not filter_type %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard') }}">الكل</a>
+            <a class="btn btn-sm {% if filter_type == 'visit' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='visit') }}">زيارات</a>
+            <a class="btn btn-sm {% if filter_type == 'appointment' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='appointment') }}">مواعيد</a>
+            <a class="btn btn-sm {% if filter_type == 'lab' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='lab') }}">مختبر</a>
+            <a class="btn btn-sm {% if filter_type == 'radiology' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='radiology') }}">أشعة</a>
+            <a class="btn btn-sm {% if filter_type == 'invoice' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('inbox.dashboard', type='invoice') }}">فواتير</a>
+        </div>
+    </div>
+</div>
+
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
+            <table class="table table-hover mb-0 align-middle clinical-table">
                 <thead class="table-light">
                     <tr>
                         <th>النوع</th>
@@ -30,13 +44,22 @@
                 </thead>
                 <tbody>
                     {% for item in items %}
-                    <tr>
+                    <tr class="{% if not item.entitled %}table-secondary{% endif %}">
                         <td><span class="badge bg-secondary">{{ item.type }}</span></td>
-                        <td>{{ item.title }}</td>
+                        <td>
+                            {{ item.title }}
+                            {% if item.vsm_state %}<span class="badge bg-info text-dark ms-1">VSM: {{ item.vsm_state }}</span>{% endif %}
+                        </td>
                         <td class="text-muted small">{{ item.time }}</td>
                         <td><span class="badge bg-light text-dark border">{{ item.status | enum_label }}</span></td>
                         <td><span class="badge bg-{% if item.priority=='high' %}danger{% elif item.priority=='medium' %}warning{% else %}info{% endif %}">{{ 'عالية' if item.priority=='high' else 'متوسطة' if item.priority=='medium' else 'منخفضة' }}</span></td>
-                        <td><a href="{{ item.link }}" class="btn btn-sm btn-primary">فتح</a></td>
+                        <td>
+                            {% if item.link and item.entitled %}
+                            <a href="{{ item.link }}" class="btn btn-sm btn-primary">فتح</a>
+                            {% else %}
+                            <button class="btn btn-sm btn-outline-secondary" disabled title="غير متاح في باقتك"><i class="fas fa-lock"></i></button>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% else %}
                     <tr><td colspan="6"><div class="text-center text-muted py-5">لا توجد مهام معلّقة حالياً</div></td></tr>

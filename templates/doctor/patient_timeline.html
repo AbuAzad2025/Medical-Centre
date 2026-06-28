@@ -13,6 +13,11 @@
 
   <div class="row mb-3">
     <div class="col-12">
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        {% for key, label in [('visit','زيارات'),('lab','مختبر'),('radiology','أشعة'),('prescription','وصفات'),('record','سجلات'),('appointment','مواعيد')] %}
+        <span class="badge bg-light text-dark border">{{ label }}: {{ event_summary.get(key, 0) if event_summary is defined else 0 }}</span>
+        {% endfor %}
+      </div>
       <div class="card shadow-sm">
         <div class="card-body">
           <div class="d-flex flex-wrap gap-2">
@@ -26,6 +31,22 @@
             <a class="btn btn-sm {% if filter_type == 'follow_up' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='follow_up') }}">المتابعات</a>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="patient-timeline-visual">
+        {% for e in events[:12] %}
+        <div class="patient-timeline-visual__item patient-timeline-visual__item--{{ e.type }}">
+          <div class="patient-timeline-visual__dot"></div>
+          <div class="patient-timeline-visual__content">
+            <div class="small text-muted">{{ e.dt|format_datetime }}</div>
+            <div class="fw-semibold">{{ e.title }}</div>
+          </div>
+        </div>
+        {% endfor %}
       </div>
     </div>
   </div>

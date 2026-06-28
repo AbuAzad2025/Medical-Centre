@@ -2,6 +2,12 @@
 {% block title %}نتائج المختبر{% endblock %}
 {% block content %}
 <h4 class="mb-3">نتائج المختبر</h4>
+{% if critical_results_pending %}
+<div class="alert alert-warning border-0 shadow-sm" role="alert">
+  <i class="fas fa-exclamation-triangle me-1"></i>
+  <strong>نتائج حرجة قيد المراجعة:</strong> لا تُعرض تفاصيل النتائج الحرجة في البوابة حتى يعتمدها الفريق الطبي.
+</div>
+{% endif %}
 <div class="portal-card p-3">
   <table class="table table-hover">
     <thead><tr><th>التاريخ</th><th>الفحص</th><th>الحالة</th></tr></thead>
@@ -13,7 +19,7 @@
         <td><span class="badge bg-secondary">{{ l.status | enum_label('OrderState') }}</span></td>
       </tr>
     {% else %}
-      <tr><td colspan="3" class="text-muted text-center">لا يوجد نتائج</td></tr>
+      <tr><td colspan="3" class="text-muted text-center">لا يوجد نتائج معتمدة للعرض</td></tr>
     {% endfor %}
     </tbody>
   </table>

@@ -1,0 +1,10 @@
+{# UX1-001 — SaaS entitlement warnings injected via app_factory context processor #}
+{% if storage_limit_warning() %}
+<div class="alert alert-warning entitlement-banner mb-0 rounded-0 border-0 border-bottom d-flex align-items-center justify-content-center gap-2 py-2" role="alert">
+  <i class="fas fa-database" aria-hidden="true"></i>
+  <span>اقتربت من حد التخزين المسموح للباقة. راجع الاستخدام أو ترقية الباقة.</span>
+  {% if tenant_limit('max_storage_mb') %}
+  <span class="badge bg-warning text-dark">الحد: {{ tenant_limit('max_storage_mb') }} م.ب</span>
+  {% endif %}
+</div>
+{% endif %}

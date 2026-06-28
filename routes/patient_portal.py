@@ -247,7 +247,9 @@ def lab_results():
     if not patient:
         return redirect(url_for('portal.link_account'))
     requests = _patient_visible_lab_requests(patient)[:50]
-    return render_template('portal/lab_results.html', patient=patient, lab_requests=requests)
+    critical_results_pending = _patient_has_critical_results(patient)
+    return render_template('portal/lab_results.html', patient=patient, lab_requests=requests,
+                           critical_results_pending=critical_results_pending)
 
 
 @portal_bp.route('/radiology-results')

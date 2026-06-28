@@ -61,6 +61,7 @@
                     {{ payment_method_radios(show_card=pos_enabled) }}
                 </div>
                 {% if pos_enabled %}
+                {% if is_entitled('pos_terminal') %}
                 <div class="mb-3 d-none" id="cardChargeBlock">
                     <button type="button" class="btn btn-outline-primary w-100" id="pharmacyPosChargeBtn"
                         data-charge-url="{{ url_for('medication.pharmacy_pos_charge') }}">
@@ -70,6 +71,11 @@
                     <input type="hidden" id="pharmacyTransactionId" value="">
                     <input type="hidden" id="pharmacyCardLastDigits" value="">
                 </div>
+                {% else %}
+                <div class="alert alert-warning small mb-3">
+                  <i class="fas fa-lock me-1"></i>تحصيل البطاقة غير متاح في باقتك — استخدم الدفع النقدي.
+                </div>
+                {% endif %}
                 {% endif %}
                 <button class="btn btn-success w-100 btn-lg" id="checkoutBtn" disabled>
                     <i class="fas fa-check ms-1"></i><span id="checkoutBtnLabel">إتمام البيع (نقداً)</span>
