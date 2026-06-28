@@ -41,6 +41,7 @@ def tenant_b(app):
 
 
 class TestFailClosedTenantIsolation:
+    @pytest.mark.no_tenant_context
     def test_saas_mode_no_tenant_raises_isolation_error(self, app, tenant_a):
         """In SaaS mode, querying a tenant-scoped model without g.tenant_id raises."""
         with app.test_request_context():

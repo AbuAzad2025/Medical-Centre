@@ -4,7 +4,7 @@
   "summary": {
     "public": 9,
     "internal": 4,
-    "authenticated": 454,
+    "authenticated": 458,
     "admin": 38,
     "super-admin": 130
   },
@@ -224,6 +224,38 @@
         "POST"
       ],
       "classification": "public"
+    },
+    {
+      "endpoint": "saas_billing.create_checkout",
+      "path": "/api/billing/checkout",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "saas_billing.billing_portal",
+      "path": "/api/billing/portal",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "saas_billing.cancel_subscription",
+      "path": "/api/billing/subscription/cancel",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "saas_billing.change_plan",
+      "path": "/api/billing/subscription/change-plan",
+      "methods": [
+        "POST"
+      ],
+      "classification": "authenticated"
     },
     {
       "endpoint": "fhir.fhir_encounters",

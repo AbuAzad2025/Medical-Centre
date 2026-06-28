@@ -97,14 +97,6 @@ def _seed_starter_package():
     return version
 
 
-@pytest.fixture(autouse=True)
-def _no_bundle_limits(monkeypatch):
-    monkeypatch.setattr(
-        'app.shared.tenant_filter._check_bundle_limits_on_create',
-        lambda *a, **k: None,
-    )
-
-
 @pytest.fixture
 def e2e_runtime(app, monkeypatch, tmp_path):
     """Enable SaaS + Celery eager execution for integration chain."""
