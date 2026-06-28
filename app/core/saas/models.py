@@ -14,6 +14,32 @@ from app_factory import db
 from app.shared.mixins import TenantMixin
 
 
+class StripeWebhookEventStatus:
+    RECEIVED = "received"
+    PROCESSING = "processing"
+    PROCESSED = "processed"
+    FAILED = "failed"
+
+
+class StripeWebhookEvent(db.Model):
+    """Idempotency guard for Stripe webhook delivery."""
+    __tablename__ = "stripe_webhook_events"
+
+    event_id = db.Column(db.String(255), primary_key=True)
+    status = db.Column(db.String(20), nullable=False, default=StripeWebhookEventStatus.RECEIVED)
+    payload_hash = db.Column(db.String(64), nullable=True)
+    error_message = db.Column(db.Text, nullable=True)
+    received_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    processed_at = db.Column(db.DateTime, nullable=True)
+
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('received', 'processing', 'processed', 'failed')",
+            name="chk_stripe_webhook_event_status"
+        ),
+    )
+
+
 class PackageCategory:
     BUNDLE = "bundle"
     ADDON = "addon"

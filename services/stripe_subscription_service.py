@@ -2,15 +2,17 @@
 from __future__ import annotations
 
 import hashlib
-import hmac
 import json
 import logging
 import os
-import time
+from datetime import datetime, timezone
 from typing import Any, Optional
+
+import stripe
 
 from app.extensions import db
 from app.core.saas.lifecycle import TenantProvisioningService
+from app.core.saas.models import StripeWebhookEvent, StripeWebhookEventStatus
 from app.core.saas.projection import EntitlementProjectionService
 from app.core.tenant.models import Tenant, TenantStatus
 
@@ -32,24 +34,15 @@ class StripeSubscriptionService:
         return secret
 
     @classmethod
-    def verify_signature(cls, payload: bytes, signature_header: str) -> None:
+    def verify_signature(cls, payload: bytes, signature_header: str) -> dict:
         secret = cls.webhook_secret()
-        parts = {}
-        for item in (signature_header or '').split(','):
-            if '=' in item:
-                key, value = item.split('=', 1)
-                parts.setdefault(key.strip(), []).append(value.strip())
-        timestamp = parts.get('t', [None])[0]
-        signatures = parts.get('v1', [])
-        if not timestamp or not signatures:
-            raise StripeWebhookError('invalid_signature_header')
-        if abs(time.time() - int(timestamp)) > 300:
-            raise StripeWebhookError('signature_timestamp_expired')
-
-        signed_payload = f'{timestamp}.{payload.decode("utf-8")}'.encode('utf-8')
-        expected = hmac.new(secret.encode('utf-8'), signed_payload, hashlib.sha256).hexdigest()
-        if not any(hmac.compare_digest(expected, sig) for sig in signatures):
-            raise StripeWebhookError('signature_mismatch')
+        try:
+            event = stripe.Webhook.construct_event(payload, signature_header, secret)
+        except stripe.SignatureVerificationError as exc:
+            raise StripeWebhookError('signature_mismatch') from exc
+        except Exception as exc:
+            raise StripeWebhookError('invalid_signature_header') from exc
+        return event
 
     @classmethod
     def _tenant_from_event(cls, event: dict[str, Any]) -> Optional[Tenant]:
@@ -143,12 +136,54 @@ class StripeSubscriptionService:
         return {'ignored': True, 'reason': 'unsupported_event', 'type': event_type}
 
     @classmethod
+    def _check_idempotency(cls, event_id: str) -> Optional[StripeWebhookEvent]:
+        return db.session.get(StripeWebhookEvent, event_id)
+
+    @classmethod
     def ingest_webhook(cls, payload: bytes, signature_header: str) -> dict[str, Any]:
-        cls.verify_signature(payload, signature_header)
-        try:
-            event = json.loads(payload.decode('utf-8'))
-        except json.JSONDecodeError as exc:
-            raise StripeWebhookError('invalid_json') from exc
+        event = cls.verify_signature(payload, signature_header)
+
         if not isinstance(event, dict) or 'type' not in event:
             raise StripeWebhookError('invalid_event_payload')
-        return cls.handle_event(event)
+
+        event_id = event.get('id', '')
+        if not event_id:
+            raise StripeWebhookError('missing_event_id')
+
+        existing = cls._check_idempotency(event_id)
+        if existing:
+            return {'already_processed': True, 'event_id': event_id, 'status': existing.status}
+
+        payload_hash = hashlib.sha256(payload).hexdigest()
+        record = StripeWebhookEvent(
+            event_id=event_id,
+            status=StripeWebhookEventStatus.PROCESSING,
+            payload_hash=payload_hash,
+        )
+        db.session.add(record)
+        db.session.flush()
+
+        try:
+            result = cls.handle_event(event)
+            record.status = StripeWebhookEventStatus.PROCESSED
+            record.processed_at = datetime.now(timezone.utc)
+            db.session.commit()
+            return result
+        except Exception as exc:
+            db.session.rollback()
+            try:
+                failed_record = db.session.get(StripeWebhookEvent, event_id)
+                if failed_record:
+                    failed_record.status = StripeWebhookEventStatus.FAILED
+                    failed_record.error_message = str(exc)[:1000]
+                else:
+                    db.session.add(StripeWebhookEvent(
+                        event_id=event_id,
+                        status=StripeWebhookEventStatus.FAILED,
+                        payload_hash=payload_hash,
+                        error_message=str(exc)[:1000],
+                    ))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+            raise
