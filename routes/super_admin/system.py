@@ -405,25 +405,32 @@ def get_system_uptime():
 
 
 def get_database_size():
-    """حجم قاعدة البيانات"""
+    """حجم قاعدة البيانات — PostgreSQL pg_database_size."""
     try:
-        import os
-        db_path = 'instance/medical_system.db'
-        if os.path.exists(db_path):
-            size_bytes = os.path.getsize(db_path)
-            size_mb = size_bytes / (1024 * 1024)
-            return f"{size_mb:.2f} MB"
-        return "غير محدد"
-    except:
-        return "غير محدد"
+        from app_factory import db
+        from services.postgres_admin_service import get_database_size_display
+        return get_database_size_display(db.engine)
+    except Exception as exc:
+        logging.warning('get_database_size failed: %s', exc)
+        return 'غير متاح'
+
 
 def get_last_backup_time():
-    """وقت آخر نسخة احتياطية"""
+    """وقت آخر نسخة احتياطية مكتملة."""
     try:
-        # هنا يمكن إضافة منطق للتحقق من آخر نسخة احتياطية
-        return "لم يتم إنشاء نسخة احتياطية بعد"
-    except:
-        return "غير محدد"
+        from models.backup import Backup
+        from app.shared.enums import BackupStatus
+        last = (
+            Backup.query.filter_by(backup_status=BackupStatus.COMPLETED)
+            .order_by(Backup.completed_at.desc())
+            .first()
+        )
+        if last and last.completed_at:
+            return last.completed_at.strftime('%Y-%m-%d %H:%M UTC')
+        return 'لم يتم إنشاء نسخة احتياطية بعد'
+    except Exception as exc:
+        logging.warning('get_last_backup_time failed: %s', exc)
+        return 'غير متاح'
 
 @super_admin_bp.route('/system')
 @login_required
@@ -454,7 +461,7 @@ def save_backup_settings():
         update_config('backup_frequency', data.get('frequency', 'daily'))
         update_config('backup_retention', data.get('retention', '7'))
         update_config('backup_location', data.get('location', '/backups'))
-        update_config('backup_compression', data.get('compression', 'zip'))
+        update_config('backup_compression', data.get('compression', 'gzip'))
         update_config('backup_auto_enabled', data.get('auto_backup', True))
         
         db.session.commit()

@@ -8,6 +8,8 @@ import sys
 
 from sqlalchemy import create_engine, text
 
+ALEMBIC_HEAD_REVISION = 'p4_002_drop_queue_payment_status'
+
 
 def main() -> int:
     db_url = os.environ.get('MIGRATE_DATABASE_URL') or os.environ.get('DATABASE_URL')
@@ -51,7 +53,7 @@ def main() -> int:
         check=False,
     )
     out = (current.stdout or '') + (current.stderr or '')
-    if 'p35_001_pharmacy_payment' not in out and '(head)' not in out:
+    if ALEMBIC_HEAD_REVISION not in out and '(head)' not in out:
         print('Unexpected migration head:', out, file=sys.stderr)
         return 1
 
