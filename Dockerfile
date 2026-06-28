@@ -31,5 +31,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8080/__health')" || exit 1
 
-# Run with gunicorn + socketio worker
-CMD ["gunicorn", "-k", "eventlet", "-w", "1", "-b", "0.0.0.0:8080", "--timeout", "120", "run_server:app"]
+# Run with production Gunicorn config (override via gunicorn.conf.py env vars)
+CMD ["gunicorn", "-c", "gunicorn.conf.py", "wsgi:app"]
