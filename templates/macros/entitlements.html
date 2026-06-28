@@ -1,0 +1,39 @@
+{# UX1-001 — Jinja helpers for EntitlementResolver-driven UI gates #}
+
+{% macro entitled(capability_key, fallback_message='هذه الميزة غير متاحة في باقتك الحالية.') %}
+  {% if is_entitled(capability_key) %}
+    {{ caller() }}
+  {% else %}
+    <div class="entitlement-locked text-center py-4 px-3" data-capability="{{ capability_key }}">
+      <div class="entitlement-locked__icon mb-2"><i class="fas fa-lock text-muted fa-2x"></i></div>
+      <p class="text-muted mb-0 small">{{ fallback_message }}</p>
+    </div>
+  {% endif %}
+{% endmacro %}
+
+{% macro entitled_btn(capability_key, label, icon='fas fa-lock', btn_class='btn btn-outline-secondary', disabled_title='غير متاح في باقتك') %}
+  {% if is_entitled(capability_key) %}
+    <button type="button" class="{{ btn_class }}">{{ caller() if caller is defined else label }}</button>
+  {% else %}
+    <button type="button" class="{{ btn_class }} entitlement-blur" disabled title="{{ disabled_title }}">
+      <i class="{{ icon }} me-1"></i>{{ label }}
+    </button>
+  {% endif %}
+{% endmacro %}
+
+{% macro premium_section(capability_key, title='') %}
+  <div class="premium-section{% if not is_entitled(capability_key) %} premium-section--locked{% endif %}" data-capability="{{ capability_key }}">
+    {% if title %}<h6 class="premium-section__title">{{ title }}</h6>{% endif %}
+    {% if is_entitled(capability_key) %}
+      {{ caller() }}
+    {% else %}
+      <div class="premium-section__overlay">
+        <i class="fas fa-crown"></i>
+        <span>ميزة مميزة — ترقية الباقة مطلوبة</span>
+      </div>
+      <div class="premium-section__content premium-section__content--blurred" aria-hidden="true">
+        {{ caller() }}
+      </div>
+    {% endif %}
+  </div>
+{% endmacro %}

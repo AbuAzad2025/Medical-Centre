@@ -170,12 +170,14 @@ ROLE_QUICK_ACTIONS: dict[str, list[tuple[str, str, str]]] = {
         ('reception.appointments', 'fa-calendar', 'المواعيد'),
         ('reception.cash_register', 'fa-cash-register', 'الصندوق'),
         ('reception.patients', 'fa-users', 'المرضى'),
+        ('inbox.dashboard', 'fa-inbox', 'صندوق العمل'),
     ],
     'doctor': [
         ('doctor.patient_queue', 'fa-list-ol', 'طابور المرضى'),
         ('doctor.prescriptions', 'fa-prescription', 'الروشتات'),
         ('doctor.lab_requests', 'fa-flask', 'المختبر'),
         ('doctor.radiology_requests', 'fa-x-ray', 'الأشعة'),
+        ('inbox.dashboard', 'fa-inbox', 'صندوق العمل'),
     ],
     'lab': [
         ('lab.worklist', 'fa-vial', 'قائمة العمل'),
@@ -184,6 +186,16 @@ ROLE_QUICK_ACTIONS: dict[str, list[tuple[str, str, str]]] = {
     'emergency': [
         ('emergency.queue', 'fa-ambulance', 'الحالات'),
         ('emergency.triage', 'fa-heart-pulse', 'الفرز'),
+    ],
+    'pharmacist': [
+        ('medication.pos', 'fa-cash-register', 'نقطة البيع'),
+        ('medication.prescriptions', 'fa-prescription', 'الروشتات'),
+        ('inbox.dashboard', 'fa-inbox', 'صندوق العمل'),
+    ],
+    'accountant': [
+        ('finance.invoices', 'fa-file-invoice-dollar', 'الفواتير'),
+        ('finance.payments', 'fa-money-bill-wave', 'المدفوعات'),
+        ('inbox.dashboard', 'fa-inbox', 'صندوق العمل'),
     ],
     'manager': [
         ('manager.analytics', 'fa-chart-line', 'المراقبة'),

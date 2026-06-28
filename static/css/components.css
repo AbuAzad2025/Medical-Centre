@@ -1701,3 +1701,29 @@ tr[data-href]:hover {
 
 .patient-context-bar .card { border-inline-start: 4px solid var(--color-primary, #0f4c81); }
 .patient-context-avatar { flex-shrink: 0; }
+
+/* UX1-001 — Entitlement / premium gates */
+.entitlement-banner { font-size: 0.9rem; }
+.entitlement-locked { background: var(--surface-elevated, #f8fafc); border-radius: var(--radius-md, 0.5rem); }
+.entitlement-blur { opacity: 0.65; cursor: not-allowed; }
+.premium-section { position: relative; }
+.premium-section--locked .premium-section__content--blurred { filter: blur(4px); pointer-events: none; user-select: none; }
+.premium-section__overlay {
+  position: absolute; inset: 0; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.5rem; background: rgba(255,255,255,0.72); border-radius: inherit;
+  font-weight: 600; color: var(--text-secondary, #64748b);
+}
+.patient-timeline-visual {
+  display: flex; flex-direction: column; gap: 0.75rem;
+  border-inline-start: 3px solid var(--color-primary, #0f4c81);
+  padding-inline-start: 1rem;
+}
+.patient-timeline-visual__item { display: flex; gap: 0.75rem; align-items: flex-start; }
+.patient-timeline-visual__dot {
+  width: 10px; height: 10px; border-radius: 50%; margin-top: 0.35rem;
+  background: var(--color-primary, #0f4c81); flex-shrink: 0;
+}
+.patient-timeline-visual__item--lab .patient-timeline-visual__dot { background: #f59e0b; }
+.patient-timeline-visual__item--radiology .patient-timeline-visual__dot { background: #06b6d4; }
+.patient-timeline-visual__item--prescription .patient-timeline-visual__dot { background: #10b981; }
