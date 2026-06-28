@@ -8,6 +8,9 @@ from pathlib import Path
 
 from migrations.migration_utils import column_exists, fk_exists, index_exists, table_exists
 
+# Keep in sync with the latest Alembic revision in migrations/versions/.
+ALEMBIC_HEAD_REVISION = 'p4_002_drop_queue_payment_status'
+
 
 def test_migration_utils_callable():
     assert callable(table_exists)
@@ -39,7 +42,7 @@ def test_alembic_single_head(app):
     assert result.returncode == 0, result.stderr
     head_lines = [
         ln.strip() for ln in result.stdout.splitlines()
-        if ln.strip() and ('(head)' in ln or 'p35_001_pharmacy_payment' in ln)
+        if ln.strip() and ('(head)' in ln or ALEMBIC_HEAD_REVISION in ln)
     ]
     assert len(head_lines) == 1
-    assert 'p35_001_pharmacy_payment' in head_lines[0]
+    assert ALEMBIC_HEAD_REVISION in head_lines[0]
