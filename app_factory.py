@@ -655,15 +655,18 @@ def create_app(config_name: str | None = None) -> Flask:
     @app.before_request
     def _set_tenant_context():
         try:
-            from app.core.tenant.middleware import set_tenant_context
+            from app.core.tenant.middleware import set_tenant_context, TenantResolutionError
             set_tenant_context()
-        except Exception:
+        except TenantResolutionError as exc:
             if app.config.get('ENABLE_SAAS_MODE', False):
+                from flask import abort
+                abort(403, description=str(exc))
+        except Exception:
+            if app.config.get('ENABLE_SAAS_MODE', False) and not app.config.get('TESTING'):
                 app.logger.exception("Tenant resolution failed")
                 from flask import abort
                 abort(403, description="Tenant resolution failed")
-            # Tenant tables may not exist yet in standalone mode.
-            pass
+            raise
 
     # WSGI middleware for /t/<slug>/ path rewriting (applied after full setup)
     from app.core.tenant.middleware import TenantPathWSGIMiddleware

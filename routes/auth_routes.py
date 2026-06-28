@@ -218,6 +218,10 @@ def login() -> ResponseReturnValue:
                             logging.warning(f"Error in {__name__}: {e}")
                     remember_flag = str((data.get('remember') or '')).lower() in {'1', 'true', 'on', 'yes'}
                     login_user(user, remember=remember_flag)
+
+                    session['tenant_id'] = user.tenant_id
+                    if tenant_slug:
+                        session['tenant_slug'] = tenant_slug
                     
                     # تحديد الصفحة المناسبة حسب الدور
                     redirect_url = get_redirect_url_by_role(user.role)
@@ -325,6 +329,8 @@ def logout():
     """تسجيل الخروج"""
     session.pop('impersonator_id', None)
     session.pop('impersonator_role', None)
+    session.pop('tenant_id', None)
+    session.pop('tenant_slug', None)
     try:
         from models.audit_trail import AuditTrail
         from app_factory import db
