@@ -73,6 +73,18 @@ def create_backup():
             db.session.add(backup)
             db.session.commit()
 
+            from celery_app import celery_is_enabled, task_always_eager
+            from services.backup_queue_service import BackupQueueError, queue_system_backup
+
+            if celery_is_enabled() or task_always_eager():
+                try:
+                    task_id = queue_system_backup(backup.id)
+                    flash('تم إرسال النسخة الاحتياطية إلى قائمة الانتظار', 'success')
+                    return redirect(url_for('backup.dashboard'))
+                except BackupQueueError as exc:
+                    flash(f'تعذر جدولة النسخة الاحتياطية: {exc}', 'error')
+                    return redirect(url_for('backup.create_backup'))
+
             try:
                 size = create_backup_file(backup)
                 backup.backup_size = size
