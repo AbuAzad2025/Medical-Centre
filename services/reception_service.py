@@ -9,6 +9,7 @@ from datetime import datetime, date, timezone
 from typing import Any
 
 from app_factory import db
+from app.shared.enums import VisitState
 from sqlalchemy import and_, or_, func
 
 
@@ -23,12 +24,12 @@ class ReceptionService:
             today = date.today()
             return {
                 "today_visits": Visit.query.filter(func.date(Visit.created_at) == today).count(),
-                "today_appointments": Appointment.query.filter(func.date(Appointment.appointment_date) == today).count(),
+                "today_appointments": Appointment.query.filter(func.date(Appointment.starts_at) == today).count(),
                 "checked_in": Appointment.query.filter(
-                    func.date(Appointment.appointment_date) == today,
+                    func.date(Appointment.starts_at) == today,
                     Appointment.status == "CHECKED_IN",
                 ).count(),
-                "waiting": Visit.query.filter(Visit.status == "WAITING").count(),
+                "waiting": Visit.query.filter(Visit.status.in_([VisitState.OPEN.value, VisitState.CHECKED_IN.value])).count(),
             }
         except Exception:
             return {"today_visits": 0, "today_appointments": 0, "checked_in": 0, "waiting": 0}
@@ -79,7 +80,7 @@ class ReceptionService:
                 department_id=department_id,
                 doctor_id=doctor_id,
                 visit_type=visit_type,
-                status="WAITING",
+                status=VisitState.OPEN.value,
                 created_at=datetime.now(timezone.utc),
             )
             db.session.add(visit)
@@ -94,7 +95,7 @@ class ReceptionService:
     def get_queue(department_id: int | None = None) -> list:
         from models.visit import Visit
         from models.patient import Patient
-        query = Visit.query.filter(Visit.status == "WAITING")
+        query = Visit.query.filter(Visit.status.in_([VisitState.OPEN.value, VisitState.CHECKED_IN.value]))
         if department_id:
             query = query.filter_by(department_id=department_id)
         return query.order_by(Visit.created_at.asc()).all()
@@ -127,12 +128,12 @@ class ReceptionService:
     def get_upcoming_appointments(department_id: int | None = None, limit: int = 20) -> list:
         from models.appointment import Appointment
         query = Appointment.query.filter(
-            Appointment.appointment_date >= date.today(),
+            func.date(Appointment.starts_at) >= date.today(),
             Appointment.status.in_(["SCHEDULED", "CONFIRMED"]),
         )
         if department_id:
             query = query.filter_by(department_id=department_id)
-        return query.order_by(Appointment.appointment_date.asc()).limit(limit).all()
+        return query.order_by(Appointment.starts_at.asc()).limit(limit).all()
 
 
 # Singleton

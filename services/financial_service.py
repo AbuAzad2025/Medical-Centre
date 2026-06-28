@@ -144,24 +144,29 @@ class FinancialService:
 
     @staticmethod
     def record_payment(invoice_id: int, amount: float, method: str = "cash", notes: str | None = None) -> bool:
-        from models.invoice import Invoice, Payment
+        from models.invoice import Invoice
+        from models.visit import Visit
+        from services.payment_service import PaymentService
         try:
             invoice = Invoice.query.get(invoice_id)
             if not invoice:
                 return False
-            payment = Payment(
-                invoice_id=invoice_id,
+            visit = db.session.get(Visit, invoice.visit_id) if invoice.visit_id else None
+            method_upper = (method or "cash").upper()
+            ok, result = PaymentService.create_payment(
+                tenant_id=getattr(invoice, "tenant_id", None) or (visit.tenant_id if visit else None),
+                operation_type="invoice_payment",
+                idempotency_key=None,
+                patient_id=visit.patient_id if visit else None,
+                visit_id=invoice.visit_id,
+                invoice_id=invoice.id,
+                method=method_upper,
                 amount=amount,
-                payment_method=method,
-                payment_date=datetime.now(timezone.utc),
                 notes=notes,
             )
-            db.session.add(payment)
-            invoice.paid_amount = (invoice.paid_amount or 0) + amount
-            if invoice.paid_amount >= invoice.total_amount:
-                invoice.status = "PAID"
-            else:
-                invoice.status = "PARTIAL"
+            if not ok:
+                logging.error(f"Error recording payment: {result}")
+                return False
             db.session.commit()
             return True
         except Exception as e:
@@ -178,30 +183,18 @@ class FinancialService:
 
     @staticmethod
     def get_expenses(category: str | None = None, limit: int = 100) -> list:
-        from models.invoice import Expense
-        q = Expense.query
-        if category:
-            q = q.filter_by(category=category)
-        return q.order_by(Expense.date.desc()).limit(limit).all()
+        """Expense tracking is not yet modelled in the schema; returns empty list."""
+        logging.debug("get_expenses called but no Expense model exists (category=%s)", category)
+        return []
 
     @staticmethod
     def record_expense(description: str, amount: float, category: str, recorded_by: int) -> Any | None:
-        from models.invoice import Expense
-        try:
-            expense = Expense(
-                description=description,
-                amount=amount,
-                category=category,
-                recorded_by=recorded_by,
-                date=date.today(),
-            )
-            db.session.add(expense)
-            db.session.commit()
-            return expense
-        except Exception as e:
-            db.session.rollback()
-            logging.error(f"Error recording expense: {str(e)}")
-            return None
+        """Expense tracking is not yet modelled in the schema."""
+        logging.warning(
+            "record_expense skipped: no Expense model (desc=%s amount=%s category=%s by=%s)",
+            description, amount, category, recorded_by,
+        )
+        return None
 
 
 # Singleton

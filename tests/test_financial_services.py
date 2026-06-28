@@ -2,9 +2,6 @@
 services.billing_state_service (BillingStateService / ReceiptService /
 PaymentAllocationService).
 
-NOTE: FinancialService.record_payment / get_expenses / record_expense are NOT
-tested here because they import a non-existent ``Payment``/``Expense`` from
-models.invoice (latent bugs flagged separately); there is no ``Expense`` model.
 All DB work runs under ``rollback_db`` isolation.
 """
 import uuid
@@ -129,6 +126,30 @@ class TestPendingInvoices:
         results = FinancialService.get_pending_invoices()
         assert isinstance(results, list)
         assert all(i.status in ('PENDING', 'PARTIAL') for i in results)
+
+
+class TestRecordPayment:
+    def test_records_via_payment_service(self, ffx):
+        p = ffx.patient()
+        v = ffx.visit(p.id)
+        inv = ffx.invoice(v.id, 100, paid=0, status='ISSUED')
+        ok = FinancialService.record_payment(inv.id, 60, method='cash')
+        assert ok is True
+        pays = Payment.query.filter_by(invoice_id=inv.id).all()
+        assert len(pays) >= 1
+        assert float(pays[-1].amount) == 60.0
+
+    def test_missing_invoice_returns_false(self, ffx):
+        assert FinancialService.record_payment(99999999, 10) is False
+
+
+class TestExpenses:
+    def test_get_expenses_empty_without_model(self, ffx):
+        assert FinancialService.get_expenses() == []
+
+    def test_record_expense_returns_none_without_model(self, ffx):
+        u = ffx.user()
+        assert FinancialService.record_expense('supplies', 50, 'misc', u.id) is None
 
 
 class TestReconcileVisitPayments:
