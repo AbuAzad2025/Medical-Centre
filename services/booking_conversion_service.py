@@ -48,9 +48,10 @@ class OnlineBookingConversionService:
     def convert_to_visit(booking) -> dict:
         from models.patient import Patient
         from models.visit import Visit
-        tenant_id = getattr(g, 'tenant_id', None)
+        tenant_id = getattr(g, 'tenant_id', None) or getattr(booking, 'tenant_id', None)
 
         patient = Patient.query.filter_by(tenant_id=tenant_id, phone=booking.phone).first()
+        is_new_patient = patient is None
         if not patient:
             patient = Patient(
                 tenant_id=tenant_id,
@@ -66,21 +67,22 @@ class OnlineBookingConversionService:
             tenant_id=tenant_id,
             patient_id=patient.id,
             doctor_id=booking.doctor_id or None,
+            department_id=getattr(booking, 'department_id', None),
             status=VisitState.OPEN,
             visit_type='REGULAR',
-            visit_date=booking.preferred_date or datetime.now(timezone.utc).date(),
+            visit_date=getattr(booking, 'appointment_date', None) or datetime.now(timezone.utc).date(),
             notes=f"Converted from online booking #{booking.booking_reference}",
         )
         db.session.add(visit)
         db.session.flush()
         booking.status = BookingState.CONVERTED
         db.session.commit()
-        return {"visit_id": visit.id, "patient_id": patient.id, "is_new_patient": not bool(patient.id)}
+        return {"visit_id": visit.id, "patient_id": patient.id, "is_new_patient": is_new_patient}
 
     @staticmethod
     def convert_to_appointment(booking) -> dict:
         from models.appointment import Appointment
-        tenant_id = getattr(g, 'tenant_id', None)
+        tenant_id = getattr(g, 'tenant_id', None) or getattr(booking, 'tenant_id', None)
         from models.patient import Patient
 
         patient = Patient.query.filter_by(tenant_id=tenant_id, phone=booking.phone).first()
@@ -94,11 +96,19 @@ class OnlineBookingConversionService:
             db.session.add(patient)
             db.session.flush()
 
+        appt_date = getattr(booking, 'appointment_date', None) or datetime.now(timezone.utc).date()
+        appt_time = getattr(booking, 'appointment_time', None)
+        if appt_time:
+            starts_at = datetime.combine(appt_date, appt_time, tzinfo=timezone.utc)
+        else:
+            starts_at = datetime.combine(appt_date, datetime.min.time(), tzinfo=timezone.utc)
+
         appointment = Appointment(
             tenant_id=tenant_id,
             patient_id=patient.id,
             doctor_id=booking.doctor_id or None,
-            appointment_date=booking.preferred_date or datetime.now(timezone.utc).date(),
+            department_id=getattr(booking, 'department_id', None),
+            starts_at=starts_at,
             status=AppointmentState.SCHEDULED,
             notes=f"Online booking #{booking.booking_reference}",
         )
@@ -124,8 +134,9 @@ class OnlineBookingConversionService:
     @staticmethod
     def _convert_to_lab_order(booking):
         from models.patient import Patient
-        from models.lab_request import LabRequest, LabResult
-        tenant_id = getattr(g, 'tenant_id', None)
+        from models.visit import Visit
+        from models.lab_request import LabRequest
+        tenant_id = getattr(g, 'tenant_id', None) or getattr(booking, 'tenant_id', None)
 
         patient = Patient.query.filter_by(tenant_id=tenant_id, phone=booking.phone).first()
         if not patient:
@@ -133,8 +144,22 @@ class OnlineBookingConversionService:
             db.session.add(patient)
             db.session.flush()
 
+        visit = Visit(
+            tenant_id=tenant_id,
+            patient_id=patient.id,
+            doctor_id=booking.doctor_id or None,
+            department_id=getattr(booking, 'department_id', None),
+            status=VisitState.OPEN,
+            visit_type='REGULAR',
+            visit_date=getattr(booking, 'appointment_date', None) or datetime.now(timezone.utc).date(),
+            notes=f"Lab booking #{booking.booking_reference}",
+        )
+        db.session.add(visit)
+        db.session.flush()
+
         lab_request = LabRequest(
             tenant_id=tenant_id,
+            visit_id=visit.id,
             patient_id=patient.id,
             requested_by=None,
             status=OrderState.REQUESTED,
@@ -151,8 +176,9 @@ class OnlineBookingConversionService:
     @staticmethod
     def _convert_to_radiology_order(booking):
         from models.patient import Patient
+        from models.visit import Visit
         from models.radiology_request import RadiologyRequest
-        tenant_id = getattr(g, 'tenant_id', None)
+        tenant_id = getattr(g, 'tenant_id', None) or getattr(booking, 'tenant_id', None)
 
         patient = Patient.query.filter_by(tenant_id=tenant_id, phone=booking.phone).first()
         if not patient:
@@ -160,8 +186,22 @@ class OnlineBookingConversionService:
             db.session.add(patient)
             db.session.flush()
 
+        visit = Visit(
+            tenant_id=tenant_id,
+            patient_id=patient.id,
+            doctor_id=booking.doctor_id or None,
+            department_id=getattr(booking, 'department_id', None),
+            status=VisitState.OPEN,
+            visit_type='REGULAR',
+            visit_date=getattr(booking, 'appointment_date', None) or datetime.now(timezone.utc).date(),
+            notes=f"Radiology booking #{booking.booking_reference}",
+        )
+        db.session.add(visit)
+        db.session.flush()
+
         rad_request = RadiologyRequest(
             tenant_id=tenant_id,
+            visit_id=visit.id,
             patient_id=patient.id,
             requested_by=None,
             status=OrderState.REQUESTED,
