@@ -3,13 +3,21 @@
   <div class="cc-now-panel__title"><i class="fas fa-bolt me-1"></i> الآن يحتاج انتباهك</div>
   <div class="cc-now-grid">
     {% for card in now_cards %}
-    <a href="{{ card.action_href or '#' }}" class="cc-now-card" data-widget-id="{{ card.id }}" data-metric-key="{{ card.id }}">
+    {% if card.action_href %}
+    <a href="{{ card.action_href }}" class="cc-now-card" data-widget-id="{{ card.id }}" data-metric-key="{{ card.id }}">
+    {% else %}
+    <div class="cc-now-card cc-now-card--static" data-widget-id="{{ card.id }}" data-metric-key="{{ card.id }}" role="group">
+    {% endif %}
       <div class="cc-now-card__value" data-metric-value>{{ card.value }}</div>
       <div class="cc-now-card__label"><i class="fas {{ card.icon }} me-1"></i>{{ card.title }}</div>
       {% if card.action_label and card.action_href %}
       <div class="cc-now-card__action">{{ card.action_label }} ←</div>
       {% endif %}
+    {% if card.action_href %}
     </a>
+    {% else %}
+    </div>
+    {% endif %}
     {% endfor %}
   </div>
 </section>
