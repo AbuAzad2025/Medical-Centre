@@ -17,6 +17,7 @@ from app.core.tenant.models import Tenant
 from datetime import datetime, timezone
 from models.user import User
 from services.saas_registration_service import SaasRegistrationError, SaasRegistrationService
+from tests.tenant_context import tenant_test_context
 
 
 def _seed_package_version():
@@ -61,42 +62,45 @@ class TestSaasRegistrationService:
     def test_register_creates_tenant_and_admin(self, app):
         version = _seed_package_version()
         slug = f'clinic-{uuid.uuid4().hex[:6]}'
-        tenant, admin = SaasRegistrationService.register_organization(
-            slug=slug,
-            name='عيادة الاختبار',
-            contact_email=f'{slug}@example.com',
-            admin_username=f'admin_{slug}',
-            admin_password='securepass1',
-            admin_full_name='مدير العيادة',
-            package_version_id=version.id,
-        )
+        with tenant_test_context(app, bypass=True):
+            tenant, admin = SaasRegistrationService.register_organization(
+                slug=slug,
+                name='عيادة الاختبار',
+                contact_email=f'{slug}@example.com',
+                admin_username=f'admin_{slug}',
+                admin_password='securepass1',
+                admin_full_name='مدير العيادة',
+                package_version_id=version.id,
+            )
         assert tenant.slug == slug
         assert admin.tenant_id == tenant.id
         assert admin.role == 'manager'
-        assert User.query.filter_by(tenant_id=tenant.id).count() == 1
+        with tenant_test_context(app, tenant):
+            assert User.query.filter_by(tenant_id=tenant.id).count() == 1
 
     def test_duplicate_slug_rejected(self, app):
         version = _seed_package_version()
         slug = f'dup-{uuid.uuid4().hex[:6]}'
-        SaasRegistrationService.register_organization(
-            slug=slug,
-            name='A',
-            contact_email=f'a-{slug}@example.com',
-            admin_username=f'u1_{slug}',
-            admin_password='securepass1',
-            admin_full_name='A',
-            package_version_id=version.id,
-        )
-        with pytest.raises(SaasRegistrationError, match='slug_taken'):
+        with tenant_test_context(app, bypass=True):
             SaasRegistrationService.register_organization(
                 slug=slug,
-                name='B',
-                contact_email=f'b-{slug}@example.com',
-                admin_username=f'u2_{slug}',
+                name='A',
+                contact_email=f'a-{slug}@example.com',
+                admin_username=f'u1_{slug}',
                 admin_password='securepass1',
-                admin_full_name='B',
+                admin_full_name='A',
                 package_version_id=version.id,
             )
+            with pytest.raises(SaasRegistrationError, match='slug_taken'):
+                SaasRegistrationService.register_organization(
+                    slug=slug,
+                    name='B',
+                    contact_email=f'b-{slug}@example.com',
+                    admin_username=f'u2_{slug}',
+                    admin_password='securepass1',
+                    admin_full_name='B',
+                    package_version_id=version.id,
+                )
 
 
 class TestSaasRegistrationRoute:
@@ -115,4 +119,7 @@ class TestSaasRegistrationRoute:
         assert resp.status_code == 201
         body = resp.get_json()
         assert body['tenant']['slug'] == slug
-        assert Tenant.query.filter_by(slug=slug).count() == 1
+        tenant = Tenant.query.filter_by(slug=slug).first()
+        assert tenant is not None
+        with tenant_test_context(app, tenant):
+            assert User.query.filter_by(tenant_id=tenant.id).count() == 1

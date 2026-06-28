@@ -20,6 +20,7 @@ from app.core.saas.models import (
 from app.core.saas.resolver import EntitlementResolver
 from app.core.tenant.models import ProductBundle, Tenant, TenantStatus
 from app.core.module.models import TenantModule
+from tests.tenant_context import tenant_test_context
 
 
 @pytest.fixture(scope='function')
@@ -33,9 +34,10 @@ def limit_tenant(app):
     )
     db.session.add(t)
     db.session.commit()
-    yield t
-    db.session.delete(t)
-    db.session.commit()
+    with tenant_test_context(app, t):
+        yield t
+        db.session.delete(t)
+        db.session.commit()
 
 
 class TestLegacyAdapter:
