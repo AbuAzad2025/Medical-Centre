@@ -10,6 +10,14 @@ from models.visit import Visit
 from services.visit_state_machine_service import VisitStateMachineService
 
 
+@pytest.fixture(autouse=True)
+def _no_bundle_limits(monkeypatch):
+    monkeypatch.setattr(
+        'app.shared.tenant_filter._check_bundle_limits_on_create',
+        lambda *a, **k: None,
+    )
+
+
 @pytest.fixture(scope='function')
 def sm_patient(app, test_tenant):
     p = Patient(
@@ -89,6 +97,18 @@ class TestVisitStateMachineService:
     def test_get_status_returns_none_for_unrecognised(self, sm_visit):
         sm_visit.status = 'UNKNOWN'
         assert VisitStateMachineService.get_status(sm_visit) is None
+
+    @pytest.mark.parametrize('start,target,ok', [
+        (VisitState.OPEN, VisitState.CHECKED_IN, True),
+        (VisitState.OPEN, VisitState.CANCELLED, True),
+        (VisitState.CHECKED_IN, VisitState.IN_PROGRESS, True),
+        (VisitState.IN_PROGRESS, VisitState.COMPLETED, True),
+        (VisitState.COMPLETED, VisitState.OPEN, False),
+        (VisitState.CANCELLED, VisitState.OPEN, False),
+    ])
+    def test_transition_matrix(self, sm_visit, start, target, ok):
+        sm_visit.status = start
+        assert VisitStateMachineService.can_transition(sm_visit, target) is ok
 
 
 class TestDoctorEndTreatmentRoute:
