@@ -123,16 +123,35 @@ def resolve_tenant() -> Tenant | None:
 def _tenant_from_authenticated_user() -> Tenant | None:
     """Resolve tenant from the logged-in user's ``tenant_id`` (session-bound SaaS)."""
     try:
-        from flask_login import current_user
+        from flask import g, session
+        from models.user import User
 
-        if not current_user.is_authenticated:
+        user_id = session.get('_user_id')
+        if not user_id:
+            try:
+                from flask_login import current_user
+                if current_user.is_authenticated:
+                    user_id = current_user.id
+            except Exception:
+                pass
+        if not user_id:
             return None
-        tid = getattr(current_user, 'tenant_id', None)
-        if not tid:
-            return None
-        return Tenant.query.get(tid)
+
+        prev_bypass = g.get('_tenant_filter_bypass', False)
+        g._tenant_filter_bypass = True
+        try:
+            user = User.query.get(int(user_id))
+        finally:
+            if prev_bypass:
+                g._tenant_filter_bypass = True
+            else:
+                g.pop('_tenant_filter_bypass', None)
+
+        if user and user.tenant_id:
+            return Tenant.query.get(user.tenant_id)
     except Exception:
         return None
+    return None
 
 
 def bind_g_tenant(tenant: Tenant | None) -> None:
