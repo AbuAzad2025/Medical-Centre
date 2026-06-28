@@ -181,6 +181,23 @@ def super_admin_required(f):
     return decorated_function
 
 
+def privileged_user_manager_required(f):
+    """Only super_admin or owner may assign roles / manage privileged accounts."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash(_format_message('not_authenticated'), 'error')
+            return redirect(url_for('auth.login'))
+        if current_user.role not in ('super_admin', 'owner'):
+            logger.warning(
+                'Privileged user-management denied for user %s (role=%s)',
+                current_user.id, current_user.role,
+            )
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 def can_handle_payments(f):
     """
     ديكوريتر للتحقق من صلاحية استلام الدفعات

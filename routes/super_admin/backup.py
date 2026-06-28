@@ -87,93 +87,60 @@ def backup():
 @login_required
 @super_admin_required
 def create_backup():
-    """إنشاء نسخة احتياطية"""
+    """إنشاء نسخة احتياطية PostgreSQL عبر pg_dump"""
     try:
-        from datetime import datetime
-        import shutil
+        from datetime import datetime, timezone
         import os
-        import zipfile
         from models.backup import Backup
         from app_factory import db
-        
-        # تحديد نوع النسخة
+        from services.pg_backup_service import PgBackupError, build_backup_path, run_pg_dump_sql_gz
+        from app.shared.enums import BackupStatus
+
         data = request.get_json() if request.is_json else {}
         req_type = data.get('type', 'full')
-        
-        backup_type = 'FULL'
-        include_db = True
-        include_files = True
-        
-        if req_type == 'incremental':
-            backup_type = 'INCREMENTAL'
-            include_files = False
-        elif req_type == 'database':
-            backup_type = 'DIFFERENTIAL' # استخدام differential للإشارة لقاعدة البيانات فقط
-            include_files = False
-        elif req_type == 'files':
-            backup_type = 'DIFFERENTIAL' # استخدام differential للملفات فقط
-            include_db = False
-        
-        # إنشاء مجلد النسخ الاحتياطية
-        now = datetime.now()
-        backup_dir = os.path.join('backups', now.strftime('%Y'), now.strftime('%m'))
-        os.makedirs(backup_dir, exist_ok=True)
-        
-        # اسم الملف
-        timestamp = now.strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
         backup_name = f'backup_{req_type}_{timestamp}'
-        backup_filename = f'{backup_name}.zip'
-        backup_path = os.path.join(backup_dir, backup_filename)
-        
-        # إنشاء ملف ZIP
-        with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            # إضافة ملف قاعدة البيانات
-            if include_db:
-                if os.path.exists('medical_system.db'):
-                    zipf.write('medical_system.db', 'medical_system.db')
-                elif os.path.exists('instance/medical_system.db'):
-                    zipf.write('instance/medical_system.db', 'medical_system.db')
-            
-            # إضافة ملفات مهمة أخرى
-            if include_files:
-                for file in ['app.py', 'config.py', 'app_factory.py', 'requirements.txt']:
-                    if os.path.exists(file):
-                        zipf.write(file, file)
-        
-        # حفظ السجل في قاعدة البيانات
-        # التحقق من أن نوع النسخة مقبول في قاعدة البيانات
-        db_type_map = {
-            'FULL': 'full',
-            'INCREMENTAL': 'incremental',
-            'DIFFERENTIAL': 'differential'
-        }
-        
+        backup_path = build_backup_path('backups', backup_name)
+
         backup = Backup(
             backup_name=backup_name,
-            backup_type=db_type_map.get(backup_type, 'full'),
+            backup_type='full' if req_type == 'full' else req_type,
             backup_path=backup_path,
-            backup_size=os.path.getsize(backup_path),
-            backup_status='COMPLETED',
+            backup_status=BackupStatus.IN_PROGRESS,
             created_by=current_user.id,
-            started_at=now,
-            completed_at=datetime.now()
+            started_at=datetime.now(timezone.utc),
         )
-        
         db.session.add(backup)
         db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'تم إنشاء النسخة الاحتياطية بنجاح',
-            'backup_file': backup_filename
-        })
-            
+
+        try:
+            size = run_pg_dump_sql_gz(backup_path)
+            backup.backup_size = size
+            backup.backup_status = BackupStatus.COMPLETED
+            backup.completed_at = datetime.now(timezone.utc)
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'message': 'تم إنشاء النسخة الاحتياطية بنجاح',
+                'backup_file': os.path.basename(backup_path),
+            })
+        except PgBackupError as exc:
+            backup.backup_status = BackupStatus.FAILED
+            backup.backup_notes = str(exc)
+            if os.path.exists(backup_path):
+                try:
+                    os.remove(backup_path)
+                except OSError:
+                    pass
+            db.session.commit()
+            return jsonify({'success': False, 'message': str(exc)}), 500
+
     except Exception as e:
         logging.error(f"Error creating backup: {str(e)}")
         return jsonify({
             'success': False,
             'message': 'تعذر إنشاء النسخة الاحتياطية حالياً'
-        })
+        }), 500
 
 @super_admin_bp.route('/backup/restore/<int:backup_id>', methods=['POST'])
 @login_required

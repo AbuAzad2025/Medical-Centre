@@ -353,13 +353,14 @@ def profile():
             dept_id = request.form.get('department_id', type=int)
             if dept_id:
                 user.department_id = dept_id
-            
-            # Update role with validation
-            valid_roles = ('doctor', 'nurse', 'accountant', 'reception', 'lab', 'radiology', 
-                           'manager', 'admin', 'super_admin', 'emergency', 'user')
-            new_role = request.form.get('role')
-            if new_role and new_role in valid_roles:
-                user.role = new_role
+
+            # Role is immutable via self-service profile (P0 — no self-privilege escalation).
+            if request.form.get('role'):
+                logging.warning(
+                    'Rejected self-service role change attempt user_id=%s role=%s',
+                    current_user.id,
+                    request.form.get('role'),
+                )
             
             # معالجة التوقيع الرقمي (صورة)
             if 'signature' in request.files:

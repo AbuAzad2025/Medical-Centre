@@ -64,19 +64,8 @@
 
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">الدور الوظيفي</label>
-                                <select class="form-select" name="role" required>
-                                    <option value="doctor" {% if user.role == 'doctor' %}selected{% endif %}>طبيب</option>
-                                    <option value="nurse" {% if user.role == 'nurse' %}selected{% endif %}>ممرض</option>
-                                    <option value="accountant" {% if user.role == 'accountant' %}selected{% endif %}>محاسب</option>
-                                    <option value="reception" {% if user.role == 'reception' %}selected{% endif %}>موظف استقبال</option>
-                                    <option value="lab" {% if user.role == 'lab' %}selected{% endif %}>فني مختبر</option>
-                                    <option value="radiology" {% if user.role == 'radiology' %}selected{% endif %}>فني أشعة</option>
-                                    <option value="manager" {% if user.role == 'manager' %}selected{% endif %}>مدير</option>
-                                    <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>مدير النظام</option>
-                                    <option value="super_admin" {% if user.role == 'super_admin' %}selected{% endif %}>مدير أعلى</option>
-                                    <option value="emergency" {% if user.role == 'emergency' %}selected{% endif %}>طوارئ</option>
-                                    <option value="user" {% if user.role == 'user' %}selected{% endif %}>مستخدم</option>
-                                </select>
+                                <input type="text" class="form-control bg-light" value="{{ user.role | enum_label('UserRole') }}" readonly>
+                                <small class="text-muted">لا يمكن تغيير الدور من الملف الشخصي — تواصل مع مدير النظام</small>
                             </div>
 
                             <div class="col-md-6">
