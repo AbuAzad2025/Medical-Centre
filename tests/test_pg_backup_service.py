@@ -1,12 +1,14 @@
 """PostgreSQL pg_dump backup service tests (mocked subprocess)."""
 
 import gzip
+import io
 import os
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from services.pg_backup_service import (
+    BACKUP_CHUNK_SIZE,
     PgBackupError,
     build_backup_path,
     parse_database_url,
@@ -30,43 +32,80 @@ class TestParseDatabaseUrl:
 
 
 class TestPgDumpExecution:
-    def test_run_pg_dump_writes_gzip_artifact(self, tmp_path, monkeypatch):
+    def test_run_pg_dump_streams_gzip_artifact(self, tmp_path, monkeypatch):
         monkeypatch.setenv(
             'DATABASE_URL',
             'postgresql://postgres:pass@localhost:5432/medical_system',
         )
+        monkeypatch.setenv('BACKUP_TIMEOUT_SECONDS', '60')
         out = str(tmp_path / 'backup.sql.gz')
 
+        sql_data = b'CREATE TABLE patients (id int);'
         fake_proc = MagicMock()
+        fake_proc.stdout = io.BytesIO(sql_data)
+        fake_proc.stderr = io.BytesIO(b'')
         fake_proc.returncode = 0
-        fake_proc.stdout = b'CREATE TABLE patients (id int);'
-        fake_proc.stderr = b''
+        fake_proc.wait = MagicMock(return_value=0)
+        fake_proc.poll = MagicMock(return_value=0)
 
         with patch('services.pg_backup_service.shutil.which', return_value='/usr/bin/pg_dump'), \
-             patch('services.pg_backup_service.subprocess.run', return_value=fake_proc) as run:
+             patch('services.pg_backup_service.subprocess.Popen', return_value=fake_proc) as popen:
             size = run_pg_dump_sql_gz(out)
 
         assert size > 0
         assert os.path.isfile(out)
         with gzip.open(out, 'rb') as gz:
             assert b'CREATE TABLE' in gz.read()
-        run.assert_called_once()
-        cmd = run.call_args[0][0]
+        popen.assert_called_once()
+        cmd = popen.call_args[0][0]
         assert cmd[0] == '/usr/bin/pg_dump'
-        assert 'PGPASSWORD' in run.call_args[1]['env']
+        assert 'PGPASSWORD' in popen.call_args[1]['env']
 
     def test_pg_dump_failure_raises(self, tmp_path, monkeypatch):
         monkeypatch.setenv('DATABASE_URL', 'postgresql://u:p@localhost:5432/db')
+        monkeypatch.setenv('BACKUP_TIMEOUT_SECONDS', '60')
         out = str(tmp_path / 'fail.sql.gz')
+
         fake_proc = MagicMock()
+        fake_proc.stdout = io.BytesIO(b'')
+        fake_proc.stderr = io.BytesIO(b'connection refused')
         fake_proc.returncode = 1
-        fake_proc.stdout = b''
-        fake_proc.stderr = b'connection refused'
+        fake_proc.wait = MagicMock(return_value=1)
+        fake_proc.poll = MagicMock(return_value=1)
+        fake_proc.stderr.read = MagicMock(return_value=b'connection refused')
 
         with patch('services.pg_backup_service.shutil.which', return_value='/usr/bin/pg_dump'), \
-             patch('services.pg_backup_service.subprocess.run', return_value=fake_proc):
+             patch('services.pg_backup_service.subprocess.Popen', return_value=fake_proc):
             with pytest.raises(PgBackupError, match='connection refused'):
                 run_pg_dump_sql_gz(out)
+
+    def test_pg_dump_timeout_raises(self, tmp_path, monkeypatch):
+        monkeypatch.setenv('DATABASE_URL', 'postgresql://u:p@localhost:5432/db')
+        monkeypatch.setenv('BACKUP_TIMEOUT_SECONDS', '1')
+        out = str(tmp_path / 'timeout.sql.gz')
+
+        import subprocess as sp
+
+        fake_proc = MagicMock()
+        fake_proc.stdout = io.BytesIO(b'partial data')
+        fake_proc.stderr = io.BytesIO(b'')
+        call_count = [0]
+
+        def wait_side_effect(timeout=None):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                raise sp.TimeoutExpired('pg_dump', 1)
+            return -9
+
+        fake_proc.wait = MagicMock(side_effect=wait_side_effect)
+        fake_proc.kill = MagicMock()
+        fake_proc.poll = MagicMock(return_value=-9)
+
+        with patch('services.pg_backup_service.shutil.which', return_value='/usr/bin/pg_dump'), \
+             patch('services.pg_backup_service.subprocess.Popen', return_value=fake_proc):
+            with pytest.raises(PgBackupError, match='timed out'):
+                run_pg_dump_sql_gz(out)
+        fake_proc.kill.assert_called()
 
 
 class TestPgRestoreExecution:

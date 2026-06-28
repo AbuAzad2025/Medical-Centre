@@ -80,8 +80,15 @@ def build_backup_path(base_dir: str, backup_name: str, when: Optional[datetime] 
     return os.path.join(folder, f'{safe_name}_{ts}.sql.gz')
 
 
+BACKUP_CHUNK_SIZE = 64 * 1024  # 64 KB streaming chunks
+
+
+def _backup_timeout() -> int:
+    return int(os.environ.get('BACKUP_TIMEOUT_SECONDS', '3600'))
+
+
 def run_pg_dump_sql_gz(output_path: str, database_url: Optional[str] = None) -> int:
-    """Execute pg_dump and write a compressed plain-SQL artifact (.sql.gz)."""
+    """Execute pg_dump and stream stdout chunk-by-chunk into a gzip file (memory-safe)."""
     params = parse_database_url(_resolve_database_url(database_url))
     pg_dump = _find_executable('pg_dump')
     os.makedirs(os.path.dirname(os.path.abspath(output_path)) or '.', exist_ok=True)
@@ -101,20 +108,36 @@ def run_pg_dump_sql_gz(output_path: str, database_url: Optional[str] = None) -> 
         'Starting pg_dump host=%s port=%s db=%s -> %s',
         params.host, params.port, params.database, output_path,
     )
-    proc = subprocess.run(
+    timeout = _backup_timeout()
+    proc = subprocess.Popen(
         cmd,
         env=_pg_env(params),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        check=False,
     )
+    try:
+        with gzip.open(output_path, 'wb', compresslevel=6) as gz:
+            while True:
+                chunk = proc.stdout.read(BACKUP_CHUNK_SIZE)
+                if not chunk:
+                    break
+                gz.write(chunk)
+        proc.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait(timeout=10)
+        raise PgBackupError(f'pg_dump timed out after {timeout}s')
+    finally:
+        try:
+            if proc.poll() is None:
+                proc.kill()
+        except Exception:
+            pass
+
     if proc.returncode != 0:
-        err = proc.stderr.decode('utf-8', errors='replace').strip()
+        err = proc.stderr.read().decode('utf-8', errors='replace').strip()
         logger.error('pg_dump failed (exit %s): %s', proc.returncode, err)
         raise PgBackupError(err or f'pg_dump exited with code {proc.returncode}')
-
-    with gzip.open(output_path, 'wb', compresslevel=6) as gz:
-        gz.write(proc.stdout)
 
     size = os.path.getsize(output_path)
     if size <= 0:
