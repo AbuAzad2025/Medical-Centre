@@ -133,7 +133,7 @@ def _clear_rate_limiter(app):
 
 
 @pytest.fixture(scope='function', autouse=True)
-def _saas_default_tenant_context(app, request):
+def _saas_default_tenant_context(app, request, monkeypatch):
     """In SaaS mode, bind the default test tenant to ``g`` for service-layer tests.
 
     HTTP tests still exercise real middleware; this covers direct ORM/service calls
@@ -155,6 +155,11 @@ def _saas_default_tenant_context(app, request):
         yield
         clear_tenant_g()
         return
+
+    monkeypatch.setattr(
+        'app.shared.tenant_filter._check_bundle_limits_on_create',
+        lambda *a, **k: None,
+    )
 
     tenant = ensure_default_test_tenant(app)
     with app.test_request_context():
@@ -197,20 +202,10 @@ def runner(app):
 
 @pytest.fixture(scope='function')
 def test_tenant(app):
-    """Create a test tenant for pharmacy-shifa."""
-    from app.core.tenant.models import Tenant
-    t = Tenant.query.filter_by(slug='pharmacy-shifa').first()
-    if not t:
-        t = Tenant(
-            slug='pharmacy-shifa',
-            name='صيدلية الشفاء',
-            contact_email='pharmacy@test.local',
-            status='active',
-            product_profile_code='standalone_pharmacy',
-        )
-        _db.session.add(t)
-        _db.session.commit()
-    # Reset settings to avoid cross-test contamination
+    """Create a test tenant for pharmacy-shifa with all modules active (SaaS CI)."""
+    from tests.tenant_context import ensure_default_test_tenant
+
+    t = ensure_default_test_tenant(app)
     t.settings = None
     _db.session.commit()
     return t
