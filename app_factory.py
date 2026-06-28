@@ -313,29 +313,9 @@ def create_app(config_name: str | None = None) -> Flask:
     def __health():
         return jsonify(status="ok")
 
-    # ping endpoint للتشخيص
-    @app.get("/__ping")
-    def __ping():
-        return "pong", 200
-
     @app.get("/favicon.ico")
     def favicon():
         return redirect(url_for('static', filename='img/azad_logo.png'), code=302)
-
-    # استعراض المسارات (للتسهيل أثناء التطوير)
-    @app.get("/__routes")
-    def list_routes():
-        if app.config.get('DISABLE_DEBUG_ENDPOINTS', True):
-            abort(404)
-        rows = []
-        for r in app.url_map.iter_rules():
-            methods = ",".join(sorted(m for m in r.methods if m in {"GET","POST","PUT","PATCH","DELETE"}))
-            rows.append(f"<div class='route'><b>{r.rule}</b> &nbsp; <small>{methods}</small> → <code>{r.endpoint}</code></div>")
-        html = """
-        <html dir="rtl" lang="ar"><head><meta charset="utf-8">
-        <style>body{{font-family:Arial;padding:20px}}.route{{background:#eef;padding:8px;margin:5px;border-right:4px solid #39f}}</style>
-        </head><body><h3>قائمة المسارات</h3>{rows}</body></html>""".format(rows="".join(rows))
-        return render_template_string(html)
 
     # معالجات الأخطاء القياسية لربط قوالب الأخطاء
     @app.errorhandler(403)
@@ -861,95 +841,6 @@ def create_app(config_name: str | None = None) -> Flask:
 
     # إعدادات لحل مشاكل 404
     app.url_map.strict_slashes = False
-    @app.get("/__perf/finance")
-    def __perf_finance():
-        if app.config.get('DISABLE_PERF_ENDPOINTS', True):
-            abort(404)
-        import re, time
-        from flask import request, jsonify, render_template_string
-        tc = app.test_client()
-        threshold_ms = int(request.args.get("threshold_ms", "800") or "800")
-        repeat = int(request.args.get("repeat", "1") or "1")
-        base_paths = ["/finance/dashboard","/finance/payments","/finance/invoices","/finance/audit","/payment/dashboard","/accountant/dashboard","/accountant/reports","/accountant/financial","/payment/reports"]
-        extra = request.args.get("paths") or ""
-        if extra:
-            for it in extra.split(","):
-                it = it.strip()
-                if it:
-                    base_paths.append(it)
-        include_json = (request.args.get("include_json") or "0").lower() in {"1","true","yes","on"}
-        status = {}
-        slow = []
-        max_ms = 0
-        for p in base_paths:
-            times = []
-            code = 0
-            for _ in range(max(1, repeat)):
-                t0 = time.perf_counter()
-                r = tc.get(p, follow_redirects=True)
-                dt = int((time.perf_counter() - t0) * 1000)
-                code = r.status_code
-                times.append(dt)
-            avg = int(sum(times) / len(times))
-            max_ms = max(max_ms, avg)
-            entry = {"code": code, "ms": avg}
-            status[p] = entry
-            if avg > threshold_ms or code != 200:
-                slow.append({"path": p, "code": code, "ms": avg})
-        if include_json:
-            json_endpoints = [
-                ("/finance/post", {}),
-            ]
-            for ep, payload in json_endpoints:
-                times = []
-                code = 0
-                for _ in range(max(1, repeat)):
-                    t0 = time.perf_counter()
-                    r = tc.post(ep, json=payload, follow_redirects=False)
-                    dt = int((time.perf_counter() - t0) * 1000)
-                    code = r.status_code
-                    times.append(dt)
-                avg = int(sum(times) / len(times))
-                max_ms = max(max_ms, avg)
-                status[ep] = {"code": code, "ms": avg}
-                if avg > threshold_ms or code not in (200, 400, 422):
-                    slow.append({"path": ep, "code": code, "ms": avg})
-        result = {
-            "threshold_ms": threshold_ms,
-            "repeat": repeat,
-            "status": status,
-            "alerts": {"slow": slow, "max_ms": max_ms, "ok_count": sum(1 for v in status.values() if v["code"] == 200 and v["ms"] <= threshold_ms)},
-            "overall": ("degraded" if slow else "ok")
-        }
-        if result["overall"] == "degraded":
-            try:
-                app.logger.warning(f"Perf degraded: threshold={threshold_ms} slow={slow}")
-            except Exception:
-                pass
-        if (request.args.get("format") or "").lower() == "html":
-            rows = []
-            for path, entry in status.items():
-                is_slow = entry["ms"] > threshold_ms or entry["code"] != 200
-                rows.append(f"<tr class='{'slow' if is_slow else ''}'><td>{path}</td><td>{entry['code']}</td><td>{entry['ms']} ms</td></tr>")
-            html = """
-            <html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>
-            body{{font-family:Arial;padding:20px;background:#f7f7fb}}
-            table{{width:100%;border-collapse:collapse;background:#fff}}
-            th,td{{border:1px solid #ddd;padding:8px;text-align:right}}
-            th{{background:#eef}}
-            tr.slow{{background:#ffecec}}
-            .badge{{display:inline-block;padding:6px 10px;border-radius:12px}}
-            .ok{{background:#d4edda;color:#155724}}
-            .degraded{{background:#fff3cd;color:#856404}}
-            </style></head><body>
-            <h3>قياس الأداء</h3>
-            <div class='badge {state}'>{state_label}</div>
-            <div>العتبة: {thr} ms &nbsp; التكرار: {rep}</div>
-            <table><thead><tr><th>المسار</th><th>الكود</th><th>الزمن</th></tr></thead><tbody>{rows}</tbody></table>
-            </body></html>
-            """.format(rows="".join(rows), thr=threshold_ms, rep=repeat, state=("degraded" if slow else "ok"), state_label=("منخفض" if not slow else "متدهور"))
-            return render_template_string(html)
-        return jsonify(result)
 
     # Root-level convenience redirects for commonly accessed modules
     @app.route('/patients')

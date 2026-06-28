@@ -4,7 +4,7 @@ Medical System Report Management Service
 """
 
 from datetime import datetime, timedelta, timezone
-from app.shared.enums import VisitState, AppointmentState, PaymentStatus
+from app.shared.enums import VisitState, AppointmentState, PaymentStatus, VisitArchiveStatus
 from sqlalchemy import and_, or_, func, desc, asc, text
 from app_factory import db
 from models.patient import Patient
@@ -462,7 +462,7 @@ class ReportService:
                     VisitState.OPEN: len([v for v in visits_today if v.status == VisitState.OPEN]),
                     VisitState.IN_PROGRESS: len([v for v in visits_today if v.status == VisitState.IN_PROGRESS]),
                     VisitState.COMPLETED: len([v for v in visits_today if v.status == VisitState.COMPLETED]),
-                    VisitState.ARCHIVED: len([v for v in visits_today if v.status == VisitState.ARCHIVED])
+                    VisitArchiveStatus.ARCHIVED: len([v for v in visits_today if v.is_archived])
                 },
                 'by_type': {
                     'REGULAR': len([v for v in visits_today if v.visit_type == 'REGULAR']),
@@ -687,7 +687,7 @@ class ReportService:
                     VisitState.OPEN: len([v for v in visits_month if v.status == VisitState.OPEN]),
                     VisitState.IN_PROGRESS: len([v for v in visits_month if v.status == VisitState.IN_PROGRESS]),
                     VisitState.COMPLETED: len([v for v in visits_month if v.status == VisitState.COMPLETED]),
-                    VisitState.ARCHIVED: len([v for v in visits_month if v.status == VisitState.ARCHIVED])
+                    VisitArchiveStatus.ARCHIVED: len([v for v in visits_month if v.is_archived])
                 },
                 'by_payment_method': {
                     'cash': len([v for v in visits_month if (getattr(v, 'payment_method', '') or '').lower() == 'cash']),
@@ -735,8 +735,8 @@ class ReportService:
             # ========== 3. تحليل الدفع القسري ==========
             force_visits_month = [v for v in visits_month if v.is_force_payment]
             force_approved = [v for v in force_visits_month if v.force_payment_approved_by]
-            force_rejected = [v for v in force_visits_month if not v.force_payment_approved_by and v.status == VisitState.ARCHIVED]
-            force_pending = [v for v in force_visits_month if not v.force_payment_approved_by and v.status != VisitState.ARCHIVED]
+            force_rejected = [v for v in force_visits_month if not v.force_payment_approved_by and v.is_archived]
+            force_pending = [v for v in force_visits_month if not v.force_payment_approved_by and not v.is_archived]
             
             force_payment_analysis = {
                 'total': len(force_visits_month),

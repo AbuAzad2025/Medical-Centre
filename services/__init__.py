@@ -6,12 +6,10 @@ from services.clinical_context_service import ClinicalContextService
 from services.feature_gate_service import FeatureGateService
 from services.file_service import FileService
 from services.inventory_ledger_service import InventoryLedgerService
-from services.order_service import OrderService
 from services.permission_scope_service import PermissionScopeService
 from services.report_scope_service import ReportScopeService
 from services.workflow_orchestrator import WorkflowOrchestrator, QueueService
 from services.pharmacy_sale_service import PharmacySaleService
-from services.radiology_workflow_service import RadiologyWorkflowService
 from services.ai_governance_service import AIRecommendationGovernanceService
 from services.core_queries import core_queries, CoreQueryService
 from services.prescription_service import prescription_service

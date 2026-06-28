@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from app.extensions import db
-from app.shared.enums import VisitState, VisitWorkflowStatus
+from app.shared.enums import VisitState, VisitArchiveStatus, VisitWorkflowStatus
 from app.modules.workflows.visit import VisitWorkflowService
 from models.patient import Patient
 from models.visit import Visit
@@ -44,7 +44,7 @@ class TestWorkflowOrchestrator:
     def test_archive_delegates_to_gatekeeper(self, wf_visit):
         wf_visit.status = VisitState.COMPLETED
         with patch('services.gatekeeper_service.GatekeeperService.archive_visit', return_value=(True, 'ok')) as arch:
-            ok = WorkflowOrchestrator.transition(wf_visit, VisitState.ARCHIVED, user_id=1)
+            ok = WorkflowOrchestrator.transition(wf_visit, VisitArchiveStatus.ARCHIVED, user_id=1)
         assert ok is True
         arch.assert_called_once_with(wf_visit.id, 1)
 

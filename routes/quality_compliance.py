@@ -7,7 +7,7 @@ from app_factory import db
 from datetime import datetime, date, timedelta
 from sqlalchemy import func
 import logging
-from app.shared.enums import EmergencyStatus, OrderState, VisitState
+from app.shared.enums import EmergencyStatus, OrderState, VisitState, VisitArchiveStatus
 
 quality_bp = Blueprint('quality', __name__)
 
@@ -78,7 +78,7 @@ def dashboard():
             func.date(Visit.created_at) == today
         ).count()
         completed_visits_today = Visit.query.filter(
-            Visit.status == VisitState.ARCHIVED,
+            Visit.archive_status == VisitArchiveStatus.ARCHIVED,
             Visit.completed_at >= datetime.combine(today, datetime.min.time())
         ).count()
         visit_quality = round((completed_visits_today / max(visits_today, 1)) * 100, 1)

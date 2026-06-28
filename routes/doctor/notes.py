@@ -27,7 +27,7 @@ from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from app_factory import db
-from app.shared.enums import VisitState
+from app.shared.enums import VisitState, VisitArchiveStatus
 from sqlalchemy import and_, or_, desc, func, case
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
@@ -48,7 +48,7 @@ def notes(visit_id):
         if not visit or visit.doctor_id != current_user.id:
             flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        if visit.status == VisitState.ARCHIVED:
+        if visit.is_archived:
             flash('لا يمكن إضافة ملاحظات بعد أرشفة الزيارة', 'warning')
             return redirect(url_for('doctor.patient_queue'))
         

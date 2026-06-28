@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from app.extensions import db
-from app.shared.enums import VisitState, VisitWorkflowStatus as VisitStatus
+from app.shared.enums import VisitState, VisitArchiveStatus, VisitWorkflowStatus as VisitStatus
 from services.visit_state_machine_service import VisitStateMachineService
 
 
@@ -26,7 +26,6 @@ _VISIT_TO_WORKFLOW: dict[VisitState, str] = {
     VisitState.IN_PROGRESS: VisitStatus.IN_PROGRESS,
     VisitState.COMPLETED: VisitStatus.COMPLETED,
     VisitState.CANCELLED: VisitStatus.CANCELLED,
-    VisitState.NO_SHOW: VisitStatus.CANCELLED,
 }
 
 
@@ -76,7 +75,7 @@ class VisitWorkflowService:
             if not can:
                 raise PermissionError(msg or "Visit cannot be archived")
             ok, msg = VisitStateMachineService.transition_or_archive(
-                visit, VisitState.ARCHIVED, actor=performed_by, user_id=performed_by,
+                visit, VisitArchiveStatus.ARCHIVED, actor=performed_by, user_id=performed_by,
             )
             if not ok:
                 raise PermissionError(msg or "Archival failed")

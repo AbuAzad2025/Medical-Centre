@@ -12,9 +12,11 @@ ENUM_LABELS_AR: dict[str, dict[str, str]] = {
         'CHECKED_IN': 'حضور مسجّل',
         'IN_PROGRESS': 'قيد المعالجة',
         'COMPLETED': 'مكتمل',
-        'ARCHIVED': 'مؤرشف',
         'CANCELLED': 'ملغى',
-        'NO_SHOW': 'لم يحضر',
+    },
+    'VisitArchiveStatus': {
+        'ACTIVE': 'نشط',
+        'ARCHIVED': 'مؤرشف',
     },
     'VisitWorkflowStatus': {
         'REGISTERED': 'مسجّل',

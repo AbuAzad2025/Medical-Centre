@@ -20,7 +20,7 @@ from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from app_factory import db
-from app.shared.enums import VisitState
+from app.shared.enums import VisitState, VisitArchiveStatus
 from services.visit_state_machine_service import VisitStateMachineService
 from sqlalchemy import and_, or_, desc, func, case
 import logging, json, secrets
@@ -44,7 +44,7 @@ def diagnosis(visit_id):
         if not visit or visit.doctor_id != current_user.id:
             flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        if visit.status in ['COMPLETED', 'ARCHIVED']:
+        if visit.status == 'COMPLETED' or visit.is_archived:
             flash('لا يمكن تعديل التشخيص بعد اكتمال أو أرشفة الزيارة', 'warning')
             return redirect(url_for('doctor.patient_queue'))
 
@@ -394,7 +394,7 @@ def get_treatment_recommendations():
         ).join(Medication, Medication.id == PrescriptionItem.medication_id
         ).filter(
             Visit.doctor_id == current_user.id,
-            Visit.status == VisitState.ARCHIVED,
+            Visit.archive_status == VisitArchiveStatus.ARCHIVED,
             MedicalRecord.created_at >= datetime.now() - timedelta(days=60)
         ).group_by(MedicalRecord.diagnosis, Medication.trade_name).all()
         
@@ -495,7 +495,7 @@ def get_clinical_decision_support():
         diagnosis_success = db.session.query(
             MedicalRecord.diagnosis,
             func.count(MedicalRecord.id).label('total_cases'),
-            func.sum(case((Visit.status == VisitState.ARCHIVED, 1), else_=0)).label('successful_cases')
+            func.sum(case((Visit.archive_status == VisitArchiveStatus.ARCHIVED, 1), else_=0)).label('successful_cases')
         ).join(Visit, MedicalRecord.visit_id == Visit.id).filter(
             Visit.doctor_id == current_user.id,
             MedicalRecord.created_at >= datetime.now() - timedelta(days=30)
@@ -516,7 +516,7 @@ def get_clinical_decision_support():
         medication_effectiveness = db.session.query(
             Medication.trade_name.label('medication_name'),
             func.count(func.distinct(Prescription.id)).label('total_prescriptions'),
-            func.sum(case((Visit.status == VisitState.ARCHIVED, 1), else_=0)).label('successful_treatments')
+            func.sum(case((Visit.archive_status == VisitArchiveStatus.ARCHIVED, 1), else_=0)).label('successful_treatments')
         ).join(PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
         ).join(Medication, Medication.id == PrescriptionItem.medication_id
         ).join(Visit, Prescription.visit_id == Visit.id
@@ -553,7 +553,7 @@ def get_medical_analytics():
         total_visits = Visit.query.filter(Visit.doctor_id == current_user.id).count()
         completed_visits = Visit.query.filter(
             Visit.doctor_id == current_user.id,
-            Visit.status == VisitState.ARCHIVED
+            Visit.archive_status == VisitArchiveStatus.ARCHIVED
         ).count()
         
         completion_rate = (completed_visits / total_visits * 100) if total_visits > 0 else 0
@@ -684,7 +684,7 @@ def get_smart_reminders():
         # تذكيرات المتابعة
         follow_up_visits = Visit.query.filter(
             Visit.doctor_id == current_user.id,
-            Visit.status == VisitState.ARCHIVED,
+            Visit.archive_status == VisitArchiveStatus.ARCHIVED,
             Visit.completed_at >= datetime.now() - timedelta(days=7)
         ).count()
         

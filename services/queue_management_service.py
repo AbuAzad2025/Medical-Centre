@@ -124,18 +124,22 @@ class QueueManagementService:
                     else:
                         return False, "يجب اختيار طبيب للقسم التخصصي"
 
-            # إنشاء زيارة بسيطة للطبيب إن وُجد طبيب ولم تُحدّد زيارة
             if doctor_id and not visit_id:
                 v = Visit(
                     patient_id=int(patient_id),
                     department_id=int(department_id),
                     doctor_id=int(doctor_id),
                     status=VisitState.OPEN,
+                    payment_status=payment_status,
                     created_by=created_by
                 )
                 db.session.add(v)
                 db.session.flush()
                 visit_id = v.id
+            elif visit_id:
+                v = db.session.get(Visit, int(visit_id))
+                if v and payment_status:
+                    v.payment_status = payment_status
 
             # إنشاء تذكرة الطابور
             ticket = QueueManagement(
@@ -147,7 +151,6 @@ class QueueManagementService:
                 emergency_reason=emergency_reason,
                 force_entry=force_entry,
                 force_entry_reason=force_entry_reason,
-                payment_status=payment_status,
                 created_at=datetime.now(timezone.utc)
             )
             
@@ -878,8 +881,9 @@ class QueueManagementService:
             # التحقق من إعدادات الطوارئ
             # يمكن لاحقاً ضبط حدود دين الطوارئ عبر إعدادات إضافية
             
-            # تحديث حالة الدفع
-            ticket.payment_status = 'waived'
+            # تحديث حالة الدفع على الزيارة (مصدر الفوترة الموحّد)
+            if ticket.visit:
+                ticket.visit.payment_status = PaymentStatus.EMERGENCY_DEBT
             ticket.emergency_approved_by = approved_by
             
             db.session.commit()

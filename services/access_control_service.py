@@ -11,7 +11,7 @@ from models.medication import Prescription
 from models.lab_request import LabResult
 from models.radiology_result import RadiologyResult
 from models.payment import Payment
-from app.shared.enums import VisitState
+from app.shared.enums import VisitState, VisitArchiveStatus
 from app_factory import db
 import logging
 from datetime import datetime, timedelta, timezone
@@ -121,7 +121,7 @@ class AccessControlService:
                 return False
             
             # المدير فقط يمكنه تعديل الزيارات المؤرشفة
-            if visit.status == VisitState.ARCHIVED:
+            if visit.is_archived:
                 return user.is_admin_user()
             
             # الاستقبال يمكنه تعديل الزيارات خلال 30 دقيقة
@@ -137,7 +137,7 @@ class AccessControlService:
             
             # الأطباء يمكنهم تعديل زياراتهم غير المؤرشفة
             if user.role == 'doctor' and visit.doctor_id == user.id:
-                return visit.status != VisitState.ARCHIVED
+                return not visit.is_archived
             
             return False
             

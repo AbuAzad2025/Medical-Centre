@@ -25,8 +25,7 @@ class QueueManagement(TenantMixin, db.Model):
     priority_level = db.Column(db.String(20), default='normal')  # low, normal, high, urgent
     status = db.Column(db.String(20), default='waiting')  # waiting, called, in_progress, completed, cancelled
     
-    # معلومات الدفع
-    payment_status = db.Column(db.String(20), default='pending')  # pending, paid, partial, waived
+    # Payment state is owned by Visit.payment_status (P4-002); not duplicated on queue tickets.
     payment_amount = db.Column(db.Numeric(12, 2), default=0.0)
     payment_method = db.Column(db.String(50), nullable=True)
     estimated_wait_time = db.Column(db.Integer, default=30)
@@ -90,15 +89,29 @@ class QueueManagement(TenantMixin, db.Model):
         }
         return status_map.get(self.status, self.status)
     
+    def _visit_payment_status(self) -> str | None:
+        """Resolve payment status from linked visit (canonical billing source)."""
+        if self.visit and getattr(self.visit, 'payment_status', None):
+            return self.visit.payment_status
+        return None
+
     def get_payment_status_display(self):
-        """حالة الدفع للعرض"""
+        """حالة الدفع للعرض — من الزيارة المرتبطة."""
+        raw = self._visit_payment_status()
+        if not raw:
+            return 'غير محدد'
         status_map = {
+            'PENDING': 'معلق',
+            'PAID': 'مدفوع',
+            'PARTIAL': 'جزئي',
+            'DEBT': 'دين',
+            'EMERGENCY_DEBT': 'دين طوارئ',
             'pending': 'معلق',
             'paid': 'مدفوع',
             'partial': 'جزئي',
-            'waived': 'معفى'
+            'waived': 'معفى',
         }
-        return status_map.get(self.payment_status, self.payment_status)
+        return status_map.get(raw, raw)
     
     def to_dict(self):
         """تحويل إلى قاموس"""
@@ -110,7 +123,7 @@ class QueueManagement(TenantMixin, db.Model):
             'queue_number': self.queue_number,
             'priority_level': self.priority_level,
             'status': self.status,
-            'payment_status': self.payment_status,
+            'payment_status': self._visit_payment_status(),
             'payment_amount': self.payment_amount,
             'payment_method': self.payment_method,
             'is_emergency': self.is_emergency,

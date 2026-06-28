@@ -79,19 +79,17 @@ class TestVisitStateMachineService:
 
     def test_transition_raises_for_invalid_move(self, sm_visit):
         with pytest.raises(ValueError):
-            VisitStateMachineService.transition(sm_visit, VisitState.ARCHIVED)
+            VisitStateMachineService.transition(sm_visit, VisitState.OPEN)
 
-    def test_completed_visit_cannot_transition_to_archived(self, sm_visit):
-        # P1-002: ARCHIVED is not part of the clinical status lifecycle.
+    def test_completed_visit_cannot_transition_to_cancelled_from_completed(self, sm_visit):
         VisitStateMachineService.transition(sm_visit, VisitState.COMPLETED)
         _db.session.commit()
         with pytest.raises(ValueError):
-            VisitStateMachineService.transition(sm_visit, VisitState.ARCHIVED)
+            VisitStateMachineService.transition(sm_visit, VisitState.CANCELLED)
 
     def test_allowed_transitions_returns_reachable_states(self, sm_visit):
         allowed = VisitStateMachineService.get_allowed_transitions(sm_visit)
         assert VisitState.COMPLETED in allowed
-        assert VisitState.ARCHIVED not in allowed
         assert VisitState.OPEN not in allowed
 
     def test_get_status_returns_none_for_unrecognised(self, sm_visit):

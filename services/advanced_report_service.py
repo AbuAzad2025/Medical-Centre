@@ -4,7 +4,7 @@ Medical System Advanced Report Service
 """
 
 from datetime import datetime, timedelta, timezone
-from app.shared.enums import VisitState, AppointmentState, InvoiceStatus
+from app.shared.enums import VisitState, AppointmentState, InvoiceStatus, VisitArchiveStatus
 from sqlalchemy import and_, or_, func, desc, asc, text
 from app_factory import db
 from models.patient import Patient
@@ -130,9 +130,12 @@ class AdvancedReportService:
             
             # حسب الحالة
             status_stats = {}
-            for status in [VisitState.OPEN, VisitState.COMPLETED, VisitState.ARCHIVED]:
+            for status in [VisitState.OPEN, VisitState.COMPLETED]:
                 count = visits_query.filter(Visit.status == status).count()
                 status_stats[status] = count
+            status_stats[VisitArchiveStatus.ARCHIVED] = visits_query.filter(
+                Visit.archive_status == VisitArchiveStatus.ARCHIVED
+            ).count()
             
             # حسب نوع الزيارة
             visit_type_stats = {}

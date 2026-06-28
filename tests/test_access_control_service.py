@@ -18,7 +18,7 @@ from models.user import User
 from models.visit import Visit
 from models.patient import Patient
 from models.payment import Payment
-from app.shared.enums import VisitState
+from app.shared.enums import VisitState, VisitArchiveStatus
 
 
 @pytest.fixture
@@ -91,7 +91,7 @@ class TestCanAccessVisit:
 
 class TestCanModifyVisit:
     def test_archived_only_admin(self, fx):
-        v = fx.visit(status=VisitState.ARCHIVED)
+        v = fx.visit(status=VisitState.COMPLETED, archive_status=VisitArchiveStatus.ARCHIVED)
         assert AC.can_modify_visit(fx.user(role='admin').id, v.id) is True
         assert AC.can_modify_visit(fx.user(role='reception').id, v.id) is False
 
