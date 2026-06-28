@@ -167,6 +167,14 @@ def set_tenant_context():
     g.product_profile = None
     g.feature_flags = {}
 
+    if tenant:
+        try:
+            from app.extensions import db
+            from sqlalchemy import text
+            db.session.execute(text(f"SET LOCAL app.tenant_id = '{tenant.id}'"))
+        except Exception:
+            pass
+
     if not tenant:
         return
 
