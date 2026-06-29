@@ -84,7 +84,7 @@ reports/
 pytest_out.txt
 agent-tools/
 
-# Ad-hoc scripts at repo root only (tests/ and scripts/ are tracked)
-dev/
+# Ad-hoc scripts at repo root only (scripts/dev/ is tracked)
+/dev/
 
 .tests_deleted/
