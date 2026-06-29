@@ -1,12 +1,4 @@
-"""Comprehensive front-end E2E — renders every no-arg staff GET page per role
-through the real routing/auth/DB stack and asserts no 500s and no technical
-leaks. Aligns with FRONTEND_TEMPLATES_DEVELOPMENT_PLAN §8.2 (functional, no-break).
-
-This is the end-to-end safety net for the Phase 5 header rollout, the status
-localization sweep, the Gate 9 print unification, and the adminlte removal:
-if any migrated template references a bad endpoint, a missing context var, or
-breaks rendering, the page would 500 / leak here.
-"""
+"""Front-end E2E — renders staff GET pages; asserts no 500s and no technical leaks."""
 from __future__ import annotations
 
 import re

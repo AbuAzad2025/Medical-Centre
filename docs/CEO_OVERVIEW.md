@@ -1,90 +1,62 @@
 # الملخص التنفيذي — Azad Medical Platform
 
-**الجمهور:** الإدارة العليا · المستثمرون · صناع القرار  
-**التاريخ:** 28 يونيو 2026  
-**الإصدار:** 3.1
+**التاريخ:** 29 يونيو 2026 · **الإصدار:** 3.1
 
 ---
 
-## 1. ما هو المنتج؟
+## المنتج
 
-منصة سحابية لإدارة المراكز الطبية والعيادات — عربية (RTL)، متعددة المستأجرين، تغطي دورة المريض من الاستقبال حتى المحاسبة والتقارير.
-
-**قيمة العمل:**
-- تقليل الأخطاء التشغيلية عبر سير عمل موحّد (الاستقبال كمحور مركزي)
-- فصل مالي واضح (فواتير، دفعات، تأمين، مصروفات)
-- إمكانية بيع اشتراكات للمنشآت (SaaS) مع فوترة Stripe
+منصة عربية (RTL) لإدارة المراكز الطبية — multi-tenant SaaS: استقبال، سريري، مالي، تأمين، طوارئ، اشتراكات Stripe.
 
 ---
 
-## 2. الوضع الحالي (حقيقي — من الكود)
+## الجاهزية (من الكود — يونيو 2026)
 
-| المحور | الحالة | ملاحظة |
-|--------|--------|--------|
-| النشر بـ Docker | ✅ | PostgreSQL 16 + Redis + Gunicorn + Celery worker |
-| CI/CD | ✅ | GitHub Actions — migrate + ~1200+ اختبار |
-| تسجيل منشآت ذاتي | ✅ | `/saas/signup` + API |
-| فوترة Stripe | ✅ | checkout عند التسجيل + webhooks |
-| عزل بيانات | ✅ | فلترة tenant في ORM + RLS على 31 جدولاً |
-| مصروفات تشغيلية | ✅ | نموذج `Expense` + خدمة مالية |
-| توفير tenants (مالك المنصة) | ✅ | مسار موحّد عبر `TenantProvisioningService` |
-| نسخ احتياطي | 🟡 | يعمل مع `pg_dump`؛ يتطلب إعداد البنية |
-| واجهة المستخدم | 🟡 | وظيفي — تحسينات UX مفتوحة في خطة التدقيق |
+| المحور | الحالة |
+|--------|--------|
+| Docker (PG16 + Redis + Celery) | ✅ |
+| CI: migrate + bootstrap + pytest | ✅ |
+| تسجيل `/saas/signup` + كتالوج باقات | ✅ |
+| عزل ORM + RLS (31 جدول) | ✅ |
+| Stripe checkout عند التسجيل | ✅ (يتطلب مفاتيح) |
+| نسخ احتياطي Celery/pg_dump | 🟡 يحتاج `pg_dump` في worker |
+| توحيد واجهات UX | 🟡 وظيفي — تحسين مستمر |
 
-**خلاصة:** المنصة **قابلة للبيع والنشر** لمركز واحد أو كـ SaaS بعد إعداد البنية (DNS، SSL، Stripe، نسخ احتياطي مجدول). ليست «مثالية» في كل واجهة — لكن الأساس التقني والأمني للـ multi-tenant مُنجَز.
+**التفاصيل التقنية:** [PLATFORM_STATUS.md](PLATFORM_STATUS.md)
 
 ---
 
-## 3. نموذج الإيرادات (SaaS)
+## الباقات (الكتالوج الافتراضي — 23)
 
-```
-زائر → صفحة تسجيل → اختيار باقة (PackageVersion)
-     → إنشاء tenant + مدير
-     → [تجريبي TRIAL] أو [دفع Stripe → ACTIVE]
-     → اشتراك دوري (شهري/سنوي) عبر Stripe webhooks
+تُحمَّل عند `bootstrap_platform` إلى `product_bundles` و`packages`.  
+**التحقق من إنتاجك:**
+
+```sql
+SELECT slug, name_ar, monthly_price, modules
+FROM product_bundles WHERE is_active ORDER BY monthly_price;
 ```
 
-**حالات الـ tenant:** `TRIAL` · `ACTIVE` · `PENDING` (بانتظار الدفع) · `SUSPENDED` · `CANCELLED`
-
-انتهاء التجربة وإيقاف المنشآت الملغاة يُدار عبر `run_lifecycle_maintenance`.
-
----
-
-## 4. المخاطر المتبقية (صريحة)
-
-| المخاطرة | الخطورة | التخفيف |
-|----------|---------|---------|
-| جداول tenant بدون RLS (~باقي النماذج) | متوسطة | توسيع RLS تدريجياً؛ ORM يفلتر افتراضياً |
-| UX غير موحّد بين الأقسام | منخفضة | خطة واجهات في `FRONTEND_TEMPLATES_DEVELOPMENT_PLAN.md` |
-| اعتماد Stripe للإيرادات | تشغيلية | اختبار webhooks في staging |
-| WebAuthn كامل في المتصفح | منخفضة | البنية DB جاهزة؛ تحسين JS اختياري |
+| شريحة | أمثلة slug |
+|-------|------------|
+| صغيرة | `billing_only`, `private_doctor_clinic`, `small_clinic` |
+| متوسطة | `clinic_with_lab`, `urgent_care`, `community_clinic` |
+| كبيرة | `multi_department_center`, `polyclinic`, `hospital` |
+| خاصة | `custom` (وحدات فارغة — إعداد يدوي) |
 
 ---
 
-## 5. مؤشرات تقنية للمتابعة
+## SaaS
 
-| المؤشر | القيمة التقريبية (يونيو 2026) |
-|--------|-------------------------------|
-| نماذج ORM | ~84 ملف |
-| خدمات أعمال | ~58 |
-| قوالب HTML | ~385 |
-| جداول بـ RLS | 31 |
-| رأس التهجيرات | `s1_004_expenses_rls_uniques` |
-| اختبارات CI | يمرّ بالكامل مع `ENABLE_SAAS_MODE=true` |
+```
+/saas/signup → TenantProvisioningService → [Stripe إن لزم] → ACTIVE/TRIAL
+```
+
+حالات: `TRIAL` · `ACTIVE` · `PENDING` · `SUSPENDED` · `CANCELLED`
 
 ---
 
-## 6. قرارات موصى بها
-
-1. **إطلاق تجريبي (Pilot):** 3–5 مراكز على بيئة staging مع Stripe test mode
-2. **إنتاج:** Docker Compose أو Kubernetes + PostgreSQL مُدار + Redis + نسخ احتياطي يومي
-3. **تسويق:** الباقات من لوحة Owner؛ التسجيل الذاتي مفعّل
-4. **لا تُباع** كـ «جاهز 100%» دون ذكر تحسينات الواجهة المخططة
-
----
-
-## 7. مراجع
+## مراجع
 
 - [دليل المستخدم](USER_GUIDE.md)
 - [دليل النشر](DEPLOYMENT.md)
-- [تقرير التدقيق الشامل](COMPREHENSIVE_AUDIT_REPORT.md) — القسم «تحديث يونيو 2026»
+- [حالة المنصة](PLATFORM_STATUS.md)
