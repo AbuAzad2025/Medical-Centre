@@ -250,10 +250,11 @@ class TestE2EProductionFlow:
             db.session.add(super_admin)
             db.session.commit()
 
-        with client.session_transaction() as sess:
-            sess['_user_id'] = str(super_admin.id)
-            sess['_fresh'] = True
-            sess['tenant_id'] = tenant_id
+        from tests.tenant_context import login_test_client
+        from app.core.rate_limiter import _shared_store
+
+        _shared_store.clear()
+        login_test_client(client, super_admin, tenant, 'sapass1')
 
         backup_resp = client.post(
             '/super-admin/backup/create',
