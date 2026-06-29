@@ -60,6 +60,8 @@ def enable_tenant_rls(tables: list[str]) -> None:
     for table in tables:
         if not table_exists(table):
             continue
+        if not column_exists(table, 'tenant_id'):
+            continue
         policy_name = f'tenant_isolation_{table}'
         op.execute(f'ALTER TABLE {table} ENABLE ROW LEVEL SECURITY')
         op.execute(f'ALTER TABLE {table} FORCE ROW LEVEL SECURITY')

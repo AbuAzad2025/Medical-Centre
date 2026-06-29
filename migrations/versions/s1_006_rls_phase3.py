@@ -33,7 +33,6 @@ RLS_TABLES = [
     'lab_quality_control_entries',
     'lab_reagents',
     'lab_results',
-    'lab_test_panel_items',
     'login_attempts',
     'medication_administration_logs',
     'medication_purchases',
