@@ -54,7 +54,7 @@ class Tenant(db.Model):
     users = db.relationship('User', back_populates='tenant', lazy='select')
 
     def is_active_and_paid(self) -> bool:
-        if self.status != TenantStatus.ACTIVE:
+        if self.status not in (TenantStatus.ACTIVE, TenantStatus.TRIAL):
             return False
         if self.subscription_end:
             from datetime import date
