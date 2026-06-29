@@ -267,6 +267,7 @@ class TestE2EProductionFlow:
         assert backup_body.get('task_id')
         backup_id = backup_body['backup_id']
 
+        db.session.expire_all()
         record = db.session.get(Backup, backup_id)
         assert record is not None
 
