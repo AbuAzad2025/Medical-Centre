@@ -6,6 +6,11 @@ Revises: s1_003_department_tenant_unique
 from alembic import op
 import sqlalchemy as sa
 
+from migrations.migration_utils import (
+    replace_global_unique_with_tenant,
+    table_exists,
+)
+
 revision = 's1_004_expenses_rls_uniques'
 down_revision = 's1_003_department_tenant_unique'
 branch_labels = None
@@ -35,44 +40,57 @@ RLS_TABLES = [
 
 
 def upgrade() -> None:
-    op.create_table(
-        'expenses',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('tenant_id', sa.Integer(), nullable=True),
-        sa.Column('category', sa.String(length=50), nullable=False),
-        sa.Column('amount', sa.Numeric(precision=12, scale=2), nullable=False),
-        sa.Column('description', sa.Text(), nullable=True),
-        sa.Column('recorded_by_id', sa.Integer(), nullable=True),
-        sa.Column('expense_date', sa.Date(), nullable=False),
-        sa.Column('status', sa.String(length=20), nullable=False, server_default='RECORDED'),
-        sa.Column('approved_by', sa.Integer(), nullable=True),
-        sa.Column('created_at', sa.DateTime(), nullable=False),
-        sa.Column('updated_at', sa.DateTime(), nullable=False),
-        sa.ForeignKeyConstraint(['approved_by'], ['users.id'], ondelete='SET NULL'),
-        sa.ForeignKeyConstraint(['recorded_by_id'], ['users.id'], ondelete='SET NULL'),
-        sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
-        sa.PrimaryKeyConstraint('id'),
+    if not table_exists('expenses'):
+        op.create_table(
+            'expenses',
+            sa.Column('id', sa.Integer(), nullable=False),
+            sa.Column('tenant_id', sa.Integer(), nullable=True),
+            sa.Column('category', sa.String(length=50), nullable=False),
+            sa.Column('amount', sa.Numeric(precision=12, scale=2), nullable=False),
+            sa.Column('description', sa.Text(), nullable=True),
+            sa.Column('recorded_by_id', sa.Integer(), nullable=True),
+            sa.Column('expense_date', sa.Date(), nullable=False),
+            sa.Column('status', sa.String(length=20), nullable=False, server_default='RECORDED'),
+            sa.Column('approved_by', sa.Integer(), nullable=True),
+            sa.Column('created_at', sa.DateTime(), nullable=False),
+            sa.Column('updated_at', sa.DateTime(), nullable=False),
+            sa.ForeignKeyConstraint(['approved_by'], ['users.id'], ondelete='SET NULL'),
+            sa.ForeignKeyConstraint(['recorded_by_id'], ['users.id'], ondelete='SET NULL'),
+            sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
+            sa.PrimaryKeyConstraint('id'),
+        )
+        op.create_index('ix_expenses_tenant_id', 'expenses', ['tenant_id'])
+        op.create_index('ix_expenses_category', 'expenses', ['category'])
+        op.create_index('ix_expenses_recorded_by_id', 'expenses', ['recorded_by_id'])
+        op.create_index('ix_expenses_expense_date', 'expenses', ['expense_date'])
+        op.create_index('ix_expenses_status', 'expenses', ['status'])
+        op.create_index('ix_expenses_created_at', 'expenses', ['created_at'])
+        op.create_index('idx_expense_tenant_date', 'expenses', ['tenant_id', 'expense_date'])
+        op.create_index('idx_expense_tenant_category', 'expenses', ['tenant_id', 'category'])
+
+    # prod_baseline uses unique INDEX on name; some DBs may have a named constraint instead.
+    replace_global_unique_with_tenant(
+        'insurance_companies',
+        'name',
+        'uq_insurance_company_tenant_name',
+        index_names=('ix_insurance_companies_name',),
+        constraint_names=('insurance_companies_name_key',),
     )
-    op.create_index('ix_expenses_tenant_id', 'expenses', ['tenant_id'])
-    op.create_index('ix_expenses_category', 'expenses', ['category'])
-    op.create_index('ix_expenses_recorded_by_id', 'expenses', ['recorded_by_id'])
-    op.create_index('ix_expenses_expense_date', 'expenses', ['expense_date'])
-    op.create_index('ix_expenses_status', 'expenses', ['status'])
-    op.create_index('ix_expenses_created_at', 'expenses', ['created_at'])
-    op.create_index('idx_expense_tenant_date', 'expenses', ['tenant_id', 'expense_date'])
-    op.create_index('idx_expense_tenant_category', 'expenses', ['tenant_id', 'category'])
 
-    with op.batch_alter_table('insurance_companies', schema=None) as batch_op:
-        batch_op.drop_constraint('insurance_companies_name_key', type_='unique')
-        batch_op.create_unique_constraint('uq_insurance_company_tenant_name', ['tenant_id', 'name'])
+    replace_global_unique_with_tenant(
+        'barcode_registry',
+        'barcode_value',
+        'uq_barcode_tenant_value',
+        index_names=('ix_barcode_registry_barcode_value',),
+        constraint_names=('barcode_registry_barcode_value_key',),
+    )
 
-    with op.batch_alter_table('barcode_registry', schema=None) as batch_op:
-        batch_op.drop_constraint('barcode_registry_barcode_value_key', type_='unique')
-        batch_op.create_unique_constraint('uq_barcode_tenant_value', ['tenant_id', 'barcode_value'])
-
-    with op.batch_alter_table('wards', schema=None) as batch_op:
-        batch_op.drop_constraint('wards_code_key', type_='unique')
-        batch_op.create_unique_constraint('uq_ward_tenant_code', ['tenant_id', 'code'])
+    replace_global_unique_with_tenant(
+        'wards',
+        'code',
+        'uq_ward_tenant_code',
+        constraint_names=('wards_code_key',),
+    )
 
     for table in RLS_TABLES:
         policy_name = f'tenant_isolation_{table}'
@@ -98,10 +116,11 @@ def downgrade() -> None:
 
     with op.batch_alter_table('barcode_registry', schema=None) as batch_op:
         batch_op.drop_constraint('uq_barcode_tenant_value', type_='unique')
-        batch_op.create_unique_constraint('barcode_registry_barcode_value_key', ['barcode_value'])
+        batch_op.create_index('ix_barcode_registry_barcode_value', ['barcode_value'], unique=True)
 
     with op.batch_alter_table('insurance_companies', schema=None) as batch_op:
         batch_op.drop_constraint('uq_insurance_company_tenant_name', type_='unique')
-        batch_op.create_unique_constraint('insurance_companies_name_key', ['name'])
+        batch_op.create_index('ix_insurance_companies_name', ['name'], unique=True)
 
-    op.drop_table('expenses')
+    if table_exists('expenses'):
+        op.drop_table('expenses')
