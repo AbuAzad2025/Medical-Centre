@@ -43,28 +43,30 @@ def _collect_orm_tenant_tables() -> set[str]:
                 tree = ast.parse(path.read_text(encoding='utf-8', errors='ignore'))
             except SyntaxError:
                 continue
-            tablename: str | None = None
-            has_tenant_id = False
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Assign):
-                    for target in node.targets:
-                        if isinstance(target, ast.Name) and target.id == '__tablename__':
-                            if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
-                                tablename = node.value.value
-                if isinstance(node, ast.ClassDef):
-                    for item in node.body:
-                        if isinstance(item, ast.Assign):
-                            for target in item.targets:
-                                if isinstance(target, ast.Name) and target.id == 'tenant_id':
-                                    has_tenant_id = True
-                        if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
-                            if item.target.id == 'tenant_id':
-                                has_tenant_id = True
-                    for base_node in node.bases:
-                        if isinstance(base_node, ast.Name) and base_node.id == 'TenantMixin':
+            for node in tree.body:
+                if not isinstance(node, ast.ClassDef):
+                    continue
+                tablename: str | None = None
+                has_tenant_id = False
+                for item in node.body:
+                    if isinstance(item, ast.Assign):
+                        for target in item.targets:
+                            if isinstance(target, ast.Name) and target.id == '__tablename__':
+                                if isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
+                                    tablename = item.value.value
+                    if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
+                        if item.target.id == 'tenant_id':
                             has_tenant_id = True
-            if tablename and has_tenant_id:
-                tables.add(tablename)
+                for base_node in node.bases:
+                    if isinstance(base_node, ast.Name) and base_node.id == 'TenantMixin':
+                        has_tenant_id = True
+                for item in node.body:
+                    if isinstance(item, ast.Assign):
+                        for target in item.targets:
+                            if isinstance(target, ast.Name) and target.id == 'tenant_id':
+                                has_tenant_id = True
+                if tablename and has_tenant_id:
+                    tables.add(tablename)
     return tables
 
 
