@@ -85,7 +85,7 @@ flask db upgrade
 docker compose exec app flask db upgrade
 
 # التحقق (كما في CI)
-python scripts/verify_migrations.py
+python scripts/ci/verify_migrations.py
 ```
 
 **سلسلة SaaS الحديثة:**

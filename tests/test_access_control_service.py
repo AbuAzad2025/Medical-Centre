@@ -307,3 +307,54 @@ class TestDecorators:
         with app.test_request_context():
             with pytest.raises(Forbidden):
                 view()
+
+    def test_require_role_allows(self, app, fx, monkeypatch):
+        monkeypatch.setattr(AC, 'has_role', lambda u, r: True)
+
+        @AC.require_role('admin')
+        def view():
+            return 'ok'
+
+        with app.test_request_context():
+            assert view() == 'ok'
+
+
+class TestPermissionDenyPaths:
+    def test_has_permission_returns_false_on_error(self, fx, monkeypatch):
+        monkeypatch.setattr(
+            'app.core.permission.service.PermissionService.has_permission',
+            lambda user, perm: (_ for _ in ()).throw(RuntimeError('permission backend down')),
+        )
+        u = fx.user(role='doctor')
+        assert AC.has_permission(u, 'view_all_visits') is False
+
+    def test_has_permission_delegates_to_service(self, fx, monkeypatch):
+        u = fx.user(role='admin')
+        monkeypatch.setattr(
+            'app.core.permission.service.PermissionService.has_permission',
+            lambda user, perm: perm == 'create_visits',
+        )
+        assert AC.has_permission(u, 'create_visits') is True
+        assert AC.has_permission(u, 'delete_everything') is False
+
+    def test_can_helpers_reflect_permission_service(self, fx, monkeypatch):
+        uid = fx.user(role='reception').id
+        monkeypatch.setattr(AC, 'has_permission', lambda user, perm: perm == 'process_payments')
+        assert AC.can_process_payment(uid) is True
+        assert AC.can_create_visit(uid) is False
+
+    def test_can_access_visit_exception_returns_false(self, fx, monkeypatch):
+        monkeypatch.setattr('services.access_control_service.db.session.get', lambda *a, **k: (_ for _ in ()).throw(RuntimeError()))
+        assert AC.can_access_visit(1, 1) is False
+
+    def test_can_modify_visit_doctor_other_visit_denied(self, fx):
+        doc = fx.user(role='doctor')
+        other = fx.user(role='doctor')
+        v = fx.visit(doctor_id=other.id)
+        assert AC.can_modify_visit(doc.id, v.id) is False
+
+    def test_nurse_has_no_menu_items(self, fx):
+        assert AC.get_user_menu_items(fx.user(role='nurse').id) == []
+
+    def test_manager_dashboard_route(self, fx):
+        assert AC.get_user_dashboard_route(fx.user(role='manager').id) == '/admin/dashboard'

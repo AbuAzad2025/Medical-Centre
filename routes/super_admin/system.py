@@ -8,6 +8,7 @@ from routes.super_admin import super_admin_bp
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, abort
 from flask_login import login_required, current_user
 from utils.decorators import super_admin_required
+from app.core.platform_capabilities import require_platform_capability
 from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
@@ -334,6 +335,7 @@ def system_cleanup():
 @super_admin_bp.route('/system/sms/test', methods=['POST'])
 @login_required
 @super_admin_required
+@require_platform_capability('sms_live')
 def test_sms():
     """إرسال رسالة SMS تجريبية"""
     try:

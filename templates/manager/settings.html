@@ -31,9 +31,11 @@
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
+                    {% if platform_capability('sms_live') %}
                     <button class="nav-link" id="sms-tab" data-bs-toggle="tab" data-bs-target="#sms" type="button" role="tab">
                         <i class="fas fa-comment-dots me-2"></i>الرسائل النصية
                     </button>
+                    {% endif %}
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="lab-tab" data-bs-toggle="tab" data-bs-target="#lab" type="button" role="tab">
@@ -90,6 +92,7 @@
                 </div>
 
                 <!-- SMS Tab -->
+                {% if platform_capability('sms_live') %}
                 <div class="tab-pane fade" id="sms" role="tabpanel">
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -137,6 +140,7 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
 
                 <!-- Lab Tab -->
                 <div class="tab-pane fade" id="lab" role="tabpanel">

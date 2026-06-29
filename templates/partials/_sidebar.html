@@ -18,6 +18,7 @@
             </li>
             {% for module_name, meta in module_registry.items() %}
                 {% if module_name != 'owner' and module_active(module_name) %}
+                {% if module_name != 'integration' or platform_capability('fhir_api') or platform_capability('sso') %}
                 <li class="nav-item">
                     {% set module_url = meta.default_route if meta.default_route and meta.default_route.startswith('/') else (url_for(meta.default_route) if meta.default_route else '#') %}
                     <a class="nav-link {{ 'active' if request.path.startswith(meta.route_prefixes[0]) if meta.route_prefixes else false }}" href="{{ module_url }}">
@@ -25,6 +26,7 @@
                         <span>{{ meta.name_ar }}</span>
                     </a>
                 </li>
+                {% endif %}
                 {% endif %}
             {% endfor %}
 

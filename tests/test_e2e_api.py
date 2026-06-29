@@ -48,7 +48,7 @@ API_BP_ROLE = {
 _PUBLIC_RE = re.compile(
     r'^(auth\.login|auth\.api_tenants_list|kiosk\.|booking\.|main\.(index|landing|'
     r'privacy|terms|support|about)|pwa\.|static|reception\.survey|'
-    r'biometric\.authenticate_challenge)',
+    r'biometric\.authenticate_challenge|saas\.)',
 )
 
 # Destructive / external / heavy — excluded from active authenticated calls (4 & 5).

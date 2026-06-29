@@ -9,11 +9,11 @@ __pycache__
 .env.*
 !.env.example
 tests/
+scripts/ci/
 scripts/dev/
-scripts/audit_nav_*.py
-scripts/bs4_audit.py
-scripts/lint_debt.py
 pytest_full_results.txt
+coverage.json
+htmlcov/
+agent-transcripts
 *.md
 !README.md
-agent-transcripts

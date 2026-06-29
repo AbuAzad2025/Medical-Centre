@@ -557,12 +557,26 @@ def create_app(config_name: str | None = None) -> Flask:
             bp.before_request(_guard_factory(module_name))
             bp._module_guard_added = True
 
+    def _add_platform_cap_guard(bp, cap):
+        @bp.before_request
+        def _platform_cap_guard():
+            from app.core.platform_capabilities import guard_platform_capability
+            guard_platform_capability(cap)
+
     # Helper: allow routes to check module access programmatically
     @app.context_processor
     def _inject_module_helpers():
         def module_active(name):
             return name in getattr(g, 'enabled_modules', set())
         return dict(module_active=module_active)
+
+    @app.context_processor
+    def _inject_platform_capabilities():
+        from app.core.platform_capabilities import get_capabilities, platform_capability
+        return {
+            'platform_capability': platform_capability,
+            'platform_capabilities': get_capabilities(),
+        }
 
     @app.context_processor
     def _inject_tenant_url_for():
@@ -621,6 +635,9 @@ def create_app(config_name: str | None = None) -> Flask:
     _add_guard_once(sso_bp, "integration")
     _add_guard_once(reception_currency_bp, "reception")
     _add_guard_once(fhir_bp, "integration")
+    _add_platform_cap_guard(biometric_bp, 'webauthn')
+    _add_platform_cap_guard(fhir_bp, 'fhir_api')
+    _add_platform_cap_guard(sso_bp, 'sso')
 
     app.register_blueprint(main_bp)
     from routes.api_search import api_search_bp

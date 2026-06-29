@@ -31,9 +31,9 @@ docker compose up -d --build
 | Backend | Flask, SQLAlchemy 2, PostgreSQL **16** |
 | Cache / Queue | Redis 7, Celery worker |
 | Multi-tenant | `ENABLE_SAAS_MODE`, ORM filter + RLS |
-| رأس التهجيرات | `s1_004_expenses_rls_uniques` |
-| جداول ORM | 209 (مطابقة migrations — `check_schema_parity.py`) |
-| RLS | 31 جدول (11 في s1_002 + 20 في s1_004) |
+| رأس التهجيرات | `s1_006_rls_phase3` |
+| جداول ORM | 209 (مطابقة migrations — `scripts/ci/check_schema_parity.py`) |
+| RLS | 80 جدول tenant (s1_002 + s1_004 + s1_005 + s1_006) |
 | Blueprints | 54 مسجّلة في `app_factory.py` |
 | وحدات المنصة | 15 في `MODULE_REGISTRY` |
 | اختبارات | ~104 ملف — CI مع `ENABLE_SAAS_MODE=true` |
@@ -60,9 +60,10 @@ SELECT slug, name_ar, monthly_price FROM product_bundles WHERE is_active ORDER B
 
 ## CI (`.github/workflows/ci.yml`)
 
-1. `verify_migrations.py` — upgrade على PostgreSQL فارغ + تطابق ORM
-2. `bootstrap_platform.py`
-3. `pytest` كامل + flake8 + coverage
+1. `scripts/ci/verify_migrations.py` — upgrade على PostgreSQL فارغ + تطابق ORM
+2. `scripts/ci/audit_rls_coverage.py` — تدقيق RLS
+3. `scripts/ops/bootstrap_platform.py`
+4. `pytest` كامل + flake8 + coverage
 
 ---
 
@@ -70,8 +71,9 @@ SELECT slug, name_ar, monthly_price FROM product_bundles WHERE is_active ORDER B
 
 | العنصر | الحكم |
 |--------|--------|
-| `scripts/dev/` | تطوير فقط (مُستبعد من `.dockerignore`) |
-| `scripts/audit_*.py`, `lint_debt.py` | تدقيق يدوي |
+| `scripts/ops/` | إنتاج — bootstrap بعد upgrade |
+| `scripts/ci/` | CI فقط — تهجيرات وRLS |
+| `scripts/dev/` | تطوير يدوي — مُستبعد من Docker |
 | `migrations/manual_scripts/` | يدوي — لا يُشغَّل مع upgrade |
 | `flask module-seed` | يفعّل كل الوحدات لكل tenants — **خطر في إنتاج** |
 
@@ -82,7 +84,7 @@ SELECT slug, name_ar, monthly_price FROM product_bundles WHERE is_active ORDER B
 ```bash
 curl -f http://localhost:8080/health
 curl -f http://localhost:8080/__health
-python scripts/check_schema_parity.py
+python scripts/ci/check_schema_parity.py
 ```
 
 ```sql

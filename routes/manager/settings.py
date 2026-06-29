@@ -3,6 +3,7 @@ from routes.manager import manager_bp
 from flask import render_template, request, jsonify
 from flask_login import login_required, current_user
 from utils.decorators import role_required
+from app.core.platform_capabilities import require_platform_capability
 from app_factory import db
 from app.core.tenant.models import Tenant
 import logging
@@ -62,6 +63,7 @@ def manager_settings():
 @manager_bp.route('/settings/test-sms', methods=['POST'])
 @login_required
 @role_required('manager', 'admin', 'super_admin')
+@require_platform_capability('sms_live')
 def manager_test_sms():
     try:
         data = request.get_json(force=True) or {}

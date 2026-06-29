@@ -56,6 +56,30 @@ def drop_unique_constraint_if_exists(table: str, constraint_name: str) -> None:
             batch_op.drop_constraint(constraint_name, type_='unique')
 
 
+def enable_tenant_rls(tables: list[str]) -> None:
+    for table in tables:
+        if not table_exists(table):
+            continue
+        policy_name = f'tenant_isolation_{table}'
+        op.execute(f'ALTER TABLE {table} ENABLE ROW LEVEL SECURITY')
+        op.execute(f'ALTER TABLE {table} FORCE ROW LEVEL SECURITY')
+        op.execute(f"DROP POLICY IF EXISTS {policy_name} ON {table}")
+        op.execute(
+            f"CREATE POLICY {policy_name} ON {table} "
+            f"USING (tenant_id = current_setting('app.tenant_id', true)::int)"
+        )
+
+
+def disable_tenant_rls(tables: list[str]) -> None:
+    for table in reversed(tables):
+        if not table_exists(table):
+            continue
+        policy_name = f'tenant_isolation_{table}'
+        op.execute(f"DROP POLICY IF EXISTS {policy_name} ON {table}")
+        op.execute(f'ALTER TABLE {table} NO FORCE ROW LEVEL SECURITY')
+        op.execute(f'ALTER TABLE {table} DISABLE ROW LEVEL SECURITY')
+
+
 def replace_global_unique_with_tenant(
     table: str,
     column: str,

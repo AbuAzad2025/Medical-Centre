@@ -49,7 +49,11 @@ def get_celery_app() -> Celery:
 
 def init_celery_app(flask_app) -> Celery:
     """Bind Celery tasks to the Flask application context."""
+    from services.tenant_job_runner import bind_flask_app
+
     celery = get_celery_app()
+    celery.flask_app = flask_app
+    bind_flask_app(flask_app)
 
     class FlaskContextTask(celery.Task):
         def __call__(self, *args, **kwargs):

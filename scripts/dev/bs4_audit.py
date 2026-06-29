@@ -6,7 +6,7 @@ import re
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 TEMPLATES_DIR = REPO_ROOT / 'templates'
 
 # Patterns that must not appear in rendered HTML templates (BS5 migration).

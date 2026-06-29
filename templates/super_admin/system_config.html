@@ -340,6 +340,7 @@
                                     </div>
                                 </div>
 
+                                {% if platform_capability('sms_live') %}
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
@@ -399,6 +400,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                {% endif %}
                                 <div class="row mt-3">
                                     <div class="col-md-12">
                                         <button type="button" class="btn btn-outline-secondary" onclick="processNotificationQueue()">
