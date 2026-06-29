@@ -144,13 +144,9 @@ class TestPrescriptionServiceCreatePrescription:
 
 class TestDoctorPrescriptionRoute:
     def test_creates_prescription_via_route(self, app, client, rx_visit, rx_doctor, rx_medications, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        _shared_store.clear()
-        client.post('/auth/login', data={
-            'username': 'rx_doctor',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
+        from tests.tenant_context import login_test_client
+
+        login_test_client(client, rx_doctor, test_tenant)
         resp = client.post(f'/doctor/prescription/{rx_visit.id}', data={
             'item_medication_id[]': [str(rx_medications[0].id)],
             'item_dosage[]': ['1 tablet'],
@@ -169,13 +165,9 @@ class TestDoctorPrescriptionRoute:
         assert items[0].total_price == 30
 
     def test_legacy_single_medication_form(self, app, client, rx_visit, rx_doctor, rx_medications, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        _shared_store.clear()
-        client.post('/auth/login', data={
-            'username': 'rx_doctor',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
+        from tests.tenant_context import login_test_client
+
+        login_test_client(client, rx_doctor, test_tenant)
         resp = client.post(f'/doctor/prescription/{rx_visit.id}', data={
             'medication_name': rx_medications[1].trade_name,
             'dosage': '1 tablet',

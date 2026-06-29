@@ -91,13 +91,9 @@ class TestRadiologyServiceCreateRequest:
 
 class TestDoctorRadiologyRequestRoute:
     def test_creates_structured_radiology_request(self, app, client, rad_visit, rad_doctor, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        _shared_store.clear()
-        client.post('/auth/login', data={
-            'username': 'rad_doctor',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
+        from tests.tenant_context import login_test_client
+
+        login_test_client(client, rad_doctor, test_tenant)
         resp = client.post(f'/doctor/radiology-request/{rad_visit.id}', data={
             'modality': 'XRAY',
             'body_part': 'Chest',
@@ -111,13 +107,9 @@ class TestDoctorRadiologyRequestRoute:
         assert req.body_part == 'Chest'
 
     def test_free_text_mode_without_modality(self, app, client, rad_visit, rad_doctor, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        _shared_store.clear()
-        client.post('/auth/login', data={
-            'username': 'rad_doctor',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
+        from tests.tenant_context import login_test_client
+
+        login_test_client(client, rad_doctor, test_tenant)
         resp = client.post(f'/doctor/radiology-request/{rad_visit.id}', data={
             'test_name': 'Custom scan',
             'notes': 'Please schedule',

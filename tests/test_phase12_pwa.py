@@ -73,13 +73,9 @@ class TestStaffShellPWA:
             u.set_password('test123')
             db.session.add(u)
             db.session.commit()
-        from app.core.rate_limiter import _shared_store
-        _shared_store.clear()
-        client.post('/auth/login', data={
-            'username': 'reception_p12',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
+        from tests.tenant_context import login_test_client
+
+        login_test_client(client, u, test_tenant)
         resp = client.get('/reception/dashboard')
         text = resp.get_data(as_text=True)
         assert resp.status_code == 200
