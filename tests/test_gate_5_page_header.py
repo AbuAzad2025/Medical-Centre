@@ -29,32 +29,8 @@ class TestPageHeaderMacro:
 
 class TestReceptionPagesUsePageHeader:
     @pytest.fixture
-    def reception_client(self, app, client, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        from app_factory import db as _db
-        from models.user import User
-
-        _shared_store.clear()
-        u = User.query.filter_by(username='reception_ph5').first()
-        if not u:
-            u = User(
-                username='reception_ph5',
-                email='reception_ph5@test.local',
-                full_name='استقبال PH5',
-                role='reception',
-                is_active=True,
-                tenant_id=test_tenant.id,
-            )
-            u.set_password('test123')
-            _db.session.add(u)
-            _db.session.commit()
-
-        client.post('/auth/login', data={
-            'username': 'reception_ph5',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
-        return client
+    def reception_client(self, client, login_as):
+        return login_as(client, 'reception_ph5', 'reception', full_name='استقبال PH5')
 
     def test_visits_page_has_clinical_page_header(self, reception_client):
         resp = reception_client.get('/reception/visits')
@@ -89,32 +65,8 @@ class TestReceptionPagesUsePageHeader:
 
 class TestDoctorQueuePageHeader:
     @pytest.fixture
-    def doctor_client(self, app, client, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        from app_factory import db as _db
-        from models.user import User
-
-        _shared_store.clear()
-        u = User.query.filter_by(username='doctor_ph5').first()
-        if not u:
-            u = User(
-                username='doctor_ph5',
-                email='doctor_ph5@test.local',
-                full_name='طبيب PH5',
-                role='doctor',
-                is_active=True,
-                tenant_id=test_tenant.id,
-            )
-            u.set_password('test123')
-            _db.session.add(u)
-            _db.session.commit()
-
-        client.post('/auth/login', data={
-            'username': 'doctor_ph5',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
-        return client
+    def doctor_client(self, client, login_as):
+        return login_as(client, 'doctor_ph5', 'doctor', full_name='طبيب PH5')
 
     def test_patient_queue_header(self, doctor_client):
         resp = doctor_client.get('/doctor/patient-queue')
@@ -149,88 +101,16 @@ class TestPharmacyPosPageHeader:
 
 class TestLabRadiologyEmergencyPageHeader:
     @pytest.fixture
-    def lab_client(self, app, client, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        from app_factory import db as _db
-        from models.user import User
-
-        _shared_store.clear()
-        u = User.query.filter_by(username='lab_ph5').first()
-        if not u:
-            u = User(
-                username='lab_ph5',
-                email='lab_ph5@test.local',
-                full_name='مختبر PH5',
-                role='lab',
-                is_active=True,
-                tenant_id=test_tenant.id,
-            )
-            u.set_password('test123')
-            _db.session.add(u)
-            _db.session.commit()
-
-        client.post('/auth/login', data={
-            'username': 'lab_ph5',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
-        return client
+    def lab_client(self, client, login_as):
+        return login_as(client, 'lab_ph5', 'lab', full_name='مختبر PH5')
 
     @pytest.fixture
-    def radiology_client(self, app, client, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        from app_factory import db as _db
-        from models.user import User
-
-        _shared_store.clear()
-        u = User.query.filter_by(username='radiology_ph5').first()
-        if not u:
-            u = User(
-                username='radiology_ph5',
-                email='radiology_ph5@test.local',
-                full_name='أشعة PH5',
-                role='radiology',
-                is_active=True,
-                tenant_id=test_tenant.id,
-            )
-            u.set_password('test123')
-            _db.session.add(u)
-            _db.session.commit()
-
-        client.post('/auth/login', data={
-            'username': 'radiology_ph5',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
-        return client
+    def radiology_client(self, client, login_as):
+        return login_as(client, 'radiology_ph5', 'radiology', full_name='أشعة PH5')
 
     @pytest.fixture
-    def emergency_client(self, app, client, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        from app_factory import db as _db
-        from models.user import User
-
-        _shared_store.clear()
-        u = User.query.filter_by(username='emergency_ph5').first()
-        if not u:
-            u = User(
-                username='emergency_ph5',
-                email='emergency_ph5@test.local',
-                full_name='طوارئ PH5',
-                role='emergency',
-                is_active=True,
-                tenant_id=test_tenant.id,
-            )
-            u.set_password('test123')
-            _db.session.add(u)
-            _db.session.commit()
-
-        client.post('/auth/login', data={
-            'username': 'emergency_ph5',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
-        return client
+    def emergency_client(self, client, login_as):
+        return login_as(client, 'emergency_ph5', 'emergency', full_name='طوارئ PH5')
 
     def test_lab_worklist_header(self, lab_client):
         resp = lab_client.get('/lab/worklist')
@@ -271,60 +151,12 @@ class TestLabRadiologyEmergencyPageHeader:
 
 class TestNurseSuperAdminPageHeader:
     @pytest.fixture
-    def nurse_client(self, app, client, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        from app_factory import db as _db
-        from models.user import User
-
-        _shared_store.clear()
-        u = User.query.filter_by(username='nurse_ph5').first()
-        if not u:
-            u = User(
-                username='nurse_ph5',
-                email='nurse_ph5@test.local',
-                full_name='ممرض PH5',
-                role='nurse',
-                is_active=True,
-                tenant_id=test_tenant.id,
-            )
-            u.set_password('test123')
-            _db.session.add(u)
-            _db.session.commit()
-
-        client.post('/auth/login', data={
-            'username': 'nurse_ph5',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
-        return client
+    def nurse_client(self, client, login_as):
+        return login_as(client, 'nurse_ph5', 'nurse', full_name='ممرض PH5')
 
     @pytest.fixture
-    def superadmin_client(self, app, client, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        from app_factory import db as _db
-        from models.user import User
-
-        _shared_store.clear()
-        u = User.query.filter_by(username='superadmin_ph5').first()
-        if not u:
-            u = User(
-                username='superadmin_ph5',
-                email='superadmin_ph5@test.local',
-                full_name='سوبر أدمن PH5',
-                role='super_admin',
-                is_active=True,
-                tenant_id=test_tenant.id,
-            )
-            u.set_password('test123')
-            _db.session.add(u)
-            _db.session.commit()
-
-        client.post('/auth/login', data={
-            'username': 'superadmin_ph5',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
-        return client
+    def superadmin_client(self, client, login_as):
+        return login_as(client, 'superadmin_ph5', 'super_admin', full_name='سوبر أدمن PH5')
 
     def test_nurse_reports_header(self, nurse_client):
         resp = nurse_client.get('/nurse/reports')

@@ -130,6 +130,12 @@ def _tenant_from_authenticated_user() -> Tenant | None:
         if tid:
             return Tenant.query.get(int(tid))
 
+        slug = session.get('tenant_slug')
+        if slug:
+            tenant = _get_tenant_by_slug(slug)
+            if tenant:
+                return tenant
+
         user_id = session.get('_user_id')
         if not user_id:
             try:
@@ -225,6 +231,18 @@ def set_tenant_context():
         tenant = _tenant_from_authenticated_user()
 
     if saas and not is_exempt and tenant is None:
+        try:
+            from flask_login import current_user
+            if not current_user.is_authenticated:
+                g.current_tenant = None
+                g.tenant_id = None
+                g.tenant_slug = None
+                g.enabled_modules = set()
+                g.product_profile = None
+                g.feature_flags = {}
+                return
+        except Exception:
+            pass
         from flask import abort
         abort(403, description='No tenant could be resolved for this request.')
 

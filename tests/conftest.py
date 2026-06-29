@@ -189,6 +189,21 @@ def _clear_flask_login_state():
 
 
 @pytest.fixture(scope='function')
+def login_as(test_tenant, db):
+    """Factory fixture: ``login_as(client, username, role)`` → authenticated client."""
+    from tests.tenant_context import ensure_test_user, login_test_client
+
+    def _login(client, username, role, password='test123', **user_extra):
+        user = ensure_test_user(
+            db, test_tenant, username=username, role=role, password=password, **user_extra
+        )
+        login_test_client(client, user, test_tenant, password)
+        return client
+
+    return _login
+
+
+@pytest.fixture(scope='function')
 def client(app):
     return app.test_client()
 
@@ -207,7 +222,8 @@ def test_tenant(app):
 
     t = ensure_default_test_tenant(app)
     t = _db.session.merge(t)
-    t.settings = None
+    if t.settings is None:
+        t.settings = {}
     _db.session.commit()
     return t
 
@@ -261,14 +277,9 @@ def test_medications(app, test_tenant):
 @pytest.fixture(scope='function')
 def auth_client(app, client, test_user, test_tenant):
     """Return an authenticated test client for pharmacist via login POST."""
-    # Clear rate limiter state before login
-    from app.core.rate_limiter import _shared_store
-    _shared_store.clear()
-    client.post('/auth/login', data={
-        'username': 'pharmacist_test',
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    })
+    from tests.tenant_context import login_test_client
+
+    login_test_client(client, test_user, test_tenant)
     return client
 
 
@@ -294,13 +305,9 @@ def manager_user(app, test_tenant):
 @pytest.fixture(scope='function')
 def manager_auth_client(app, client, manager_user, test_tenant):
     """Return an authenticated test client for manager via login POST."""
-    from app.core.rate_limiter import _shared_store
-    _shared_store.clear()
-    client.post('/auth/login', data={
-        'username': 'manager_test',
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    })
+    from tests.tenant_context import login_test_client
+
+    login_test_client(client, manager_user, test_tenant)
     return client
 
 

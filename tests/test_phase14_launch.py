@@ -52,37 +52,42 @@ BS4_LEGACY_MARKERS = ('font-weight-bold', 'data-dismiss="modal"')
 BS4_DEBT_CEILING = 350
 
 
-def _ensure_role_user(db, tenant, role: str) -> str:
+def _ensure_role_user(db, tenant, role: str):
     username = f'phase14_{role}'
+    from flask import g
     from models.user import User
 
-    user = User.query.filter_by(username=username).first()
-    if not user:
-        user = User(
-            username=username,
-            email=f'{username}@test.local',
-            full_name=f'مستخدم {role}',
-            role=role,
-            is_active=True,
-            tenant_id=tenant.id,
-        )
-        user.set_password('test123')
-        db.session.add(user)
-        db.session.commit()
-    return username
+    prev_bypass = g.get('_tenant_filter_bypass', False)
+    g._tenant_filter_bypass = True
+    try:
+        user = User.query.filter_by(username=username, tenant_id=tenant.id).first()
+        if not user:
+            user = User(
+                username=username,
+                email=f'{username}@test.local',
+                full_name=f'مستخدم {role}',
+                role=role,
+                is_active=True,
+                tenant_id=tenant.id,
+            )
+            user.set_password('test123')
+            db.session.add(user)
+            db.session.commit()
+        return user
+    finally:
+        if prev_bypass:
+            g._tenant_filter_bypass = True
+        else:
+            g.pop('_tenant_filter_bypass', None)
 
 
 def _login_as(client, tenant, role: str | None, db):
     if not role:
         return client
-    from app.core.rate_limiter import _shared_store
+    from tests.tenant_context import login_test_client
 
-    _shared_store.clear()
-    username = _ensure_role_user(db, tenant, role)
-    client.post(
-        '/auth/login',
-        data={'username': username, 'password': 'test123', 'tenant_slug': tenant.slug},
-    )
+    user = _ensure_role_user(db, tenant, role)
+    login_test_client(client, user, tenant)
     return client
 
 
