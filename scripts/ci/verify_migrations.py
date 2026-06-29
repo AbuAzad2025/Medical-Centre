@@ -10,14 +10,14 @@ from pathlib import Path
 from sqlalchemy import create_engine, inspect, text
 
 # Keep in sync with migrations/versions/ head revision.
-ALEMBIC_HEAD_REVISION = 's1_004_expenses_rls_uniques'
+ALEMBIC_HEAD_REVISION = 's1_006_rls_phase3'
 
 
 def _collect_orm_tables() -> set[str]:
     import re
     from pathlib import Path
 
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     tables: set[str] = set()
     for base in (root / 'models', root / 'app'):
         if not base.is_dir():

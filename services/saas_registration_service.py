@@ -1,10 +1,14 @@
 """Automated SaaS self-service tenant registration (S0 provisioning loop)."""
 from __future__ import annotations
 
+import json
 import logging
 import os
 import re
+import urllib.parse
+import urllib.request
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from typing import Iterator, Optional, Tuple
 
 from flask import g, has_request_context
@@ -19,6 +23,9 @@ from models.user import User
 logger = logging.getLogger(__name__)
 
 _SLUG_RE = re.compile(r'^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$')
+_SIGNUP_FLOOD_EMAIL_LIMIT = 3
+_SIGNUP_FLOOD_IP_LIMIT = 10
+_SIGNUP_FLOOD_WINDOW = timedelta(hours=1)
 
 
 class SaasRegistrationError(ValueError):
@@ -55,6 +62,59 @@ class SaasRegistrationService:
                 g._tenant_filter_bypass = True
             else:
                 g.pop('_tenant_filter_bypass', None)
+
+    @classmethod
+    def _validate_bot_fields(cls, honeypot: str | None) -> None:
+        if honeypot and str(honeypot).strip():
+            raise SaasRegistrationError('bot_detected')
+
+    @classmethod
+    def _verify_captcha(cls, token: str | None) -> None:
+        secret = os.environ.get('SIGNUP_CAPTCHA_SECRET', '').strip()
+        if not secret:
+            return
+        if not token or not str(token).strip():
+            raise SaasRegistrationError('captcha_required')
+        payload = urllib.parse.urlencode({
+            'secret': secret,
+            'response': token.strip(),
+        }).encode()
+        req = urllib.request.Request(
+            'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+            data=payload,
+            method='POST',
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                result = json.loads(resp.read().decode())
+        except Exception as exc:
+            logger.warning('Captcha verification request failed: %s', exc)
+            raise SaasRegistrationError('captcha_failed') from exc
+        if not result.get('success'):
+            raise SaasRegistrationError('captcha_failed')
+
+    @classmethod
+    def _check_signup_flood(cls, email: str, client_ip: str | None) -> None:
+        hour_ago = datetime.now(timezone.utc) - _SIGNUP_FLOOD_WINDOW
+        email_norm = (email or '').strip().lower()
+
+        pending_recent = cls._with_tenant_bypass(
+            lambda: Tenant.query.filter(
+                Tenant.status == TenantStatus.PENDING,
+                Tenant.created_at >= hour_ago,
+            ).all()
+        )
+        email_count = sum(1 for t in pending_recent if (t.contact_email or '').lower() == email_norm)
+        if email_count >= _SIGNUP_FLOOD_EMAIL_LIMIT:
+            raise SaasRegistrationError('signup_flood_email')
+
+        if client_ip:
+            ip_count = sum(
+                1 for t in pending_recent
+                if (t.settings or {}).get('signup_ip') == client_ip
+            )
+            if ip_count >= _SIGNUP_FLOOD_IP_LIMIT:
+                raise SaasRegistrationError('signup_flood_ip')
 
     @classmethod
     def _normalize_slug(cls, slug: str) -> str:
@@ -133,9 +193,16 @@ class SaasRegistrationService:
         package_version_id: Optional[int] = None,
         billing_type: str = 'monthly',
         product_profile_code: Optional[str] = None,
+        honeypot: str | None = None,
+        captcha_token: str | None = None,
+        client_ip: str | None = None,
     ) -> RegistrationResult:
-        slug = cls._normalize_slug(slug)
+        cls._validate_bot_fields(honeypot)
+        cls._verify_captcha(captcha_token)
         email = (contact_email or '').strip().lower()
+        cls._check_signup_flood(email, client_ip)
+
+        slug = cls._normalize_slug(slug)
         username = (admin_username or '').strip().lower()
         if not all([name, email, username, admin_password, admin_full_name]):
             raise SaasRegistrationError('missing_required_fields')
@@ -156,6 +223,10 @@ class SaasRegistrationService:
             )
         except ProvisioningError as exc:
             raise SaasRegistrationError(str(exc)) from exc
+
+        if client_ip:
+            tenant.settings = {**(tenant.settings or {}), 'signup_ip': client_ip}
+            db.session.add(tenant)
 
         checkout_url: Optional[str] = None
         if payment_required:

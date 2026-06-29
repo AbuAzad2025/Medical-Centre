@@ -9,7 +9,7 @@ from pathlib import Path
 from migrations.migration_utils import column_exists, fk_exists, index_exists, table_exists
 
 # Keep in sync with the latest Alembic revision in migrations/versions/.
-ALEMBIC_HEAD_REVISION = 's1_004_expenses_rls_uniques'
+ALEMBIC_HEAD_REVISION = 's1_006_rls_phase3'
 
 
 def test_migration_utils_callable():
@@ -17,15 +17,23 @@ def test_migration_utils_callable():
     assert callable(column_exists)
     assert callable(index_exists)
     assert callable(fk_exists)
+    from migrations.migration_utils import enable_tenant_rls, disable_tenant_rls
+    assert callable(enable_tenant_rls)
+    assert callable(disable_tenant_rls)
 
 
 def test_verify_migrations_script_exists():
-    script = Path(__file__).parent.parent / 'scripts' / 'verify_migrations.py'
+    script = Path(__file__).parent.parent / 'scripts' / 'ci' / 'verify_migrations.py'
+    assert script.is_file()
+
+
+def test_audit_rls_coverage_script_exists():
+    script = Path(__file__).parent.parent / 'scripts' / 'ci' / 'audit_rls_coverage.py'
     assert script.is_file()
 
 
 def test_check_schema_parity_script():
-    script = Path(__file__).parent.parent / 'scripts' / 'check_schema_parity.py'
+    script = Path(__file__).parent.parent / 'scripts' / 'ci' / 'check_schema_parity.py'
     assert script.is_file()
     result = subprocess.run(
         [sys.executable, str(script)],

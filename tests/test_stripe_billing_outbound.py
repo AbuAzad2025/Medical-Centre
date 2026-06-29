@@ -109,3 +109,57 @@ class TestStripeBillingOutbound:
         monkeypatch.delenv('STRIPE_SECRET_KEY', raising=False)
         with pytest.raises(StripeBillingError):
             StripeBillingService.ensure_customer(1)
+
+    def test_tenant_not_found_raises(self, app, stripe_api_key):
+        with pytest.raises(StripeBillingError, match='tenant_not_found'):
+            StripeBillingService.ensure_customer(99999999)
+
+    def test_cancel_immediate_cancels_tenant(self, app, stripe_api_key, billing_tenant, monkeypatch):
+        tenant, _version = billing_tenant
+        tenant.settings = {'stripe_subscription_id': 'sub_immediate'}
+        from app.extensions import db
+        db.session.commit()
+
+        mock_sub = MagicMock(id='sub_immediate', status='canceled')
+        monkeypatch.setattr(
+            'services.stripe_billing_service.stripe.Subscription.cancel',
+            lambda sub_id: mock_sub,
+        )
+
+        result = StripeBillingService.cancel_subscription(tenant.id, at_period_end=False)
+        assert result['cancel_at_period_end'] is False
+        db.session.refresh(tenant)
+        assert tenant.status == TenantStatus.CANCELLED
+
+    def test_cancel_missing_subscription_raises(self, app, stripe_api_key, billing_tenant):
+        with pytest.raises(StripeBillingError, match='stripe_subscription_missing'):
+            StripeBillingService.cancel_subscription(billing_tenant[0].id)
+
+    def test_billing_portal_session_returns_url(self, app, stripe_api_key, billing_tenant, monkeypatch):
+        tenant, _version = billing_tenant
+        monkeypatch.setattr(
+            'services.stripe_billing_service.stripe.Customer.create',
+            lambda **kw: MagicMock(id='cus_portal'),
+        )
+        monkeypatch.setattr(
+            'services.stripe_billing_service.stripe.billing_portal.Session.create',
+            lambda **kw: MagicMock(url='https://billing.stripe.test/portal'),
+        )
+
+        result = StripeBillingService.create_billing_portal_session(
+            tenant.id, return_url='https://example.com/settings',
+        )
+        assert 'billing.stripe.test' in result['url']
+
+    def test_checkout_missing_package_version_raises(self, app, stripe_api_key, billing_tenant, monkeypatch):
+        tenant, _version = billing_tenant
+        monkeypatch.setattr(
+            'services.stripe_billing_service.stripe.Customer.create',
+            lambda **kw: MagicMock(id='cus_x'),
+        )
+        with pytest.raises(StripeBillingError, match='package_version_not_found'):
+            StripeBillingService.create_checkout_session(
+                tenant.id, 99999999, 'monthly',
+                success_url='https://example.com/ok',
+                cancel_url='https://example.com/cancel',
+            )

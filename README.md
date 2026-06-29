@@ -25,7 +25,7 @@
 - **مالية متكاملة** — فواتير، دفعات (نقدي/بطاقة/تأمين/قسري)، مصروفات، تسوية زيارات
 - **تأمين** — شركات تأمين، مطالبات، تغطية تلقائية (قيود فريدة لكل tenant)
 - **SaaS** — `/saas/signup`، باقات `PackageVersion`، فترة تجريبية أو دفع فوري عبر Stripe
-- **عزل البيانات** — فلترة ORM + Row-Level Security على PostgreSQL (31 جدولاً)
+- **عزل البيانات** — فلترة ORM + Row-Level Security على PostgreSQL (**80** جدولاً)
 - **صلاحيات** — أدوار متعددة، `guard_module` مركزي، CSRF، rate limiting
 - **بصمة/WebAuthn** — تسجيل بيانات اعتماد بيومترية في قاعدة البيانات
 - **نسخ احتياطي** — Celery + `pg_dump` (يتطلب عميل PostgreSQL في بيئة التشغيل)
@@ -41,10 +41,11 @@ medical_system/
 ├── routes/              # ~140 ملف مسارات (blueprints)
 ├── services/            # ~58 خدمة أعمال
 ├── templates/           # ~385 قالب HTML
-├── migrations/          # Alembic — الرأس: s1_004_expenses_rls_uniques
-├── celery_worker.py     # عامل Celery
-├── docker-compose.yml   # db + redis + app + worker
-└── .github/workflows/   # CI: migrate + pytest + coverage
+├── migrations/          # Alembic — الرأس: s1_006_rls_phase3
+├── scripts/
+│   ├── ops/             # إنتاج — bootstrap
+│   ├── ci/              # GitHub Actions — تهجيرات + RLS
+│   └── dev/             # تطوير يدوي (مستبعد من Docker)
 ```
 
 **Backend:** Flask 2.3+, SQLAlchemy 2, Flask-Login, Flask-Migrate, Stripe SDK  
@@ -152,7 +153,7 @@ GitHub Actions: تهجيرات على PostgreSQL 16، pytest كامل مع `ENAB
 |-----------|--------|
 | `docker compose up` (upgrade + bootstrap + gunicorn) | ✅ |
 | SaaS + Stripe | ✅ يتطلب إعداد مفاتيح |
-| عزل multi-tenant | ✅ ORM + RLS (31 جدول) |
+| عزل multi-tenant | ✅ ORM + RLS (80 جدول) |
 | UX موحّد | 🟡 تحسين مستمر |
 
 التفاصيل: [docs/PLATFORM_STATUS.md](docs/PLATFORM_STATUS.md)

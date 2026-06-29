@@ -56,7 +56,10 @@ jobs:
           pip install -r requirements.txt
 
       - name: Verify Alembic upgrade (fresh DB)
-        run: python scripts/verify_migrations.py
+        run: python scripts/ci/verify_migrations.py
+
+      - name: Audit RLS coverage
+        run: python scripts/ci/audit_rls_coverage.py
 
       - name: Bootstrap platform catalog
         run: python scripts/ops/bootstrap_platform.py

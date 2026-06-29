@@ -50,6 +50,26 @@ class TestTenantJobRunner:
             assert active.id in called_ids
             assert inactive.id not in called_ids
 
+    def test_with_tenant_context_binds_tenant_id(self, app):
+        from flask import g
+        from services.tenant_job_runner import with_tenant_context
+        from app.core.tenant.models import Tenant, TenantStatus
+        from app.extensions import db
+
+        with app.app_context():
+            tenant = Tenant(
+                slug=_unique_slug('bind-ctx'),
+                name='Bind Ctx',
+                contact_email='bind@example.com',
+                status=TenantStatus.ACTIVE,
+            )
+            db.session.add(tenant)
+            db.session.commit()
+
+            captured = {}
+            with_tenant_context(app, tenant.id, lambda: captured.update(tenant_id=g.get('tenant_id')))
+            assert captured['tenant_id'] == tenant.id
+
 
 @pytest.mark.no_tenant_context
 class TestNotificationQueueTenantIsolation:

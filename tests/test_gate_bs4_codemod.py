@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.bs4_audit import REPO_ROOT, scan_templates
+from scripts.dev.bs4_audit import REPO_ROOT, scan_templates
 
 RECEPTION_QUEUE_PATH = REPO_ROOT / 'templates' / 'reception' / 'queue_management.html'
 ADD_QUEUE_PATH = REPO_ROOT / 'templates' / 'reception' / 'add_patient_to_queue.html'

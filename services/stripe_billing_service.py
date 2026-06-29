@@ -161,6 +161,9 @@ class StripeBillingService:
                 subscription_id,
                 cancel_at_period_end=True,
             )
+            if getattr(subscription, 'status', None) in ('canceled', 'cancelled'):
+                TenantProvisioningService.cancel_tenant(tenant_id)
+                EntitlementProjectionService.calculate(tenant_id)
             db.session.commit()
             return {
                 'subscription_id': subscription.id,

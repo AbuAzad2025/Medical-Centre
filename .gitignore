@@ -81,6 +81,8 @@ medical_system.db
 debug/
 seeds/
 reports/
+pytest_out.txt
+agent-tools/
 
 # Ad-hoc scripts at repo root only (tests/ and scripts/ are tracked)
 dev/
