@@ -9,7 +9,7 @@ from pathlib import Path
 from migrations.migration_utils import column_exists, fk_exists, index_exists, table_exists
 
 # Keep in sync with the latest Alembic revision in migrations/versions/.
-ALEMBIC_HEAD_REVISION = 's1_002_tenant_rls_policies'
+ALEMBIC_HEAD_REVISION = 's1_004_expenses_rls_uniques'
 
 
 def test_migration_utils_callable():
@@ -22,6 +22,18 @@ def test_migration_utils_callable():
 def test_verify_migrations_script_exists():
     script = Path(__file__).parent.parent / 'scripts' / 'verify_migrations.py'
     assert script.is_file()
+
+
+def test_check_schema_parity_script():
+  script = Path(__file__).parent.parent / 'scripts' / 'check_schema_parity.py'
+  assert script.is_file()
+  result = subprocess.run(
+      [sys.executable, str(script)],
+      capture_output=True,
+      text=True,
+      check=False,
+  )
+  assert result.returncode == 0, result.stderr or result.stdout
 
 
 def test_alembic_single_head(app):
