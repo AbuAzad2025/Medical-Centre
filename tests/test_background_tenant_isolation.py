@@ -63,7 +63,10 @@ class TestNotificationQueueTenantIsolation:
         from app.shared.enums import NotificationState
         from app.extensions import db
 
-        with app.app_context():
+        with app.app_context(), app.test_request_context():
+            from flask import g
+
+            g._tenant_filter_bypass = True
             # Create real tenants and a dummy user; production DB has FK and
             # NOT NULL constraints that the ORM model doesn't reflect.
             t1 = Tenant(slug=_unique_slug('notif-t1'), name='Notif T1', contact_email='t1@example.com', status='ACTIVE')
@@ -109,7 +112,10 @@ class TestAppointmentRemindersTenantIsolation:
         from app.extensions import db
         from datetime import datetime, timedelta
 
-        with app.app_context():
+        with app.app_context(), app.test_request_context():
+            from flask import g
+
+            g._tenant_filter_bypass = True
             now = datetime.now()
             soon = now + timedelta(hours=12)
 

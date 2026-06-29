@@ -86,12 +86,22 @@ def bind_tenant_on_g(tenant, *, db_session=None) -> None:
     from flask import g
     from sqlalchemy import text
 
-    g.tenant_id = tenant.id
+    tenant_id = int(tenant.id)
+    slug = getattr(tenant, 'slug', None)
+    if db_session is not None:
+        from app.core.tenant.models import Tenant
+
+        bound = db_session.get(Tenant, tenant_id)
+        if bound is not None:
+            tenant = bound
+            slug = tenant.slug
+
+    g.tenant_id = tenant_id
     g.current_tenant = tenant
-    g.tenant_slug = tenant.slug
+    g.tenant_slug = slug
     if db_session is not None:
         try:
-            db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant.id}'"))
+            db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_id}'"))
         except Exception:
             pass
 
