@@ -219,9 +219,12 @@ def login() -> ResponseReturnValue:
                     remember_flag = str((data.get('remember') or '')).lower() in {'1', 'true', 'on', 'yes'}
                     login_user(user, remember=remember_flag)
 
-                    session['tenant_id'] = user.tenant_id
+                    from flask import g as _g
+                    session['tenant_id'] = user.tenant_id or getattr(_g, 'tenant_id', None)
                     if tenant_slug:
                         session['tenant_slug'] = tenant_slug
+                    elif getattr(_g, 'tenant_slug', None):
+                        session['tenant_slug'] = _g.tenant_slug
                     
                     # تحديد الصفحة المناسبة حسب الدور
                     redirect_url = get_redirect_url_by_role(user.role)

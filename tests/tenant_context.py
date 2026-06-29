@@ -96,6 +96,55 @@ def bind_tenant_on_g(tenant, *, db_session=None) -> None:
             pass
 
 
+def login_test_client(client, user, tenant, password: str = 'test123'):
+    """POST /auth/login and ensure SaaS session carries tenant context."""
+    from app.core.rate_limiter import _shared_store
+
+    _shared_store.clear()
+    slug = getattr(tenant, 'slug', None) or ''
+    resp = client.post('/auth/login', data={
+        'username': user.username,
+        'password': password,
+        'tenant_slug': slug,
+    })
+    tid = getattr(user, 'tenant_id', None)
+    with client.session_transaction() as sess:
+        if tid is not None and not sess.get('tenant_id'):
+            sess['tenant_id'] = int(tid)
+        if slug and not sess.get('tenant_slug'):
+            sess['tenant_slug'] = slug
+    return resp
+
+
+def ensure_test_user(db, tenant, *, username: str, role: str, password: str = 'test123', **extra):
+    """Create or fetch a tenant-scoped user for SaaS-mode integration tests."""
+    from flask import g
+    from models.user import User
+
+    prev_bypass = g.get('_tenant_filter_bypass', False)
+    g._tenant_filter_bypass = True
+    try:
+        user = User.query.filter_by(username=username, tenant_id=tenant.id).first()
+        if not user:
+            user = User(
+                username=username,
+                email=extra.get('email', f'{username}@test.local'),
+                full_name=extra.get('full_name', username),
+                role=role,
+                is_active=True,
+                tenant_id=tenant.id,
+            )
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+        return user
+    finally:
+        if prev_bypass:
+            g._tenant_filter_bypass = True
+        else:
+            g.pop('_tenant_filter_bypass', None)
+
+
 @contextmanager
 def tenant_test_context(app: Flask, tenant=None, *, bypass: bool = False):
     """Establish tenant context for DB operations in SaaS mode tests."""

@@ -200,7 +200,7 @@ def _check_bundle_limits_on_update(instance, tenant_id):
     table = instance.__tablename__
     if table == 'users':
         current_count = db.session.execute(
-            db.text('SELECT COUNT(*) FROM users WHERE tenant_id = :tid AND deleted_at IS NULL'),
+            db.text('SELECT COUNT(*) FROM users WHERE tenant_id = :tid'),
             {'tid': tenant_id},
         ).scalar() or 0
         ok, _ = EntitlementResolver.check_limit(tenant_id, 'max_users', current_count)
@@ -209,7 +209,7 @@ def _check_bundle_limits_on_update(instance, tenant_id):
             raise ValueError(f"Bundle limit exceeded: maximum {cap} users allowed")
     elif table == 'patients':
         current_count = db.session.execute(
-            db.text('SELECT COUNT(*) FROM patients WHERE tenant_id = :tid AND deleted_at IS NULL'),
+            db.text('SELECT COUNT(*) FROM patients WHERE tenant_id = :tid'),
             {'tid': tenant_id},
         ).scalar() or 0
         ok, _ = EntitlementResolver.check_limit(tenant_id, 'max_patients', current_count)

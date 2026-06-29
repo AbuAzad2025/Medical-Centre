@@ -49,14 +49,9 @@ def reception_user(app, test_tenant):
 
 @pytest.fixture
 def reception_client(app, client, reception_user, test_tenant):
-    from app.core.rate_limiter import _shared_store
+    from tests.tenant_context import login_test_client
 
-    _shared_store.clear()
-    client.post('/auth/login', data={
-        'username': 'reception_pos_test',
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    })
+    login_test_client(client, reception_user, test_tenant)
     return client
 
 
