@@ -10,7 +10,7 @@ from pathlib import Path
 from sqlalchemy import create_engine, inspect, text
 
 # Keep in sync with migrations/versions/ head revision.
-ALEMBIC_HEAD_REVISION = 's1_006_rls_phase3'
+ALEMBIC_HEAD_REVISION = 's1_007_rls_phase4'
 
 
 def _collect_orm_tables() -> set[str]:

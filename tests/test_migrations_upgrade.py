@@ -9,7 +9,7 @@ from pathlib import Path
 from migrations.migration_utils import column_exists, fk_exists, index_exists, table_exists
 
 # Keep in sync with the latest Alembic revision in migrations/versions/.
-ALEMBIC_HEAD_REVISION = 's1_006_rls_phase3'
+ALEMBIC_HEAD_REVISION = 's1_007_rls_phase4'
 
 
 def test_migration_utils_callable():
