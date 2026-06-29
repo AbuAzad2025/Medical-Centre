@@ -85,20 +85,28 @@ def bind_tenant_on_g(tenant, *, db_session=None) -> None:
     """Set Flask ``g`` tenant fields and optional PostgreSQL RLS session var."""
     from flask import g
     from sqlalchemy import text
+    from sqlalchemy.orm import object_session
 
-    tenant_id = int(tenant.id)
-    slug = getattr(tenant, 'slug', None)
-    if db_session is not None:
-        from app.core.tenant.models import Tenant
+    from app.core.tenant.models import Tenant
 
-        bound = db_session.get(Tenant, tenant_id)
-        if bound is not None:
-            tenant = bound
-            slug = tenant.slug
+    if isinstance(tenant, int):
+        tenant_id = tenant
+    elif tenant.__dict__.get('id') is not None:
+        tenant_id = int(tenant.__dict__['id'])
+    elif object_session(tenant) is not None:
+        tenant_id = int(tenant.id)
+    else:
+        return
+
+    bound = db_session.get(Tenant, tenant_id) if db_session is not None else None
+    if bound is None:
+        bound = Tenant.query.get(tenant_id)
+    if bound is None:
+        return
 
     g.tenant_id = tenant_id
-    g.current_tenant = tenant
-    g.tenant_slug = slug
+    g.current_tenant = bound
+    g.tenant_slug = bound.slug
     if db_session is not None:
         try:
             db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_id}'"))

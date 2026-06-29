@@ -10,11 +10,7 @@ from sqlalchemy import func
 # إنشاء Blueprint للسوبر أدمن
 super_admin_bp = Blueprint('super_admin', __name__)
 
-from services.feature_gate_service import guard_module
-
-@super_admin_bp.before_request
-def _guard_owner_module():
-    guard_module('owner')
+# Platform /super-admin console is not gated by a single tenant's module bundle.
 
 
 # ═══════════════════════════════════════
