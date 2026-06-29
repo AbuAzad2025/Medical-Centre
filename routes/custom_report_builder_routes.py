@@ -17,11 +17,6 @@ from models.reporting import ReportTemplate
 
 report_builder_bp = Blueprint('report_builder', __name__)
 
-from services.feature_gate_service import guard_module
-
-@report_builder_bp.before_request
-def _guard_reporting_module():
-    guard_module('reporting')
 
 
 @report_builder_bp.route('/')

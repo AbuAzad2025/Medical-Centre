@@ -1,4 +1,7 @@
 # 🏥 تقرير اختبار النظام الطبي
+
+> **⚠️ تقرير تاريخي (أكتوبر 2025).** للاختبارات الحالية: GitHub Actions CI مع PostgreSQL 16 و`ENABLE_SAAS_MODE=true`. محلياً: `python -m pytest tests/ -q`.
+
 **التاريخ:** 12 أكتوبر 2025  
 **المختبر:** AI System Tester  
 **البيئة:** http://127.0.0.1:5001

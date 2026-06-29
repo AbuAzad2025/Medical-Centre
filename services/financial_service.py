@@ -36,10 +36,18 @@ class FinancialService:
                 pq = pq.filter(Payment.payment_date <= end_date)
             total_collected = pq.with_entities(func.coalesce(func.sum(Payment.amount), 0)).scalar()
 
+            from models.expense import Expense
+            eq = Expense.query
+            if start_date:
+                eq = eq.filter(Expense.expense_date >= start_date)
+            if end_date:
+                eq = eq.filter(Expense.expense_date <= end_date)
+            total_expenses = eq.with_entities(func.coalesce(func.sum(Expense.amount), 0)).scalar()
+
             return {
                 "total_billed": float(total_billed),
                 "total_collected": float(total_collected),
-                "total_expenses": 0,
+                "total_expenses": float(total_expenses),
                 "pending": float(total_billed) - float(total_collected),
             }
         except Exception:
@@ -183,29 +191,58 @@ class FinancialService:
 
     @staticmethod
     def get_expenses(category: str | None = None, limit: int = 100) -> dict:
-        """Standardized stub — expense model not yet in schema."""
-        return {
-            "success": True,
-            "available": False,
-            "expenses": [],
-            "message": "Expense tracking is not yet available",
-            "category": category,
-            "limit": limit,
-        }
+        from models.expense import Expense
+        try:
+            query = Expense.query.order_by(Expense.expense_date.desc(), Expense.id.desc())
+            if category:
+                query = query.filter(Expense.category == category)
+            rows = query.limit(max(1, min(limit, 500))).all()
+            return {
+                "success": True,
+                "available": True,
+                "expenses": [row.to_dict() for row in rows],
+                "category": category,
+                "limit": limit,
+            }
+        except Exception as e:
+            logging.error("Error loading expenses: %s", e)
+            return {
+                "success": False,
+                "available": True,
+                "expenses": [],
+                "message": str(e),
+                "category": category,
+                "limit": limit,
+            }
 
     @staticmethod
-    def record_expense(description: str, amount: float, category: str, recorded_by: int) -> dict:
-        """Standardized stub — expense model not yet in schema."""
-        logging.info(
-            "record_expense stub (desc=%s amount=%s category=%s by=%s)",
-            description, amount, category, recorded_by,
-        )
-        return {
-            "success": False,
-            "available": False,
-            "expense": None,
-            "message": "Expense tracking is not yet available",
-        }
+    def record_expense(
+        description: str,
+        amount: float,
+        category: str,
+        recorded_by: int,
+        *,
+        expense_date: date | None = None,
+    ) -> dict:
+        from models.expense import Expense
+        try:
+            if amount <= 0:
+                return {"success": False, "available": True, "expense": None, "message": "amount_must_be_positive"}
+            expense = Expense(
+                description=description,
+                amount=Decimal(str(amount)),
+                category=category,
+                recorded_by_id=recorded_by,
+                expense_date=expense_date or date.today(),
+                status="RECORDED",
+            )
+            db.session.add(expense)
+            db.session.commit()
+            return {"success": True, "available": True, "expense": expense.to_dict(), "message": None}
+        except Exception as e:
+            db.session.rollback()
+            logging.error("Error recording expense: %s", e)
+            return {"success": False, "available": True, "expense": None, "message": str(e)}
 
 
 # Singleton

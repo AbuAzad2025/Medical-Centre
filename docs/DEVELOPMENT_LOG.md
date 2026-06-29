@@ -228,3 +228,30 @@
 **آخر فحص:** 12 أكتوبر 2025 - 22:46  
 **النتيجة:** ✅ **نظام سليم ومتكامل**
 
+---
+
+## يونيو 2026 — إغلاق فجوات SaaS والإنتاج
+
+**التاريخ:** 2026-06-28
+
+### منفَّذ
+- نموذج `Expense` + migration `s1_004_expenses_rls_uniques` (RLS + قيود per-tenant)
+- توسيع RLS من 11 إلى 30 جدولاً
+- توحيد `api_provision_tenant` مع `TenantProvisioningService`
+- إزالة `guard_module` المكرر من 34 ملف route
+- Stripe checkout عند التسجيل + حالة `PENDING`
+- `BiometricAuth` متصل بقاعدة البيانات
+- إصلاحات أمنية: trial login، CSRF webhook، إزالة backdoor owner
+- Docker Compose: SaaS + Celery worker + `flask db upgrade`
+- CI أخضر مع `ENABLE_SAAS_MODE=true`
+
+### توثيق محدّث
+- `README.md`, `docs/USER_GUIDE.md`, `docs/CEO_OVERVIEW.md`, `docs/DEPLOYMENT.md`
+
+### الحالة الحالية (تقريبي)
+```
+Models: ~84 | Services: ~58 | Templates: ~385
+Migration head: s1_004_expenses_rls_uniques
+CI: pytest full suite + PostgreSQL 16 + Redis
+```
+

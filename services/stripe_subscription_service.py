@@ -74,6 +74,19 @@ class StripeSubscriptionService:
         tenant = cls._tenant_from_event(event)
         obj = event.get('data', {}).get('object', {})
 
+        if event_type == 'checkout.session.completed':
+            if tenant is None:
+                return {'ignored': True, 'reason': 'tenant_not_found'}
+            cls._store_stripe_refs(
+                tenant,
+                customer_id=obj.get('customer'),
+                subscription_id=obj.get('subscription'),
+            )
+            tenant.status = TenantStatus.ACTIVE
+            db.session.commit()
+            EntitlementProjectionService.calculate(tenant.id)
+            return {'tenant_id': tenant.id, 'action': 'checkout_completed'}
+
         if event_type == 'customer.subscription.created':
             if tenant is None:
                 return {'ignored': True, 'reason': 'tenant_not_found'}

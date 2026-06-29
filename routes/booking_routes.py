@@ -19,11 +19,6 @@ import secrets
 
 booking_bp = Blueprint('booking', __name__)
 
-from services.feature_gate_service import guard_module
-
-@booking_bp.before_request
-def _guard_appointments_module():
-    guard_module('appointments')
 
 def _extract_meeting_link(notes):
     if not notes:

@@ -161,16 +161,21 @@ class StripeBillingService:
                 subscription_id,
                 cancel_at_period_end=True,
             )
-        else:
-            subscription = stripe.Subscription.cancel(subscription_id)
+            db.session.commit()
+            return {
+                'subscription_id': subscription.id,
+                'status': subscription.status,
+                'cancel_at_period_end': True,
+            }
 
+        subscription = stripe.Subscription.cancel(subscription_id)
         TenantProvisioningService.cancel_tenant(tenant_id)
         db.session.commit()
         EntitlementProjectionService.calculate(tenant_id)
         return {
             'subscription_id': subscription.id,
             'status': subscription.status,
-            'cancel_at_period_end': getattr(subscription, 'cancel_at_period_end', False),
+            'cancel_at_period_end': False,
         }
 
     @classmethod

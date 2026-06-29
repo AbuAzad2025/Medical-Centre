@@ -1,8 +1,37 @@
 # تقرير التدقيق الشامل والنظام — Comprehensive System Audit & Maintenance Plan
 
-**تاريخ التقرير:** 2026-06-16  
-**مصادر التدقيق:** 8 تقارير تدقيق داخلي (UI، تنقل، صلاحيات، نماذج، جداول، CSS، RTL، بنية) + تدقيق خارجي مستقل (GitHub Static Code Audit)  
-**النسخة:** Azad Medical Platform v3.0
+**تاريخ التقرير الأصلي:** 2026-06-16  
+**آخر تحديث للحالة:** 2026-06-28  
+**النسخة:** Azad Medical Platform v3.1
+
+---
+
+## تحديث يونيو 2026 — ما تغيّر منذ التقرير الأصلي
+
+> القسم أدناه (§1–§9) يوثّق حالة **16 يونيو**. هذا القسم يعكس **الكود الفعلي** بعد إغلاق فجوات الإنتاج.
+
+| البند | يونيو 16 | يونيو 28 |
+|-------|----------|----------|
+| SaaS تسجيل ذاتي | ❌ | ✅ `/saas/signup` + API |
+| دفع عند التسجيل | ❌ | ✅ Stripe checkout + `PENDING` |
+| RLS | 11 جدول | **30 جدول** (`s1_004`) |
+| مصروفات | stub | ✅ `Expense` model + service |
+| بصمة | mock | ✅ DB-backed `BiometricAuth` |
+| Owner provision | مسارين | ✅ موحّد `TenantProvisioningService` |
+| قيود فريدة عالمية | 3+ مكسورة | ✅ per-tenant (insurance, barcode, ward, department) |
+| `guard_module` مزدوج | نعم | ✅ مركزي فقط في `app_factory` |
+| Docker SaaS | معطل | ✅ postgres+redis+celery |
+| CI | جزئي | ✅ ~1200+ test, `ENABLE_SAAS_MODE=true` |
+| owner backdoor password | موجود | ✅ مُزال |
+| trial login | مكسور | ✅ `TRIAL` + `ACTIVE` |
+
+**تقييم محدّث:** نشر **مركز واحد** أو **SaaS مع Stripe** — جاهز تقنياً. تحسينات **UX/UI** (P2/P3 أدناه) ما زالت مفتوحة ولا تمنع التشغيل.
+
+---
+
+## الأصل — 2026-06-16
+
+**مصادر التدقيق:** 8 تقارير تدقيق داخلي (UI، تنقل، صلاحيات، نماذج، جداول، CSS، RTL، بنية) + تدقيق خارجي مستقل (GitHub Static Code Audit)
 
 ---
 

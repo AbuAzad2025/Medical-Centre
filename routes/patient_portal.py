@@ -33,13 +33,6 @@ from services.file_service import FileService
 
 portal_bp = Blueprint('portal', __name__)
 
-from services.feature_gate_service import guard_module
-
-
-@portal_bp.before_request
-def _guard_portal_module():
-    guard_module('portal')
-
 
 def _require_patient_role():
     if not current_user.is_authenticated or current_user.role != 'patient':

@@ -11,11 +11,6 @@ from datetime import datetime, timezone
 
 nursing_assessment_bp = Blueprint('nursing_assessment', __name__)
 
-from services.feature_gate_service import guard_module
-
-@nursing_assessment_bp.before_request
-def _guard_nursing_module():
-    guard_module('nursing')
 
 @nursing_assessment_bp.route('/patient/<int:patient_id>')
 @login_required

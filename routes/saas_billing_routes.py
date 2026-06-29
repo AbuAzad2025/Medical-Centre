@@ -3,6 +3,7 @@
 from flask import Blueprint, g, jsonify, request
 from flask_login import current_user, login_required
 
+from app.extensions import csrf
 from services.stripe_billing_service import StripeBillingError, StripeBillingService
 from services.stripe_subscription_service import StripeSubscriptionService, StripeWebhookError
 
@@ -17,6 +18,7 @@ def _tenant_id_from_context() -> int:
 
 
 @saas_billing_bp.route('/api/billing/stripe/webhook', methods=['POST'])
+@csrf.exempt
 def stripe_webhook():
     """Ingest Stripe subscription lifecycle events."""
     signature = request.headers.get('Stripe-Signature', '')

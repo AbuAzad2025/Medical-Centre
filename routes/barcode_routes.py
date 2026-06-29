@@ -10,11 +10,6 @@ from datetime import datetime, timezone
 
 barcode_bp = Blueprint('barcode', __name__)
 
-from services.feature_gate_service import guard_module
-
-@barcode_bp.before_request
-def _guard_inventory_module():
-    guard_module('inventory')
 
 @barcode_bp.route('/scan')
 @login_required

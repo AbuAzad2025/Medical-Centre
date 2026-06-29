@@ -570,3 +570,58 @@ class TenantProvisioningService:
         )
         db.session.add(log)
         db.session.commit()
+
+    @classmethod
+    def run_lifecycle_maintenance(cls) -> dict[str, int]:
+        """Expire trials and soft-delete cancelled tenants past retention."""
+        expired = cls.expire_trials()
+        purged = cls.purge_cancelled_tenants()
+        return {'trials_expired': expired, 'tenants_purged': purged}
+
+    @classmethod
+    def expire_trials(cls) -> int:
+        """Suspend tenants whose base-line trial period has ended."""
+        from app.core.saas.models import SubscriptionLine, SubscriptionLineStatus, SubscriptionLineType
+        from app.shared.enums import TenantStatus
+
+        today = date.today()
+        count = 0
+        lines = SubscriptionLine.query.filter(
+            SubscriptionLine.line_type == SubscriptionLineType.BASE,
+            SubscriptionLine.status == SubscriptionLineStatus.ACTIVE,
+            SubscriptionLine.trial_end.isnot(None),
+            SubscriptionLine.trial_end < today,
+        ).all()
+        for line in lines:
+            tenant = Tenant.query.get(line.tenant_id)
+            if tenant and tenant.status == TenantStatus.TRIAL:
+                cls.suspend_tenant(tenant.id, reason='trial_expired')
+                count += 1
+        return count
+
+    @classmethod
+    def purge_cancelled_tenants(cls) -> int:
+        """Mark cancelled tenants as DELETED after RETENTION_DAYS."""
+        from app.shared.enums import TenantStatus
+
+        cutoff = datetime.now(timezone.utc) - timedelta(days=cls.RETENTION_DAYS)
+        count = 0
+        tenants = Tenant.query.filter(Tenant.status == TenantStatus.CANCELLED).all()
+        for tenant in tenants:
+            ended = tenant.updated_at
+            if ended and ended.tzinfo is None:
+                ended = ended.replace(tzinfo=timezone.utc)
+            if ended and ended <= cutoff:
+                tenant.status = TenantStatus.DELETED
+                cls._record_history(tenant.id, 'DELETE', notes='retention_period_elapsed')
+                cls._audit(
+                    tenant.id,
+                    'DELETE',
+                    entity_type='tenant',
+                    entity_id=tenant.id,
+                    details=f'retention_days={cls.RETENTION_DAYS}',
+                )
+                count += 1
+        if count:
+            db.session.commit()
+        return count

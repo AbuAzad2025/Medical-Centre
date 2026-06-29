@@ -1,446 +1,165 @@
-# 🏥 نظام إدارة المراكز الطبية المتكامل — منصة Azad Medical
-# Azad Medical Platform v3.0 — Multi-Tenant Modular Architecture
+# Azad Medical Platform — منصة إدارة المراكز الطبية
 
-**النسخة:** 3.0  
-**الحالة:** ✅ جاهز للإنتاج — نظام تينانتس احترافي متعدد  
-**التقنية:** Flask + SQLAlchemy + PostgreSQL + Bootstrap 5 RTL  
-**اللغة:** Python 3.11+  
-**النشر:** Docker + Docker Compose + GitHub Actions CI/CD
+**النسخة:** 3.1  
+**آخر تحديث:** 28 يونيو 2026  
+**التقنية:** Flask · SQLAlchemy 2 · PostgreSQL 16 · Redis 7 · Celery · Bootstrap 5 RTL  
+**النشر:** Docker Compose · GitHub Actions CI
 
 ---
 
-## 📋 المحتويات
+## نظرة عامة
 
-- [نظرة عامة](#-نظرة-عامة)
-- [الميزات الرئيسية](#-الميزات-الرئيسية)
-- [البنية التقنية](#-البنية-التقنية)
-- [التثبيت والإعداد](#-التثبيت-والإعداد)
-- [الأدوار والصلاحيات](#-الأدوار-والصلاحيات)
-- [نظام الدفع](#-نظام-الدفع)
-- [حالة النظام](#-حالة-النظام)
+منصة طبية متعددة المستأجرين (Multi-Tenant SaaS) لإدارة المراكز والعيادات: استقبال، زيارات، مختبر، أشعة، تمريض، صيدلية، مالية، تأمين، طوارئ، وحجز — مع عزل بيانات لكل منشأة.
 
----
-
-## 🎯 نظرة عامة
-
-نظام إدارة مركز طبي متكامل مصمم خصيصاً للمراكز الطبية الفلسطينية يدير:
-- ✅ **المرضى والزيارات** - تسجيل شامل ومتابعة كاملة
-- ✅ **المواعيد والطوارئ** - جدولة ذكية وإدارة الطوارئ
-- ✅ **المختبرات والأشعة** - طلبات ونتائج متكاملة
-- ✅ **النظام المالي** - محاسبة دقيقة وتقارير تدقيق
-- ✅ **الأدوية والتمريض** - إدارة كاملة للعلاج
-- ✅ **التقارير والتحليلات** - تقارير يومية وشهرية
-- ✅ **الأمان والصلاحيات** - نظام صلاحيات متقدم
+| وضع التشغيل | الوصف |
+|-------------|--------|
+| **SaaS** | `ENABLE_SAAS_MODE=true` — تسجيل ذاتي، اشتراكات Stripe، عزل tenant |
+| **Single-tenant** | نشر تقليدي لمركز واحد بدون بوابة SaaS |
 
 ---
 
-## ⭐ الميزات الرئيسية
+## الميزات الرئيسية
 
-### 🏢 مركزية الاستقبال
-- نقطة دخول موحدة لجميع المرضى
-- إدارة الطوابير والمواعيد
-- تحديد طريقة الدفع مسبقاً
-- إحالة ذكية للأقسام
-
-### 💰 نظام الدفع المتكامل
-**4 سيناريوهات دفع:**
-1. **نقدي (Cash)** - دفع فوري أو مؤجل
-2. **بطاقة (Visa/Card)** - POS مع حفظ آخر 4 أرقام
-3. **تأمين صحي (Insurance)** - حساب تلقائي للتغطية وحصة المريض
-4. **دفع قسري (Force)** - للطوارئ مع موافقة المدير
-
-**الحدود والقواعد:**
-- حد أقصى للنقدي: 5000 شيكل
-- حد أقصى للدفع القسري: 5% من الزيارات
-- نسبة تغطية تأمين: 50-100%
-- فصل المهام: من ينشئ ≠ من يوافق
-
-### 📊 نظام التقارير والتدقيق
-**تقارير يومية:**
-- تدقيق يومي كامل (زيارات، دفعات، قضايا)
-- كشف تلقائي للمشاكل
-- إحصائيات شاملة
-
-**تقارير شهرية:**
-- 5 KPIs رئيسية
-- تحليل الدفع القسري
-- تحليل التأمين
-- تنبيهات عند تجاوز الحدود
-
-**تتبع الديون:**
-- تصنيف حسب العمر (0-7، 8-30، 31-60، 60+ يوم)
-- تذكيرات تلقائية
-- تصعيد للمدير
-
-### 🔔 التنبيهات التلقائية
-- ديون متأخرة (> 7 أيام)
-- تأمين معلق (> 14 يوم)
-- دفع قسري يحتاج موافقة
-- ملخص يومي للمدير (6 مساءً)
-
-### 🔐 الأمان والصلاحيات
-- 10+ decorators للتحكم بالوصول
-- فصل المهام (Separation of Duties)
-- منع الموافقة الذاتية
-- تسجيل كامل في AuditTrail
-- CSRF Protection
-- Session Security
+- **استقبال وطوابير** — نقطة دخول موحدة، تحويل الزيارات بين الأقسام عبر الاستقبال فقط
+- **سير عمل سريري** — طبيب، مختبر، أشعة، تمريض، صيدلية، طوارئ
+- **مالية متكاملة** — فواتير، دفعات (نقدي/بطاقة/تأمين/قسري)، مصروفات، تسوية زيارات
+- **تأمين** — شركات تأمين، مطالبات، تغطية تلقائية (قيود فريدة لكل tenant)
+- **SaaS** — `/saas/signup`، باقات `PackageVersion`، فترة تجريبية أو دفع فوري عبر Stripe
+- **عزل البيانات** — فلترة ORM + Row-Level Security على PostgreSQL (30 جدولاً)
+- **صلاحيات** — أدوار متعددة، `guard_module` مركزي، CSRF، rate limiting
+- **بصمة/WebAuthn** — تسجيل بيانات اعتماد بيومترية في قاعدة البيانات
+- **نسخ احتياطي** — Celery + `pg_dump` (يتطلب عميل PostgreSQL في بيئة التشغيل)
 
 ---
 
-## 🛠️ البنية التقنية
+## البنية التقنية
 
-### Backend:
-```python
-Flask 2.3.3           # إطار العمل
-SQLAlchemy 2.0.21     # ORM
-Flask-Login 0.6.3     # المصادقة
-Flask-Migrate 4.0.5   # Migrations
-Flask-WTF 1.1.1       # Forms + CSRF
-Flask-Mail 0.9.1      # البريد
-Werkzeug 2.3.7        # الأمان
-```
-
-### Frontend:
-```
-AdminLTE              # لوحة التحكم
-Bootstrap 4           # التصميم
-jQuery                # JavaScript
-DataTables            # جداول تفاعلية
-Chart.js              # رسوم بيانية
-Select2               # قوائم محسنة
-SweetAlert2           # تنبيهات جميلة
-```
-
-### Database:
-```
-SQLite (افتراضي)
-PostgreSQL (مدعوم)
-```
-
-### الهيكل:
 ```
 medical_system/
-├── models/          # 40 نموذج قاعدة بيانات
-├── routes/          # 16 blueprint (227 مسار)
-├── services/        # 12 خدمة
-├── forms/           # 16 ملف (77 نموذج)
-├── templates/       # 120 قالب HTML
-├── static/          # CSS, JS, Images
-├── utils/           # decorators, helpers
-└── requirements.txt
+├── app/                 # نواة SaaS (tenant, lifecycle, packages)
+├── models/              # ~84 ملف نموذج ORM
+├── routes/              # ~140 ملف مسارات (blueprints)
+├── services/            # ~58 خدمة أعمال
+├── templates/           # ~385 قالب HTML
+├── migrations/          # Alembic — الرأس: s1_004_expenses_rls_uniques
+├── celery_worker.py     # عامل Celery
+├── docker-compose.yml   # db + redis + app + worker
+└── .github/workflows/   # CI: migrate + pytest + coverage
 ```
+
+**Backend:** Flask 2.3+, SQLAlchemy 2, Flask-Login, Flask-Migrate, Stripe SDK  
+**Frontend:** Bootstrap 5 RTL, AdminLTE, DataTables, Chart.js  
+**قاعدة البيانات:** PostgreSQL 16 (إلزامي للإنتاج وCI) — SQLite للتطوير المحلي فقط
 
 ---
 
-## 🚀 التثبيت والإعداد
+## التثبيت السريع
 
-### 1. المتطلبات:
-```bash
-Python 3.9+
-pip
-virtualenv (اختياري)
-```
+### Docker (موصى به)
 
-### 2. التثبيت:
 ```bash
-# استنساخ المشروع
 git clone https://github.com/AbuAzad2025/Med1.git
 cd Med1
-
-# إنشاء بيئة افتراضية (اختياري)
-python -m venv .venv
-.venv\Scripts\Activate.ps1  # Windows
-source .venv/bin/activate   # Linux/Mac
-
-# تثبيت المتطلبات
-pip install -r requirements.txt
-
-# إعداد قاعدة البيانات
-flask db init
-flask db migrate -m "Initial migration"
-flask db upgrade
-
-# تشغيل النظام
-flask run --host=0.0.0.0 --port=5001
+cp .env.example .env   # عدّل SECRET_KEY وكلمات المرور
+docker compose up -d --build
 ```
 
-### 3. الوصول:
-```
-URL: http://localhost:5001
-Username: admin
-Password: Admin@12345 (غيّره فوراً!)
-```
+التطبيق: `http://localhost:8080`  
+التهجيرات تُشغَّل تلقائياً (`flask db upgrade`).
 
----
+### محلي (تطوير)
 
-## 👥 الأدوار والصلاحيات
-
-### الأدوار المتاحة:
-
-| الدور | الوصف | الصلاحيات الرئيسية |
-|-------|-------|---------------------|
-| **super_admin** | مدير النظام الأعلى | كل الصلاحيات |
-| **manager** | مدير المركز | موافقة الدفع القسري، التقارير، الإشراف |
-| **reception** | الاستقبال | إضافة مرضى، إنشاء زيارات، استلام دفعات |
-| **doctor** | الطبيب | الكشف، التشخيص، طلب فحوصات، وصفات |
-| **nurse** | التمريض | العلامات الحيوية، تنفيذ الأدوية |
-| **lab** | فني مختبر | طلبات التحاليل، إدخال النتائج |
-| **radiology** | فني أشعة | طلبات الأشعة، رفع الصور |
-| **emergency** | موظف طوارئ | استقبال حالات طوارئ |
-| **accountant** | محاسب | الفواتير، التقارير المالية، التدقيق |
-
-### مصفوفة الصلاحيات:
-
-| العملية | reception | doctor | accountant | manager |
-|---------|:---------:|:------:|:----------:|:-------:|
-| إضافة مريض | ✅ | ❌ | ❌ | ✅ |
-| إنشاء زيارة | ✅ | ❌ | ❌ | ✅ |
-| استلام دفع | ✅ | ❌ | ✅ | ✅ |
-| دفع قسري | ❌ | ❌ | ❌ | ✅ |
-| التشخيص | ❌ | ✅ | ❌ | ❌ |
-| إصدار فاتورة | ❌ | ❌ | ✅ | ✅ |
-| تقارير مالية | ❌ | ❌ | ✅ | ✅ |
-
----
-
-## 💰 نظام الدفع
-
-### السيناريوهات المدعومة:
-
-#### 1. دفع نقدي
-```
-المريض → الاستقبال → دفع نقدي → إصدار إيصال → توجيه للقسم
-```
-
-#### 2. دفع بطاقة
-```
-المريض → الاستقبال → تمرير البطاقة (POS) → 
-→ حفظ آخر 4 أرقام → إصدار إيصال → توجيه للقسم
-```
-
-#### 3. تأمين صحي
-```
-المريض → الاستقبال → التحقق من التأمين → 
-→ حساب التغطية (80% مثلاً) → المريض يدفع حصته (20%) → 
-→ إصدار فاتورة للتأمين → توجيه للقسم → 
-→ المحاسب يتابع مع التأمين
-```
-
-#### 4. دفع قسري (طوارئ)
-```
-المريض (طوارئ) → الاستقبال/الطوارئ → تسجيل السبب → 
-→ طلب موافقة المدير → العلاج فوراً → 
-→ المدير يوافق → تسجيل كدين → المحاسب يتابع
-```
-
-### قواعد الدفع:
-- ✅ الدفع قبل الخدمة (إلا الطوارئ)
-- ✅ لا تعديل للدفعات (فقط إلغاء وتعويض)
-- ✅ حصة المريض في التأمين: فورية
-- ✅ الدفع القسري: يتطلب موافقة مدير
-- ✅ التسجيل في AuditTrail لكل عملية
-
----
-
-## 📊 حالة النظام
-
-### ✅ الفحص الشامل
-**تاريخ آخر فحص:** 12 أكتوبر 2025
-
-| المكون | العدد | الحالة |
-|--------|-------|--------|
-| Models | 86 | ✅ |
-| Forms | 77 | ✅ |
-| Templates | 120 | ✅ |
-| Endpoints | 227 | ✅ |
-| Services | 12 | ✅ |
-
-### التقييم:
-- **الاتساق:** 98.5/100 ⭐⭐⭐⭐⭐
-- **الاكتمال:** 100/100 ⭐⭐⭐⭐⭐
-- **الأمان:** 100/100 ⭐⭐⭐⭐⭐
-- **جودة الكود:** 98/100 ⭐⭐⭐⭐⭐
-
-**التقييم الكلي:** 98.3/100 🏆
-
-### الحالة: 🟢 **PRODUCTION READY**
-
----
-
-## 📖 الاستخدام
-
-### سير العمل الأساسي:
-
-#### 1. استقبال مريض جديد:
-```
-الاستقبال → إضافة مريض → إنشاء زيارة → تحديد طريقة الدفع → 
-→ الدفع (أو موافقة للطوارئ) → إضافة للطابور → توجيه للقسم
-```
-
-#### 2. الكشف الطبي:
-```
-الطبيب → استقبال المريض من الطابور → الفحص → التشخيص → 
-→ طلب فحوصات (اختياري) → إصدار وصفة → تحديث الزيارة
-```
-
-#### 3. المحاسبة النهائية:
-```
-المحاسب → مراجعة الزيارة → حساب التكلفة النهائية → 
-→ إصدار فاتورة → استلام الدفع (إن لم يكن مدفوعاً) → 
-→ طباعة الإيصال → أرشفة الزيارة
-```
-
-### المسارات الرئيسية:
-
-```
-/reception/*        - مسارات الاستقبال (35 مسار)
-/doctor/*          - مسارات الطبيب (24 مسار)
-/accountant/*      - مسارات المحاسب (16 مسار + التقارير)
-/manager/*         - مسارات المدير (14 مسار + الموافقات)
-/lab/*             - مسارات المختبر (5 مسارات)
-/radiology/*       - مسارات الأشعة (6 مسارات)
-/emergency/*       - مسارات الطوارئ (22 مسار)
-/super-admin/*     - مسارات المدير الأعلى (57 مسار)
-```
-
----
-
-## 🔧 الإعدادات
-
-### ملف `.env` (اختياري):
 ```bash
-SECRET_KEY=your-secret-key-here
-DATABASE_URL=sqlite:///instance/medical_system.db
-# أو PostgreSQL:
-# DATABASE_URL=postgresql://user:password@localhost/medical_db
-
-MAIL_SERVER=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-password
-
-DEFAULT_ADMIN_USERNAME=admin
-DEFAULT_ADMIN_PASSWORD=Admin@12345
-```
-
-### للإنتاج:
-```python
-# في config.py - ProductionConfig
-SESSION_COOKIE_SECURE = True      # تفعيل HTTPS
-SQLALCHEMY_DATABASE_URI = 'postgresql://...'  # PostgreSQL
-DEBUG = False
+python -m venv .venv
+.venv\Scripts\Activate.ps1          # Windows
+pip install -r requirements.txt
+set ENABLE_SAAS_MODE=true
+set DATABASE_URL=postgresql://...
+flask db upgrade
+flask run --port=5001
 ```
 
 ---
 
-## 📚 التوثيق التقني
+## متغيرات البيئة الأساسية
 
-### النماذج الأساسية:
+| المتغير | الغرض |
+|---------|--------|
+| `SECRET_KEY` | مفتاح الجلسات (إلزامي) |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `REDIS_URL` | جلسات/كاش/Celery broker |
+| `ENABLE_SAAS_MODE` | `true` لتفعيل multi-tenant |
+| `STRIPE_SECRET_KEY` | جلسات دفع عند التسجيل والفوترة |
+| `STRIPE_WEBHOOK_SECRET` | تحقق توقيع webhook |
+| `SAAS_REQUIRE_PAYMENT_AT_SIGNUP` | إجبار الدفع قبل التفعيل |
+| `SAAS_DEFAULT_PACKAGE_VERSION_ID` | الباقة الافتراضية للتسجيل |
+| `CELERY_ENABLED` | `true` للمهام الخلفية |
 
-#### Patient (مريض)
-```python
-- national_id (هوية)
-- first_name, last_name (الاسم)
-- first_name_ar, last_name_ar (الاسم بالعربية)
-- phone, birth_date, gender
-- address, notes
-```
-
-#### Visit (زيارة)
-```python
-- patient_id, department_id, doctor_id
-- visit_type: REGULAR | FOLLOW_UP | CONSULTATION | EMERGENCY
-- payment_status: PENDING | PAID | PARTIAL | DEBT
-- payment_method: cash | visa | insurance | force
-- total_amount, paid_amount
-- insurance_provider, insurance_coverage_percentage
-- patient_share, insurance_amount
-- force_payment_reason, force_payment_approved_by
-```
-
-#### Payment (دفع)
-```python
-- patient_id, visit_id, invoice_id
-- method: CASH | CARD | WIRE | INSURANCE | FORCE
-- amount, currency (ILS افتراضي)
-- status: PENDING | CONFIRMED | CANCELLED | REFUNDED
-- receipt_number
-- cancelled_by, cancelled_at, cancellation_reason
-```
+راجع [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) للتفاصيل الكاملة.
 
 ---
 
-## 🔍 KPIs ومؤشرات الأداء
+## الأدوار
 
-### المؤشرات المراقبة:
-
-| KPI | الهدف | تحذير | حرج |
-|-----|--------|--------|-----|
-| نسبة التحصيل | ≥ 95% | < 90% | < 85% |
-| الدفع القسري | ≤ 3% | > 5% | > 10% |
-| وقت الدفع | ≤ 2 ساعة | > 4 ساعات | > 8 ساعات |
-| تحصيل الديون | ≥ 80% خلال 30 يوم | < 70% | < 50% |
-
----
-
-## 🤝 المساهمة
-
-للمساهمة في تطوير النظام:
-1. Fork الريبو
-2. أنشئ branch جديد (`git checkout -b feature/amazing-feature`)
-3. Commit التغييرات (`git commit -m 'إضافة ميزة رائعة'`)
-4. Push للـ branch (`git push origin feature/amazing-feature`)
-5. افتح Pull Request
-
-### القواعد:
-- ✅ طوّر على الملفات الموجودة (لا تنشئ ملفات مكررة)
-- ✅ اتبع نمط الكود الموجود
-- ✅ أضف توثيق لأي ميزة جديدة
-- ✅ اختبر التغييرات قبل الـ commit
+| الدور | المسؤوليات |
+|-------|-------------|
+| `super_admin` | إدارة المنصة، نسخ احتياطي، إعدادات عامة |
+| `owner` | مالك المنصة — توفير tenants وباقات |
+| `manager` | مدير المركز — موافقات، تقارير |
+| `reception` | استقبال، زيارات، طوابير |
+| `doctor` / `nurse` / `lab` / `radiology` | أقسام سريرية |
+| `accountant` | فواتير، دفعات، مصروفات، تدقيق |
+| `emergency` | حالات طوارئ |
 
 ---
 
-## 📞 الدعم
+## SaaS — التسجيل والفوترة
+
+1. الزائر يفتح `/saas/signup` ويختار الباقة
+2. `POST /api/saas/register` ينشئ tenant + مدير عبر `TenantProvisioningService`
+3. إن وُجد `STRIPE_SECRET_KEY` ولا توجد فترة تجريبية (أو `SAAS_REQUIRE_PAYMENT_AT_SIGNUP=true`): الحالة `PENDING` وإعادة توجيه لـ Stripe Checkout
+4. Webhook `checkout.session.completed` يفعّل الـ tenant → `ACTIVE`
+5. الدخول عبر `/auth/login` أو `/t/<slug>/auth/login`
+
+---
+
+## الاختبارات وCI
+
+```bash
+set ENABLE_SAAS_MODE=true
+python -m pytest tests/ -q
+```
+
+GitHub Actions: تهجيرات على PostgreSQL 16، pytest كامل مع `ENABLE_SAAS_MODE=true`، flake8، تغطية كود.
+
+---
+
+## التوثيق
+
+| المستند | الجمهور |
+|---------|---------|
+| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | مستخدمو المركز (عربي) |
+| [docs/CEO_OVERVIEW.md](docs/CEO_OVERVIEW.md) | ملخص تنفيذي للإدارة |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | نشر إنتاجي |
+| [docs/COMPREHENSIVE_AUDIT_REPORT.md](docs/COMPREHENSIVE_AUDIT_REPORT.md) | تدقيق تقني (مع تحديث يونيو 2026) |
+| [PLAN_2026-06-21.md](PLAN_2026-06-21.md) | خطة الجاهزية التاريخية |
+
+---
+
+## الجاهزية للإنتاج (يونيو 2026)
+
+| السيناريو | الحالة |
+|-----------|--------|
+| نشر مركز واحد (PostgreSQL + Docker) | ✅ جاهز |
+| SaaS ذاتي الخدمة مع Stripe | ✅ مُنفَّذ — يتطلب إعداد مفاتيح Stripe وDNS |
+| عزل بيانات multi-tenant | ✅ ORM + RLS (30 جدول) |
+| واجهة/UX موحدة | 🟡 تحسينات مستمرة (انظر تقارير التدقيق) |
+
+---
+
+## المساهمة والدعم
 
 - **Issues:** https://github.com/AbuAzad2025/Med1/issues
-- **Email:** support@medical-system.ps (مثال)
+- طوّر على الملفات الموجودة، اتبع أنماط المشروع، واختبر قبل الـ PR
 
----
-
-## 📄 الترخيص
-
-هذا المشروع مفتوح المصدر.
-
----
-
-## 🙏 شكر وتقدير
-
-- **Flask Team** - إطار العمل الرائع
-- **AdminLTE** - لوحة التحكم الجميلة
-- **المجتمع الفلسطيني** - الدعم والتشجيع
-
----
-
-## 📊 إحصائيات النظام
-
-```
-📦 إجمالي الملفات: 2,500+
-💻 أسطر الكود: 50,000+
-🗄️ نماذج DB: 86
-📝 نماذج Forms: 77
-📄 قوالب HTML: 120
-🛣️ مسارات: 227
-⚙️ خدمات: 12
-🎨 ملفات CSS: 10
-📜 ملفات JS: 13
-```
-
----
-
-**تم بناؤه بـ ❤️ في فلسطين**
-
-**النسخة:** 2.0  
-**آخر تحديث:** 12 أكتوبر 2025  
-**الحالة:** ✅ جاهز للإنتاج
-
+**الترخيص:** مفتوح المصدر

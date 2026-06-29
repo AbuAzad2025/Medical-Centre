@@ -4,7 +4,8 @@ from __future__ import annotations
 import logging
 import os
 import re
-from typing import Optional, Tuple
+from dataclasses import dataclass
+from typing import Iterator, Optional, Tuple
 
 from flask import g, has_request_context
 
@@ -12,6 +13,7 @@ from app.extensions import db
 from app.core.saas.lifecycle import ProvisioningError, TenantProvisioningService
 from app.core.saas.models import PackageVersion, PackageVersionAvailability, PackageVersionAvailabilityStatus
 from app.core.tenant.models import Tenant
+from app.shared.enums import TenantStatus
 from models.user import User
 
 logger = logging.getLogger(__name__)
@@ -21,6 +23,17 @@ _SLUG_RE = re.compile(r'^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$')
 
 class SaasRegistrationError(ValueError):
     """Validation or provisioning failure for public signup."""
+
+
+@dataclass
+class RegistrationResult:
+    tenant: Tenant
+    admin: User
+    checkout_url: Optional[str] = None
+
+    def __iter__(self) -> Iterator:
+        yield self.tenant
+        yield self.admin
 
 
 class SaasRegistrationService:
@@ -69,6 +82,45 @@ class SaasRegistrationService:
         return row.id
 
     @classmethod
+    def _payment_required_at_signup(cls, package_version_id: int) -> bool:
+        if os.environ.get('SAAS_REQUIRE_PAYMENT_AT_SIGNUP', '').strip().lower() in ('1', 'true', 'yes'):
+            return True
+        version = PackageVersion.query.get(package_version_id)
+        if version is None:
+            return False
+        return not (version.trial_days and version.trial_days > 0)
+
+    @classmethod
+    def _maybe_create_checkout(
+        cls,
+        tenant: Tenant,
+        package_version_id: int,
+        billing_type: str,
+    ) -> Optional[str]:
+        if not os.environ.get('STRIPE_SECRET_KEY', '').strip():
+            return None
+        try:
+            from services.stripe_billing_service import StripeBillingService
+
+            base = os.environ.get('SAAS_CHECKOUT_BASE_URL', '').strip().rstrip('/')
+            if not base and has_request_context():
+                from flask import request
+                base = request.host_url.rstrip('/')
+            if not base:
+                base = 'http://localhost:5000'
+            result = StripeBillingService.create_checkout_session(
+                tenant.id,
+                package_version_id,
+                billing_type,
+                success_url=f'{base}/auth/login?tenant_slug={tenant.slug}&payment=success',
+                cancel_url=f'{base}/saas/signup?payment=cancelled',
+            )
+            return result.get('url')
+        except Exception as exc:
+            logger.warning('Checkout session creation failed tenant=%s: %s', tenant.id, exc)
+            return None
+
+    @classmethod
     def register_organization(
         cls,
         *,
@@ -81,7 +133,7 @@ class SaasRegistrationService:
         package_version_id: Optional[int] = None,
         billing_type: str = 'monthly',
         product_profile_code: Optional[str] = None,
-    ) -> Tuple[Tenant, User]:
+    ) -> RegistrationResult:
         slug = cls._normalize_slug(slug)
         email = (contact_email or '').strip().lower()
         username = (admin_username or '').strip().lower()
@@ -89,15 +141,9 @@ class SaasRegistrationService:
             raise SaasRegistrationError('missing_required_fields')
         if len(admin_password) < 8:
             raise SaasRegistrationError('weak_password')
-        def _check_user_uniqueness():
-            if User.query.filter_by(username=username).first():
-                raise SaasRegistrationError('username_taken')
-            if User.query.filter_by(email=email).first():
-                raise SaasRegistrationError('email_taken')
-
-        cls._with_tenant_bypass(_check_user_uniqueness)
 
         pkg_id = package_version_id or cls.resolve_default_package_version_id()
+        payment_required = cls._payment_required_at_signup(pkg_id)
 
         try:
             tenant = TenantProvisioningService.provision_tenant(
@@ -111,6 +157,21 @@ class SaasRegistrationService:
         except ProvisioningError as exc:
             raise SaasRegistrationError(str(exc)) from exc
 
+        checkout_url: Optional[str] = None
+        if payment_required:
+            tenant.status = TenantStatus.PENDING
+            db.session.add(tenant)
+            db.session.flush()
+            checkout_url = cls._maybe_create_checkout(tenant, pkg_id, billing_type)
+
+        def _check_user_uniqueness_within_tenant():
+            if User.query.filter_by(username=username, tenant_id=tenant.id).first():
+                raise SaasRegistrationError('username_taken')
+            if User.query.filter_by(email=email, tenant_id=tenant.id).first():
+                raise SaasRegistrationError('email_taken')
+
+        cls._with_tenant_bypass(_check_user_uniqueness_within_tenant)
+
         admin = User(
             username=username,
             email=email,
@@ -123,5 +184,8 @@ class SaasRegistrationService:
         db.session.add(admin)
         db.session.commit()
 
-        logger.info('SaaS registration complete tenant_id=%s slug=%s admin=%s', tenant.id, slug, username)
-        return tenant, admin
+        logger.info(
+            'SaaS registration complete tenant_id=%s slug=%s admin=%s pending_payment=%s',
+            tenant.id, slug, username, payment_required,
+        )
+        return RegistrationResult(tenant=tenant, admin=admin, checkout_url=checkout_url)

@@ -11,7 +11,7 @@ class InsuranceCompany(TenantMixin, db.Model):
     __tablename__ = 'insurance_companies'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False, unique=True, index=True)
+    name = db.Column(db.String(120), nullable=False, index=True)
     name_ar = db.Column(db.String(120), nullable=True)
     phone = db.Column(db.String(20), nullable=True)
     email = db.Column(db.String(120), nullable=True)
@@ -22,6 +22,10 @@ class InsuranceCompany(TenantMixin, db.Model):
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
     claims = db.relationship('InsuranceClaim', back_populates='company', lazy='selectin', passive_deletes=True)
+
+    __table_args__ = (
+        db.UniqueConstraint('tenant_id', 'name', name='uq_insurance_company_tenant_name'),
+    )
 
     def __repr__(self) -> str:
         return f"<InsuranceCompany {self.name}>"

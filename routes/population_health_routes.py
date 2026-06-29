@@ -11,11 +11,6 @@ from app_factory import db
 
 pop_health_bp = Blueprint('pop_health', __name__)
 
-from services.feature_gate_service import guard_module
-
-@pop_health_bp.before_request
-def _guard_reporting_module():
-    guard_module('reporting')
 
 @pop_health_bp.route('/dashboard')
 @login_required

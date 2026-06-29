@@ -22,11 +22,6 @@ from decimal import Decimal, ROUND_HALF_UP
 
 manager_bp = Blueprint('manager', __name__)
 
-from services.feature_gate_service import guard_module
-
-@manager_bp.before_request
-def _guard_reporting_module():
-    guard_module('reporting')
 
 
 

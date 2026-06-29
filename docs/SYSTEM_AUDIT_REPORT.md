@@ -1,4 +1,7 @@
 # تقرير تدقيق النظام الشامل — Deep System Audit Report
+
+> **تحديث 2026-06-28:** للحالة الحالية انظر `COMPREHENSIVE_AUDIT_REPORT.md` (قسم يونيو 2026).
+
 **تاريخ التدقيق:** 2026-06-12  
 **المدقق:** Triple-Lens (مدقق + طبيب + مبرمج)  
 **الإصدار:** Azad Medical Platform v3.0

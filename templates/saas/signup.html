@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>تسجيل منشأة جديدة — منصة ازاد الطبية</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/medical-login.css') }}" rel="stylesheet">
+</head>
+<body class="medical-login-page">
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-hospital me-2"></i>تسجيل منشأة طبية جديدة</h4>
+                </div>
+                <div class="card-body">
+                    {% include 'partials/_flash.html' %}
+                    <form method="post" action="{{ url_for('saas.signup_organization') }}" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">اسم المنشأة *</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">المعرّف (slug) *</label>
+                                <input type="text" name="slug" class="form-control" required placeholder="clinic-name">
+                                <div class="form-text">حروف إنجليزية صغيرة وأرقام وشرطة فقط</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">البريد الإلكتروني *</label>
+                                <input type="email" name="contact_email" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">الباقة *</label>
+                                <select name="package_version_id" class="form-select" required>
+                                    <option value="">اختر الباقة</option>
+                                    {% for v in package_versions %}
+                                    <option value="{{ v.id }}">{{ v.package.name }} v{{ v.version }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">نوع الفوترة</label>
+                                <select name="billing_type" class="form-select">
+                                    <option value="monthly">شهري</option>
+                                    <option value="yearly">سنوي</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">اسم المدير *</label>
+                                <input type="text" name="admin_full_name" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">اسم المستخدم للمدير *</label>
+                                <input type="text" name="admin_username" class="form-control" required autocomplete="username">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">كلمة المرور *</label>
+                                <input type="password" name="admin_password" class="form-control" required minlength="8" autocomplete="new-password">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">لدي حساب</a>
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="fas fa-check me-1"></i> إنشاء المنشأة
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

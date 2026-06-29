@@ -277,6 +277,10 @@ def create_app(config_name: str | None = None) -> Flask:
             import models.lab_test_catalog
             import models.exchange_rate
             import models.specialty_form
+            import models.expense
+            import models.biometric_auth
+            import models.barcode_tracking
+            import models.bed_management
         except Exception as e:
             app.logger.warning(f"Model import registration skipped: {e}")
 
@@ -1072,6 +1076,8 @@ def create_app(config_name: str | None = None) -> Flask:
 
             while True:
                 try:
+                    from app.core.saas.lifecycle import TenantProvisioningService
+                    TenantProvisioningService.run_lifecycle_maintenance()
                     for_each_tenant(
                         app_ctx,
                         lambda tenant_id: (

@@ -10,11 +10,6 @@ from app_factory import db
 
 pathway_bp = Blueprint('pathway', __name__)
 
-from services.feature_gate_service import guard_module
-
-@pathway_bp.before_request
-def _guard_doctor_module():
-    guard_module('doctor')
 
 @pathway_bp.route('/pathways')
 @login_required

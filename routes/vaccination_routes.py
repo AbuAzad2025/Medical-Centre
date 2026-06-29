@@ -11,11 +11,6 @@ from datetime import date
 
 vaccination_bp = Blueprint('vaccination', __name__)
 
-from services.feature_gate_service import guard_module
-
-@vaccination_bp.before_request
-def _guard_doctor_module():
-    guard_module('doctor')
 
 @vaccination_bp.route('/vaccines')
 @login_required

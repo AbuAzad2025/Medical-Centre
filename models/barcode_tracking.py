@@ -9,10 +9,13 @@ from app.shared.mixins import TenantMixin
 class BarcodeRegistry(TenantMixin, db.Model):
     """Registry of all barcodes/QR codes in the system"""
     __tablename__ = 'barcode_registry'
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = (
+        db.UniqueConstraint('tenant_id', 'barcode_value', name='uq_barcode_tenant_value'),
+        {'extend_existing': True},
+    )
 
     id = db.Column(db.Integer, primary_key=True)
-    barcode_value = db.Column(db.String(200), nullable=False, unique=True, index=True)
+    barcode_value = db.Column(db.String(200), nullable=False, index=True)
     barcode_type = db.Column(db.String(50), nullable=False)  # BARCODE, QR_CODE, DATAMATRIX
     entity_type = db.Column(db.String(50), nullable=False)
     # PATIENT, MEDICATION, SPECIMEN, EQUIPMENT, BED, STAFF, VISIT, PRESCRIPTION

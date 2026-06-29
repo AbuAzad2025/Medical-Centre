@@ -10,11 +10,6 @@ from utils.decorators import handle_route_errors
 
 sso_bp = Blueprint('sso', __name__)
 
-from services.feature_gate_service import guard_module
-
-@sso_bp.before_request
-def _guard_integration_module():
-    guard_module('integration')
 
 @sso_bp.route('/config', methods=['GET', 'POST'])
 @login_required

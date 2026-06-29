@@ -144,18 +144,27 @@ class TestRecordPayment:
 
 
 class TestExpenses:
-    def test_get_expenses_stub_response(self, ffx):
+    def test_get_expenses_returns_recorded_rows(self, ffx):
+        u = ffx.user()
+        FinancialService.record_expense('office supplies', 50, 'misc', u.id)
         res = FinancialService.get_expenses()
         assert res["success"] is True
-        assert res["available"] is False
-        assert res["expenses"] == []
+        assert res["available"] is True
+        assert len(res["expenses"]) >= 1
+        assert res["expenses"][0]["amount"] == 50.0
 
-    def test_record_expense_stub_response(self, ffx):
+    def test_record_expense_persists(self, ffx):
         u = ffx.user()
         res = FinancialService.record_expense('supplies', 50, 'misc', u.id)
+        assert res["success"] is True
+        assert res["available"] is True
+        assert res["expense"]["category"] == 'misc'
+        assert res["expense"]["amount"] == 50.0
+
+    def test_record_expense_rejects_non_positive_amount(self, ffx):
+        u = ffx.user()
+        res = FinancialService.record_expense('bad', 0, 'misc', u.id)
         assert res["success"] is False
-        assert res["available"] is False
-        assert res["expense"] is None
 
 
 class TestReconcileVisitPayments:
