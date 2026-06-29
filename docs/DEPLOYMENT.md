@@ -100,25 +100,18 @@ python scripts/verify_migrations.py
 3. اضبط webhook Stripe على `POST /api/billing/stripe/webhook`
 
 ### ب) توفير يدوي (Owner)
-```bash
-# عبر واجهة Owner
-/owner/tenants/provision
-
-# أو سكربت (مركز واحد)
-python scripts/setup_platform.py
-python scripts/setup_tenant.py --slug clinic1 --name "عيادة النور" ...
-```
-
-التوفير البرمجي الموحّد: `TenantProvisioningService.provision_tenant` (يُستخدم من Owner API و SaaS register).
+- واجهة: `/owner/tenants/provision`
+- API: `POST /owner/api/tenants/provision` (يتطلب `@owner_required`)
+- البرمجي: `TenantProvisioningService.provision_tenant` — يُستخدم من Owner API و`/api/saas/register`
 
 ---
 
 ## 6. Row-Level Security (RLS)
 
-على PostgreSQL، 30 جدولاً محمي بـ RLS عبر `app.tenant_id`:
+على PostgreSQL، **31 جدولاً** محمي بـ RLS عبر `app.tenant_id`:
 
 - **s1_002 (11):** visits, patients, invoices, payments, appointments, lab_requests, prescriptions, pharmacy_sales, medical_records, queue_management, users
-- **s1_004 (19):** departments, insurance_companies, insurance_claims, barcode_registry, expenses, biometric_*, wards, medications, audit_trails, treatments, emergency_cases, budgets, notifications, medical_reports, receipts, refund_requests, cash_registers, barcode_scan_logs
+- **s1_004 (20):** departments, insurance_companies, insurance_claims, barcode_registry, barcode_scan_logs, expenses, biometric_credentials, biometric_auth_challenges, wards, medications, audit_trails, treatments, emergency_cases, budgets, notifications, medical_reports, receipts, refund_requests, cash_registers
 
 يُضبط `SET LOCAL app.tenant_id` في middleware ومهام Celery (`tenant_job_runner`).
 
@@ -140,8 +133,8 @@ python scripts/setup_tenant.py --slug clinic1 --name "عيادة النور" ...
 ## 8. الفحص الصحي
 
 ```bash
-python scripts/health_check.py
 curl -f http://localhost:8080/health
+curl -f http://localhost:8080/__health
 ```
 
 ---

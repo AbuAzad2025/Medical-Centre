@@ -1,5 +1,7 @@
 # Route / Module Inventory
 
+> **⚠️ أرشيف (16 يونيو 2026):** `guard_module` أصبح مركزياً في `app_factory._add_guard_once`. لإعادة التوليد: `grep register_blueprint app_factory.py` + `MODULE_REGISTRY`.
+
 **Generated:** 2026-06-16  
 **Purpose:** Complete mapping of all routes to modules for SaaS module gating
 
