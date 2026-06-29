@@ -16,7 +16,7 @@ exclude =
     tmp_stamp.py,
     tmp_upgrade.py,
     mig_out.txt,
-    convert_backref.py,
+    scripts/dev/convert_backref.py,
 # F821 (undefined names): legacy debt — CI runs E9/F63/F7 only; full scan via scripts/dev/lint_debt.py
 per-file-ignores =
     tests/*:F401,F811

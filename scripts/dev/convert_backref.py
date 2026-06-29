@@ -5,8 +5,9 @@ Phase 2.2 of the field relationship fix plan.
 import re
 import os
 from collections import defaultdict
+from pathlib import Path
 
-MODELS_DIR = r'D:\Data\MED-2-7-2025\medical_system\models'
+MODELS_DIR = str(Path(__file__).resolve().parents[2] / 'models')
 
 # ============================================================
 # Phase 1: Build class_name -> file_path mapping

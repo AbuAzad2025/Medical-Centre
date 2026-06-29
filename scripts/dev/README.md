@@ -8,9 +8,11 @@
 | `audit_nav_coverage.py` | تغطية مسارات القائمة الجانبية |
 | `bs4_audit.py` | تدقيق قوالب Bootstrap 5 |
 | `lint_debt.py` | فحص flake8 موسّع (دين تقني) |
-| `create_tenants.py` | بيانات تجريبية — tenants |
-| `create_test_users.py` | مستخدمون تجريبيون |
-| `create_bundle_table.py` | قديم — استُبدل بـ Alembic |
-| `apply_migrations.py` | بديل يدوي — استخدم `flask db upgrade` |
+| `create_tenants.py` | بيانات تجريبية — 10 tenants |
+| `create_test_users.py` | مستخدمون تجريبيون لكل tenant |
+| `create_bundle_table.py` | **مهمل** — يخرج بخطأ (استخدم Alembic) |
+| `apply_migrations.py` | **مهمل** — يوجّه إلى `flask db upgrade` |
+| `convert_backref.py` | codemod لمرة واحدة — backref → back_populates |
+| `_bootstrap.py` | مساعد مسار — لا يُشغَّل مباشرة |
 
 **التشغيل الإنتاجي:** `docker compose up` أو `flask db upgrade` ثم `python scripts/ops/bootstrap_platform.py`.

@@ -4,7 +4,7 @@
 |--------|--------|----------------|
 | [`ops/`](ops/README.md) | bootstrap المنصة بعد `flask db upgrade` | ✅ يُشغَّل |
 | [`ci/`](ci/) | تحقق CI: تهجيرات، RLS، تطابق ORM | ❌ GitHub Actions فقط |
-| [`dev/`](dev/README.md) | بيانات تجريبية وتدقيق يدوي | ❌ تطوير محلي |
+| [`dev/`](dev/README.md) | بيانات تجريبية، تدقيق يدوي، codemods | ❌ تطوير محلي |
 
 ## CI (`scripts/ci/`)
 
