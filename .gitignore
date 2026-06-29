@@ -77,8 +77,11 @@ medical_system.db
 .env.production
 .env.development
 
-# Local Artifacts
-debug/
+# IDE / local
+.cursor/
+
+# Stale doc scratch dirs
+docs/tests/
 seeds/
 reports/
 pytest_out.txt
