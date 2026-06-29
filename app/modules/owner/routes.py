@@ -223,53 +223,9 @@ def owner_dashboard():
 @login_required
 @owner_required
 def owner_create_tenant():
-
-
-    plans = SubscriptionPlan.query.all()
-    if request.method == 'POST':
-        try:
-            profile_code = request.form.get('product_profile', '').strip() or None
-            t = Tenant(
-                slug=request.form.get('slug', '').strip(),
-                name=request.form.get('name', '').strip(),
-                name_ar=request.form.get('name_ar', '').strip() or None,
-                domain=request.form.get('domain', '').strip() or None,
-                subdomain=request.form.get('subdomain', '').strip() or None,
-                contact_email=request.form.get('contact_email', '').strip(),
-                contact_phone=request.form.get('contact_phone', '').strip() or None,
-                tax_number=request.form.get('tax_number', '').strip() or None,
-                product_profile_code=profile_code if profile_code else None,
-                plan_id=int(request.form.get('plan_id')) if request.form.get('plan_id') else None,
-                subscription_type=SubscriptionType(request.form.get('subscription_type', 'monthly')),
-                subscription_start=date.today(),
-                subscription_end=datetime.strptime(request.form.get('subscription_end'), '%Y-%m-%d').date() if request.form.get('subscription_end') else None,
-                grace_period_end=datetime.strptime(request.form.get('grace_period_end'), '%Y-%m-%d').date() if request.form.get('grace_period_end') else None,
-                storage_mode=StorageMode(request.form.get('storage_mode', 'local')),
-                status=TenantStatus.ACTIVE
-            )
-            db.session.add(t)
-            db.session.flush()
-
-            # Auto-activate default modules for the profile
-            if profile_code:
-                from app.core.tenant.models import get_default_modules_for_profile
-                default_modules = get_default_modules_for_profile(profile_code)
-                for mod_name in default_modules:
-                    from app.core.module.models import TenantModule
-                    tm = TenantModule(tenant_id=t.id, module_name=mod_name, is_active=True)
-                    db.session.add(tm)
-
-            db.session.commit()
-            _log_action('CREATE_TENANT', 'tenant', t.id, f"Created tenant {t.name} ({t.slug}) profile={profile_code}")
-            dispatch_webhook(EVENT_TENANT_CREATED, {"tenant_id": t.id, "name": t.name, "slug": t.slug})
-            flash('تم إنشاء العميل بنجاح', 'success')
-            return redirect(url_for('owner.owner_dashboard'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'خطأ: {e}', 'error')
-
-    from app.shared.enums import ProductProfile
-    return render_template('owner/create_tenant.html', plans=plans, profiles=list(ProductProfile))
+    """Legacy route — redirect to unified SaaS provisioning."""
+    flash('استخدم صفحة التجهيز الموحدة لإنشاء العملاء مع الباقات والاشتراكات.', 'info')
+    return redirect(url_for('owner.owner_provision'))
 
 
 @owner_bp.route("/tenants/<int:tenant_id>")
@@ -354,8 +310,11 @@ def owner_suspend_tenant(tenant_id):
 
     tenant = Tenant.query.get_or_404(tenant_id)
     try:
-        tenant.status = TenantStatus.SUSPENDED
-        db.session.commit()
+        TenantProvisioningService.suspend_tenant(
+            tenant_id,
+            reason='owner_suspend',
+            performed_by_user_id=current_user.id,
+        )
         _log_action('SUSPEND_TENANT', 'tenant', tenant_id, f"Suspended tenant {tenant.name}")
         dispatch_webhook(EVENT_TENANT_SUSPENDED, {"tenant_id": tenant_id, "name": tenant.name})
         flash('تم إيقاف العميل', 'warning')
@@ -373,8 +332,17 @@ def owner_activate_tenant(tenant_id):
 
     tenant = Tenant.query.get_or_404(tenant_id)
     try:
-        tenant.status = TenantStatus.ACTIVE
-        db.session.commit()
+        from app.core.saas.projection import EntitlementProjectionService
+
+        if tenant.status == TenantStatus.SUSPENDED:
+            TenantProvisioningService.reactivate_tenant(
+                tenant_id,
+                performed_by_user_id=current_user.id,
+            )
+        else:
+            tenant.status = TenantStatus.ACTIVE
+            db.session.commit()
+            EntitlementProjectionService.calculate(tenant_id)
         _log_action('ACTIVATE_TENANT', 'tenant', tenant_id, f"Activated tenant {tenant.name}")
         dispatch_webhook(EVENT_TENANT_ACTIVATED, {"tenant_id": tenant_id, "name": tenant.name})
         flash('تم تفعيل العميل', 'success')
@@ -1054,7 +1022,7 @@ def api_delete_bundle(bundle_id):
 @login_required
 @rate_limit(max_requests=10, window_seconds=60)
 def api_provision_tenant():
-    """Create a new tenant with bundle-based provisioning."""
+    """Create a new tenant via TenantProvisioningService (bundle_slug → PackageVersion)."""
 
     try:
         data = request.get_json() or request.form
@@ -1066,49 +1034,59 @@ def api_provision_tenant():
         bundle_slug = data.get("bundle_slug", "").strip()
         domain = data.get("domain", "").strip() or None
         subdomain = data.get("subdomain", "").strip() or None
-        
+        billing_type = (data.get("billing_type") or "monthly").strip().lower()
+
         if not all([slug, name, email, bundle_slug]):
             return jsonify({"error": "Missing required fields: slug, name, email, bundle_slug"}), 400
-        
+
         if Tenant.query.filter_by(slug=slug).first():
             return jsonify({"error": "Slug already exists"}), 400
-        
+
         bundle = ProductBundle.query.filter_by(slug=bundle_slug, is_active=True).first()
         if not bundle:
             return jsonify({"error": "Invalid or inactive bundle"}), 400
-        
-        # Check bundle limits for trial
-        if not bundle.is_unlimited("max_users") and bundle.max_users and bundle.max_users < 1:
-            return jsonify({"error": "Bundle has zero user limit"}), 400
-        
-        tenant = Tenant(
+
+        from app.core.saas.seed import seed_packages_from_product_bundles
+        seed_packages_from_product_bundles()
+
+        package = Package.query.filter_by(slug=bundle_slug, is_active=True).first()
+        if not package:
+            return jsonify({"error": "Package not found for bundle_slug"}), 400
+
+        package_version = (
+            PackageVersion.query.filter_by(package_id=package.id)
+            .order_by(PackageVersion.id.desc())
+            .first()
+        )
+        if not package_version:
+            return jsonify({"error": "No package version for bundle"}), 400
+
+        tenant = TenantProvisioningService.provision_tenant(
             slug=slug,
             name=name,
+            contact_email=email,
+            package_version_id=package_version.id,
+            billing_type=billing_type,
+            product_profile_code=bundle.profile_code,
+            performed_by_user_id=current_user.id,
             name_ar=name_ar,
             domain=domain,
             subdomain=subdomain,
-            contact_email=email,
             contact_phone=phone,
-            product_profile_code=bundle.profile_code,
-            status=TenantStatus.ACTIVE,
-            storage_mode=StorageMode.LOCAL,
         )
-        db.session.add(tenant)
-        db.session.flush()
-        
-        # Activate bundle modules
-        for mod_name in bundle.get_modules():
-            tm = TenantModule(tenant_id=tenant.id, module_name=mod_name, is_active=True)
-            db.session.add(tm)
-        
-        # Record initial resource snapshot
-        from app.core.tenant.models import ResourceUsage
-        ResourceUsage.record_snapshot(tenant.id)
-        
-        db.session.commit()
-        _log_action('PROVISION_TENANT', 'tenant', tenant.id, f"Provisioned {tenant.name} with bundle {bundle_slug}")
-        dispatch_webhook(EVENT_TENANT_CREATED, {"tenant_id": tenant.id, "name": tenant.name, "slug": tenant.slug, "bundle": bundle_slug})
-        
+
+        _log_action(
+            'PROVISION_TENANT', 'tenant', tenant.id,
+            f"Provisioned {tenant.name} with bundle {bundle_slug} via package_version={package_version.id}",
+        )
+        dispatch_webhook(EVENT_TENANT_CREATED, {
+            "tenant_id": tenant.id,
+            "name": tenant.name,
+            "slug": tenant.slug,
+            "bundle": bundle_slug,
+            "package_version_id": package_version.id,
+        })
+
         return jsonify({
             "status": "provisioned",
             "tenant": {
@@ -1116,8 +1094,9 @@ def api_provision_tenant():
                 "slug": tenant.slug,
                 "name": tenant.name,
                 "bundle": bundle.slug,
-                "modules": bundle.get_modules(),
-            }
+                "package_version_id": package_version.id,
+                "status": getattr(tenant.status, 'value', tenant.status),
+            },
         })
     except Exception as e:
         db.session.rollback()

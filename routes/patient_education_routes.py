@@ -11,11 +11,6 @@ from werkzeug.utils import secure_filename
 
 patient_education_bp = Blueprint('patient_education', __name__)
 
-from services.feature_gate_service import guard_module
-
-@patient_education_bp.before_request
-def _guard_doctor_module():
-    guard_module('doctor')
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'uploads', 'education')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)

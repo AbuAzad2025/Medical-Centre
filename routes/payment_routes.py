@@ -24,11 +24,6 @@ import json
 
 payment_bp = Blueprint('payment', __name__)
 
-from services.feature_gate_service import guard_module
-
-@payment_bp.before_request
-def _guard_billing_module():
-    guard_module('billing')
 
 @payment_bp.route('/')
 @login_required

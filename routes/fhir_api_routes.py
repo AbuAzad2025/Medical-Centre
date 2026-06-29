@@ -17,11 +17,6 @@ from datetime import datetime, timezone
 
 fhir_bp = Blueprint('fhir', __name__)
 
-from services.feature_gate_service import guard_module
-
-@fhir_bp.before_request
-def _guard_integration_module():
-    guard_module('integration')
 
 def _log_fhir_access(action, resource_type, resource_id=None, request_body=None, response_status=200):
     log = FHIRAuditLog(

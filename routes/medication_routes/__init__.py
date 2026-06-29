@@ -17,11 +17,6 @@ from sqlalchemy import func
 
 medication_bp = Blueprint('medication', __name__)
 
-from services.feature_gate_service import guard_module
-
-@medication_bp.before_request
-def _guard_pharmacy_module():
-    guard_module('pharmacy')
 
 
 

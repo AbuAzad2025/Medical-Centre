@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   db:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     environment:
       POSTGRES_USER: ${PG_USER:-postgres}
       POSTGRES_PASSWORD: ${PG_PASSWORD:-changeme}
@@ -21,24 +21,56 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     build: .
     ports:
       - "8080:8080"
     environment:
-      SECRET_KEY: ${SECRET_KEY}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
       DATABASE_URL: postgresql://${PG_USER:-postgres}:${PG_PASSWORD:-changeme}@db:5432/${PG_DB_NAME:-medical_system}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
       FLASK_ENV: production
+      ENABLE_SAAS_MODE: "true"
+      DEPLOYMENT_MODE: saas
+      CELERY_ENABLED: "true"
+      CELERY_TASK_ALWAYS_EAGER: "false"
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       HOST: 0.0.0.0
       PORT: 8080
     depends_on:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - uploads:/app/static/uploads
+    command: >
+      sh -c "flask db upgrade && gunicorn -c gunicorn.conf.py wsgi:app"
+
+  worker:
+    build: .
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
+      DATABASE_URL: postgresql://${PG_USER:-postgres}:${PG_PASSWORD:-changeme}@db:5432/${PG_DB_NAME:-medical_system}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      FLASK_ENV: production
+      ENABLE_SAAS_MODE: "true"
+      CELERY_ENABLED: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A celery_worker.celery worker --loglevel=info -E
 
 volumes:
   pgdata:

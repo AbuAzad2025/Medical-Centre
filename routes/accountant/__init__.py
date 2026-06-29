@@ -19,11 +19,6 @@ from decimal import Decimal
 
 accountant_bp = Blueprint('accountant', __name__)
 
-from services.feature_gate_service import guard_module
-
-@accountant_bp.before_request
-def _guard_billing_module():
-    guard_module('billing')
 
 
 

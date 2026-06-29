@@ -1,80 +1,192 @@
-# دليل النشر الإنتاجي — Azad Medical Platform v3.0
+# دليل النشر الإنتاجي — Azad Medical Platform
+
+**الإصدار:** 3.1 · **يونيو 2026**
+
+---
 
 ## 1. المتطلبات
-- Docker + Docker Compose
-- PostgreSQL 15+
-- Redis 7+ (للجلسات والكاش)
-- Python 3.11+
 
-## 2. متغيرات البيئة
+| المكوّن | الإصدار |
+|---------|---------|
+| Docker + Docker Compose | v2+ |
+| PostgreSQL | **16** (إلزامي للإنتاج) |
+| Redis | **7** |
+| Python | 3.11+ (للتطوير المحلي) |
 
-```bash
-# .env
-SECRET_KEY=your-256-bit-secret-key
-DATABASE_URL=postgresql://user:pass@db:5432/medical
-REDIS_URL=redis://redis:6379/0
-FLASK_ENV=production
-ADMIN_EMAIL=admin@azad.com
-ADMIN_PASSWORD=change-me
-WHATSAPP_API_KEY=your-meta-api-key
-WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id
+> SQLite غير مدعوم للإنتاج أو CI. جميع الاختبارات والتهجيرات تفترض PostgreSQL.
+
+---
+
+## 2. البنية (Docker Compose)
+
+```
+┌─────────┐     ┌─────────┐     ┌──────────────┐
+│  Redis  │◄────│   App   │────►│ PostgreSQL 16│
+└────┬────┘     │ Gunicorn│     └──────────────┘
+     │          └─────────┘
+     ▼          ┌─────────┐
+┌─────────┐     │ Worker  │  Celery (نسخ احتياطي، إشعارات، مهام)
+│         │◄────│ Celery  │
+└─────────┘     └─────────┘
 ```
 
-## 3. التهجيرات
+```bash
+docker compose up -d --build
+```
+
+- **المنفذ:** `8080`
+- **التهجيرات:** تُنفَّذ تلقائياً عند بدء `app`
+- **الرأس:** `s1_004_expenses_rls_uniques`
+
+---
+
+## 3. متغيرات البيئة
 
 ```bash
-# أول تشغيل
+# إلزامي
+SECRET_KEY=your-256-bit-secret-key
+DATABASE_URL=postgresql://user:pass@db:5432/medical_system
+REDIS_URL=redis://redis:6379/0
+CELERY_BROKER_URL=redis://redis:6379/0
+
+# التشغيل
+FLASK_ENV=production
+HOST=0.0.0.0
+PORT=8080
+CELERY_ENABLED=true
+
+# SaaS
+ENABLE_SAAS_MODE=true
+DEPLOYMENT_MODE=saas
+
+# Stripe (للتسجيل والفوترة)
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_CURRENCY=usd
+SAAS_CHECKOUT_BASE_URL=https://your-domain.com
+SAAS_REQUIRE_PAYMENT_AT_SIGNUP=false
+SAAS_DEFAULT_PACKAGE_VERSION_ID=1
+
+# إدارة أولية (اختياري)
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=change-me-immediately
+```
+
+---
+
+## 4. التهجيرات
+
+```bash
+# يدوياً
 flask db upgrade
 
-# أو عبر Docker
-docker-compose exec app flask db upgrade
+# داخل الحاوية
+docker compose exec app flask db upgrade
+
+# التحقق (كما في CI)
+python scripts/verify_migrations.py
 ```
 
-## 4. تهيئة المنصة
+**سلسلة SaaS الحديثة:**
+`s1_002_tenant_rls_policies` → `s1_003_department_tenant_unique` → `s1_004_expenses_rls_uniques`
 
+---
+
+## 5. تهيئة المنصة
+
+### أ) تسجيل ذاتي (SaaS)
+1. فعّل `ENABLE_SAAS_MODE=true` و Stripe
+2. زُر `/saas/signup` أو وجّه العملاء إليه
+3. اضبط webhook Stripe على `POST /api/billing/stripe/webhook`
+
+### ب) توفير يدوي (Owner)
 ```bash
+# عبر واجهة Owner
+/owner/tenants/provision
+
+# أو سكربت (مركز واحد)
 python scripts/setup_platform.py
+python scripts/setup_tenant.py --slug clinic1 --name "عيادة النور" ...
 ```
 
-يقوم بـ:
-- تشغيل التهجيرات
-- تعبئة الوحدات (Module Definitions)
-- إنشاء Tenant افتراضي
-- إنشاء مستخدم إداري
+التوفير البرمجي الموحّد: `TenantProvisioningService.provision_tenant` (يُستخدم من Owner API و SaaS register).
 
-## 5. إنشاء Tenant جديد
+---
 
-```bash
-python scripts/setup_tenant.py \
-  --slug clinic1 \
-  --name "عيادة النور" \
-  --email admin@clinic1.com \
-  --plan monthly \
-  --modules reception,doctor,lab,pharmacy
-```
+## 6. Row-Level Security (RLS)
 
-## 6. الفحص الصحي
+على PostgreSQL، 30 جدولاً محمي بـ RLS عبر `app.tenant_id`:
+
+- **s1_002 (11):** visits, patients, invoices, payments, appointments, lab_requests, prescriptions, pharmacy_sales, medical_records, queue_management, users
+- **s1_004 (19):** departments, insurance_companies, insurance_claims, barcode_registry, expenses, biometric_*, wards, medications, audit_trails, treatments, emergency_cases, budgets, notifications, medical_reports, receipts, refund_requests, cash_registers, barcode_scan_logs
+
+يُضبط `SET LOCAL app.tenant_id` في middleware ومهام Celery (`tenant_job_runner`).
+
+---
+
+## 7. Stripe Webhooks
+
+| الحدث | الإجراء |
+|-------|---------|
+| `checkout.session.completed` | تفعيل tenant `PENDING` → `ACTIVE` |
+| `customer.subscription.created/updated` | تحديث خط الاشتراك |
+| `invoice.paid` | تجديد/تفعيل |
+| `invoice.payment_failed` | تعليق أو إشعار |
+
+الـ endpoint معفى من CSRF: `@csrf.exempt` على webhook route.
+
+---
+
+## 8. الفحص الصحي
 
 ```bash
 python scripts/health_check.py
+curl -f http://localhost:8080/health
 ```
 
-## 7. الاختبارات
+---
+
+## 9. الاختبارات (قبل النشر)
 
 ```bash
-python -m pytest tests/ -v --cov=app --cov-report=html
+set ENABLE_SAAS_MODE=true
+set DATABASE_URL=postgresql://...
+python -m pytest tests/ -q --tb=short
 ```
 
-## 8. الأمان
-- جميع الأسرار في متغيرات البيئة
-- CSP headers مفعلة
-- CSRF حماية على جميع النماذج
-- Rate limiting على API
-- Audit log على كل العمليات الحساسة
+CI يشغّل نفس الاختبارات على PostgreSQL 16 + Redis مع Celery eager.
 
-## 9. الوحدات الإلزامية
-- **الاستقبال**: إلزامية لأي tenant يفعل أكثر من وحدة سريرية واحدة
-- يمكن تفعيل/تعطيل الوحدات حسب الاشتراك
+---
 
-## 10. الدعم
-للاستفسارات: support@azad.com
+## 10. الأمان
+
+- أسرار في متغيرات البيئة فقط — لا تُلتزَم في Git
+- CSRF على النماذج؛ webhook Stripe معفى
+- Rate limiting على التسجيل والفوترة
+- `guard_module` مركزي في `app_factory._add_guard_once`
+- فلترة tenant افتراضية (fail-closed) في ORM
+- HTTPS إلزامي في الإنتاج (`SESSION_COOKIE_SECURE`)
+
+---
+
+## 11. النسخ الاحتياطي
+
+- عبر Super Admin: `POST /super-admin/backup/create` (Celery + `pg_dump`)
+- يتطلب `pg_dump` في بيئة الـ worker
+- اضبط `BACKUP_LOCAL_DIR` أو تخزين سحابي حسب بيئتك
+
+---
+
+## 12. الوحدات والاشتراكات
+
+- كل tenant يحصل على وحدات حسب `PackageVersion` / entitlements
+- الاستقبال إلزامي عند تفعيل أكثر من وحدة سريرية
+- تعطيل وحدة = 403 على مساراتها
+
+---
+
+## 13. الدعم
+
+- Issues: https://github.com/AbuAzad2025/Med1/issues
+- دليل المستخدم: [USER_GUIDE.md](USER_GUIDE.md)
+- ملخص تنفيذي: [CEO_OVERVIEW.md](CEO_OVERVIEW.md)

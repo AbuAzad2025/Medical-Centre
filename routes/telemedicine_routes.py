@@ -12,11 +12,6 @@ import logging
 
 telemedicine_bp = Blueprint('telemedicine', __name__)
 
-from services.feature_gate_service import guard_module
-
-@telemedicine_bp.before_request
-def _guard_doctor_module():
-    guard_module('doctor')
 
 VIEW_ROLES = ('super_admin', 'admin', 'manager', 'reception', 'doctor')
 

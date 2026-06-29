@@ -79,6 +79,7 @@ from .backup_restore import BackupRestoreLog
 from .telemedicine import TelemedicineAppointment
 from .sso_config import SSOConfiguration, SSOUserMapping
 from .ai_imaging import AIImagingAnalysis
+from .expense import Expense
 from .biometric_auth import BiometricCredential, BiometricAuthChallenge
 from .data_warehouse import DataWarehouseSync, DailyVisitSummary, MonthlyFinanceSummary
 from .what_if_scenario import WhatIfScenario
@@ -137,6 +138,7 @@ __all__ = [
     "MedicationReconciliation",
     "CDSAlertRule", "CDSFiredAlert",
     "BarcodeRegistry", "BarcodeScanLog",
+    "Expense",
     "DigitalSignature", "PasswordPolicy", "SessionLog", "EncryptedField",
     "DiseaseRegistry", "PopulationHealthIndicator", "QualityMeasure",
     "UserMFASettings", "MFALoginAttempt",

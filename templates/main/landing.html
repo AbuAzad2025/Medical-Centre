@@ -9,6 +9,9 @@
       <div class="d-flex flex-wrap gap-2">
         <a href="{{ url_for('booking.index') }}" class="btn btn-primary btn-lg"><i class="fas fa-calendar-plus me-2"></i>حجز موعد</a>
         <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">دخول الموظفين</a>
+        {% if config.get('ENABLE_SAAS_MODE', False) %}
+        <a href="{{ url_for('saas.signup_organization') }}" class="btn btn-success btn-lg"><i class="fas fa-hospital me-2"></i>تسجيل منشأة</a>
+        {% endif %}
         {% if current_user.is_authenticated and current_user.role == 'patient' %}
         <a href="{{ url_for('portal.dashboard') }}" class="btn btn-outline-success btn-lg">بوابة المريض</a>
         {% else %}

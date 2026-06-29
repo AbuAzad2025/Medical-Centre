@@ -12,11 +12,6 @@ from app_factory import db
 
 or_bp = Blueprint('or', __name__)
 
-from services.feature_gate_service import guard_module
-
-@or_bp.before_request
-def _guard_nursing_module():
-    guard_module('nursing')
 
 @or_bp.route('/schedule')
 @login_required

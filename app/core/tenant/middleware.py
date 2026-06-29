@@ -35,8 +35,22 @@ class TenantResolutionError(Exception):
 
 
 def _get_tenant_by_slug(slug: str) -> Tenant | None:
-    """Return active tenant by slug, or None."""
-    return Tenant.query.filter_by(slug=slug, status='active').first()
+    """Return login-eligible tenant by slug (active, trial, or pending payment)."""
+    from app.shared.enums import TenantStatus
+
+    return Tenant.query.filter(
+        Tenant.slug == slug,
+        Tenant.status.in_((TenantStatus.ACTIVE, TenantStatus.TRIAL, TenantStatus.PENDING)),
+    ).first()
+
+
+_PENDING_ALLOWED_PREFIXES = (
+    '/auth/',
+    '/api/billing/',
+    '/saas/',
+    '/static/',
+    '/favicon.ico',
+)
 
 
 def _auto_create_default_tenant() -> Tenant | None:
@@ -230,6 +244,7 @@ def set_tenant_context():
         '/owner/',
         '/super-admin/',
         '/api/saas/',
+        '/saas/',
         '/api/billing/stripe/',
         '/__health',
         '/kiosk/',
@@ -282,6 +297,12 @@ def set_tenant_context():
 
     if not tenant:
         return
+
+    from app.shared.enums import TenantStatus
+    if tenant.status == TenantStatus.PENDING:
+        if not any(request.path.startswith(p) for p in _PENDING_ALLOWED_PREFIXES):
+            from flask import abort
+            abort(402, description='Subscription payment required before accessing this resource.')
 
     # Inject module/feature/profile context
     try:

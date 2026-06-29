@@ -11,11 +11,6 @@ from app.shared.enums import EmergencyStatus, OrderState, VisitState, VisitArchi
 
 quality_bp = Blueprint('quality', __name__)
 
-from services.feature_gate_service import guard_module
-
-@quality_bp.before_request
-def _guard_reporting_module():
-    guard_module('reporting')
 
 
 def _allowed():

@@ -13,8 +13,8 @@ class Department(TenantMixin, db.Model):
     __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)   # EN
-    name_ar = db.Column(db.String(100), nullable=False)             # AR
+    name = db.Column(db.String(100), nullable=False)
+    name_ar = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     location = db.Column(db.String(200), nullable=True)
     phone = db.Column(db.String(20), nullable=True)
@@ -35,6 +35,7 @@ class Department(TenantMixin, db.Model):
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
     __table_args__ = (
+        db.UniqueConstraint('tenant_id', 'name', name='uq_department_tenant_name'),
         CheckConstraint("capacity >= 0", name='chk_department_capacity_non_negative'),
         Index('idx_department_active', 'is_active'),
         Index('idx_department_name_ar', 'name_ar'),

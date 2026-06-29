@@ -9,12 +9,15 @@ from app.shared.mixins import TenantMixin
 class Ward(TenantMixin, db.Model):
     """Hospital ward / unit"""
     __tablename__ = 'wards'
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = (
+        db.UniqueConstraint('tenant_id', 'code', name='uq_ward_tenant_code'),
+        {'extend_existing': True},
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     name_ar = db.Column(db.String(100), nullable=True)
-    code = db.Column(db.String(20), nullable=False, unique=True)
+    code = db.Column(db.String(20), nullable=False)
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'), nullable=True, index=True)
     ward_type = db.Column(db.String(50), default='GENERAL')  # GENERAL, ICU, NICU, PICU, MATERNITY, SURGERY, ISOLATION
     capacity = db.Column(db.Integer, default=0)

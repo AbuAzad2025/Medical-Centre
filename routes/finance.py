@@ -16,11 +16,6 @@ from datetime import datetime, date
 
 finance_bp = Blueprint('finance', __name__)
 
-from services.feature_gate_service import guard_module
-
-@finance_bp.before_request
-def _guard_billing_module():
-    guard_module('billing')
 
 @finance_bp.route('/')
 @login_required

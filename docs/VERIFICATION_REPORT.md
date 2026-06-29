@@ -1,6 +1,8 @@
 # تقرير التحقق — مطابقة الخطط مع التطبيق الفعلي
 # Verification Report: Plans vs. Actual Implementation
 
+> **تحديث 2026-06-28:** بنود SaaS/P0 الأمنية مُنفَّذة (RLS، Stripe signup، provisioning موحّد). الجداول أدناه تعكس تحقق **12 يونيو**؛ راجع `DEVELOPMENT_LOG.md` و`CEO_OVERVIEW.md`.
+
 **تاريخ التحقق:** 2026-06-12
 **الإصدار:** Azad Medical Platform v3.0
 **المُحقق:** Automated System Audit
