@@ -36,3 +36,42 @@ def check_constraint_exists(table: str, name: str) -> bool:
         return False
     names = {c['name'] for c in _insp().get_check_constraints(table)}
     return name in names
+
+
+def unique_constraint_exists(table: str, name: str) -> bool:
+    if not table_exists(table):
+        return False
+    names = {c['name'] for c in _insp().get_unique_constraints(table) if c.get('name')}
+    return name in names
+
+
+def drop_unique_index_if_exists(table: str, index_name: str) -> None:
+    if index_exists(table, index_name):
+        op.drop_index(index_name, table_name=table)
+
+
+def drop_unique_constraint_if_exists(table: str, constraint_name: str) -> None:
+    if unique_constraint_exists(table, constraint_name):
+        with op.batch_alter_table(table, schema=None) as batch_op:
+            batch_op.drop_constraint(constraint_name, type_='unique')
+
+
+def replace_global_unique_with_tenant(
+    table: str,
+    column: str,
+    new_constraint: str,
+    *,
+    index_names: tuple[str, ...] = (),
+    constraint_names: tuple[str, ...] = (),
+) -> None:
+    """Drop global unique (index or constraint) and add (tenant_id, column) unique."""
+    if unique_constraint_exists(table, new_constraint):
+        return
+    for idx in index_names:
+        drop_unique_index_if_exists(table, idx)
+    for name in constraint_names:
+        drop_unique_constraint_if_exists(table, name)
+    # SQLAlchemy may auto-name UniqueConstraint(column) as {table}_{column}_key
+    drop_unique_constraint_if_exists(table, f'{table}_{column}_key')
+    with op.batch_alter_table(table, schema=None) as batch_op:
+        batch_op.create_unique_constraint(new_constraint, ['tenant_id', column])
