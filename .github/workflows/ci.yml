@@ -58,6 +58,12 @@ jobs:
       - name: Verify Alembic upgrade (fresh DB)
         run: python scripts/verify_migrations.py
 
+      - name: Bootstrap platform catalog
+        run: python scripts/ops/bootstrap_platform.py
+        env:
+          FLASK_ENV: production
+          ENABLE_SAAS_MODE: "true"
+
   test:
     runs-on: ubuntu-latest
     needs: migrate

@@ -53,7 +53,7 @@ services:
     volumes:
       - uploads:/app/static/uploads
     command: >
-      sh -c "flask db upgrade && gunicorn -c gunicorn.conf.py wsgi:app"
+      sh -c "flask db upgrade && python scripts/ops/bootstrap_platform.py && gunicorn -c gunicorn.conf.py wsgi:app"
 
   worker:
     build: .

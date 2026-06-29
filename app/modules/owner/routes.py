@@ -1046,8 +1046,9 @@ def api_provision_tenant():
         if not bundle:
             return jsonify({"error": "Invalid or inactive bundle"}), 400
 
-        from app.core.saas.seed import seed_packages_from_product_bundles
-        seed_packages_from_product_bundles()
+        from app.core.platform_bootstrap import ensure_saas_packages
+
+        ensure_saas_packages()
 
         package = Package.query.filter_by(slug=bundle_slug, is_active=True).first()
         if not package:
