@@ -167,6 +167,27 @@ def _tenant_from_authenticated_user() -> Tenant | None:
     return None
 
 
+def bind_tenant_from_session() -> None:
+    """Bind tenant from session keys before Flask-Login user_loader runs."""
+    from flask import g, session
+
+    if g.get('tenant_id'):
+        return
+
+    tid = session.get('tenant_id')
+    if tid:
+        tenant = Tenant.query.get(int(tid))
+        if tenant:
+            bind_g_tenant(tenant)
+            return
+
+    slug = session.get('tenant_slug')
+    if slug:
+        tenant = _get_tenant_by_slug(slug)
+        if tenant:
+            bind_g_tenant(tenant)
+
+
 def bind_g_tenant(tenant: Tenant | None) -> None:
     """Set ``g.tenant_id`` and PostgreSQL RLS session var for a resolved tenant."""
     g.current_tenant = tenant
@@ -217,12 +238,14 @@ def set_tenant_context():
 
     is_exempt = any(request.path.startswith(p) for p in exempt_paths)
 
-    tenant = None
-    if not is_exempt:
+    bind_tenant_from_session()
+    tenant = g.get('current_tenant')
+
+    if tenant is None and not is_exempt:
         try:
             tenant = resolve_tenant()
         except TenantResolutionError as exc:
-            if saas:
+            if saas and not g.get('tenant_id'):
                 from flask import abort
                 abort(403, description=str(exc))
             tenant = None

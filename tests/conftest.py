@@ -218,10 +218,11 @@ def runner(app):
 @pytest.fixture(scope='function')
 def test_tenant(app):
     """Create a test tenant for pharmacy-shifa with all modules active (SaaS CI)."""
-    from tests.tenant_context import ensure_default_test_tenant
+    from app.core.tenant.models import Tenant
+    from tests.tenant_context import ensure_default_test_tenant, DEFAULT_TEST_TENANT_SLUG
 
-    t = ensure_default_test_tenant(app)
-    t = _db.session.merge(t)
+    ensure_default_test_tenant(app)
+    t = Tenant.query.filter_by(slug=DEFAULT_TEST_TENANT_SLUG).first()
     if t.settings is None:
         t.settings = {}
     _db.session.commit()

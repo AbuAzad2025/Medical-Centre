@@ -90,6 +90,15 @@ def create_app(config_name: str | None = None) -> Flask:
 
     # تهيئة الإضافات
     db.init_app(app)
+
+    @app.before_request
+    def _bind_tenant_from_session_early():
+        try:
+            from app.core.tenant.middleware import bind_tenant_from_session
+            bind_tenant_from_session()
+        except Exception:
+            pass
+
     login_manager.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app)
@@ -279,7 +288,11 @@ def create_app(config_name: str | None = None) -> Flask:
     
     @login_manager.user_loader
     def load_user(user_id):
+        from flask import g
         from models.user import User
+        from app.core.tenant.models import Tenant
+        from app.core.tenant.middleware import bind_g_tenant
+
         raw = str(user_id or '')
         if not raw:
             return None
@@ -294,9 +307,22 @@ def create_app(config_name: str | None = None) -> Flask:
                 expected_version = int(parts[1])
             except Exception:
                 expected_version = 0
-        user = db.session.get(User, uid)
+        prev_bypass = g.get('_tenant_filter_bypass', False)
+        if not g.get('tenant_id'):
+            g._tenant_filter_bypass = True
+        try:
+            user = db.session.get(User, uid)
+        finally:
+            if prev_bypass:
+                g._tenant_filter_bypass = True
+            elif not g.get('tenant_id'):
+                g.pop('_tenant_filter_bypass', None)
         if not user:
             return None
+        if user.tenant_id and not g.get('tenant_id'):
+            tenant = Tenant.query.get(user.tenant_id)
+            if tenant:
+                bind_g_tenant(tenant)
         actual_version = int(getattr(user, 'session_version', 0) or 0)
         if actual_version != expected_version:
             return None

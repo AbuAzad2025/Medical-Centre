@@ -217,36 +217,42 @@ class TestTenantIsolation:
             assert m.tenant_id == test_tenant.id
         g.tenant_id = None
 
-    def test_cross_tenant_isolation(self, app, test_user, test_tenant):
+    def test_cross_tenant_isolation(self, app, test_tenant):
         """Data from different tenant should not be visible."""
         from flask import g
         from app_factory import db
         from models.medication import Medication
         from app.core.tenant.models import Tenant
 
-        # Use a real other tenant
-        other = Tenant(slug='other-test', name='Other Test', status='active', contact_email='other@test.com')
-        db.session.add(other)
-        db.session.commit()
-        other_tenant_id = other.id
+        g._tenant_filter_bypass = True
+        try:
+            other = Tenant.query.filter_by(slug='other-test').first()
+            if not other:
+                other = Tenant(slug='other-test', name='Other Test', status='active', contact_email='other@test.com')
+                db.session.add(other)
+                db.session.commit()
+            other_tenant_id = other.id
 
-        m = Medication(
-            tenant_id=other_tenant_id,
-            trade_name='دواء منشأة أخرى',
-            scientific_name='Other Drug',
-            dosage_form='tablet',
-            strength='500mg',
-            price=10.00,
-            stock_quantity=10,
-            minimum_stock=5,
-        )
-        db.session.add(m)
-        db.session.commit()
+            m = Medication.query.filter_by(
+                tenant_id=other_tenant_id, trade_name='دواء منشأة أخرى'
+            ).first()
+            if not m:
+                m = Medication(
+                    tenant_id=other_tenant_id,
+                    trade_name='دواء منشأة أخرى',
+                    scientific_name='Other Drug',
+                    dosage_form='tablet',
+                    strength='500mg',
+                    price=10.00,
+                    stock_quantity=10,
+                    minimum_stock=5,
+                )
+                db.session.add(m)
+                db.session.commit()
+        finally:
+            g.pop('_tenant_filter_bypass', None)
 
         g.tenant_id = test_tenant.id
         meds = Medication.query.filter(Medication.trade_name == 'دواء منشأة أخرى').all()
         assert len(meds) == 0
         g.tenant_id = None
-        db.session.delete(m)
-        db.session.delete(other)
-        db.session.commit()

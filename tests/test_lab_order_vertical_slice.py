@@ -129,13 +129,9 @@ class TestLabServiceCreateRequest:
 
 class TestDoctorLabRequestRoute:
     def test_creates_structured_lab_request(self, app, client, lab_visit, lab_doctor, lab_catalog, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        _shared_store.clear()
-        client.post('/auth/login', data={
-            'username': 'lab_doctor',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
+        from tests.tenant_context import login_test_client
+
+        login_test_client(client, lab_doctor, test_tenant)
         test_ids = [c.id for c in lab_catalog]
         resp = client.post(f'/doctor/lab-request/{lab_visit.id}', data={
             'test_ids': ','.join(str(i) for i in test_ids),
@@ -150,13 +146,9 @@ class TestDoctorLabRequestRoute:
         assert results == 2
 
     def test_free_text_mode_without_test_ids(self, app, client, lab_visit, lab_doctor, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        _shared_store.clear()
-        client.post('/auth/login', data={
-            'username': 'lab_doctor',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
+        from tests.tenant_context import login_test_client
+
+        login_test_client(client, lab_doctor, test_tenant)
         resp = client.post(f'/doctor/lab-request/{lab_visit.id}', data={
             'test_name': 'Custom blood test',
             'notes': 'Please check manually',

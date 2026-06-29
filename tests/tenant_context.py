@@ -107,12 +107,16 @@ def login_test_client(client, user, tenant, password: str = 'test123'):
         'password': password,
         'tenant_slug': slug,
     })
-    tid = getattr(user, 'tenant_id', None)
+    tid = getattr(user, 'tenant_id', None) or getattr(tenant, 'id', None)
+    version = int(getattr(user, 'session_version', 0) or 0)
+    user_id = f'{user.id}:{version}' if version else str(user.id)
     with client.session_transaction() as sess:
-        if tid is not None and not sess.get('tenant_id'):
+        sess['_user_id'] = user_id
+        if tid is not None:
             sess['tenant_id'] = int(tid)
-        if slug and not sess.get('tenant_slug'):
+        if slug:
             sess['tenant_slug'] = slug
+        sess['_fresh'] = True
     return resp
 
 

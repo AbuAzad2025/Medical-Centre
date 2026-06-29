@@ -28,7 +28,7 @@ def manager_settings():
         if not tenant:
             return jsonify({'success': False, 'message': 'التينانت غير موجود'}), 404
 
-        settings = tenant.settings or {}
+        settings = dict(tenant.settings or {})
 
         # General settings
         if 'general' in data:
