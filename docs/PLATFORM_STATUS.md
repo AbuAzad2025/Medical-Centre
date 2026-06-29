@@ -31,9 +31,9 @@ docker compose up -d --build
 | Backend | Flask, SQLAlchemy 2, PostgreSQL **16** |
 | Cache / Queue | Redis 7, Celery worker |
 | Multi-tenant | `ENABLE_SAAS_MODE`, ORM filter + RLS |
-| رأس التهجيرات | `s1_006_rls_phase3` |
+| رأس التهجيرات | `s1_007_rls_phase4` |
 | جداول ORM | 209 (مطابقة migrations — `scripts/ci/check_schema_parity.py`) |
-| RLS | 80 جدول tenant (s1_002 + s1_004 + s1_005 + s1_006) |
+| RLS | 181 جدول tenant (s1_002 → s1_007) |
 | Blueprints | 54 مسجّلة في `app_factory.py` |
 | وحدات المنصة | 15 في `MODULE_REGISTRY` |
 | اختبارات | ~104 ملف — CI مع `ENABLE_SAAS_MODE=true` |
