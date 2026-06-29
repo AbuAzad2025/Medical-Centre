@@ -1,5 +1,7 @@
 # ملخص تغطية الاختبارات
 
+> **تحديث 2026-06-28:** ~100 ملف اختبار؛ CI يشغّل المجموعة كاملة مع `ENABLE_SAAS_MODE=true` على PostgreSQL 16. الأرقام أدناه قديمة.
+
 > آخر قياس محلي: `pytest tests/ --cov=app --cov=routes --cov=services --cov=models --cov=utils`
 
 ## العدد

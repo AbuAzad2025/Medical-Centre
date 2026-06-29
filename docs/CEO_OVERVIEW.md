@@ -25,7 +25,7 @@
 | CI/CD | ✅ | GitHub Actions — migrate + ~1200+ اختبار |
 | تسجيل منشآت ذاتي | ✅ | `/saas/signup` + API |
 | فوترة Stripe | ✅ | checkout عند التسجيل + webhooks |
-| عزل بيانات | ✅ | فلترة tenant في ORM + RLS على 30 جدولاً |
+| عزل بيانات | ✅ | فلترة tenant في ORM + RLS على 31 جدولاً |
 | مصروفات تشغيلية | ✅ | نموذج `Expense` + خدمة مالية |
 | توفير tenants (مالك المنصة) | ✅ | مسار موحّد عبر `TenantProvisioningService` |
 | نسخ احتياطي | 🟡 | يعمل مع `pg_dump`؛ يتطلب إعداد البنية |
@@ -68,7 +68,7 @@
 | نماذج ORM | ~84 ملف |
 | خدمات أعمال | ~58 |
 | قوالب HTML | ~385 |
-| جداول بـ RLS | 30 |
+| جداول بـ RLS | 31 |
 | رأس التهجيرات | `s1_004_expenses_rls_uniques` |
 | اختبارات CI | يمرّ بالكامل مع `ENABLE_SAAS_MODE=true` |
 
