@@ -137,22 +137,25 @@ GitHub Actions: تهجيرات على PostgreSQL 16، pytest كامل مع `ENAB
 
 | المستند | الجمهور |
 |---------|---------|
-| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | مستخدمو المركز (عربي) |
-| [docs/CEO_OVERVIEW.md](docs/CEO_OVERVIEW.md) | ملخص تنفيذي للإدارة |
+| [docs/README.md](docs/README.md) | فهرس التوثيق |
+| [docs/PLATFORM_STATUS.md](docs/PLATFORM_STATUS.md) | **حالة تقنية من الكود** |
+| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | مستخدمو المركز |
+| [docs/CEO_OVERVIEW.md](docs/CEO_OVERVIEW.md) | الإدارة |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | نشر إنتاجي |
-| [docs/COMPREHENSIVE_AUDIT_REPORT.md](docs/COMPREHENSIVE_AUDIT_REPORT.md) | تدقيق تقني (مع تحديث يونيو 2026) |
-| [PLAN_2026-06-21.md](PLAN_2026-06-21.md) | خطة الجاهزية التاريخية |
+| [scripts/ops/README.md](scripts/ops/README.md) | حزمة Docker |
 
 ---
 
-## الجاهزية للإنتاج (يونيو 2026)
+## الجاهزية للإنتاج
 
 | السيناريو | الحالة |
 |-----------|--------|
-| نشر مركز واحد (PostgreSQL + Docker) | ✅ جاهز |
-| SaaS ذاتي الخدمة مع Stripe | ✅ مُنفَّذ — يتطلب إعداد مفاتيح Stripe وDNS |
-| عزل بيانات multi-tenant | ✅ ORM + RLS (31 جدول) |
-| واجهة/UX موحدة | 🟡 تحسينات مستمرة (انظر تقارير التدقيق) |
+| `docker compose up` (upgrade + bootstrap + gunicorn) | ✅ |
+| SaaS + Stripe | ✅ يتطلب إعداد مفاتيح |
+| عزل multi-tenant | ✅ ORM + RLS (31 جدول) |
+| UX موحّد | 🟡 تحسين مستمر |
+
+التفاصيل: [docs/PLATFORM_STATUS.md](docs/PLATFORM_STATUS.md)
 
 ---
 

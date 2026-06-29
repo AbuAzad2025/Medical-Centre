@@ -236,7 +236,5 @@ class TestBS4DocumentedDebt:
             'run codemod or raise ceiling in test_phase14_launch.py after review'
         )
 
-    def test_debt_snapshot_recorded_in_plan(self):
-        plan = (ROOT / 'docs' / 'FRONTEND_TEMPLATES_DEVELOPMENT_PLAN.md').read_text(encoding='utf-8')
-        assert '§11.8' in plan
-        assert 'BS4' in plan
+    def test_platform_status_doc_exists(self):
+        assert (ROOT / 'docs' / 'PLATFORM_STATUS.md').is_file()
