@@ -5,10 +5,27 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+from pathlib import Path
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, inspect, text
 
-ALEMBIC_HEAD_REVISION = 's1_002_tenant_rls_policies'
+# Keep in sync with migrations/versions/ head revision.
+ALEMBIC_HEAD_REVISION = 's1_004_expenses_rls_uniques'
+
+
+def _collect_orm_tables() -> set[str]:
+    import re
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    tables: set[str] = set()
+    for base in (root / 'models', root / 'app'):
+        if not base.is_dir():
+            continue
+        for p in base.rglob('*.py'):
+            text_body = p.read_text(encoding='utf-8', errors='ignore')
+            tables.update(re.findall(r"__tablename__\s*=\s*['\"]([^'\"]+)['\"]", text_body))
+    return tables
 
 
 def main() -> int:
@@ -53,11 +70,32 @@ def main() -> int:
         check=False,
     )
     out = (current.stdout or '') + (current.stderr or '')
-    if ALEMBIC_HEAD_REVISION not in out and '(head)' not in out:
-        print('Unexpected migration head:', out, file=sys.stderr)
+    if ALEMBIC_HEAD_REVISION not in out:
+        print('Unexpected migration head (expected', ALEMBIC_HEAD_REVISION, '):', out, file=sys.stderr)
         return 1
 
-    print('Migration upgrade OK')
+    print('Checking ORM tables exist after upgrade...')
+    orm_tables = _collect_orm_tables()
+    db_engine = create_engine(db_url)
+    with db_engine.connect() as conn:
+        db_tables = set(inspect(conn).get_table_names())
+    # Alembic version table is not an ORM model
+    db_tables.discard('alembic_version')
+    missing = sorted(orm_tables - db_tables)
+    if missing:
+        print('Tables expected by ORM but missing after upgrade:', file=sys.stderr)
+        for name in missing:
+            print(f'  - {name}', file=sys.stderr)
+        return 1
+
+    parity = subprocess.run(
+        [sys.executable, str(Path(__file__).resolve().parent / 'check_schema_parity.py')],
+        check=False,
+    )
+    if parity.returncode != 0:
+        return parity.returncode
+
+    print(f'Migration upgrade OK ({len(orm_tables)} ORM tables present)')
     return 0
 
 
