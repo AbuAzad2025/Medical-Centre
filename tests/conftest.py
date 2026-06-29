@@ -15,6 +15,7 @@ except Exception:
 os.environ['APP_ENV'] = 'testing'
 os.environ['FLASK_DEBUG'] = 'false'
 os.environ['SUPPRESS_LOGGING'] = '1'
+os.environ['SKIP_PLATFORM_BOOTSTRAP'] = '1'
 
 # Use PostgreSQL test database if available, fallback SQLite
 _test_db_url = os.environ.get('TEST_DATABASE_URL') or \

@@ -724,17 +724,14 @@ def create_app(config_name: str | None = None) -> Flask:
             pass
         return response
 
-    # Auto-seed default ProductBundles if table exists and is empty
-    with app.app_context():
-        try:
-            from sqlalchemy import inspect
-            if 'product_bundles' in inspect(db.engine).get_table_names():
-                count = db.session.execute(db.text('SELECT COUNT(*) FROM product_bundles')).scalar()
-                if count == 0:
-                    from app.core.tenant.models import seed_default_bundles
-                    seed_default_bundles()
-        except Exception:
-            pass
+    # Platform catalog bootstrap (bundles → SaaS packages → module definitions)
+    if not app.testing and not app.config.get('SKIP_PLATFORM_BOOTSTRAP'):
+        with app.app_context():
+            try:
+                from app.core.platform_bootstrap import run_platform_bootstrap
+                run_platform_bootstrap(quiet=True)
+            except Exception as exc:
+                app.logger.warning('Platform bootstrap skipped: %s', exc)
 
     # Module-aware context processor for templates
     @app.context_processor
@@ -944,19 +941,13 @@ def create_app(config_name: str | None = None) -> Flask:
         """Seed ModuleDefinition from registry and activate for all tenants."""
         from app.core.module.models import ModuleDefinition, TenantModule
         from app.core.module.registry import MODULE_REGISTRY
+        from app.core.platform_bootstrap import ensure_module_definitions
         from app.core.tenant.models import Tenant
         from app.extensions import db
         from models.user import User
-        
-        # Seed ModuleDefinition
-        for name, meta in MODULE_REGISTRY.items():
-            m = ModuleDefinition.query.filter_by(name=name).first()
-            if not m:
-                m = ModuleDefinition(name=name, name_ar=meta.name_ar, category=meta.category, 
-                                     description=meta.description_ar, is_active=True)
-                db.session.add(m)
-        db.session.commit()
-        print(f"ModuleDefinition: {ModuleDefinition.query.count()} modules")
+
+        added = ensure_module_definitions()
+        print(f"ModuleDefinition added: {added}; total: {ModuleDefinition.query.count()}")
 
         # Seed TenantModule for all tenants
         admin = User.query.first()
@@ -1060,10 +1051,16 @@ def create_app(config_name: str | None = None) -> Flask:
         print(f"\nBackfill complete: {total_updated} total rows updated")
 
     @app.cli.command("seed-default-bundles")
-    def seed_default_bundles():
+    def seed_default_bundles_cmd():
         """Seed default ProductBundles from seed data."""
         from app.core.tenant.models import seed_default_bundles as _seed
         _seed()
+
+    @app.cli.command("platform-bootstrap")
+    def platform_bootstrap_cmd():
+        """Run idempotent platform catalog bootstrap (bundles, packages, modules)."""
+        from app.core.platform_bootstrap import run_platform_bootstrap
+        run_platform_bootstrap(quiet=False)
 
     # Background notification queue processor
     def _start_notification_processor(app_ctx):

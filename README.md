@@ -55,17 +55,15 @@ medical_system/
 
 ## التثبيت السريع
 
-### Docker (موصى به)
+### Docker (موصى به — حزمة تشغيل كاملة)
 
 ```bash
-git clone https://github.com/AbuAzad2025/Med1.git
-cd Med1
-cp .env.example .env   # عدّل SECRET_KEY وكلمات المرور
+cp .env.example .env
 docker compose up -d --build
 ```
 
-التطبيق: `http://localhost:8080`  
-التهجيرات تُشغَّل تلقائياً (`flask db upgrade`).
+ينفّذ تلقائياً: `flask db upgrade` → `bootstrap_platform` → `gunicorn`.  
+راجع `scripts/ops/README.md`.
 
 ### محلي (تطوير)
 
@@ -76,6 +74,7 @@ pip install -r requirements.txt
 set ENABLE_SAAS_MODE=true
 set DATABASE_URL=postgresql://...
 flask db upgrade
+python scripts/ops/bootstrap_platform.py
 flask run --port=5001
 ```
 

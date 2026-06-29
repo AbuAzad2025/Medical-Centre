@@ -25,15 +25,15 @@ def test_verify_migrations_script_exists():
 
 
 def test_check_schema_parity_script():
-  script = Path(__file__).parent.parent / 'scripts' / 'check_schema_parity.py'
-  assert script.is_file()
-  result = subprocess.run(
-      [sys.executable, str(script)],
-      capture_output=True,
-      text=True,
-      check=False,
-  )
-  assert result.returncode == 0, result.stderr or result.stdout
+    script = Path(__file__).parent.parent / 'scripts' / 'check_schema_parity.py'
+    assert script.is_file()
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr or result.stdout
 
 
 def test_alembic_single_head(app):
