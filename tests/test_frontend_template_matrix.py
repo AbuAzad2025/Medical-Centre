@@ -187,7 +187,12 @@ def _normalize_internal_path(href: str, base_path: str = '/') -> str | None:
         return None
     joined = urljoin(f'http://localhost{base_path}', href)
     parsed = urlparse(joined)
-    return parsed.path or '/'
+    path = parsed.path or '/'
+    # SaaS templates emit tenant-scoped URLs (/t/<slug>/...); strip for url_map checks.
+    parts = path.strip('/').split('/')
+    if len(parts) >= 2 and parts[0] == 't':
+        path = '/' + '/'.join(parts[2:]) if len(parts) > 2 else '/'
+    return path
 
 
 def _path_matches_url_map(app, path: str) -> bool:

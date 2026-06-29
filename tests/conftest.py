@@ -106,6 +106,11 @@ def rollback_db(app):
     _original_get_bind = _FSASession.get_bind
     _FSASession.get_bind = lambda self, *a, **k: connection
     _db.session.configure(join_transaction_mode='create_savepoint')
+    if app.config.get('ENABLE_SAAS_MODE', False):
+        from tests.tenant_context import bind_tenant_on_g, ensure_default_test_tenant
+
+        tenant = ensure_default_test_tenant(app)
+        bind_tenant_on_g(tenant, db_session=_db.session)
     try:
         yield _db
     finally:

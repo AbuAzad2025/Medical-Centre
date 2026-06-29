@@ -51,6 +51,7 @@ class TestTenantJobRunner:
             assert inactive.id not in called_ids
 
 
+@pytest.mark.no_tenant_context
 class TestNotificationQueueTenantIsolation:
     """Notification queue processing must be scoped to a single tenant."""
 
@@ -94,6 +95,7 @@ class TestNotificationQueueTenantIsolation:
             assert NotificationQueue.query.get(n2.id).status == NotificationState.PENDING
 
 
+@pytest.mark.no_tenant_context
 class TestAppointmentRemindersTenantIsolation:
     """Appointment reminder worker must be scoped to a single tenant."""
 

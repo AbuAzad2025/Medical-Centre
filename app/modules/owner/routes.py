@@ -842,7 +842,9 @@ def api_deactivate_module(tenant_id, module_name):
 @owner_required
 def api_update_profile(tenant_id):
 
-    tenant = Tenant.query.get_or_404(tenant_id)
+    tenant = Tenant.query.get(tenant_id)
+    if not tenant:
+        return jsonify({"error": "Tenant not found"}), 404
     profile_code = request.json.get("product_profile") or request.form.get("product_profile")
     from app.core.tenant.models import _PRODUCT_PROFILE_SEED
     if profile_code and profile_code not in _PRODUCT_PROFILE_SEED:
