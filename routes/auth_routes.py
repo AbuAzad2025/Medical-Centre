@@ -40,9 +40,10 @@ def login() -> ResponseReturnValue:
     """تسجيل الدخول"""
     if request.method == 'GET':
         # عرض صفحة تسجيل الدخول مع ضبط CSRF cookie
+        mode = request.args.get('mode', '')
         token = generate_csrf()
         from flask import make_response
-        resp = make_response(render_template('auth/login.html'))
+        resp = make_response(render_template('auth/login.html', mode=mode))
         secure = current_app.config.get('SESSION_COOKIE_SECURE', True)
         resp.set_cookie('csrf_token', token, samesite='Lax', secure=secure)
         return resp
@@ -72,6 +73,7 @@ def login() -> ResponseReturnValue:
             
             username = (data.get('username') or '').strip()
             password = (data.get('password') or '').strip()
+            login_mode = (data.get('mode') or '').strip()
             
             if not username or not password:
                 if is_ajax:
@@ -215,7 +217,11 @@ def login() -> ResponseReturnValue:
                     
                     # تحديد الصفحة المناسبة حسب الدور
                     redirect_url = get_redirect_url_by_role(user.role)
-                    
+
+                    # Owner mode: always redirect platform owners to owner dashboard
+                    if login_mode == 'owner' and user.role in ('super_admin', 'owner'):
+                        redirect_url = url_for('owner.owner_dashboard')
+
                     # handle tenant_slug for multi-tenant SaaS (may already be set above)
                     if not tenant_slug and user.tenant_id:
                         try:
@@ -225,7 +231,8 @@ def login() -> ResponseReturnValue:
                                 tenant_slug = t.slug
                         except Exception:
                             pass
-                    if tenant_slug:
+                    # Do not prepend /t/{slug} for platform owners logging into owner mode
+                    if tenant_slug and login_mode != 'owner':
                         from app.core.tenant.models import Tenant
                         t = Tenant.query.filter_by(slug=tenant_slug).first()
                         if t and (not user.tenant_id or user.tenant_id == t.id):
@@ -463,7 +470,7 @@ def get_redirect_url_by_role(role):
     
     # استخدام خدمة التحكم في الوصول للحصول على المسار الصحيح
     role_urls = {
-        'super_admin': url_for('super_admin.dashboard'),
+        'super_admin': url_for('owner.owner_dashboard'),
         'admin': url_for('manager.dashboard'),
         'manager': url_for('manager.dashboard'),
         'owner': url_for('owner.owner_dashboard'),
@@ -479,7 +486,7 @@ def get_redirect_url_by_role(role):
         'technician': url_for('lab.dashboard'),
         'patient': url_for('booking.dashboard_portal'),
     }
-    return role_urls.get(role, url_for('super_admin.dashboard'))
+    return role_urls.get(role, url_for('owner.owner_dashboard'))
 
 
 @auth_bp.route('/impersonate/<int:user_id>', methods=['POST'])

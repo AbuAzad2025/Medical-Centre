@@ -40,7 +40,7 @@ def dashboard():
     """لوحة التحكم الرئيسية - إعادة توجيه حسب الدور"""
     # إعادة التوجيه حسب دور المستخدم
     if current_user.role == 'super_admin':
-        return redirect(url_for('super_admin.dashboard'))
+        return redirect(url_for('owner.owner_dashboard'))
     elif current_user.role == 'manager':
         return redirect(url_for('manager.dashboard'))
     elif current_user.role == 'reception':

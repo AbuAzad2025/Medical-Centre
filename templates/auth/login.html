@@ -60,10 +60,10 @@
                             <defs><linearGradient id="grad" x1="8" y1="8" x2="40" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#0b6fae"/><stop offset="1" stop-color="#21a67a"/></linearGradient></defs>
                         </svg>
                     </div>
-                    <h1>تسجيل الدخول</h1>
+                    <h1>{% if mode == 'owner' %}دخول المالك{% else %}تسجيل الدخول{% endif %}</h1>
                     <div class="subtitle-wrap">
                         <span class="line"></span>
-                        <span>منصة ازاد الطبية — Palestinian Medical Platform</span>
+                        <span>{% if mode == 'owner' %}لوحة تحكم مالك المنصة{% else %}منصة ازاد الطبية — Palestinian Medical Platform{% endif %}</span>
                         <span class="line"></span>
                     </div>
                 </div>
@@ -72,6 +72,9 @@
 
                 <form class="login-form" method="post" action="{{ url_for('auth.login') }}" id="loginForm" novalidate>
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% if mode == 'owner' %}
+                    <input type="hidden" name="mode" value="owner">
+                    {% endif %}
 
                     <div class="form-field">
                         <label for="username">اسم المستخدم</label>
@@ -81,6 +84,7 @@
                         </div>
                     </div>
 
+                    {% if mode != 'owner' %}
                     <div class="form-field tenant-field" id="tenantField" style="display:none">
                         <label for="tenant_slug">المنشأة</label>
                         <div class="input-wrap">
@@ -90,6 +94,7 @@
                             </select>
                         </div>
                     </div>
+                    {% endif %}
 
                     <div class="form-field">
                         <label for="password">كلمة المرور</label>
@@ -168,6 +173,7 @@
     </footer>
 
     <script>
+    {% if mode != 'owner' %}
     (function() {
         var tenantField = document.getElementById('tenantField');
         var tenantSelect = document.getElementById('tenant_slug');
@@ -188,6 +194,7 @@
                 .catch(function() {});
         }
     })();
+    {% endif %}
     </script>
     <script src="{{ url_for('static', filename='vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/security.js') }}"></script>

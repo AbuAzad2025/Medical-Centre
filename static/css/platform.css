@@ -1,25 +1,124 @@
-/* AZAD platform owner shell (phase 6) */
+/* AZAD platform owner shell — redesigned for readability */
 body.platform-theme {
-    --color-primary: #1a1f3a;
-    --color-secondary: #d4af37;
-    --color-accent: #2c3e50;
+    --color-primary: #2563eb;
+    --color-secondary: #0f4c81;
+    --color-accent: #0ea5e9;
 }
 
 body.platform-theme .clinical-sidebar {
-    background: linear-gradient(180deg, #1a1f3a 0%, #12162b 100%);
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    border-left: 1px solid #e2e8f0;
 }
 
-body.platform-theme .clinical-sidebar .nav-link.active,
+body.platform-theme .clinical-sidebar .nav-link {
+    color: #334155;
+    border-radius: 8px;
+    margin: 2px 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
 body.platform-theme .clinical-sidebar .nav-link:hover {
-    background: rgba(212, 175, 55, 0.15);
-    color: #f5e6b8;
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+body.platform-theme .clinical-sidebar .nav-link.active {
+    background: #2563eb;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+body.platform-theme .clinical-sidebar .nav-link i {
+    width: 20px;
+    text-align: center;
 }
 
 body.platform-theme .platform-navbar {
-    background: #1a1f3a;
-    border-bottom: 2px solid #d4af37;
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+body.platform-theme .platform-navbar .brand-text {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+body.platform-theme .platform-navbar .brand-text small {
+    color: #64748b;
+    font-weight: 400;
+}
+
+body.platform-theme .platform-navbar .nav-link {
+    color: #475569;
+}
+
+body.platform-theme .platform-navbar .nav-link:hover {
+    color: #2563eb;
 }
 
 .owner-header-gradient {
-    background: linear-gradient(135deg, #1a1f3a 0%, #2c3e50 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
 }
+
+/* Card header fix — better contrast */
+body.platform-theme .card-header.bg-white {
+    background: #fff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+body.platform-theme .card-header h6 {
+    color: #0f172a !important;
+}
+
+/* Buttons — ensure readability */
+body.platform-theme .btn-primary {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+body.platform-theme .btn-primary:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+body.platform-theme .btn-outline-primary {
+    color: #2563eb;
+    border-color: #2563eb;
+}
+
+body.platform-theme .btn-outline-primary:hover {
+    background: #2563eb;
+    color: #fff;
+}
+
+/* Table headers */
+body.platform-theme .table-light {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+
+body.platform-theme .table-light th {
+    color: #0f172a !important;
+    font-weight: 600;
+}
+
+/* Stat card icons - better visibility */
+body.platform-theme .bg-primary.bg-opacity-10 {
+    background: rgba(37, 99, 235, 0.1) !important;
+}
+
+body.platform-theme .text-primary {
+    color: #2563eb !important;
+}
+
+body.platform-theme .text-muted {
+    color: #64748b !important;
+}
+
+/* Badge fixes */
+body.platform-theme .badge.bg-secondary {
+    background: #64748b !important;
+} 

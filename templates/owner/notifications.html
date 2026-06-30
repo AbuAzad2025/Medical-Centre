@@ -58,7 +58,7 @@
                 <div class="card-header fw-bold">القواعد الحالية</div>
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">
-                        <thead><tr><th>الحدث</th><th>القناة</th><th>الوجهة</th><th>الحالة</th><th>تاريخ الإنشاء</th></tr></thead>
+                        <thead><tr><th>الحدث</th><th>القناة</th><th>الوجهة</th><th>الحالة</th><th>تاريخ الإنشاء</th><th>الإجراءات</th></tr></thead>
                         <tbody>
                         {% for r in rules %}
                         <tr>
@@ -67,8 +67,20 @@
                             <td class="small text-truncate cell-truncate-sm">{{ r.target }}</td>
                             <td><span class="badge bg-{{ 'success' if r.is_active else 'secondary' }}">{{ 'نشط' if r.is_active else 'معطل' }}</span></td>
                             <td class="small text-muted">{{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '-' }}</td>
+                            <td>
+                                <form method="post" action="{{ url_for('owner.owner_delete_notification', rule_id=r.id) }}" style="display:inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف القاعدة؟')"><i class="fas fa-trash"></i></button>
+                                </form>
+                                <form method="post" action="{{ url_for('owner.owner_toggle_notification', rule_id=r.id) }}" style="display:inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-{{ 'success' if not r.is_active else 'secondary' }}">
+                                        {{ 'تعطيل' if r.is_active else 'تفعيل' }}
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
-                        {% else %}<tr><td colspan="5" class="text-muted text-center py-3">لا قواعد</td></tr>
+                        {% else %}<tr><td colspan="6" class="text-muted text-center py-3">لا قواعد</td></tr>
                         {% endfor %}
                         </tbody>
                     </table>

@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 import json
 from flask import current_app, render_template, render_template_string, jsonify, request, flash, redirect, url_for
+from sqlalchemy import text
 from flask_login import login_required, current_user
 from app.modules.owner import owner_bp
 from app.extensions import db
@@ -32,6 +33,7 @@ from app.core.saas.models import (
 )
 from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.projection import EntitlementProjectionService
+from models.backup import Backup
 
 
 def _log_action(action, entity_type, entity_id=None, details=None):
@@ -228,19 +230,65 @@ def owner_create_tenant():
     return redirect(url_for('owner.owner_provision'))
 
 
-@owner_bp.route("/tenants/<int:tenant_id>")
+@owner_bp.route("/tenants/<int:tenant_id>", methods=["GET", "POST"])
 @login_required
 @owner_required
 def owner_tenant_detail(tenant_id):
 
 
     tenant = Tenant.query.get_or_404(tenant_id)
+
+    # Handle POST: create a user for this tenant
+    if request.method == "POST" and request.form.get("action") == "create_user":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
+        full_name = request.form.get("full_name", "").strip() or "مستخدم"
+        if username and password:
+            try:
+                from werkzeug.security import generate_password_hash
+                from models.user import User as UserModel
+                existing = UserModel.query.filter_by(tenant_id=tenant_id, username=username).first()
+                if existing:
+                    flash("اسم المستخدم موجود بالفعل", "error")
+                else:
+                    user = UserModel(
+                        tenant_id=tenant_id,
+                        username=username,
+                        email=tenant.contact_email or f"{username}@{tenant.slug}.local",
+                        password_hash=generate_password_hash(password),
+                        full_name=full_name,
+                        role='admin',
+                        is_admin=True,
+                        is_active=True,
+                    )
+                    db.session.add(user)
+                    db.session.commit()
+                    _log_action("CREATE_USER", "user", user.id, f"tenant={tenant.slug}")
+                    flash(f"تم إنشاء المستخدم {username}", "success")
+            except Exception as e:
+                db.session.rollback()
+                flash(f"خطأ: {e}", "error")
+        else:
+            flash("اسم المستخدم وكلمة المرور مطلوبان", "error")
+        return redirect(url_for("owner.owner_tenant_detail", tenant_id=tenant_id))
+
     active_modules = get_active_modules_for_tenant(tenant_id)
     from app.core.tenant.models import TenantFeatureFlag, get_bundle_for_profile, check_tenant_limits
-    feature_flags = TenantFeatureFlag.query.filter_by(tenant_id=tenant_id, is_enabled=True).all()
+    feature_flags = TenantFeatureFlag.query.filter_by(tenant_id=tenant_id).all()
+    enabled_feature_keys = {f.feature_key for f in feature_flags if f.is_enabled}
     from app.core.module.registry import MODULE_REGISTRY, get_all_module_names
     all_modules = get_all_module_names()
-    bundle = get_bundle_for_profile(tenant.product_profile_code.value) if tenant.product_profile_code else None
+    bundle = get_bundle_for_profile(tenant.product_profile_code) if tenant.product_profile_code else None
+    plans = SubscriptionPlan.query.filter_by(is_active=True).order_by(SubscriptionPlan.base_price).all()
+    bundles = ProductBundle.query.filter_by(is_active=True).order_by(ProductBundle.name).all()
+    available_features = sorted(list(set([
+        'multi_branch', 'advanced_reports', 'patient_portal', 'telemedicine',
+        'insurance_integration', 'lab_integration', 'radiology_integration',
+        'pharmacy_integration', 'emergency_kiosk', 'appointment_reminders',
+        'sms_notifications', 'email_notifications', 'whatsapp_notifications',
+        'api_access', 'white_label', 'custom_domain', 'sso',
+    ] + [f.feature_key for f in feature_flags])))
+
     bundle_limits = None
     bundle_name = None
     if bundle:
@@ -258,11 +306,383 @@ def owner_tenant_detail(tenant_id):
                            tenant=tenant,
                            active_modules=list(active_modules),
                            feature_flags=feature_flags,
+                           enabled_feature_keys=enabled_feature_keys,
+                           available_features=available_features,
                            all_modules=all_modules,
                            bundle_limits=bundle_limits,
                            bundle_name=bundle_name,
                            user_count=user_count,
-                           patient_count=patient_count)
+                           patient_count=patient_count,
+                           plans=plans,
+                           bundles=bundles)
+
+
+@owner_bp.route("/tenants/<int:tenant_id>/activate-modules")
+@login_required
+@owner_required
+def owner_activate_default_modules(tenant_id):
+    """Activate default modules for a tenant based on their bundle/profile."""
+    tenant = Tenant.query.get_or_404(tenant_id)
+    from app.core.tenant.models import get_default_modules_for_profile
+    from app.core.module.models import TenantModule
+    profile_code = tenant.product_profile_code
+    if not profile_code:
+        flash("هذا العميل ليس لديه profile_code — لا يمكن تحديد الوحدات", "error")
+        return redirect(url_for("owner.owner_tenant_detail", tenant_id=tenant_id))
+    default_modules = get_default_modules_for_profile(profile_code)
+    if not default_modules:
+        from app.core.module.registry import get_all_module_names
+        default_modules = get_all_module_names()
+    activated = 0
+    for m in default_modules:
+        tm = TenantModule.query.filter_by(tenant_id=tenant_id, module_name=m).first()
+        if tm:
+            if not tm.is_active:
+                tm.is_active = True
+                tm.activated_at = datetime.now(timezone.utc)
+                activated += 1
+        else:
+            db.session.add(TenantModule(tenant_id=tenant_id, module_name=m, is_active=True, activated_at=datetime.now(timezone.utc)))
+            activated += 1
+    db.session.commit()
+    _log_action("ACTIVATE_MODULES", "tenant", tenant_id, f"activated {activated} modules: {','.join(default_modules)}")
+    flash(f"تم تفعيل {activated} وحدة للمستأجر {tenant.name}", "success")
+    return redirect(url_for("owner.owner_tenant_detail", tenant_id=tenant_id))
+
+
+@owner_bp.route("/tenants/<int:tenant_id>/edit", methods=["POST"])
+@login_required
+@owner_required
+def owner_edit_tenant(tenant_id):
+    """Update core tenant details + sync bundle modules if profile changed."""
+    tenant = Tenant.query.get_or_404(tenant_id)
+    try:
+        data = request.form
+        tenant.name = data.get('name', tenant.name).strip()
+        tenant.name_ar = data.get('name_ar', '').strip() or tenant.name_ar
+        tenant.contact_email = data.get('contact_email', '').strip() or tenant.contact_email
+        tenant.contact_phone = data.get('contact_phone', '').strip() or tenant.contact_phone
+        tenant.tax_number = data.get('tax_number', '').strip() or tenant.tax_number
+        tenant.domain = data.get('domain', '').strip() or tenant.domain
+        tenant.subdomain = data.get('subdomain', '').strip() or tenant.subdomain
+        tenant.storage_mode = StorageMode(data.get('storage_mode', tenant.storage_mode.value)) if data.get('storage_mode') else tenant.storage_mode
+        new_plan_id = data.get('plan_id', type=int)
+        if new_plan_id:
+            tenant.plan_id = new_plan_id
+        old_profile = tenant.product_profile_code
+        new_profile = data.get('product_profile_code', '').strip()
+        if new_profile:
+            tenant.product_profile_code = new_profile
+        else:
+            tenant.product_profile_code = None
+
+        # Sync bundle modules if profile changed
+        profile_changed = (tenant.product_profile_code != old_profile)
+        if profile_changed and tenant.product_profile_code:
+            from app.core.tenant.models import get_default_modules_for_profile
+            from app.core.module.models import TenantModule
+            default_modules = get_default_modules_for_profile(tenant.product_profile_code)
+            if not default_modules:
+                from app.core.module.registry import get_all_module_names
+                default_modules = get_all_module_names()
+            # Deactivate modules not in the new profile
+            active_tms = TenantModule.query.filter_by(tenant_id=tenant_id, is_active=True).all()
+            for tm in active_tms:
+                if tm.module_name not in default_modules:
+                    tm.is_active = False
+            # Activate new profile modules
+            for m in default_modules:
+                tm = TenantModule.query.filter_by(tenant_id=tenant_id, module_name=m).first()
+                if tm:
+                    if not tm.is_active:
+                        tm.is_active = True
+                        tm.activated_at = datetime.now(timezone.utc)
+                else:
+                    db.session.add(TenantModule(tenant_id=tenant_id, module_name=m, is_active=True, activated_at=datetime.now(timezone.utc)))
+            # Sync with ProductBundle modules (more specific than profile defaults)
+            try:
+                bundle = ProductBundle.query.filter_by(profile_code=tenant.product_profile_code, is_active=True).first()
+                if bundle:
+                    bundle_modules = bundle.get_modules()
+                    if bundle_modules:
+                        from app.core.module.models import TenantModule
+                        active_tms = TenantModule.query.filter_by(tenant_id=tenant_id, is_active=True).all()
+                        for tm in active_tms:
+                            if tm.module_name not in bundle_modules:
+                                tm.is_active = False
+                        for m in bundle_modules:
+                            tm = TenantModule.query.filter_by(tenant_id=tenant_id, module_name=m).first()
+                            if tm:
+                                if not tm.is_active:
+                                    tm.is_active = True
+                                    tm.activated_at = datetime.now(timezone.utc)
+                            else:
+                                db.session.add(TenantModule(tenant_id=tenant_id, module_name=m, is_active=True, activated_at=datetime.now(timezone.utc)))
+            except Exception:
+                pass  # Non-critical; module sync already done via profile
+
+        db.session.commit()
+        _log_action('UPDATE_TENANT', 'tenant', tenant_id, f"Updated tenant {tenant.name}")
+        if profile_changed:
+            flash('تم تحديث بيانات العميل وتزامن وحدات الباقة الجديدة', 'success')
+        else:
+            flash('تم تحديث بيانات العميل', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ في تحديث العميل: {e}', 'error')
+    return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
+
+
+@owner_bp.route("/tenants/<int:tenant_id>/feature/<path:feature_key>/toggle", methods=["POST"])
+@login_required
+@owner_required
+def owner_toggle_tenant_feature(tenant_id, feature_key):
+    """Toggle a feature flag for a tenant."""
+    tenant = Tenant.query.get_or_404(tenant_id)
+    try:
+        from app.core.tenant.models import TenantFeatureFlag
+        flag = TenantFeatureFlag.query.filter_by(tenant_id=tenant_id, feature_key=feature_key).first()
+        if flag:
+            flag.is_enabled = not flag.is_enabled
+            flag.updated_at = datetime.now(timezone.utc)
+        else:
+            flag = TenantFeatureFlag(
+                tenant_id=tenant_id,
+                feature_key=feature_key,
+                is_enabled=True,
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc)
+            )
+            db.session.add(flag)
+        db.session.commit()
+        _log_action('TOGGLE_FEATURE', 'tenant', tenant_id, f"{feature_key}={flag.is_enabled}")
+        flash(f"تم تحديث الميزة {feature_key}", 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
+
+
+@owner_bp.route("/users")
+@login_required
+@owner_required
+def owner_users():
+    """Cross-tenant user management for platform owners."""
+    from models.user import User
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 25, type=int)
+    search = (request.args.get('q') or '').strip()
+    role_filter = (request.args.get('role') or '').strip()
+    tenant_filter = request.args.get('tenant_id', type=int)
+
+    query = User.query
+    if search:
+        query = query.filter(
+            db.or_(
+                User.username.ilike(f'%{search}%'),
+                User.full_name.ilike(f'%{search}%'),
+                User.email.ilike(f'%{search}%')
+            )
+        )
+    if role_filter:
+        query = query.filter(User.role == role_filter)
+    if tenant_filter:
+        query = query.filter(User.tenant_id == tenant_filter)
+
+    pagination = query.order_by(User.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    users = pagination.items
+    tenants = Tenant.query.order_by(Tenant.name).all()
+    roles = sorted({r[0] for r in db.session.query(User.role).distinct() if r[0]})
+    return render_template('owner/users.html', users=users, pagination=pagination, tenants=tenants, roles=roles, search=search, role_filter=role_filter, tenant_filter=tenant_filter)
+
+
+@owner_bp.route("/users/<int:user_id>/edit", methods=["POST"])
+@login_required
+@owner_required
+def owner_edit_user(user_id):
+    """Edit a user across tenants."""
+    from models.user import User
+    user = User.query.get_or_404(user_id)
+    try:
+        data = request.form
+        user.full_name = data.get('full_name', user.full_name).strip()
+        user.email = data.get('email', user.email).strip()
+        user.role = data.get('role', user.role).strip()
+        user.is_active = data.get('is_active') == '1'
+        user.is_admin = data.get('is_admin') == '1'
+        new_tenant_id = data.get('tenant_id', type=int)
+        if new_tenant_id and new_tenant_id != user.tenant_id:
+            # Ensure username/email uniqueness in new tenant
+            existing = User.query.filter_by(tenant_id=new_tenant_id, username=user.username).first()
+            if existing and existing.id != user.id:
+                flash('اسم المستخدم موجود في المنشأة المحددة', 'error')
+                return redirect(url_for('owner.owner_users'))
+            user.tenant_id = new_tenant_id
+        db.session.commit()
+        _log_action('UPDATE_USER', 'user', user.id, f"Updated user {user.username}")
+        flash('تم تحديث المستخدم بنجاح', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ في تحديث المستخدم: {e}', 'error')
+    return redirect(url_for('owner.owner_users'))
+
+
+@owner_bp.route("/users/<int:user_id>/reset-password", methods=["POST"])
+@login_required
+@owner_required
+def owner_reset_user_password(user_id):
+    """Reset a user's password."""
+    from models.user import User
+    from werkzeug.security import generate_password_hash
+    import secrets
+    user = User.query.get_or_404(user_id)
+    try:
+        new_password = request.form.get('password', '').strip()
+        if not new_password:
+            new_password = secrets.token_urlsafe(8)
+        elif len(new_password) < 6:
+            flash('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error')
+            ref = request.referrer or url_for('owner.owner_users')
+            return redirect(ref)
+        user.password_hash = generate_password_hash(new_password)
+        user.session_version = (user.session_version or 0) + 1
+        db.session.commit()
+        _log_action('RESET_PASSWORD', 'user', user.id, f"Reset password for {user.username}")
+        flash(f'تم إعادة تعيين كلمة المرور لـ {user.username}: <strong>{new_password}</strong>', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    ref = request.referrer or url_for('owner.owner_users')
+    return redirect(ref)
+
+
+@owner_bp.route("/users/<int:user_id>/delete", methods=["POST"])
+@login_required
+@owner_required
+def owner_delete_user(user_id):
+    """Delete a user."""
+    from models.user import User
+    user = User.query.get_or_404(user_id)
+    try:
+        if user.role in ('super_admin', 'owner'):
+            flash('لا يمكن حذف مستخدم مالك/سوبر أدمن', 'error')
+            return redirect(url_for('owner.owner_users'))
+        db.session.delete(user)
+        db.session.commit()
+        _log_action('DELETE_USER', 'user', user_id, f"Deleted user {user.username}")
+        flash('تم حذف المستخدم بنجاح', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ في حذف المستخدم: {e}', 'error')
+    return redirect(url_for('owner.owner_users'))
+
+
+@owner_bp.route("/users/<int:user_id>/toggle-active", methods=["POST"])
+@login_required
+@owner_required
+def owner_toggle_user_active(user_id):
+    """Toggle user active/suspended status."""
+    from models.user import User
+    user = User.query.get_or_404(user_id)
+    try:
+        if user.role in ('super_admin', 'owner'):
+            flash('لا يمكن تعطيل مستخدم مالك/سوبر أدمن', 'error')
+        else:
+            user.is_active = not user.is_active
+            db.session.commit()
+            _log_action('TOGGLE_USER_ACTIVE', 'user', user.id,
+                        f"{'تفعيل' if user.is_active else 'إيقاف'} {user.username}")
+            flash(f'تم {"تفعيل" if user.is_active else "إيقاف"} المستخدم {user.username}', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    # Redirect back to referring page
+    ref = request.referrer or url_for('owner.owner_users')
+    return redirect(ref)
+
+
+@owner_bp.route("/users/<int:user_id>/reveal-password", methods=["POST"])
+@login_required
+@owner_required
+def owner_reveal_user_password(user_id):
+    """Reveal user's current password via a temporary reset + display."""
+    from models.user import User
+    from werkzeug.security import generate_password_hash
+    import secrets
+    user = User.query.get_or_404(user_id)
+    try:
+        temp_password = secrets.token_urlsafe(8)
+        user.password_hash = generate_password_hash(temp_password)
+        user.session_version = (user.session_version or 0) + 1
+        db.session.commit()
+        _log_action('REVEAL_PASSWORD', 'user', user.id, f"Reset password for {user.username}")
+        flash(f'كلمة المرور الجديدة لـ {user.username}: <strong>{temp_password}</strong>', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    ref = request.referrer or url_for('owner.owner_users')
+    return redirect(ref)
+
+
+@owner_bp.route("/modules")
+@login_required
+@owner_required
+def owner_modules():
+    """Global module management — view registry and toggle global activation."""
+    from app.core.module.models import ModuleDefinition, TenantModule
+    from app.core.module.registry import MODULE_REGISTRY
+
+    db_modules = {m.name: m for m in ModuleDefinition.query.all()}
+    modules = []
+    for name, meta in MODULE_REGISTRY.items():
+        db_mod = db_modules.get(name)
+        tenant_count = TenantModule.query.filter_by(module_name=name, is_active=True).count()
+        modules.append({
+            'name': name,
+            'name_ar': meta.name_ar or name,
+            'category': meta.category,
+            'description': meta.description_ar or '',
+            'is_active': db_mod.is_active if db_mod else True,
+            'tenant_count': tenant_count,
+            'capabilities': list(meta.capabilities),
+            'required_modules': list(meta.required_modules),
+        })
+    return render_template('owner/modules.html', modules=modules)
+
+
+@owner_bp.route("/modules/<module_name>/toggle", methods=["POST"])
+@login_required
+@owner_required
+def owner_toggle_module_global(module_name):
+    """Toggle global activation of a module."""
+    from app.core.module.models import ModuleDefinition
+    from app.core.module.registry import MODULE_REGISTRY
+    if module_name not in MODULE_REGISTRY:
+        flash('الوحدة غير موجودة', 'error')
+        return redirect(url_for('owner.owner_modules'))
+    try:
+        mod = ModuleDefinition.query.filter_by(name=module_name).first()
+        if mod:
+            mod.is_active = not mod.is_active
+            mod.updated_at = datetime.now(timezone.utc)
+        else:
+            meta = MODULE_REGISTRY[module_name]
+            mod = ModuleDefinition(
+                name=module_name,
+                name_ar=meta.name_ar,
+                category=meta.category,
+                description=meta.description_ar,
+                is_active=True,
+                created_at=datetime.now(timezone.utc)
+            )
+            db.session.add(mod)
+        db.session.commit()
+        _log_action('TOGGLE_MODULE_GLOBAL', 'module_definition', mod.id, f"{module_name} active={mod.is_active}")
+        flash(f"تم تحديث حالة الوحدة {module_name}", 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_modules'))
 
 
 @owner_bp.route("/tenants/<int:tenant_id>/renew")
@@ -332,8 +752,6 @@ def owner_activate_tenant(tenant_id):
 
     tenant = Tenant.query.get_or_404(tenant_id)
     try:
-        from app.core.saas.projection import EntitlementProjectionService
-
         if tenant.status == TenantStatus.SUSPENDED:
             TenantProvisioningService.reactivate_tenant(
                 tenant_id,
@@ -358,8 +776,78 @@ def owner_activate_tenant(tenant_id):
 def owner_plans():
 
 
-    plans = SubscriptionPlan.query.all()
+    plans = SubscriptionPlan.query.order_by(SubscriptionPlan.created_at.desc()).all()
     return render_template('owner/plans.html', plans=plans)
+
+
+@owner_bp.route("/plans/create", methods=["POST"])
+@login_required
+@owner_required
+def owner_create_plan():
+    """Create a new subscription plan."""
+    try:
+        data = request.form
+        plan = SubscriptionPlan(
+            name=data.get('name', '').strip(),
+            name_ar=data.get('name_ar', '').strip() or None,
+            billing_type=SubscriptionType(data.get('billing_type', 'monthly')),
+            base_price=Decimal(str(data.get('base_price', 0) or 0)),
+            currency=data.get('currency', 'SAR'),
+            is_active=data.get('is_active') == '1',
+            modules_included=data.get('modules_included', '').strip() or None,
+        )
+        db.session.add(plan)
+        db.session.commit()
+        _log_action('CREATE_PLAN', 'plan', plan.id, f"Created plan {plan.name}")
+        flash('تم إنشاء الخطة بنجاح', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ في إنشاء الخطة: {e}', 'error')
+    return redirect(url_for('owner.owner_plans'))
+
+
+@owner_bp.route("/plans/<int:plan_id>/edit", methods=["POST"])
+@login_required
+@owner_required
+def owner_edit_plan(plan_id):
+    """Edit a subscription plan."""
+    plan = SubscriptionPlan.query.get_or_404(plan_id)
+    try:
+        data = request.form
+        plan.name = data.get('name', plan.name).strip()
+        plan.name_ar = data.get('name_ar', '').strip() or None
+        plan.billing_type = SubscriptionType(data.get('billing_type', plan.billing_type.value))
+        plan.base_price = Decimal(str(data.get('base_price', plan.base_price) or 0))
+        plan.currency = data.get('currency', plan.currency)
+        plan.is_active = data.get('is_active') == '1'
+        plan.modules_included = data.get('modules_included', '').strip() or None
+        db.session.commit()
+        _log_action('UPDATE_PLAN', 'plan', plan.id, f"Updated plan {plan.name}")
+        flash('تم تحديث الخطة بنجاح', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ في تحديث الخطة: {e}', 'error')
+    return redirect(url_for('owner.owner_plans'))
+
+
+@owner_bp.route("/plans/<int:plan_id>/delete", methods=["POST"])
+@login_required
+@owner_required
+def owner_delete_plan(plan_id):
+    """Delete a subscription plan if no tenants are using it."""
+    plan = SubscriptionPlan.query.get_or_404(plan_id)
+    try:
+        if plan.tenants:
+            flash('لا يمكن حذف الخطة — هناك عملاء مرتبطون بها', 'error')
+            return redirect(url_for('owner.owner_plans'))
+        db.session.delete(plan)
+        db.session.commit()
+        _log_action('DELETE_PLAN', 'plan', plan_id, f"Deleted plan {plan.name}")
+        flash('تم حذف الخطة بنجاح', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ في حذف الخطة: {e}', 'error')
+    return redirect(url_for('owner.owner_plans'))
 
 
 @owner_bp.route("/announcements", methods=["GET", "POST"])
@@ -418,6 +906,35 @@ def owner_announcements():
             flash(f'خطأ: {e}', 'error')
 
     return render_template('owner/announcements.html', announcements=announcements)
+
+
+@owner_bp.route("/announcements/<int:announcement_id>/delete", methods=["POST"])
+@login_required
+@owner_required
+def owner_delete_announcement(announcement_id):
+    """Delete an announcement by id."""
+    try:
+        from models.system_config import SystemConfig
+        cfg = SystemConfig.query.filter_by(config_key='owner_announcements').first()
+        if not cfg or not cfg.config_value:
+            flash('لا توجد إعلانات', 'error')
+            return redirect(url_for('owner.owner_announcements'))
+        announcements = json.loads(cfg.config_value)
+        original_len = len(announcements)
+        announcements = [a for a in announcements if a.get('id') != announcement_id]
+        if len(announcements) == original_len:
+            flash('الإعلان غير موجود', 'error')
+        else:
+            cfg.config_value = json.dumps(announcements)
+            cfg.updated_by = current_user.id
+            cfg.updated_at = datetime.now(timezone.utc)
+            db.session.commit()
+            _log_action('DELETE_ANNOUNCEMENT', 'system', None, f"Deleted announcement id={announcement_id}")
+            flash('تم حذف الإعلان', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_announcements'))
 
 
 # ─────────────────────────────────────────────
@@ -521,6 +1038,40 @@ def owner_create_notification():
         db.session.commit()
         _log_action('CREATE_NOTIFICATION', 'notification', r.id)
         flash('تم إنشاء قاعدة الإشعار', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_notifications'))
+
+
+@owner_bp.route("/notifications/<int:rule_id>/delete", methods=["POST"])
+@login_required
+@owner_required
+def owner_delete_notification(rule_id):
+    """Delete a notification rule."""
+    rule = NotificationRule.query.get_or_404(rule_id)
+    try:
+        db.session.delete(rule)
+        db.session.commit()
+        _log_action('DELETE_NOTIFICATION', 'notification', rule_id)
+        flash('تم حذف القاعدة', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_notifications'))
+
+
+@owner_bp.route("/notifications/<int:rule_id>/toggle", methods=["POST"])
+@login_required
+@owner_required
+def owner_toggle_notification(rule_id):
+    """Toggle is_active on a notification rule."""
+    rule = NotificationRule.query.get_or_404(rule_id)
+    try:
+        rule.is_active = not rule.is_active
+        db.session.commit()
+        _log_action('TOGGLE_NOTIFICATION', 'notification', rule_id, f"is_active={rule.is_active}")
+        flash('تم تغيير حالة القاعدة', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'خطأ: {e}', 'error')
@@ -636,6 +1187,34 @@ def owner_webhooks():
     return render_template('owner/webhooks.html', webhooks=webhooks)
 
 
+@owner_bp.route("/webhooks/<int:webhook_id>/delete", methods=["POST"])
+@login_required
+@owner_required
+def owner_delete_webhook(webhook_id):
+    """Delete a webhook by id."""
+    try:
+        from models.system_config import SystemConfig
+        cfg = SystemConfig.query.filter_by(config_key='owner_webhooks').first()
+        if not cfg or not cfg.config_value:
+            flash('لا توجد Webhooks', 'error')
+            return redirect(url_for('owner.owner_webhooks'))
+        webhooks = json.loads(cfg.config_value)
+        original_len = len(webhooks)
+        webhooks = [w for w in webhooks if w.get('id') != webhook_id]
+        if len(webhooks) == original_len:
+            flash('الـ Webhook غير موجود', 'error')
+        else:
+            cfg.config_value = json.dumps(webhooks)
+            cfg.updated_by = current_user.id
+            db.session.commit()
+            _log_action('DELETE_WEBHOOK', 'system', None, f"Deleted webhook id={webhook_id}")
+            flash('تم حذف الـ Webhook', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_webhooks'))
+
+
 @owner_bp.route("/api-keys", methods=["GET", "POST"])
 @login_required
 @owner_required
@@ -703,6 +1282,34 @@ def owner_api_keys_page():
     return render_template('owner/api_keys.html', api_keys=api_keys, tenants=tenants)
 
 
+@owner_bp.route("/api-keys/<int:key_id>/delete", methods=["POST"])
+@login_required
+@owner_required
+def owner_delete_api_key(key_id):
+    """Delete an API key by id."""
+    try:
+        from models.system_config import SystemConfig
+        cfg = SystemConfig.query.filter_by(config_key='owner_api_keys').first()
+        if not cfg or not cfg.config_value:
+            flash('لا توجد مفاتيح', 'error')
+            return redirect(url_for('owner.owner_api_keys_page'))
+        keys = json.loads(cfg.config_value)
+        original_len = len(keys)
+        keys = [k for k in keys if k.get('id') != key_id]
+        if len(keys) == original_len:
+            flash('المفتاح غير موجود', 'error')
+        else:
+            cfg.config_value = json.dumps(keys)
+            cfg.updated_by = current_user.id
+            db.session.commit()
+            _log_action('DELETE_API_KEY', 'system', None, f"Deleted key id={key_id}")
+            flash('تم حذف المفتاح', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_api_keys_page'))
+
+
 @owner_bp.route("/themes", methods=["GET", "POST"])
 @login_required
 @owner_required
@@ -734,6 +1341,43 @@ def owner_themes():
 
     themes = SystemTheme.query.order_by(SystemTheme.is_default.desc(), SystemTheme.name_ar).all()
     return render_template('owner/themes.html', themes=themes)
+
+
+@owner_bp.route("/themes/<int:theme_id>/delete", methods=["POST"])
+@login_required
+@owner_required
+def owner_delete_theme(theme_id):
+    """Delete a theme."""
+    from models.branding import SystemTheme
+    theme = SystemTheme.query.get_or_404(theme_id)
+    try:
+        db.session.delete(theme)
+        db.session.commit()
+        _log_action('DELETE_THEME', 'theme', theme_id, theme.name_ar)
+        flash('تم حذف الثيم', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_themes'))
+
+
+@owner_bp.route("/themes/<int:theme_id>/set-default", methods=["POST"])
+@login_required
+@owner_required
+def owner_set_default_theme(theme_id):
+    """Set a theme as the default (unset others)."""
+    from models.branding import SystemTheme
+    try:
+        SystemTheme.query.filter(SystemTheme.is_default == True).update({'is_default': False})
+        theme = SystemTheme.query.get_or_404(theme_id)
+        theme.is_default = True
+        db.session.commit()
+        _log_action('SET_DEFAULT_THEME', 'theme', theme_id, theme.name_ar)
+        flash(f'تم تعيين {theme.name_ar} كافتراضي', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_themes'))
 
 
 @owner_bp.route("/billing")
@@ -1263,6 +1907,120 @@ def owner_deprecate_package_version(version_id):
     return redirect(url_for("owner.owner_packages"))
 
 
+@owner_bp.route("/packages/<int:package_id>/edit", methods=["POST"])
+@login_required
+@owner_required
+def owner_edit_package(package_id):
+    """Edit a package."""
+    package = Package.query.get_or_404(package_id)
+    try:
+        name = request.form.get('name', '').strip()
+        name_ar = request.form.get('name_ar', '').strip() or None
+        category = request.form.get('category', 'bundle').strip()
+        is_active = request.form.get('is_active') == '1'
+        
+        if not name:
+            flash("اسم الحزمة مطلوب", "error")
+            return redirect(url_for("owner.owner_packages"))
+        
+        package.name = name
+        package.name_ar = name_ar
+        package.category = category
+        package.is_active = is_active
+        db.session.commit()
+        _log_action("EDIT_PACKAGE", "package", package.id, f"name={name}")
+        flash("تم تحديث الحزمة", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"خطأ: {e}", "error")
+    return redirect(url_for("owner.owner_packages"))
+
+
+@owner_bp.route("/packages/<int:package_id>/delete", methods=["POST"])
+@login_required
+@owner_required
+def owner_delete_package(package_id):
+    """Delete a package if no versions or tenants use it."""
+    package = Package.query.get_or_404(package_id)
+    try:
+        # Check if package has versions
+        if package.versions.count() > 0:
+            flash("لا يمكن حذف حزمة بها إصدارات — أزل الإصدارات أولاً", "error")
+            return redirect(url_for("owner.owner_packages"))
+        # Check if any tenant uses this package via subscription
+        from app.core.saas.models import SubscriptionLine, SubscriptionLineType
+        base_line = SubscriptionLine.query.filter_by(
+            line_type=SubscriptionLineType.BASE
+        ).join(PackageVersion).filter(PackageVersion.package_id == package.id).first()
+        if base_line:
+            flash("لا يمكن حذف حزمة عليها اشتراكات — أوقف الاشتراكات أولاً", "error")
+            return redirect(url_for("owner.owner_packages"))
+        
+        db.session.delete(package)
+        db.session.commit()
+        _log_action("DELETE_PACKAGE", "package", package_id, f"slug={package.slug}")
+        flash("تم حذف الحزمة", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"خطأ: {e}", "error")
+    return redirect(url_for("owner.owner_packages"))
+
+
+@owner_bp.route("/packages/versions/<int:version_id>/edit", methods=["POST"])
+@login_required
+@owner_required
+def owner_edit_package_version(version_id):
+    """Edit a package version."""
+    pv = PackageVersion.query.get_or_404(version_id)
+    try:
+        version = request.form.get('version', '').strip()
+        changelog = request.form.get('changelog', '').strip() or None
+        is_deprecated = request.form.get('is_deprecated') == '1'
+        
+        if not version:
+            flash("رقم الإصدار مطلوب", "error")
+            return redirect(url_for("owner.owner_packages"))
+        
+        pv.version = version
+        pv.changelog = changelog
+        pv.is_deprecated = is_deprecated
+        db.session.commit()
+        _log_action("EDIT_PACKAGE_VERSION", "package_version", pv.id, f"version={version}")
+        flash("تم تحديث الإصدار", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"خطأ: {e}", "error")
+    return redirect(url_for("owner.owner_packages"))
+
+
+@owner_bp.route("/packages/versions/<int:version_id>/delete", methods=["POST"])
+@login_required
+@owner_required
+def owner_delete_package_version(version_id):
+    """Delete a package version if no subscriptions use it."""
+    pv = PackageVersion.query.get_or_404(version_id)
+    try:
+        from app.core.saas.models import SubscriptionLine
+        subs = SubscriptionLine.query.filter_by(package_version_id=version_id).first()
+        if subs:
+            flash("لا يمكن حذف إصدار عليه اشتراكات", "error")
+            return redirect(url_for("owner.owner_packages"))
+        
+        # Also delete related entitlements, limits, pricing
+        pv.entitlements.delete()
+        pv.limits.delete()
+        pv.pricing.delete()
+        
+        db.session.delete(pv)
+        db.session.commit()
+        _log_action("DELETE_PACKAGE_VERSION", "package_version", version_id, f"package={pv.package.slug}")
+        flash("تم حذف الإصدار", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"خطأ: {e}", "error")
+    return redirect(url_for("owner.owner_packages"))
+
+
 @owner_bp.route("/subscriptions")
 @login_required
 @owner_required
@@ -1371,8 +2129,11 @@ def owner_provision():
         package_version_id = request.form.get("package_version_id", type=int)
         billing_type = request.form.get("billing_type", "monthly").strip()
         product_profile_code = request.form.get("product_profile_code", "").strip() or None
+        admin_username = request.form.get("admin_username", "").strip()
+        admin_password = request.form.get("admin_password", "").strip()
+        admin_full_name = request.form.get("admin_full_name", "").strip() or "مدير المنشأة"
 
-        if not all([slug, name, contact_email, package_version_id]):
+        if not all([slug, name, contact_email, package_version_id, admin_username, admin_password]):
             flash("جميع الحقول الأساسية مطلوبة", "error")
             return redirect(url_for("owner.owner_provision"))
 
@@ -1386,10 +2147,36 @@ def owner_provision():
                 product_profile_code=product_profile_code,
                 performed_by_user_id=current_user.id,
             )
+            # Create admin user for the new tenant
+            from werkzeug.security import generate_password_hash
+            from models.user import User as UserModel
+            admin = UserModel(
+                tenant_id=tenant.id,
+                username=admin_username,
+                email=contact_email,
+                password_hash=generate_password_hash(admin_password),
+                full_name=admin_full_name,
+                role='admin',
+                is_admin=True,
+                is_active=True,
+            )
+            db.session.add(admin)
+            # Activate default modules for this tenant's profile
+            from app.core.tenant.models import get_default_modules_for_profile
+            from app.core.module.models import TenantModule
+            mods = get_default_modules_for_profile(product_profile_code) if product_profile_code else []
+            if not mods:
+                from app.core.module.registry import get_all_module_names
+                mods = get_all_module_names()
+            for m in mods:
+                tm = TenantModule(tenant_id=tenant.id, module_name=m, is_active=True, activated_at=datetime.now(timezone.utc))
+                db.session.add(tm)
+            db.session.commit()
             _log_action("PROVISION_TENANT", "tenant", tenant.id, f"slug={slug}")
-            flash(f"تم إنشاء العميل {tenant.name} بنجاح", "success")
+            flash(f"تم إنشاء العميل {tenant.name} بنجاح — مستخدم المدير: {admin_username}", "success")
             return redirect(url_for("owner.owner_tenant_detail", tenant_id=tenant.id))
         except Exception as e:
+            db.session.rollback()
             flash(f"فشل إنشاء العميل: {e}", "error")
             return redirect(url_for("owner.owner_provision"))
 
@@ -1452,4 +2239,262 @@ def owner_tenant_usage(tenant_id):
         limits=limits,
         snapshots=snapshots,
     )
+
+
+# ---------------------------------------------------------------------------
+# Tasks, Monitoring, Control & Backups
+# ---------------------------------------------------------------------------
+
+@owner_bp.route("/tasks")
+@login_required
+@owner_required
+def owner_tasks():
+    """Owner task & project overview across tenants."""
+    from models.task_management import Task, Project, ProjectTask
+    recent_tasks = Task.query.order_by(Task.created_at.desc()).limit(50).all()
+    projects = Project.query.order_by(Project.created_at.desc()).limit(20).all()
+    stats = {
+        'total_tasks': Task.query.count(),
+        'open_tasks': Task.query.filter(Task.status.in_(['todo', 'in_progress'])).count(),
+        'total_projects': Project.query.count(),
+        'active_projects': Project.query.filter_by(status='active').count(),
+    }
+    return render_template(
+        "owner/tasks.html",
+        recent_tasks=recent_tasks,
+        projects=projects,
+        stats=stats,
+    )
+
+
+@owner_bp.route("/monitoring")
+@login_required
+@owner_required
+def owner_monitoring():
+    """Platform health & monitoring dashboard."""
+    checks = []
+    try:
+        # Database connectivity
+        db.session.execute(text("SELECT 1"))
+        checks.append({'name': 'قاعدة البيانات', 'status': 'ok', 'message': 'متصلة', 'icon': 'fa-database'})
+    except Exception as e:
+        checks.append({'name': 'قاعدة البيانات', 'status': 'error', 'message': str(e), 'icon': 'fa-database'})
+
+    try:
+        tenant_count = Tenant.query.count()
+        checks.append({'name': 'العملاء', 'status': 'ok', 'message': f'{tenant_count} عميل', 'icon': 'fa-building'})
+    except Exception as e:
+        checks.append({'name': 'العملاء', 'status': 'warning', 'message': str(e), 'icon': 'fa-building'})
+
+    try:
+        from models.user import User
+        user_count = User.query.count()
+        checks.append({'name': 'المستخدمون', 'status': 'ok', 'message': f'{user_count} مستخدم', 'icon': 'fa-users'})
+    except Exception as e:
+        checks.append({'name': 'المستخدمون', 'status': 'warning', 'message': str(e), 'icon': 'fa-users'})
+
+    try:
+        pending_backups = Backup.query.filter(Backup.backup_status.in_(['PENDING', 'IN_PROGRESS'])).count()
+        checks.append({'name': 'النسخ الاحتياطي', 'status': 'ok', 'message': f'{pending_backups} قيد التشغيل', 'icon': 'fa-database'})
+    except Exception as e:
+        checks.append({'name': 'النسخ الاحتياطي', 'status': 'warning', 'message': str(e), 'icon': 'fa-database'})
+
+    metrics = {
+        'db_size_mb': 0,
+        'active_tenants': Tenant.query.filter(Tenant.status.in_((TenantStatus.ACTIVE, TenantStatus.TRIAL, TenantStatus.PENDING))).count(),
+        'open_tickets': SupportTicket.query.filter_by(status='open').count(),
+    }
+    try:
+        size = db.session.execute(text(
+            "SELECT pg_database_size(current_database()) / 1024 / 1024 AS size_mb"
+        )).scalar()
+        metrics['db_size_mb'] = size or 0
+    except Exception:
+        pass
+
+    recent_audit = PlatformAuditLog.query.order_by(PlatformAuditLog.created_at.desc()).limit(10).all()
+    return render_template(
+        "owner/monitoring.html",
+        checks=checks,
+        metrics=metrics,
+        recent_audit=recent_audit,
+    )
+
+
+@owner_bp.route("/system-config")
+@login_required
+@owner_required
+def owner_system_config():
+    """Manage arbitrary system configuration keys."""
+    from models.system_config import SystemConfig
+    category_filter = (request.args.get('category') or '').strip()
+    query = SystemConfig.query
+    if category_filter:
+        query = query.filter(SystemConfig.category == category_filter)
+    configs = query.order_by(SystemConfig.category, SystemConfig.config_key).all()
+    categories = sorted({c.category for c in SystemConfig.query.distinct(SystemConfig.category).all() if c.category})
+    return render_template('owner/system_config.html', configs=configs, categories=categories, category_filter=category_filter)
+
+
+@owner_bp.route("/system-config/save", methods=["POST"])
+@login_required
+@owner_required
+def owner_save_system_config():
+    """Save multiple system config values."""
+    from models.system_config import SystemConfig
+    try:
+        for key, value in request.form.items():
+            if key.startswith('config_'):
+                config_key = key[7:]
+                cfg = SystemConfig.query.filter_by(config_key=config_key).first()
+                if cfg:
+                    cfg.config_value = value
+                    cfg.updated_by = current_user.id
+                    cfg.updated_at = datetime.now(timezone.utc)
+        # Create new config if provided
+        new_key = request.form.get('new_config_key', '').strip()
+        new_value = request.form.get('new_config_value', '').strip()
+        new_type = request.form.get('new_config_type', 'string').strip()
+        new_category = request.form.get('new_config_category', 'general').strip()
+        if new_key and new_value:
+            existing = SystemConfig.query.filter_by(config_key=new_key).first()
+            if existing:
+                flash(f'المفتاح {new_key} موجود مسبقاً', 'error')
+            else:
+                cfg = SystemConfig(
+                    config_key=new_key,
+                    config_value=new_value,
+                    config_type=new_type,
+                    category=new_category,
+                    is_system=True,
+                    created_by=current_user.id,
+                    created_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(timezone.utc)
+                )
+                db.session.add(cfg)
+        db.session.commit()
+        flash('تم حفظ الإعدادات', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_system_config'))
+
+
+@owner_bp.route("/system-config/<config_key>/delete", methods=["POST"])
+@login_required
+@owner_required
+def owner_delete_system_config(config_key):
+    """Delete a system config key."""
+    from models.system_config import SystemConfig
+    cfg = SystemConfig.query.filter_by(config_key=config_key).first()
+    if not cfg:
+        flash('الإعداد غير موجود', 'error')
+        return redirect(url_for('owner.owner_system_config'))
+    try:
+        if cfg.is_system:
+            flash('لا يمكن حذف إعداد نظام', 'error')
+            return redirect(url_for('owner.owner_system_config'))
+        db.session.delete(cfg)
+        db.session.commit()
+        _log_action('DELETE_SYSTEM_CONFIG', 'system', None, f"Deleted config {config_key}")
+        flash('تم حذف الإعداد', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'خطأ: {e}', 'error')
+    return redirect(url_for('owner.owner_system_config'))
+    return redirect(url_for('owner.owner_system_config', category=request.args.get('category', '')))
+
+
+@owner_bp.route("/control")
+@login_required
+@owner_required
+def owner_control():
+    """Owner control panel for platform switches and configuration."""
+    from models.system_config import SystemConfig
+    switches = [
+        {'key': 'disable_public_signup', 'label': 'إيقاف التسجيل العام', 'icon': 'fa-user-slash'},
+        {'key': 'maintenance_mode', 'label': 'وضع الصيانة', 'icon': 'fa-tools'},
+        {'key': 'enforce_email_verification', 'label': 'إجبار التحقق من البريد', 'icon': 'fa-envelope'},
+        {'key': 'enable_backup_automation', 'label': 'النسخ الاحتياطي التلقائي', 'icon': 'fa-clock'},
+        {'key': 'restrict_new_tenants', 'label': 'حظر إنشاء عملاء جدد', 'icon': 'fa-ban'},
+    ]
+    values = {}
+    for sw in switches:
+        cfg = SystemConfig.query.filter_by(config_key=sw['key']).first()
+        values[sw['key']] = bool(cfg and cfg.get_value())
+    return render_template("owner/control.html", switches=switches, values=values)
+
+
+@owner_bp.route("/control/toggle", methods=["POST"])
+@login_required
+@owner_required
+def owner_control_toggle():
+    """Toggle a platform-level switch."""
+    from models.system_config import SystemConfig
+    key = request.form.get('key', '').strip()
+    if not key:
+        return jsonify({'success': False, 'message': 'المفتاح مطلوب'}), 400
+    cfg = SystemConfig.query.filter_by(config_key=key).first()
+    new_value = request.form.get('value') in ('1', 'true', 'on', 'yes')
+    if not cfg:
+        cfg = SystemConfig(config_key=key, config_type='boolean', category='platform_control', is_system=True)
+        db.session.add(cfg)
+    cfg.config_value = 'true' if new_value else 'false'
+    db.session.commit()
+    _log_action('TOGGLE_PLATFORM_SWITCH', 'system_config', cfg.id, f'{key}={new_value}')
+    return jsonify({'success': True, 'key': key, 'value': new_value})
+
+
+@owner_bp.route("/emergency-switches")
+@login_required
+@owner_required
+def owner_emergency_switches():
+    """Emergency system switches (kill-switches)."""
+    from models.system_config import SystemConfig
+    switches = [
+        {'key': 'emergency_disable_logins', 'label': 'إيقاف تسجيل الدخول عالمياً', 'color': 'danger', 'icon': 'fa-power-off'},
+        {'key': 'emergency_readonly_mode', 'label': 'وضع القراءة فقط لكل العملاء', 'color': 'warning', 'icon': 'fa-lock'},
+        {'key': 'emergency_disable_payments', 'label': 'إيقاف المدفوعات', 'color': 'danger', 'icon': 'fa-credit-card'},
+        {'key': 'emergency_disable_appointments', 'label': 'إيقاف الحجوزات', 'color': 'warning', 'icon': 'fa-calendar-times'},
+    ]
+    values = {}
+    for sw in switches:
+        cfg = SystemConfig.query.filter_by(config_key=sw['key']).first()
+        values[sw['key']] = bool(cfg and cfg.get_value())
+    return render_template("owner/emergency_switches.html", switches=switches, values=values)
+
+
+@owner_bp.route("/emergency-switches/toggle", methods=["POST"])
+@login_required
+@owner_required
+def owner_emergency_toggle():
+    """Toggle an emergency switch."""
+    from models.system_config import SystemConfig
+    key = request.form.get('key', '').strip()
+    if not key:
+        return jsonify({'success': False, 'message': 'المفتاح مطلوب'}), 400
+    cfg = SystemConfig.query.filter_by(config_key=key).first()
+    new_value = request.form.get('value') in ('1', 'true', 'on', 'yes')
+    if not cfg:
+        cfg = SystemConfig(config_key=key, config_type='boolean', category='emergency_switch', is_system=True)
+        db.session.add(cfg)
+    cfg.config_value = 'true' if new_value else 'false'
+    db.session.commit()
+    _log_action('TOGGLE_EMERGENCY_SWITCH', 'system_config', cfg.id, f'{key}={new_value}')
+    return jsonify({'success': True, 'key': key, 'value': new_value})
+
+
+@owner_bp.route("/backups")
+@login_required
+@owner_required
+def owner_backups():
+    """Owner view of platform-wide backups."""
+    backups = Backup.query.order_by(Backup.created_at.desc()).limit(100).all()
+    stats = {
+        'total': len(backups),
+        'completed': sum(1 for b in backups if b.backup_status == 'COMPLETED'),
+        'failed': sum(1 for b in backups if b.backup_status == 'FAILED'),
+        'pending': sum(1 for b in backups if b.backup_status in ('PENDING', 'IN_PROGRESS')),
+    }
+    return render_template("owner/backups.html", backups=backups, stats=stats)
 

@@ -38,17 +38,26 @@
                 <div class="card-header fw-bold">المفاتيح النشطة</div>
                 <div class="card-body p-0">
                     <table class="table table-sm mb-0">
-                        <thead><tr><th>العميل</th><th>الاسم</th><th>الصلاحيات</th><th>المفتاح</th></tr></thead>
+                        <thead><tr><th>العميل</th><th>الاسم</th><th>الصلاحيات</th><th>المفتاح</th><th>الإجراءات</th></tr></thead>
                         <tbody>
                         {% for k in api_keys %}
                         <tr>
                             <td>{{ k.tenant.name if k.tenant else '-' }}</td>
                             <td>{{ k.name }}</td>
                             <td class="small">{{ k.scopes }}</td>
-                            <td class="small font-monospace">{{ (k.key or '')[:24] }}…</td>
+                            <td class="small font-monospace">
+                                <span id="key-{{ k.id }}">{{ (k.key or '')[:24] }}…</span>
+                                <button type="button" class="btn btn-link btn-sm p-0 ms-1" onclick="navigator.clipboard.writeText('{{ k.key }}'); alert('تم النسخ')" title="نسخ"><i class="fas fa-copy"></i></button>
+                            </td>
+                            <td>
+                                <form method="post" action="{{ url_for('owner.owner_delete_api_key', key_id=k.id) }}" onsubmit="return confirm('تأكيد حذف المفتاح؟');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="4" class="text-muted text-center py-4">لا مفاتيح</td></tr>
+                        <tr><td colspan="5" class="text-muted text-center py-4">لا مفاتيح</td></tr>
                         {% endfor %}
                         </tbody>
                     </table>
