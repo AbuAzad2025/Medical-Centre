@@ -5,6 +5,7 @@
     <div class="row mb-3 align-items-center">
         <div class="col"><h4><i class="fas fa-tags me-2 text-primary"></i>خطط الاشتراك</h4></div>
         <div class="col-auto">
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createPlanModal"><i class="fas fa-plus me-1"></i>خطة جديدة</button>
             <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
         </div>
     </div>
@@ -12,14 +13,17 @@
         {% for p in plans %}
         <div class="col-md-4">
             <div class="card h-100 border-0 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">{{ p.name }}</h5>
-                    <small>{{ p.name_ar or '' }}</small>
+                <div class="card-header bg-{{ 'primary' if p.is_active else 'secondary' }} text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">{{ p.name }}</h5>
+                        <small>{{ p.name_ar or '' }}</small>
+                    </div>
+                    <span class="badge bg-light text-dark">{{ p.currency }}</span>
                 </div>
                 <div class="card-body">
                     <h3 class="mb-3">{{ p.base_price }} <small class="fs-6">{{ p.currency }} / {{ p.billing_type.value }}</small></h3>
                     <p class="text-muted small">{{ 'نشط' if p.is_active else 'معطل' }}</p>
-                    <p class="small text-muted">الوحدات:</p>
+                    <p class="small text-muted mb-1">الوحدات المضمنة:</p>
                     <div class="mb-3">
                         {% if p.modules_included %}
                             {% for m in p.modules_included.split(',') %}
@@ -28,12 +32,177 @@
                         {% else %}<span class="text-muted small">لا وحدات محددة</span>{% endif %}
                     </div>
                     <p class="small text-muted">عملاء: {{ p.tenants|length }}</p>
+                    <hr>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm edit-plan-btn"
+                                data-id="{{ p.id }}"
+                                data-name="{{ p.name }}"
+                                data-name-ar="{{ p.name_ar or '' }}"
+                                data-billing="{{ p.billing_type.value }}"
+                                data-price="{{ p.base_price }}"
+                                data-currency="{{ p.currency }}"
+                                data-active="{{ '1' if p.is_active else '0' }}"
+                                data-modules="{{ p.modules_included or '' }}"
+                                data-bs-toggle="modal" data-bs-target="#editPlanModal">
+                            <i class="fas fa-edit me-1"></i>تعديل
+                        </button>
+                        <form method="post" action="{{ url_for('owner.owner_delete_plan', plan_id=p.id) }}" class="d-grid" onsubmit="return confirm('تأكيد حذف الخطة "{{ p.name }}"؟');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm" {{ 'disabled' if p.tenants|length > 0 else '' }}>
+                                <i class="fas fa-trash me-1"></i>حذف
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
         {% else %}
-        <div class="col-12"><p class="text-muted">لا توجد خطط</p></div>
+        <div class="col-12"><p class="text-muted text-center py-5">لا توجد خطط. قم بإنشاء أول خطة.</p></div>
         {% endfor %}
     </div>
 </div>
+
+<!-- Create Plan Modal -->
+<div class="modal fade" id="createPlanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ url_for('owner.owner_create_plan') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-plus me-2"></i>خطة جديدة</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">الاسم (إنجليزي) *</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الاسم (عربي)</label>
+                            <input type="text" name="name_ar" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">نوع الفوترة *</label>
+                            <select name="billing_type" class="form-select" required>
+                                <option value="monthly">شهري</option>
+                                <option value="yearly">سنوي</option>
+                                <option value="perpetual">دائم</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">السعر الأساسي *</label>
+                            <input type="number" name="base_price" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">العملة</label>
+                            <select name="currency" class="form-select">
+                                <option value="SAR">SAR</option>
+                                <option value="USD">USD</option>
+                                <option value="ILS">ILS</option>
+                                <option value="JOD">JOD</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الحالة</label>
+                            <select name="is_active" class="form-select">
+                                <option value="1">نشط</option>
+                                <option value="0">معطل</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">الوحدات المضمنة (مفصولة بفواصل)</label>
+                            <input type="text" name="modules_included" class="form-control" placeholder="مثال: doctor,reception">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Plan Modal -->
+<div class="modal fade" id="editPlanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="editPlanForm" action="">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>تعديل خطة</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">الاسم (إنجليزي) *</label>
+                            <input type="text" name="name" id="editPlanName" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الاسم (عربي)</label>
+                            <input type="text" name="name_ar" id="editPlanNameAr" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">نوع الفوترة *</label>
+                            <select name="billing_type" id="editPlanBilling" class="form-select" required>
+                                <option value="monthly">شهري</option>
+                                <option value="yearly">سنوي</option>
+                                <option value="perpetual">دائم</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">السعر الأساسي *</label>
+                            <input type="number" name="base_price" id="editPlanPrice" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">العملة</label>
+                            <select name="currency" id="editPlanCurrency" class="form-select">
+                                <option value="SAR">SAR</option>
+                                <option value="USD">USD</option>
+                                <option value="ILS">ILS</option>
+                                <option value="JOD">JOD</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الحالة</label>
+                            <select name="is_active" id="editPlanActive" class="form-select">
+                                <option value="1">نشط</option>
+                                <option value="0">معطل</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">الوحدات المضمنة (مفصولة بفواصل)</label>
+                            <input type="text" name="modules_included" id="editPlanModules" class="form-control" placeholder="مثال: doctor,reception">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>حفظ التعديلات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.edit-plan-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        document.getElementById('editPlanForm').action = '/owner/plans/' + id + '/edit';
+        document.getElementById('editPlanName').value = this.dataset.name;
+        document.getElementById('editPlanNameAr').value = this.dataset.nameAr || '';
+        document.getElementById('editPlanBilling').value = this.dataset.billing;
+        document.getElementById('editPlanPrice').value = this.dataset.price;
+        document.getElementById('editPlanCurrency').value = this.dataset.currency;
+        document.getElementById('editPlanActive').value = this.dataset.active;
+        document.getElementById('editPlanModules').value = this.dataset.modules;
+    });
+});
+</script>
 {% endblock %}

@@ -1,0 +1,255 @@
+{% extends "owner/base.html" %}
+{% block title %}إدارة المستخدمين{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col"><h4><i class="fas fa-users me-2 text-primary"></i>إدارة المستخدمين</h4></div>
+        <div class="col-auto">
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" action="{{ url_for('owner.owner_users') }}" class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">بحث</label>
+                    <input type="text" name="q" class="form-control" placeholder="اسم المستخدم / الاسم / البريد" value="{{ search }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">الدور</label>
+                    <select name="role" class="form-select">
+                        <option value="">كل الأدوار</option>
+                        {% for r in roles %}
+                        <option value="{{ r }}" {{ 'selected' if role_filter == r else '' }}>{{ r }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">المنشأة</label>
+                    <select name="tenant_id" class="form-select">
+                        <option value="">كل المنشآت</option>
+                        {% for t in tenants %}
+                        <option value="{{ t.id }}" {{ 'selected' if tenant_filter == t.id else '' }}>{{ t.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i>بحث</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>الاسم الكامل</th>
+                            <th>اسم المستخدم</th>
+                            <th>الدور</th>
+                            <th>المنشأة</th>
+                            <th>الحالة</th>
+                            <th>آخر دخول</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr>
+                            <td>{{ u.id }}</td>
+                            <td>{{ u.full_name }}</td>
+                            <td><code>{{ u.username }}</code></td>
+                            <td><span class="badge bg-info">{{ u.role }}</span></td>
+                            <td>{{ u.tenant.name if u.tenant else '-' }}</td>
+                            <td>
+                                {% if u.is_active %}<span class="badge bg-success">نشط</span>{% else %}<span class="badge bg-secondary">معطل</span>{% endif %}
+                                {% if u.is_admin %}<span class="badge bg-warning text-dark">أدمن</span>{% endif %}
+                            </td>
+                            <td class="small text-muted">{{ u.last_login.strftime('%Y-%m-%d %H:%M') if u.last_login else '—' }}</td>
+                            <td>
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <button class="btn btn-sm btn-outline-primary edit-user-btn"
+                                            data-id="{{ u.id }}"
+                                            data-full-name="{{ u.full_name }}"
+                                            data-email="{{ u.email }}"
+                                            data-role="{{ u.role }}"
+                                            data-tenant="{{ u.tenant_id }}"
+                                            data-active="{{ '1' if u.is_active else '0' }}"
+                                            data-admin="{{ '1' if u.is_admin else '0' }}"
+                                            data-username="{{ u.username }}"
+                                            data-bs-toggle="modal" data-bs-target="#editUserModal">
+                                        <i class="fas fa-edit" title="تعديل"></i>
+                                    </button>
+                                    {% if u.role not in ('super_admin', 'owner') %}
+                                    <form method="post" action="{{ url_for('owner.owner_toggle_user_active', user_id=u.id) }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm {{ 'btn-outline-warning' if u.is_active else 'btn-outline-success' }}" title="{{ 'إيقاف' if u.is_active else 'تفعيل' }}">
+                                            <i class="fas {{ 'fa-pause' if u.is_active else 'fa-play' }}"></i>
+                                        </button>
+                                    </form>
+                                    <button class="btn btn-sm btn-outline-warning reset-pwd-btn"
+                                            data-id="{{ u.id }}"
+                                            data-username="{{ u.username }}"
+                                            data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                                        <i class="fas fa-key" title="تعيين كلمة مرور"></i>
+                                    </button>
+                                    <form method="post" action="{{ url_for('owner.owner_reveal_user_password', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('سيتم إعادة تعيين كلمة المرور وعرضها. متأكد؟')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-info" title="كشف كلمة المرور"><i class="fas fa-eye"></i></button>
+                                    </form>
+                                    <form method="post" action="{{ url_for('owner.owner_delete_user', user_id=u.id) }}" onsubmit="return confirm('تأكيد حذف {{ u.username }}؟');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="8" class="text-muted text-center py-4">لا يوجد مستخدمون</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if pagination.pages > 1 %}
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <small class="text-muted">صفحة {{ pagination.page }} من {{ pagination.pages }} ({{ pagination.total }} مستخدم)</small>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    {% if pagination.has_prev %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('owner.owner_users', page=pagination.prev_num, q=search, role=role_filter, tenant_id=tenant_filter) }}">السابق</a></li>
+                    {% endif %}
+                    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if p %}
+                            {% if p == pagination.page %}<li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                            {% else %}<li class="page-item"><a class="page-link" href="{{ url_for('owner.owner_users', page=p, q=search, role=role_filter, tenant_id=tenant_filter) }}">{{ p }}</a></li>
+                            {% endif %}
+                        {% else %}<li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if pagination.has_next %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('owner.owner_users', page=pagination.next_num, q=search, role=role_filter, tenant_id=tenant_filter) }}">التالي</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="editUserForm" action="">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>تعديل مستخدم</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">الاسم الكامل</label>
+                            <input type="text" name="full_name" id="editUserFullName" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">البريد الإلكتروني</label>
+                            <input type="email" name="email" id="editUserEmail" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الدور</label>
+                            <input type="text" name="role" id="editUserRole" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">المنشأة</label>
+                            <select name="tenant_id" id="editUserTenant" class="form-select">
+                                {% for t in tenants %}
+                                <option value="{{ t.id }}">{{ t.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الحالة</label>
+                            <select name="is_active" id="editUserActive" class="form-select">
+                                <option value="1">نشط</option>
+                                <option value="0">معطل</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">أدمن</label>
+                            <select name="is_admin" id="editUserAdmin" class="form-select">
+                                <option value="1">نعم</option>
+                                <option value="0">لا</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="resetPasswordForm" action="">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="user_id" id="resetUserId" value="">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="fas fa-key me-2"></i>تعيين كلمة المرور</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small" id="resetPwdUserLabel"></p>
+                    <div class="mb-3">
+                        <label class="form-label">كلمة المرور الجديدة</label>
+                        <input type="text" name="password" id="resetPwdInput" class="form-control" minlength="6" placeholder="اترك فارغاً لتوليد تلقائي">
+                        <small class="text-muted">اختياري — سيتم توليد كلمة مرور عشوائية إن تركت الحقل فارغاً</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>تعيين</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.edit-user-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        document.getElementById('editUserForm').action = '/owner/users/' + id + '/edit';
+        document.getElementById('editUserFullName').value = this.dataset.fullName;
+        document.getElementById('editUserEmail').value = this.dataset.email;
+        document.getElementById('editUserRole').value = this.dataset.role;
+        document.getElementById('editUserTenant').value = this.dataset.tenant;
+        document.getElementById('editUserActive').value = this.dataset.active;
+        document.getElementById('editUserAdmin').value = this.dataset.admin;
+    });
+});
+document.querySelectorAll('.reset-pwd-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        document.getElementById('resetPasswordForm').action = '/owner/users/' + id + '/reset-password';
+        document.getElementById('resetUserId').value = id;
+        document.getElementById('resetPwdUserLabel').textContent = 'المستخدم: ' + this.dataset.username;
+        document.getElementById('resetPwdInput').value = '';
+    });
+});
+</script>
+{% endblock %}

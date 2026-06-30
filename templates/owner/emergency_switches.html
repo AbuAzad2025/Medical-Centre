@@ -1,0 +1,79 @@
+{% extends "owner/base.html" %}
+{% from "partials/_page_header.html" import page_header %}
+{% block title %}مفاتيح الطوارئ — لوحة المنصة{% endblock %}
+{% block content %}
+<div class="container-fluid py-3">
+    {{ page_header('مفاتيح الطوارئ', subtitle='مفاتيح إيقاف/تشغيل حرجة على مستوى المنصة', icon='fas fa-exclamation-triangle', actions=[
+        {'label': 'مركز التحكم', 'icon': 'fas fa-sliders-h', 'url': url_for('owner.owner_control'), 'style': 'outline-light'}
+    ]) }}
+
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+        <i class="fas fa-exclamation-circle me-2 fa-lg"></i>
+        <div>تنبيه: تفعيل هذه المفاتيح يؤثر على جميع العملاء والمستخدمين. استخدمها بحذر.</div>
+    </div>
+
+    <div class="row g-3">
+        {% for sw in switches %}
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100 border-top border-4 border-{{ sw.color }}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-{{ sw.color }} bg-opacity-10 p-3 rounded">
+                                <i class="fas {{ sw.icon }} text-{{ sw.color }} fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold">{{ sw.label }}</h6>
+                                <p class="mb-0 small text-muted">{{ sw.key }}</p>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input emergency-toggle" type="checkbox" data-key="{{ sw.key }}" {% if values[sw.key] %}checked{% endif %} style="width:3rem;height:1.5rem;cursor:pointer;">
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button class="btn btn-{{ sw.color }} btn-sm" onclick="document.querySelector('[data-key={{ sw.key }}]').click()">
+                            <i class="fas fa-power-off me-1"></i> {{ 'إيقاف' if values[sw.key] else 'تفعيل' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.emergency-toggle').forEach(function(toggle) {
+    toggle.addEventListener('change', function() {
+        var key = this.dataset.key;
+        var value = this.checked ? 'true' : 'false';
+        var el = this;
+        if (!confirm('هل أنت متأكد من تغيير مفتاح الطوارئ ' + key + '؟')) {
+            el.checked = !el.checked;
+            return;
+        }
+        fetch('{{ url_for('owner.owner_emergency_toggle') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'key=' + encodeURIComponent(key) + '&value=' + encodeURIComponent(value)
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (!data.success) {
+                alert('فشل التحديث: ' + (data.message || ''));
+                el.checked = !el.checked;
+            } else {
+                location.reload();
+            }
+        }).catch(function() {
+            alert('خطأ في الاتصال');
+            el.checked = !el.checked;
+        });
+    });
+});
+</script>
+{% endblock %}

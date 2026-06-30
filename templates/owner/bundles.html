@@ -161,22 +161,121 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Bundle Modal -->
+<div class="modal fade" id="editBundleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="editBundleForm">
+                <input type="hidden" name="id" id="editBundleId">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>تعديل باقة</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">الاسم (إنجليزي) *</label>
+                            <input type="text" name="name" id="editName" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الاسم (عربي) *</label>
+                            <input type="text" name="name_ar" id="editNameAr" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Slug</label>
+                            <input type="text" id="editSlug" class="form-control" disabled>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">رمز الملف الشخصي</label>
+                            <input type="text" name="profile_code" id="editProfileCode" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">الوصف</label>
+                            <textarea name="description_ar" id="editDescriptionAr" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">السعر الشهري *</label>
+                            <input type="number" name="monthly_price" id="editMonthlyPrice" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">السعر السنوي *</label>
+                            <input type="number" name="yearly_price" id="editYearlyPrice" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">رسوم التأسيس</label>
+                            <input type="number" name="setup_fee" id="editSetupFee" class="form-control" step="0.01">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">العملة</label>
+                            <select name="currency" id="editCurrency" class="form-control">
+                                <option value="SAR">SAR</option>
+                                <option value="USD">USD</option>
+                                <option value="ILS">ILS</option>
+                                <option value="JOD">JOD</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">الحد الأقصى للمستخدمين</label>
+                            <input type="number" name="max_users" id="editMaxUsers" class="form-control" placeholder="فارغ = غير محدود">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">الحد الأقصى للمرضى</label>
+                            <input type="number" name="max_patients" id="editMaxPatients" class="form-control" placeholder="فارغ = غير محدود">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">التخزين (جيجابايت)</label>
+                            <input type="number" name="storage_gb" id="editStorageGb" class="form-control" placeholder="فارغ = غير محدود">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">استدعاءات API شهرياً</label>
+                            <input type="number" name="api_calls_per_month" id="editApiCalls" class="form-control" placeholder="فارغ = غير محدود">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end gap-3 pb-2">
+                            <div class="form-check">
+                                <input type="checkbox" name="is_public" class="form-check-input" id="editIsPublic">
+                                <label class="form-check-label" for="editIsPublic">عام</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="is_active" class="form-check-input" id="editIsActive">
+                                <label class="form-check-label" for="editIsActive">نشط</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">الوحدات (أسماء مفصولة بفواصل)</label>
+                            <input type="text" name="modules" id="editModules" class="form-control" placeholder="مثال: doctor,reception,appointments">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>حفظ التعديلات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.getElementById('createBundleForm')?.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const fd = new FormData(this);
+function gatherBundleData(form) {
+    const fd = new FormData(form);
     const data = {};
     fd.forEach((v, k) => { data[k] = v; });
-    data.is_public = data.is_public === 'on';
-    data.is_active = data.is_active === 'on';
+    data.is_public = !!form.querySelector('[name="is_public"]').checked;
+    data.is_active = !!form.querySelector('[name="is_active"]').checked;
     if (data.modules) {
         data.modules = data.modules.split(',').map(s => s.trim()).filter(Boolean);
     } else {
         data.modules = [];
     }
+    return data;
+}
+
+document.getElementById('createBundleForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const data = gatherBundleData(this);
     try {
         const r = await fetch('/owner/api/bundles', {
             method: 'POST',
@@ -191,6 +290,63 @@ document.getElementById('createBundleForm')?.addEventListener('submit', async fu
         location.reload();
     } catch (err) {
         alert('خطأ في الاتصال');
+    }
+});
+
+const editModal = document.getElementById('editBundleModal');
+document.querySelectorAll('.edit-bundle-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+        const id = this.dataset.id;
+        try {
+            const r = await fetch('/owner/api/bundles/' + id);
+            if (!r.ok) {
+                Swal.fire({ title: 'خطأ', text: 'فشل تحميل الباقة', icon: 'error' });
+                return;
+            }
+            const b = await r.json();
+            document.getElementById('editBundleId').value = b.id;
+            document.getElementById('editName').value = b.name;
+            document.getElementById('editNameAr').value = b.name_ar || '';
+            document.getElementById('editSlug').value = b.slug || '';
+            document.getElementById('editProfileCode').value = b.profile_code || '';
+            document.getElementById('editDescriptionAr').value = b.description_ar || '';
+            document.getElementById('editMonthlyPrice').value = b.monthly_price;
+            document.getElementById('editYearlyPrice').value = b.yearly_price;
+            document.getElementById('editSetupFee').value = b.setup_fee;
+            document.getElementById('editCurrency').value = b.currency;
+            document.getElementById('editMaxUsers').value = b.max_users || '';
+            document.getElementById('editMaxPatients').value = b.max_patients || '';
+            document.getElementById('editStorageGb').value = b.storage_gb || '';
+            document.getElementById('editApiCalls').value = b.api_calls_per_month || '';
+            document.getElementById('editIsPublic').checked = b.is_public;
+            document.getElementById('editIsActive').checked = b.is_active;
+            document.getElementById('editModules').value = Array.isArray(b.modules) ? b.modules.join(', ') : (b.modules || '');
+            const modal = new bootstrap.Modal(editModal);
+            modal.show();
+        } catch (err) {
+            Swal.fire({ title: 'خطأ', text: 'خطأ في الاتصال', icon: 'error' });
+        }
+    });
+});
+
+document.getElementById('editBundleForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const data = gatherBundleData(this);
+    const id = document.getElementById('editBundleId').value;
+    try {
+        const r = await fetch('/owner/api/bundles/' + id, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content},
+            body: JSON.stringify(data),
+        });
+        if (!r.ok) {
+            const err = await r.json();
+            Swal.fire({ title: 'خطأ', text: err.error || 'فشل التحديث', icon: 'error' });
+            return;
+        }
+        location.reload();
+    } catch (err) {
+        Swal.fire({ title: 'خطأ', text: 'خطأ في الاتصال', icon: 'error' });
     }
 });
 

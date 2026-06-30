@@ -41,12 +41,22 @@
                 <div class="card-header fw-bold">قائمة Webhooks</div>
                 <div class="card-body p-0">
                     <table class="table table-sm mb-0">
-                        <thead><tr><th>الاسم</th><th>الرابط</th><th>الأحداث</th></tr></thead>
+                        <thead><tr><th>الاسم</th><th>الرابط</th><th>الأحداث</th><th>الإجراءات</th></tr></thead>
                         <tbody>
                         {% for w in webhooks %}
-                        <tr><td>{{ w.name }}</td><td class="small">{{ w.url }}</td><td class="small">{{ w.events }}</td></tr>
+                        <tr>
+                            <td>{{ w.name }}</td>
+                            <td class="small">{{ w.url }}</td>
+                            <td class="small">{{ w.events }}</td>
+                            <td>
+                                <form method="post" action="{{ url_for('owner.owner_delete_webhook', webhook_id=w.id) }}" style="display:inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف الـ Webhook؟')"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
                         {% else %}
-                        <tr><td colspan="3" class="text-muted text-center py-4">لا Webhooks مسجّلة</td></tr>
+                        <tr><td colspan="4" class="text-muted text-center py-4">لا Webhooks مسجّلة</td></tr>
                         {% endfor %}
                         </tbody>
                     </table>

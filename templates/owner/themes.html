@@ -41,6 +41,18 @@
                                 <strong>{{ theme.name_ar }}</strong>
                                 <div class="small text-muted">{{ theme.name }}</div>
                                 {% if theme.is_default %}<span class="badge bg-warning text-dark">افتراضي</span>{% endif %}
+                                <div class="mt-2 d-flex gap-1">
+                                    <form method="post" action="{{ url_for('owner.owner_delete_theme', theme_id=theme.id) }}" style="display:inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف الثيم؟')"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                    {% if not theme.is_default %}
+                                    <form method="post" action="{{ url_for('owner.owner_set_default_theme', theme_id=theme.id) }}" style="display:inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-warning"><i class="fas fa-check-circle"></i> تعيين كافتراضي</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                         {% else %}

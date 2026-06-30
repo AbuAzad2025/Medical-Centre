@@ -1,6 +1,7 @@
 {% extends "owner/base.html" %}
 {% block title %}تفاصيل العميل — {{ tenant.name }}{% endblock %}
 {% block content %}
+{% set users_list = tenant.users or [] %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
         <div class="col">
@@ -8,6 +9,7 @@
             <span class="badge bg-{{ 'success' if tenant.status.value=='active' else 'warning' if tenant.status.value=='pending' else 'danger' }}">{{ tenant.status.value }}</span>
         </div>
         <div class="col-auto d-flex gap-2 flex-wrap">
+            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editTenantModal"><i class="fas fa-edit me-1"></i>تعديل بيانات العميل</button>
             <a href="{{ url_for('owner.owner_tenant_usage', tenant_id=tenant.id) }}" class="btn btn-sm btn-outline-info"><i class="fas fa-chart-bar me-1"></i>استخدام الموارد</a>
             <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i>العودة</a>
         </div>
@@ -18,6 +20,7 @@
         <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-subscription" type="button">اشتراك</button></li>
         <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-modules" type="button">وحدات</button></li>
         <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-limits" type="button">حدود</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-features" type="button">ميزات</button></li>
         <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-users" type="button">مستخدمون</button></li>
     </ul>
 
@@ -36,7 +39,7 @@
                             <p><strong>البريد:</strong> {{ tenant.contact_email }}</p>
                             <p><strong>الهاتف:</strong> {{ tenant.contact_phone or '-' }}</p>
                             <p><strong>الرقم الضريبي:</strong> {{ tenant.tax_number or '-' }}</p>
-                            <p><strong>نوع العيادة:</strong> {{ tenant.product_profile_code.value if tenant.product_profile_code else 'غير محدد' }}</p>
+                            <p><strong>نوع العيادة:</strong> {{ tenant.product_profile_code or 'غير محدد' }}</p>
                             <p><strong>الباقة:</strong> {{ bundle_name or 'غير محدد' }}</p>
                         </div>
                     </div>
@@ -74,9 +77,12 @@
 
         <div class="tab-pane fade" id="tab-modules">
             <div class="card">
-                <div class="card-header fw-bold d-flex justify-content-between">
+                <div class="card-header fw-bold d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-puzzle-piece me-1"></i>الوحدات</span>
-                    <small class="text-muted">اضغط للتفعيل/التعطيل</small>
+                    <div class="d-flex gap-2 align-items-center">
+                        <small class="text-muted">اضغط للتفعيل/التعطيل</small>
+                        <a href="{{ url_for('owner.owner_activate_default_modules', tenant_id=tenant.id) }}" class="btn btn-sm btn-success" onclick="return confirm('تفعيل جميع الوحدات الافتراضية لهذه الباقة؟')"><i class="fas fa-play me-1"></i>تفعيل الافتراضية</a>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="d-flex flex-wrap gap-2">
@@ -135,17 +141,122 @@
             {% endif %}
         </div>
 
+        <div class="tab-pane fade" id="tab-features">
+            <div class="card">
+                <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-flag me-1"></i>ميزات العميل (Feature Flags)</span>
+                    <form method="post" action="{{ url_for('owner.owner_toggle_tenant_feature', tenant_id=tenant.id, feature_key='__new__') }}" class="d-flex gap-2" onsubmit="event.preventDefault(); var key=prompt('اسم الميزة الجديدة (بالإنجليزي):'); if(key){ this.action=this.action.replace('__new__', key); this.submit(); }">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-plus me-1"></i>إضافة ميزة</button>
+                    </form>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for feature in available_features %}
+                        {% set is_enabled = feature in enabled_feature_keys %}
+                        <div class="col-md-4">
+                            <div class="card h-100 {{ 'border-success' if is_enabled else 'border-secondary' }}">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ feature }}</h6>
+                                        <span class="badge bg-{{ 'success' if is_enabled else 'secondary' }}">{{ 'مفعّلة' if is_enabled else 'معطّلة' }}</span>
+                                    </div>
+                                    <form method="post" action="{{ url_for('owner.owner_toggle_tenant_feature', tenant_id=tenant.id, feature_key=feature) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm {{ 'btn-outline-danger' if is_enabled else 'btn-outline-success' }}">
+                                            {{ 'إيقاف' if is_enabled else 'تفعيل' }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="col-12"><p class="text-muted text-center py-3">لا ميزات معرّفة</p></div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="tab-pane fade" id="tab-users">
             <div class="card">
-                <div class="card-header fw-bold">المستخدمون ({{ user_count }})</div>
+                <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+                    <span>المستخدمون ({{ user_count }})</span>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#addUserForm"><i class="fas fa-plus me-1"></i>إضافة مستخدم</button>
+                </div>
+                <div class="collapse p-3 border-bottom" id="addUserForm">
+                    <form method="post" action="{{ url_for('owner.owner_tenant_detail', tenant_id=tenant.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="create_user">
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <input type="text" name="username" class="form-control form-control-sm" placeholder="اسم المستخدم" required>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="password" name="password" class="form-control form-control-sm" placeholder="كلمة المرور" required>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" name="full_name" class="form-control form-control-sm" placeholder="الاسم الكامل">
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-sm btn-success w-100"><i class="fas fa-save me-1"></i>حفظ</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
                 <div class="card-body p-0">
                     <table class="table table-sm mb-0">
-                        <thead><tr><th>#</th><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th></tr></thead>
+                        <thead><tr><th>#</th><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
                         <tbody>
                         {% for u in tenant.users %}
-                        <tr><td>{{ u.id }}</td><td>{{ u.full_name or '-' }}</td><td>{{ u.username }}</td><td>{{ u.role }}</td></tr>
+                        <tr>
+                            <td>{{ u.id }}</td>
+                            <td>{{ u.full_name or '-' }}</td>
+                            <td><code>{{ u.username }}</code></td>
+                            <td><span class="badge bg-info">{{ u.role }}</span></td>
+                            <td>
+                                {% if u.is_active %}<span class="badge bg-success">نشط</span>{% else %}<span class="badge bg-secondary">معطل</span>{% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <button class="btn btn-sm btn-outline-primary edit-tenant-user-btn"
+                                            data-id="{{ u.id }}"
+                                            data-username="{{ u.username }}"
+                                            data-full-name="{{ u.full_name }}"
+                                            data-email="{{ u.email }}"
+                                            data-role="{{ u.role }}"
+                                            data-active="{{ '1' if u.is_active else '0' }}"
+                                            data-admin="{{ '1' if u.is_admin else '0' }}"
+                                            data-bs-toggle="modal" data-bs-target="#editTenantUserModal">
+                                        <i class="fas fa-edit" title="تعديل"></i>
+                                    </button>
+                                    {% if u.role not in ('super_admin', 'owner') %}
+                                    <form method="post" action="{{ url_for('owner.owner_toggle_user_active', user_id=u.id) }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm {{ 'btn-outline-warning' if u.is_active else 'btn-outline-success' }}" title="{{ 'إيقاف' if u.is_active else 'تفعيل' }}">
+                                            <i class="fas {{ 'fa-pause' if u.is_active else 'fa-play' }}"></i>
+                                        </button>
+                                    </form>
+                                    <button class="btn btn-sm btn-outline-secondary reset-tenant-user-pwd-btn"
+                                            data-id="{{ u.id }}"
+                                            data-username="{{ u.username }}"
+                                            data-bs-toggle="modal" data-bs-target="#resetTenantUserPwdModal">
+                                        <i class="fas fa-key" title="تعيين كلمة مرور"></i>
+                                    </button>
+                                    <form method="post" action="{{ url_for('owner.owner_reveal_user_password', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('سيتم إعادة تعيين كلمة المرور وعرضها. متأكد؟')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-info" title="كشف كلمة المرور"><i class="fas fa-eye"></i></button>
+                                    </form>
+                                    <form method="post" action="{{ url_for('owner.owner_delete_user', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('تأكيد حذف {{ u.username }}؟');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
                         {% else %}
-                        <tr><td colspan="4" class="text-muted text-center py-3">لا مستخدمين</td></tr>
+                        <tr><td colspan="6" class="text-muted text-center py-3">لا مستخدمين</td></tr>
                         {% endfor %}
                         </tbody>
                     </table>
@@ -154,10 +265,188 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Tenant Modal -->
+<div class="modal fade" id="editTenantModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="{{ url_for('owner.owner_edit_tenant', tenant_id=tenant.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>تعديل بيانات العميل</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">الاسم (إنجليزي) *</label>
+                            <input type="text" name="name" class="form-control" value="{{ tenant.name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الاسم (عربي)</label>
+                            <input type="text" name="name_ar" class="form-control" value="{{ tenant.name_ar or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">البريد الإلكتروني</label>
+                            <input type="email" name="contact_email" class="form-control" value="{{ tenant.contact_email or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الهاتف</label>
+                            <input type="text" name="contact_phone" class="form-control" value="{{ tenant.contact_phone or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الرقم الضريبي</label>
+                            <input type="text" name="tax_number" class="form-control" value="{{ tenant.tax_number or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">النطاق (Domain)</label>
+                            <input type="text" name="domain" class="form-control" value="{{ tenant.domain or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">النطاق الفرعي (Subdomain)</label>
+                            <input type="text" name="subdomain" class="form-control" value="{{ tenant.subdomain or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">نوع التخزين</label>
+                            <select name="storage_mode" class="form-select">
+                                {% for sm in ['shared','dedicated','hybrid'] %}
+                                <option value="{{ sm }}" {{ 'selected' if tenant.storage_mode.value == sm else '' }}>{{ sm }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الباقة</label>
+                            <select name="product_profile_code" class="form-select">
+                                <option value="">-- بدون باقة --</option>
+                                {% for b in bundles %}
+                                <option value="{{ b.profile_code }}" {{ 'selected' if tenant.product_profile_code == b.profile_code else '' }}>{{ b.name_ar or b.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">خطة الاشتراك</label>
+                            <select name="plan_id" class="form-select">
+                                <option value="">-- بدون خطة --</option>
+                                {% for p in plans %}
+                                <option value="{{ p.id }}" {{ 'selected' if tenant.plan_id == p.id else '' }}>{{ p.name }} ({{ p.base_price }} {{ p.currency }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>حفظ التعديلات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Edit Tenant User Modal -->
+<div class="modal fade" id="editTenantUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="editTenantUserForm" action="">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>تعديل مستخدم</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">اسم المستخدم</label>
+                            <input type="text" name="username" id="teuUsername" class="form-control" readonly>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">الاسم الكامل</label>
+                            <input type="text" name="full_name" id="teuFullName" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">البريد الإلكتروني</label>
+                            <input type="email" name="email" id="teuEmail" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الدور</label>
+                            <input type="text" name="role" id="teuRole" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">الحالة</label>
+                            <select name="is_active" id="teuActive" class="form-select">
+                                <option value="1">نشط</option>
+                                <option value="0">معطل</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">أدمن</label>
+                            <select name="is_admin" id="teuAdmin" class="form-select">
+                                <option value="1">نعم</option>
+                                <option value="0">لا</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Tenant User Password Modal -->
+<div class="modal fade" id="resetTenantUserPwdModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="resetTenantUserPwdForm" action="">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="user_id" id="rtuUserId" value="">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="fas fa-key me-2"></i>تعيين كلمة مرور</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small" id="rtuUserLabel"></p>
+                    <div class="mb-3">
+                        <label class="form-label">كلمة المرور الجديدة (6 أحرف على الأقل)</label>
+                        <input type="text" name="password" id="rtuPassword" class="form-control" required minlength="6" placeholder="اترك فارغاً لتوليد تلقائي">
+                        <small class="text-muted">يمكن ترك الحقل فارغاً لتوليد كلمة مرور عشوائية</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>تعيين</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+document.querySelectorAll('.edit-tenant-user-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        document.getElementById('editTenantUserForm').action = '/owner/users/' + id + '/edit';
+        document.getElementById('teuUsername').value = this.dataset.username;
+        document.getElementById('teuFullName').value = this.dataset.fullName;
+        document.getElementById('teuEmail').value = this.dataset.email;
+        document.getElementById('teuRole').value = this.dataset.role;
+        document.getElementById('teuActive').value = this.dataset.active;
+        document.getElementById('teuAdmin').value = this.dataset.admin;
+    });
+});
+document.querySelectorAll('.reset-tenant-user-pwd-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        document.getElementById('resetTenantUserPwdForm').action = '/owner/users/' + id + '/reset-password';
+        document.getElementById('rtuUserId').value = id;
+        document.getElementById('rtuUserLabel').textContent = 'إعادة تعيين كلمة المرور لـ: ' + this.dataset.username;
+        document.getElementById('rtuPassword').value = '';
+    });
+});
 document.querySelectorAll('.toggle-module-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
         var tenantId = this.dataset.tenantId;

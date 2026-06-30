@@ -1,0 +1,115 @@
+{% extends "owner/base.html" %}
+{% block title %}إعدادات النظام{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col"><h4><i class="fas fa-cogs me-2 text-primary"></i>إعدادات النظام</h4></div>
+        <div class="col-auto">
+            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" action="{{ url_for('owner.owner_system_config') }}" class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">التصنيف</label>
+                    <select name="category" class="form-select" onchange="this.form.submit()">
+                        <option value="">كل التصنيفات</option>
+                        {% for c in categories %}
+                        <option value="{{ c }}" {{ 'selected' if category_filter == c else '' }}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <form method="post" action="{{ url_for('owner.owner_save_system_config', category=category_filter) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>الإعدادات</h6>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save me-1"></i>حفظ الكل</button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><th>المفتاح</th><th>التصنيف</th><th>النوع</th><th>القيمة</th><th>الإجراءات</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for cfg in configs %}
+                            <tr>
+                                <td><code>{{ cfg.config_key }}</code><br><small class="text-muted">{{ cfg.description or '' }}</small></td>
+                                <td><span class="badge bg-light text-dark border">{{ cfg.category or 'general' }}</span></td>
+                                <td><span class="badge bg-info">{{ cfg.config_type }}</span></td>
+                                <td>
+                                    {% if cfg.config_type == 'boolean' %}
+                                    <select name="config_{{ cfg.config_key }}" class="form-select form-select-sm">
+                                        <option value="true" {{ 'selected' if cfg.get_value() else '' }}>true</option>
+                                        <option value="false" {{ 'selected' if not cfg.get_value() else '' }}>false</option>
+                                    </select>
+                                    {% elif cfg.config_type == 'password' %}
+                                    <input type="password" name="config_{{ cfg.config_key }}" class="form-control form-control-sm" value="{{ cfg.config_value or '' }}">
+                                    {% else %}
+                                    <input type="text" name="config_{{ cfg.config_key }}" class="form-control form-control-sm" value="{{ cfg.config_value or '' }}">
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not cfg.is_system %}
+                                    <form method="post" action="{{ url_for('owner.owner_delete_system_config', config_key=cfg.config_key) }}" class="d-inline" onsubmit="return confirm('تأكيد حذف {{ cfg.config_key }}؟');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                    {% else %}
+                                    <span class="text-muted small">محمي</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-muted text-center py-4">لا توجد إعدادات</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-light">
+                <h6 class="fw-bold mb-3"><i class="fas fa-plus me-1"></i>إضافة إعداد جديد</h6>
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <input type="text" name="new_config_key" class="form-control" placeholder="المفتاح">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="new_config_type" class="form-select">
+                            <option value="string">string</option>
+                            <option value="integer">integer</option>
+                            <option value="boolean">boolean</option>
+                            <option value="json">json</option>
+                            <option value="password">password</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="new_config_category" class="form-select">
+                            <option value="general">general</option>
+                            <option value="security">security</option>
+                            <option value="notification">notification</option>
+                            <option value="backup">backup</option>
+                            <option value="system">system</option>
+                            <option value="database">database</option>
+                            <option value="email">email</option>
+                            <option value="sms">sms</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" name="new_config_value" class="form-control" placeholder="القيمة">
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-success w-100"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

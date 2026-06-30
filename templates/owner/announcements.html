@@ -49,7 +49,7 @@
                 <div class="card-header fw-bold">الإعلانات السابقة</div>
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">
-                        <thead><tr><th>العنوان</th><th>الأولوية</th><th>الجمهور</th><th>التاريخ</th></tr></thead>
+                        <thead><tr><th>العنوان</th><th>الأولوية</th><th>الجمهور</th><th>التاريخ</th><th>الإجراءات</th></tr></thead>
                         <tbody>
                         {% for a in announcements %}
                         <tr>
@@ -57,8 +57,14 @@
                             <td><span class="badge bg-{{ 'danger' if a.priority=='danger' else 'warning' if a.priority=='warning' else 'info' }}">{{ a.priority }}</span></td>
                             <td>{{ a.target_audience }}</td>
                             <td class="small">{{ a.created_at.strftime('%Y-%m-%d %H:%M') if a.created_at else '-' }}</td>
+                            <td>
+                                <form method="post" action="{{ url_for('owner.owner_delete_announcement', announcement_id=a.id) }}" style="display:inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف الإعلان؟')"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
                         </tr>
-                        {% else %}<tr><td colspan="4" class="text-muted text-center py-3">لا إعلانات</td></tr>
+                        {% else %}<tr><td colspan="5" class="text-muted text-center py-3">لا إعلانات</td></tr>
                         {% endfor %}
                         </tbody>
                     </table>

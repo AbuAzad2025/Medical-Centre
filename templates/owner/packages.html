@@ -18,7 +18,13 @@
             <div class="card h-100 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><strong>{{ pkg.name }}</strong> <small class="text-muted">({{ pkg.category }})</small></span>
-                    <span class="badge bg-{{ 'success' if pkg.is_active else 'secondary' }}">{{ 'نشط' if pkg.is_active else 'معطل' }}</span>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editPackageModal{{ pkg.id }}"><i class="fas fa-edit"></i></button>
+                        <form method="post" action="{{ url_for('owner.owner_delete_package', package_id=pkg.id) }}" class="d-inline" onsubmit="return confirm('تأكيد حذف الحزمة {{ pkg.name }}؟');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </div>
                 </div>
                 <div class="card-body">
                     <p class="text-muted small">{{ pkg.name_ar or '-' }}</p>
@@ -32,8 +38,19 @@
                                 v{{ v.version }}
                                 {% if v.is_deprecated %}<span class="badge bg-warning text-dark ms-1">مهمل</span>{% endif %}
                             </span>
-                            <span class="text-muted">
+                            <span class="text-muted d-flex align-items-center gap-2">
                                 {{ v.entitlements|length }} إمكانية · {{ v.pricing|length }} تسعير
+                                <button class="btn btn-sm btn-outline-primary py-0 px-1" data-bs-toggle="modal" data-bs-target="#editVersionModal{{ v.id }}" title="تعديل"><i class="fas fa-edit"></i></button>
+                                {% if not v.is_deprecated %}
+                                <form method="post" action="{{ url_for('owner.owner_deprecate_package_version', version_id=v.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد من تعطيل هذا الإصدار؟')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-1" title="تعطيل الإصدار"><i class="fas fa-ban"></i></button>
+                                </form>
+                                {% endif %}
+                                <form method="post" action="{{ url_for('owner.owner_delete_package_version', version_id=v.id) }}" class="d-inline" onsubmit="return confirm('تأكيد حذف الإصدار v{{ v.version }}؟');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" title="حذف"><i class="fas fa-trash"></i></button>
+                                </form>
                             </span>
                         </li>
                         {% else %}
@@ -131,4 +148,83 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+<!-- Edit Package Modal -->
+{% for pkg in packages %}
+<div class="modal fade" id="editPackageModal{{ pkg.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ url_for('owner.owner_edit_package', package_id=pkg.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">تعديل Package — {{ pkg.name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">الاسم</label>
+                        <input type="text" name="name" class="form-control" value="{{ pkg.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الاسم بالعربية</label>
+                        <input type="text" name="name_ar" class="form-control" value="{{ pkg.name_ar or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الفئة</label>
+                        <select name="category" class="form-select">
+                            <option value="bundle" {{ 'selected' if pkg.category == 'bundle' else '' }}>Bundle</option>
+                            <option value="addon" {{ 'selected' if pkg.category == 'addon' else '' }}>Add-on</option>
+                            <option value="standalone" {{ 'selected' if pkg.category == 'standalone' else '' }}>Standalone</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="pkgActive{{ pkg.id }}" {{ 'checked' if pkg.is_active else '' }}>
+                        <label class="form-check-label" for="pkgActive{{ pkg.id }}">نشط</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Version Modal -->
+{% for v in pkg.versions %}
+<div class="modal fade" id="editVersionModal{{ v.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ url_for('owner.owner_edit_package_version', version_id=v.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">تعديل الإصدار v{{ v.version }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">رقم الإصدار</label>
+                        <input type="text" name="version" class="form-control" value="{{ v.version }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">سجل التغييرات</label>
+                        <textarea name="changelog" class="form-control" rows="2">{{ v.changelog or '' }}</textarea>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input class="form-check-input" type="checkbox" name="is_deprecated" id="verDeprecated{{ v.id }}" {{ 'checked' if v.is_deprecated else '' }}>
+                        <label class="form-check-label" for="verDeprecated{{ v.id }}">مهمل (Deprecated)</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endfor %}
 {% endblock %}
