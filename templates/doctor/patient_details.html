@@ -112,27 +112,27 @@
                             <div class="mb-3">
                                 <strong>نوع الزيارة:</strong><br>
                                 {% if visit.visit_type == 'first' %}
-                                    <span class="badge badge-primary">أولى</span>
+                                    <span class="badge text-bg-primary">أولى</span>
                                 {% elif visit.visit_type == 'follow_up' %}
-                                    <span class="badge badge-info">متابعة</span>
+                                    <span class="badge text-bg-info">متابعة</span>
                                 {% elif visit.visit_type == 'emergency' %}
-                                    <span class="badge badge-danger">طوارئ</span>
+                                    <span class="badge text-bg-danger">طوارئ</span>
                                 {% else %}
-                                    <span class="badge badge-secondary">{{ visit.visit_type }}</span>
+                                    <span class="badge text-bg-secondary">{{ visit.visit_type }}</span>
                                 {% endif %}
                             </div>
                             <div class="mb-3">
                                 <strong>حالة الزيارة:</strong><br>
                                 {% if visit.status == 'OPEN' %}
-                                    <span class="badge badge-success">في الانتظار</span>
+                                    <span class="badge text-bg-success">في الانتظار</span>
                                 {% elif visit.status == 'IN_PROGRESS' %}
-                                    <span class="badge badge-warning">قيد التنفيذ</span>
+                                    <span class="badge text-bg-warning">قيد التنفيذ</span>
                                 {% elif visit.status == 'COMPLETED' %}
-                                    <span class="badge badge-info">مكتمل</span>
+                                    <span class="badge text-bg-info">مكتمل</span>
                                 {% elif visit.status == 'ARCHIVED' %}
-                                    <span class="badge badge-secondary">مؤرشف</span>
+                                    <span class="badge text-bg-secondary">مؤرشف</span>
                                 {% else %}
-                                    <span class="badge badge-secondary">{{ visit.status | enum_label('VisitState') }}</span>
+                                    <span class="badge text-bg-secondary">{{ visit.status | enum_label('VisitState') }}</span>
                                 {% endif %}
                             </div>
                             <div class="mb-3">
@@ -518,15 +518,15 @@
                                                 <td>{{ lab.notes or '-' }}</td>
                                                 <td>
                                                     {% if lab.status == 'REQUESTED' %}
-                                                        <span class="badge badge-warning">مطلوب</span>
+                                                        <span class="badge text-bg-warning">مطلوب</span>
                                                     {% elif lab.status == 'IN_PROGRESS' %}
-                                                        <span class="badge badge-info">قيد التنفيذ</span>
+                                                        <span class="badge text-bg-info">قيد التنفيذ</span>
                                                     {% elif lab.status == 'DONE' %}
-                                                        <span class="badge badge-success">مكتمل</span>
+                                                        <span class="badge text-bg-success">مكتمل</span>
                                                     {% elif lab.status == 'CANCELLED' %}
-                                                        <span class="badge badge-danger">ملغي</span>
+                                                        <span class="badge text-bg-danger">ملغي</span>
                                                     {% else %}
-                                                        <span class="badge badge-secondary">{{ lab.status | enum_label('OrderState') }}</span>
+                                                        <span class="badge text-bg-secondary">{{ lab.status | enum_label('OrderState') }}</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>{{ lab.created_at.strftime('%Y-%m-%d') if lab.created_at else 'غير محدد' }}</td>
@@ -569,15 +569,15 @@
                                                 <td>{{ radiology.body_part or '-' }}</td>
                                                 <td>
                                                     {% if radiology.status == 'REQUESTED' %}
-                                                        <span class="badge badge-warning">مطلوب</span>
+                                                        <span class="badge text-bg-warning">مطلوب</span>
                                                     {% elif radiology.status == 'IN_PROGRESS' %}
-                                                        <span class="badge badge-info">قيد التنفيذ</span>
+                                                        <span class="badge text-bg-info">قيد التنفيذ</span>
                                                     {% elif radiology.status == 'DONE' %}
-                                                        <span class="badge badge-success">مكتمل</span>
+                                                        <span class="badge text-bg-success">مكتمل</span>
                                                     {% elif radiology.status == 'CANCELLED' %}
-                                                        <span class="badge badge-danger">ملغي</span>
+                                                        <span class="badge text-bg-danger">ملغي</span>
                                                     {% else %}
-                                                        <span class="badge badge-secondary">{{ radiology.status | enum_label('OrderState') }}</span>
+                                                        <span class="badge text-bg-secondary">{{ radiology.status | enum_label('OrderState') }}</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>{{ radiology.created_at.strftime('%Y-%m-%d') if radiology.created_at else 'غير محدد' }}</td>
@@ -618,11 +618,11 @@
                                             <tr>
                                                 <td>
                                                     {% if record.record_type == 'DIAGNOSIS' %}
-                                                        <span class="badge badge-primary">تشخيص</span>
+                                                        <span class="badge text-bg-primary">تشخيص</span>
                                                     {% elif record.record_type == 'TREATMENT' %}
-                                                        <span class="badge badge-success">علاج</span>
+                                                        <span class="badge text-bg-success">علاج</span>
                                                     {% else %}
-                                                        <span class="badge badge-info">{{ record.record_type }}</span>
+                                                        <span class="badge text-bg-info">{{ record.record_type }}</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>{{ record.title }}</td>

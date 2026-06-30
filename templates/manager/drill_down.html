@@ -52,7 +52,7 @@
                     {% endif %}
                 </tr>
                 {% else %}
-                <tr><td colspan="6" class="text-muted text-center">لا نتائج</td></tr>
+                <tr><td colspan="{% if report_type == 'visits' %}6{% elif report_type == 'revenue' %}5{% else %}4{% endif %}" class="text-muted text-center">لا نتائج</td></tr>
                 {% endfor %}
                 </tbody>
             </table>

@@ -23,15 +23,15 @@
             <td>{{ r.body_part or '-' }}</td>
             <td>
               {% if r.status == 'REQUESTED' %}
-                <span class="badge badge-warning">مطلوب</span>
+                <span class="badge text-bg-warning">مطلوب</span>
               {% elif r.status == 'IN_PROGRESS' %}
-                <span class="badge badge-info">قيد التنفيذ</span>
+                <span class="badge text-bg-info">قيد التنفيذ</span>
               {% elif r.status == 'DONE' %}
-                <span class="badge badge-success">مكتمل</span>
+                <span class="badge text-bg-success">مكتمل</span>
               {% elif r.status == 'CANCELLED' %}
-                <span class="badge badge-danger">ملغي</span>
+                <span class="badge text-bg-danger">ملغي</span>
               {% else %}
-                <span class="badge badge-secondary">{{ r.status | enum_label('OrderState') }}</span>
+                <span class="badge text-bg-secondary">{{ r.status | enum_label('OrderState') }}</span>
               {% endif %}
             </td>
             <td>{{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '-' }}</td>

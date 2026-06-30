@@ -64,7 +64,7 @@
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="5" class="text-center">لا توجد زيارات</td>
+                                    <td colspan="7" class="text-center">لا توجد زيارات</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -93,15 +93,15 @@
                                             <td>{{ req.created_at.strftime('%Y-%m-%d') if req.created_at else '-' }}</td>
                                             <td>
                                                 {% if req.status == 'REQUESTED' %}
-                                                    <span class="badge badge-warning">مطلوب</span>
+                                                    <span class="badge text-bg-warning">مطلوب</span>
                                                 {% elif req.status == 'IN_PROGRESS' %}
-                                                    <span class="badge badge-info">قيد التنفيذ</span>
+                                                    <span class="badge text-bg-info">قيد التنفيذ</span>
                                                 {% elif req.status == 'DONE' %}
-                                                    <span class="badge badge-success">مكتمل</span>
+                                                    <span class="badge text-bg-success">مكتمل</span>
                                                 {% elif req.status == 'CANCELLED' %}
-                                                    <span class="badge badge-danger">ملغي</span>
+                                                    <span class="badge text-bg-danger">ملغي</span>
                                                 {% else %}
-                                                    <span class="badge badge-secondary">{{ req.status | enum_label('OrderState') }}</span>
+                                                    <span class="badge text-bg-secondary">{{ req.status | enum_label('OrderState') }}</span>
                                                 {% endif %}
                                             </td>
                                             <td>{{ req.notes or '-' }}</td>
@@ -139,15 +139,15 @@
                                             <td>{{ req.body_part or '-' }}</td>
                                             <td>
                                                 {% if req.status == 'REQUESTED' %}
-                                                    <span class="badge badge-warning">مطلوب</span>
+                                                    <span class="badge text-bg-warning">مطلوب</span>
                                                 {% elif req.status == 'IN_PROGRESS' %}
-                                                    <span class="badge badge-info">قيد التنفيذ</span>
+                                                    <span class="badge text-bg-info">قيد التنفيذ</span>
                                                 {% elif req.status == 'DONE' %}
-                                                    <span class="badge badge-success">مكتمل</span>
+                                                    <span class="badge text-bg-success">مكتمل</span>
                                                 {% elif req.status == 'CANCELLED' %}
-                                                    <span class="badge badge-danger">ملغي</span>
+                                                    <span class="badge text-bg-danger">ملغي</span>
                                                 {% else %}
-                                                    <span class="badge badge-secondary">{{ req.status | enum_label('OrderState') }}</span>
+                                                    <span class="badge text-bg-secondary">{{ req.status | enum_label('OrderState') }}</span>
                                                 {% endif %}
                                             </td>
                                         </tr>

@@ -30,11 +30,11 @@
                         <div class="col-md-3">
                             <strong>نوع الزيارة:</strong> 
                             {% if visit.visit_type == 'first' %}
-                                <span class="badge badge-primary">أولى</span>
+                                <span class="badge text-bg-primary">أولى</span>
                             {% elif visit.visit_type == 'follow_up' %}
-                                <span class="badge badge-info">متابعة</span>
+                                <span class="badge text-bg-info">متابعة</span>
                             {% elif visit.visit_type == 'emergency' %}
-                                <span class="badge badge-danger">طوارئ</span>
+                                <span class="badge text-bg-danger">طوارئ</span>
                             {% endif %}
                         </div>
                     </div>
