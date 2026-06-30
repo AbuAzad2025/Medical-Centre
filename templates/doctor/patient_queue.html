@@ -145,17 +145,17 @@
                                         </td>
                                         <td>
                                             {% if patient.visit_type in ['first','FIRST'] %}
-                                                <span class="badge badge-primary">أولى</span>
+                                                <span class="badge text-bg-primary">أولى</span>
                                             {% elif patient.visit_type in ['follow_up','FOLLOW_UP'] %}
-                                                <span class="badge badge-info">متابعة</span>
+                                                <span class="badge text-bg-info">متابعة</span>
                                             {% elif patient.visit_type in ['emergency','EMERGENCY'] %}
-                                                <span class="badge badge-danger">طوارئ</span>
+                                                <span class="badge text-bg-danger">طوارئ</span>
                                             {% elif patient.visit_type in ['REGULAR'] %}
-                                                <span class="badge badge-secondary">اعتيادية</span>
+                                                <span class="badge text-bg-secondary">اعتيادية</span>
                                             {% elif patient.visit_type in ['CONSULTATION','consultation'] %}
-                                                <span class="badge badge-success">استشارة</span>
+                                                <span class="badge text-bg-success">استشارة</span>
                                             {% else %}
-                                                <span class="badge badge-secondary">{{ patient.visit_type }}</span>
+                                                <span class="badge text-bg-secondary">{{ patient.visit_type }}</span>
                                             {% endif %}
                                         </td>
                                         <td>
@@ -167,22 +167,22 @@
                                         </td>
                                         <td>
                                             {% if patient.status == 'OPEN' %}
-                                                <span class="badge badge-success">في الانتظار</span>
+                                                <span class="badge text-bg-success">في الانتظار</span>
                                             {% elif patient.status == 'IN_PROGRESS' %}
-                                                <span class="badge badge-warning">قيد العلاج</span>
+                                                <span class="badge text-bg-warning">قيد العلاج</span>
                                             {% elif patient.status == 'COMPLETED' %}
-                                                <span class="badge badge-info">مكتمل</span>
+                                                <span class="badge text-bg-info">مكتمل</span>
                                             {% elif patient.status == 'ARCHIVED' %}
-                                                <span class="badge badge-secondary">مؤرشف</span>
+                                                <span class="badge text-bg-secondary">مؤرشف</span>
                                             {% else %}
-                                                <span class="badge badge-secondary">{{ patient.status | enum_label('VisitState') }}</span>
+                                                <span class="badge text-bg-secondary">{{ patient.status | enum_label('VisitState') }}</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             {% if patient.visit_type == 'emergency' %}
-                                                <span class="badge badge-danger">عاجل</span>
+                                                <span class="badge text-bg-danger">عاجل</span>
                                             {% else %}
-                                                <span class="badge badge-info">عادي</span>
+                                                <span class="badge text-bg-info">عادي</span>
                                             {% endif %}
                                         </td>
                                         <td>

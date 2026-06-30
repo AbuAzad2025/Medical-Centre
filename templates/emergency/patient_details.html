@@ -88,27 +88,27 @@
                     <div class="mb-3">
                         <strong>الأولوية:</strong><br>
                         {% if emergency.priority == 'CRITICAL' %}
-                            <span class="badge badge-danger">حرجة</span>
+                            <span class="badge text-bg-danger">حرجة</span>
                         {% elif emergency.priority == 'URGENT' %}
-                            <span class="badge badge-warning">عاجلة</span>
+                            <span class="badge text-bg-warning">عاجلة</span>
                         {% elif emergency.priority == 'HIGH' %}
-                            <span class="badge badge-info">عالية</span>
+                            <span class="badge text-bg-info">عالية</span>
                         {% else %}
-                            <span class="badge badge-secondary">عادية</span>
+                            <span class="badge text-bg-secondary">عادية</span>
                         {% endif %}
                     </div>
                     <div class="mb-3">
                         <strong>الحالة:</strong><br>
                         {% if emergency.status == 'TRIAGE' %}
-                            <span class="badge badge-warning">تحتاج تقييم</span>
+                            <span class="badge text-bg-warning">تحتاج تقييم</span>
                         {% elif emergency.status == 'TREATMENT' %}
-                            <span class="badge badge-info">قيد العلاج</span>
+                            <span class="badge text-bg-info">قيد العلاج</span>
                         {% elif emergency.status == 'OBSERVATION' %}
-                            <span class="badge badge-success">تحت المراقبة</span>
+                            <span class="badge text-bg-success">تحت المراقبة</span>
                         {% elif emergency.status == 'COMPLETED' %}
-                            <span class="badge badge-success">مكتملة</span>
+                            <span class="badge text-bg-success">مكتملة</span>
                         {% else %}
-                            <span class="badge badge-secondary">{{ emergency.status | enum_label('EmergencyStatus') }}</span>
+                            <span class="badge text-bg-secondary">{{ emergency.status | enum_label('EmergencyStatus') }}</span>
                         {% endif %}
                     </div>
                     <div class="mb-3">
@@ -239,13 +239,13 @@
                                     <h6>الأولوية:</h6>
                                     <p>
                                         {% if emergency.priority == 'CRITICAL' %}
-                                            <span class="badge badge-danger">حرجة</span>
+                                            <span class="badge text-bg-danger">حرجة</span>
                                         {% elif emergency.priority == 'URGENT' %}
-                                            <span class="badge badge-warning">عاجلة</span>
+                                            <span class="badge text-bg-warning">عاجلة</span>
                                         {% elif emergency.priority == 'HIGH' %}
-                                            <span class="badge badge-info">عالية</span>
+                                            <span class="badge text-bg-info">عالية</span>
                                         {% else %}
-                                            <span class="badge badge-secondary">عادية</span>
+                                            <span class="badge text-bg-secondary">عادية</span>
                                         {% endif %}
                                     </p>
                                     
@@ -364,15 +364,15 @@
                                                 <td>{{ lab.notes or '-' }}</td>
                                                 <td>
                                                     {% if lab.status == 'REQUESTED' %}
-                                                        <span class="badge badge-warning">مطلوب</span>
+                                                        <span class="badge text-bg-warning">مطلوب</span>
                                                     {% elif lab.status == 'IN_PROGRESS' %}
-                                                        <span class="badge badge-info">قيد التنفيذ</span>
+                                                        <span class="badge text-bg-info">قيد التنفيذ</span>
                                                     {% elif lab.status == 'DONE' %}
-                                                        <span class="badge badge-success">مكتمل</span>
+                                                        <span class="badge text-bg-success">مكتمل</span>
                                                     {% elif lab.status == 'CANCELLED' %}
-                                                        <span class="badge badge-danger">ملغي</span>
+                                                        <span class="badge text-bg-danger">ملغي</span>
                                                     {% else %}
-                                                        <span class="badge badge-secondary">{{ lab.status | enum_label('OrderState') }}</span>
+                                                        <span class="badge text-bg-secondary">{{ lab.status | enum_label('OrderState') }}</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>{{ lab.created_at.strftime('%Y-%m-%d') if lab.created_at else 'غير محدد' }}</td>
@@ -415,15 +415,15 @@
                                                 <td>{{ radiology.body_part or '-' }}</td>
                                                 <td>
                                                     {% if radiology.status == 'REQUESTED' %}
-                                                        <span class="badge badge-warning">مطلوب</span>
+                                                        <span class="badge text-bg-warning">مطلوب</span>
                                                     {% elif radiology.status == 'IN_PROGRESS' %}
-                                                        <span class="badge badge-info">قيد التنفيذ</span>
+                                                        <span class="badge text-bg-info">قيد التنفيذ</span>
                                                     {% elif radiology.status == 'DONE' %}
-                                                        <span class="badge badge-success">مكتمل</span>
+                                                        <span class="badge text-bg-success">مكتمل</span>
                                                     {% elif radiology.status == 'CANCELLED' %}
-                                                        <span class="badge badge-danger">ملغي</span>
+                                                        <span class="badge text-bg-danger">ملغي</span>
                                                     {% else %}
-                                                        <span class="badge badge-secondary">{{ radiology.status | enum_label('OrderState') }}</span>
+                                                        <span class="badge text-bg-secondary">{{ radiology.status | enum_label('OrderState') }}</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>{{ radiology.created_at.strftime('%Y-%m-%d') if radiology.created_at else 'غير محدد' }}</td>
@@ -464,11 +464,11 @@
                                             <tr>
                                                 <td>
                                                     {% if record.record_type == 'EMERGENCY' %}
-                                                        <span class="badge badge-danger">طوارئ</span>
+                                                        <span class="badge text-bg-danger">طوارئ</span>
                                                     {% elif record.record_type == 'TREATMENT' %}
-                                                        <span class="badge badge-success">علاج</span>
+                                                        <span class="badge text-bg-success">علاج</span>
                                                     {% else %}
-                                                        <span class="badge badge-info">{{ record.record_type }}</span>
+                                                        <span class="badge text-bg-info">{{ record.record_type }}</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>{{ record.title }}</td>

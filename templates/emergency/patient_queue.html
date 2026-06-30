@@ -214,24 +214,24 @@
                                         </td>
                                         <td>
                                             {% if emergency.priority == 'CRITICAL' %}
-                                                <span class="badge badge-danger">حرجة</span>
+                                                <span class="badge text-bg-danger">حرجة</span>
                                             {% elif emergency.priority == 'URGENT' %}
-                                                <span class="badge badge-warning">عاجلة</span>
+                                                <span class="badge text-bg-warning">عاجلة</span>
                                             {% elif emergency.priority == 'HIGH' %}
-                                                <span class="badge badge-info">عالية</span>
+                                                <span class="badge text-bg-info">عالية</span>
                                             {% else %}
-                                                <span class="badge badge-secondary">عادية</span>
+                                                <span class="badge text-bg-secondary">عادية</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             {% if emergency.status == 'TRIAGE' %}
-                                                <span class="badge badge-warning">تحتاج تقييم</span>
+                                                <span class="badge text-bg-warning">تحتاج تقييم</span>
                                             {% elif emergency.status == 'TREATMENT' %}
-                                                <span class="badge badge-info">قيد العلاج</span>
+                                                <span class="badge text-bg-info">قيد العلاج</span>
                                             {% elif emergency.status == 'OBSERVATION' %}
-                                                <span class="badge badge-success">تحت المراقبة</span>
+                                                <span class="badge text-bg-success">تحت المراقبة</span>
                                             {% else %}
-                                                <span class="badge badge-secondary">{{ emergency.status | enum_label('EmergencyStatus') }}</span>
+                                                <span class="badge text-bg-secondary">{{ emergency.status | enum_label('EmergencyStatus') }}</span>
                                             {% endif %}
                                         </td>
                                         <td>

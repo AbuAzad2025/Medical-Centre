@@ -35,20 +35,20 @@
                         <div class="col-md-6">
                             <p><strong>الأولوية:</strong> 
                                 {% if request.priority == 'HIGH' %}
-                                    <span class="badge badge-danger">عاجل</span>
+                                    <span class="badge text-bg-danger">عاجل</span>
                                 {% elif request.priority == 'MEDIUM' %}
-                                    <span class="badge badge-warning">متوسط</span>
+                                    <span class="badge text-bg-warning">متوسط</span>
                                 {% else %}
-                                    <span class="badge badge-info">عادي</span>
+                                    <span class="badge text-bg-info">عادي</span>
                                 {% endif %}
                             </p>
                             <p><strong>الحالة:</strong> 
                                 {% if request.status == 'PENDING' %}
-                                    <span class="badge badge-warning">في الانتظار</span>
+                                    <span class="badge text-bg-warning">في الانتظار</span>
                                 {% elif request.status == 'IN_PROGRESS' %}
-                                    <span class="badge badge-info">قيد المعالجة</span>
+                                    <span class="badge text-bg-info">قيد المعالجة</span>
                                 {% elif request.status == 'COMPLETED' %}
-                                    <span class="badge badge-success">مكتمل</span>
+                                    <span class="badge text-bg-success">مكتمل</span>
                                 {% endif %}
                             </p>
                             <p><strong>تاريخ الطلب:</strong> {{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</p>

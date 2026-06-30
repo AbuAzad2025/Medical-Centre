@@ -160,11 +160,11 @@
                                             <td>{{ visit.visit_time.strftime('%H:%M') if visit.visit_time else 'غير محدد' }}</td>
                                             <td>
                                                 {% if visit.status == 'READY' %}
-                                                    <span class="badge badge-success">جاهز</span>
+                                                    <span class="badge text-bg-success">جاهز</span>
                                                 {% elif visit.status == 'IN_PROGRESS' %}
-                                                    <span class="badge badge-warning">قيد التنفيذ</span>
+                                                    <span class="badge text-bg-warning">قيد التنفيذ</span>
                                                 {% else %}
-                                                    <span class="badge badge-info">{{ visit.status | enum_label('EmergencyStatus') }}</span>
+                                                    <span class="badge text-bg-info">{{ visit.status | enum_label('EmergencyStatus') }}</span>
                                                 {% endif %}
                                             </td>
                                             <td>
