@@ -1,36 +1,337 @@
-{% extends "base.html" %}
-{% block title %}مرحباً — AZAD Medical{% endblock %}
-{% block content %}
-<div class="container py-5">
-  <div class="row align-items-center g-4">
-    <div class="col-lg-7">
-      <h1 class="display-6 fw-bold mb-3">منصة ازاد الطبية</h1>
-      <p class="lead text-muted mb-4">نظام متكامل لإدارة المراكز الطبية — حجز مواعيد، بوابة المريض، ومتابعة النتائج بأمان.</p>
-      <div class="d-flex flex-wrap gap-2">
-        <a href="{{ url_for('booking.index') }}" class="btn btn-primary btn-lg"><i class="fas fa-calendar-plus me-2"></i>حجز موعد</a>
-        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">دخول الموظفين</a>
-        {% if config.get('ENABLE_SAAS_MODE', False) %}
-        <a href="{{ url_for('saas.signup_organization') }}" class="btn btn-success btn-lg"><i class="fas fa-hospital me-2"></i>تسجيل منشأة</a>
-        {% endif %}
-        {% if current_user.is_authenticated and current_user.role == 'patient' %}
-        <a href="{{ url_for('portal.dashboard') }}" class="btn btn-outline-success btn-lg">بوابة المريض</a>
-        {% else %}
-        <a href="{{ url_for('booking.register') }}" class="btn btn-outline-secondary btn-lg">حساب مريض جديد</a>
-        {% endif %}
-      </div>
-    </div>
-    <div class="col-lg-5">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body p-4">
-          <h5 class="mb-3">للمرضى</h5>
-          <ul class="list-unstyled mb-0">
-            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>حجز موعد عبر الإنترنت بدون زيارة المركز</li>
-            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>متابعة النتائج والفواتير من بوابة آمنة</li>
-            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>التحقق من الهوية قبل عرض أي بيانات طبية</li>
-          </ul>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AZAD Medical — منصة أزاد الطبية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; direction: rtl; background: #f4f7fb; color: #0f172a; }
+        .landing-header { background: #0f4c81; padding: 0.9rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(15,76,129,0.15); }
+        .landing-header .brand { display: flex; align-items: center; gap: 0.75rem; color: #fff; text-decoration: none; }
+        .landing-header .brand .logo { width: 38px; height: 38px; background: linear-gradient(135deg, #14b8a6, #0ea5e9); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; }
+        .landing-header .brand span { font-size: 1.15rem; font-weight: 700; }
+        .landing-header .brand small { font-size: 0.65rem; opacity: 0.7; display: block; font-weight: 400; line-height: 1.2; }
+        .hero { background: linear-gradient(145deg, #0f4c81 0%, #0b6fae 50%, #0a365a 100%); color: #fff; padding: 5rem 2rem; text-align: center; position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(20,184,166,0.12) 0%, transparent 60%), radial-gradient(circle at 80% 70%, rgba(14,165,233,0.1) 0%, transparent 50%); pointer-events: none; }
+        .hero h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 0.75rem; position: relative; }
+        .hero h1 span { color: #5eead4; }
+        .hero p { font-size: 1.1rem; opacity: 0.85; max-width: 600px; margin: 0 auto 2rem; line-height: 1.7; position: relative; }
+        .hero .btn-hero { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.85rem 2rem; font-size: 1rem; font-weight: 700; border-radius: 12px; text-decoration: none; transition: all 0.3s; }
+        .btn-primary-custom { background: #fff; color: #0f4c81; }
+        .btn-primary-custom:hover { background: #e2e8f0; color: #0a365a; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+        .btn-outline-custom { border: 2px solid rgba(255,255,255,0.4); color: #fff; }
+        .btn-outline-custom:hover { border-color: #fff; background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+        .badge-platform { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.1); backdrop-filter: blur(4px); border-radius: 20px; padding: 0.35rem 1rem; font-size: 0.8rem; margin-bottom: 1.5rem; }
+        .section { padding: 4rem 2rem; max-width: 1200px; margin: 0 auto; }
+        .section-title { text-align: center; font-size: 1.8rem; font-weight: 700; color: #0f4c81; margin-bottom: 0.4rem; }
+        .section-subtitle { text-align: center; color: #64748b; margin-bottom: 2.5rem; font-size: 1rem; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; }
+        .feature-card { background: #fff; border-radius: 14px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(15,76,129,0.05); border: 1px solid #e8edf4; transition: all 0.3s; text-align: center; }
+        .feature-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(15,76,129,0.1); }
+        .feature-card .icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 0.75rem; }
+        .feature-card h3 { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.4rem; }
+        .feature-card p { font-size: 0.85rem; color: #64748b; line-height: 1.6; }
+        .contact-section { background: linear-gradient(145deg, #0f4c81, #0a365a); color: #fff; padding: 3rem 2rem; text-align: center; }
+        .contact-section h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.75rem; }
+        .contact-section p { opacity: 0.85; max-width: 500px; margin: 0 auto 1.5rem; }
+        .contact-section .contact-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: #fff; text-decoration: none; font-weight: 600; margin: 0.4rem; transition: all 0.3s; }
+        .contact-section .contact-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+        .landing-footer { background: #0f172a; color: rgba(255,255,255,0.5); padding: 1.5rem 2rem; text-align: center; font-size: 0.8rem; }
+        .landing-footer strong { color: #fff; }
+        .landing-footer .links { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+        .landing-footer .links a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.8rem; }
+        .landing-footer .links a:hover { color: #5eead4; }
+        /* ===== Carousel Section ===== */
+        .bundles-section { background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); padding: 4rem 0; position: relative; overflow: hidden; }
+        .bundles-section .section-title { margin-bottom: 0.4rem; }
+        .bundles-section .section-subtitle { margin-bottom: 2rem; }
+        .carousel-nav { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .carousel-nav .nav-btn { border: none; background: #e2e8f0; color: #64748b; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Cairo', sans-serif; }
+        .carousel-nav .nav-btn:hover { background: #cbd5e1; }
+        .carousel-nav .nav-btn.active { background: #0f4c81; color: #fff; box-shadow: 0 2px 10px rgba(15,76,129,0.3); }
+        .carousel-wrap { position: relative; }
+        .carousel-track { display: flex; gap: 0; overflow: hidden; padding: 0.5rem 0; }
+        .carousel-slide { display: flex; gap: 1rem; min-width: 100%; transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); padding: 0 1rem; }
+        .carousel-scroll { display: flex; gap: 1rem; width: max-content; padding: 0.5rem 0; transition: none; }
+        .bundle-banner { min-width: 280px; max-width: 280px; height: 200px; border-radius: 18px; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; flex-shrink: 0; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
+        .bundle-banner:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 12px 35px rgba(0,0,0,0.12); }
+        .bundle-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%); pointer-events: none; border-radius: 18px; }
+        .bundle-banner .bb-top { display: flex; align-items: flex-start; justify-content: space-between; position: relative; z-index: 1; }
+        .bundle-banner .bb-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; background: rgba(255,255,255,0.25); backdrop-filter: blur(2px); }
+        .bundle-banner .bb-cat { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; font-weight: 600; }
+        .bundle-banner .bb-title { font-size: 1rem; font-weight: 700; line-height: 1.3; margin-top: 0.25rem; position: relative; z-index: 1; }
+        .bundle-banner .bb-bottom { position: relative; z-index: 1; }
+        .bundle-banner .bb-price { font-size: 1.2rem; font-weight: 800; }
+        .bundle-banner .bb-price small { font-size: 0.6rem; font-weight: 400; opacity: 0.8; }
+        .bundle-banner .bb-setup { font-size: 0.7rem; opacity: 0.75; }
+        /* category gradient banners */
+        .banner-clinic { background: linear-gradient(145deg, #e0f2fe, #bae6fd); color: #0369a1; }
+        .banner-lab { background: linear-gradient(145deg, #fce4ec, #f8bbd0); color: #be185d; }
+        .banner-radiology { background: linear-gradient(145deg, #f3e8ff, #e9d5ff); color: #7c3aed; }
+        .banner-pharmacy { background: linear-gradient(145deg, #dbeafe, #bfdbfe); color: #1d4ed8; }
+        .banner-emergency { background: linear-gradient(145deg, #fef3c7, #fde68a); color: #b45309; }
+        .banner-walkin { background: linear-gradient(145deg, #f0fdf4, #bbf7d0); color: #15803d; }
+        .banner-urgent { background: linear-gradient(145deg, #fce4ec, #fecdd3); color: #be123c; }
+        .banner-diagnostic { background: linear-gradient(145deg, #e0f2fe, #bae6fd); color: #0369a1; }
+        .banner-community { background: linear-gradient(145deg, #f0fdf4, #bbf7d0); color: #15803d; }
+        .banner-nursing { background: linear-gradient(145deg, #f3e8ff, #e9d5ff); color: #7c3aed; }
+        .banner-center { background: linear-gradient(145deg, #dbeafe, #bfdbfe); color: #1d4ed8; }
+        .banner-polyclinic { background: linear-gradient(145deg, #0f4c81, #1e6bb8); color: #fff; }
+        .banner-hospital { background: linear-gradient(145deg, #0a365a, #0f4c81); color: #fff; }
+        .banner-billing { background: linear-gradient(145deg, #fef3c7, #fde68a); color: #b45309; }
+        .banner-custom { background: linear-gradient(145deg, #e2e8f0, #cbd5e1); color: #475569; }
+        /* controls */
+        .scroll-controls { display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.5rem; }
+        .scroll-controls button { width: 42px; height: 42px; border-radius: 50%; border: none; background: #fff; color: #0f4c81; font-size: 1rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center; }
+        .scroll-controls button:hover { background: #0f4c81; color: #fff; box-shadow: 0 4px 15px rgba(15,76,129,0.3); transform: scale(1.1); }
+        .cat-label { position: absolute; top: 0.75rem; left: 0.75rem; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; opacity: 0.5; }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 1.8rem; }
+            .hero p { font-size: 1rem; }
+            .hero { padding: 3rem 1rem; }
+            .section { padding: 2.5rem 1rem; }
+            .features-grid { grid-template-columns: 1fr; }
+            .landing-header { padding: 0.7rem 1rem; }
+            .landing-header .brand small { display: none; }
+            .bundle-banner { min-width: 240px; max-width: 240px; height: 170px; padding: 1.2rem; }
+            .bundle-banner .bb-title { font-size: 0.85rem; }
+            .carousel-nav .nav-btn { font-size: 0.7rem; padding: 0.3rem 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="landing-header">
+        <a href="/" class="brand">
+            <div class="logo">A</div>
+            <div><span>AZAD Medical</span><small>شركة أزاد للأنظمة الذكية</small></div>
+        </a>
+        <div>
+            <a href="{{ url_for('auth.login') }}" style="color:#fff;text-decoration:none;font-weight:600;font-size:0.9rem;"><i class="fas fa-sign-in-alt me-1"></i> بوابة المستأجرين</a>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-{% endblock %}
+    </header>
+
+    <section class="hero">
+        <div class="badge-platform"><i class="fas fa-shield-alt"></i> منصة سحابية متعددة المستأجرين</div>
+        <h1>منصة <span>أزاد</span> الطبية</h1>
+        <p>نظام متكامل لإدارة المراكز الطبية — حلول ذكية وآمنة تناسب العيادات والمستشفيات والمختبرات والمراكز التخصصية.</p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;">
+            <a href="{{ url_for('auth.login') }}" class="btn-hero btn-primary-custom"><i class="fas fa-sign-in-alt"></i> بوابة المستأجرين</a>
+            <a href="https://wa.me/972562150193" target="_blank" rel="noopener" class="btn-hero btn-outline-custom"><i class="fab fa-whatsapp"></i> الدعم الفني</a>
+        </div>
+    </section>
+
+    {% set icons = {
+        'private_doctor_clinic': 'fa-user-md', 'doctor_clinic_reception': 'fa-user-tie', 'doctor_clinic_full': 'fa-stethoscope',
+        'small_clinic': 'fa-clinic-medical', 'clinic_with_lab': 'fa-flask', 'clinic_with_radiology': 'fa-x-ray',
+        'clinic_with_lab_radiology': 'fa-microscope', 'standalone_lab': 'fa-flask', 'lab_with_reception': 'fa-vial',
+        'standalone_radiology': 'fa-x-ray', 'radiology_with_reception': 'fa-x-ray', 'standalone_pharmacy': 'fa-capsules',
+        'standalone_emergency': 'fa-truck-medical', 'walkin_clinic': 'fa-door-open', 'urgent_care': 'fa-heartbeat',
+        'diagnostic_center': 'fa-stethoscope', 'community_clinic': 'fa-people-arrows', 'nursing_home': 'fa-hand-holding-heart',
+        'multi_department_center': 'fa-building', 'polyclinic': 'fa-hospital', 'hospital': 'fa-hospital',
+        'billing_only': 'fa-receipt', 'custom': 'fa-cog'
+    } %}
+
+    {% set banner_classes = {
+        'private_doctor_clinic': 'banner-clinic', 'doctor_clinic_reception': 'banner-clinic', 'doctor_clinic_full': 'banner-clinic',
+        'small_clinic': 'banner-clinic', 'clinic_with_lab': 'banner-clinic', 'clinic_with_radiology': 'banner-clinic',
+        'clinic_with_lab_radiology': 'banner-clinic', 'walkin_clinic': 'banner-walkin',
+        'standalone_lab': 'banner-lab', 'lab_with_reception': 'banner-lab',
+        'standalone_radiology': 'banner-radiology', 'radiology_with_reception': 'banner-radiology',
+        'standalone_pharmacy': 'banner-pharmacy',
+        'standalone_emergency': 'banner-emergency',
+        'urgent_care': 'banner-urgent',
+        'diagnostic_center': 'banner-diagnostic',
+        'community_clinic': 'banner-community',
+        'nursing_home': 'banner-nursing',
+        'multi_department_center': 'banner-center',
+        'polyclinic': 'banner-polyclinic',
+        'hospital': 'banner-hospital',
+        'billing_only': 'banner-billing',
+        'custom': 'banner-custom'
+    } %}
+
+    <section class="bundles-section" id="bundles">
+        <h2 class="section-title">باقات المنصة</h2>
+        <p class="section-subtitle">اختر الباقة التي تناسب منشأتك — من عيادة صغيرة إلى مستشفى كامل</p>
+
+        <!-- Category filter pills -->
+        <div class="carousel-nav" id="catNav">
+            <button class="nav-btn active" data-cat="all">الكل</button>
+            {% for g in grouped %}
+            <button class="nav-btn" data-cat="{{ g.cat }}">{{ g.cat }}</button>
+            {% endfor %}
+        </div>
+
+        <!-- Auto-scrolling banners -->
+        <div class="carousel-wrap">
+            <div class="carousel-scroll" id="bannerScroll">
+                {% for g in grouped %}{% for b in g.list %}
+                {% set code = b.profile_code %}
+                {% set icon = icons.get(code, 'fa-puzzle-piece') %}
+                {% set cls = banner_classes.get(code, 'banner-custom') %}
+                <div class="bundle-banner {{ cls }}" data-cat="{{ g.cat }}" onclick="window.open('https://wa.me/972562150193?text={{ ('أريد معلومات عن باقة: ' ~ (b.name_ar or b.name)) | urlencode }}','_blank')" style="cursor:pointer;">
+                    <div>
+                        <div class="bb-top">
+                            <div class="bb-icon"><i class="fas {{ icon }}"></i></div>
+                            <span class="bb-cat">{{ g.cat }}</span>
+                        </div>
+                        <div class="bb-title">{{ b.name_ar or b.name }}</div>
+                    </div>
+                    <div class="bb-bottom">
+                        {% if b.monthly_price is not none %}
+                        <div class="bb-price">{{ b.monthly_price }} <small>شهرياً</small></div>
+                        {% if b.setup_fee is not none and b.setup_fee|float > 0 %}
+                        <div class="bb-setup"><i class="fas fa-plus-circle"></i> {{ b.setup_fee }} تهيئة</div>
+                        {% else %}
+                        <div class="bb-setup" style="opacity:0.9;"><i class="fas fa-check-circle"></i> بدون تهيئة</div>
+                        {% endif %}
+                        {% else %}
+                        <div class="bb-price" style="font-size:1rem;opacity:0.8;">تواصل للسعر</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}{% endfor %}
+                <!-- Duplicate for seamless loop -->
+                {% for g in grouped %}{% for b in g.list %}
+                {% set code = b.profile_code %}
+                {% set icon = icons.get(code, 'fa-puzzle-piece') %}
+                {% set cls = banner_classes.get(code, 'banner-custom') %}
+                <div class="bundle-banner {{ cls }}" data-cat="{{ g.cat }}" onclick="window.open('https://wa.me/972562150193?text={{ ('أريد معلومات عن باقة: ' ~ (b.name_ar or b.name)) | urlencode }}','_blank')" style="cursor:pointer;">
+                    <div>
+                        <div class="bb-top">
+                            <div class="bb-icon"><i class="fas {{ icon }}"></i></div>
+                            <span class="bb-cat">{{ g.cat }}</span>
+                        </div>
+                        <div class="bb-title">{{ b.name_ar or b.name }}</div>
+                    </div>
+                    <div class="bb-bottom">
+                        {% if b.monthly_price is not none %}
+                        <div class="bb-price">{{ b.monthly_price }} <small>شهرياً</small></div>
+                        {% if b.setup_fee is not none and b.setup_fee|float > 0 %}
+                        <div class="bb-setup"><i class="fas fa-plus-circle"></i> {{ b.setup_fee }} تهيئة</div>
+                        {% else %}
+                        <div class="bb-setup" style="opacity:0.9;"><i class="fas fa-check-circle"></i> بدون تهيئة</div>
+                        {% endif %}
+                        {% else %}
+                        <div class="bb-price" style="font-size:1rem;opacity:0.8;">تواصل للسعر</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}{% endfor %}
+            </div>
+        </div>
+
+        <!-- Directional controls -->
+        <div class="scroll-controls">
+            <button id="scrollLeft" title="السابق"><i class="fas fa-chevron-right"></i></button>
+            <button id="scrollRight" title="التالي"><i class="fas fa-chevron-left"></i></button>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+        <h2 class="section-title">لماذا أزاد الطبية؟</h2>
+        <p class="section-subtitle">منصة متكاملة بمعايير أمان عالية تدعم كامل العمليات الطبية</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="icon" style="background:#e0f2fe;color:#0284c7;"><i class="fas fa-cloud"></i></div>
+                <h3>نظام سحابي</h3>
+                <p>يعمل عبر الإنترنت من أي جهاز وفي أي وقت دون حاجة لبنية تحتية محلية.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon" style="background:#f0fdf4;color:#16a34a;"><i class="fas fa-shield-alt"></i></div>
+                <h3>آمن وموثوق</h3>
+                <p>تشفير البيانات وعزل كامل بين المستأجرين لضمان خصوصية وسرية المعلومات.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon" style="background:#fef3c7;color:#d97706;"><i class="fas fa-mobile-alt"></i></div>
+                <h3>سهولة الاستخدام</h3>
+                <p>واجهة عربية بسيطة وتعمل على الجوال والجهاز اللوحي والحاسوب.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon" style="background:#f3e8ff;color:#9333ea;"><i class="fas fa-headset"></i></div>
+                <h3>دعم فني متواصل</h3>
+                <p>فريق دعم متاح عبر الهاتف والواتساب لحل أي مشكلة بسرعة.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact-section">
+        <h2>تواصل معنا لبدء استخدام المنصة</h2>
+        <p>للحصول على عرض توضيحي أو لشراء باقة، تواصل مع فريق المبيعات لدينا.</p>
+        <div>
+            <a href="https://wa.me/972562150193" target="_blank" rel="noopener" class="contact-btn"><i class="fab fa-whatsapp"></i> واتساب: 0562150193</a>
+            <a href="tel:0562150193" class="contact-btn"><i class="fas fa-phone"></i> 0562150193</a>
+        </div>
+    </section>
+
+    <footer class="landing-footer">
+        <div class="links">
+            <a href="{{ url_for('main.about_system') }}">حول النظام</a>
+            <a href="{{ url_for('main.privacy_policy') }}">سياسة الخصوصية</a>
+            <a href="{{ url_for('main.terms_of_use') }}">شروط الاستخدام</a>
+            <a href="https://wa.me/972562150193" target="_blank" rel="noopener">الدعم الفني</a>
+        </div>
+        <p>تصميم وتطوير: <strong>شركة أزاد للأنظمة الذكية</strong> — رام الله، فلسطين &copy; 2026</p>
+    </footer>
+
+    <script>
+    (function(){
+        var scrollEl = document.getElementById('bannerScroll');
+        var leftBtn = document.getElementById('scrollLeft');
+        var rightBtn = document.getElementById('scrollRight');
+        var navBtns = document.querySelectorAll('#catNav .nav-btn');
+        var allBanners = document.querySelectorAll('.bundle-banner');
+        var autoTimer, isPaused = false;
+        var scrollSpeed = 1.2; // px per frame
+        var animId = null;
+
+        if (!scrollEl) return;
+
+        // Duplicate content for seamless loop
+        var totalWidth = 0;
+        allBanners.forEach(function(b){ totalWidth += b.offsetWidth + 16; });
+
+        function doAutoScroll() {
+            if (!isPaused) {
+                scrollEl.scrollLeft += scrollSpeed;
+                if (scrollEl.scrollLeft >= totalWidth) {
+                    scrollEl.scrollLeft = 0;
+                }
+            }
+            animId = requestAnimationFrame(doAutoScroll);
+        }
+
+        // Pause on hover
+        scrollEl.addEventListener('mouseenter', function(){ isPaused = true; });
+        scrollEl.addEventListener('mouseleave', function(){ isPaused = false; });
+
+        // Category filter
+        function filterByCat(cat) {
+            var isAll = cat === 'all';
+            allBanners.forEach(function(b){
+                b.style.display = (isAll || b.getAttribute('data-cat') === cat) ? '' : 'none';
+            });
+        }
+
+        navBtns.forEach(function(btn){
+            btn.addEventListener('click', function(){
+                navBtns.forEach(function(b){ b.classList.remove('active'); });
+                btn.classList.add('active');
+                filterByCat(btn.getAttribute('data-cat'));
+            });
+        });
+
+        var scrollAmount = 320;
+        leftBtn.addEventListener('click', function(){ scrollEl.scrollBy({ left: -scrollAmount, behavior: 'smooth' }); });
+        rightBtn.addEventListener('click', function(){ scrollEl.scrollBy({ left: scrollAmount, behavior: 'smooth' }); });
+
+        // Start auto-scroll after a short delay
+        setTimeout(function(){ animId = requestAnimationFrame(doAutoScroll); }, 500);
+    })();
+    </script>
+</body>
+</html>

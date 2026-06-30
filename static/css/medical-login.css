@@ -356,7 +356,8 @@ html, body {
 }
 
 .login-form input[type="text"],
-.login-form input[type="password"] {
+.login-form input[type="password"],
+.login-form select {
   width: 100%;
   padding: 0.85rem 2.8rem 0.85rem 2.8rem;
   font-size: 1rem;
@@ -367,12 +368,24 @@ html, body {
   color: var(--text-primary);
   transition: all 0.2s ease;
   outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
 }
 
-.login-form input:focus {
+.login-form input:focus,
+.login-form select:focus {
   border-color: var(--medical-blue);
   background: #fff;
   box-shadow: 0 0 0 4px rgba(11, 111, 174, 0.08);
+}
+
+.login-form select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23667085' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 1rem center;
+  padding-left: 2.5rem;
 }
 
 .toggle-password-btn {

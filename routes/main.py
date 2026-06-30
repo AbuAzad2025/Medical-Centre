@@ -10,12 +10,29 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.get('/')
 def index():
-    """الصفحة الرئيسية — حجز عام + دخول"""
+    """الصفحة الرئيسية — عرض المنصة والحزم"""
     if current_user.is_authenticated:
         if current_user.role == 'patient':
             return redirect(url_for('portal.dashboard'))
         return redirect(url_for('main.dashboard'))
-    return render_template('main/landing.html')
+    from app.core.tenant.models import ProductBundle
+    bundles = ProductBundle.query.order_by(ProductBundle.id).all()
+    # Group bundles by category for display
+    cats = {
+        'عيادات': ['private_doctor_clinic', 'doctor_clinic_reception', 'doctor_clinic_full', 'small_clinic', 'clinic_with_lab', 'clinic_with_radiology', 'clinic_with_lab_radiology', 'walkin_clinic'],
+        'مختبرات وأشعة': ['standalone_lab', 'lab_with_reception', 'standalone_radiology', 'radiology_with_reception'],
+        'صيدليات وطوارئ': ['standalone_pharmacy', 'standalone_emergency'],
+        'مراكز متخصصة': ['urgent_care', 'diagnostic_center', 'community_clinic', 'nursing_home'],
+        'مؤسسات كبرى': ['multi_department_center', 'polyclinic', 'hospital'],
+        'حزم أخرى': ['billing_only', 'custom'],
+    }
+    by_code = {b.profile_code: b for b in bundles}
+    grouped = []
+    for cat_name, codes in cats.items():
+        items = [by_code[c] for c in codes if c in by_code]
+        if items:
+            grouped.append({'cat': cat_name, 'list': items})
+    return render_template('main/landing.html', grouped=grouped)
 
 @main_bp.route('/dashboard')
 @login_required
