@@ -10,7 +10,7 @@ from routes.doctor import (
 )
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, current_app
+from flask import render_template, request, jsonify, flash, redirect, url_for, current_app, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required, role_required_json
 from models.patient import Patient
@@ -44,10 +44,7 @@ def notes(visit_id):
     """كتابة الملاحظات الطبية"""
     
     try:
-        visit = db.session.get(Visit, visit_id)
-        if not visit or visit.doctor_id != current_user.id:
-            flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
-            return redirect(url_for('doctor.patient_queue'))
+        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
         if visit.is_archived:
             flash('لا يمكن إضافة ملاحظات بعد أرشفة الزيارة', 'warning')
             return redirect(url_for('doctor.patient_queue'))

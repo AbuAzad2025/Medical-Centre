@@ -4,6 +4,7 @@
 {% block title %}طلبات الأشعة{% endblock %}
 
 {% block content %}
+{% if module_active('radiology') %}
 <div class="container-fluid">
     {{ page_header('طلبات الأشعة', subtitle='إدارة طلبات الأشعة', icon='fas fa-x-ray', actions=[{'label': 'العودة للوحة التحكم', 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.dashboard'), 'style': 'secondary'}]) }}
 
@@ -25,4 +26,7 @@
         </div>
     </div>
 </div>
+{% else %}
+<div class="container-fluid"><div class="alert alert-warning mt-3">وحدة الأشعة غير مفعلة لهذه المنشأة</div></div>
+{% endif %}
 {% endblock %}

@@ -3,7 +3,7 @@
 from routes.doctor import doctor_bp
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, current_app
+from flask import render_template, request, jsonify, flash, redirect, url_for, current_app, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required, role_required_json
 from models.patient import Patient
@@ -38,10 +38,7 @@ def medical_history(patient_id):
     """السجل الطبي للمريض"""
     
     try:
-        patient = db.session.get(Patient, patient_id)
-        if not patient:
-            flash('المريض غير موجود', 'error')
-            return redirect(url_for('doctor.patient_queue'))
+        patient = Patient.query.filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id).first_or_404()
         
         # جلب السجل الطبي الكامل
         medical_records = MedicalRecord.query.filter(
@@ -68,10 +65,7 @@ def prescriptions_history(patient_id):
     """تاريخ الوصفات الطبية للمريض"""
     
     try:
-        patient = db.session.get(Patient, patient_id)
-        if not patient:
-            flash('المريض غير موجود', 'error')
-            return redirect(url_for('doctor.patient_queue'))
+        patient = Patient.query.filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id).first_or_404()
         
         # جلب الوصفات السابقة
         prescriptions = Prescription.query.filter(
@@ -93,10 +87,7 @@ def print_medical_report(visit_id):
     """طباعة التقرير الطبي"""
     
     try:
-        visit = db.session.get(Visit, visit_id)
-        if not visit or visit.doctor_id != current_user.id:
-            flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
-            return redirect(url_for('doctor.patient_queue'))
+        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
         
         return render_template('doctor/print_medical_report.html',
                              visit=visit)
@@ -171,10 +162,7 @@ def patient_timeline(patient_id: int):
     try:
         from services.patient_timeline_service import PatientTimelineService
 
-        patient = db.session.get(Patient, patient_id)
-        if not patient:
-            flash('المريض غير موجود', 'error')
-            return redirect(url_for('doctor.patients'))
+        patient = Patient.query.filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id).first_or_404()
 
         filter_type = (request.args.get('type') or '').strip().lower()
         events = PatientTimelineService.build_events(
@@ -239,10 +227,7 @@ def dental_chart(patient_id):
     from models.dental import DentalChart, DentalTooth, TOOTH_STATES
     import json
 
-    patient = db.session.get(Patient, patient_id)
-    if not patient:
-        flash('المريض غير موجود', 'error')
-        return redirect(url_for('doctor.patients'))
+    patient = Patient.query.filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id).first_or_404()
 
     upper_right = [{'fdi': f'1{i}', 'x': i*38, 'y': 0} for i in range(8, 0, -1)]
     upper_left = [{'fdi': f'2{i}', 'x': 160 + i*38, 'y': 0} for i in range(1, 9)]

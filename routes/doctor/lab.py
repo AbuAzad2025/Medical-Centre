@@ -3,7 +3,7 @@
 from routes.doctor import doctor_bp
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, current_app
+from flask import render_template, request, jsonify, flash, redirect, url_for, current_app, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required, role_required_json
 from models.patient import Patient
@@ -35,10 +35,10 @@ from datetime import datetime, date, timedelta, timezone
 @role_required('doctor', 'admin', 'manager')
 def lab_request(visit_id):
     try:
-        visit = db.session.get(Visit, visit_id)
-        if not visit or visit.doctor_id != current_user.id:
-            flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
+        if 'lab' not in getattr(g, 'enabled_modules', set()):
+            flash('وحدة المختبر غير مفعلة لهذه المنشأة', 'error')
             return redirect(url_for('doctor.patient_queue'))
+        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
         if visit.status != VisitState.IN_PROGRESS:
             flash('لا يمكن طلب تحاليل إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
@@ -107,10 +107,7 @@ def lab_request(visit_id):
 def lab_results(patient_id):
     """عرض نتائج المختبر للطبيب — للإطلاع فقط"""
     try:
-        patient = db.session.get(Patient, patient_id)
-        if not patient:
-            flash('المريض غير موجود', 'error')
-            return redirect(url_for('doctor.patient_queue'))
+        patient = Patient.query.filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id).first_or_404()
 
         lab_requests = LabRequest.query.filter(
             LabRequest.patient_id == patient_id

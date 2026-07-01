@@ -3,7 +3,7 @@
 from routes.doctor import doctor_bp, _sync_follow_up_request_for_visit, calculate_medical_performance_score
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, current_app
+from flask import render_template, request, jsonify, flash, redirect, url_for, current_app, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required, role_required_json
 from models.patient import Patient
@@ -40,10 +40,7 @@ def diagnosis(visit_id):
 
     try:
         from ast import literal_eval
-        visit = db.session.get(Visit, visit_id)
-        if not visit or visit.doctor_id != current_user.id:
-            flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
-            return redirect(url_for('doctor.patient_queue'))
+        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
         if visit.status == 'COMPLETED' or visit.is_archived:
             flash('لا يمكن تعديل التشخيص بعد اكتمال أو أرشفة الزيارة', 'warning')
             return redirect(url_for('doctor.patient_queue'))
@@ -255,7 +252,8 @@ def get_data_based_recommendations(diagnosis_text: str):
             func.count(PrescriptionItem.id).label('cnt')
         ).join(PrescriptionItem.prescription).join(PrescriptionItem.medication).filter(
             Prescription.diagnosis.ilike(f'%{diagnosis_text}%'),
-            Prescription.created_at >= since
+            Prescription.created_at >= since,
+            Prescription.doctor_id == current_user.id
         ).group_by(Medication.trade_name).order_by(func.count(PrescriptionItem.id).desc()).limit(5).all()
         out = []
         for r in rows:

@@ -36,6 +36,10 @@ class RadiologyService:
             return False, {"error": "Visit not found"}
 
         tenant_id = tenant_id or visit.tenant_id
+
+        from app.core.module.models import TenantModule
+        if not TenantModule.query.filter_by(tenant_id=tenant_id, module_name='radiology', is_active=True).first():
+            raise PermissionError("Radiology module is not enabled for this tenant")
         now = datetime.now(timezone.utc)
         request_number = f"RAD-{visit_id}-{int(now.timestamp())}"
 
