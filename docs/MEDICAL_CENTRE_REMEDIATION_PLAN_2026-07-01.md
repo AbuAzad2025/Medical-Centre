@@ -747,7 +747,7 @@ flask db downgrade s1_007_rls_phase4
 
 **Status:** Complete
 
-**Commit:** `TBD` (to be recorded after commit)
+**Commit:** `76742c0`
 
 **Files changed:**
 - `routes/payment_routes.py` — `process_payment`: added `tenant_id=g.tenant_id` filter to visit query (line 87); added `g` import; added `get_tenant_record` import
