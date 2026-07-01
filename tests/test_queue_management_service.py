@@ -86,9 +86,9 @@ class TestCheckQueueEntryConditions:
         ok, _ = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PAID, False, False, self._settings())
         assert ok is True
 
-    def test_partial_enters_when_allowed(self, svc):
-        ok, _ = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PARTIAL, False, False, self._settings())
-        assert ok is True
+    def test_partial_blocked_for_normal_visit(self, svc):
+        ok, msg = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PARTIAL, False, False, self._settings())
+        assert ok is False and 'الدفع' in msg
 
     def test_debt_enters_when_allowed(self, svc):
         ok, _ = svc._check_queue_entry_conditions(1, 1, PaymentStatus.DEBT, False, False, self._settings(allow_debt=True))
@@ -184,6 +184,40 @@ class TestAddPatientToQueue:
         d = qfx.dept(name='Lab', name_ar='المختبر')
         ok, _ = svc.add_patient_to_queue(99999999, d.id, payment_status=PaymentStatus.PAID)
         assert ok is False
+
+    def test_partial_payment_blocked_via_service(self, svc, qfx):
+        d = qfx.dept(name='Lab', name_ar='المختبر')
+        p = qfx.patient()
+        ok, msg = svc.add_patient_to_queue(p.id, d.id, payment_status=PaymentStatus.PARTIAL)
+        assert ok is False and 'الدفع' in msg
+
+    def test_force_entry_partial_allowed(self, svc, qfx):
+        d = qfx.dept(name='Lab', name_ar='المختبر')
+        p = qfx.patient()
+        ok, _ = svc.add_patient_to_queue(p.id, d.id, payment_status=PaymentStatus.PARTIAL,
+                                         force_entry=True)
+        assert ok is True
+
+    def test_debt_blocked_by_default(self, svc, qfx):
+        d = qfx.dept(name='Lab', name_ar='المختبر')
+        p = qfx.patient()
+        ok, msg = svc.add_patient_to_queue(p.id, d.id, payment_status=PaymentStatus.DEBT)
+        assert ok is False and 'الدفع' in msg
+
+    def test_debt_allowed_when_enabled(self, svc, qfx):
+        from models.queue_management import QueueSettings
+        d = qfx.dept(name='Lab', name_ar='المختبر')
+        p = qfx.patient()
+        qs = QueueSettings.query.filter_by(department_id=d.id).first()
+        if not qs:
+            qs = QueueSettings(department_id=d.id, payment_required=True, allow_debt=True)
+            qfx.db.session.add(qs)
+            qfx.db.session.commit()
+        else:
+            qs.allow_debt = True
+            qfx.db.session.commit()
+        ok, _ = svc.add_patient_to_queue(p.id, d.id, payment_status=PaymentStatus.DEBT)
+        assert ok is True
 
 
 # ───────────────────────── transfer_visit ─────────────────────────

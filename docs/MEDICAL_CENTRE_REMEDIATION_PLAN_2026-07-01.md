@@ -662,18 +662,32 @@ flask db downgrade s1_007_rls_phase4
 
 ### Ticket A — MC-014 WP-3: Full initial payment before normal queue entry
 
-**Status:** In progress
+**Status:** Complete
+
+**Commit:** `TBD` (to be recorded after commit)
 
 **Files changed:**
-- `services/queue_management_service.py` — `_check_queue_entry_conditions`
-- `tests/test_queue_management_service.py` — add/update tests
+- `services/queue_management_service.py` — `_check_queue_entry_conditions` (removed `PARTIAL` branch for normal visits, added comment)
+- `tests/test_queue_management_service.py` — updated `test_partial_enters_when_allowed` → `test_partial_blocked_for_normal_visit`; added `test_partial_payment_blocked_via_service`, `test_force_entry_partial_allowed`, `test_debt_blocked_by_default`, `test_debt_allowed_when_enabled`
 
-**Required tests:**
-- Normal paid visit enters queue
-- Normal pending visit is rejected
-- Normal partial-payment visit is rejected even when `allow_partial_payment=True`
-- Emergency visit enters queue without payment
-- Verify all known queue-entry paths use the same backend gate
+**Evidence:**
+- `services/queue_management_service.py` line 258-269: `PARTIAL` branch removed. Now only `PAID`, `DEBT` (when explicitly enabled), and `EMERGENCY_DEBT` (when waived) allow entry for normal visits under `payment_required=True`.
+- All queue-entry paths (auto-add after visit creation, manual queue entry, appointment queue entry) use the same `_check_queue_entry_conditions` gate.
+
+**Tests run and actual results:**
+- `tests/test_queue_management_service.py` — 59 passed, 2 warnings in 23.93s
+- `test_partial_blocked_for_normal_visit` — PASSED
+- `test_partial_payment_blocked_via_service` — PASSED
+- `test_force_entry_partial_allowed` — PASSED (force_entry still works)
+- `test_debt_blocked_by_default` — PASSED
+- `test_debt_allowed_when_enabled` — PASSED
+- `test_emergency_bypasses_payment` — PASSED
+- `test_pending_payment_blocked` — PASSED
+- `test_paid_enters` — PASSED
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert the removal of the `PARTIAL` branch in `_check_queue_entry_conditions`.
 
 ---
 

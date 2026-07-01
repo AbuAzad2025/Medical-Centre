@@ -256,11 +256,10 @@ class QueueManagementService:
             return True, "دخول قوي - معتمد"
         
         # التحقق من حالة الدفع
+        # MC-014 WP-3: normal non-emergency visits must be fully paid before queue entry
         if settings.payment_required:
             if payment_status == PaymentStatus.PAID:
                 return True, "تم الدفع - يمكن الدخول"
-            elif payment_status == PaymentStatus.PARTIAL and getattr(settings, 'allow_partial_payment', True):
-                return True, "دفع جزئي - يمكن الدخول"
             elif payment_status == PaymentStatus.DEBT and getattr(settings, 'allow_debt', False):
                 return True, "دين معتمد - يمكن الدخول"
             elif payment_status == PaymentStatus.EMERGENCY_DEBT and settings.emergency_payment_waived:
