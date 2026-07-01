@@ -1,310 +1,292 @@
-{% extends "owner/base.html" %}
-{% from "partials/_page_header.html" import page_header %}
-{% block title %}لوحة تحكم المنصة — شركة آزاد{% endblock %}
-{% block content %}
-<div class="container-fluid py-3">
-    {{ page_header('لوحة تحكم المنصة', subtitle='شركة آزاد للأنظمة الذكية — إدارة المنصة والعملاء', icon='fas fa-globe', actions=[
-        {'label': 'عميل جديد', 'icon': 'fas fa-plus', 'url': url_for('owner.owner_create_tenant'), 'style': 'warning'},
-        {'label': 'الخطط', 'icon': 'fas fa-tags', 'url': url_for('owner.owner_plans'), 'style': 'outline-light'},
-        {'label': 'الدعم', 'icon': 'fas fa-headset', 'url': url_for('owner.owner_support_tickets'), 'style': 'outline-light'}
-    ]) }}
+{% extends "owner/base_modern.html" %}
 
-    <!-- KPI Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <h6 class="text-muted text-uppercase small mb-1">إجمالي العملاء</h6>
-                            <h3 class="mb-0 fw-bold">{{ tenant_count }}</h3>
-                        </div>
-                        <div class="bg-primary bg-opacity-10 p-3 rounded"><i class="fas fa-building text-primary fa-lg"></i></div>
-                    </div>
-                    <div class="d-flex align-items-center small">
-                        <span class="text-success fw-bold me-2"><i class="fas fa-arrow-up"></i> {{ active_today }}</span>
-                        <span class="text-muted">نشط ومدفوع</span>
-                    </div>
-                    <canvas id="sparkTenants" height="40" class="mt-2"></canvas>
-                </div>
-            </div>
+{% block header_title %}لوحة تحكم المنصة{% endblock %}
+
+{% block header_actions %}
+<div class="d-flex gap-2">
+    <a href="{{ url_for('owner.owner_create_tenant') }}" class="owner-btn owner-btn-primary">
+        <i class="fas fa-plus"></i>
+        عميل جديد
+    </a>
+    <a href="{{ url_for('owner.owner_plans') }}" class="owner-btn owner-btn-outline">
+        <i class="fas fa-tags"></i>
+        الخطط
+    </a>
+    <a href="{{ url_for('owner.owner_support_tickets') }}" class="owner-btn owner-btn-outline">
+        <i class="fas fa-headset"></i>
+        الدعم
+    </a>
+</div>
+{% endblock %}
+
+{% block content_modern %}
+<!-- KPI Grid -->
+<div class="owner-kpi-grid animate-fadeInUp">
+    <!-- Total Tenants -->
+    <div class="owner-kpi owner-kpi-primary animate-fadeInUp delay-1">
+        <div class="owner-kpi-icon"><i class="fas fa-building"></i></div>
+        <div class="owner-kpi-value">{{ tenant_count }}</div>
+        <div class="owner-kpi-label">إجمالي العملاء</div>
+        <div class="owner-kpi-change text-success">
+            <i class="fas fa-arrow-up"></i> {{ active_today }} نشط
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <h6 class="text-muted text-uppercase small mb-1">MRR (شهري)</h6>
-                            <h3 class="mb-0 fw-bold">{{ "%.0f"|format(mrr) }} <small class="fs-6 text-muted">{{ currency }}</small></h3>
-                        </div>
-                        <div class="bg-success bg-opacity-10 p-3 rounded"><i class="fas fa-coins text-success fa-lg"></i></div>
-                    </div>
-                    <div class="d-flex align-items-center small">
-                        <span class="text-muted me-2">ARR:</span>
-                        <strong class="text-dark">{{ "%.0f"|format(arr) }} {{ currency }}</strong>
-                    </div>
-                    <canvas id="sparkMRR" height="40" class="mt-2"></canvas>
-                </div>
-            </div>
+    </div>
+
+    <!-- MRR -->
+    <div class="owner-kpi owner-kpi-success animate-fadeInUp delay-2">
+        <div class="owner-kpi-icon"><i class="fas fa-coins"></i></div>
+        <div class="owner-kpi-value">{{ "%.0f"|format(mrr) }} <small class="fs-6">{{ currency }}</small></div>
+        <div class="owner-kpi-label">MRR (شهري)</div>
+        <div class="owner-kpi-change text-muted">
+            ARR: {{ "%.0f"|format(arr) }} {{ currency }}
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <h6 class="text-muted text-uppercase small mb-1">نسبة الاستبقاء</h6>
-                            <h3 class="mb-0 fw-bold">{{ churn_rate }}%</h3>
-                        </div>
-                        <div class="bg-{{ 'success' if churn_rate < 5 else 'warning' if churn_rate < 10 else 'danger' }} bg-opacity-10 p-3 rounded">
-                            <i class="fas fa-chart-pie text-{{ 'success' if churn_rate < 5 else 'warning' if churn_rate < 10 else 'danger' }} fa-lg"></i>
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-center small">
-                        <span class="text-muted me-2">منتهي:</span>
-                        <strong class="text-danger">{{ expired_count }}</strong>
-                    </div>
-                    <canvas id="sparkChurn" height="40" class="mt-2"></canvas>
-                </div>
-            </div>
+    </div>
+
+    <!-- Retention/Churn -->
+    <div class="owner-kpi {% if churn_rate < 5 %}owner-kpi-success{% elif churn_rate < 10 %}owner-kpi-warning{% else %}owner-kpi-danger{% endif %} animate-fadeInUp delay-3">
+        <div class="owner-kpi-icon"><i class="fas fa-chart-pie"></i></div>
+        <div class="owner-kpi-value">{{ churn_rate }}%</div>
+        <div class="owner-kpi-label">نسبة الاستبقاء</div>
+        <div class="owner-kpi-change text-muted">
+            منتهي: {{ expired_count }}
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <h6 class="text-muted text-uppercase small mb-1">المستخدمون</h6>
-                            <h3 class="mb-0 fw-bold">{{ total_users_all }}</h3>
-                        </div>
-                        <div class="bg-info bg-opacity-10 p-3 rounded"><i class="fas fa-users text-info fa-lg"></i></div>
-                    </div>
-                    <div class="d-flex align-items-center small">
-                        <span class="text-muted me-2">متوسط/عميل:</span>
-                        <strong class="text-dark">{{ avg_users_per_tenant|round(1) }}</strong>
-                    </div>
-                    <canvas id="sparkUsers" height="40" class="mt-2"></canvas>
-                </div>
+    </div>
+
+    <!-- Users -->
+    <div class="owner-kpi owner-kpi-info animate-fadeInUp delay-4">
+        <div class="owner-kpi-icon"><i class="fas fa-users"></i></div>
+        <div class="owner-kpi-value">{{ total_users_all }}</div>
+        <div class="owner-kpi-label">إجمالي المستخدمين</div>
+        <div class="owner-kpi-change text-muted">
+            متوسط: {{ avg_users_per_tenant|round(1) }}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Main Chart -->
+    <div class="col-lg-8 animate-fadeInUp delay-5">
+        <div class="owner-card h-100">
+            <div class="owner-card-header">
+                <h6 class="owner-card-title"><i class="fas fa-chart-line text-primary"></i> نمو المنصة</h6>
+                <span class="badge bg-light text-dark border">آخر 6 أشهر</span>
+            </div>
+            <div class="owner-card-body">
+                <canvas id="mainChart" height="320"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Charts Row -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-8">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>نمو العملاء و MRR</h6>
-                    <span class="badge bg-light text-dark border">آخر 6 أشهر</span>
-                </div>
-                <div class="card-body">
-                    <canvas id="mainChart" height="300"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="row g-3">
-                <div class="col-12">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white border-bottom">
-                            <h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie text-success me-2"></i>حالة العملاء</h6>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="statusChart" height="180"></canvas>
-                        </div>
+    <!-- Status & Support -->
+    <div class="col-lg-4 animate-fadeInUp delay-5">
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="owner-card">
+                    <div class="owner-card-header">
+                        <h6 class="owner-card-title"><i class="fas fa-chart-pie text-success"></i> توزيع حالة العملاء</h6>
+                    </div>
+                    <div class="owner-card-body">
+                        <canvas id="statusChart" height="200"></canvas>
                     </div>
                 </div>
-                <div class="col-12">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white border-bottom">
-                            <h6 class="mb-0 fw-bold"><i class="fas fa-headset text-info me-2"></i>تذاكر الدعم</h6>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="ticketChart" height="180"></canvas>
-                        </div>
+            </div>
+            <div class="col-12">
+                <div class="owner-card">
+                    <div class="owner-card-header">
+                        <h6 class="owner-card-title"><i class="fas fa-headset text-info"></i> تذاكر الدعم</h6>
+                    </div>
+                    <div class="owner-card-body">
+                        <canvas id="ticketChart" height="150"></canvas>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Alerts & Quick Actions -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-bell text-warning me-2"></i>تنبيهات المنصة</h6>
-                    <span class="badge bg-danger">{{ alerts|length }}</span>
-                </div>
-                <div class="card-body">
-                    {% if alerts %}
-                    <div class="list-group list-group-flush">
-                        {% for alert in alerts %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <div>
-                                <span class="badge bg-{{ alert.color }} me-2">{{ alert.type }}</span>
-                                <span class="small">{{ alert.message }}</span>
+<div class="row g-4 mb-4">
+    <!-- Alerts -->
+    <div class="col-lg-6 animate-fadeInUp delay-6">
+        <div class="owner-card h-100">
+            <div class="owner-card-header">
+                <h6 class="owner-card-title"><i class="fas fa-bell text-warning"></i> تنبيهات النظام</h6>
+                <span class="badge bg-danger">{{ alerts|length }}</span>
+            </div>
+            <div class="owner-card-body p-0">
+                {% if alerts %}
+                <div class="list-group list-group-flush">
+                    {% for alert in alerts %}
+                    <div class="list-group-item px-4 py-3 border-0 border-bottom">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-2 rounded bg-{{ alert.color }} bg-opacity-10">
+                                <i class="fas fa-exclamation-circle text-{{ alert.color }}"></i>
                             </div>
-                            <small class="text-muted">{{ alert.tenant or 'عام' }}</small>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold small">{{ alert.message }}</div>
+                                <div class="text-muted x-small">{{ alert.tenant or 'عام' }}</div>
+                            </div>
                         </div>
-                        {% endfor %}
                     </div>
-                    {% else %}
-                    <p class="text-muted text-center my-3">لا توجد تنبيهات حالياً</p>
-                    {% endif %}
+                    {% endfor %}
                 </div>
+                {% else %}
+                <div class="owner-empty py-5">
+                    <i class="fas fa-check-circle"></i>
+                    <h5>لا توجد تنبيهات</h5>
+                    <p class="small text-muted">كل شيء يعمل بسلاسة</p>
+                </div>
+                {% endif %}
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-bolt text-primary me-2"></i>إجراءات سريعة</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('owner.owner_create_tenant') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i> عميل جديد</a>
-                        <a href="{{ url_for('owner.owner_plans') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-tags me-1"></i> الخطط</a>
-                        <a href="{{ url_for('owner.owner_announcements') }}" class="btn btn-outline-success btn-sm"><i class="fas fa-bullhorn me-1"></i> إعلان عام</a>
-                        <a href="{{ url_for('owner.owner_support_tickets') }}" class="btn btn-outline-info btn-sm"><i class="fas fa-headset me-1"></i> الدعم</a>
-                        <a href="{{ url_for('owner.owner_audit_logs') }}" class="btn btn-outline-dark btn-sm"><i class="fas fa-clipboard-list me-1"></i> سجل التدقيق</a>
-                        <a href="{{ url_for('owner.owner_resource_usage') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-server me-1"></i> الموارد</a>
+    </div>
+
+    <!-- Quick Actions & Trials -->
+    <div class="col-lg-6 animate-fadeInUp delay-6">
+        <div class="row g-4">
+            <div class="col-md-7">
+                <div class="owner-card h-100">
+                    <div class="owner-card-header">
+                        <h6 class="owner-card-title"><i class="fas fa-bolt text-primary"></i> الوصول السريع</h6>
+                    </div>
+                    <div class="owner-card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('owner.owner_announcements') }}" class="owner-btn owner-btn-outline text-start">
+                                <i class="fas fa-bullhorn"></i> إعلان جديد
+                            </a>
+                            <a href="{{ url_for('owner.owner_audit_logs') }}" class="owner-btn owner-btn-outline text-start">
+                                <i class="fas fa-clipboard-list"></i> سجل التدقيق
+                            </a>
+                            <a href="{{ url_for('owner.owner_resource_usage') }}" class="owner-btn owner-btn-outline text-start">
+                                <i class="fas fa-server"></i> استهلاك الموارد
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-calendar-alt text-success me-2"></i>التجارب النشطة</h6>
-                </div>
-                <div class="card-body text-center">
-                    <h2 class="fw-bold text-primary">{{ trial_count }}</h2>
-                    <p class="text-muted small">عميل في فترة تجريبية</p>
-                    <hr>
-                    <div class="small text-start">
-                        <div class="d-flex justify-content-between"><span>معدل التحويل</span><strong>{{ conversion_rate }}%</strong></div>
-                        <div class="d-flex justify-content-between"><span>ينتهي هذا الأسبوع</span><strong class="text-warning">{{ expiring_trials }}</strong></div>
+            <div class="col-md-5">
+                <div class="owner-card h-100">
+                    <div class="owner-card-header">
+                        <h6 class="owner-card-title"><i class="fas fa-flask text-info"></i> التجارب</h6>
+                    </div>
+                    <div class="owner-card-body text-center py-4">
+                        <div class="h2 fw-bold text-primary mb-0">{{ trial_count }}</div>
+                        <div class="small text-muted">عميل في فترة تجريبية</div>
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>تحويل</span><span class="fw-bold">{{ conversion_rate }}%</span>
+                        </div>
+                        <div class="d-flex justify-content-between small text-warning">
+                            <span>تنتهي قريباً</span><span class="fw-bold">{{ expiring_trials }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Recent Audit + Resource Preview -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-clipboard-list text-dark me-2"></i>آخر الأحداث</h6>
-                    <a href="{{ url_for('owner.owner_audit_logs') }}" class="small text-decoration-none">الكل</a>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light"><tr><th>الإجراء</th><th>النوع</th><th>الوقت</th></tr></thead>
-                        <tbody>
-                        {% for log in recent_logs %}
-                        <tr>
-                            <td><span class="badge bg-secondary">{{ log.action }}</span></td>
-                            <td class="small">{{ log.entity_type }}</td>
-                            <td class="small text-muted">{{ log.created_at.strftime('%m-%d %H:%M') if log.created_at else '-' }}</td>
-                        </tr>
-                        {% else %}<tr><td colspan="3" class="text-muted text-center py-3">لا سجلات</td></tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-server text-secondary me-2"></i>أعلى استهلاك موارد</h6>
-                    <a href="{{ url_for('owner.owner_resource_usage') }}" class="small text-decoration-none">الكل</a>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light"><tr><th>العميل</th><th>قاعدة بيانات</th><th>تخزين</th><th>API</th></tr></thead>
-                        <tbody>
-                        {% for r in top_resources %}
-                        <tr>
-                            <td class="small fw-bold">{{ r.tenant.name if r.tenant else '-' }}</td>
-                            <td class="small">{{ r.db_size_mb }} MB</td>
-                            <td class="small">{{ r.storage_mb }} MB</td>
-                            <td class="small">{{ r.api_calls_24h }}</td>
-                        </tr>
-                        {% else %}<tr><td colspan="4" class="text-muted text-center py-3">لا بيانات</td></tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+<!-- Tenants Table -->
+<div class="owner-card animate-fadeInUp delay-7">
+    <div class="owner-card-header">
+        <h6 class="owner-card-title"><i class="fas fa-list text-primary"></i> قائمة العملاء</h6>
+        <div class="d-flex gap-2">
+            <select class="owner-select owner-select-sm w-auto" onchange="location.href='?status='+this.value">
+                <option value="">كل الحالات</option>
+                <option value="active" {% if filter_status == 'active' %}selected{% endif %}>نشط</option>
+                <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>معلق</option>
+                <option value="expired" {% if filter_status == 'expired' %}selected{% endif %}>منتهي</option>
+                <option value="suspended" {% if filter_status == 'suspended' %}selected{% endif %}>موقوف</option>
+                <option value="trial" {% if filter_status == 'trial' %}selected{% endif %}>تجريبي</option>
+            </select>
         </div>
     </div>
-
-    <!-- Tenants Table -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>العملاء</h6>
-            <div class="d-flex gap-2">
-                <select class="form-select form-select-sm w-auto" title="حالة العميل" onchange="location.href='?status='+this.value">
-                    <option value="">كل الحالات</option>
-                    <option value="active" {% if filter_status == 'active' %}selected{% endif %}>نشط</option>
-                    <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>معلق</option>
-                    <option value="expired" {% if filter_status == 'expired' %}selected{% endif %}>منتهي</option>
-                    <option value="suspended" {% if filter_status == 'suspended' %}selected{% endif %}>موقوف</option>
-                    <option value="trial" {% if filter_status == 'trial' %}selected{% endif %}>تجريبي</option>
-                </select>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr><th>#</th><th>الاسم</th><th>الخطة</th><th>المستخدمون</th><th>الحالة</th><th>الاشتراك</th><th>الإجراءات</th></tr>
-                    </thead>
-                    <tbody>
-                        {% for t in tenants %}
-                        <tr>
-                            <td>{{ t.id }}</td>
-                            <td>
-                                <div class="fw-bold">{{ t.name }}</div>
-                                <div class="small text-muted">{{ t.slug }}</div>
-                            </td>
-                            <td>{{ t.plan.name if t.plan else '-' }}</td>
-                            <td>{{ t.users|length }}</td>
-                            <td>
-                                {% set status_map = {'active': 'success', 'pending': 'warning', 'expired': 'danger', 'suspended': 'secondary', 'trial': 'info'} %}
-                                <span class="badge bg-{{ status_map.get(t.status.value, 'secondary') }}">{{ t.status.value }}</span>
-                            </td>
-                            <td>
-                                {% if t.subscription_end %}<div class="small">{{ t.subscription_end.strftime('%Y-%m-%d') }}</div>{% else %}<span class="text-muted">غير محدد</span>{% endif %}
-                            </td>
-                            <td>
-                                <div class="d-flex gap-1">
-                                    <a href="{{ url_for('owner.owner_tenant_detail', tenant_id=t.id) }}" class="btn btn-sm btn-outline-primary" title="تفاصيل"><i class="fas fa-eye"></i></a>
-                                    <a href="{{ url_for('owner.owner_renew_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-success" title="تجديد"><i class="fas fa-redo"></i></a>
-                                    {% if t.status.value != 'suspended' %}
-                                    <a href="{{ url_for('owner.owner_suspend_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-warning" title="إيقاف" data-action="confirm-navigate" data-message="إيقاف العميل؟"><i class="fas fa-pause"></i></a>
-                                    {% else %}
-                                    <a href="{{ url_for('owner.owner_activate_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-success" title="تفعيل"><i class="fas fa-play"></i></a>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% else %}<tr><td colspan="7" class="text-muted text-center py-4">لا يوجد عملاء</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="table-responsive">
+        <table class="owner-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>الاسم</th>
+                    <th>الخطة</th>
+                    <th>المستخدمون</th>
+                    <th>الحالة</th>
+                    <th>الاشتراك</th>
+                    <th class="text-end">الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tenants %}
+                <tr>
+                    <td>{{ t.id }}</td>
+                    <td>
+                        <div class="fw-bold">{{ t.name }}</div>
+                        <div class="small text-muted">{{ t.slug }}</div>
+                    </td>
+                    <td>{{ t.plan.name if t.plan else '-' }}</td>
+                    <td>{{ t.users|length }}</td>
+                    <td>
+                        {% set status_map = {'active': 'live', 'pending': 'pending', 'expired': 'expired', 'suspended': 'suspended', 'trial': 'trial'} %}
+                        <span class="owner-badge owner-badge-{{ status_map.get(t.status.value, 'suspended') }}">
+                            {{ t.status.value }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if t.subscription_end %}<div class="small">{{ t.subscription_end.strftime('%Y-%m-%d') }}</div>{% else %}<span class="text-muted">غير محدد</span>{% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1">
+                            <a href="{{ url_for('owner.owner_tenant_detail', tenant_id=t.id) }}" class="btn btn-sm btn-outline-primary" title="تفاصيل"><i class="fas fa-eye"></i></a>
+                            <a href="{{ url_for('owner.owner_renew_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-success" title="تجديد"><i class="fas fa-redo"></i></a>
+                            {% if t.status.value != 'suspended' %}
+                            <a href="{{ url_for('owner.owner_suspend_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-warning" title="إيقاف" data-bs-toggle="modal" data-bs-target="#confirmSuspend{{t.id}}"><i class="fas fa-pause"></i></a>
+                            {% else %}
+                            <a href="{{ url_for('owner.owner_activate_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-success" title="تفعيل"><i class="fas fa-play"></i></a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {# Suspension Confirmation Modal #}
+                {% if t.status.value != 'suspended' %}
+                <div class="modal fade" id="confirmSuspend{{t.id}}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content owner-modal">
+                            <div class="modal-header">
+                                <h5 class="modal-title">تأكيد إيقاف العميل</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                هل أنت متأكد من رغبتك في إيقاف اشتراك <strong>{{ t.name }}</strong>؟ لن يتمكن العميل من الوصول إلى المنصة بعد هذه الخطوة.
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                <a href="{{ url_for('owner.owner_suspend_tenant', tenant_id=t.id) }}" class="btn btn-danger">تأكيد الإيقاف</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% else %}
+                <tr><td colspan="7" class="owner-empty py-5">لا يوجد عملاء حالياً</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script>
-        window.__M = window.__M || [];
-        __M0__={{ {'months': chart_months, 'tenantGrowth': chart_tenant_growth, 'mrrTrend': chart_mrr_trend, 'statusLabels': chart_status_labels, 'statusData': chart_status_data, 'ticketLabels': chart_ticket_labels, 'ticketData': chart_ticket_data, 'churnSpark': chart_churn_spark, 'userSpark': chart_user_spark}|tojson }};
-        </script>
+<script id="chart-data" type="application/json">
+{
+    "months": {{ chart_months|tojson }},
+    "tenantGrowth": {{ chart_tenant_growth|tojson }},
+    "mrrTrend": {{ chart_mrr_trend|tojson }},
+    "statusLabels": {{ chart_status_labels|tojson }},
+    "statusData": {{ chart_status_data|tojson }},
+    "ticketLabels": {{ chart_ticket_labels|tojson }},
+    "ticketData": {{ chart_ticket_data|tojson }},
+    "churnSpark": {{ chart_churn_spark|tojson }},
+    "userSpark": {{ chart_user_spark|tojson }}
+}
+</script>
 <script src="{{ url_for('static', filename='js/pages/owner/dashboard.js') }}"></script>
-
 {% endblock %}

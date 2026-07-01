@@ -102,7 +102,7 @@
             </div>
             <div class="d-flex gap-2">
               <button type="submit" class="btn btn-primary">تأكيد الدفع</button>
-              {% if module_active('reception') %}<a class="btn btn-outline-primary" href="{{ url_for('reception.print_receipt', visit_id=visit.id) }}">طباعة السند</a>{% endif %}
+              {% if module_active('billing') and module_active('reception') %}<a class="btn btn-outline-primary" href="{{ url_for('reception.print_receipt', visit_id=visit.id) }}">طباعة السند</a>{% endif %}
             </div>
           </form>
         </div>

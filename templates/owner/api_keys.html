@@ -1,69 +1,194 @@
-{% extends "owner/base.html" %}
-{% block title %}API Keys{% endblock %}
-{% block content %}
-<div class="container-fluid">
-    <div class="row mb-3">
-        <div class="col">
-            <h4><i class="fas fa-key me-2 text-dark"></i>API Keys</h4>
-        </div>
-    </div>
-    <div class="row g-3">
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header fw-bold">إنشاء مفتاح</div>
-                <div class="card-body">
-                    <form method="post" action="{{ url_for('owner.owner_api_keys_page') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <div class="mb-3">
-                            <label class="form-label">العميل</label>
-                            <select name="tenant_id" class="form-select" required>
-                                {% for t in tenants %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
-                            </select>
+{% extends "owner/base_modern.html" %}
+
+{% block header_title %}لوحة مفاتيح الـ API والربط{% endblock %}
+
+{% block header_actions %}
+<div class="d-flex gap-2">
+    <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
+        <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+    </a>
+</div>
+{% endblock %}
+
+{% block content_modern %}
+<!-- Main Grid -->
+<div class="row g-4 animate-fadeInUp delay-1">
+    <!-- Key Generation Section -->
+    <div class="col-lg-4">
+        <div class="owner-card h-100 owner-card-glass">
+            <div class="owner-card-header">
+                <h6 class="owner-card-title">
+                    <i class="fas fa-key text-primary me-2"></i>
+                    إنشاء مفتاح API جديد
+                </h6>
+            </div>
+            <div class="owner-card-body">
+                <form method="post" action="{{ url_for('owner.owner_api_keys_page') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="owner-form-group">
+                        <label class="owner-form-label">العميل المستهدف (Tenant)</label>
+                        <select name="tenant_id" class="owner-select" required>
+                            <option value="" disabled selected>اختر المنشأة...</option>
+                            {% for t in tenants %}
+                            <option value="{{ t.id }}">{{ t.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="owner-form-group">
+                        <label class="owner-form-label">اسم المفتاح / الوصف</label>
+                        <input type="text" name="name" class="owner-input" placeholder="e.g. نظام البصمة الخارجي" required>
+                    </div>
+
+                    <div class="owner-form-group">
+                        <label class="owner-form-label">الصلاحيات (Scopes)</label>
+                        <input type="text" name="scopes" class="owner-input" value="read" placeholder="e.g. read, write" required>
+                        <div class="mt-2 text-muted x-small">
+                            <i class="fas fa-info-circle me-1"></i> افصل بين الصلاحيات المختلفة بفاصلة.
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">الوصف</label>
-                            <input type="text" name="name" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">الصلاحيات</label>
-                            <input type="text" name="scopes" class="form-control" value="read" placeholder="read, write">
-                        </div>
-                        <button type="submit" class="btn btn-primary">إنشاء</button>
-                    </form>
-                </div>
+                    </div>
+
+                    <button type="submit" class="owner-btn owner-btn-primary w-100 mt-4">
+                        <i class="fas fa-magic me-2"></i> توليد المفتاح
+                    </button>
+                </form>
             </div>
         </div>
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header fw-bold">المفاتيح النشطة</div>
-                <div class="card-body p-0">
-                    <table class="table table-sm mb-0">
-                        <thead><tr><th>العميل</th><th>الاسم</th><th>الصلاحيات</th><th>المفتاح</th><th>الإجراءات</th></tr></thead>
-                        <tbody>
+    </div>
+
+    <!-- Active Keys Section -->
+    <div class="col-lg-8">
+        <div class="owner-card h-100">
+            <div class="owner-card-header">
+                <h6 class="owner-card-title">
+                    <i class="fas fa-shield-alt text-success me-2"></i>
+                    مفاتيح الـ API النشطة
+                </h6>
+                <span class="badge bg-success-light text-success x-small">{{ api_keys|length }} مفتاح نشط</span>
+            </div>
+            <div class="table-responsive">
+                <table class="owner-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>العميل</th>
+                            <th>الوصف</th>
+                            <th>الصلاحيات</th>
+                            <th>المفتاح</th>
+                            <th class="text-end">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                         {% for k in api_keys %}
                         <tr>
-                            <td>{{ k.tenant.name if k.tenant else '-' }}</td>
-                            <td>{{ k.name }}</td>
-                            <td class="small">{{ k.scopes }}</td>
-                            <td class="small font-monospace">
-                                <span id="key-{{ k.id }}">{{ (k.key or '')[:24] }}…</span>
-                                <button type="button" class="btn btn-link btn-sm p-0 ms-1" onclick="navigator.clipboard.writeText('{{ k.key }}'); alert('تم النسخ')" title="نسخ"><i class="fas fa-copy"></i></button>
+                            <td>
+                                <div class="fw-bold">{{ k.tenant.name if k.tenant else 'عام / غير محدد' }}</div>
+                                <div class="x-small text-muted">{{ k.tenant.slug if k.tenant else '' }}</div>
                             </td>
                             <td>
-                                <form method="post" action="{{ url_for('owner.owner_delete_api_key', key_id=k.id) }}" onsubmit="return confirm('تأكيد حذف المفتاح؟');">
+                                <div class="fw-medium">{{ k.name }}</div>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for scope in k.scopes.split(',') %}
+                                    <span class="badge bg-light text-dark border x-small">{{ scope.strip() }}</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <code class="small text-muted" id="keyText-{{ k.id }}">{{ (k.key or '')[:16] }}…</code>
+                                    <button type="button" class="owner-btn owner-btn-sm owner-btn-outline p-1 copy-btn" 
+                                            data-key="{{ k.key }}" 
+                                            title="نسخ المفتاح كاملاً">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <form method="post" action="{{ url_for('owner.owner_delete_api_key', key_id=k.id) }}" class="d-inline" onsubmit="return confirm('⚠️ هل أنت متأكد من تعطيل وحذف هذا المفتاح؟ هذا الإجراء قد يوقف أي ربط خارجي قائم فورا!');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                    <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="حذف المفتاح">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
                                 </form>
                             </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="5" class="text-muted text-center py-4">لا مفاتيح</td></tr>
+                        <tr>
+                            <td colspan="5" class="owner-empty py-5">
+                                <i class="fas fa-key fa-3x text-muted opacity-25"></i>
+                                <h5 class="mt-3">لا توجد مفاتيح نشطة حالياً</h5>
+                                <p class="small text-muted">استخدم النموذج الجانبي لتوليد أول مفتاح ربط.</p>
+                            </td>
+                        </tr>
                         {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Copy Toast Notification Area -->
+<div id="toastContainer" class="position-fixed bottom-0 end-0 p-4" style="z-index: 2000;"></div>
+
+<style>
+    .owner-toast {
+        min-width: 300px;
+        border-radius: var(--owner-radius-sm);
+        box-shadow: var(--owner-shadow-lg);
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('toastContainer');
+
+    function showToast(message) {
+        const toastEl = document.createElement('div');
+        toastEl.className = 'owner-toast bg-success text-white animate-fadeInUp mb-3';
+        toastEl.innerHTML = `
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="fw-bold">${message}</div>
+            </div>
+        `;
+        container.appendChild(toastEl);
+        
+        setTimeout(() => {
+            toastEl.style.opacity = '0';
+            toastEl.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => toastEl.remove(), 500);
+        }, 3000);
+    }
+
+    document.querySelectorAll('.copy-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const keyText = this.dataset.key;
+            
+            navigator.clipboard.writeText(keyText).then(() => {
+                showToast('تم نسخ مفتاح الـ API بنجاح إلى الحافظة');
+                
+                // Pulse feedback on the button
+                const icon = this.querySelector('i');
+                icon.className = 'fas fa-check text-success';
+                setTimeout(() => {
+                    icon.className = 'fas fa-copy';
+                }, 1500);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

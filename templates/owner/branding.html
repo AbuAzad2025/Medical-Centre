@@ -1,52 +1,168 @@
-{% extends "owner/base.html" %}
-{% block title %}تخصيص المنصة{% endblock %}
-{% block content %}
-<div class="container-fluid">
-    <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-paint-brush me-2 text-primary"></i>تخصيص هوية المنصة</h4></div>
-        <div class="col-auto">
-            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
+{% extends "owner/base_modern.html" %}
+
+{% block header_title %}تخصيص هوية المنصة{% endblock %}
+
+{% block header_actions %}
+<div class="d-flex gap-2">
+    <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
+        <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+    </a>
+</div>
+{% endblock %}
+
+{% block content_modern %}
+<div class="row g-4 animate-fadeInUp delay-1">
+    <!-- Brand Configuration Form -->
+    <div class="col-lg-7">
+        <div class="owner-card h-100">
+            <div class="owner-card-header">
+                <h6 class="owner-card-title"><i class="fas fa-paint-brush text-primary"></i> إعدادات الهوية البصرية</h6>
+                <span class="badge bg-primary-light text-primary">Visual Identity</span>
+            </div>
+            <div class="owner-card-body">
+                <form method="post" action="{{ url_for('owner.owner_branding') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="row g-4">
+                        <!-- Platform Name -->
+                        <div class="col-md-6">
+                            <div class="owner-form-group">
+                                <label class="owner-form-label">اسم المنصة (عربي)</label>
+                                <input type="text" name="platform_name" class="owner-input" value="{{ branding.platform_name or 'آزاد' }}" required placeholder="مثال: منصة آزاد">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="owner-form-group">
+                                <label class="owner-form-label">Platform Name (English)</label>
+                                <input type="text" name="platform_name_en" class="owner-input" value="{{ branding.platform_name_en or 'Azad' }}" placeholder="e.g. Azad Platform">
+                            </div>
+                        </div>
+
+                        <!-- Colors -->
+                        <div class="col-md-6">
+                            <div class="owner-form-group">
+                                <label class="owner-form-label">اللون الرئيسي (Primary)</label>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <input type="color" name="primary_color" id="primary_color_picker" class="form-control form-control-color border-0 shadow-none" value="{{ branding.primary_color or '#1a1f3a' }}" style="width: 50px; height: 45px; padding: 5px; border-radius: 8px;">
+                                    <input type="text" id="primary_color_text" class="owner-input flex-grow-1" value="{{ branding.primary_color or '#1a1f3a' }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="owner-form-group">
+                                <label class="owner-form-label">اللون الثانوي (Secondary)</label>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <input type="color" name="secondary_color" id="secondary_color_picker" class="form-control form-control-color border-0 shadow-none" value="{{ branding.secondary_color or '#D4AF37' }}" style="width: 50px; height: 45px; padding: 5px; border-radius: 8px;">
+                                    <input type="text" id="secondary_color_text" class="owner-input flex-grow-1" value="{{ branding.secondary_color or '#D4AF37' }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- URLs -->
+                        <div class="col-md-6">
+                            <div class="owner-form-group">
+                                <label class="owner-form-label">رابط الشعار (Logo URL)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-image text-muted"></i></span>
+                                    <input type="url" name="logo_url" class="owner-input border-start-0" value="{{ branding.logo_url or '' }}" placeholder="https://...">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="owner-form-group">
+                                <label class="owner-form-label">رابط الفافيكون (Favicon URL)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-file-code text-muted"></i></span>
+                                    <input type="url" name="favicon_url" class="owner-input border-start-0" value="{{ branding.favicon_url or '' }}" placeholder="https://...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Meta Description -->
+                        <div class="col-12">
+                            <div class="owner-form-group">
+                                <label class="owner-form-label">وصف المنصة (Meta Description)</label>
+                                <textarea name="meta_description" class="owner-input" rows="3" placeholder="وصف قصير للمنصة لمحركات البحث...">{{ branding.meta_description or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="owner-btn owner-btn-primary w-100 py-3">
+                                <i class="fas fa-save me-2"></i> حفظ كافة التخصيصات
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-    <div class="card">
-        <div class="card-body">
-            <form method="post" action="{{ url_for('owner.owner_branding') }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">اسم المنصة</label>
-                        <input type="text" name="platform_name" class="form-control" value="{{ branding.platform_name or 'آزاد' }}" title="اسم المنصة" placeholder="اسم المنصة" required>
+
+    <!-- Live Preview Card -->
+    <div class="col-lg-5 animate-fadeInUp delay-2">
+        <div class="owner-card h-100 sticky-top" style="top: 90px;">
+            <div class="owner-card-header">
+                <h6 class="owner-card-title"><i class="fas fa-eye text-info"></i> معاينة حية</h6>
+            </div>
+            <div class="owner-card-body text-center">
+                <div class="mb-4">
+                    <div class="d-inline-block p-4 rounded-circle bg-white shadow-sm mb-3" style="width: 120px; height: 120px; display: flex; align-items: center; justify-content: center;">
+                        {% if branding.logo_url %}
+                            <img src="{{ branding.logo_url }}" alt="Logo Preview" style="max-width: 85%; max-height: 85%; object-fit: contain;">
+                        {% else %}
+                            <i class="fas fa-building fa-4x text-muted"></i>
+                        {% endif %}
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">الاسم بالإنجليزية</label>
-                        <input type="text" name="platform_name_en" class="form-control" value="{{ branding.platform_name_en or 'Azad' }}" title="الاسم بالإنجليزية" placeholder="Azad">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">اللون الرئيسي</label>
-                        <input type="color" name="primary_color" class="form-control form-control-color" value="{{ branding.primary_color or '#1a1f3a' }}" title="اللون الرئيسي">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">اللون الثانوي</label>
-                        <input type="color" name="secondary_color" class="form-control form-control-color" value="{{ branding.secondary_color or '#D4AF37' }}" title="اللون الثانوي">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">شعار المنصة (URL)</label>
-                        <input type="url" name="logo_url" class="form-control" value="{{ branding.logo_url or '' }}" title="رابط الشعار" placeholder="https://...">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">فافيكون (URL)</label>
-                        <input type="url" name="favicon_url" class="form-control" value="{{ branding.favicon_url or '' }}" title="رابط الفافيكون" placeholder="https://...">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">وصف المنصة (Meta Description)</label>
-                        <textarea name="meta_description" class="form-control" rows="2" title="وصف المنصة" placeholder="وصف قصير للمنصة">{{ branding.meta_description or '' }}</textarea>
-                    </div>
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> حفظ التخصيص</button>
-                    </div>
+                    <h3 class="fw-bold mb-0">{{ branding.platform_name or 'آزاد' }}</h3>
+                    <p class="text-muted mb-0">{{ branding.platform_name_en or 'Azad' }}</p>
                 </div>
-            </form>
+
+                <div class="p-4 rounded-4 bg-light text-start mb-4 border shadow-sm">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="small text-muted">اللون الرئيسي:</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="x-small fw-bold">{{ branding.primary_color or '#1a1f3a' }}</span>
+                            <div class="rounded" style="width: 20px; height: 20px; background-color: {{ branding.primary_color or '#1a1f3a' }};"></div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="small text-muted">اللون الثانوي:</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="x-small fw-bold">{{ branding.secondary_color or '#D4AF37' }}</span>
+                            <div class="rounded" style="width: 20px; height: 20px; background-color: {{ branding.secondary_color or '#D4AF37' }};"></div>
+                        </div>
+                    </div>
+                    <hr class="my-3 opacity-50">
+                    <div class="small text-muted mb-1">وصف الميتا:</div>
+                    <p class="small text-muted font-italic mb-0">
+                        {{ branding.meta_description or 'لا يوجد وصف حالياً...' }}
+                    </p>
+                </div>
+
+                <div class="alert alert-info border-0 bg-info-light text-info small mb-0">
+                    <i class="fas fa-info-circle me-2"></i> التغييرات المطبقة هنا ستظهر في كامل المنصة بعد التحديث.
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function setupColorPicker(pickerId, textId) {
+        const picker = document.getElementById(pickerId);
+        const text = document.getElementById(textId);
+        
+        if (picker && text) {
+            picker.addEventListener('input', function() {
+                text.value = this.value.toUpperCase();
+            });
+        }
+    }
+
+    setupColorPicker('primary_color_picker', 'primary_color_text');
+    setupColorPicker('secondary_color_picker', 'secondary_color_text');
+});
+</script>
 {% endblock %}

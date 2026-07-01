@@ -13,7 +13,7 @@
       <select class="form-select" name="type">
         <option value="patients" {% if report_type == 'patients' %}selected{% endif %}>المرضى</option>
         <option value="visits" {% if report_type == 'visits' %}selected{% endif %}>الزيارات</option>
-        <option value="financial" {% if report_type == 'financial' %}selected{% endif %}>المالية</option>
+        {% if module_active('billing') %}<option value="financial" {% if report_type == 'financial' %}selected{% endif %}>المالية</option>{% endif %}
         <option value="departments" {% if report_type == 'departments' %}selected{% endif %}>الأقسام</option>
       </select>
     </div>

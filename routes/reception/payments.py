@@ -4,7 +4,7 @@ from routes.reception import reception_bp
 
 # Imports
  
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, g
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from datetime import datetime, timezone
@@ -38,6 +38,8 @@ from app.shared.user_messages import user_message
 def pos_charge():
     if current_user.role not in ['reception', 'accountant', 'super_admin', 'manager']:
         return jsonify({'success': False, 'message': user_message('pos_unauthorized')}), 403
+    if 'billing' not in getattr(g, 'enabled_modules', set()):
+        return jsonify({'success': False, 'message': 'وحدة الفوترة غير مفعلة في باقتك الحالية'}), 403
     amount_raw = None
     if request.is_json:
         amount_raw = (request.json or {}).get('amount')
@@ -53,6 +55,9 @@ def process_payment(visit_id):
     if current_user.role not in ['reception', 'super_admin', 'manager']:
         flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
         return redirect(url_for('auth.login'))
+    if 'billing' not in getattr(g, 'enabled_modules', set()):
+        flash('وحدة الفوترة غير مفعلة في باقتك الحالية', 'error')
+        return redirect(url_for('main.dashboard'))
     visit = db.session.get(Visit, visit_id)
     if not visit:
         flash('الزيارة غير موجودة', 'error')
@@ -112,6 +117,9 @@ def print_receipt(visit_id):
     if current_user.role not in ['reception', 'super_admin', 'manager']:
         flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
         return redirect(url_for('auth.login'))
+    if 'billing' not in getattr(g, 'enabled_modules', set()):
+        flash('وحدة الفوترة غير مفعلة في باقتك الحالية', 'error')
+        return redirect(url_for('main.dashboard'))
     
     visit = db.session.get(Visit, visit_id)
     if not visit:
@@ -194,6 +202,9 @@ def print_invoice(invoice_id):
     if current_user.role not in ['reception', 'super_admin', 'manager', 'accountant']:
         flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
         return redirect(url_for('auth.login'))
+    if 'billing' not in getattr(g, 'enabled_modules', set()):
+        flash('وحدة الفوترة غير مفعلة في باقتك الحالية', 'error')
+        return redirect(url_for('main.dashboard'))
     
     from models.invoice import Invoice
     invoice = db.session.get(Invoice, invoice_id)
@@ -259,6 +270,9 @@ def payments():
 @login_required
 def cash_register():
     """سجل الصندوق اليومي"""
+    if 'billing' not in getattr(g, 'enabled_modules', set()):
+        flash('وحدة الفوترة غير مفعلة في باقتك الحالية', 'error')
+        return redirect(url_for('main.dashboard'))
     from models.cash_register import CashRegister
     from models.payment import Payment
     reg = CashRegister.get_or_create_today(current_user.id)
@@ -284,6 +298,9 @@ def cash_register():
 @role_required('reception', 'super_admin', 'manager')
 def daily_close():
     """إغلاق اليومية"""
+    if 'billing' not in getattr(g, 'enabled_modules', set()):
+        flash('وحدة الفوترة غير مفعلة في باقتك الحالية', 'error')
+        return redirect(url_for('main.dashboard'))
     from models.cash_register import CashRegister
     reg = CashRegister.get_or_create_today(current_user.id)
     if request.method == 'POST':

@@ -15,6 +15,12 @@ from sqlalchemy import func, and_, or_, desc
 
 nurse_bp = Blueprint('nurse', __name__)
 
+from services.feature_gate_service import guard_module
+
+@nurse_bp.before_request
+def _guard_nursing_module():
+    guard_module('nursing')
+
 
 
 def _accessible_department_ids():

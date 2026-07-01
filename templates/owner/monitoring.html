@@ -1,87 +1,109 @@
-{% extends "owner/base.html" %}
-{% from "partials/_page_header.html" import page_header %}
-{% block title %}لوحة المراقبة — لوحة المنصة{% endblock %}
-{% block content %}
-<div class="container-fluid py-3">
-    {{ page_header('لوحة المراقبة', subtitle='حالة المنصة والخدمات والمؤشرات الحيوية', icon='fas fa-heartbeat', actions=[
-        {'label': 'تحديث', 'icon': 'fas fa-sync', 'url': url_for('owner.owner_monitoring'), 'style': 'outline-light'}
-    ]) }}
+{% extends "owner/base_modern.html" %}
 
-    <div class="row g-3 mb-4">
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <h6 class="text-muted small">حجم قاعدة البيانات</h6>
-                    <h3 class="fw-bold text-primary">{{ metrics.db_size_mb }} <small class="fs-6 text-muted">MB</small></h3>
-                </div>
-            </div>
+{% block header_title %}لوحة المراقبة{% endblock %}
+
+{% block header_actions %}
+<div class="d-flex gap-2">
+    <button class="owner-btn owner-btn-outline" onclick="location.reload()">
+        <i class="fas fa-sync"></i> تحديث
+    </button>
+    <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
+        <i class="fas fa-arrow-right"></i> العودة
+    </a>
+</div>
+{% endblock %}
+
+{% block content_modern %}
+<!-- Vital Metrics Grid -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6 animate-fadeInUp delay-1">
+        <div class="owner-kpi owner-kpi-info">
+            <div class="owner-kpi-icon"><i class="fas fa-database"></i></div>
+            <div class="owner-kpi-value">{{ metrics.db_size_mb }} <small class="fs-6">MB</small></div>
+            <div class="owner-kpi-label">حجم قاعدة البيانات</div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <h6 class="text-muted small">العملاء النشطون</h6>
-                    <h3 class="fw-bold text-success">{{ metrics.active_tenants }}</h3>
-                </div>
-            </div>
+    </div>
+    <div class="col-xl-3 col-md-6 animate-fadeInUp delay-2">
+        <div class="owner-kpi owner-kpi-success">
+            <div class="owner-kpi-icon"><i class="fas fa-user-check"></i></div>
+            <div class="owner-kpi-value">{{ metrics.active_tenants }}</div>
+            <div class="owner-kpi-label">العملاء النشطون</div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <h6 class="text-muted small">تذاكر الدعم المفتوحة</h6>
-                    <h3 class="fw-bold text-warning">{{ metrics.open_tickets }}</h3>
-                </div>
-            </div>
+    </div>
+    <div class="col-xl-3 col-md-6 animate-fadeInUp delay-3">
+        <div class="owner-kpi owner-kpi-warning">
+            <div class="owner-kpi-icon"><i class="fas fa-ticket-alt"></i></div>
+            <div class="owner-kpi-value">{{ metrics.open_tickets }}</div>
+            <div class="owner-kpi-label">تذاكر الدعم المفتوحة</div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <h6 class="text-muted small">آخر فحص</h6>
-                    <h3 class="fw-bold text-info">{{ now().strftime('%H:%M') if now is defined else '-' }}</h3>
+    </div>
+    <div class="col-xl-3 col-md-6 animate-fadeInUp delay-4">
+        <div class="owner-kpi owner-kpi-primary">
+            <div class="owner-kpi-icon"><i class="fas fa-clock"></i></div>
+            <div class="owner-kpi-value">{{ now().strftime('%H:%M') if now is defined else '-' }}</div>
+            <div class="owner-kpi-label">آخر فحص للنظام</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- System Health Checks -->
+    <div class="col-lg-7 animate-fadeInUp delay-5">
+        <div class="owner-card h-100">
+            <div class="owner-card-header">
+                <h6 class="owner-card-title"><i class="fas fa-heartbeat text-danger"></i> فحوصات صحة النظام</h6>
+            </div>
+            <div class="owner-card-body">
+                <div class="row g-3">
+                    {% for c in checks %}
+                    <div class="col-md-6">
+                        <div class="p-3 rounded border {% if c.status == 'ok' %}border-success bg-success bg-opacity-10{% elif c.status == 'error' %}border-danger bg-danger bg-opacity-10{% else %}border-warning bg-warning bg-opacity-10{% endif %}">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <i class="fas {{ c.icon }} fa-lg {% if c.status == 'ok' %}text-success{% elif c.status == 'error' %}text-danger{% else %}text-warning{% endif %}"></i>
+                                <span class="badge {% if c.status == 'ok' %}bg-success{% elif c.status == 'error' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ 'سليم' if c.status == 'ok' else 'خطأ' if c.status == 'error' else 'تنبيه' }}
+                                </span>
+                            </div>
+                            <div class="fw-bold small">{{ c.name }}</div>
+                            <div class="text-muted x-small text-truncate">{{ c.message }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-3 mb-4">
-        {% for c in checks %}
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 border-start border-4 border-{{ 'success' if c.status == 'ok' else 'danger' if c.status == 'error' else 'warning' }}">
-                <div class="card-body d-flex align-items-center gap-3">
-                    <div class="bg-{{ 'success' if c.status == 'ok' else 'danger' if c.status == 'error' else 'warning' }} bg-opacity-10 p-3 rounded">
-                        <i class="fas {{ c.icon }} text-{{ 'success' if c.status == 'ok' else 'danger' if c.status == 'error' else 'warning' }} fa-lg"></i>
+    <!-- Recent Audit Log Summary -->
+    <div class="col-lg-5 animate-fadeInUp delay-5">
+        <div class="owner-card h-100">
+            <div class="owner-card-header">
+                <h6 class="owner-card-title"><i class="fas fa-history text-secondary"></i> النشاط الأخير</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for log in recent_audit[:10] %}
+                    <div class="list-group-item px-4 py-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-bold small text-primary">{{ log.action }}</div>
+                                <div class="text-muted x-small">{{ log.details or '-' }}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="small text-muted" style="font-size: 0.7rem;">{{ log.created_at.strftime('%H:%M') if log.created_at else '-' }}</div>
+                                <div class="badge bg-light text-dark border" style="font-size: 0.6rem;">{{ log.entity_type }}</div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h6 class="mb-1 fw-bold">{{ c.name }}</h6>
-                        <p class="mb-0 small text-muted">{{ c.message }}</p>
-                        <span class="badge bg-{{ 'success' if c.status == 'ok' else 'danger' if c.status == 'error' else 'warning' }}">{{ 'سليم' if c.status == 'ok' else 'خطأ' if c.status == 'error' else 'تنبيه' }}</span>
+                    {% else %}
+                    <div class="owner-empty py-4">
+                        <p class="small mb-0">لا توجد سجلات نشطة</p>
                     </div>
+                    {% endfor %}
                 </div>
             </div>
-        </div>
-        {% endfor %}
-    </div>
-
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-bottom">
-            <h6 class="mb-0 fw-bold"><i class="fas fa-history text-dark me-2"></i>آخر أحداث المنصة</h6>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light"><tr><th>الإجراء</th><th>النوع</th><th>التفاصيل</th><th>الوقت</th></tr></thead>
-                    <tbody>
-                        {% for log in recent_audit %}
-                        <tr>
-                            <td><span class="badge bg-secondary">{{ log.action }}</span></td>
-                            <td class="small">{{ log.entity_type }}</td>
-                            <td class="small text-muted">{{ log.details or '-' }}</td>
-                            <td class="small text-muted">{{ log.created_at.strftime('%Y-%m-%d %H:%M') if log.created_at else '-' }}</td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="4" class="text-muted text-center py-4">لا سجلات</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="owner-card-footer text-center">
+                <a href="{{ url_for('owner.owner_audit_logs') }}" class="small text-decoration-none">مشاهدة السجل الكامل</a>
             </div>
         </div>
     </div>

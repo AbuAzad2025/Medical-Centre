@@ -3,7 +3,16 @@ FeatureGateService — Unified feature/module/action gating
 """
 from functools import wraps
 from flask import g, abort, current_app
+from flask_login import current_user
 from app.core.module.validators import get_active_modules_for_tenant
+
+
+def _is_admin_user() -> bool:
+    try:
+        return current_user.is_authenticated and current_user.role == "super_admin"
+    except Exception:
+        return False
+
 
 class FeatureGateService:
     @staticmethod
@@ -36,6 +45,8 @@ def require_module(module: str):
         def wrapper(*args, **kwargs):
             if not current_app.config.get('ENABLE_SAAS_MODE', False):
                 return f(*args, **kwargs)
+            if _is_admin_user():
+                return f(*args, **kwargs)
             tenant = getattr(g, 'current_tenant', None)
             if not tenant:
                 abort(403, description="Tenant context required")
@@ -48,8 +59,11 @@ def require_module(module: str):
 def guard_module(module_name: str):
     """Blueprint before_request guard: 403 if module not enabled for tenant.
     Skips check when ENABLE_SAAS_MODE is False (standalone mode).
+    Admin and super_admin bypass all module guards.
     """
     if not current_app.config.get('ENABLE_SAAS_MODE', False):
+        return
+    if _is_admin_user():
         return
     tenant = getattr(g, 'current_tenant', None)
     if not tenant:
@@ -62,6 +76,8 @@ def require_feature(feature: str):
         @wraps(f)
         def wrapper(*args, **kwargs):
             if not current_app.config.get('ENABLE_SAAS_MODE', False):
+                return f(*args, **kwargs)
+            if _is_admin_user():
                 return f(*args, **kwargs)
             tenant = getattr(g, 'current_tenant', None)
             if not tenant:

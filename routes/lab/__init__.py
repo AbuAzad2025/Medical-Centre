@@ -25,6 +25,12 @@ import qrcode
 
 lab_bp = Blueprint('lab', __name__)
 
+from services.feature_gate_service import guard_module
+
+@lab_bp.before_request
+def _guard_lab_module():
+    guard_module('lab')
+
 
 def _log_lab_workflow(request_id, status, action, notes=None):
     try:

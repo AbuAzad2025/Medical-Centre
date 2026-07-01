@@ -533,6 +533,13 @@ def create_app(config_name: str | None = None) -> Flask:
             from werkzeug.exceptions import HTTPException
             if not app.config.get('ENABLE_SAAS_MODE', False):
                 return None
+            # Admin bypass: global admins pass through all module guards
+            try:
+                from flask_login import current_user
+                if current_user.is_authenticated and current_user.role == "super_admin":
+                    return None
+            except Exception:
+                pass
             tenant = getattr(g, 'current_tenant', None)
             if not tenant:
                 abort(403, description="Tenant context is required in SaaS mode.")

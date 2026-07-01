@@ -1,46 +1,125 @@
-{% extends "owner/base.html" %}
-{% block title %}سجل التدقيق{% endblock %}
-{% block content %}
+{% extends "owner/base_modern.html" %}
 
-<div class="container-fluid">
-    <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-clipboard-list me-2 text-dark"></i>سجل تدقيق المنصة</h4></div>
-        <div class="col-auto d-flex gap-2">
-            <select class="form-select form-select-sm w-auto" title="نوع الكيان" onchange="location.href='?entity_type='+this.value">
-                <option value="">كل الأنواع</option>
-                <option value="tenant" {% if entity_type == 'tenant' %}selected{% endif %}>عميل</option>
-                <option value="plan" {% if entity_type == 'plan' %}selected{% endif %}>خطة</option>
-                <option value="system" {% if entity_type == 'system' %}selected{% endif %}>نظام</option>
-                <option value="notification" {% if entity_type == 'notification' %}selected{% endif %}>إشعار</option>
-                <option value="ticket" {% if entity_type == 'ticket' %}selected{% endif %}>تذكرة</option>
-            </select>
-            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
-        </div>
-    </div>
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr><th>#</th><th>الإجراء</th><th>النوع</th><th>ID</th><th>التفاصيل</th><th>IP</th><th>الوقت</th></tr>
-                    </thead>
-                    <tbody>
-                        {% for log in logs %}
-                        <tr>
-                            <td>{{ log.id }}</td>
-                            <td><span class="badge bg-secondary">{{ log.action }}</span></td>
-                            <td class="small">{{ log.entity_type }}</td>
-                            <td class="small">{{ log.entity_id or '-' }}</td>
-                            <td class="small text-muted cell-truncate">{{ log.details or '-' }}</td>
-                            <td class="small text-muted">{{ log.ip_address or '-' }}</td>
-                            <td class="small text-muted">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '-' }}</td>
-                        </tr>
-                        {% else %}<tr><td colspan="7" class="text-muted text-center py-4">لا سجلات</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+{% block header_title %}سجل تدقيق المنصة{% endblock %}
+
+{% block header_actions %}
+<div class="d-flex gap-2">
+    <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
+        <i class="fas fa-arrow-right"></i> العودة
+    </a>
+</div>
+{% endblock %}
+
+{% block content_modern %}
+<!-- Filters Card -->
+<div class="owner-card animate-fadeInUp delay-1 mb-4">
+    <div class="owner-card-body">
+        <form method="get" action="{{ url_for('owner.owner_audit_logs') }}" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="owner-form-label">نوع الكيان</label>
+                <select name="entity_type" class="owner-input" onchange="this.form.submit()">
+                    <option value="">كل الأنواع</option>
+                    <option value="tenant" {% if entity_type == 'tenant' %}selected{% endif %}>عميل (Tenant)</option>
+                    <option value="plan" {% if entity_type == 'plan' %}selected{% endif %}>خطة (Plan)</option>
+                    <option value="system" {% if entity_type == 'system' %}selected{% endif %}>نظام (System)</option>
+                    <option value="notification" {% if entity_type == 'notification' %}selected{% endif %}>إشعار (Notification)</option>
+                    <option value="ticket" {% if entity_type == 'ticket' %}selected{% endif %}>تذكرة (Ticket)</option>
+                </select>
             </div>
-        </div>
+            <div class="col-md-4">
+                <label class="owner-form-label">البحث عن إجراء أو تفاصيل</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="q" class="owner-input border-start-0" placeholder="ابحث هنا..." value="{{ search }}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="owner-btn owner-btn-primary w-100">
+                    <i class="fas fa-filter"></i> تصفية
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a href="{{ url_for('owner.owner_audit_logs') }}" class="owner-btn owner-btn-outline w-100">
+                    <i class="fas fa-redo"></i> إعادة ضبط
+                </a>
+            </div>
+        </form>
     </div>
+</div>
+
+<!-- Audit Logs Table Card -->
+<div class="owner-card animate-fadeInUp delay-2">
+    <div class="owner-card-header">
+        <h6 class="owner-card-title"><i class="fas fa-history text-primary"></i> السجلات التفصيلية</h6>
+        <span class="badge bg-primary">{{ logs|length }} حدث</span>
+    </div>
+    <div class="table-responsive">
+        <table class="owner-table mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 5%">#</th>
+                    <th style="width: 15%">الإجراء</th>
+                    <th style="width: 15%">النوع</th>
+                    <th style="width: 10%">ID</th>
+                    <th style="width: 35%">التفاصيل</th>
+                    <th style="width: 15%">IP</th>
+                    <th style="width: 10%">الوقت</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.id }}</td>
+                    <td>
+                        <span class="badge {% if 'create' in log.action.lower() %}bg-success{% elif 'delete' in log.action.lower() or 'remove' in log.action.lower() %}bg-danger{% elif 'update' in log.action.lower() or 'edit' in log.action.lower() %}bg-warning{% else %}bg-secondary{% endif %} text-dark">
+                            {{ log.action }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="small text-muted">{{ log.entity_type }}</span>
+                    </td>
+                    <td class="small"><code>{{ log.entity_id or '-' }}</code></td>
+                    <td>
+                        <div class="small text-wrap" style="max-width: 400px; line-height: 1.4;">{{ log.details or '-' }}</div>
+                    </td>
+                    <td class="small text-muted">{{ log.ip_address or '-' }}</td>
+                    <td class="small text-muted">
+                        {{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '-' }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="owner-empty py-5">
+                        <i class="fas fa-clipboard-check"></i>
+                        <h5>لا توجد سجلات تدقيق</h5>
+                        <p class="small text-muted">سيتم تسجيل كافة العمليات الهامة هنا تلقائياً.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if pagination.pages > 1 %}
+    <div class="owner-card-footer d-flex justify-content-between align-items-center">
+        <small class="text-muted">صفحة {{ pagination.page }} من {{ pagination.pages }} (إجمالي {{ pagination.total }} حدث)</small>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                {% if pagination.has_prev %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('owner.owner_audit_logs', page=pagination.prev_num, entity_type=entity_type, q=search) }}">السابق</a></li>
+                {% endif %}
+                {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if p %}
+                        {% if p == pagination.page %}<li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                        {% else %}<li class="page-item"><a class="page-link" href="{{ url_for('owner.owner_audit_logs', page=p, entity_type=entity_type, q=search) }}">{{ p }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                {% if pagination.has_next %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('owner.owner_audit_logs', page=pagination.next_num, entity_type=entity_type, q=search) }}">التالي</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

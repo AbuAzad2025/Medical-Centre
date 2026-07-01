@@ -22,7 +22,7 @@
                 <thead>
                     {% if report_type == 'visits' %}
                     <tr><th>#</th><th>المريض</th><th>القسم</th><th>الطبيب</th><th>التاريخ</th><th>الحالة</th></tr>
-                    {% elif report_type == 'revenue' %}
+                    {% elif report_type == 'revenue' and module_active('billing') %}
                     <tr><th>#</th><th>الزيارة</th><th>المبلغ</th><th>الطريقة</th><th>التاريخ</th></tr>
                     {% elif report_type == 'patients' %}
                     <tr><th>#</th><th>الاسم</th><th>الجنس</th><th>التاريخ</th></tr>

@@ -24,7 +24,11 @@ import json
 
 emergency_bp = Blueprint('emergency', __name__)
 
+from services.feature_gate_service import guard_module
 
+@emergency_bp.before_request
+def _guard_emergency_module():
+    guard_module('emergency')
 
 def _normalize_emergency_status(value):
     v = (value or '').strip().upper()

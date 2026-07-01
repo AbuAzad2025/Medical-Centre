@@ -4,7 +4,7 @@ from routes.reception import reception_bp
 
 # Imports
  
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, g
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from datetime import datetime, timezone
@@ -72,6 +72,7 @@ def visits():
     visits = query.order_by(Visit.created_at.desc()).limit(per_page).offset((page - 1) * per_page).all()
     departments = Department.query.all()
     
+    billing_active = 'billing' in getattr(g, 'enabled_modules', set())
     return render_template('reception/visits.html', 
                          visits=visits, 
                          departments=departments,
@@ -80,7 +81,8 @@ def visits():
                          selected_status=status,
                          page=page,
                          per_page=per_page,
-                         total=total)
+                         total=total,
+                         billing_active=billing_active)
 
 @reception_bp.route('/visits/<int:visit_id>/archive', methods=['POST'])
 @login_required

@@ -108,6 +108,7 @@
                   <td>{{ result.compare.delta.visits }}</td>
                   <td>{{ result.compare.pct.visits if result.compare.pct.visits is not none else '-' }}</td>
                 </tr>
+                {% if module_active('billing') %}
                 <tr>
                   <td>الإيراد</td>
                   <td>{{ result.compare.a.revenue }}</td>
@@ -115,6 +116,7 @@
                   <td>{{ result.compare.delta.revenue }}</td>
                   <td>{{ result.compare.pct.revenue if result.compare.pct.revenue is not none else '-' }}</td>
                 </tr>
+                {% endif %}
               </tbody>
             </table>
           </div>

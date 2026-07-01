@@ -2,6 +2,7 @@ var __M = window.__M || [];
 let currentTicketId = null;
 const currentUserRole = __M0__;
 const currentDoctorId = __M1__;
+const billingActive = __M2__;
 
 function getCsrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
@@ -110,7 +111,7 @@ function displayQueueStatusAll(status) {
                         ${t.status === 'in_progress' ? `<button class="btn btn-outline-success" onclick="completeTreatment(${t.ticket_id})" title="إكمال العلاج" aria-label="إكمال العلاج"><i class='fas fa-check'></i> <span class='btn-label'>إكمال</span></button>` : ''}
                         <button class="btn btn-outline-danger" onclick="cancelTicket(${t.ticket_id})" title="إلغاء" aria-label="إلغاء التذكرة"><i class='fas fa-times'></i> <span class='btn-label'>إلغاء</span></button>
                         ${t.visit_id ? `<a class="btn btn-outline-secondary" href="/reception/view_visit/${t.visit_id}" title="عرض الزيارة" aria-label="عرض الزيارة"><i class='fas fa-eye'></i> <span class='btn-label'>عرض</span></a>` : ''}
-                        ${t.visit_id ? `<a class="btn btn-outline-secondary" href="/reception/print_receipt/${t.visit_id}" title="طباعة السند" aria-label="طباعة السند"><i class='fas fa-print'></i> <span class='btn-label'>طباعة</span></a>` : ''}
+                        ${t.visit_id && billingActive ? `<a class="btn btn-outline-secondary" href="/reception/print_receipt/${t.visit_id}" title="طباعة السند" aria-label="طباعة السند"><i class='fas fa-print'></i> <span class='btn-label'>طباعة</span></a>` : ''}
                         ${t.visit_id && t.status === 'waiting' ? `<button class="btn btn-outline-info" onclick="transferVisit(${t.visit_id})" title="تحويل لقسم آخر" aria-label="تحويل الزيارة"><i class='fas fa-exchange-alt'></i> <span class='btn-label'>تحويل</span></button>` : ''}
                     </div>
                 </td>

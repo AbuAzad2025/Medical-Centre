@@ -14,9 +14,9 @@ class eMARAdministration(TenantMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='RESTRICT'), nullable=False, index=True)
     visit_id = db.Column(db.Integer, db.ForeignKey('visits.id', ondelete='SET NULL'), nullable=True, index=True)
-    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='RESTRICT'), nullable=False, index=True)
+    prescription_id = db.Column(db.Integer, db.ForeignKey('prescriptions.id', ondelete='SET NULL'), nullable=True, index=True)
     prescription_item_id = db.Column(db.Integer, db.ForeignKey('prescription_items.id', ondelete='CASCADE'), nullable=True, index=True)
-    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='RESTRICT'), nullable=False, index=True)
+    medication_id = db.Column(db.Integer, db.ForeignKey('medications.id', ondelete='SET NULL'), nullable=True, index=True)
 
     # Administration details
     scheduled_time = db.Column(db.DateTime, nullable=False)

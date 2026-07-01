@@ -61,7 +61,7 @@ def _skip_table(model_class) -> bool:
         'tenants', 'subscription_plans', 'alembic_version',
         'module_definitions', 'notification_rules',
         'roles', 'permissions', 'role_permissions', 'user_permissions', 'module_permissions', 'department_permissions',
-        'system_configs', 'branding_settings', 'system_themes',
+        'system_configs', 'branding_settings',
         'icd10_codes', 'cpt_codes', 'drg_codes',
         'product_bundles', 'platform_audit_logs',
     }

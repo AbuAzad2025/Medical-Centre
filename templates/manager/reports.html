@@ -34,6 +34,7 @@
                                 </div>
                             </div>
                         </div>
+                        {% if module_active('billing') %}
                         <div class="col-md-3 mb-3">
                             <div class="report-category-card">
                                 <div class="category-icon">
@@ -48,6 +49,7 @@
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
                         <div class="col-md-3 mb-3">
                             <div class="report-category-card">
                                 <div class="category-icon">
@@ -156,7 +158,7 @@
                                         <option value="">اختر نوع التقرير</option>
                                         <option value="patients">المرضى</option>
                                         <option value="visits">الزيارات</option>
-                                        <option value="financial">المالي</option>
+                                        {% if module_active('billing') %}<option value="financial">المالي</option>{% endif %}
                                         <option value="doctors">الأطباء</option>
                                         <option value="departments">الأقسام</option>
                                     </select>
