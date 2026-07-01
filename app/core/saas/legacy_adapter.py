@@ -21,11 +21,41 @@ class LegacyEntitlementAdapter:
     def is_entitled(cls, tenant, capability_key: str) -> bool:
         if tenant is None:
             return False
+        # Cross-check: the capability's owning module must be in the tenant's bundle
+        if not cls._bundle_allows_capability(tenant, capability_key):
+            return False
         for module_name in cls._active_module_names(tenant.id, tenant):
             meta = MODULE_REGISTRY.get(module_name)
             if meta and capability_key in meta.capabilities:
                 return True
         return False
+
+    @classmethod
+    def _bundle_allows_capability(cls, tenant, capability_key: str) -> bool:
+        """Return False if the tenant's product bundle excludes the capability's module."""
+        # Determine which module owns this capability
+        module_name = None
+        for name, meta in MODULE_REGISTRY.items():
+            if capability_key in meta.capabilities:
+                module_name = name
+                break
+        if module_name is None:
+            return True  # Unknown capability — don't block
+
+        profile_code = getattr(tenant, "product_profile_code", None)
+        if not profile_code:
+            return True  # No profile — don't block
+
+        from app.core.tenant.models import get_bundle_for_profile, _PRODUCT_PROFILE_SEED
+
+        bundle = get_bundle_for_profile(profile_code)
+        if bundle:
+            bundle_modules = bundle.get_modules()
+        else:
+            profile = _PRODUCT_PROFILE_SEED.get(profile_code, {})
+            bundle_modules = profile.get("modules", [])
+
+        return module_name in bundle_modules
 
     @classmethod
     def get_limits(cls, tenant_id: int) -> dict[str, Optional[int]]:

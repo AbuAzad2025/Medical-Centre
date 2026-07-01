@@ -347,7 +347,7 @@
 {% block extra_js %}
 <script>
         window.__M = window.__M || [];
-        __M0__='{{ current_user.role }}'; __M1__={{ 'null' if current_user.role != 'doctor' else current_user.id }};
+        __M0__='{{ current_user.role }}'; __M1__={{ 'null' if current_user.role != 'doctor' else current_user.id }}; __M2__={{ 'true' if billing_active else 'false' }};
         </script>
 <script src="{{ url_for('static', filename='js/pages/reception/queue_management.js') }}"></script>
 {% endblock %}

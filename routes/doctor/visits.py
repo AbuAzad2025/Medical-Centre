@@ -119,6 +119,13 @@ def start_treatment(visit_id):
         flash('حدث خطأ في بدء العلاج', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
+def _get_patient_allergies(patient_id):
+    try:
+        from models.patient import PatientAllergy
+        return PatientAllergy.query.filter_by(patient_id=patient_id).all()
+    except Exception:
+        return []
+
 def _get_patient_medical_records(patient_id):
     try:
         return MedicalRecord.query.filter(MedicalRecord.patient_id == patient_id).order_by(desc(MedicalRecord.created_at)).limit(10).all()
@@ -328,6 +335,7 @@ def patient_details(visit_id):
                              lab_notes_count=lab_notes_count,
                              radiology_notes_count=radiology_notes_count,
                              general_notes_count=general_notes_count,
+                             patient_allergies=_get_patient_allergies(visit.patient_id),
                              clinical_warnings=clinical_warnings,
                              standardized_pathways=standardized_pathways,
                              data_recommendations=data_recommendations)

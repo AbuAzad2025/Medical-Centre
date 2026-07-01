@@ -27,6 +27,11 @@ from models.system_config import SystemConfig
 
 doctor_bp = Blueprint('doctor', __name__)
 
+from services.feature_gate_service import guard_module
+
+@doctor_bp.before_request
+def _guard_doctor_module():
+    guard_module('doctor')
 
 @doctor_bp.route('/')
 @login_required

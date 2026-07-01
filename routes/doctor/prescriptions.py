@@ -402,6 +402,47 @@ def print_prescription(prescription_id):
 @login_required
 @role_required('doctor', 'admin', 'manager')
 def prescriptions():
-    """الوصفات الطبية"""
-    
-    return render_template('doctor/prescriptions.html')
+    """الوصفات الطبية — قائمة الوصفات الخاصة بالطبيب"""
+    try:
+        from sqlalchemy import func
+        from models.visit import Visit
+        from models.medication import Prescription
+        from app.shared.enums import OrderState
+
+        today = date.today()
+        page = request.args.get('page', 1, type=int)
+        per_page = 20
+
+        # Base query: prescriptions for this doctor's visits
+        query = Prescription.query.join(Visit).filter(
+            Visit.doctor_id == current_user.id
+        ).order_by(Prescription.created_at.desc())
+
+        total = query.count()
+        prescriptions = query.offset((page - 1) * per_page).limit(per_page).all()
+        pages = (total + per_page - 1) // per_page if total > 0 else 1
+
+        # Stats
+        today_count = Prescription.query.join(Visit).filter(
+            Visit.doctor_id == current_user.id,
+            func.date(Prescription.created_at) == today
+        ).count()
+
+        week_count = Prescription.query.join(Visit).filter(
+            Visit.doctor_id == current_user.id,
+            Prescription.created_at >= today - timedelta(days=7)
+        ).count()
+
+        return render_template(
+            'doctor/prescriptions.html',
+            prescriptions=prescriptions,
+            today_count=today_count,
+            week_count=week_count,
+            total=total,
+            page=page,
+            pages=pages,
+        )
+    except Exception as e:
+        logging.error(f"Error loading prescriptions: {str(e)}")
+        flash('حدث خطأ في تحميل الوصفات', 'error')
+        return redirect(url_for('doctor.dashboard'))

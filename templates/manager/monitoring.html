@@ -131,7 +131,7 @@
                                                 <span class="stat-label">طلبات الأشعة:</span>
                                                 <span id="stat-radiology-radiology_requests" class="stat-value">{{ unit.radiology_requests }}</span>
                                             </div>
-                                        {% elif unit_key == 'accountant' %}
+                                        {% elif unit_key == 'accountant' and module_active('billing') %}
                                             <div class="stat-item">
                                                 <span class="stat-label">الفواتير المفتوحة:</span>
                                                 <span id="stat-accountant-open_invoices" class="stat-value">{{ unit.open_invoices }}</span>

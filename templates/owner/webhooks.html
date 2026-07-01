@@ -1,66 +1,143 @@
-{% extends "owner/base.html" %}
-{% block title %}Webhooks{% endblock %}
-{% block content %}
-<div class="container-fluid">
-    <div class="row mb-3 align-items-center">
-        <div class="col">
-            <h4><i class="fas fa-plug me-2 text-dark"></i>Webhooks</h4>
-            <p class="text-muted small mb-0">نقاط نهاية الأحداث — لإدارة API Keys انتقل إلى <a href="{{ url_for('owner.owner_api_keys_page') }}">صفحة المفاتيح</a>.</p>
+{% extends "owner/base_modern.html" %}
+
+{% block header_title %}نقاط الـ Webhook والربط التلقائي{% endblock %}
+
+{% block header_actions %}
+<div class="d-flex gap-2">
+    <a href="{{ url_for('owner.owner_api_keys_page') }}" class="owner-btn owner-btn-outline-primary">
+        <i class="fas fa-key"></i> إدارة مفاتيح API
+    </a>
+    <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
+        <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+    </a>
+</div>
+{% endblock %}
+
+{% block content_modern %}
+<!-- Info Alert Section -->
+<div class="owner-card animate-fadeInUp delay-1 mb-4 owner-card-glass border-0">
+    <div class="owner-card-body d-flex align-items-center gap-3">
+        <div class="rounded-circle bg-primary-light text-primary d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; flex-shrink: 0;">
+            <i class="fas fa-plug fa-lg"></i>
+        </div>
+        <div>
+            <h6 class="fw-bold mb-1">ما هي نقاط الـ Webhook؟</h6>
+            <p class="text-muted small mb-0">
+                تسمح لك نقاط الـ Webhook بإرسال تنبيهات تلقائية مشفرة فورا إلى الخوادم الخارجية بمجرد حدوث أفعال معينة في المنصة (مثل إنشاء عميل جديد أو تجديد اشتراك).
+            </p>
         </div>
     </div>
-    <div class="row g-3">
-        <div class="col-lg-5">
-            <div class="card h-100">
-                <div class="card-header fw-bold">إضافة Webhook</div>
-                <div class="card-body">
-                    <form method="post" action="{{ url_for('owner.owner_webhooks') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <div class="mb-3">
-                            <label class="form-label">الاسم</label>
-                            <input type="text" name="name" class="form-control" required>
+</div>
+
+<!-- Main Grid -->
+<div class="row g-4 animate-fadeInUp delay-2">
+    <!-- Webhook Creation Section -->
+    <div class="col-lg-5">
+        <div class="owner-card h-100">
+            <div class="owner-card-header">
+                <h6 class="owner-card-title">
+                    <i class="fas fa-plus-circle text-primary me-2"></i>
+                    إضافةWebhook جديد
+                </h6>
+            </div>
+            <div class="owner-card-body">
+                <form method="post" action="{{ url_for('owner.owner_webhooks') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="owner-form-group">
+                        <label class="owner-form-label">الاسم المعرف</label>
+                        <input type="text" name="name" class="owner-input" placeholder="e.g. نظام محاسبة خارجي" required>
+                    </div>
+
+                    <div class="owner-form-group">
+                        <label class="owner-form-label">رابط استقبال البيانات (URL)</label>
+                        <input type="url" name="url" class="owner-input" placeholder="https://api.yourdomain.com/webhooks" required>
+                    </div>
+
+                    <div class="owner-form-group">
+                        <label class="owner-form-label">الأحداث المستهدفة (Events)</label>
+                        <input type="text" name="events" class="owner-input" placeholder="e.g. tenant.created, subscription.renewed">
+                        <div class="mt-2 text-muted x-small">
+                            <i class="fas fa-info-circle me-1"></i> افصل بين الأحداث بفاصلة، أو اتركها فارغة للاستماع لكافة الأحداث.
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">الرابط (URL)</label>
-                            <input type="url" name="url" class="form-control" placeholder="https://..." required>
+                    </div>
+
+                    <div class="owner-form-group">
+                        <label class="owner-form-label">مفتاح التوقيع السري (Secret Key)</label>
+                        <input type="text" name="secret" class="owner-input" placeholder="whsec_...">
+                        <div class="mt-2 text-muted x-small">
+                            <i class="fas fa-lock me-1"></i> يستخدم لتوقيع الحمولة والتحقق من موثوقية الرسالة المستلمة.
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">الأحداث</label>
-                            <input type="text" name="events" class="form-control" placeholder="tenant.created, subscription.renewed">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">السر</label>
-                            <input type="text" name="secret" class="form-control" placeholder="whsec_...">
-                        </div>
-                        <button type="submit" class="btn btn-success">إضافة</button>
-                    </form>
-                </div>
+                    </div>
+
+                    <button type="submit" class="owner-btn owner-btn-success w-100 mt-4">
+                        <i class="fas fa-check-circle me-2"></i> إضافة نقطة النهاية
+                    </button>
+                </form>
             </div>
         </div>
-        <div class="col-lg-7">
-            <div class="card">
-                <div class="card-header fw-bold">قائمة Webhooks</div>
-                <div class="card-body p-0">
-                    <table class="table table-sm mb-0">
-                        <thead><tr><th>الاسم</th><th>الرابط</th><th>الأحداث</th><th>الإجراءات</th></tr></thead>
-                        <tbody>
+    </div>
+
+    <!-- Webhook List Section -->
+    <div class="col-lg-7">
+        <div class="owner-card h-100">
+            <div class="owner-card-header">
+                <h6 class="owner-card-title">
+                    <i class="fas fa-list-ul text-success me-2"></i>
+                    قائمة الـ Webhooks النشطة
+                </h6>
+                <span class="badge bg-success-light text-success x-small">{{ webhooks|length }} نقطة نشطة</span>
+            </div>
+            <div class="table-responsive">
+                <table class="owner-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>الاسم المعرف</th>
+                            <th>رابط الاستقبال</th>
+                            <th>الأحداث</th>
+                            <th class="text-end">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                         {% for w in webhooks %}
                         <tr>
-                            <td>{{ w.name }}</td>
-                            <td class="small">{{ w.url }}</td>
-                            <td class="small">{{ w.events }}</td>
                             <td>
-                                <form method="post" action="{{ url_for('owner.owner_delete_webhook', webhook_id=w.id) }}" style="display:inline">
+                                <div class="fw-bold text-primary">{{ w.name }}</div>
+                            </td>
+                            <td>
+                                <code class="small text-muted font-monospace" style="word-break: break-all;">{{ w.url }}</code>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% if w.events %}
+                                        {% for ev in w.events.split(',') %}
+                                        <span class="badge bg-light text-dark border x-small">{{ ev.strip() }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="badge bg-info-light text-info x-small">كل الأحداث</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <form method="post" action="{{ url_for('owner.owner_delete_webhook', webhook_id=w.id) }}" class="d-inline" onsubmit="return confirm('⚠️ هل أنت متأكد من حذف نقطة الـ Webhook هذه؟ سيتوقف نقل البيانات التلقائي للرابط المذكور فوراً.');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف الـ Webhook؟')"><i class="fas fa-trash"></i></button>
+                                    <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="حذف الـ Webhook">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
                                 </form>
                             </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="4" class="text-muted text-center py-4">لا Webhooks مسجّلة</td></tr>
+                        <tr>
+                            <td colspan="4" class="owner-empty py-5">
+                                <i class="fas fa-plug fa-3x text-muted opacity-25"></i>
+                                <h5 class="mt-3">لا توجد نقاط Webhook مسجّلة</h5>
+                                <p class="small text-muted">استخدم النموذج الجانبي لإضافة أول نقطة ربط خارجي.</p>
+                            </td>
+                        </tr>
                         {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

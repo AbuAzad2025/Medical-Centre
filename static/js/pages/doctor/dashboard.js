@@ -5,6 +5,10 @@ const panelContainer = document.getElementById('doctorPanels');
 const settingsList = document.getElementById('dashboardSettingsList');
 const saveSettingsBtn = document.getElementById('saveDashboardSettings');
 
+/* ═══════════════════════════════════════
+   Dashboard Layout — Customizable Panels
+   ═══════════════════════════════════════ */
+
 function applyLayout(items) {
     const map = {};
     (items || []).forEach(it => map[it.id] = it);
@@ -20,7 +24,7 @@ function applyLayout(items) {
 
 function renderSettings(items) {
     settingsList.innerHTML = '';
-    (items || []).sort((a,b) => (a.order || 0) - (b.order || 0)).forEach(item => {
+    (items || []).sort((a, b) => (a.order || 0) - (b.order || 0)).forEach(item => {
         const row = document.createElement('div');
         row.className = 'd-flex align-items-center justify-content-between border rounded p-2 mb-2';
         row.innerHTML = `
@@ -81,12 +85,56 @@ if (saveSettingsBtn) {
     saveSettingsBtn.addEventListener('click', saveLayout);
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    loadLayout();
-});
+/* ═══════════════════════════════════════
+   Live Stats Polling — dashboard-new
+   ═══════════════════════════════════════ */
+
+let statsPolling = null;
+const STATS_POLL_INTERVAL_MS = 30000; // 30 seconds
+
+async function refreshDashboardStats() {
+    try {
+        const r = await fetch('/doctor/api/dashboard-stats');
+        const data = await r.json().catch(() => ({}));
+        if (!data || !data.success || !data.stats) return;
+
+        const s = data.stats;
+        const update = (selector, value) => {
+            const el = document.querySelector(selector);
+            if (el) el.textContent = value ?? 0;
+        };
+        update('[data-stat="today-visits"]', s.today_visits);
+        update('[data-stat="waiting"]', s.waiting_patients);
+        update('[data-stat="in-progress"]', s.in_progress);
+        update('[data-stat="completed"]', s.completed_today);
+        update('[data-stat="prescriptions"]', s.prescriptions_today);
+        update('[data-stat="appointments"]', s.appointments_today);
+        update('[data-stat="pending-lab"]', s.pending_lab);
+        update('[data-stat="pending-radiology"]', s.pending_radiology);
+    } catch (err) {
+        // Silently fail on polling errors
+    }
+}
+
+function startStatsPolling() {
+    if (statsPolling) clearInterval(statsPolling);
+    refreshDashboardStats();
+    statsPolling = setInterval(refreshDashboardStats, STATS_POLL_INTERVAL_MS);
+}
+
+function stopStatsPolling() {
+    if (statsPolling) {
+        clearInterval(statsPolling);
+        statsPolling = null;
+    }
+}
+
+/* ═══════════════════════════════════════
+   Keyboard Shortcuts
+   ═══════════════════════════════════════ */
 
 document.addEventListener('keydown', function(e) {
-    if (e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+    if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
     if (e.altKey && e.key.toLowerCase() === 'q') {
         window.location.href = __M2__;
     }
@@ -98,5 +146,26 @@ document.addEventListener('keydown', function(e) {
     }
     if (e.altKey && e.key.toLowerCase() === 'a') {
         window.location.href = __M5__;
+    }
+});
+
+/* ═══════════════════════════════════════
+   Init
+   ═══════════════════════════════════════ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadLayout();
+    // Only start polling on pages that have stat elements
+    if (document.querySelector('[data-stat]')) {
+        startStatsPolling();
+    }
+});
+
+// Stop polling when tab is hidden to save resources
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        stopStatsPolling();
+    } else if (document.querySelector('[data-stat]')) {
+        startStatsPolling();
     }
 });

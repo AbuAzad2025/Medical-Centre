@@ -1,6 +1,7 @@
 var __M = window.__M || [];
 
 var ROLE = __M0__;
+var billingActive = __M1__;
 (function() {
     if (!["reception", "manager"].includes(ROLE)) return;
 function viewVisit(visitId) {
@@ -15,6 +16,7 @@ function processPayment(visitId) {
 
 function printReceipt(visitId) {
     // طباعة الوصل
+    if (typeof billingActive !== 'undefined' && !billingActive) return;
     window.open(`/reception/print_receipt/${visitId}`, '_blank');
 }
 

@@ -1,166 +1,235 @@
-{% extends "owner/base.html" %}
-{% block title %}إدارة الاشتراكات{% endblock %}
-{% block content %}
-<div class="container-fluid">
-    <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-sync-alt me-2 text-primary"></i>إدارة الاشتراكات</h4></div>
-        <div class="col-auto">
-            <a href="{{ url_for('owner.owner_provision') }}" class="btn btn-success btn-sm"><i class="fas fa-plus me-1"></i> إنشاء عميل</a>
-            <a href="{{ url_for('owner.owner_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-right me-1"></i> العودة</a>
-        </div>
+{% extends "owner/base_modern.html" %}
+
+{% block header_title %}إدارة الاشتراكات{% endblock %}
+
+{% block header_actions %}
+<div class="d-flex gap-2">
+    <a href="{{ url_for('owner.owner_provision') }}" class="owner-btn owner-btn-success">
+        <i class="fas fa-plus"></i> إنشاء عميل جديد
+    </a>
+    <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
+        <i class="fas fa-arrow-right"></i> العودة
+    </a>
+</div>
+{% endblock %}
+
+{% block content_modern %}
+<!-- Subscriptions Overview Card -->
+<div class="owner-card animate-fadeInUp delay-1 mb-4 owner-card-glass">
+    <div class="owner-card-header">
+        <h6 class="owner-card-title"><i class="fas fa-sync-alt text-primary"></i> إدارة اشتراكات العملاء</h6>
+        <div class="small text-muted">التحكم في الباقات الأساسية والإضافات</div>
     </div>
-
-    <div class="card">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>العميل</th>
-                            <th>الاشتراك الأساسي</th>
-                            <th>الإضافات</th>
-                            <th>الحالة</th>
-                            <th>الفترة الحالية</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for t in tenants %}
-                        {% set base_line = t.subscription_lines|selectattr('line_type', 'equalto', SubscriptionLineType.BASE)|selectattr('status', 'equalto', SubscriptionLineStatus.ACTIVE)|first %}
-                        {% set addons = t.subscription_lines|selectattr('line_type', 'equalto', SubscriptionLineType.ADDON)|list %}
-                        <tr>
-                            <td>
-                                <a href="{{ url_for('owner.owner_tenant_detail', tenant_id=t.id) }}" class="fw-bold text-decoration-none">{{ t.name }}</a>
-                                <div class="small text-muted">{{ t.slug }}</div>
-                            </td>
-                            <td>
-                                {% if base_line %}
-                                    {{ base_line.package_version.package.name }} v{{ base_line.package_version.version }}
-                                    <div class="small text-muted">{{ base_line.billing_type }} · {{ "%.2f"|format(base_line.unit_price|float) }} {{ 'SAR' }}</div>
-                                {% else %}
-                                    <span class="text-muted">لا يوجد</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if addons %}
-                                    {% for a in addons %}
-                                    <span class="badge bg-info me-1">{{ a.package_version.package.name }}</span>
-                                    {% endfor %}
-                                {% else %}
-                                    <span class="text-muted">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span class="badge bg-{{ 'success' if t.status.value == 'active' else 'warning' if t.status.value == 'trial' else 'secondary' }}">{{ t.status.value }}</span>
-                            </td>
-                            <td>
-                                {% if base_line and base_line.current_period_start and base_line.current_period_end %}
-                                    {{ base_line.current_period_start }} → {{ base_line.current_period_end }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="d-flex flex-wrap gap-1">
-                                    {% if t.status.value != 'cancelled' %}
-                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#upgradeModal{{ t.id }}">ترقية</button>
-                                    <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#addonModal{{ t.id }}">إضافة</button>
-                                    <form method="post" action="{{ url_for('owner.owner_renew_subscription', tenant_id=t.id) }}" class="d-inline">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-success">تجديد</button>
-                                    </form>
-                                    {% if t.status.value == 'suspended' %}
-                                    <a href="{{ url_for('owner.owner_activate_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-success">تفعيل</a>
-                                    {% else %}
-                                    <a href="{{ url_for('owner.owner_suspend_tenant', tenant_id=t.id) }}" class="btn btn-sm btn-outline-warning" data-action="confirm-navigate" data-message="تأكيد الإيقاف؟">إيقاف</a>
-                                    {% endif %}
-                                    <form method="post" action="{{ url_for('owner.owner_cancel_subscription', tenant_id=t.id) }}" class="d-inline">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="button" class="btn btn-sm btn-outline-danger" data-action="confirm-submit" data-message="تأكيد إلغاء الاشتراك؟">إلغاء</button>
-                                    </form>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Upgrade Modal -->
-                        <div class="modal fade" id="upgradeModal{{ t.id }}" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <form method="post" action="{{ url_for('owner.owner_upgrade_subscription', tenant_id=t.id) }}">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">ترقية — {{ t.name }}</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="mb-3">
-                                                <label class="form-label">Package Version جديد</label>
-                                                <select name="package_version_id" class="form-select" required>
-                                                    {% for v in package_versions %}
-                                                    <option value="{{ v.id }}">{{ v.package.name }} v{{ v.version }} ({{ v.package.category }})</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">نوع الفوترة</label>
-                                                <select name="billing_type" class="form-select">
-                                                    <option value="monthly">شهري</option>
-                                                    <option value="yearly">سنوي</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                                            <button type="submit" class="btn btn-primary">ترقية</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Addon Modal -->
-                        <div class="modal fade" id="addonModal{{ t.id }}" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <form method="post" action="{{ url_for('owner.owner_add_addon', tenant_id=t.id) }}">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">إضافة Add-on — {{ t.name }}</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="mb-3">
-                                                <label class="form-label">Package Version (Add-on)</label>
-                                                <select name="package_version_id" class="form-select" required>
-                                                    {% for v in package_versions if v.package.category == 'addon' %}
-                                                    <option value="{{ v.id }}">{{ v.package.name }} v{{ v.version }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">نوع الفوترة</label>
-                                                <select name="billing_type" class="form-select">
-                                                    <option value="monthly">شهري</option>
-                                                    <option value="yearly">سنوي</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                                            <button type="submit" class="btn btn-primary">إضافة</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
+    <div class="table-responsive">
+        <table class="owner-table mb-0">
+            <thead>
+                <tr>
+                    <th>العميل</th>
+                    <th>الاشتراك الأساسي</th>
+                    <th>الإضافات (Add-ons)</th>
+                    <th>الحالة</th>
+                    <th>الفترة الحالية</th>
+                    <th class="text-end">الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tenants %}
+                {% set base_line = t.subscription_lines|selectattr('line_type', 'equalto', SubscriptionLineType.BASE)|selectattr('status', 'equalto', SubscriptionLineStatus.ACTIVE)|first %}
+                {% set addons = t.subscription_lines|selectattr('line_type', 'equalto', SubscriptionLineType.ADDON)|list %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('owner.owner_tenant_detail', tenant_id=t.id) }}" class="fw-bold text-decoration-none text-dark">
+                            {{ t.name }}
+                        </a>
+                        <div class="x-small text-muted">{{ t.slug }}</div>
+                    </td>
+                    <td>
+                        {% if base_line %}
+                            <div class="fw-bold text-primary">{{ base_line.package_version.package.name }}</div>
+                            <div class="x-small text-muted">v{{ base_line.package_version.version }} | {{ base_line.billing_type }}</div>
                         {% else %}
-                        <tr><td colspan="6" class="text-center text-muted py-4">لا توجد اشتراكات</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                            <span class="text-muted italic small">لا يوجد اشتراك أساسي</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% if addons %}
+                                {% for a in addons %}
+                                <span class="badge bg-info-light text-info x-small">
+                                    <i class="fas fa-plus-circle"></i> {{ a.package_version.package.name }}
+                                </span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted x-small">-</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if t.status.value == 'active' %}
+                            <span class="owner-badge owner-badge-live">نشط</span>
+                        {% elif t.status.value == 'trial' %}
+                            <span class="owner-badge owner-badge-trial">تجريبي</span>
+                        {% elif t.status.value == 'suspended' %}
+                            <span class="owner-badge owner-badge-suspended">موقوف</span>
+                        {% else %}
+                            <span class="owner-badge owner-badge-expired">{{ t.status.value }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if base_line and base_line.current_period_start and base_line.current_period_end %}
+                            <div class="small fw-medium">{{ base_line.current_period_start.strftime('%Y-%m-%d') }}</div>
+                            <div class="x-small text-muted">إلى {{ base_line.current_period_end.strftime('%Y-%m-%d') }}</div>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1">
+                            {% if t.status.value != 'cancelled' %}
+                                <!-- Upgrade -->
+                                <button class="owner-btn owner-btn-sm owner-btn-outline" data-bs-toggle="modal" data-bs-target="#upgradeModal{{ t.id }}" title="ترقية الباقة">
+                                    <i class="fas fa-arrow-up"></i>
+                                </button>
+                                
+                                <!-- Addon -->
+                                <button class="owner-btn owner-btn-sm owner-btn-outline" data-bs-toggle="modal" data-bs-target="#addonModal{{ t.id }}" title="إضافة ميزة">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+
+                                <!-- Renew -->
+                                <form method="post" action="{{ url_for('owner.owner_renew_subscription', tenant_id=t.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد من تجديد هذا الاشتراك؟');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-success" title="تجديد الاشتراك">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </form>
+
+                                {% if t.status.value == 'suspended' %}
+                                    <a href="{{ url_for('owner.owner_activate_tenant', tenant_id=t.id) }}" class="owner-btn owner-btn-sm owner-btn-outline-success" title="تفعيل">
+                                        <i class="fas fa-play"></i>
+                                    </a>
+                                {% else %}
+                                    <button class="owner-btn owner-btn-sm owner-btn-outline-warning" data-bs-toggle="modal" data-bs-target="#suspendModal{{ t.id }}" title="إيقاف">
+                                        <i class="fas fa-pause"></i>
+                                    </button>
+                                {% endif %}
+
+                                <!-- Cancel -->
+                                <form method="post" action="{{ url_for('owner.owner_cancel_subscription', tenant_id=t.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد من إلغاء اشتراك {{ t.name }}؟');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="إلغاء الاشتراك">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+
+                {# --- MODALS --- #}
+
+                <!-- Upgrade Modal -->
+                <div class="modal fade owner-modal" id="upgradeModal{{ t.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <form method="post" action="{{ url_for('owner.owner_upgrade_subscription', tenant_id=t.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"><i class="fas fa-arrow-up me-2 text-primary"></i>ترقية الاشتراك: {{ t.name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="owner-form-group">
+                                        <label class="owner-form-label">اختر الباقة الجديدة (Package Version)</label>
+                                        <select name="package_version_id" class="owner-select" required>
+                                            <option value="" disabled selected>اختر الإصدار...</option>
+                                            {% for v in package_versions %}
+                                                <option value="{{ v.id }}">{{ v.package.name }} v{{ v.version }} ({{ v.package.category }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="owner-form-group">
+                                        <label class="owner-form-label">نوع الفوترة</label>
+                                        <select name="billing_type" class="owner-select">
+                                            <option value="monthly">شهري (Monthly)</option>
+                                            <option value="yearly">سنوي (Yearly)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="owner-btn owner-btn-outline" data-bs-dismiss="modal">إلغاء</button>
+                                    <button type="submit" class="owner-btn owner-btn-primary">تأكيد الترقية</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Addon Modal -->
+                <div class="modal fade owner-modal" id="addonModal{{ t.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <form method="post" action="{{ url_for('owner.owner_add_addon', tenant_id=t.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"><i class="fas fa-plus-circle me-2 text-info"></i>إضافة ميزة (Add-on): {{ t.name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="owner-form-group">
+                                        <label class="owner-form-label">اختر الميزة (Add-on Package)</label>
+                                        <select name="package_version_id" class="owner-select" required>
+                                            <option value="" disabled selected>اختر الميزة...</option>
+                                            {% for v in package_versions if v.package.category == 'addon' %}
+                                                <option value="{{ v.id }}">{{ v.package.name }} v{{ v.version }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="owner-form-group">
+                                        <label class="owner-form-label">نوع الفوترة</label>
+                                        <select name="billing_type" class="owner-select">
+                                            <option value="monthly">شهري</option>
+                                            <option value="yearly">سنوي</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="owner-btn owner-btn-outline" data-bs-dismiss="modal">إلغاء</button>
+                                    <button type="submit" class="owner-btn owner-btn-primary">إضافة الميزة</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Suspend Confirmation Modal -->
+                {% if t.status.value != 'suspended' %}
+                <div class="modal fade owner-modal" id="suspendModal{{ t.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning-light">
+                                <h5 class="modal-title text-warning"><i class="fas fa-exclamation-triangle me-2"></i>تأكيد إيقاف الاشتراك</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>هل أنت متأكد من رغبتك في إيقاف اشتراك <strong>{{ t.name }}</strong>؟</p>
+                                <p class="small text-muted">لن يتمكن العميل من الوصول إلى المنصة بعد هذه الخطوة.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="owner-btn owner-btn-outline" data-bs-dismiss="modal">إلغاء</button>
+                                <form method="post" action="{{ url_for('owner.owner_suspend_tenant', tenant_id=t.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="owner-btn owner-btn-danger">تأكيد الإيقاف</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

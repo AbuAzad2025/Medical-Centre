@@ -3,17 +3,93 @@
 {% block content %}
 <div class="container-fluid">
   <h2 class="mb-3"><i class="fas fa-calendar-alt me-2"></i> المواعيد</h2>
+  <!-- Stats Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card card-stat bg-primary">
+        <div class="icon-bg"><i class="fas fa-calendar"></i></div>
+        <h6>إجمالي المواعيد</h6>
+        <h3>{{ total or 0 }}</h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card card-stat bg-success">
+        <div class="icon-bg"><i class="fas fa-check-circle"></i></div>
+        <h6>مواعيد اليوم</h6>
+        <h3>{{ today_count or 0 }}</h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card card-stat bg-warning">
+        <div class="icon-bg"><i class="fas fa-clock"></i></div>
+        <h6>قادمة</h6>
+        <h3>{{ upcoming_count or 0 }}</h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card card-stat bg-info">
+        <div class="icon-bg"><i class="fas fa-user-check"></i></div>
+        <h6>تم تأكيدها</h6>
+        <h3>{{ confirmed_count or 0 }}</h3>
+      </div>
+    </div>
+  </div>
   <div class="card shadow-sm"><div class="card-body">
     <div class="table-responsive">
-      <table class="table table-striped"><thead><tr><th>#</th><th>المريض</th><th>التاريخ</th><th>الوقت</th><th>الحالة</th></tr></thead><tbody>
-        {% for a in appointments or [] %}
-        <tr><td>{{ a.id }}</td><td>{{ a.patient.full_name if a.patient else '' }}</td><td>{{ a.starts_at.date() if a.starts_at else '' }}</td><td>{{ a.starts_at.strftime('%H:%M') if a.starts_at else '' }}</td><td>{{ a.status | enum_label('AppointmentState') }}</td></tr>
-        {% else %}
-        <tr><td colspan="5" class="text-center">لا توجد مواعيد</td></tr>
-        {% endfor %}
-      </tbody></table>
+      <table class="table table-striped align-middle">
+        <thead class="table-light">
+          <tr><th>#</th><th>المريض</th><th>التاريخ</th><th>الوقت</th><th>الحالة</th><th>الإجراءات</th></tr>
+        </thead>
+        <tbody>
+          {% for a in appointments or [] %}
+          <tr>
+            <td>{{ a.id }}</td>
+            <td>
+              {% if a.patient %}
+                <div class="d-flex align-items-center">
+                  <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;font-size:14px;">
+                    {{ a.patient.full_name[0] }}
+                  </div>
+                  <div>
+                    <div class="fw-bold">{{ a.patient.full_name }}</div>
+                    <small class="text-muted">{{ a.patient.phone or '' }}</small>
+                  </div>
+                </div>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td>{{ a.starts_at.date() if a.starts_at else '—' }}</td>
+            <td>{{ a.starts_at.strftime('%H:%M') if a.starts_at else '—' }}</td>
+            <td>
+              <span class="badge bg-{% if a.status=='CHECKED_IN' %}success{% elif a.status=='CONFIRMED' %}primary{% elif a.status=='CANCELLED' %}danger{% else %}secondary{% endif %}">
+                {{ a.status | enum_label('AppointmentState') }}
+              </span>
+            </td>
+            <td>
+              {% if a.visit_id %}
+                <a href="{{ url_for('doctor.patient_details', visit_id=a.visit_id) }}" class="btn btn-sm btn-outline-primary">الزيارة</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-center py-4 text-muted">
+            <i class="fas fa-calendar-times fa-2x mb-2"></i>
+            <p>لا توجد مواعيد</p>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+    {% if pages and pages > 1 %}
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <div class="text-muted small">صفحة {{ page }} من {{ pages }}</div>
+      <div class="btn-group btn-group-sm">
+        <a href="{{ url_for('doctor.appointments', page=page-1) }}" class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}">السابق</a>
+        <a href="{{ url_for('doctor.appointments', page=page+1) }}" class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}">التالي</a>
+      </div>
+    </div>
+    {% endif %}
   </div></div>
 </div>
 {% endblock %}
-

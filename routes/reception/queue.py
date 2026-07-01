@@ -4,7 +4,7 @@ from routes.reception import reception_bp
 
 # Imports
  
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, g
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from datetime import datetime, timezone
@@ -75,11 +75,13 @@ def queue_management():
             s = QueueSettings.query.filter_by(department_id=dept.id).first()
             settings_map[dept.id] = s.to_dict() if s else None
         can_manage_queue_settings = AccessControlService.has_permission(current_user, 'queue_settings_manage')
+        billing_active = 'billing' in getattr(g, 'enabled_modules', set())
         return render_template('reception/queue_management.html', 
                              departments=departments,
                              all_departments=all_departments if current_user.role in ['reception', 'super_admin', 'manager'] else departments,
                              queue_settings=settings_map,
-                             can_manage_queue_settings=can_manage_queue_settings)
+                             can_manage_queue_settings=can_manage_queue_settings,
+                             billing_active=billing_active)
     except Exception as e:
         logging.error(f"Error loading queue management: {str(e)}")
         flash('حدث خطأ في تحميل إدارة الطابور', 'error')

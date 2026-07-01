@@ -11,17 +11,31 @@ Composes with existing role/permission decorators:
 from functools import wraps
 
 from flask import abort, g, current_app
+from flask_login import current_user
 
 from app.core.saas.resolver import EntitlementResolver
 
 
+def _is_admin_user() -> bool:
+    """True if the current user is a global super_admin bypassing tenant restrictions."""
+    try:
+        return current_user.is_authenticated and current_user.role == "super_admin"
+    except Exception:
+        return False
+
+
 def require_entitlement(capability_key: str):
-    """Route decorator: abort 403 if current tenant lacks the capability."""
+    """Route decorator: abort 403 if current tenant lacks the capability.
+    Admin and super_admin bypass all entitlement checks.
+    """
 
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            if not current_app.config.get('ENABLE_SAAS_MODE', False):
+            if not current_app.config.get("ENABLE_SAAS_MODE", False):
+                return f(*args, **kwargs)
+
+            if _is_admin_user():
                 return f(*args, **kwargs)
 
             from app.core.tenant.service import TenantContextService

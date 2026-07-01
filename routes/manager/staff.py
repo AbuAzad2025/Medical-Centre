@@ -3,7 +3,7 @@
 from routes.manager import manager_bp
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for
+from flask import render_template, request, jsonify, flash, redirect, url_for, g
 from flask_login import login_required, current_user
 from utils.decorators import manager_or_admin_only, can_approve_force_payment, prevent_self_approval, role_required, role_required_json
 from models.patient import Patient
@@ -23,34 +23,136 @@ from decimal import Decimal, ROUND_HALF_UP
 import logging
 from datetime import datetime, date, timedelta, timezone
 
+from app.core.module.models import TenantModule
+from app.core.module.registry import MODULE_REGISTRY, get_all_module_names
+from app.core.module.validators import get_active_modules_for_tenant
+
+# Module → primary user role mapping for user count
+_MODULE_ROLE_MAP = {
+    'reception': 'reception',
+    'doctor': 'doctor',
+    'emergency': 'emergency',
+    'lab': 'lab',
+    'radiology': 'radiology',
+    'pharmacy': 'pharmacist',
+    'nursing': 'nurse',
+    'billing': 'accountant',
+    'manager': 'manager',
+    'inventory': 'technician',
+}
+
 
 # =============================================
-# STAFF ROUTES
+# UNIT CONTROL ROUTES (real DB-backed)
 # =============================================
 
 @manager_bp.route('/unit-control')
 @login_required
 @role_required('manager', 'admin')
 def unit_control():
-    """التحكم في الوحدات"""
-    
-    
+    """التحكم في الوحدات — real data from TenantModule + MODULE_REGISTRY"""
     try:
-        # جلب معلومات الوحدات
-        units = [
-            {'name': 'الاستقبال', 'status': 'active', 'users': User.query.filter_by(role='reception').count()},
-            {'name': 'الطبيب', 'status': 'active', 'users': User.query.filter_by(role='doctor').count()},
-            {'name': 'الطوارئ', 'status': 'active', 'users': User.query.filter_by(role='emergency').count()},
-            {'name': 'المختبر', 'status': 'active', 'users': User.query.filter_by(role='lab').count()},
-            {'name': 'الأشعة', 'status': 'active', 'users': User.query.filter_by(role='radiology').count()},
-            {'name': 'المحاسب', 'status': 'active', 'users': User.query.filter_by(role='accountant').count()}
-        ]
-        
+        tenant_id = getattr(g, 'tenant_id', None) or getattr(current_user, 'tenant_id', None)
+        if not tenant_id:
+            flash('لا يمكن تحديد العيادة', 'error')
+            return redirect(url_for('manager.dashboard'))
+
+        active_modules = get_active_modules_for_tenant(tenant_id)
+        units = []
+
+        for key, meta in MODULE_REGISTRY.items():
+            if key in ('owner', 'integration', 'ai_imaging'):
+                continue
+            is_active = key in active_modules
+            role = _MODULE_ROLE_MAP.get(key)
+            user_count = User.query.filter_by(role=role).count() if role else 0
+            units.append({
+                'module_name': key,
+                'name': meta.name_ar,
+                'name_en': meta.name,
+                'status': 'active' if is_active else 'inactive',
+                'users': user_count,
+                'category': meta.category,
+                'type_label': meta.name_ar,
+                'icon': meta.icon,
+                'description': meta.description_ar,
+            })
+
         return render_template('manager/unit_control.html', units=units)
     except Exception as e:
         logging.error(f"Error in unit control: {str(e)}")
         flash('حدث خطأ في تحميل التحكم في الوحدات', 'error')
         return redirect(url_for('manager.dashboard'))
+
+
+@manager_bp.route('/api/units/toggle', methods=['POST'])
+@login_required
+@role_required_json('manager', 'admin')
+def unit_toggle():
+    """Toggle module is_active for the current tenant."""
+    try:
+        tenant_id = getattr(g, 'tenant_id', None) or getattr(current_user, 'tenant_id', None)
+        if not tenant_id:
+            return jsonify({'success': False, 'message': 'لا يمكن تحديد العيادة'}), 400
+
+        data = request.get_json(silent=True) or {}
+        module_name = (data.get('module_name') or '').strip()
+
+        if module_name not in MODULE_REGISTRY:
+            return jsonify({'success': False, 'message': f'وحدة غير معروفة: {module_name}'}), 400
+
+        tm = TenantModule.query.filter_by(
+            tenant_id=tenant_id,
+            module_name=module_name
+        ).first()
+
+        # Bundle entitlement check: block activation if module not in tenant's subscription
+        if tm is None or not tm.is_active:
+            from app.core.tenant.models import Tenant, get_bundle_for_profile
+            tenant_obj = db.session.get(Tenant, tenant_id)
+            if tenant_obj and tenant_obj.product_profile_code:
+                bundle = get_bundle_for_profile(tenant_obj.product_profile_code)
+                if bundle and module_name not in bundle.get_modules():
+                    return jsonify({'error': 'Module not included in your current subscription bundle'}), 403
+
+        if not tm:
+            tm = TenantModule(
+                tenant_id=tenant_id,
+                module_name=module_name,
+                is_active=True,
+                activated_at=datetime.now(timezone.utc),
+                activated_by=getattr(current_user, 'id', None),
+            )
+            db.session.add(tm)
+        else:
+            tm.is_active = not tm.is_active
+            if tm.is_active:
+                tm.activated_at = datetime.now(timezone.utc)
+                tm.deactivated_at = None
+            else:
+                tm.deactivated_at = datetime.now(timezone.utc)
+            tm.activated_by = getattr(current_user, 'id', None)
+            tm.updated_at = datetime.now(timezone.utc)
+
+        db.session.commit()
+
+        # Invalidate in-memory cache so guard_module picks up change
+        if hasattr(g, '_tenant_enabled_modules'):
+            g.pop('_tenant_enabled_modules')
+
+        meta = MODULE_REGISTRY[module_name]
+        return jsonify({
+            'success': True,
+            'module_name': module_name,
+            'is_active': tm.is_active,
+            'name_ar': meta.name_ar,
+            'message': f'تم {"تفعيل" if tm.is_active else "تعطيل"} وحدة {meta.name_ar}',
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error toggling unit: {str(e)}")
+        return jsonify({'success': False, 'message': 'حدث خطأ في تحديث حالة الوحدة'}), 500
 
 @manager_bp.route('/user-management')
 @login_required

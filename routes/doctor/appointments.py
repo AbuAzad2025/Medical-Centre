@@ -33,15 +33,50 @@ from datetime import datetime, date, timedelta, timezone
 @login_required
 @role_required('doctor', 'admin', 'manager')
 def appointments():
-    """المواعيد"""
-    
+    """المواعيد — مع إحصائيات وتصفح"""
     try:
         from models.appointment import Appointment
-        
-        # جلب مواعيد الطبيب
-        appointments = Appointment.query.filter_by(doctor_id=current_user.id).order_by(Appointment.starts_at.desc()).all()
-        
-        return render_template('doctor/appointments.html', appointments=appointments)
+        from sqlalchemy import func
+        from app.shared.enums import AppointmentState
+        from datetime import date, timedelta
+
+        page = request.args.get('page', 1, type=int)
+        per_page = 20
+        today = date.today()
+        tomorrow = today + timedelta(days=1)
+
+        # Base query
+        query = Appointment.query.filter_by(doctor_id=current_user.id).order_by(Appointment.starts_at.desc())
+        total = query.count()
+        appointments = query.offset((page - 1) * per_page).limit(per_page).all()
+        pages = (total + per_page - 1) // per_page if total > 0 else 1
+
+        # Stats
+        today_count = Appointment.query.filter(
+            Appointment.doctor_id == current_user.id,
+            func.date(Appointment.starts_at) == today
+        ).count()
+
+        upcoming_count = Appointment.query.filter(
+            Appointment.doctor_id == current_user.id,
+            func.date(Appointment.starts_at) >= today
+        ).count()
+
+        confirmed_count = Appointment.query.filter(
+            Appointment.doctor_id == current_user.id,
+            Appointment.status == AppointmentState.CONFIRMED
+        ).count()
+
+        return render_template(
+            'doctor/appointments.html',
+            appointments=appointments,
+            total=total,
+            today_count=today_count,
+            upcoming_count=upcoming_count,
+            confirmed_count=confirmed_count,
+            page=page,
+            pages=pages,
+        )
     except Exception as e:
         logging.error(f"Error loading appointments: {str(e)}")
         flash('حدث خطأ في تحميل المواعيد', 'error')

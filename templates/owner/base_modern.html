@@ -1,0 +1,103 @@
+{% extends "layouts/platform_shell.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/owner-modern.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="owner-shell">
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="owner-sidebar-overlay" id="ownerSidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="owner-sidebar" id="ownerSidebar">
+        <div class="owner-sidebar-brand">
+            <img src="{{ url_for('static', filename='img/azad_logo.png') }}" alt="Logo">
+            <div>
+                <div class="brand-title">AZAD Platform</div>
+                <div class="brand-sub">OWNER CONSOLE</div>
+            </div>
+        </div>
+        
+        <nav class="owner-nav">
+            {% block sidebar_nav %}
+                {% for section in owner_nav_sections %}
+                    {% if section.title_ar %}
+                    <div class="owner-nav-section">{{ section.title_ar }}</div>
+                    {% endif %}
+                    {% for item in section.items %}
+                        {% set href = owner_nav_href(item) if owner_nav_href is defined else url_for(item.endpoint) %}
+                        {% set is_active = item.active_prefix and request.path.startswith(item.active_prefix) %}
+                        <a class="owner-nav-link {{ 'active' if is_active else '' }}" href="{{ href }}">
+                            <i class="{{ item.icon }} nav-icon"></i>
+                            <span>{{ item.label_ar }}</span>
+                        </a>
+                    {% endfor %}
+                {% endfor %}
+            {% endblock %}
+        </nav>
+
+        <div class="owner-sidebar-footer">
+            <div class="owner-user-menu">
+                <div class="owner-user-avatar">
+                    {{ current_user.full_name[0] if current_user.full_name else 'A' }}
+                </div>
+                <div class="ms-2">
+                    <div class="small fw-bold">{{ current_user.full_name }}</div>
+                    <div class="small text-muted">{{ current_user.role }}</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="owner-main">
+        <header class="owner-header">
+            <div class="owner-header-left">
+                <button class="owner-mobile-toggle d-md-none" id="ownerMobileToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="owner-header-breadcrumb">
+                    <a href="{{ url_for('owner.owner_dashboard') }}">الرئيسية</a>
+                    {% block breadcrumbs %}{% endblock %}
+                </div>
+            </div>
+            <h1 class="owner-header-title">
+                {% block header_title %}{% endblock %}
+            </h1>
+            <div class="owner-header-actions">
+                {% block header_actions %}{% endblock %}
+            </div>
+        </header>
+
+        <main class="owner-content">
+            {% block content_modern %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('ownerSidebar');
+        const overlay = document.getElementById('ownerSidebarOverlay');
+        const toggle = document.getElementById('ownerMobileToggle');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        if (toggle) {
+            toggle.addEventListener('click', function() {
+                toggleSidebar();
+            });
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', function() {
+                toggleSidebar();
+            });
+        }
+    });
+</script>
+{% endblock %}

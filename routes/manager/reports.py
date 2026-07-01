@@ -125,6 +125,7 @@ def analytics():
         return redirect(url_for('main.dashboard'))
 
     try:
+        billing_active = 'billing' in getattr(g, 'enabled_modules', set())
         from app.shared.enums import VisitState
         units_status = {
             'reception': {
@@ -154,11 +155,11 @@ def analytics():
             },
             'accountant': {
                 'name': 'المحاسبة',
-                'status': 'active',
-                'open_invoices': Invoice.query.filter(Invoice.status != 'paid').count(),
+                'status': 'active' if billing_active else 'disabled',
+                'open_invoices': 0 if not billing_active else Invoice.query.filter(Invoice.status != 'paid').count(),
             },
         }
-        return render_template('manager/monitoring.html', units_status=units_status)
+        return render_template('manager/monitoring.html', units_status=units_status, billing_active=billing_active)
     except Exception as e:
         logging.error(f"Error in analytics monitoring: {str(e)}")
         flash('حدث خطأ في تحميل التحليلات', 'error')
@@ -175,7 +176,11 @@ def self_service():
         end_raw = (request.args.get('end_date') or '').strip()
         start_date = datetime.strptime(start_raw, '%Y-%m-%d') if start_raw else None
         end_date = datetime.strptime(end_raw, '%Y-%m-%d') if end_raw else None
-        if report_type == 'visits':
+        billing_active = 'billing' in getattr(g, 'enabled_modules', set())
+        if report_type == 'financial' and not billing_active:
+            data = {}
+            report_type = 'financial'
+        elif report_type == 'visits':
             data = AdvancedReportService.generate_visit_analytics(start_date, end_date)
         elif report_type == 'financial':
             data = AdvancedReportService.generate_financial_analytics(start_date, end_date)
@@ -184,7 +189,7 @@ def self_service():
         else:
             data = AdvancedReportService.generate_patient_analytics(start_date, end_date)
             report_type = 'patients'
-        return render_template('manager/self_service.html', report_type=report_type, data=data, start_date=start_raw, end_date=end_raw)
+        return render_template('manager/self_service.html', report_type=report_type, data=data, start_date=start_raw, end_date=end_raw, billing_active=billing_active)
     except Exception as e:
         logging.error(f"Error in self service analytics: {str(e)}")
         return render_template('manager/self_service.html', report_type='patients', data={}, start_date='', end_date='')
@@ -195,21 +200,27 @@ def self_service():
 def kpi_dashboard():
     """لوحة مؤشرات الأداء"""
     try:
+        billing_active = 'billing' in getattr(g, 'enabled_modules', set())
         from services.report_service import ReportService
-        
-        # الحصول على تقرير الشهر الحالي
-        report = ReportService.get_monthly_audit_report()
-        
-        if not report['success']:
-            flash(report['message'], 'error')
-            return redirect(url_for('manager.dashboard'))
-        
-        # الحصول على إحصائيات الدفع القسري
-        force_stats = GatekeeperService.get_force_payment_statistics(days=30)
-        
+
+        if not billing_active:
+            report = {'success': False, 'message': 'التقارير المالية غير متاحة في باقتك الحالية', 'data': {}}
+            force_stats = {}
+        else:
+            # الحصول على تقرير الشهر الحالي
+            report = ReportService.get_monthly_audit_report()
+
+            if not report['success']:
+                flash(report['message'], 'error')
+                return redirect(url_for('manager.dashboard'))
+
+            # الحصول على إحصائيات الدفع القسري
+            force_stats = GatekeeperService.get_force_payment_statistics(days=30)
+
         return render_template('manager/kpi_dashboard.html',
                              report=report,
-                             force_stats=force_stats)
+                             force_stats=force_stats,
+                             billing_active=billing_active)
     
     except Exception as e:
         logging.error(f"Error loading KPI dashboard: {str(e)}")
@@ -231,6 +242,8 @@ def drill_down(report_type):
     except ValueError:
         start_dt = end_dt = today
 
+    billing_active = 'billing' in getattr(g, 'enabled_modules', set())
+
     if report_type == 'visits':
         title = 'تفاصيل الزيارات'
         q = Visit.query.filter(Visit.visit_date >= start_dt, Visit.visit_date <= end_dt)
@@ -238,6 +251,9 @@ def drill_down(report_type):
             q = q.filter_by(department_id=int(dept_id))
         results = q.order_by(Visit.visit_date.desc()).limit(200).all()
     elif report_type == 'revenue':
+        if not billing_active:
+            flash('تقارير الإيرادات غير متاحة في باقتك الحالية', 'error')
+            return redirect(url_for('manager.dashboard'))
         title = 'تفاصيل الإيرادات'
         q = Payment.query.filter(Payment.payment_date >= start_dt, Payment.payment_date <= end_dt)
         results = q.order_by(Payment.payment_date.desc()).limit(200).all()

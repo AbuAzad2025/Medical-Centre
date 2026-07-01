@@ -1,77 +1,169 @@
-{% extends "owner/base.html" %}
-{% from "partials/_page_header.html" import page_header %}
-{% block title %}مفاتيح الطوارئ — لوحة المنصة{% endblock %}
-{% block content %}
-<div class="container-fluid py-3">
-    {{ page_header('مفاتيح الطوارئ', subtitle='مفاتيح إيقاف/تشغيل حرجة على مستوى المنصة', icon='fas fa-exclamation-triangle', actions=[
-        {'label': 'مركز التحكم', 'icon': 'fas fa-sliders-h', 'url': url_for('owner.owner_control'), 'style': 'outline-light'}
-    ]) }}
+{% extends "owner/base_modern.html" %}
 
-    <div class="alert alert-warning d-flex align-items-center" role="alert">
-        <i class="fas fa-exclamation-circle me-2 fa-lg"></i>
-        <div>تنبيه: تفعيل هذه المفاتيح يؤثر على جميع العملاء والمستخدمين. استخدمها بحذر.</div>
+{% block header_title %}مفاتيح الطوارئ{% endblock %}
+
+{% block header_actions %}
+<div class="d-flex gap-2">
+    <a href="{{ url_for('owner.owner_dashboard') }}" class="owner-btn owner-btn-outline">
+        <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+    </a>
+</div>
+{% endblock %}
+
+{% block content_modern %}
+<!-- Emergency Alert Hero Section -->
+<div class="owner-card animate-fadeInUp delay-1 mb-4 border-0" style="background: linear-gradient(135deg, #fff5f5 0%, #fff0f0 100%); border-right: 6px solid var(--owner-danger) !important;">
+    <div class="owner-card-body py-4 text-center">
+        <div class="mb-3">
+            <i class="fas fa-radiation fa-4x text-danger animate-pulse"></i>
+        </div>
+        <h2 class="fw-bold text-danger mb-2">نظام التحكم في الطوارئ</h2>
+        <p class="text-muted mx-auto" style="max-width: 600px;">
+            <strong>تحذير:</strong> تفعيل هذه المفاتيح يؤثر على جميع العملاء والمستخدمين في المنصة بشكل فوري. 
+            استخدمها فقط في حالات الأزمات التقنية أو الأمنية القصوى.
+        </p>
     </div>
+</div>
 
-    <div class="row g-3">
-        {% for sw in switches %}
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100 border-top border-4 border-{{ sw.color }}">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="bg-{{ sw.color }} bg-opacity-10 p-3 rounded">
-                                <i class="fas {{ sw.icon }} text-{{ sw.color }} fa-lg"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 fw-bold">{{ sw.label }}</h6>
-                                <p class="mb-0 small text-muted">{{ sw.key }}</p>
-                            </div>
-                        </div>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input emergency-toggle" type="checkbox" data-key="{{ sw.key }}" {% if values[sw.key] %}checked{% endif %} style="width:3rem;height:1.5rem;cursor:pointer;">
-                        </div>
+<div class="row g-4 animate-fadeInUp delay-2">
+    {% for sw in switches %}
+    <div class="col-md-6 col-xl-4">
+        <div class="owner-card h-100 transition-all" style="transition: transform 0.3s ease; border: 1px solid {{ '#fee2e2' if sw.color == 'danger' else '#fef3c7' }} !important;">
+            <div class="owner-card-body d-flex justify-content-between align-items-center py-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="owner-kpi-icon {% if values[sw.key] %}owner-kpi-danger{% else %}owner-kpi-warning{% endif %} shadow-sm">
+                        <i class="fas {{ sw.icon }}"></i>
                     </div>
-                    <div class="d-grid">
-                        <button class="btn btn-{{ sw.color }} btn-sm" onclick="document.querySelector('[data-key={{ sw.key }}]').click()">
-                            <i class="fas fa-power-off me-1"></i> {{ 'إيقاف' if values[sw.key] else 'تفعيل' }}
-                        </button>
+                    <div>
+                        <div class="fw-bold fs-5">{{ sw.label }}</div>
+                        <div class="x-small font-monospace text-muted">{{ sw.key }}</div>
                     </div>
+                </div>
+                
+                <div class="form-check form-switch m-0 p-0">
+                    <input class="form-check-input emergency-toggle shadow-none" type="checkbox" 
+                           data-key="{{ sw.key }}" 
+                           {% if values[sw.key] %}checked{% endif %} 
+                           style="width: 3.5rem; height: 1.75rem; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3e%3c/svg%3e"); background-color: var(--owner-border); background-position: left center; background-repeat: no-repeat; background-size: contain; border-radius: 2rem; border: 2px solid var(--owner-border); transition: background-color 0.3s, border-color 0.3s; position: relative;">
                 </div>
             </div>
         </div>
-        {% endfor %}
     </div>
+    {% endfor %}
 </div>
+
+<!-- Toast/Notification Area for Feedback -->
+<div id="controlToastContainer" class="position-fixed bottom-0 end-0 p-4" style="z-index: 2000;"></div>
+
+<style>
+    /* Custom Switch Styling for Emergency Mode */
+    .emergency-toggle:checked {
+        background-color: var(--owner-danger) !important;
+        border-color: var(--owner-danger) !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3e%3ccircle cx='0.5' cy='0.5' r='0.5' fill='%23fff'/%3e%3c/svg%3e") !important;
+        background-position: calc(100% - 4px) center !important;
+    }
+    .emergency-toggle:not(:checked) {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3e%3ccircle cx='0.5' cy='0.5' r='0.5' fill='%23fff'/%3e%3c/svg%3e") !important;
+        background-position: 4px center !important;
+    }
+    .owner-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.15);
+    }
+    .owner-toast {
+        min-width: 300px;
+        border-radius: var(--owner-radius-sm);
+        box-shadow: var(--owner-shadow-lg);
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.querySelectorAll('.emergency-toggle').forEach(function(toggle) {
-    toggle.addEventListener('change', function() {
-        var key = this.dataset.key;
-        var value = this.checked ? 'true' : 'false';
-        var el = this;
-        if (!confirm('هل أنت متأكد من تغيير مفتاح الطوارئ ' + key + '؟')) {
-            el.checked = !el.checked;
-            return;
-        }
-        fetch('{{ url_for('owner.owner_emergency_toggle') }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content,
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: 'key=' + encodeURIComponent(key) + '&value=' + encodeURIComponent(value)
-        }).then(function(r) { return r.json(); }).then(function(data) {
-            if (!data.success) {
-                alert('فشل التحديث: ' + (data.message || ''));
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('controlToastContainer');
+
+    function showToast(message, type) {
+        const toastEl = document.createElement('div');
+        toastEl.className = `owner-toast animate-fadeInUp mb-3`;
+        
+        const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+        const colorClass = type === 'success' ? 'bg-success text-white' : 'bg-danger text-white';
+        
+        toastEl.innerHTML = `
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                    <i class="fas ${icon}"></i>
+                </div>
+                <div class="fw-bold">${message}</div>
+            </div>
+        `;
+        toastEl.classList.add(colorClass);
+        
+        container.appendChild(toastEl);
+        
+        setTimeout(() => {
+            toastEl.style.opacity = '0';
+            toastEl.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => toastEl.remove(), 500);
+        }, 4000);
+    }
+
+    document.querySelectorAll('.emergency-toggle').forEach(function(toggle) {
+        toggle.addEventListener('change', function() {
+            const key = this.dataset.key;
+            const value = this.checked ? 'true' : 'false';
+            const el = this;
+            const card = el.closest('.owner-card');
+            
+            // CRITICAL: Forced confirmation for emergency actions
+            const confirmed = confirm('⚠️ تحذير هام جداً!
+
+هل أنت متأكد من رغبتك في ' + (this.checked ? 'تفعيل' : 'إيقاف') + ' مفتاح الطوارئ: ' + key + '؟
+
+هذا الإجراء سيؤثر فوراً على جميع مستخدمي المنصة.');
+            
+            if (!confirmed) {
                 el.checked = !el.checked;
-            } else {
-                location.reload();
+                return;
             }
-        }).catch(function() {
-            alert('خطأ في الاتصال');
-            el.checked = !el.checked;
+
+            // Visual feedback during request
+            card.style.opacity = '0.6';
+            card.style.pointerEvents = 'none';
+
+            fetch('{{ url_for('owner.owner_emergency_toggle') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `key=${encodeURIComponent(key)}&value=${encodeURIComponent(value)}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                card.style.opacity = '1';
+                card.style.pointerEvents = 'auto';
+                
+                if (!data.success) {
+                    el.checked = !el.checked;
+                    showToast(data.message || 'فشل تحديث مفتاح الطوارئ', 'danger');
+                } else {
+                    showToast('تم تحديث حالة المفتاح بنجاح', 'success');
+                }
+            })
+            .catch(error => {
+                card.style.opacity = '1';
+                card.style.pointerEvents = 'auto';
+                el.checked = !el.checked;
+                showToast('خطأ في الاتصال بالخادم', 'danger');
+                console.error('Error:', error);
+            });
         });
     });
 });

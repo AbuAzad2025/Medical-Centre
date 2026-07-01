@@ -57,6 +57,7 @@
               </div>
             </div>
 
+            {% if module_active('billing') %}
             <div class="row mb-3">
               <div class="col-md-6">
                 <label class="form-label">طريقة الدفع</label>
@@ -73,6 +74,9 @@
                 <input type="text" class="form-control" value="{{ visit.payment_status | enum_label('PaymentStatus') }}" readonly>
               </div>
             </div>
+            {% else %}
+            <input type="hidden" name="payment_method" value="{{ visit.payment_method or '' }}">
+            {% endif %}
 
             <div class="mb-3">
               <label class="form-label">الأعراض</label>

@@ -224,6 +224,7 @@
                         <div class="form-step-panel d-none" data-step="3" hidden>
                         <div class="row mb-4">
                             <div class="col-12">
+                                {% if module_active('billing') %}
                                 <div class="card">
                                     <div class="card-header">
                                         <h6 class="text-primary mb-0">
@@ -359,6 +360,9 @@
                                         </div>
                                     </div>
                                 </div>
+                            {% else %}
+                                <input type="hidden" name="payment_method" value="CASH">
+                            {% endif %}
                             </div>
                         </div>
                         </div>{# end step 3 #}
