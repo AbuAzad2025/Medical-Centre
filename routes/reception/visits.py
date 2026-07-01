@@ -27,6 +27,7 @@ from app.shared.enums import VisitState
 from services.access_control_service import AccessControlService
 from services.pos_terminal_service import PosTerminalService
 from routes.reception.queue import add_patient_to_queue_auto
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 
@@ -90,12 +91,13 @@ def archive_visit(visit_id):
     if current_user.role not in ['reception', 'super_admin']:
         flash('ليس لديك الصلاحيات لأرشفة الزيارة.', 'danger')
         return redirect(url_for('reception.visits'))
-    visit = db.session.get(Visit, visit_id)
-    if not visit:
+    try:
+        visit = get_tenant_record(Visit, visit_id)
+    except TenantContextError:
         flash('الزيارة غير موجودة', 'error')
         return redirect(url_for('reception.visits'))
     try:
-        ok, msg = GatekeeperService.archive_visit(visit_id, current_user.id)
+        ok, msg = GatekeeperService.archive_visit(visit.id, current_user.id)
         if ok:
             flash('تمت أرشفة الزيارة بنجاح', 'success')
         else:
@@ -113,15 +115,16 @@ def end_visit(visit_id):
     if current_user.role not in ['reception', 'super_admin']:
         flash('ليس لديك الصلاحيات لإنهاء الزيارة.', 'danger')
         return redirect(url_for('reception.visits'))
-    visit = db.session.get(Visit, visit_id)
-    if not visit:
+    try:
+        visit = get_tenant_record(Visit, visit_id)
+    except TenantContextError:
         flash('الزيارة غير موجودة', 'error')
         return redirect(url_for('reception.visits'))
     if visit.status != VisitState.COMPLETED:
         flash('يجب إنهاء العلاج أولاً (حالة الزيارة مكتملة) قبل إنهاء الزيارة', 'warning')
         return redirect(url_for('reception.visits'))
     try:
-        ok, msg = GatekeeperService.archive_visit(visit_id, current_user.id)
+        ok, msg = GatekeeperService.archive_visit(visit.id, current_user.id)
         if ok:
             flash('تم إنهاء الزيارة وأرشفتها بنجاح', 'success')
         else:
@@ -746,8 +749,9 @@ def view_visit(visit_id):
         flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
         return redirect(url_for('auth.login'))
     
-    visit = db.session.get(Visit, visit_id)
-    if not visit:
+    try:
+        visit = get_tenant_record(Visit, visit_id)
+    except TenantContextError:
         flash('الزيارة غير موجودة', 'error')
         return redirect(url_for('reception.queue_management'))
     return render_template('reception/visits.html', visit=visit, mode='view')
@@ -1050,8 +1054,9 @@ def edit_visit(visit_id):
         flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
         return redirect(url_for('auth.login'))
 
-    visit = db.session.get(Visit, visit_id)
-    if not visit:
+    try:
+        visit = get_tenant_record(Visit, visit_id)
+    except TenantContextError:
         flash('الزيارة غير موجودة', 'error')
         return redirect(url_for('reception.queue_management'))
 

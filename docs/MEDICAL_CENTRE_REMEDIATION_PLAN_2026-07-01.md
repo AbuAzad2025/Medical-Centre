@@ -716,6 +716,33 @@ flask db downgrade s1_007_rls_phase4
 
 ---
 
+### Ticket C — MC-003: Tenant-safe reception visit lookup
+
+**Status:** Complete
+
+**Commit:** `TBD` (to be recorded after commit)
+
+**Files changed:**
+- `routes/reception/visits.py` — `archive_visit`, `end_visit`, `view_visit`, `edit_visit`: replaced `db.session.get(Visit, visit_id)` with `get_tenant_record(Visit, visit_id)`; `TenantContextError` handled as "visit not found" to avoid cross-tenant disclosure
+- `tests/test_tenant_visit_lookup.py` — new test file for `get_tenant_record` behavior
+
+**Evidence:**
+- `routes/reception/visits.py` lines 94-98, 118-122, 752-756, 1057-1061: all four confirmed reception visit paths now use `get_tenant_record(Visit, visit_id)`.
+- `TenantContextError` is caught and handled identically to "not found" — flash message "الزيارة غير موجودة" and redirect. No cross-tenant disclosure.
+
+**Tests run and actual results:**
+- `tests/test_tenant_visit_lookup.py` — 4 passed, 2 warnings in 5.04s
+- `test_same_tenant_visit_found` — PASSED
+- `test_cross_tenant_visit_raises` — PASSED
+- `test_missing_visit_raises` — PASSED
+- `test_no_tenant_context_skips_check` — PASSED
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert the four `get_tenant_record` replacements back to `db.session.get`.
+
+---
+
 **End of Plan. Stage 1 implementation in progress. No further plan expansion unless direct implementation contradiction is discovered.**
 
 **Change log for this update:**
