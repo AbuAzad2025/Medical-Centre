@@ -622,7 +622,62 @@ The following owner decisions have been **recorded as confirmed product requirem
 
 ---
 
-**End of Plan. No implementation approved. Awaiting explicit ticket-by-ticket approval.**
+## J. Stage 0 — Baseline and Rollback Checkpoint (2026-07-02)
+
+**Status:** Complete
+
+| Item | Value |
+|------|-------|
+| Checkpoint tag | `medical-remediation-baseline-2026-07-02` |
+| Tag target commit | `e6495fe407de0f91159e39b82329801b9d5f6ce6` |
+| Current HEAD after committing prior uncommitted changes | `0ec5fbf` |
+| Branch | `main` |
+| Migration head | `s1_007_rls_phase4` (verified via `flask db current`) |
+| Database backup/restore | Application-level backup not configured in this environment. Rollback is via git tag + migration revert if needed. |
+
+**Exact rollback commands:**
+```bash
+# To roll back all Stage 1 changes:
+git reset --hard medical-remediation-baseline-2026-07-02
+# If migrations were applied after the baseline, revert to s1_007_rls_phase4:
+flask db downgrade s1_007_rls_phase4
+```
+
+**Stage 1 tickets approved for implementation:**
+- Ticket A — MC-014 WP-3: Full initial payment before normal queue entry
+- Ticket B — MC-001: Missing tenant context must fail closed in module guard
+- Ticket C — MC-003: Tenant-safe reception visit lookup
+- Ticket D — MC-004: Tenant-safe billing visit ownership
+
+**Stage 1 tickets explicitly deferred:**
+- MC-014 WP-2 (blocked on schema decisions)
+- MC-014 WP-4/WP-5 (deferred until after Stage 1 review)
+- MC-005 (platform-user tenant-assumption)
+- MC-009 (return-to-treatment lifecycle)
+- Any new models, fields, tables, enums, or migrations
+
+---
+
+## K. Stage 1 — Implementation Tracking
+
+### Ticket A — MC-014 WP-3: Full initial payment before normal queue entry
+
+**Status:** In progress
+
+**Files changed:**
+- `services/queue_management_service.py` — `_check_queue_entry_conditions`
+- `tests/test_queue_management_service.py` — add/update tests
+
+**Required tests:**
+- Normal paid visit enters queue
+- Normal pending visit is rejected
+- Normal partial-payment visit is rejected even when `allow_partial_payment=True`
+- Emergency visit enters queue without payment
+- Verify all known queue-entry paths use the same backend gate
+
+---
+
+**End of Plan. Stage 1 implementation in progress. No further plan expansion unless direct implementation contradiction is discovered.**
 
 **Change log for this update:**
 1. **B-017 added:** Post-queue service addition and financial settlement. Doctor routes add lab/radiology/prescriptions mid-visit (only while `IN_PROGRESS`) but do not update `visit.total_amount`, `InvoiceItem`, `Payment`, or `Receipt` totals. `GatekeeperService.can_archive_visit()` does not recalculate for post-creation services. No services can be added after `COMPLETED`. Finding count updated to 17.
