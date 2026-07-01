@@ -67,7 +67,7 @@ def guard_module(module_name: str):
         return
     tenant = getattr(g, 'current_tenant', None)
     if not tenant:
-        return
+        abort(403, description="Tenant context required for module access")
     if not FeatureGateService.module_enabled(tenant.id, module_name):
         abort(403, description=f"Module '{module_name}' is not enabled")
 

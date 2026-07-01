@@ -691,6 +691,31 @@ flask db downgrade s1_007_rls_phase4
 
 ---
 
+### Ticket B — MC-001: Missing tenant context must fail closed in module guard
+
+**Status:** Complete
+
+**Commit:** `TBD` (to be recorded after commit)
+
+**Files changed:**
+- `services/feature_gate_service.py` — `guard_module` (line 68-70): changed silent `return` to `abort(403, description="Tenant context required for module access")`
+- `tests/integration/test_feature_gating.py` — added `test_guard_module_missing_tenant_aborts_403`
+
+**Evidence:**
+- `services/feature_gate_service.py` line 69-70: `guard_module` now aborts with HTTP 403 when `g.current_tenant` is missing in SaaS mode.
+- The `require_module` decorator (line 51-52) already had the same behavior; `guard_module` now matches it.
+
+**Tests run and actual results:**
+- `tests/integration/test_feature_gating.py` — 21 passed, 2 warnings in 35.08s
+- `test_guard_module_missing_tenant_aborts_403` — PASSED
+- All existing module-guard tests (disabled module 403, enabled module pass, subroute blocking) — PASSED
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert line 69-70 in `guard_module` from `abort(403)` back to `return`.
+
+---
+
 **End of Plan. Stage 1 implementation in progress. No further plan expansion unless direct implementation contradiction is discovered.**
 
 **Change log for this update:**

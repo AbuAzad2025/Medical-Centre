@@ -121,3 +121,15 @@ class TestBlueprintModuleGuards:
 
         resp = client.get("/doctor/visits")
         assert resp.status_code == 403
+
+    def test_guard_module_missing_tenant_aborts_403(self, app):
+        app.config["ENABLE_SAAS_MODE"] = True
+        with app.test_request_context():
+            from flask import g
+            g.current_tenant = None
+            from services.feature_gate_service import guard_module
+            from werkzeug.exceptions import Forbidden
+            with pytest.raises(Forbidden) as exc_info:
+                guard_module("reception")
+            assert exc_info.value.code == 403
+            assert "Tenant context required" in str(exc_info.value.description)
