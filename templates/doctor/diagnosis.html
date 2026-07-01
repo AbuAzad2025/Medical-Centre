@@ -201,16 +201,20 @@
                                 <i class="fas fa-prescription me-2"></i>كتابة وصفة
                             </a>
                         </div>
+                        {% if module_active('lab') %}
                         <div class="col-md-3 mb-2">
                             <a href="{{ url_for('doctor.notes', visit_id=visit.id, type='lab') }}" class="btn btn-warning w-100">
                                 <i class="fas fa-flask me-2"></i>مذكرة تحاليل
                             </a>
                         </div>
+                        {% endif %}
+                        {% if module_active('radiology') %}
                         <div class="col-md-3 mb-2">
                             <a href="{{ url_for('doctor.notes', visit_id=visit.id, type='radiology') }}" class="btn btn-secondary w-100">
                                 <i class="fas fa-x-ray me-2"></i>مذكرة تصوير
                             </a>
                         </div>
+                        {% endif %}
                         <div class="col-md-3 mb-2">
                             <a href="{{ url_for('doctor.notes', visit_id=visit.id) }}" class="btn btn-dark w-100">
                                 <i class="fas fa-notes-medical me-2"></i>ملاحظات طبية

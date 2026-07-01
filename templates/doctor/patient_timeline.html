@@ -23,8 +23,12 @@
           <div class="d-flex flex-wrap gap-2">
             <a class="btn btn-sm {% if not filter_type %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id) }}">الكل</a>
             <a class="btn btn-sm {% if filter_type == 'visit' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='visit') }}">الزيارات</a>
+            {% if module_active('lab') %}
             <a class="btn btn-sm {% if filter_type == 'lab' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='lab') }}">المختبر</a>
+            {% endif %}
+            {% if module_active('radiology') %}
             <a class="btn btn-sm {% if filter_type == 'radiology' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='radiology') }}">الأشعة</a>
+            {% endif %}
             <a class="btn btn-sm {% if filter_type == 'prescription' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='prescription') }}">الوصفات</a>
             <a class="btn btn-sm {% if filter_type == 'record' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='record') }}">السجلات</a>
             <a class="btn btn-sm {% if filter_type == 'appointment' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='appointment') }}">المواعيد</a>
@@ -77,9 +81,9 @@
                       <td>
                         {% if e.type == 'visit' %}
                           <span class="badge bg-primary">زيارة</span>
-                        {% elif e.type == 'lab' %}
+                        {% elif module_active('lab') and e.type == 'lab' %}
                           <span class="badge bg-warning text-dark">مختبر</span>
-                        {% elif e.type == 'radiology' %}
+                        {% elif module_active('radiology') and e.type == 'radiology' %}
                           <span class="badge bg-info text-dark">أشعة</span>
                         {% elif e.type == 'prescription' %}
                           <span class="badge bg-success">وصفة</span>

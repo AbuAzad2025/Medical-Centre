@@ -153,6 +153,7 @@
 
     <!-- Pending Requests Row -->
     <div class="row g-3 mb-4">
+        {% if module_active('lab') %}
         <div class="col-lg-6">
             <div class="card h-100">
                 <div class="card-header bg-white">
@@ -190,6 +191,8 @@
                 </div>
             </div>
         </div>
+        {% endif %}
+        {% if module_active('radiology') %}
         <div class="col-lg-6">
             <div class="card h-100">
                 <div class="card-header bg-white">
@@ -227,6 +230,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Quick Actions Bar -->

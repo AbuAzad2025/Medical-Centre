@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}نتائج الأشعة{% endblock %}
 {% block content %}
+{% if module_active('radiology') %}
 <div class="container-fluid">
   <h2 class="mb-3">نتائج الأشعة: {{ patient.full_name }}</h2>
   <div class="card shadow-sm"><div class="card-body">
@@ -44,4 +45,7 @@
     </div>
   </div></div>
 </div>
+{% else %}
+<div class="container-fluid"><div class="alert alert-warning mt-3">وحدة الأشعة غير مفعلة لهذه المنشأة</div></div>
+{% endif %}
 {% endblock %}

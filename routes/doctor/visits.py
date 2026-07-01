@@ -4,7 +4,7 @@ from routes.doctor import doctor_bp, _sync_follow_up_request_for_visit
 from routes.doctor.diagnosis import evaluate_clinical_rules, get_standardized_pathways, get_data_based_recommendations
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, current_app
+from flask import render_template, request, jsonify, flash, redirect, url_for, current_app, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required, role_required_json
 from models.patient import Patient
@@ -40,10 +40,7 @@ def start_treatment(visit_id):
 
 
     try:
-        visit = db.session.get(Visit, visit_id)
-        if not visit or visit.doctor_id != current_user.id:
-            flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
-            return redirect(url_for('doctor.patient_queue'))
+        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
         if visit.status != VisitState.OPEN:
             flash('لا يمكن بدء العلاج إلا إذا كانت الزيارة في حالة انتظار', 'warning')
             return redirect(url_for('doctor.patient_queue'))
@@ -235,10 +232,7 @@ def patient_details(visit_id):
     
     try:
         from ast import literal_eval
-        visit = db.session.get(Visit, visit_id)
-        if not visit or visit.doctor_id != current_user.id:
-            flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
-            return redirect(url_for('doctor.patient_queue'))
+        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
         
         medical_records = _get_patient_medical_records(visit.patient_id)
         previous_prescriptions = _get_patient_prescriptions(visit.patient_id)
@@ -357,10 +351,7 @@ def visit_summary(visit_id):
     """ملخص الزيارة"""
     
     try:
-        visit = db.session.get(Visit, visit_id)
-        if not visit or visit.doctor_id != current_user.id:
-            flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
-            return redirect(url_for('doctor.patient_queue'))
+        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
         
         return render_template('doctor/visit_summary.html', visit=visit)
     except Exception as e:
@@ -374,9 +365,7 @@ def visit_summary(visit_id):
 def save_visit_summary(visit_id):
     """حفظ ملخص الزيارة (تشخيص، خطة علاج، متابعة)"""
     try:
-        visit = db.session.get(Visit, visit_id)
-        if not visit or visit.doctor_id != current_user.id:
-            return jsonify({'success': False, 'message': 'الزيارة غير موجودة أو ليست لك'}), 404
+        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
         if visit.status not in ['IN_PROGRESS', 'COMPLETED']:
             return jsonify({'success': False, 'message': 'الحالة الحالية لا تسمح بحفظ الملخص'}), 400
 
@@ -458,10 +447,7 @@ def end_treatment(visit_id):
     """إنهاء العلاج"""
     
     try:
-        visit = db.session.get(Visit, visit_id)
-        if not visit or visit.doctor_id != current_user.id:
-            flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
-            return redirect(url_for('doctor.patient_queue'))
+        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
         if visit.status != VisitState.IN_PROGRESS:
             flash('لا يمكن إنهاء العلاج إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_queue'))

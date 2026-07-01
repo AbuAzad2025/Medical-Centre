@@ -3,7 +3,7 @@
 from routes.doctor import doctor_bp
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, current_app
+from flask import render_template, request, jsonify, flash, redirect, url_for, current_app, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required, role_required_json
 from models.patient import Patient
@@ -89,10 +89,7 @@ def prescription(visit_id):
     """كتابة الوصفة الطبية"""
     
     try:
-        visit = db.session.get(Visit, visit_id)
-        if not visit or visit.doctor_id != current_user.id:
-            flash('الزيارة غير موجودة أو ليس لديك صلاحية', 'error')
-            return redirect(url_for('doctor.patient_queue'))
+        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
         if visit.status != VisitState.IN_PROGRESS:
             flash('لا يمكن كتابة وصفة إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
