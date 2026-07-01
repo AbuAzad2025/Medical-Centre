@@ -52,6 +52,7 @@
             <h3>{{ stats.urgent_cases }}</h3>
         </div>
     </div>
+    {% if module_active('lab') %}
     <div class="col-md-4">
         <div class="card card-stat bg-secondary">
             <div class="icon-bg"><i class="fas fa-flask"></i></div>
@@ -59,6 +60,7 @@
             <h3>{{ stats.pending_lab_requests }}</h3>
         </div>
     </div>
+    {% endif %}
 </div>
 <div class="row g-3">
     <div class="col-lg-8">

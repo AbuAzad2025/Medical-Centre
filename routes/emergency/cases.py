@@ -234,7 +234,7 @@ def create_emergency_case():
             patient_id = int(patient_id)
         except Exception:
             return jsonify({'success': False, 'message': 'رقم المريض غير صحيح'}), 400
-        patient = db.session.get(Patient, patient_id)
+        patient = Patient.query.filter_by(id=patient_id).first()
         if not patient:
             return jsonify({'success': False, 'message': 'المريض غير موجود'}), 404
 

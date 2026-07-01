@@ -107,7 +107,7 @@ def triage(emergency_id):
             flash('حالة الطوارئ غير موجودة', 'error')
             return redirect(url_for('emergency.patient_queue'))
         
-        visit = emergency.visit or (db.session.get(Visit, emergency.visit_id) if emergency.visit_id else None)
+        visit = emergency.visit or (Visit.query.filter_by(id=emergency.visit_id).first() if emergency.visit_id else None)
 
         if request.method == 'POST':
             triage_level = (request.form.get('triage_level') or '').upper().strip()

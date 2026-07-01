@@ -65,7 +65,7 @@ class EmergencyService:
     @staticmethod
     def get_case(case_id: int):
         from models.emergency import EmergencyCase
-        return EmergencyCase.query.get(case_id)
+        return EmergencyCase.query.filter_by(id=case_id).first()
 
     @staticmethod
     def get_cases_by_status(status: str, limit: int = 50) -> list:
@@ -128,7 +128,7 @@ class EmergencyService:
     @staticmethod
     def update_case_status(case_id: int, status: str) -> bool:
         from models.emergency import EmergencyCase
-        case = EmergencyCase.query.get(case_id)
+        case = EmergencyCase.query.filter_by(id=case_id).first()
         if not case:
             return False
         case.status = status
@@ -143,7 +143,7 @@ class EmergencyService:
         # via the linked visit. Persisting the assignment here requires a schema/
         # migration decision, so this method only advances the case status.
         from models.emergency import EmergencyCase
-        case = EmergencyCase.query.get(case_id)
+        case = EmergencyCase.query.filter_by(id=case_id).first()
         if not case:
             return False
         case.status = "TREATMENT"
@@ -157,7 +157,7 @@ class EmergencyService:
         case_id: int, priority: str, vital_signs: dict | None = None
     ) -> bool:
         from models.emergency import EmergencyCase
-        case = EmergencyCase.query.get(case_id)
+        case = EmergencyCase.query.filter_by(id=case_id).first()
         if not case:
             return False
         # priority is a property that maps onto the real `severity` column

@@ -157,13 +157,16 @@
                             <i class="fas fa-prescription me-2"></i>الوصفة الطبية
                         </a>
                         
+                        {% if module_active('lab') %}
                         <a href="{{ url_for('emergency.lab_request', emergency_id=emergency.id) }}" class="btn btn-warning w-100">
                             <i class="fas fa-flask me-2"></i>طلب مختبر
                         </a>
-                        
+                        {% endif %}
+                        {% if module_active('radiology') %}
                         <a href="{{ url_for('emergency.radiology_request', emergency_id=emergency.id) }}" class="btn btn-secondary w-100">
                             <i class="fas fa-x-ray me-2"></i>طلب أشعة
                         </a>
+                        {% endif %}
                         
                         {% if emergency.status == 'OBSERVATION' %}
                             <form method="POST" action="{{ url_for('emergency.end_treatment', emergency_id=emergency.id) }}" class="d-inline">
@@ -200,16 +203,20 @@
                                 <i class="fas fa-prescription me-2"></i>الوصفات
                             </button>
                         </li>
+                        {% if module_active('lab') %}
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="lab-tab" data-bs-toggle="tab" data-bs-target="#lab" type="button" role="tab">
                                 <i class="fas fa-flask me-2"></i>المختبر
                             </button>
                         </li>
+                        {% endif %}
+                        {% if module_active('radiology') %}
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="radiology-tab" data-bs-toggle="tab" data-bs-target="#radiology" type="button" role="tab">
                                 <i class="fas fa-x-ray me-2"></i>الأشعة
                             </button>
                         </li>
+                        {% endif %}
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
                                 <i class="fas fa-history me-2"></i>السجل الطبي
@@ -344,6 +351,7 @@
                             </div>
                         </div>
 
+                        {% if module_active('lab') %}
                         <!-- Lab Tab -->
                         <div class="tab-pane fade" id="lab" role="tabpanel">
                             {% if lab_requests %}
@@ -395,6 +403,8 @@
                             </div>
                         </div>
 
+                        {% endif %}
+                        {% if module_active('radiology') %}
                         <!-- Radiology Tab -->
                         <div class="tab-pane fade" id="radiology" role="tabpanel">
                             {% if radiology_requests %}
@@ -445,7 +455,8 @@
                                 </a>
                             </div>
                         </div>
-
+                        {% endif %}
+ 
                         <!-- Medical History Tab -->
                         <div class="tab-pane fade" id="history" role="tabpanel">
                             {% if medical_records %}
