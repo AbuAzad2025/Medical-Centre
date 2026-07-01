@@ -664,7 +664,7 @@ flask db downgrade s1_007_rls_phase4
 
 **Status:** Complete
 
-**Commit:** `TBD` (to be recorded after commit)
+**Commit:** `1789d56`
 
 **Files changed:**
 - `services/queue_management_service.py` — `_check_queue_entry_conditions` (removed `PARTIAL` branch for normal visits, added comment)
