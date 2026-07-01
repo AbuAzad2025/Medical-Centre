@@ -35,9 +35,8 @@ def vital_signs():
         visit_id = request.args.get('visit_id', type=int)
         patient_id = request.args.get('patient_id', type=int)
         if not patient_id and visit_id:
-            visit = db.session.get(Visit, visit_id)
-            if visit:
-                patient_id = visit.patient_id
+            visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == current_user.tenant_id).first_or_404()
+            patient_id = visit.patient_id
         vq = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]))
         dept_ids = _accessible_department_ids()
         if dept_ids is not None and dept_ids:
@@ -50,7 +49,7 @@ def vital_signs():
         else:
             patients = Patient.query.order_by(desc(Patient.created_at)).limit(20).all()
 
-        selected_patient = db.session.get(Patient, patient_id) if patient_id else None
+        selected_patient = Patient.query.filter(Patient.id == patient_id, Patient.tenant_id == current_user.tenant_id).first() if patient_id else None
         vital_records = []
         if selected_patient:
             vital_records = VitalSigns.query.filter_by(patient_id=selected_patient.id).order_by(
@@ -78,7 +77,7 @@ def record_vital_signs(patient_id):
     try:
         from models.nurse import VitalSigns
 
-        patient = db.session.get(Patient, patient_id)
+        patient = Patient.query.filter(Patient.id == patient_id, Patient.tenant_id == current_user.tenant_id).first()
         if not patient:
             return jsonify({'success': False, 'message': 'المريض غير موجود'}), 404
 

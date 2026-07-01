@@ -8,6 +8,7 @@ import logging
 from typing import Any
 
 from app_factory import db
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 class DICOMService:
@@ -26,7 +27,7 @@ class DICOMService:
     @staticmethod
     def get_study(study_id: int) -> Any | None:
         from models.dicom_pacs import DICOMStudy
-        return DICOMStudy.query.get(study_id)
+        return get_tenant_record(DICOMStudy, study_id)
 
     @staticmethod
     def get_series(study_id: int) -> list:

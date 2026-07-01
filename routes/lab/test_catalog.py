@@ -158,7 +158,7 @@ def test_panels_add():
                 test = LabTestCatalog.query.filter(
                     LabTestCatalog.tenant_id == tenant_id,
                     LabTestCatalog.id == test_id
-                ).first() if tenant_id else LabTestCatalog.query.get(test_id)
+                ).first()
                 if test:
                     panel.items.append(LabTestPanelItem(
                         test_id=test_id,
@@ -199,7 +199,7 @@ def test_panels_edit(id):
                 test = LabTestCatalog.query.filter(
                     LabTestCatalog.tenant_id == tenant_id,
                     LabTestCatalog.id == test_id
-                ).first() if tenant_id else LabTestCatalog.query.get(test_id)
+                ).first()
                 if test:
                     panel.items.append(LabTestPanelItem(
                         test_id=test_id,

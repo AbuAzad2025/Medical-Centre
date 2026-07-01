@@ -3,7 +3,7 @@
 from routes.radiology import radiology_bp
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app
+from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required
 from models.patient import Patient
@@ -33,7 +33,7 @@ def reports():
     request_id = request.args.get('request_id', type=int)
     radiology_request = None
     if request_id:
-        radiology_request = db.session.get(RadiologyRequest, request_id)
+        radiology_request = RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
     if not radiology_request:
         radiology_request = RadiologyRequest.query.order_by(RadiologyRequest.created_at.desc()).first()
     radiology_result = radiology_request.results[0] if radiology_request and radiology_request.results else None
@@ -56,9 +56,9 @@ def print_report(radiology_scan_id=None):
         if radiology_scan_id is None:
             flash('المعرف غير محدد', 'error')
             return redirect(url_for('radiology.reports'))
-        result = db.session.get(RadiologyResult, radiology_scan_id)
+        result = RadiologyResult.query.filter(RadiologyResult.id == radiology_scan_id, RadiologyResult.tenant_id == g.tenant_id).first()
         if not result:
-            req = db.session.get(RadiologyRequest, radiology_scan_id)
+            req = RadiologyRequest.query.filter(RadiologyRequest.id == radiology_scan_id, RadiologyRequest.tenant_id == g.tenant_id).first()
             if not req or not req.results:
                 flash('نتيجة الأشعة غير موجودة', 'error')
                 return redirect(url_for('radiology.reports'))
@@ -83,9 +83,9 @@ def print_report_pdf(radiology_scan_id=None):
     try:
         if radiology_scan_id is None:
             return jsonify({'success': False, 'message': 'المعرف غير محدد'}), 400
-        result = db.session.get(RadiologyResult, radiology_scan_id)
+        result = RadiologyResult.query.filter(RadiologyResult.id == radiology_scan_id, RadiologyResult.tenant_id == g.tenant_id).first()
         if not result:
-            req = db.session.get(RadiologyRequest, radiology_scan_id)
+            req = RadiologyRequest.query.filter(RadiologyRequest.id == radiology_scan_id, RadiologyRequest.tenant_id == g.tenant_id).first()
             if not req or not req.results:
                 return jsonify({'success': False, 'message': 'نتيجة الأشعة غير موجودة'}), 404
             result = req.results[0]

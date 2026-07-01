@@ -145,7 +145,7 @@ class SaasRegistrationService:
     def _payment_required_at_signup(cls, package_version_id: int) -> bool:
         if os.environ.get('SAAS_REQUIRE_PAYMENT_AT_SIGNUP', '').strip().lower() in ('1', 'true', 'yes'):
             return True
-        version = PackageVersion.query.get(package_version_id)
+        version = PackageVersion.query.get(package_version_id)  # global reference table - no tenant scope
         if version is None:
             return False
         return not (version.trial_days and version.trial_days > 0)

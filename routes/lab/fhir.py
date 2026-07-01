@@ -3,7 +3,7 @@
 from routes.lab import lab_bp, _log_lab_workflow
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response
+from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required
 from models.patient import Patient
@@ -113,7 +113,7 @@ def api_fhir_lab_observation_import():
         reference_range = data.get('reference_range')
         if not request_id or not patient_id:
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'request_id and patient_id مطلوبان'}]}), 400
-        req = db.session.get(LabRequest, int(request_id))
+        req = LabRequest.query.filter(LabRequest.id == int(request_id), LabRequest.tenant_id == g.tenant_id).first()
         if not req:
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'طلب المختبر غير موجود'}]}), 404
         res = None
@@ -194,10 +194,10 @@ def api_hl7_import():
 def api_fhir_lab_observation(result_id):
     """تصدير نتيجة مختبر بصيغة FHIR Observation وربطها بـ Encounter"""
     try:
-        res = db.session.get(LabResult, result_id)
+        res = LabResult.query.filter(LabResult.id == result_id, LabResult.tenant_id == g.tenant_id).first()
         if not res:
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'LabResult not found'}]}), 404
-        req = db.session.get(LabRequest, res.request_id)
+        req = LabRequest.query.filter(LabRequest.id == res.request_id, LabRequest.tenant_id == g.tenant_id).first()
         visit_id = req.visit_id if req else None
 
         # تحويل الحالة إلى FHIR
@@ -245,10 +245,10 @@ def api_fhir_lab_observation(result_id):
 def api_fhir_lab_diagnostic_report(result_id):
     """تصدير تقرير مختبر بصيغة FHIR DiagnosticReport وربطه بـ Encounter"""
     try:
-        res = db.session.get(LabResult, result_id)
+        res = LabResult.query.filter(LabResult.id == result_id, LabResult.tenant_id == g.tenant_id).first()
         if not res:
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على نتيجة المختبر المطلوبة'}]}), 404
-        req = db.session.get(LabRequest, res.request_id)
+        req = LabRequest.query.filter(LabRequest.id == res.request_id, LabRequest.tenant_id == g.tenant_id).first()
         visit_id = req.visit_id if req else None
 
         status_map = {

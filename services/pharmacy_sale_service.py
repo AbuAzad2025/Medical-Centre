@@ -14,7 +14,7 @@ class PharmacySaleService:
     def create_sale(prescription_id: int, dispensed_by: int, items: list[dict], tenant_id: int | None = None) -> dict:
         from models.medication import Prescription, PrescriptionItem, PharmacySale, PharmacySaleItem
         tenant_id = tenant_id or getattr(g, 'tenant_id', None)
-        prescription = Prescription.query.get(prescription_id)
+        prescription = Prescription.query.filter(Prescription.id == prescription_id, Prescription.tenant_id == tenant_id).first()
         if not prescription:
             return {"error": "Prescription not found"}
         sale = PharmacySale(
@@ -45,7 +45,7 @@ class PharmacySaleService:
     @staticmethod
     def void_sale(sale_id: int, reason: str = "") -> dict:
         from models.medication import PharmacySale
-        sale = PharmacySale.query.get(sale_id)
+        sale = PharmacySale.query.filter(PharmacySale.id == sale_id, PharmacySale.tenant_id == getattr(g, 'tenant_id', None)).first()
         if not sale:
             return {"error": "Sale not found"}
         sale.status = PrescriptionState.CANCELLED
@@ -55,7 +55,7 @@ class PharmacySaleService:
     @staticmethod
     def get_prescription_status(prescription_id: int) -> dict:
         from models.medication import Prescription, PharmacySale
-        prescription = Prescription.query.get(prescription_id)
+        prescription = Prescription.query.filter(Prescription.id == prescription_id, Prescription.tenant_id == getattr(g, 'tenant_id', None)).first()
         if not prescription:
             return {"error": "Prescription not found"}
         sales = PharmacySale.query.filter_by(prescription_id=prescription_id).all()

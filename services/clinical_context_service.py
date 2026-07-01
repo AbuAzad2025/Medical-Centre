@@ -3,6 +3,7 @@ Clinical Context Service - provides unified clinical context for a visit
 """
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 class ClinicalContextService:
@@ -20,11 +21,12 @@ class ClinicalContextService:
         from models.patient import Patient, PatientAllergy
         from models.workflow import VisitWorkflowEvent
 
-        visit = Visit.query.get(visit_id)
-        if not visit:
+        try:
+            visit = get_tenant_record(Visit, visit_id)
+        except TenantContextError:
             return {}
 
-        patient = Patient.query.get(visit.patient_id)
+        patient = get_tenant_record(Patient, visit.patient_id)
         vitals = VitalSigns.query.filter_by(visit_id=visit_id).order_by(VitalSigns.recorded_at.desc()).all()
         allergies = PatientAllergy.query.filter_by(patient_id=visit.patient_id).all()
         lab_reqs = LabRequest.query.filter_by(visit_id=visit_id).all()

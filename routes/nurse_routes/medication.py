@@ -44,7 +44,7 @@ def medication_administration():
         if dept_ids is not None and dept_ids:
             visits_q = visits_q.filter(Visit.department_id.in_(dept_ids))
         visits = visits_q.order_by(desc(Visit.created_at)).limit(50).all()
-        selected_visit = db.session.get(Visit, visit_id) if visit_id else None
+        selected_visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == current_user.tenant_id).first() if visit_id else None
 
         prescribed_items = []
         administration_logs = []
@@ -95,17 +95,17 @@ def administer_medication(prescription_item_id):
             flash('لا يوجد ملف تمريض مرتبط بهذا المستخدم', 'error')
             return redirect(url_for('nurse.medication_administration'))
 
-        item = db.session.get(PrescriptionItem, prescription_item_id)
+        item = PrescriptionItem.query.filter(PrescriptionItem.id == prescription_item_id, PrescriptionItem.tenant_id == current_user.tenant_id).first()
         if not item:
             flash('عنصر الوصفة غير موجود', 'error')
             return redirect(url_for('nurse.medication_administration'))
 
-        pres = db.session.get(Prescription, item.prescription_id)
+        pres = Prescription.query.filter(Prescription.id == item.prescription_id, Prescription.tenant_id == current_user.tenant_id).first()
         if not pres or not pres.visit_id:
             flash('لا يمكن ربط عنصر الوصفة بزيارة', 'error')
             return redirect(url_for('nurse.medication_administration'))
 
-        visit = db.session.get(Visit, pres.visit_id)
+        visit = Visit.query.filter(Visit.id == pres.visit_id, Visit.tenant_id == current_user.tenant_id).first()
         if not visit:
             flash('الزيارة غير موجودة', 'error')
             return redirect(url_for('nurse.medication_administration'))

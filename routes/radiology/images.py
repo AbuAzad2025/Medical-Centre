@@ -3,7 +3,7 @@
 from routes.radiology import radiology_bp
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app
+from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required
 from models.patient import Patient
@@ -35,7 +35,7 @@ def images():
 @role_required('radiology', 'doctor', 'admin', 'manager', 'super_admin')
 def download_file(file_id):
     try:
-        f = db.session.get(FileUpload, file_id)
+        f = FileUpload.query.filter(FileUpload.id == file_id, FileUpload.tenant_id == g.tenant_id).first()
         if not f:
             flash('الملف غير موجود', 'error')
             return redirect(url_for('radiology.worklist'))

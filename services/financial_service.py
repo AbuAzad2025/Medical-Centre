@@ -12,6 +12,7 @@ from typing import Any
 
 from app_factory import db
 from sqlalchemy import func
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 class FinancialService:
@@ -68,8 +69,9 @@ class FinancialService:
         from services.billing_state_service import PaymentAllocationService
 
         try:
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return {"ok": False, "error": "Visit not found"}
 
             invoices = Invoice.query.filter_by(visit_id=visit.id).order_by(Invoice.created_at.asc()).all()
@@ -156,10 +158,11 @@ class FinancialService:
         from models.visit import Visit
         from services.payment_service import PaymentService
         try:
-            invoice = Invoice.query.get(invoice_id)
-            if not invoice:
+            try:
+                invoice = get_tenant_record(Invoice, invoice_id)
+            except TenantContextError:
                 return False
-            visit = db.session.get(Visit, invoice.visit_id) if invoice.visit_id else None
+            visit = get_tenant_record(Visit, invoice.visit_id) if invoice.visit_id else None
             method_upper = (method or "cash").upper()
             ok, result = PaymentService.create_payment(
                 tenant_id=getattr(invoice, "tenant_id", None) or (visit.tenant_id if visit else None),

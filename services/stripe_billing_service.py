@@ -40,7 +40,7 @@ class StripeBillingService:
 
     @classmethod
     def _require_tenant(cls, tenant_id: int) -> Tenant:
-        tenant = Tenant.query.get(tenant_id)
+        tenant = Tenant.query.get(tenant_id)  # global reference table - no tenant scope
         if tenant is None:
             raise StripeBillingError('tenant_not_found')
         return tenant
@@ -100,7 +100,7 @@ class StripeBillingService:
     ) -> dict[str, Any]:
         cls._api_key()
         tenant = cls._require_tenant(tenant_id)
-        version = PackageVersion.query.get(package_version_id)
+        version = PackageVersion.query.get(package_version_id)  # global reference table - no tenant scope
         if version is None:
             raise StripeBillingError('package_version_not_found')
 
@@ -195,7 +195,7 @@ class StripeBillingService:
         subscription_id = (tenant.settings or {}).get('stripe_subscription_id')
 
         new_pricing = cls._pricing_for(new_package_version_id, billing_type)
-        new_version = PackageVersion.query.get(new_package_version_id)
+        new_version = PackageVersion.query.get(new_package_version_id)  # global reference table - no tenant scope
         if new_version is None:
             raise StripeBillingError('package_version_not_found')
 

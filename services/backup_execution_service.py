@@ -10,14 +10,16 @@ from app.shared.enums import BackupStatus
 from models.backup import Backup
 from services.backup_automation_service import BackupAutomationError, BackupAutomationService
 from services.pg_backup_service import PgBackupError, run_pg_dump_sql_gz
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 logger = logging.getLogger(__name__)
 
 
 def execute_backup_by_id(backup_id: int) -> Backup:
     """Run pg_dump for an existing Backup record and update its status."""
-    backup = db.session.get(Backup, backup_id)
-    if backup is None:
+    try:
+        backup = get_tenant_record(Backup, backup_id)
+    except TenantContextError:
         raise BackupAutomationError(f'Backup record {backup_id} not found')
 
     backup.backup_status = BackupStatus.IN_PROGRESS

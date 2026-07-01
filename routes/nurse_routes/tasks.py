@@ -85,7 +85,7 @@ def create_task():
         related_entity_type = None
         related_entity_id = None
         if visit_id:
-            v = db.session.get(Visit, visit_id)
+            v = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == current_user.tenant_id).first()
             if v:
                 related_entity_type = 'visit'
                 related_entity_id = v.id
@@ -119,7 +119,7 @@ def update_task_status(task_id: int):
     try:
         from models.task_management import Task
 
-        t = db.session.get(Task, task_id)
+        t = Task.query.filter(Task.id == task_id, Task.tenant_id == current_user.tenant_id).first()
         if not t:
             flash('المهمة غير موجودة', 'error')
             return redirect(url_for('nurse.tasks'))

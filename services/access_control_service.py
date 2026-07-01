@@ -13,6 +13,7 @@ from models.radiology_result import RadiologyResult
 from models.payment import Payment
 from app.shared.enums import VisitState, VisitArchiveStatus
 from app_factory import db
+from utils.tenant_query import get_tenant_record, TenantContextError
 import logging
 from datetime import datetime, timedelta, timezone
 from functools import wraps
@@ -76,12 +77,14 @@ class AccessControlService:
     def can_access_visit(user_id, visit_id):
         """التحقق من إمكانية الوصول لزيارة معينة"""
         try:
-            user = db.session.get(User, user_id)
-            if not user:
+            try:
+                user = get_tenant_record(User, user_id)
+            except TenantContextError:
                 return False
             
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return False
             
             # المدير والمدير العام والاستقبال يمكنهم الوصول لجميع الزيارات
@@ -112,12 +115,14 @@ class AccessControlService:
     def can_modify_visit(user_id, visit_id):
         """التحقق من إمكانية تعديل زيارة"""
         try:
-            user = db.session.get(User, user_id)
-            if not user:
+            try:
+                user = get_tenant_record(User, user_id)
+            except TenantContextError:
                 return False
             
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return False
             
             # المدير فقط يمكنه تعديل الزيارات المؤرشفة
@@ -179,8 +184,9 @@ class AccessControlService:
     def get_user_accessible_visits(user_id):
         """الحصول على الزيارات المتاحة للمستخدم"""
         try:
-            user = db.session.get(User, user_id)
-            if not user:
+            try:
+                user = get_tenant_record(User, user_id)
+            except TenantContextError:
                 return []
             
             # المدير والمدير العام والاستقبال يمكنهم رؤية جميع الزيارات
@@ -215,8 +221,9 @@ class AccessControlService:
     def get_user_accessible_patients(user_id):
         """الحصول على المرضى المتاحين للمستخدم"""
         try:
-            user = db.session.get(User, user_id)
-            if not user:
+            try:
+                user = get_tenant_record(User, user_id)
+            except TenantContextError:
                 return []
             
             # المدير والمدير العام والاستقبال يمكنهم رؤية جميع المرضى
@@ -252,8 +259,9 @@ class AccessControlService:
     def get_user_dashboard_route(user_id):
         """الحصول على مسار لوحة التحكم حسب الدور"""
         try:
-            user = db.session.get(User, user_id)
-            if not user:
+            try:
+                user = get_tenant_record(User, user_id)
+            except TenantContextError:
                 return '/dashboard'
             
             role_routes = {
@@ -278,8 +286,9 @@ class AccessControlService:
     def get_user_menu_items(user_id):
         """الحصول على عناصر القائمة حسب الدور"""
         try:
-            user = db.session.get(User, user_id)
-            if not user:
+            try:
+                user = get_tenant_record(User, user_id)
+            except TenantContextError:
                 return []
             
             # تعريف القوائم لكل دور
@@ -384,7 +393,10 @@ class AccessControlService:
             if user is None:
                 return []
             if isinstance(user, int):
-                user = db.session.get(User, user)
+                try:
+                    user = get_tenant_record(User, user)
+                except TenantContextError:
+                    return []
             if not user:
                 return []
             if getattr(user, 'is_admin_user', None) and user.is_admin_user():
@@ -440,7 +452,10 @@ class AccessControlService:
             if user is None:
                 return False
             if isinstance(user, int):
-                user = db.session.get(User, user)
+                try:
+                    user = get_tenant_record(User, user)
+                except TenantContextError:
+                    return False
             if not user:
                 return False
             if getattr(user, 'is_admin_user', None) and user.is_admin_user():

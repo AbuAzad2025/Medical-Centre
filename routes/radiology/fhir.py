@@ -3,7 +3,7 @@
 from routes.radiology import radiology_bp
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app
+from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required
 from models.patient import Patient
@@ -55,10 +55,10 @@ def api_worklist():
 @role_required('radiology', 'lab', 'doctor', 'admin', 'manager')
 def api_fhir_radiology_observation(result_id):
     try:
-        res = db.session.get(RadiologyResult, result_id)
+        res = RadiologyResult.query.filter(RadiologyResult.id == result_id, RadiologyResult.tenant_id == g.tenant_id).first()
         if not res:
-            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'RadiologyResult not found'}]}), 404
-        req = db.session.get(RadiologyRequest, res.request_id)
+            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على نتيجة الأشعة المطلوبة'}]}), 404
+        req = RadiologyRequest.query.filter(RadiologyRequest.id == res.request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
         visit_id = req.visit_id if req else None
 
         status_map = {
@@ -105,10 +105,10 @@ def api_fhir_radiology_observation(result_id):
 def api_fhir_radiology_diagnostic_report(result_id):
     """تصدير تقرير أشعة بصيغة FHIR DiagnosticReport وربطه بـ Encounter"""
     try:
-        res = db.session.get(RadiologyResult, result_id)
+        res = RadiologyResult.query.filter(RadiologyResult.id == result_id, RadiologyResult.tenant_id == g.tenant_id).first()
         if not res:
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'RadiologyResult not found'}]}), 404
-        req = db.session.get(RadiologyRequest, res.request_id)
+        req = RadiologyRequest.query.filter(RadiologyRequest.id == res.request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
         visit_id = req.visit_id if req else None
 
         status_map = {
@@ -157,10 +157,10 @@ def api_fhir_radiology_diagnostic_report(result_id):
 def api_fhir_imaging_study(result_id):
     """تصدير دراسة تصويرية بصيغة FHIR ImagingStudy وربطها بـ Encounter"""
     try:
-        res = db.session.get(RadiologyResult, result_id)
+        res = RadiologyResult.query.filter(RadiologyResult.id == result_id, RadiologyResult.tenant_id == g.tenant_id).first()
         if not res:
-            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على نتيجة الأشعة المطلوبة'}]}), 404
-        req = db.session.get(RadiologyRequest, res.request_id)
+            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'RadiologyResult not found'}]}), 404
+        req = RadiologyRequest.query.filter(RadiologyRequest.id == res.request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
         visit_id = req.visit_id if req else None
 
         resource = {

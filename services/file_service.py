@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from flask import g, current_app
 from werkzeug.utils import secure_filename
 from app.extensions import db
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 class FileService:
@@ -85,8 +86,9 @@ class FileService:
     @staticmethod
     def delete(file_id: int) -> bool:
         from models.file_management import FileUpload
-        upload = FileUpload.query.get(file_id)
-        if not upload:
+        try:
+            upload = get_tenant_record(FileUpload, file_id)
+        except TenantContextError:
             return False
         try:
             if os.path.exists(upload.file_path):

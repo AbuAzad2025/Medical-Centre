@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
 from app.shared.enums import BillingState, PaymentStatus
+from utils.tenant_query import get_tenant_record
 
 
 class BillingStateService:
@@ -82,7 +83,7 @@ class ReceiptService:
     @staticmethod
     def mark_printed(receipt_id: int):
         from models.receipt import Receipt
-        receipt = Receipt.query.get(receipt_id)
+        receipt = get_tenant_record(Receipt, receipt_id)
         if receipt:
             receipt.status = 'printed'
             receipt.is_printed = True
@@ -92,7 +93,7 @@ class ReceiptService:
     @staticmethod
     def void_receipt(receipt_id: int, reason: str = ""):
         from models.receipt import Receipt
-        receipt = Receipt.query.get(receipt_id)
+        receipt = get_tenant_record(Receipt, receipt_id)
         if receipt:
             receipt.status = 'voided'
             receipt.void_reason = reason

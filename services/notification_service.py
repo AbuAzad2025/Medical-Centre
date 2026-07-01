@@ -13,6 +13,8 @@ from models.department import Department
 import logging
 import json
 
+from utils.tenant_query import get_tenant_record, TenantContextError
+
 class NotificationService:
     """خدمة إدارة الإشعارات"""
     
@@ -483,7 +485,7 @@ class NotificationService:
                         from app.core.tenant.models import Tenant
                         _tenant = None
                         if notification.tenant_id:
-                            _tenant = Tenant.query.get(notification.tenant_id)
+                            _tenant = Tenant.query.get(notification.tenant_id)  # global reference table - no tenant scope
                         result = SMSService.send_sms(
                             phone=notification.recipient,
                             message=notification.content,
@@ -895,9 +897,18 @@ class NotificationService:
             sent = 0
             fallback_notified = 0
             for ap in appts:
-                patient = db.session.get(Patient, ap.patient_id)
-                doctor = db.session.get(User, ap.doctor_id) if ap.doctor_id else None
-                dept = db.session.get(Department, ap.department_id) if ap.department_id else None
+                try:
+                    patient = get_tenant_record(Patient, ap.patient_id)
+                except TenantContextError:
+                    patient = None
+                try:
+                    doctor = get_tenant_record(User, ap.doctor_id) if ap.doctor_id else None
+                except TenantContextError:
+                    doctor = None
+                try:
+                    dept = get_tenant_record(Department, ap.department_id) if ap.department_id else None
+                except TenantContextError:
+                    dept = None
                 dt_str = ap.starts_at.strftime('%Y-%m-%d %H:%M')
                 subject = 'تذكير بالموعد الطبي'
                 if not patient or not patient.phone:
@@ -974,8 +985,14 @@ class NotificationService:
                     continue
                 if not (dt >= now and dt <= soon):
                     continue
-                dept = db.session.get(Department, b.department_id) if b.department_id else None
-                doctor = db.session.get(User, b.doctor_id) if b.doctor_id else None
+                try:
+                    dept = get_tenant_record(Department, b.department_id) if b.department_id else None
+                except TenantContextError:
+                    dept = None
+                try:
+                    doctor = get_tenant_record(User, b.doctor_id) if b.doctor_id else None
+                except TenantContextError:
+                    doctor = None
                 dt_str = dt.strftime('%Y-%m-%d %H:%M')
                 subject = 'تذكير بموعد الحجز'
 

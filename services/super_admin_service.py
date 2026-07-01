@@ -10,6 +10,7 @@ from typing import Any
 
 from app_factory import db
 from sqlalchemy import func
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 class SuperAdminService:
@@ -64,8 +65,9 @@ class SuperAdminService:
     @staticmethod
     def toggle_user_status(user_id: int) -> bool:
         from models.user import User
-        user = User.query.get(user_id)
-        if not user:
+        try:
+            user = get_tenant_record(User, user_id)
+        except TenantContextError:
             return False
         user.is_active = not user.is_active
         db.session.commit()

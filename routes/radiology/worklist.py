@@ -3,7 +3,7 @@
 from routes.radiology import radiology_bp, _log_radiology_workflow
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app
+from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required
 from models.patient import Patient
@@ -139,7 +139,7 @@ def worklist_request(request_id):
         visit_summary = None
         if getattr(rad_request, 'visit_id', None):
             from models.visit import Visit
-            visit_summary = Visit.query.get(rad_request.visit_id)
+            visit_summary = Visit.query.filter(Visit.id == rad_request.visit_id, Visit.tenant_id == g.tenant_id).first()
         return render_template('radiology/process.html', radiology_request=rad_request, radiology_result=existing_result, uploads=uploads, visit_summary=visit_summary)
     except Exception as e:
         logging.error(f"Error loading radiology request {request_id}: {str(e)}")
@@ -174,7 +174,7 @@ def worklist_claim(request_id):
 @role_required('radiology', 'technician', 'admin', 'manager', 'super_admin')
 def worklist_complete(request_id):
     try:
-        req = db.session.get(RadiologyRequest, request_id)
+        req = RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
         if not req:
             if request.accept_mimetypes.best == 'application/json':
                 return jsonify({'success': False, 'message': 'الطلب غير موجود'}), 404

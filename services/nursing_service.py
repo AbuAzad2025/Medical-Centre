@@ -10,6 +10,7 @@ from typing import Any
 
 from app_factory import db
 from sqlalchemy import and_, or_
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 class NursingService:
@@ -64,8 +65,9 @@ class NursingService:
         from models.nurse import VitalSigns
         from models.visit import Visit
         try:
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return None
             record = VitalSigns(
                 visit_id=visit_id,
@@ -141,8 +143,9 @@ class NursingService:
     ) -> bool:
         try:
             from models.nurse import MedicationAdministrationLog
-            record = MedicationAdministrationLog.query.get(administration_id)
-            if not record:
+            try:
+                record = get_tenant_record(MedicationAdministrationLog, administration_id)
+            except TenantContextError:
                 return False
             record.notes = notes
             db.session.commit()
@@ -173,8 +176,9 @@ class NursingService:
         try:
             from models.clinical_pathway import PatientCarePlan
             from models.visit import Visit
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return None
             plan = PatientCarePlan(
                 patient_id=visit.patient_id,
@@ -210,8 +214,9 @@ class NursingService:
     def complete_task(task_id: int, completed_by: int) -> bool:
         try:
             from models.task_management import Task
-            task = Task.query.get(task_id)
-            if not task:
+            try:
+                task = get_tenant_record(Task, task_id)
+            except TenantContextError:
                 return False
             task.status = "completed"
             task.completed_at = datetime.now(timezone.utc)

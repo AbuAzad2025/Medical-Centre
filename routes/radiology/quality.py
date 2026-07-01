@@ -3,7 +3,7 @@
 from routes.radiology import radiology_bp
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app
+from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, current_app, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required
 from models.patient import Patient
@@ -156,7 +156,7 @@ def api_ai_assist():
 def second_review_result(result_id):
     try:
         from models.radiology_result import RadiologyResult
-        res = db.session.get(RadiologyResult, result_id)
+        res = RadiologyResult.query.filter(RadiologyResult.id == result_id, RadiologyResult.tenant_id == g.tenant_id).first()
         if not res:
             return jsonify({'success': False, 'message': 'النتيجة غير موجودة'}), 404
         res.reviewed_by = current_user.id

@@ -71,7 +71,7 @@ def with_tenant_context(app: Flask, tenant_id: int, job: Callable[[], T]) -> Opt
         from app.core.tenant.middleware import bind_g_tenant
         from app.core.tenant.models import Tenant
 
-        tenant = Tenant.query.get(tenant_id)
+        tenant = Tenant.query.get(tenant_id)  # global reference table - no tenant scope
         if tenant is None:
             return None
         bind_g_tenant(tenant)

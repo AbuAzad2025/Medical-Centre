@@ -11,6 +11,7 @@ from typing import Any
 from app_factory import db
 from app.shared.enums import VisitState
 from sqlalchemy import and_, or_, func
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 class ReceptionService:
@@ -74,7 +75,7 @@ class ReceptionService:
         from models.visit import Visit
         try:
             from models.department import Department
-            dept = Department.query.get(department_id)
+            dept = get_tenant_record(Department, department_id)
             visit = Visit(
                 patient_id=patient_id,
                 department_id=department_id,
@@ -104,8 +105,9 @@ class ReceptionService:
     def check_in_appointment(appointment_id: int) -> bool:
         from models.appointment import Appointment
         try:
-            apt = Appointment.query.get(appointment_id)
-            if not apt:
+            try:
+                apt = get_tenant_record(Appointment, appointment_id)
+            except TenantContextError:
                 return False
             apt.status = "CHECKED_IN"
             db.session.commit()
@@ -117,12 +119,12 @@ class ReceptionService:
     @staticmethod
     def get_patient(patient_id: int):
         from models.patient import Patient
-        return Patient.query.get(patient_id)
+        return get_tenant_record(Patient, patient_id)
 
     @staticmethod
     def get_visit(visit_id: int):
         from models.visit import Visit
-        return Visit.query.get(visit_id)
+        return get_tenant_record(Visit, visit_id)
 
     @staticmethod
     def get_upcoming_appointments(department_id: int | None = None, limit: int = 20) -> list:

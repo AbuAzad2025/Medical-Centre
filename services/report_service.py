@@ -18,6 +18,8 @@ from models.user import User
 from models.department import Department
 import logging
 
+from utils.tenant_query import get_tenant_record, TenantContextError
+
 class ReportService:
     """خدمة إدارة التقارير والإحصائيات"""
     
@@ -119,10 +121,11 @@ class ReportService:
     def get_patient_report(patient_id, start_date=None, end_date=None):
         """تقرير المريض"""
         try:
-            patient = db.session.get(Patient, patient_id)
-            if not patient:
+            try:
+                patient = get_tenant_record(Patient, patient_id)
+            except TenantContextError:
                 return {'success': False, 'message': 'المريض غير موجود'}
-            
+
             # تحديد الفترة الزمنية
             if not start_date:
                 start_date = datetime.now() - timedelta(days=30)
@@ -188,10 +191,11 @@ class ReportService:
     def get_department_report(department_id, start_date=None, end_date=None):
         """تقرير القسم"""
         try:
-            department = db.session.get(Department, department_id)
-            if not department:
+            try:
+                department = get_tenant_record(Department, department_id)
+            except TenantContextError:
                 return {'success': False, 'message': 'القسم غير موجود'}
-            
+
             # تحديد الفترة الزمنية
             if not start_date:
                 start_date = datetime.now() - timedelta(days=30)
@@ -342,10 +346,13 @@ class ReportService:
     def get_doctor_performance_report(doctor_id, start_date=None, end_date=None):
         """تقرير أداء الطبيب"""
         try:
-            doctor = db.session.get(User, doctor_id)
-            if not doctor or doctor.role != 'doctor':
+            try:
+                doctor = get_tenant_record(User, doctor_id)
+            except TenantContextError:
                 return {'success': False, 'message': 'الطبيب غير موجود'}
-            
+            if doctor.role != 'doctor':
+                return {'success': False, 'message': 'الطبيب غير موجود'}
+
             # تحديد الفترة الزمنية
             if not start_date:
                 start_date = datetime.now() - timedelta(days=30)

@@ -14,6 +14,8 @@ from models.radiology_result import RadiologyResult
 from models.service import ServiceMaster
 import logging
 
+from utils.tenant_query import get_tenant_record, TenantContextError
+
 class PricingService:
     """خدمة إدارة الأسعار والخدمات"""
     
@@ -141,7 +143,10 @@ class PricingService:
                 return doctor_pricing.get_price(visit_type, payment_method)
             else:
                 # البحث عن السعر الافتراضي للقسم
-                doctor = db.session.get(User, doctor_id)
+                try:
+                    doctor = get_tenant_record(User, doctor_id)
+                except TenantContextError:
+                    doctor = None
                 if doctor and doctor.department_id:
                     department_pricing = DoctorPricing.query.filter(
                         and_(
@@ -225,10 +230,11 @@ class PricingService:
     def update_service_price(service_price_id, update_data):
         """تحديث سعر الخدمة"""
         try:
-            service_price = db.session.get(ServicePrice, service_price_id)
-            if not service_price:
+            try:
+                service_price = get_tenant_record(ServicePrice, service_price_id)
+            except TenantContextError:
                 return {'success': False, 'message': 'سعر الخدمة غير موجود'}
-            
+
             # تحديث البيانات
             for key, value in update_data.items():
                 if hasattr(service_price, key):
@@ -461,7 +467,10 @@ class PricingService:
             # تكلفة التحاليل
             if visit_data.get('lab_tests'):
                 for lab_test_id in visit_data['lab_tests']:
-                    lab_test = db.session.get(LabRequest, lab_test_id)
+                    try:
+                        lab_test = get_tenant_record(LabRequest, lab_test_id)
+                    except TenantContextError:
+                        lab_test = None
                     if lab_test:
                         # محاولة الحصول على اسم الفحص إن وجد، وإلا استخدام أول سعر خدمة نشط لنوع lab_test
                         service_name = getattr(lab_test, 'name', None) or getattr(lab_test, 'name_ar', None) or getattr(lab_test, 'test_name', None)
@@ -484,7 +493,10 @@ class PricingService:
             # تكلفة الأشعة
             if visit_data.get('radiology_tests'):
                 for radiology_test_id in visit_data['radiology_tests']:
-                    radiology_test = db.session.get(RadiologyResult, radiology_test_id)
+                    try:
+                        radiology_test = get_tenant_record(RadiologyResult, radiology_test_id)
+                    except TenantContextError:
+                        radiology_test = None
                     if radiology_test:
                         service_name = getattr(radiology_test, 'name', None) or getattr(radiology_test, 'name_ar', None) or getattr(radiology_test, 'study_uid', None)
                         payment_method = visit_data.get('payment_method', 'cash')

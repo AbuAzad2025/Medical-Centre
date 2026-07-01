@@ -10,6 +10,7 @@ import secrets
 from datetime import date, datetime, timezone
 from typing import Any
 
+from flask import g
 from app_factory import db
 from werkzeug.utils import secure_filename
 
@@ -31,7 +32,7 @@ class RadiologyService:
         from models.radiology_request import RadiologyRequest
         from models.visit import Visit
 
-        visit = db.session.get(Visit, visit_id)
+        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id).first()
         if not visit:
             return False, {"error": "Visit not found"}
 
@@ -93,13 +94,13 @@ class RadiologyService:
     @staticmethod
     def get_request_by_id(request_id: int) -> Any | None:
         from models.radiology_request import RadiologyRequest
-        return RadiologyRequest.query.get(request_id)
+        return RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
 
     @staticmethod
     def get_results_for_request(request_id: int) -> Any | None:
         from models.radiology_result import RadiologyResult
         from models.radiology_request import RadiologyRequest
-        req = RadiologyRequest.query.get(request_id)
+        req = RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
         if req and req.results:
             return req.results[0]
         return None
@@ -130,7 +131,7 @@ class RadiologyService:
         from models.radiology_result import RadiologyResult
         from models.radiology_request import RadiologyRequest
         try:
-            req = RadiologyRequest.query.get(request_id)
+            req = RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
             if not req:
                 return None
             result = req.results[0] if req.results else RadiologyResult(
@@ -155,7 +156,7 @@ class RadiologyService:
     def finalize_result(request_id: int) -> bool:
         from models.radiology_request import RadiologyRequest
         try:
-            req = RadiologyRequest.query.get(request_id)
+            req = RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
             if not req:
                 return False
             result = req.results[0] if req.results else None
@@ -175,7 +176,7 @@ class RadiologyService:
     def claim_request(request_id: int, user_id: int) -> bool:
         from models.radiology_request import RadiologyRequest
         try:
-            req = RadiologyRequest.query.get(request_id)
+            req = RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
             if not req or req.status != "REQUESTED":
                 return False
             req.status = "IN_PROGRESS"

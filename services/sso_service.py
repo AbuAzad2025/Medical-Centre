@@ -8,6 +8,7 @@ import logging
 from typing import Any
 
 from app_factory import db
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 class SSOService:
@@ -26,7 +27,7 @@ class SSOService:
     @staticmethod
     def get_config(config_id: int) -> Any | None:
         from models import SSOConfiguration
-        return SSOConfiguration.query.get(config_id)
+        return get_tenant_record(SSOConfiguration, config_id)
 
     @staticmethod
     def create_config(name: str, provider_type: str = "ldap",
@@ -57,8 +58,9 @@ class SSOService:
     @staticmethod
     def toggle_config(config_id: int) -> bool:
         from models import SSOConfiguration
-        cfg = SSOConfiguration.query.get(config_id)
-        if not cfg:
+        try:
+            cfg = get_tenant_record(SSOConfiguration, config_id)
+        except TenantContextError:
             return False
         cfg.is_active = not cfg.is_active
         db.session.commit()
@@ -67,8 +69,9 @@ class SSOService:
     @staticmethod
     def delete_config(config_id: int) -> bool:
         from models import SSOConfiguration
-        cfg = SSOConfiguration.query.get(config_id)
-        if not cfg:
+        try:
+            cfg = get_tenant_record(SSOConfiguration, config_id)
+        except TenantContextError:
             return False
         db.session.delete(cfg)
         db.session.commit()

@@ -50,7 +50,7 @@ class StripeSubscriptionService:
         metadata = obj.get('metadata') or {}
         tenant_id = metadata.get('tenant_id')
         if tenant_id:
-            return Tenant.query.get(int(tenant_id))
+            return Tenant.query.get(int(tenant_id))  # global reference table - no tenant scope
         customer_id = obj.get('customer')
         if customer_id:
             for candidate in Tenant.query.filter(Tenant.settings.isnot(None)).all():
@@ -150,7 +150,7 @@ class StripeSubscriptionService:
 
     @classmethod
     def _check_idempotency(cls, event_id: str) -> Optional[StripeWebhookEvent]:
-        return db.session.get(StripeWebhookEvent, event_id)
+        return db.session.get(StripeWebhookEvent, event_id)  # global reference table - no tenant scope
 
     @classmethod
     def ingest_webhook(cls, payload: bytes, signature_header: str) -> dict[str, Any]:
@@ -185,7 +185,7 @@ class StripeSubscriptionService:
         except Exception as exc:
             db.session.rollback()
             try:
-                failed_record = db.session.get(StripeWebhookEvent, event_id)
+                failed_record = db.session.get(StripeWebhookEvent, event_id)  # global reference table - no tenant scope
                 if failed_record:
                     failed_record.status = StripeWebhookEventStatus.FAILED
                     failed_record.error_message = str(exc)[:1000]

@@ -36,7 +36,7 @@ class FeatureGateService:
     @staticmethod
     def product_profile(tenant_id: int) -> str | None:
         from app.core.tenant.models import Tenant
-        tenant = Tenant.query.get(tenant_id)
+        tenant = Tenant.query.get(tenant_id)  # global reference table - no tenant scope
         return tenant.product_profile_code if tenant else None
 
 def require_module(module: str):

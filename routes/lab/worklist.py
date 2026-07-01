@@ -3,7 +3,7 @@
 from routes.lab import lab_bp, _log_lab_workflow
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response
+from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required
 from models.patient import Patient
@@ -111,7 +111,7 @@ def _process_lab_results_form(lab_request, form):
                     reference_range = catalog_entry.default_reference_range or None
 
         if rid_raw and str(rid_raw).isdigit():
-            res = db.session.get(LabResult, int(rid_raw))
+            res = LabResult.query.filter(LabResult.id == int(rid_raw), LabResult.tenant_id == g.tenant_id).first()
             if not res or res.request_id != lab_request.id:
                 continue
             res.performed_by = current_user.id
@@ -178,7 +178,7 @@ def _notify_lab_results_ready(lab_request):
 @role_required('lab', 'technician', 'admin', 'manager', 'super_admin')
 def worklist_request(request_id):
     try:
-        lab_request = db.session.get(LabRequest, request_id)
+        lab_request = LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
         if not lab_request:
             flash('الطلب غير موجود', 'error')
             return redirect(url_for('lab.worklist'))
@@ -248,7 +248,7 @@ def worklist_request(request_id):
 @role_required('lab', 'technician', 'admin', 'manager', 'super_admin')
 def worklist_claim(request_id):
     try:
-        req = db.session.get(LabRequest, request_id)
+        req = LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
         if not req or req.status not in ('REQUESTED',):
             return jsonify({'success': False, 'message': 'الطلب غير صالح'}), 400
         req.status = OrderState.RECEIVED
@@ -266,7 +266,7 @@ def worklist_claim(request_id):
 @role_required('lab', 'technician', 'admin', 'manager', 'super_admin')
 def worklist_complete(request_id):
     try:
-        req = db.session.get(LabRequest, request_id)
+        req = LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
         if not req:
             return jsonify({'success': False, 'message': 'الطلب غير موجود'}), 404
         # إنشاء نتيجة مبسطة إذا لم تُرفق

@@ -3,6 +3,7 @@ Permission Scope Service - resolves what data a user can access based on module 
 """
 from typing import List, Optional
 from flask import g
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 class PermissionScopeService:
@@ -14,8 +15,9 @@ class PermissionScopeService:
         from models.user import User
         from app.core.tenant.models import Tenant
 
-        user = User.query.get(user_id)
-        if not user:
+        try:
+            user = get_tenant_record(User, user_id)
+        except TenantContextError:
             return []
         if hasattr(user, 'is_super_admin') and user.is_super_admin:
             return [t.id for t in Tenant.query.all()]
@@ -30,8 +32,9 @@ class PermissionScopeService:
         from models.user import User
         from models.advanced_permissions import ModulePermission
 
-        user = User.query.get(user_id)
-        if not user:
+        try:
+            user = get_tenant_record(User, user_id)
+        except TenantContextError:
             return []
         if user.is_super_admin:
             return ['reception', 'doctor', 'lab', 'radiology', 'emergency', 'accounting',

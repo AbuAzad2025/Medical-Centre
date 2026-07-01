@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any
 
+from flask import g
 from app_factory import db
 from sqlalchemy import and_, or_
 
@@ -37,8 +38,8 @@ class PrescriptionService:
                 conds = [and_(DrugInteraction.medication_a_id == a, DrugInteraction.medication_b_id == b) for a, b in pairs]
                 rows = DrugInteraction.query.filter(DrugInteraction.is_active == True).filter(or_(*conds)).all()
                 for row in rows:
-                    a = Medication.query.get(row.medication_a_id)
-                    b = Medication.query.get(row.medication_b_id)
+                    a = Medication.query.filter(Medication.id == row.medication_a_id, Medication.tenant_id == g.tenant_id).first()
+                    b = Medication.query.filter(Medication.id == row.medication_b_id, Medication.tenant_id == g.tenant_id).first()
                     a_name = a.trade_name if a else f"ID {row.medication_a_id}"
                     b_name = b.trade_name if b else f"ID {row.medication_b_id}"
                     warnings.append({
@@ -112,12 +113,13 @@ class PrescriptionService:
             db.session.add(prescription)
             db.session.flush()
 
+            resolved_tenant_id = tenant_id if tenant_id is not None else getattr(g, "tenant_id", None)
             if items:
                 for item_data in items:
                     med_id = item_data.get("medication_id")
                     if not med_id:
                         continue
-                    med = Medication.query.get(med_id)
+                    med = Medication.query.filter(Medication.id == med_id, Medication.tenant_id == resolved_tenant_id).first()
                     if not med:
                         db.session.rollback()
                         return False, f"Medication {med_id} not found"
@@ -184,7 +186,7 @@ class PrescriptionService:
     def update_stock(medication_id: int, quantity_change: float) -> bool:
         from models.medication import Medication
         try:
-            med = Medication.query.get(medication_id)
+            med = Medication.query.filter(Medication.id == medication_id, Medication.tenant_id == g.tenant_id).first()
             if not med:
                 return False
             med.stock_quantity = (med.stock_quantity or 0) + quantity_change
@@ -205,7 +207,7 @@ class PrescriptionService:
         from models.medication import Medication
         from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
         try:
-            med = Medication.query.get(medication_id)
+            med = Medication.query.filter(Medication.id == medication_id, Medication.tenant_id == g.tenant_id).first()
             if not med:
                 return None
             request = MedicationSupplyRequest(
@@ -259,12 +261,12 @@ class PrescriptionService:
     @staticmethod
     def get_medication(medication_id: int):
         from models.medication import Medication
-        return Medication.query.get(medication_id)
+        return Medication.query.filter(Medication.id == medication_id, Medication.tenant_id == g.tenant_id).first()
 
     @staticmethod
     def get_prescription(prescription_id: int):
         from models.medication import Prescription
-        return Prescription.query.get(prescription_id)
+        return Prescription.query.filter(Prescription.id == prescription_id, Prescription.tenant_id == g.tenant_id).first()
 
     @staticmethod
     def log_action(action: str, details: str, user_id: int | None = None) -> None:

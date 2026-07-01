@@ -11,6 +11,7 @@ from typing import Any
 
 from app_factory import db
 from flask import request
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 class FHIRService:
@@ -70,7 +71,7 @@ class FHIRService:
     @staticmethod
     def get_patient(patient_id: int) -> Any | None:
         from models.patient import Patient
-        return Patient.query.get(patient_id)
+        return get_tenant_record(Patient, patient_id)
 
     # ==================== ENCOUNTER RESOURCES ====================
 

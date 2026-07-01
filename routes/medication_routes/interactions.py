@@ -74,9 +74,7 @@ def interactions():
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def toggle_interaction(interaction_id: int):
-    row = db.session.get(DrugInteraction, interaction_id)
-    if not row:
-        return jsonify({'success': False, 'message': 'غير موجود'}), 404
+    row = DrugInteraction.query.filter(DrugInteraction.id == interaction_id).first_or_404()
     try:
         row.is_active = not bool(row.is_active)
         row.updated_at = datetime.now(timezone.utc)

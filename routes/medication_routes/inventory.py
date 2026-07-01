@@ -80,7 +80,7 @@ def create_supply_request():
                 rq = int(qraw) if qraw.isdigit() else 0
                 if rq <= 0:
                     continue
-                med = db.session.get(Medication, mid)
+                med = Medication.query.filter(Medication.id == mid, Medication.tenant_id == current_user.tenant_id).first()
                 if not med:
                     continue
                 items.append((med, rq))
@@ -132,7 +132,7 @@ def create_supply_request():
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def view_supply_request(request_id: int):
-    req = db.session.get(MedicationSupplyRequest, request_id)
+    req = MedicationSupplyRequest.query.filter(MedicationSupplyRequest.id == request_id, MedicationSupplyRequest.tenant_id == current_user.tenant_id).first()
     if not req:
         flash('طلب التوريد غير موجود', 'error')
         return redirect(url_for('medication.supply_requests'))
@@ -143,7 +143,7 @@ def view_supply_request(request_id: int):
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def approve_supply_request(request_id: int):
-    req = db.session.get(MedicationSupplyRequest, request_id)
+    req = MedicationSupplyRequest.query.filter(MedicationSupplyRequest.id == request_id, MedicationSupplyRequest.tenant_id == current_user.tenant_id).first()
     if not req:
         return jsonify({'success': False, 'message': 'غير موجود'}), 404
     if req.status not in {'DRAFT'}:
@@ -168,7 +168,7 @@ def approve_supply_request(request_id: int):
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def fulfill_supply_request(request_id: int):
-    req = db.session.get(MedicationSupplyRequest, request_id)
+    req = MedicationSupplyRequest.query.filter(MedicationSupplyRequest.id == request_id, MedicationSupplyRequest.tenant_id == current_user.tenant_id).first()
     if not req:
         return jsonify({'success': False, 'message': 'غير موجود'}), 404
     if req.status not in {'APPROVED'}:
@@ -191,7 +191,7 @@ def fulfill_supply_request(request_id: int):
             if fq < 0:
                 fq = 0
             it.fulfilled_qty = fq
-            med = db.session.get(Medication, it.medication_id)
+            med = Medication.query.filter(Medication.id == it.medication_id, Medication.tenant_id == current_user.tenant_id).first()
             if med and fq:
                 med.stock_quantity = int(med.stock_quantity or 0) + int(fq)
                 med.updated_at = datetime.now(timezone.utc)

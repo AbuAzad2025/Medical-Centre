@@ -11,6 +11,7 @@ from typing import Any
 
 from app_factory import db
 from sqlalchemy import and_
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 class PaymentService:
@@ -84,7 +85,10 @@ class PaymentService:
             if status == "CONFIRMED" and visit_id:
                 from models.visit import Visit
                 from services.billing_state_service import PaymentAllocationService
-                visit = db.session.get(Visit, visit_id)
+                try:
+                    visit = get_tenant_record(Visit, visit_id)
+                except TenantContextError:
+                    visit = None
                 if visit:
                     PaymentAllocationService.allocate(payment, visit)
 

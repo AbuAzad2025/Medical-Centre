@@ -10,6 +10,7 @@ from decimal import Decimal
 from typing import Any
 
 from app_factory import db
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 class RefundService:
@@ -27,8 +28,9 @@ class RefundService:
         from models.payment import Payment, PaymentStatus
         from models.refund_request import RefundRequest, RefundStatus
 
-        payment = db.session.get(Payment, payment_id)
-        if not payment:
+        try:
+            payment = get_tenant_record(Payment, payment_id)
+        except TenantContextError:
             return False, "Payment not found"
         if payment.tenant_id != tenant_id:
             return False, "Tenant mismatch"
@@ -73,8 +75,9 @@ class RefundService:
     ) -> tuple[bool, Any | str]:
         from models.refund_request import RefundRequest, RefundStatus
 
-        request = db.session.get(RefundRequest, refund_id)
-        if not request:
+        try:
+            request = get_tenant_record(RefundRequest, refund_id)
+        except TenantContextError:
             return False, "Refund request not found"
         if request.status != RefundStatus.PENDING:
             return False, "Refund request is not pending"
@@ -93,8 +96,9 @@ class RefundService:
     ) -> tuple[bool, Any | str]:
         from models.refund_request import RefundRequest, RefundStatus
 
-        request = db.session.get(RefundRequest, refund_id)
-        if not request:
+        try:
+            request = get_tenant_record(RefundRequest, refund_id)
+        except TenantContextError:
             return False, "Refund request not found"
         if request.status != RefundStatus.PENDING:
             return False, "Refund request is not pending"
@@ -121,14 +125,16 @@ class RefundService:
         from models.receipt import Receipt
         from models.refund_request import RefundRequest, RefundStatus
 
-        request = db.session.get(RefundRequest, refund_id)
-        if not request:
+        try:
+            request = get_tenant_record(RefundRequest, refund_id)
+        except TenantContextError:
             return False, "Refund request not found"
         if request.status != RefundStatus.APPROVED:
             return False, "Refund request is not approved"
 
-        payment = db.session.get(Payment, request.payment_id)
-        if not payment:
+        try:
+            payment = get_tenant_record(Payment, request.payment_id)
+        except TenantContextError:
             return False, "Original payment not found"
 
         try:

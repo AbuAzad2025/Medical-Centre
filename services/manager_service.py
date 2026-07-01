@@ -11,6 +11,8 @@ from typing import Any
 from app_factory import db
 from sqlalchemy import func, and_, or_
 
+from utils.tenant_query import get_tenant_record, TenantContextError
+
 
 class ManagerService:
     """Centralized manager business logic"""
@@ -100,13 +102,17 @@ class ManagerService:
         try:
             if request_type == "leave":
                 from models.staff import LeaveRequest
-                obj = LeaveRequest.query.get(request_id)
+                try:
+                    obj = get_tenant_record(LeaveRequest, request_id)
+                except TenantContextError:
+                    return False
             elif request_type == "expense":
                 from models.expense import Expense
-                obj = Expense.query.get(request_id)
+                try:
+                    obj = get_tenant_record(Expense, request_id)
+                except TenantContextError:
+                    return False
             else:
-                return False
-            if not obj:
                 return False
             obj.status = "APPROVED"
             obj.approved_by = approved_by

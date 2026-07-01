@@ -3,7 +3,7 @@
 from routes.lab import lab_bp
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response
+from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required
 from models.patient import Patient
@@ -35,7 +35,7 @@ def reports():
     request_id = request.args.get('request_id', type=int)
     lab_request = None
     if request_id:
-        lab_request = db.session.get(LabRequest, request_id)
+        lab_request = LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
     if not lab_request:
         lab_request = LabRequest.query.order_by(LabRequest.created_at.desc()).first()
     recent_requests = LabRequest.query.order_by(LabRequest.created_at.desc()).limit(20).all()
@@ -48,7 +48,7 @@ def print_request(id: int):
     """طباعة تقرير طلب المختبر"""
     
     try:
-        lab_request = db.session.get(LabRequest, id)
+        lab_request = LabRequest.query.filter(LabRequest.id == id, LabRequest.tenant_id == g.tenant_id).first()
         if not lab_request:
             flash('طلب المختبر غير موجود', 'error')
             return redirect(url_for('lab.requests'))
@@ -83,7 +83,7 @@ def print_request(id: int):
 def print_request_pdf(id: int):
     """تنزيل تقرير طلب المختبر كـ PDF"""
     try:
-        lab_request = db.session.get(LabRequest, id)
+        lab_request = LabRequest.query.filter(LabRequest.id == id, LabRequest.tenant_id == g.tenant_id).first()
         if not lab_request:
             return jsonify({'success': False, 'message': 'طلب المختبر غير موجود'}), 404
         from app.integrations.printing.pdf import PDFReportPrinter

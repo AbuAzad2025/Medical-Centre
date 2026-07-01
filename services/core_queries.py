@@ -11,6 +11,7 @@ from sqlalchemy.orm import Query
 
 from app.shared.enums import VisitState
 from app_factory import db
+from utils.tenant_query import get_tenant_record
 
 if TYPE_CHECKING:
     from models.patient import Patient
@@ -34,7 +35,7 @@ class CoreQueryService:
     @staticmethod
     def get_patient_by_id(patient_id: int) -> Patient | None:
         from models.patient import Patient
-        return Patient.query.get(patient_id)
+        return get_tenant_record(Patient, patient_id)
 
     @staticmethod
     def get_patient_by_code(code: str) -> Patient | None:
@@ -82,7 +83,7 @@ class CoreQueryService:
     @staticmethod
     def get_visit_by_id(visit_id: int) -> Visit | None:
         from models.visit import Visit
-        return Visit.query.get(visit_id)
+        return get_tenant_record(Visit, visit_id)
 
     @staticmethod
     def get_visits_by_patient(patient_id: int, limit: int = 50) -> list[Visit]:
@@ -131,7 +132,7 @@ class CoreQueryService:
     @staticmethod
     def get_user_by_id(user_id: int) -> User | None:
         from models.user import User
-        return User.query.get(user_id)
+        return get_tenant_record(User, user_id)
 
     @staticmethod
     def get_doctors(department_id: int | None = None) -> list[User]:
@@ -161,7 +162,7 @@ class CoreQueryService:
     @staticmethod
     def get_department_by_id(dept_id: int) -> Department | None:
         from models.department import Department
-        return Department.query.get(dept_id)
+        return get_tenant_record(Department, dept_id)
 
     @staticmethod
     def get_all_departments(active_only: bool = True) -> list[Department]:
@@ -278,7 +279,7 @@ class CoreQueryService:
     @staticmethod
     def get_emergency_case_by_id(case_id: int) -> EmergencyCase | None:
         from models.emergency import EmergencyCase
-        return EmergencyCase.query.get(case_id)
+        return get_tenant_record(EmergencyCase, case_id)
 
     # ==================== DASHBOARD STATS ====================
     @staticmethod

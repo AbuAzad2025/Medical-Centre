@@ -1,7 +1,7 @@
 """Lab barcode scan and print routes."""
 from datetime import datetime, timezone
 
-from flask import jsonify, redirect, render_template, request, url_for
+from flask import jsonify, redirect, render_template, request, url_for, g
 from flask_login import current_user, login_required
 
 from app_factory import db
@@ -67,7 +67,7 @@ def barcode_scan(barcode):
 @role_required('lab', 'technician', 'nurse', 'admin')
 def barcode_print(request_id):
     """Show a print page with the barcode QR image."""
-    lab_request = db.session.get(LabRequest, request_id)
+    lab_request = LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
     if not lab_request:
         return jsonify({'success': False, 'message': 'الطلب غير موجود'}), 404
 

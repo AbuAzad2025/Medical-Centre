@@ -13,6 +13,7 @@ from models.payment import Payment, PaymentMethod, PaymentStatus
 from models.invoice import Invoice
 from models.audit_trail import AuditTrail
 from models.user import User
+from utils.tenant_query import get_tenant_record, TenantContextError
 import logging
 
 logger = logging.getLogger(__name__)
@@ -33,8 +34,9 @@ class GatekeeperService:
         التحقق من إمكانية إدراج الزيارة في الطابور
         """
         try:
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return False, "الزيارة غير موجودة"
             
             # للطوارئ أو الدفع القوي: يتطلب إقرار المسؤولية
@@ -62,8 +64,9 @@ class GatekeeperService:
         التحقق من إمكانية الترحيل المالي
         """
         try:
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return False, "الزيارة غير موجودة"
             
             # التحقق من القفل المالي
@@ -90,8 +93,9 @@ class GatekeeperService:
         التحقق من إمكانية أرشفة الزيارة
         """
         try:
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return False, "الزيارة غير موجودة"
             
             # التحقق من الترحيل المالي
@@ -119,8 +123,9 @@ class GatekeeperService:
         إنشاء سند قبض نظامي
         """
         try:
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return False, "الزيارة غير موجودة"
             
             # إنشاء رقم سند فريد
@@ -176,8 +181,9 @@ class GatekeeperService:
         إنشاء سند قبض مؤقت (للطوارئ/الدفع القوي)
         """
         try:
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return False, "الزيارة غير موجودة"
             
             # التحقق من أن الزيارة طوارئ أو دفع قوي
@@ -232,8 +238,9 @@ class GatekeeperService:
         إقرار المسؤولية للطوارئ/الدفع القوي
         """
         try:
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return False, "الزيارة غير موجودة"
             
             # التحقق من أن الزيارة طوارئ أو دفع قوي
@@ -271,8 +278,9 @@ class GatekeeperService:
         الترحيل المالي
         """
         try:
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return False, "الزيارة غير موجودة"
             
             # التحقق من إمكانية الترحيل
@@ -314,8 +322,9 @@ class GatekeeperService:
         clinical state transition and must remain separate from Visit.status.
         """
         try:
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return False, "الزيارة غير موجودة"
             
             # التحقق من إمكانية الأرشفة
@@ -382,16 +391,18 @@ class GatekeeperService:
                 return False, "يجب تقديم سبب واضح للدفع القسري (10 أحرف على الأقل)"
             
             # 2. التحقق من صلاحية المستخدم
-            user = db.session.get(User, user_id)
-            if not user:
+            try:
+                user = get_tenant_record(User, user_id)
+            except TenantContextError:
                 return False, "المستخدم غير موجود"
             
             if user.role not in ['manager', 'super_admin']:
                 return False, "فقط المدير أو super_admin يمكنه الموافقة على الدفع القسري"
             
             # 3. التحقق من الزيارة
-            visit = db.session.get(Visit, visit_id)
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, visit_id)
+            except TenantContextError:
                 return False, "الزيارة غير موجودة"
             
             # 4. التحقق من نسبة الدفع القسري في النظام

@@ -8,6 +8,7 @@ import logging
 from datetime import date, datetime, timezone
 from typing import Any
 
+from flask import g
 from app_factory import db
 from sqlalchemy import func
 
@@ -33,7 +34,7 @@ class LabService:
         if not test_ids:
             return False, {"error": "No test IDs provided"}
 
-        visit = db.session.get(Visit, visit_id)
+        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id).first()
         if not visit:
             return False, {"error": "Visit not found"}
 
@@ -122,7 +123,7 @@ class LabService:
     @staticmethod
     def get_request_by_id(request_id: int) -> Any | None:
         from models.lab_request import LabRequest
-        return LabRequest.query.get(request_id)
+        return LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
 
     @staticmethod
     def get_results_by_request(request_id: int) -> list:
@@ -158,7 +159,7 @@ class LabService:
             try:
                 result_id = int(result_ids[i]) if i < len(result_ids) and result_ids[i] else None
                 if result_id:
-                    result = LabResult.query.get(result_id)
+                    result = LabResult.query.filter(LabResult.id == result_id, LabResult.tenant_id == g.tenant_id).first()
                     if result:
                         result.value = values[i] if i < len(values) else ""
                         result.unit = units[i] if i < len(units) else ""
@@ -207,7 +208,7 @@ class LabService:
             for r in results:
                 r.status = "COMPLETED"
                 r.updated_at = now
-            req = LabRequest.query.get(request_id)
+            req = LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
             if req:
                 req.status = "DONE"
                 req.completed_at = now
@@ -261,7 +262,7 @@ class LabService:
     def update_reagent_quantity(reagent_id: int, quantity: float) -> bool:
         from models.lab_reagent import LabReagent
         try:
-            reagent = LabReagent.query.get(reagent_id)
+            reagent = LabReagent.query.filter(LabReagent.id == reagent_id, LabReagent.tenant_id == g.tenant_id).first()
             if not reagent:
                 return False
             reagent.stock_quantity = quantity
@@ -281,8 +282,8 @@ class LabService:
             from services.notification_service import NotificationService
             from models.patient import Patient
             from models.lab_request import LabRequest
-            patient = Patient.query.get(patient_id)
-            req = LabRequest.query.get(request_id)
+            patient = Patient.query.filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id).first()
+            req = LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
             if patient and req:
                 NotificationService.send_notification(
                     user_id=patient.user_id if hasattr(patient, "user_id") else None,

@@ -3,7 +3,7 @@
 from routes.lab import lab_bp
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response
+from flask import render_template, request, jsonify, flash, redirect, url_for, send_file, make_response, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required
 from models.patient import Patient
@@ -122,7 +122,7 @@ def add_reagent():
 @login_required
 @role_required('lab', 'admin', 'manager')
 def edit_reagent(reagent_id: int):
-    reagent = db.session.get(LabReagent, reagent_id)
+    reagent = LabReagent.query.filter(LabReagent.id == reagent_id, LabReagent.tenant_id == g.tenant_id).first()
     if not reagent:
         flash('المادة غير موجودة', 'error')
         return redirect(url_for('lab.reagents'))

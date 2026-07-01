@@ -8,6 +8,7 @@ from sqlalchemy import and_, or_, desc, asc, case
 from app.shared.enums import QueueState, VisitState, PaymentStatus
 from services.visit_state_machine_service import VisitStateMachineService
 from app_factory import db
+from utils.tenant_query import get_tenant_record, TenantContextError
 import logging
 
 class QueueManagementService:
@@ -57,9 +58,10 @@ class QueueManagementService:
             from models.user import User
             from models.department import Department
             from models.user_department_access import UserDepartmentAccess
-            user = db.session.get(User, user_id)
-            dept = db.session.get(Department, department_id)
-            if not user or not dept:
+            try:
+                user = get_tenant_record(User, user_id)
+                dept = get_tenant_record(Department, department_id)
+            except TenantContextError:
                 return False
             if user.role in ['super_admin', 'admin', 'manager']:
                 return True
@@ -114,12 +116,15 @@ class QueueManagementService:
             if not can_enter:
                 return False, reason
 
-            dept_obj = db.session.get(Department, int(department_id)) if department_id else None
+            dept_obj = get_tenant_record(Department, int(department_id)) if department_id else None
             if dept_obj and getattr(dept_obj, 'get_type', lambda: 'general')() == 'general':
                 if not doctor_id:
                     if visit_id:
-                        v = db.session.get(Visit, int(visit_id))
-                        if not v or not v.doctor_id:
+                        try:
+                            v = get_tenant_record(Visit, int(visit_id))
+                        except TenantContextError:
+                            return False, "يجب اختيار طبيب للقسم التخصصي"
+                        if not v.doctor_id:
                             return False, "يجب اختيار طبيب للقسم التخصصي"
                     else:
                         return False, "يجب اختيار طبيب للقسم التخصصي"
@@ -137,7 +142,7 @@ class QueueManagementService:
                 db.session.flush()
                 visit_id = v.id
             elif visit_id:
-                v = db.session.get(Visit, int(visit_id))
+                v = get_tenant_record(Visit, int(visit_id))
                 if v and payment_status:
                     v.payment_status = payment_status
 
@@ -181,8 +186,9 @@ class QueueManagementService:
             from models.queue_management import QueueManagement
             from models.visit_transfer import VisitTransferLog
 
-            visit = db.session.get(Visit, int(visit_id))
-            if not visit:
+            try:
+                visit = get_tenant_record(Visit, int(visit_id))
+            except TenantContextError:
                 return False, "visit_not_found"
 
             try:
@@ -197,8 +203,9 @@ class QueueManagementService:
                 except Exception:
                     new_doctor_id_int = None
 
-            dept = db.session.get(Department, new_department_id)
-            if not dept:
+            try:
+                dept = get_tenant_record(Department, new_department_id)
+            except TenantContextError:
                 return False, "department_not_found"
 
             if getattr(dept, "get_type", lambda: "general")() == "general" and not new_doctor_id_int:
@@ -315,17 +322,17 @@ class QueueManagementService:
                     d['wait_minutes'] = wait_minutes
                     d['doctor_name'] = None
                     if ticket.visit_id:
-                        v = db.session.get(Visit, ticket.visit_id)
+                        v = get_tenant_record(Visit, ticket.visit_id)
                         if v and v.doctor_id:
-                            doc = db.session.get(User, v.doctor_id)
+                            doc = get_tenant_record(User, v.doctor_id)
                     d['queued_at_display'] = ticket.queued_at.strftime('%Y-%m-%d %H:%M') if ticket.queued_at else None
                     d['called_at_display'] = ticket.called_at.strftime('%Y-%m-%d %H:%M') if ticket.called_at else None
                     d['wait_minutes'] = wait_minutes
                     d['doctor_name'] = None
                     if ticket.visit_id:
-                        v = db.session.get(Visit, ticket.visit_id)
+                        v = get_tenant_record(Visit, ticket.visit_id)
                         if v and v.doctor_id:
-                            doc = db.session.get(User, v.doctor_id)
+                            doc = get_tenant_record(User, v.doctor_id)
                             d['doctor_name'] = doc.full_name if doc else None
                     return d
                 except Exception:
@@ -395,9 +402,9 @@ class QueueManagementService:
                     d['wait_minutes'] = wait_minutes
                     d['doctor_name'] = None
                     if ticket.visit_id:
-                        v = db.session.get(Visit, ticket.visit_id)
+                        v = get_tenant_record(Visit, ticket.visit_id)
                         if v and v.doctor_id:
-                            doc = db.session.get(User, v.doctor_id)
+                            doc = get_tenant_record(User, v.doctor_id)
                             d['doctor_name'] = doc.full_name if doc else None
                     return d
                 except Exception:
@@ -518,8 +525,9 @@ class QueueManagementService:
             from models.queue_management import QueueManagement
             from models.visit import Visit
             
-            ticket = db.session.get(QueueManagement, ticket_id)
-            if not ticket:
+            try:
+                ticket = get_tenant_record(QueueManagement, ticket_id)
+            except TenantContextError:
                 return False, "التذكرة غير موجودة"
             if ticket.status != QueueState.CALLED:
                 return False, "يجب استدعاء المريض أولاً"
@@ -530,7 +538,7 @@ class QueueManagementService:
                     v = None
                     if ticket.visit_id:
                         try:
-                            v = db.session.get(Visit, ticket.visit_id)
+                            v = get_tenant_record(Visit, ticket.visit_id)
                         except Exception:
                             v = None
                     if not (v and v.doctor_id == started_by):
@@ -543,7 +551,7 @@ class QueueManagementService:
             # مزامنة حالة الزيارة إلى IN_PROGRESS إذا وجدت
             if ticket.visit_id:
                 try:
-                    visit = db.session.get(Visit, ticket.visit_id)
+                    visit = get_tenant_record(Visit, ticket.visit_id)
                     if visit:
                         VisitStateMachineService.ensure_in_progress(visit, actor=started_by)
                 except Exception:
@@ -571,8 +579,9 @@ class QueueManagementService:
             from models.queue_management import QueueManagement
             from models.visit import Visit
             
-            ticket = db.session.get(QueueManagement, ticket_id)
-            if not ticket:
+            try:
+                ticket = get_tenant_record(QueueManagement, ticket_id)
+            except TenantContextError:
                 return False, "التذكرة غير موجودة"
             
             if ticket.status != QueueState.IN_PROGRESS:
@@ -584,11 +593,11 @@ class QueueManagementService:
                     v = None
                     if ticket.visit_id:
                         try:
-                            v = db.session.get(Visit, ticket.visit_id)
+                            v = get_tenant_record(Visit, ticket.visit_id)
                         except Exception:
                             v = None
-                    if not (v and v.doctor_id == completed_by):
-                        return False, "ليس لديك صلاحية لإنهاء علاج هذه التذكرة"
+                        if not (v and v.doctor_id == completed_by):
+                            return False, "ليس لديك صلاحية لإنهاء علاج هذه التذكرة"
             
             # تحديث حالة التذكرة
             ticket.status = QueueState.COMPLETED
@@ -597,7 +606,7 @@ class QueueManagementService:
             # مزامنة حالة الزيارة إلى COMPLETED إذا وجدت
             if ticket.visit_id:
                 try:
-                    visit = db.session.get(Visit, ticket.visit_id)
+                    visit = get_tenant_record(Visit, ticket.visit_id)
                     if visit:
                         VisitStateMachineService.ensure_completed(visit, actor=completed_by)
                         visit.completed_at = datetime.now(timezone.utc)
@@ -624,8 +633,9 @@ class QueueManagementService:
         try:
             from models.queue_management import QueueManagement
             
-            ticket = db.session.get(QueueManagement, ticket_id)
-            if not ticket:
+            try:
+                ticket = get_tenant_record(QueueManagement, ticket_id)
+            except TenantContextError:
                 return False, "التذكرة غير موجودة"
             
             # تحديث حالة التذكرة
@@ -648,8 +658,9 @@ class QueueManagementService:
             from models.queue_management import QueueManagement
             from models.visit import Visit
 
-            ticket = db.session.get(QueueManagement, ticket_id)
-            if not ticket:
+            try:
+                ticket = get_tenant_record(QueueManagement, ticket_id)
+            except TenantContextError:
                 return False, "التذكرة غير موجودة"
 
             old_status = ticket.status
@@ -668,7 +679,7 @@ class QueueManagementService:
 
             if ticket.visit_id and old_status == QueueState.IN_PROGRESS:
                 try:
-                    v = db.session.get(Visit, ticket.visit_id)
+                    v = get_tenant_record(Visit, ticket.visit_id)
                     if v and VisitStateMachineService.get_status(v) == VisitState.IN_PROGRESS:
                         VisitStateMachineService.transition(v, VisitState.CHECKED_IN, actor=returned_by)
                 except Exception:
@@ -688,8 +699,9 @@ class QueueManagementService:
         try:
             from models.queue_management import QueueManagement
             
-            ticket = db.session.get(QueueManagement, ticket_id)
-            if not ticket:
+            try:
+                ticket = get_tenant_record(QueueManagement, ticket_id)
+            except TenantContextError:
                 return False, "التذكرة غير موجودة"
             
             # تحديث حالة التذكرة
@@ -874,8 +886,9 @@ class QueueManagementService:
         try:
             from models.queue_management import QueueManagement, QueueSettings
             
-            ticket = db.session.get(QueueManagement, ticket_id)
-            if not ticket:
+            try:
+                ticket = get_tenant_record(QueueManagement, ticket_id)
+            except TenantContextError:
                 return False, "التذكرة غير موجودة"
             
             # التحقق من إعدادات الطوارئ
@@ -901,8 +914,9 @@ class QueueManagementService:
         try:
             from models.queue_management import QueueManagement
             
-            ticket = db.session.get(QueueManagement, ticket_id)
-            if not ticket:
+            try:
+                ticket = get_tenant_record(QueueManagement, ticket_id)
+            except TenantContextError:
                 return False, "التذكرة غير موجودة"
             
             # تحديث حالة الدخول القوي
