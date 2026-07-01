@@ -82,7 +82,7 @@ def medical_history(patient_id):
         return redirect(url_for('main.dashboard'))
     
     try:
-        patient = db.session.get(Patient, patient_id)
+        patient = Patient.query.filter_by(id=patient_id).first()
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('emergency.patient_queue'))
@@ -116,7 +116,7 @@ def prescriptions_history(patient_id):
         return redirect(url_for('main.dashboard'))
     
     try:
-        patient = db.session.get(Patient, patient_id)
+        patient = Patient.query.filter_by(id=patient_id).first()
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('emergency.patient_queue'))
@@ -143,7 +143,7 @@ def lab_results(patient_id):
         return redirect(url_for('main.dashboard'))
     
     try:
-        patient = db.session.get(Patient, patient_id)
+        patient = Patient.query.filter_by(id=patient_id).first()
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('emergency.patient_queue'))
@@ -170,7 +170,7 @@ def radiology_results(patient_id):
         return redirect(url_for('main.dashboard'))
     
     try:
-        patient = db.session.get(Patient, patient_id)
+        patient = Patient.query.filter_by(id=patient_id).first()
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('emergency.patient_queue'))

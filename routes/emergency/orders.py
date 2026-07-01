@@ -3,7 +3,7 @@
 from routes.emergency import emergency_bp
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for
+from flask import render_template, request, jsonify, flash, redirect, url_for, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required_json
 from models.patient import Patient
@@ -81,6 +81,9 @@ def lab_request(emergency_id):
     if current_user.role not in ['emergency', 'admin', 'manager']:
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
+    if 'lab' not in getattr(g, 'enabled_modules', set()):
+        flash('وحدة المختبر غير مفعلة في باقة العيادة', 'error')
+        return redirect(url_for('emergency.patient_queue'))
     
     try:
         emergency = emergency_service.get_case(emergency_id)
@@ -121,6 +124,9 @@ def radiology_request(emergency_id):
     if current_user.role not in ['emergency', 'admin', 'manager']:
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
+    if 'radiology' not in getattr(g, 'enabled_modules', set()):
+        flash('وحدة الأشعة غير مفعلة في باقة العيادة', 'error')
+        return redirect(url_for('emergency.patient_queue'))
     
     try:
         emergency = emergency_service.get_case(emergency_id)
@@ -167,7 +173,7 @@ def print_prescription(prescription_id):
         return redirect(url_for('main.dashboard'))
     
     try:
-        prescription = db.session.get(Prescription, prescription_id)
+        prescription = Prescription.query.filter_by(id=prescription_id).first()
         if not prescription:
             flash('الوصفة غير موجودة', 'error')
             return redirect(url_for('emergency.patient_queue'))

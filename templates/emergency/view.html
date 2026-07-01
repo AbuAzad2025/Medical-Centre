@@ -423,8 +423,8 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <select name="new_destination" class="form-select mb-2" required>
                             <option value="doctor">طبيب</option>
-                            <option value="lab">مختبر</option>
-                            <option value="radiology">أشعة</option>
+                            {% if module_active('lab') %}<option value="lab">مختبر</option>{% endif %}
+                            {% if module_active('radiology') %}<option value="radiology">أشعة</option>{% endif %}
                         </select>
                         <button type="submit" class="btn btn-outline-warning w-100">
                             <i class="fas fa-exchange-alt"></i> نقل الحالة

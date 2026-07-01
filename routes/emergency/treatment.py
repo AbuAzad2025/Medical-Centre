@@ -162,7 +162,7 @@ def emergency_treatment(visit_id):
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
     try:
-        visit = db.session.get(Visit, visit_id)
+        visit = Visit.query.filter_by(id=visit_id).first()
         if not visit:
             if request.method == 'POST':
                 return jsonify({'success': False, 'error': 'الزيارة غير موجودة'}), 404
@@ -208,7 +208,7 @@ def complete_visit(visit_id):
     if current_user.role not in ['emergency', 'admin', 'manager']:
         return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     try:
-        visit = db.session.get(Visit, visit_id)
+        visit = Visit.query.filter_by(id=visit_id).first()
         if not visit:
             return jsonify({'success': False, 'message': 'الزيارة غير موجودة'}), 404
         emergency_case = EmergencyCase.query.filter_by(visit_id=visit_id).first()
