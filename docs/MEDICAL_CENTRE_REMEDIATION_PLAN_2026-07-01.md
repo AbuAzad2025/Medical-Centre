@@ -695,7 +695,7 @@ flask db downgrade s1_007_rls_phase4
 
 **Status:** Complete
 
-**Commit:** `TBD` (to be recorded after commit)
+**Commit:** `6d0205d`
 
 **Files changed:**
 - `services/feature_gate_service.py` — `guard_module` (line 68-70): changed silent `return` to `abort(403, description="Tenant context required for module access")`
