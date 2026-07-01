@@ -720,7 +720,7 @@ flask db downgrade s1_007_rls_phase4
 
 **Status:** Complete
 
-**Commit:** `TBD` (to be recorded after commit)
+**Commit:** `31c47ae`
 
 **Files changed:**
 - `routes/reception/visits.py` — `archive_visit`, `end_visit`, `view_visit`, `edit_visit`: replaced `db.session.get(Visit, visit_id)` with `get_tenant_record(Visit, visit_id)`; `TenantContextError` handled as "visit not found" to avoid cross-tenant disclosure
