@@ -743,7 +743,35 @@ flask db downgrade s1_007_rls_phase4
 
 ---
 
-**End of Plan. Stage 1 implementation in progress. No further plan expansion unless direct implementation contradiction is discovered.**
+### Ticket D — MC-004: Tenant-safe billing visit ownership
+
+**Status:** Complete
+
+**Commit:** `TBD` (to be recorded after commit)
+
+**Files changed:**
+- `routes/payment_routes.py` — `process_payment`: added `tenant_id=g.tenant_id` filter to visit query (line 87); added `g` import; added `get_tenant_record` import
+- `routes/finance.py` — `post_gl` and `archive_visit`: added route-level `get_tenant_record(Visit, visit_id)` check before delegating to `GatekeeperService`; returns 404 with "الزيارة غير موجودة" on `TenantContextError`
+- `tests/test_billing_visit_ownership.py` — new test file for billing route tenant ownership
+
+**Evidence:**
+- `routes/payment_routes.py` line 87: `db.session.query(Visit).filter_by(id=visit_id, tenant_id=g.tenant_id).with_for_update().first()`
+- `routes/finance.py` lines 99-103, 127-131: `get_tenant_record` called before `GatekeeperService.post_gl` and `GatekeeperService.archive_visit`
+
+**Tests run and actual results:**
+- `tests/test_billing_visit_ownership.py` — 4 passed, 2 warnings in 7.56s
+- `test_process_payment_rejects_cross_tenant_visit` — PASSED
+- `test_post_gl_rejects_cross_tenant_visit` — PASSED
+- `test_finance_archive_rejects_cross_tenant_visit` — PASSED
+- `test_get_tenant_record_blocks_cross_tenant_visit` — PASSED
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert `tenant_id=g.tenant_id` filter in `process_payment`; remove `get_tenant_record` checks in `post_gl` and `archive_visit`.
+
+---
+
+**End of Plan. Stage 1 implementation complete. Awaiting review before Stage 2.**
 
 **Change log for this update:**
 1. **B-017 added:** Post-queue service addition and financial settlement. Doctor routes add lab/radiology/prescriptions mid-visit (only while `IN_PROGRESS`) but do not update `visit.total_amount`, `InvoiceItem`, `Payment`, or `Receipt` totals. `GatekeeperService.can_archive_visit()` does not recalculate for post-creation services. No services can be added after `COMPLETED`. Finding count updated to 17.

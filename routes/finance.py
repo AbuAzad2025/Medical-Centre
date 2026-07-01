@@ -9,6 +9,7 @@ from models.invoice import Invoice
 from services.gatekeeper_service import GatekeeperService
 from models.audit_trail import AuditTrail
 from services.report_service import ReportService
+from utils.tenant_query import get_tenant_record, TenantContextError
 from app_factory import db
 from app.shared.enums import PaymentStatus, InvoiceStatus
 import logging
@@ -101,6 +102,12 @@ def post_gl():
         if not visit_id:
             return jsonify({'error': 'معرف الزيارة مطلوب'}), 400
         
+        # MC-004: validate visit ownership before delegating to service
+        try:
+            get_tenant_record(Visit, visit_id)
+        except TenantContextError:
+            return jsonify({'error': 'الزيارة غير موجودة'}), 404
+        
         # استخدام حراسة الخدمة
         success, message = GatekeeperService.post_gl(visit_id, current_user.id)
         
@@ -124,6 +131,12 @@ def archive_visit(visit_id):
     
     
     try:
+        # MC-004: validate visit ownership before delegating to service
+        try:
+            get_tenant_record(Visit, visit_id)
+        except TenantContextError:
+            return jsonify({'error': 'الزيارة غير موجودة'}), 404
+        
         # استخدام حراسة الخدمة
         success, message = GatekeeperService.archive_visit(visit_id, current_user.id)
         

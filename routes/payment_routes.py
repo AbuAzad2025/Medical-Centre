@@ -3,7 +3,7 @@
 Medical System Payment Routes
 """
 
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, abort
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, abort, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required
 from models.payment import Payment, PaymentMethod, PaymentStatus
@@ -15,6 +15,7 @@ from models.queue_management import QueueSettings
 from services.gatekeeper_service import GatekeeperService
 from services.payment_service import payment_service
 from services.refund_service import refund_service
+from utils.tenant_query import get_tenant_record, TenantContextError
 from app_factory import db
 import logging
 from datetime import datetime, timedelta, timezone
@@ -84,7 +85,7 @@ def process_payment(visit_id):
     """معالجة دفع"""
     
     
-    visit = db.session.query(Visit).filter_by(id=visit_id).with_for_update().first()
+    visit = db.session.query(Visit).filter_by(id=visit_id, tenant_id=g.tenant_id).with_for_update().first()
     if not visit:
         abort(404)
     
