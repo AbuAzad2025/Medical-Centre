@@ -217,6 +217,9 @@ def transfer_visit(visit_id):
 
 def _process_custom_services(custom_names, custom_prices, department_id, current_user):
     """إنشاء خدمات يدوية غير مدرجة وإرجاع قائمة معرفات الخدمات"""
+    from flask import abort
+    if current_user.role != 'reception':
+        abort(403)
     ids = []
     if not custom_names or not department_id:
         return ids

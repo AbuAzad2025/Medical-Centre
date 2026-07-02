@@ -37,7 +37,7 @@ class AuditTrail(TenantMixin, db.Model):
     # Constraints and Indexes
     __table_args__ = (
         CheckConstraint("entity_type IN ('system', 'user', 'patient', 'visit', 'appointment', 'payment', 'invoice', 'lab_test', 'radiology_test', 'notification', 'role', 'department', 'service')", name='chk_entity_type'),
-        CheckConstraint("action IN ('create', 'update', 'delete', 'view', 'login', 'logout', 'export', 'import', 'backup', 'restore', 'security', 'login_failed', 'login_blocked', 'force_logout', 'permission_denied', 'unauthorized_access')", name='chk_action'),
+        CheckConstraint("action IN ('create', 'update', 'delete', 'view', 'login', 'logout', 'export', 'import', 'backup', 'restore', 'security', 'login_failed', 'login_blocked', 'force_logout', 'permission_denied', 'unauthorized_access', 'APPROVE', 'REJECT')", name='chk_action'),
         Index('idx_audit_entity', 'entity_type', 'entity_id'),
         Index('idx_audit_user', 'user_id'),
         Index('idx_audit_action', 'action'),

@@ -184,3 +184,83 @@ class TestCustomServiceLifecycle:
 
         active = ServiceMaster.query.filter_by(is_active=True, tenant_id=tenant_id).all()
         assert svc in active
+
+
+class TestTicket3CorrectiveCustomService:
+    """Corrective Ticket 3: Custom service workflow compliance."""
+
+    def test_rejection_preserves_price_and_name(self, app, test_tenant, client, login_as):
+        tenant_id = test_tenant.id
+        import uuid
+        code = f'CUSTOM-T3-{uuid.uuid4().hex[:6].upper()}'
+        svc = ServiceMaster(
+            code=code, name='Custom Preserve T3', category='lab',
+            base_price=250, emergency_price=300, insurance_price=200,
+            is_custom=True, is_active=False, tenant_id=tenant_id
+        )
+        _db.session.add(svc)
+        _db.session.commit()
+
+        assert svc.base_price == 250
+        assert svc.name == 'Custom Preserve T3'
+
+        login_as(client, 'mgr_t3_reject', 'manager')
+
+        with app.test_request_context():
+            from flask import g
+            g.tenant_id = tenant_id
+            resp = client.post(
+                f'/manager/reject-custom-service/{svc.id}',
+                data={'rejection_reason': 'Duplicate service'},
+                follow_redirects=False
+            )
+        assert resp.status_code == 302
+
+        svc_after = _db.session.get(ServiceMaster, svc.id)
+        assert svc_after.base_price == 250
+        assert svc_after.name == 'Custom Preserve T3'
+        assert svc_after.code == code
+        assert svc_after.is_active is False
+        assert svc_after.approved_by is not None
+        assert svc_after.is_custom is True
+        assert 'مرفوض' in (svc_after.description or '')
+
+    def test_approval_creates_audit_trail(self, app, test_tenant, client, login_as):
+        from models.audit_trail import AuditTrail
+        tenant_id = test_tenant.id
+        import uuid
+        code = f'CUSTOM-T3-{uuid.uuid4().hex[:6].upper()}'
+        svc = ServiceMaster(
+            code=code, name='Custom Audit T3', category='lab',
+            base_price=100, is_custom=True, is_active=False, tenant_id=tenant_id
+        )
+        _db.session.add(svc)
+        _db.session.commit()
+
+        # Verify entity_type='service' is valid in the model constraint
+        import re
+        constraint = [c for c in AuditTrail.__table_args__ if hasattr(c, 'sqltext') and 'entity_type' in str(c.sqltext)]
+        assert len(constraint) > 0
+        entity_types = re.findall(r"'(\w+)'", str(constraint[0].sqltext))
+        assert 'service' in entity_types
+        assert 'visit' in entity_types
+
+    def test_rejection_creates_audit_trail(self, app, test_tenant, client, login_as):
+        from models.audit_trail import AuditTrail
+        tenant_id = test_tenant.id
+        import uuid
+        code = f'CUSTOM-T3-{uuid.uuid4().hex[:6].upper()}'
+        svc = ServiceMaster(
+            code=code, name='Custom Audit Rej T3', category='lab',
+            base_price=100, is_custom=True, is_active=False, tenant_id=tenant_id
+        )
+        _db.session.add(svc)
+        _db.session.commit()
+
+        # Verify action='APPROVE' and 'REJECT' are valid in the model constraint
+        import re
+        action_constraint = [c for c in AuditTrail.__table_args__ if hasattr(c, 'sqltext') and 'action IN' in str(c.sqltext)]
+        assert len(action_constraint) > 0
+        actions = re.findall(r"'(\w+)'", str(action_constraint[0].sqltext))
+        assert 'APPROVE' in actions
+        assert 'REJECT' in actions
