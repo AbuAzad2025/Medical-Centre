@@ -937,7 +937,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 **Status:** Complete
 
-**Commit:** `TBD`
+**Commit:** `967c925`
 
 **Files changed:**
 - `routes/manager/approvals.py` — `approve_force_payment`: replaced `db.session.get(Visit, visit_id)` with `get_tenant_record(Visit, visit_id)`; handles `TenantContextError` as non-disclosing redirect. `reject_force_payment`: same tenant-safe replacement. `force_payment_approvals`: added explicit `tenant_id=g.tenant_id` filter to list queries as defense-in-depth. Added `g` import.
