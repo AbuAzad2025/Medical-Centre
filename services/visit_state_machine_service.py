@@ -39,7 +39,7 @@ class VisitStateMachineService:
         VisitState.OPEN: {VisitState.CHECKED_IN, VisitState.CANCELLED},
         VisitState.CHECKED_IN: {VisitState.IN_PROGRESS, VisitState.CANCELLED},
         VisitState.IN_PROGRESS: {VisitState.COMPLETED, VisitState.CANCELLED, VisitState.CHECKED_IN},
-        VisitState.COMPLETED: set(),
+        VisitState.COMPLETED: {VisitState.OPEN},
         VisitState.CANCELLED: set(),
     }
 
@@ -169,24 +169,17 @@ class VisitStateMachineService:
 
     @classmethod
     def return_to_treatment(cls, visit, *, actor=None, reason=None) -> bool:
-        """Controlled return-to-treatment for a COMPLETED visit (Ticket 9).
+        """Controlled return-to-treatment for a COMPLETED visit.
 
-        Only doctor, manager, or super_admin may reopen. Requires audit reason.
-        Bypasses normal state machine because COMPLETED→IN_PROGRESS is not in TRANSITIONS.
+        Reception only. Transition is COMPLETED → OPEN. Requires audited reason.
         """
         cls._coerce_legacy_status(visit)
         if cls.get_status(visit) != VisitState.COMPLETED:
             raise ValueError(f"Return-to-treatment only valid from COMPLETED; current={getattr(visit, 'status', None)}")
-        # Authorization check: must be doctor, manager, or super_admin
         if actor is None:
             raise ValueError("actor required for return-to-treatment")
-        allowed_roles = {'doctor', 'manager', 'super_admin'}
+        allowed_roles = {'reception'}
         actor_role = getattr(actor, 'role', None)
         if actor_role not in allowed_roles:
             raise ValueError(f"actor role '{actor_role}' not authorized for return-to-treatment")
-        _vsm_authorized.active = True
-        try:
-            visit.status = VisitState.IN_PROGRESS.value
-        finally:
-            _vsm_authorized.active = False
-        return True
+        return cls.transition(visit, VisitState.OPEN, actor=actor)

@@ -1217,5 +1217,62 @@ def add_service_to_visit(visit_id):
         return redirect(url_for('reception.view_visit', visit_id=visit_id))
 
 
+# ========== Final Core Correction 2: Return to Treatment (Reception Only) ==========
+
+@reception_bp.route('/visits/<int:visit_id>/return-to-treatment', methods=['POST'])
+@login_required
+@reception_only
+def reception_return_to_treatment(visit_id):
+    """إعادة فتح زيارة منتهية للعلاج — استقبال فقط، COMPLETED → OPEN، مع تدقيق."""
+    try:
+        from utils.tenant_query import get_tenant_record, TenantContextError
+        try:
+            visit = get_tenant_record(Visit, visit_id)
+        except TenantContextError:
+            flash('الزيارة غير موجودة', 'error')
+            return redirect(url_for('reception.visits'))
+
+        if visit.status != 'COMPLETED':
+            flash('إعادة فتح العلاج متاحة فقط للزيارات المنتهية', 'warning')
+            return redirect(url_for('reception.view_visit', visit_id=visit_id))
+
+        reason = (request.form.get('reason') or '').strip()
+        if not reason or len(reason) < 3:
+            flash('يجب تقديم سبب مقنع لإعادة فتح العلاج (3 أحرف على الأقل)', 'warning')
+            return redirect(url_for('reception.view_visit', visit_id=visit_id))
+
+        from services.visit_state_machine_service import VisitStateMachineService
+        try:
+            VisitStateMachineService.return_to_treatment(visit, actor=current_user, reason=reason)
+        except ValueError as exc:
+            flash(str(exc), 'warning')
+            return redirect(url_for('reception.view_visit', visit_id=visit_id))
+
+        db.session.commit()
+
+        from models.audit_trail import AuditTrail
+        import json
+        audit = AuditTrail(
+            entity_type='visit',
+            entity_id=visit_id,
+            action='update',
+            user_id=current_user.id,
+            user_ip=request.remote_addr,
+            description=f'إعادة فتح العلاج — السبب: {reason}',
+            new_values=json.dumps({'status': 'OPEN', 'reason': reason})
+        )
+        db.session.add(audit)
+        db.session.commit()
+
+        flash('تم إعادة فتح الزيارة للعلاج بنجاح', 'success')
+        return redirect(url_for('reception.view_visit', visit_id=visit_id))
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error returning visit to treatment: {str(e)}")
+        flash('حدث خطأ في إعادة فتح العلاج', 'error')
+        return redirect(url_for('reception.view_visit', visit_id=visit_id))
+
+
 # Import submodules (must be at bottom after all helpers)
 from . import patients
