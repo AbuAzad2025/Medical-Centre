@@ -1202,7 +1202,7 @@ def add_service_to_visit(visit_id):
             entity_type='visit',
             entity_id=visit_id,
             description=f'إضافة خدمة {svc.name} ({svc.code}) - زيارة {visit_id}',
-            ip_address=request.remote_addr
+            user_ip=request.remote_addr
         )
         db.session.add(audit)
         db.session.commit()
