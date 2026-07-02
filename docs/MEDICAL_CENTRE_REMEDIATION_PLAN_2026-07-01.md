@@ -1168,6 +1168,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 46. **Ticket 1 — Close every remaining normal-queue payment bypass (Update 12):** `_check_queue_entry_conditions` removed `settings` parameter entirely; only `PAID` (normal) and `is_emergency=True` (emergency) allow queue entry. `add_patient_to_queue` removed `payment_status`, `force_entry`, `force_entry_reason` parameters; resolves from server-side visit record. `routes/reception/queue.py` manual form no longer reads `force_entry` or `payment_status`. `add_patient_to_queue_auto` no longer passes `force_entry` or `payment_status`. `routes/manager/approvals.py` removed auto-enqueue after manager approval; approval is purely administrative/financial review. Added 3 new tests. All 59 queue tests pass. Related tenant/billing/feature tests pass (40/40).
 47. **Ticket 7 — Add services without reopening clinical workflow (Update 12f):** Added `POST /reception/visits/<id>/add-service` route for `reception` and `super_admin`. Accepts `CHECKED_IN`, `IN_PROGRESS`, `COMPLETED` (but not archived) visits. Catalog service must be active. Creates invoice if missing, adds `InvoiceService` line with `service_master_id`, `created_by`, `service_code`, `service_name`, `unit_price`, `total_price`. Updates `visit.total_amount` and `invoice.total_amount`. Preserves `payment_status` (PENDING/PARTIAL) if outstanding. Rejects archived visits via `archive_status` gate. Tenant-safe via `get_tenant_record`. Cross-tenant service addition denied. Audit trail with `entity_type='visit'`. Commit `07b32ab`. Files: `routes/reception/visits.py`, `tests/test_add_service_without_reopening.py`. Tests: 4 passed. Related suite: 137 passed.
 48. **Ticket 8 — Service-line reconciliation and final archive enforcement (Update 12g):** Added service-line reconciliation check to `GatekeeperService.can_archive_visit`. When `InvoiceService` lines exist for a visit, aggregate `visit.total_amount` must equal itemized sum of `InvoiceService.total_price`. Zero-amount visits with no services remain allowed. Existing visits without itemized lines are not blocked (backward compatibility). Prevents archive of visits with unbilled or unreconciled service lines. Commit `02f76ea`. Files: `services/gatekeeper_service.py`, `tests/test_service_line_reconciliation.py`. Tests: 3 passed. Related suite: 140 passed.
+49. **Ticket 9 — Controlled return-to-treatment workflow (Update 12h):** Added `VisitStateMachineService.return_to_treatment(visit, actor, reason)` method. Only `doctor`/`manager`/`super_admin` roles authorized; `reception` blocked. Only `COMPLETED` visits can be reopened; other statuses raise `ValueError`. Requires `actor` parameter. Directly sets `status=IN_PROGRESS` with VSM authorization flag. Route `POST /doctor/return-to-treatment/<visit_id>` with `role_required` and reason validation (>=3 chars). Audit trail with `entity_type='visit'`, `action='update'`, reason in description. Commit `2b08965`. Files: `services/visit_state_machine_service.py`, `routes/doctor/visits.py`, `tests/test_return_to_treatment.py`. Tests: 4 passed. Related suite: 144 passed.
 
 ---
 
@@ -1232,5 +1233,38 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 **Findings/blockers:** None.
 
 **Rollback path:** Revert reconciliation check in `can_archive_visit`.
+
+---
+
+### Ticket 9 — Controlled Return-to-Treatment Workflow
+
+**Status:** Complete
+
+**Commit:** `2b08965`
+
+**Files changed:**
+- `services/visit_state_machine_service.py` — added `return_to_treatment(visit, actor, reason)` classmethod. Validates visit status is `COMPLETED`; validates actor role is `doctor`, `manager`, or `super_admin`; raises `ValueError` for unauthorized role or non-COMPLETED status. Directly sets `visit.status = IN_PROGRESS` with VSM authorization flag.
+- `routes/doctor/visits.py` — added `POST /doctor/return-to-treatment/<visit_id>` route with `role_required('doctor', 'admin', 'manager', 'super_admin')`. Validates visit is `COMPLETED` via `get_tenant_record`. Validates reason length >=3 chars. Calls `VisitStateMachineService.return_to_treatment`. Creates audit trail with `entity_type='visit'`, `action='update'`, reason in description.
+- `tests/test_return_to_treatment.py` — new test file: 4 tests covering doctor can return completed visit, reception cannot return, non-completed visit blocked, missing actor blocked.
+
+**Evidence:**
+- `VisitStateMachineService.return_to_treatment` raises `ValueError` for non-COMPLETED status.
+- `VisitStateMachineService.return_to_treatment` raises `ValueError` for unauthorized roles (`reception`, `nurse`, etc.).
+- `VisitStateMachineService.return_to_treatment` raises `ValueError` when `actor` is `None`.
+- Doctor/manager/super_admin successfully reopens COMPLETED visit to `IN_PROGRESS`.
+- Route validates reason length >=3 chars; missing or short reason blocks with flash.
+- Audit trail records `entity_type='visit'` with reason in description.
+
+**Tests run and actual results:**
+- `tests/test_return_to_treatment.py` — 4 passed, 2 warnings in 5.90s
+- `test_doctor_can_return_completed_visit` — PASSED
+- `test_reception_cannot_return_to_treatment` — PASSED
+- `test_non_completed_visit_cannot_return` — PASSED
+- `test_return_to_treatment_requires_actor` — PASSED
+- Full related suite: 144 passed
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert `return_to_treatment` method and route.
 
 ---

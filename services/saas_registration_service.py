@@ -11,12 +11,12 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Iterator, Optional, Tuple
 
-from flask import g, has_request_context
+from flask import g, has_request_context, request
 
 from app.extensions import db
 from app.core.saas.lifecycle import ProvisioningError, TenantProvisioningService
 from app.core.saas.models import PackageVersion, PackageVersionAvailability, PackageVersionAvailabilityStatus
-from app.core.tenant.models import Tenant
+from app.core.tenant.models import Tenant, PlatformAuditLog
 from app.shared.enums import TenantStatus
 from models.user import User
 
@@ -253,6 +253,31 @@ class SaasRegistrationService:
         )
         admin.set_password(admin_password)
         db.session.add(admin)
+        db.session.commit()
+
+        # Ticket 10: platform audit trail for tenant creation
+        try:
+            ip = client_ip or (request.remote_addr if has_request_context() else None)
+            ua = request.headers.get('User-Agent') if has_request_context() else None
+        except Exception:
+            ip = None
+            ua = None
+        db.session.add(PlatformAuditLog(
+            action='SAAS_SIGNUP',
+            entity_type='tenant',
+            entity_id=tenant.id,
+            details=json.dumps({
+                'slug': slug,
+                'name': name.strip(),
+                'admin_username': username,
+                'admin_role': cls.DEFAULT_ADMIN_ROLE,
+                'pending_payment': payment_required,
+                'package_version_id': pkg_id,
+                'billing_type': billing_type,
+            }, ensure_ascii=False),
+            ip_address=ip,
+            user_agent=ua,
+        ))
         db.session.commit()
 
         logger.info(
