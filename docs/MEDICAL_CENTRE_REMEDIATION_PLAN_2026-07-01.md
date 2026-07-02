@@ -1170,6 +1170,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 48. **Ticket 8 — Service-line reconciliation and final archive enforcement (Update 12g):** Added service-line reconciliation check to `GatekeeperService.can_archive_visit`. When `InvoiceService` lines exist for a visit, aggregate `visit.total_amount` must equal itemized sum of `InvoiceService.total_price`. Zero-amount visits with no services remain allowed. Existing visits without itemized lines are not blocked (backward compatibility). Prevents archive of visits with unbilled or unreconciled service lines. Commit `02f76ea`. Files: `services/gatekeeper_service.py`, `tests/test_service_line_reconciliation.py`. Tests: 3 passed. Related suite: 140 passed.
 49. **Ticket 9 — Controlled return-to-treatment workflow (Update 12h):** Added `VisitStateMachineService.return_to_treatment(visit, actor, reason)` method. Only `doctor`/`manager`/`super_admin` roles authorized; `reception` blocked. Only `COMPLETED` visits can be reopened; other statuses raise `ValueError`. Requires `actor` parameter. Directly sets `status=IN_PROGRESS` with VSM authorization flag. Route `POST /doctor/return-to-treatment/<visit_id>` with `role_required` and reason validation (>=3 chars). Audit trail with `entity_type='visit'`, `action='update'`, reason in description. Commit `2b08965`. Files: `services/visit_state_machine_service.py`, `routes/doctor/visits.py`, `tests/test_return_to_treatment.py`. Tests: 4 passed. Related suite: 144 passed.
 50. **Ticket 10 — Audited platform tenant assumption (Update 12i):** Added `PlatformAuditLog` creation to `SaaSRegistrationService.register_organization`. Log action=`SAAS_SIGNUP` with JSON details (slug, name, admin_username, admin_role, pending_payment, package_version_id, billing_type). Captures `client_ip` and `user_agent` when available; imported `request` from flask. `TenantProvisioningService` already logs `CREATE_TENANT`; this adds SaaS-specific signup audit with IP/admin details. Commit `bdfba99`. Files: `services/saas_registration_service.py`, `tests/test_platform_tenant_audit.py`. Tests: 2 passed. Related suite: 146 passed.
+51. **Ticket 11 — RLS runtime verification and deployment guard (Update 12j):** Added `scripts/rls_deployment_guard.py` with 4 verification checks: (1) application role does NOT have BYPASSRLS, (2) `row_security` setting is ON for current connection, (3) all tenant-scoped tables have RLS enabled and enforced, (4) all tenant-scoped tables have at least one RLS policy. Includes comprehensive list of 80+ tenant-scoped tables. Uses raw psycopg2 connection for direct PostgreSQL catalog queries. Exit code 0 = all checks pass (safe to deploy), 1 = failures (do not deploy). Commit `ffebb34`. Files: `scripts/rls_deployment_guard.py`, `tests/test_rls_deployment_guard.py`. Tests: 5 passed. Related suite: 151 passed.
 
 ---
 
@@ -1298,3 +1299,56 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 **Rollback path:** Revert platform audit log creation in `register_organization`.
 
 ---
+
+### Ticket 11 — RLS Runtime Verification and Deployment Guard
+
+**Status:** Complete
+
+**Commit:** `ffebb34`
+
+**Files changed:**
+- `scripts/rls_deployment_guard.py` — new deployment guard script with 4 verification checks: (1) application role does NOT have BYPASSRLS, (2) `row_security` setting is ON for current connection, (3) all tenant-scoped tables have RLS enabled and enforced (`relrowsecurity=true`, `relforcerowsecurity=true`), (4) all tenant-scoped tables have at least one RLS policy. Includes comprehensive list of 80+ tenant-scoped tables. Uses raw psycopg2 connection for direct PostgreSQL catalog queries. Exit code 0 = all checks pass (safe to deploy), 1 = failures (do not deploy).
+- `tests/test_rls_deployment_guard.py` — new test file: 5 tests covering BYPASSRLS check, row_security check, table RLS status check, policy existence check, and table list completeness.
+
+**Evidence:**
+- Script queries `pg_roles` for `rolbypassrls` on `current_user`.
+- Script queries `current_setting('row_security', true)` for connection-level RLS activation.
+- Script queries `pg_class` for `relrowsecurity` and `relforcerowsecurity` on all tenant-scoped tables.
+- Script queries `pg_tables` + `pg_policies` for policy count per table.
+- Exit code 0 = all checks pass (safe to deploy), 1 = one or more failures (do not deploy).
+- Can be integrated into CI/CD pipeline as pre-deployment gate.
+
+**Tests run and actual results:**
+- `tests/test_rls_deployment_guard.py` — 5 passed, 2 warnings in 3.56s
+- `test_role_bypass_rls_check` — PASSED
+- `test_row_security_active_check` — PASSED
+- `test_tables_rls_enabled_returns_results` — PASSED
+- `test_rls_policies_exist_returns_results` — PASSED
+- `test_rls_guard_table_list_not_empty` — PASSED
+- Full related suite: 151 passed
+
+**Findings/blockers:** None.
+
+**Rollback path:** Remove `scripts/rls_deployment_guard.py` and `tests/test_rls_deployment_guard.py`.
+
+---
+
+**Comprehensive Remediation Complete.**
+
+All 11 tickets implemented, tested, and committed on `main`:
+
+| Ticket | Description | Commit | Tests | Related Suite |
+|--------|-------------|--------|-------|---------------|
+| 1 | Close every remaining normal-queue payment bypass | `8be0688` | 59/59 | 99/99 |
+| 2 | Complete tenant-safe financial approval routes | `967c925` | 6/6 | 105/105 |
+| 3 | Remove explicit `tenant_id` escape-hatch risk | `6c0fab7` | 11/11 | 107/107 |
+| 4 | Archive, settlement, and financial mutation lockdown | `52d1019` | 11/11 | 118/118 |
+| 5 | Background jobs and tenant context fail-closed | `f8ce851` | 8/8 | 126/126 |
+| 6 | MC-014 WP-2: Controlled custom-service lifecycle | `eece7ff` | 7/7 | 133/133 |
+| 7 | MC-014 WP-4: Add services without reopening clinical workflow | `07b32ab` | 4/4 | 137/137 |
+| 8 | Service-line reconciliation and final archive enforcement | `02f76ea` | 3/3 | 140/140 |
+| 9 | Controlled return-to-treatment workflow | `2b08965` | 4/4 | 144/144 |
+| 10 | Audited platform tenant assumption | `bdfba99` | 2/2 | 146/146 |
+| 11 | RLS runtime verification and deployment guard | `ffebb34` | 5/5 | 151/151 |
+
+**Total: 11 commits, 151 tests passed, 0 failures.**
