@@ -145,9 +145,30 @@ def tenant_filter_query(query):
 
 @event.listens_for(db.session.__class__, 'before_flush')
 def auto_assign_tenant(session, flush_context, instances):
-    """Auto-assign tenant_id to newly created records before flush."""
+    """Auto-assign tenant_id to newly created records before flush.
+
+    Ticket 5: Background jobs and tenant context fail-closed.
+    When no tenant context is available, tenant-scoped records (models with
+    tenant_id that are NOT in the global-model allowlist) must NOT silently
+    persist with tenant_id=NULL. Only explicitly documented global models
+    may be created without tenant context.
+    """
     tid = _current_tenant_id()
     if tid is None:
+        # Fail-closed: any tenant-scoped new record without explicit tenant_id
+        # must raise an error, unless it is a proven global model.
+        for instance in session.new:
+            mapper = getattr(instance, '__mapper__', None)
+            if mapper is None:
+                continue
+            if 'tenant_id' not in mapper.columns:
+                continue
+            if _skip_table(instance.__class__):
+                continue
+            if getattr(instance, 'tenant_id', None) is None:
+                raise TenantIsolationError(
+                    f"Tenant-scoped record {instance.__class__.__name__} created without tenant context"
+                )
         return
 
     for instance in session.new:

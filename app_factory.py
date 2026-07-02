@@ -1098,10 +1098,16 @@ def create_app(config_name: str | None = None) -> Flask:
             while True:
                 try:
                     from app.core.saas.lifecycle import TenantProvisioningService
-                    TenantProvisioningService.run_lifecycle_maintenance()
+                    # Ticket 5: purge_cancelled_tenants is platform-level (Tenant is
+                    # in the global-model allowlist) and runs outside tenant loop.
+                    TenantProvisioningService.purge_cancelled_tenants()
+                    # expire_trials and per-tenant notifications MUST run inside
+                    # an explicit tenant context so SubscriptionLine (tenant-scoped)
+                    # is filtered correctly.
                     for_each_tenant(
                         app_ctx,
                         lambda tenant_id: (
+                            TenantProvisioningService.expire_trials(),
                             process_notification_queue(tenant_id=tenant_id),
                             NotificationService.send_appointment_reminders(tenant_id=tenant_id),
                         ),

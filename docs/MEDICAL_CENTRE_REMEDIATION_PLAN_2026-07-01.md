@@ -1040,6 +1040,40 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 ---
 
+### Ticket 5 — Background Jobs and Tenant Context Fail-Closed
+
+**Status:** Complete
+
+**Commit:** `TBD`
+
+**Files changed:**
+- `app_factory.py` — `_start_notification_processor`: split `run_lifecycle_maintenance` into `purge_cancelled_tenants` (platform-level, outside loop) and `expire_trials` (inside `for_each_tenant` per-tenant loop) so `SubscriptionLine` gets proper tenant filter.
+- `app/shared/tenant_filter.py` — `auto_assign_tenant`: changed from silently returning when `tid is None` to raising `TenantIsolationError` for any tenant-scoped model not in the global-model allowlist (`_skip_table`). Global models (e.g., `Tenant`, `SystemConfig`) remain allowed.
+- `tests/test_background_tenant_context.py` — new test file: 8 tests covering tenant-scoped record creation without context (raises), global model without context (allowed), tenant-scoped with context (succeeds), `expire_trials` inside `for_each_tenant`, `purge_cancelled_tenants` without context, and global-model allowlist verification.
+
+**Evidence:**
+- `app_factory.py` lines 1098-1111: `purge_cancelled_tenants` runs outside `for_each_tenant`; `expire_trials` runs inside per-tenant context.
+- `app/shared/tenant_filter.py` lines 149-162: When `tid is None`, loop over `session.new` and raise `TenantIsolationError` for any model with `tenant_id` not in `_skip_table`.
+- `_skip_table` at lines 57-67 defines the global-model allowlist: `tenants`, `subscription_plans`, `alembic_version`, `module_definitions`, `notification_rules`, `roles`, `permissions`, `role_permissions`, `user_permissions`, `module_permissions`, `department_permissions`, `system_configs`, `branding_settings`, `icd10_codes`, `cpt_codes`, `drg_codes`, `product_bundles`, `platform_audit_logs`.
+
+**Tests run and actual results:**
+- `tests/test_background_tenant_context.py` — 8 passed, 2 warnings in 4.99s
+- `test_tenant_scoped_record_without_context_raises` — PASSED
+- `test_global_model_without_context_allowed` — PASSED
+- `test_tenant_scoped_record_with_context_succeeds` — PASSED
+- `test_expire_trials_runs_inside_tenant_context` — PASSED
+- `test_purge_cancelled_tenants_runs_without_tenant_context` — PASSED
+- `test_tenant_model_is_global` — PASSED
+- `test_visit_model_is_tenant_scoped` — PASSED
+- `test_user_model_is_tenant_scoped` — PASSED
+- Full related suite: 126 passed
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert `auto_assign_tenant` to `if tid is None: return`; revert `_start_notification_processor` to call `run_lifecycle_maintenance()` outside the loop.
+
+---
+
 **End of Stage 1 / Start of Comprehensive Remediation.**
 
 **Change log for this update:**
