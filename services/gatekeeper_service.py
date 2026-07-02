@@ -120,6 +120,10 @@ class GatekeeperService:
             if visit.financial_locked:
                 return False, "الزيارة مقفلة مالياً"
 
+            # Ticket 1: outstanding balance blocks final settlement/archive
+            if Decimal(visit.paid_amount or 0) < Decimal(visit.total_amount or 0):
+                return False, "المبلغ المدفوع أقل من المطلوب — لا يمكن الأرشفة"
+
             # للطوارئ أو الدفع القوي: التحقق من اكتمال الدفع
             if visit.is_emergency or visit.is_strong_pay:
                 if not visit.financial_completed_at:
@@ -357,8 +361,15 @@ class GatekeeperService:
         P1-002: This is the single owner of writes to Visit.archive_status.
         Archival is an administrative/financial closure action; it is NOT a
         clinical state transition and must remain separate from Visit.status.
+
+        Ticket 1: Reception is the only ordinary tenant role that may initiate
+        archive.  super_admin may also archive as platform support.
         """
         try:
+            user = User.query.get(user_id)
+            if not user or user.role not in ('reception', 'super_admin'):
+                return False, "ليس لديك الصلاحية لأرشفة الزيارة"
+
             try:
                 visit = get_tenant_record(Visit, visit_id)
             except TenantContextError:

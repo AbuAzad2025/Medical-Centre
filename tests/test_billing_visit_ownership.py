@@ -54,13 +54,12 @@ class TestBillingVisitOwnership:
         _db.session.add(v)
         _db.session.commit()
 
-        # Ticket 4: accountant is no longer allowed to archive; use manager
+        # Ticket 1: finance archive route disabled for admin/manager
         login_as(client, 'mgr_arch_mc004', 'manager')
 
-        # Request to archive a non-existent visit ID (cross-tenant simulation)
+        # Request to archive a non-existent visit ID returns 403 (route disabled)
         resp = client.post('/finance/visits/99999999/archive')
-        assert resp.status_code == 404
-        assert 'الزيارة غير موجودة'.encode('utf-8') in resp.data or resp.json.get('error')
+        assert resp.status_code == 403
 
     def test_get_tenant_record_blocks_cross_tenant_visit(self, app, test_tenant):
         from app.core.tenant.models import Tenant
