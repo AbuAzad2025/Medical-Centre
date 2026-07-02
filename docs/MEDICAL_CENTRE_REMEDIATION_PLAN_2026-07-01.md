@@ -968,7 +968,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 **Status:** Complete
 
-**Commit:** `TBD`
+**Commit:** `6c0fab7`
 
 **Files changed:**
 - `utils/tenant_query.py` — `get_tenant_record`: changed contract so `g.tenant_id` is authoritative. Explicit `tenant_id` parameter is rejected if it conflicts with `g.tenant_id` or if `g.tenant_id` is absent. Removed override behavior.
