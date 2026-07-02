@@ -964,6 +964,39 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 ---
 
+### Ticket 3 — Remove Explicit tenant_id Escape-Hatch Risk
+
+**Status:** Complete
+
+**Commit:** `TBD`
+
+**Files changed:**
+- `utils/tenant_query.py` — `get_tenant_record`: changed contract so `g.tenant_id` is authoritative. Explicit `tenant_id` parameter is rejected if it conflicts with `g.tenant_id` or if `g.tenant_id` is absent. Removed override behavior.
+- `tests/test_tenant_visit_lookup.py` — replaced `test_explicit_tenant_id_overrides_context` with `test_explicit_matching_tenant_id_allowed`, `test_explicit_conflicting_tenant_id_rejected`, `test_explicit_tenant_id_rejected_when_context_missing`.
+
+**Evidence:**
+- `utils/tenant_query.py` lines 46-56: `context_tenant_id = getattr(g, "tenant_id", None)`. If `context_tenant_id` is set, explicit `tenant_id` must match it or raise `TenantContextError`. If `context_tenant_id` is None, explicit `tenant_id` is also rejected (fail-closed).
+- No production caller passes explicit `tenant_id` to `get_tenant_record` (verified by static grep of all `get_tenant_record(` calls in `routes/` and `services/`).
+- Future platform tenant assumption will use a separate audited mechanism (MC-005); no generic bypass flag added.
+
+**Tests run and actual results:**
+- `tests/test_tenant_visit_lookup.py` — 11 passed, 2 warnings in 4.77s
+- `test_same_tenant_visit_found` — PASSED
+- `test_cross_tenant_visit_raises` — PASSED
+- `test_missing_visit_raises` — PASSED
+- `test_missing_tenant_context_raises` — PASSED
+- `test_explicit_matching_tenant_id_allowed` — PASSED
+- `test_explicit_conflicting_tenant_id_rejected` — PASSED
+- `test_explicit_tenant_id_rejected_when_context_missing` — PASSED
+- All 4 reception route missing-context tests — PASSED
+- Full related suite: 107 passed
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert `get_tenant_record` to `resolved_tenant_id = tenant_id if tenant_id is not None else getattr(g, "tenant_id", None)` and restore old `test_explicit_tenant_id_overrides_context`.
+
+---
+
 **End of Stage 1 / Start of Comprehensive Remediation.**
 
 **Change log for this update:**

@@ -43,7 +43,20 @@ def get_tenant_record(
         TenantContextError: If the record does not exist or does not belong to
             the active tenant context.
     """
-    resolved_tenant_id = tenant_id if tenant_id is not None else getattr(g, "tenant_id", None)
+    context_tenant_id = getattr(g, "tenant_id", None)
+
+    # Ticket 3: g.tenant_id is authoritative for ordinary tenant-scoped requests.
+    # An explicit tenant_id parameter must match g.tenant_id; if it conflicts
+    # or if g.tenant_id is absent, fail closed.  No generic bypass flag is added.
+    # Future platform tenant assumption will use a separate audited mechanism (MC-005).
+    if context_tenant_id is not None:
+        if tenant_id is not None and tenant_id != context_tenant_id:
+            raise TenantContextError(error_message)
+        resolved_tenant_id = context_tenant_id
+    else:
+        if tenant_id is not None:
+            raise TenantContextError(error_message)
+        resolved_tenant_id = None
 
     # If the model supports tenant scoping but no tenant context is available,
     # fail closed rather than returning a cross-tenant record.

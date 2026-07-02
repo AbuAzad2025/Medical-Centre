@@ -72,7 +72,8 @@ class TestGetTenantRecordVisit:
             with pytest.raises(TenantContextError):
                 get_tenant_record(Visit, v.id)
 
-    def test_explicit_tenant_id_overrides_context(self, app, test_tenant):
+    def test_explicit_matching_tenant_id_allowed(self, app, test_tenant):
+        """Ticket 3: explicit tenant_id that matches g.tenant_id is allowed."""
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -84,10 +85,45 @@ class TestGetTenantRecordVisit:
 
         with app.test_request_context():
             from flask import g
-            g.tenant_id = 999999  # wrong context
-            # explicit tenant_id parameter should succeed
+            g.tenant_id = tenant_id
             record = get_tenant_record(Visit, v.id, tenant_id=tenant_id)
             assert record.id == v.id
+
+    def test_explicit_conflicting_tenant_id_rejected(self, app, test_tenant):
+        """Ticket 3: explicit tenant_id that conflicts with g.tenant_id is rejected."""
+        tenant_id = test_tenant.id
+        p = Patient(first_name='ت', last_name='ت')
+        _db.session.add(p)
+        _db.session.commit()
+
+        v = Visit(patient_id=p.id, tenant_id=tenant_id, status='OPEN')
+        _db.session.add(v)
+        _db.session.commit()
+
+        with app.test_request_context():
+            from flask import g
+            g.tenant_id = tenant_id
+            with pytest.raises(TenantContextError):
+                # explicit tenant_id differs from g.tenant_id -> must fail
+                get_tenant_record(Visit, v.id, tenant_id=999999)
+
+    def test_explicit_tenant_id_rejected_when_context_missing(self, app, test_tenant):
+        """Ticket 3: explicit tenant_id is rejected when g.tenant_id is absent."""
+        tenant_id = test_tenant.id
+        p = Patient(first_name='ت', last_name='ت')
+        _db.session.add(p)
+        _db.session.commit()
+
+        v = Visit(patient_id=p.id, tenant_id=tenant_id, status='OPEN')
+        _db.session.add(v)
+        _db.session.commit()
+
+        with app.test_request_context():
+            from flask import g
+            g.tenant_id = None
+            with pytest.raises(TenantContextError):
+                # explicit tenant_id without g.tenant_id -> must fail closed
+                get_tenant_record(Visit, v.id, tenant_id=tenant_id)
 
 
 class TestReceptionRoutesFailClosedWithoutTenant:
