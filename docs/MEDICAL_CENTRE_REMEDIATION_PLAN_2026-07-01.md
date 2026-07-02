@@ -1172,7 +1172,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 50. **Ticket 10 — Audited platform tenant assumption (Update 12i):** Added `PlatformAuditLog` creation to `SaaSRegistrationService.register_organization`. Log action=`SAAS_SIGNUP` with JSON details (slug, name, admin_username, admin_role, pending_payment, package_version_id, billing_type). Captures `client_ip` and `user_agent` when available; imported `request` from flask. `TenantProvisioningService` already logs `CREATE_TENANT`; this adds SaaS-specific signup audit with IP/admin details. Commit `bdfba99`. Files: `services/saas_registration_service.py`, `tests/test_platform_tenant_audit.py`. Tests: 2 passed. Related suite: 146 passed.
 51. **Ticket 11 — RLS runtime verification and deployment guard (Update 12j):** Added `scripts/rls_deployment_guard.py` with 4 verification checks: (1) application role does NOT have BYPASSRLS, (2) `row_security` setting is ON for current connection, (3) all tenant-scoped tables have RLS enabled and enforced, (4) all tenant-scoped tables have at least one RLS policy. Includes comprehensive list of 80+ tenant-scoped tables. Uses raw psycopg2 connection for direct PostgreSQL catalog queries. Exit code 0 = all checks pass (safe to deploy), 1 = failures (do not deploy). Commit `ffebb34`. Files: `scripts/rls_deployment_guard.py`, `tests/test_rls_deployment_guard.py`. Tests: 5 passed. Related suite: 151 passed.
 52. **Ticket 1 (Corrective) — Finish archive, settlement, and financial mutation lockdown (Update 12k):** Added `paid_amount >= total_amount` check to `GatekeeperService.can_archive_visit`. Added reception-only role check to `GatekeeperService.archive_visit` (only `reception` and `super_admin`). Disabled finance archive route for `admin`/`manager` (returns 403). Centralized final-state checks in `GatekeeperService`. All financial mutations already block archived visits via existing route checks. Commit `d8d3a56`. Files: `services/gatekeeper_service.py`, `routes/finance.py`, `tests/test_archive_lockdown.py`, `tests/test_billing_visit_ownership.py`. Tests: 10 new archive lockdown tests pass. Related suite: 158 passed.
-53. **Ticket 2 (Corrective) — Document and test platform-global tenant context (Update 13):** Added docstring to `purge_cancelled_tenants` explaining why it runs outside `for_each_tenant` (only touches global models: `Tenant`, `PlatformAuditLog`; sets explicit `tenant_id` on `TenantSubscriptionHistory`). Added 3 tests to `test_background_tenant_context.py`: verify `purge_cancelled_tenants` uses only global models, verify it doesn't create tenant-scoped records without explicit tenant_id, and verify the global-model allowlist contains expected tables. Commit `911c75e`. Files: `app/core/saas/lifecycle.py`, `tests/test_background_tenant_context.py`. Tests: 11 passed.
+53. **Ticket 2 (Corrective) — Document and test platform-global tenant context (Update 13):** Added docstring to `purge_cancelled_tenants` explaining why it runs outside `for_each_tenant` (only touches global models: `Tenant`, `PlatformAuditLog`; sets explicit `tenant_id` on `TenantSubscriptionHistory`). Added 3 tests to `test_background_tenant_context.py`: verify `purge_cancelled_tenants` uses only global models, verify it doesn't create tenant-scoped records without explicit tenant_id, and verify the global-model allowlist contains expected tables. Commit `edaf63e`. Files: `app/core/saas/lifecycle.py`, `tests/test_background_tenant_context.py`. Tests: 11 passed.
 
 ---
 
@@ -1369,7 +1369,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 **Status:** Complete
 
-**Commit:** `911c75e`
+**Commit:** `edaf63e`
 
 **Files changed:**
 - `app/core/saas/lifecycle.py` — added docstring to `purge_cancelled_tenants` explaining why it operates outside `for_each_tenant`: only touches platform-global models (`Tenant`, `PlatformAuditLog`) and writes `TenantSubscriptionHistory` with explicit `tenant_id` parameter (bypassing auto-assignment).
@@ -1411,6 +1411,6 @@ All 11 tickets implemented, tested, and committed on `main`:
 | 10 | Audited platform tenant assumption | `bdfba99` | 2/2 | 146/146 |
 | 11 | RLS runtime verification and deployment guard | `ffebb34` | 5/5 | 151/151 |
 | 1 (Corrective) | Finish archive, settlement, and financial mutation lockdown | `d8d3a56` | 10/10 | 158/158 |
-| 2 (Corrective) | Document and test platform-global tenant context | `911c75e` | 3/3 | 11/11 |
+| 2 (Corrective) | Document and test platform-global tenant context | `edaf63e` | 3/3 | 11/11 |
 
 **Total: 13 commits, 158 tests passed, 0 failures.**
