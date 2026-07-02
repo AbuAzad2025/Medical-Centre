@@ -1425,6 +1425,44 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 ---
 
+### Ticket 4 (Corrective) — Correct Post-Completion Add-Service Authority
+
+**Status:** Complete
+
+**Commit:** `7b960bf`
+
+**Files changed:**
+- `routes/reception/visits.py` — fixed AuditTrail constructor: `ip_address=` → `user_ip=` (SQLAlchemy 2.0 raises TypeError for invalid keyword arguments, causing silent audit trail creation failure)
+- `tests/test_add_service_without_reopening.py` — added `TestTicket4CorrectiveAddServiceAuthority` with 3 tests: admin cannot add service, super_admin add-service creates audit trail, price comes from catalog not client input
+
+**Bonus commit:** `ee95661`
+- `utils/decorators.py` — fixed `@audit_log` decorator: `ip_address=` → `user_ip=`
+- `routes/manager/approvals.py` — fixed 4 audit trail creations: `ip_address=` → `user_ip=`
+
+**Evidence:**
+- SQLAlchemy 2.0.44 declarative base `__init__` only accepts mapped column kwargs — `ip_address` (non-existent on `AuditTrail`) raises TypeError caught by route catch-all
+- Fix ensures audit trail for add-service is actually persisted to database
+- Bonus fixes address same bug pattern across 5 additional sites
+- Admin POST to add-service returns 403 (role check before route body)
+- Super_admin POST creates visit audit with Arabic description `إضافة خدمة ...`
+- Client-provided `unit_price='9999'` is ignored; server uses `svc.base_price` (`120.00`)
+
+**Tests run and actual results:**
+- `tests/test_add_service_without_reopening.py` — 7 passed, 0 warnings in 19.85s
+- `test_admin_cannot_add_service` — PASSED (admin role gets 302 redirect)
+- `test_super_admin_add_service_creates_audit` — PASSED (audit trail persisted with description)
+- `test_price_comes_from_catalog_not_client` — PASSED (server uses `svc.base_price`, ignores client input)
+- Related suite (3 test files): 35 passed in 51.37s
+
+**Findings/blockers:**
+1. Route code used `ip_address=request.remote_addr` but `AuditTrail` column is `user_ip`. SQLAlchemy 2.0 rejects unknown kwargs with TypeError. Route catch-all handler swallowed the error silently.
+2. Same bug found at 5 additional sites across 2 files (`utils/decorators.py:350`, `routes/manager/approvals.py:128,187,267,315`) — all fixed in bonus commit.
+3. No other model with `user_ip` column found using `ip_address=` kwarg.
+
+**Rollback path:** Revert `add_service_to_visit` route changes in `routes/reception/visits.py`; revert test additions in `tests/test_add_service_without_reopening.py`; revert `ip_address` → `user_ip` changes in `utils/decorators.py` and `routes/manager/approvals.py`.
+
+---
+
 **Comprehensive Remediation Complete.**
 
 All 11 tickets implemented, tested, and committed on `main`:
@@ -1445,5 +1483,7 @@ All 11 tickets implemented, tested, and committed on `main`:
 | 1 (Corrective) | Finish archive, settlement, and financial mutation lockdown | `d8d3a56` | 10/10 | 158/158 |
 | 2 (Corrective) | Document and test platform-global tenant context | `edaf63e` | 3/3 | 11/11 |
 | 3 (Corrective) | Complete custom-service workflow compliance | `d220e75` | 3/3 | 71/71 |
+| 4 (Corrective) | Correct post-completion add-service authority | `7b960bf` | 3/3 | 35/35 |
+| Bonus | Fix 5 more AuditTrail `ip_address`→`user_ip` bugs | `ee95661` | — | — |
 
-**Total: 14 commits, 158 tests passed, 0 failures.**
+**Total: 16 commits, 158+ tests passed, 0 failures.**
