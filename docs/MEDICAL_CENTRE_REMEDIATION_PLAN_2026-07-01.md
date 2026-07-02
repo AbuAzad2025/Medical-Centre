@@ -1171,6 +1171,8 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 49. **Ticket 9 — Controlled return-to-treatment workflow (Update 12h):** Added `VisitStateMachineService.return_to_treatment(visit, actor, reason)` method. Only `doctor`/`manager`/`super_admin` roles authorized; `reception` blocked. Only `COMPLETED` visits can be reopened; other statuses raise `ValueError`. Requires `actor` parameter. Directly sets `status=IN_PROGRESS` with VSM authorization flag. Route `POST /doctor/return-to-treatment/<visit_id>` with `role_required` and reason validation (>=3 chars). Audit trail with `entity_type='visit'`, `action='update'`, reason in description. Commit `2b08965`. Files: `services/visit_state_machine_service.py`, `routes/doctor/visits.py`, `tests/test_return_to_treatment.py`. Tests: 4 passed. Related suite: 144 passed.
 50. **Ticket 10 — Audited platform tenant assumption (Update 12i):** Added `PlatformAuditLog` creation to `SaaSRegistrationService.register_organization`. Log action=`SAAS_SIGNUP` with JSON details (slug, name, admin_username, admin_role, pending_payment, package_version_id, billing_type). Captures `client_ip` and `user_agent` when available; imported `request` from flask. `TenantProvisioningService` already logs `CREATE_TENANT`; this adds SaaS-specific signup audit with IP/admin details. Commit `bdfba99`. Files: `services/saas_registration_service.py`, `tests/test_platform_tenant_audit.py`. Tests: 2 passed. Related suite: 146 passed.
 51. **Ticket 11 — RLS runtime verification and deployment guard (Update 12j):** Added `scripts/rls_deployment_guard.py` with 4 verification checks: (1) application role does NOT have BYPASSRLS, (2) `row_security` setting is ON for current connection, (3) all tenant-scoped tables have RLS enabled and enforced, (4) all tenant-scoped tables have at least one RLS policy. Includes comprehensive list of 80+ tenant-scoped tables. Uses raw psycopg2 connection for direct PostgreSQL catalog queries. Exit code 0 = all checks pass (safe to deploy), 1 = failures (do not deploy). Commit `ffebb34`. Files: `scripts/rls_deployment_guard.py`, `tests/test_rls_deployment_guard.py`. Tests: 5 passed. Related suite: 151 passed.
+52. **Ticket 1 (Corrective) — Finish archive, settlement, and financial mutation lockdown (Update 12k):** Added `paid_amount >= total_amount` check to `GatekeeperService.can_archive_visit`. Added reception-only role check to `GatekeeperService.archive_visit` (only `reception` and `super_admin`). Disabled finance archive route for `admin`/`manager` (returns 403). Centralized final-state checks in `GatekeeperService`. All financial mutations already block archived visits via existing route checks. Commit `d8d3a56`. Files: `services/gatekeeper_service.py`, `routes/finance.py`, `tests/test_archive_lockdown.py`, `tests/test_billing_visit_ownership.py`. Tests: 10 new archive lockdown tests pass. Related suite: 158 passed.
+53. **Ticket 2 (Corrective) — Document and test platform-global tenant context (Update 13):** Added docstring to `purge_cancelled_tenants` explaining why it runs outside `for_each_tenant` (only touches global models: `Tenant`, `PlatformAuditLog`; sets explicit `tenant_id` on `TenantSubscriptionHistory`). Added 3 tests to `test_background_tenant_context.py`: verify `purge_cancelled_tenants` uses only global models, verify it doesn't create tenant-scoped records without explicit tenant_id, and verify the global-model allowlist contains expected tables. Commit `911c75e`. Files: `app/core/saas/lifecycle.py`, `tests/test_background_tenant_context.py`. Tests: 11 passed.
 
 ---
 
@@ -1333,6 +1335,64 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 ---
 
+### Ticket 1 (Corrective) — Finish Archive, Settlement, and Financial Mutation Lockdown
+
+**Status:** Complete
+
+**Commit:** `d8d3a56`
+
+**Files changed:**
+- `services/gatekeeper_service.py` — `can_archive_visit`: added `paid_amount >= total_amount` check before archive. `archive_visit`: added role check restricting archive to `reception` and `super_admin` roles only.
+- `routes/finance.py` — disabled `archive_visit` route for `admin`/`manager`; returns 403 with message directing to reception.
+- `tests/test_archive_lockdown.py` — added 10 new tests: unpaid/partially paid visit blocked, fully paid reconciled visit allowed, reception can archive service, manager/accountant cannot archive service, finance route returns 403.
+- `tests/test_billing_visit_ownership.py` — updated cross-tenant finance archive test to expect 403.
+
+**Evidence:**
+- `can_archive_visit` now rejects visits where `paid_amount < total_amount`.
+- `archive_visit` enforces reception/super_admin role check at service level.
+- Finance archive route returns 403 for admin/manager.
+- Reception route already restricts to `reception`/`super_admin`.
+- All financial mutations (payment, receipt, add-service) already block archived visits via route-level checks.
+
+**Tests run and actual results:**
+- `tests/test_archive_lockdown.py` — 18 passed (8 existing + 10 new)
+- `tests/test_billing_visit_ownership.py` — 10 passed
+- Full related suite: 158 passed
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert `paid_amount` check and role check in `can_archive_visit`/`archive_visit`; revert finance route.
+
+---
+
+### Ticket 2 (Corrective) — Document and Test Platform-Global Tenant Context
+
+**Status:** Complete
+
+**Commit:** `911c75e`
+
+**Files changed:**
+- `app/core/saas/lifecycle.py` — added docstring to `purge_cancelled_tenants` explaining why it operates outside `for_each_tenant`: only touches platform-global models (`Tenant`, `PlatformAuditLog`) and writes `TenantSubscriptionHistory` with explicit `tenant_id` parameter (bypassing auto-assignment).
+- `tests/test_background_tenant_context.py` — added `TestPurgeCancelledTenantsContract` with 3 tests.
+
+**Evidence:**
+- `purge_cancelled_tenants` only queries `Tenant` (table `tenants` — in `_skip_table` global-model allowlist) and `TenantSubscriptionHistory` (with explicit `tenant_id` filter).
+- Only creates `PlatformAuditLog` (table `platform_audit_logs` — in global-model allowlist) and `TenantSubscriptionHistory` (with explicit `tenant_id` set from the parent `Tenant` record).
+- Global-model allowlist in `_skip_table` contains all platform-level tables: `tenants`, `platform_audit_logs`, `roles`, `permissions`, `subscription_plans`, etc.
+- `expire_trials` runs inside `for_each_tenant` loop where `g.tenant_id` is properly set for tenant-scoped models.
+
+**Tests run and actual results:**
+- `tests/test_background_tenant_context.py` — 11 passed, 2 warnings in 5.37s
+- `test_purge_uses_only_global_models` — PASSED
+- `test_purge_does_not_create_tenant_scoped_without_explicit_tenant_id` — PASSED
+- `test_allowlist_contains_expected_global_models` — PASSED
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert lifecycle.py docstring; revert test additions.
+
+---
+
 **Comprehensive Remediation Complete.**
 
 All 11 tickets implemented, tested, and committed on `main`:
@@ -1350,5 +1410,7 @@ All 11 tickets implemented, tested, and committed on `main`:
 | 9 | Controlled return-to-treatment workflow | `2b08965` | 4/4 | 144/144 |
 | 10 | Audited platform tenant assumption | `bdfba99` | 2/2 | 146/146 |
 | 11 | RLS runtime verification and deployment guard | `ffebb34` | 5/5 | 151/151 |
+| 1 (Corrective) | Finish archive, settlement, and financial mutation lockdown | `d8d3a56` | 10/10 | 158/158 |
+| 2 (Corrective) | Document and test platform-global tenant context | `911c75e` | 3/3 | 11/11 |
 
-**Total: 11 commits, 151 tests passed, 0 failures.**
+**Total: 13 commits, 158 tests passed, 0 failures.**

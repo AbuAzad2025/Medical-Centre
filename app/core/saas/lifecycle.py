@@ -601,7 +601,16 @@ class TenantProvisioningService:
 
     @classmethod
     def purge_cancelled_tenants(cls) -> int:
-        """Mark cancelled tenants as DELETED after RETENTION_DAYS."""
+        """Mark cancelled tenants as DELETED after RETENTION_DAYS.
+
+        This runs OUTSIDE for_each_tenant because it operates only on
+        platform-global models:
+        - Tenant (global, table 'tenants' in skip list)
+        - PlatformAuditLog (global, table 'platform_audit_logs' in skip list)
+
+        It also writes TenantSubscriptionHistory (tenant-scoped) with an
+        EXPLICIT tenant_id parameter, which bypasses auto-assignment.
+        """
         from app.shared.enums import TenantStatus
 
         cutoff = datetime.now(timezone.utc) - timedelta(days=cls.RETENTION_DAYS)

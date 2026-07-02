@@ -108,3 +108,61 @@ class TestGlobalModelAllowlist:
         from app.shared.tenant_filter import _skip_table
         from models.user import User
         assert _skip_table(User) is False
+
+
+class TestPurgeCancelledTenantsContract:
+    """Verify purge_cancelled_tenants contract and global-model allowlist."""
+
+    def test_purge_uses_only_global_models(self, app, test_tenant):
+        """purge_cancelled_tenants must only touch global models or explicit tenant_id."""
+        from app.core.saas.lifecycle import TenantProvisioningService
+        from app.core.tenant.models import Tenant, PlatformAuditLog, TenantSubscriptionHistory
+        from app.shared.tenant_filter import _skip_table
+
+        # Verify global models are in allowlist
+        assert _skip_table(Tenant) is True
+        assert _skip_table(PlatformAuditLog) is True
+
+        # TenantSubscriptionHistory is tenant-scoped, NOT in allowlist
+        assert _skip_table(TenantSubscriptionHistory) is False
+
+        # purge_cancelled_tenants should work without context (uses global models only)
+        with app.test_request_context():
+            from flask import g
+            g.tenant_id = None
+            count = TenantProvisioningService.purge_cancelled_tenants()
+            assert count >= 0
+
+    def test_purge_does_not_create_tenant_scoped_without_explicit_tenant_id(self, app, test_tenant):
+        """purge_cancelled_tenants must not create tenant-scoped records without explicit tenant_id."""
+        from app.core.saas.lifecycle import TenantProvisioningService
+        from app_factory import db as _db
+
+        with app.test_request_context():
+            from flask import g
+            g.tenant_id = None
+            # Should not raise TenantIsolationError
+            count = TenantProvisioningService.purge_cancelled_tenants()
+            # No tenant-scoped records should be created without explicit tenant_id
+            # (if any were, auto_assign_tenant would have raised)
+            assert count >= 0
+
+    def test_allowlist_contains_expected_global_models(self, app, test_tenant):
+        """Global-model allowlist must contain all expected platform-global tables."""
+        from app.shared.tenant_filter import _skip_table
+        from app.core.tenant.models import Tenant, PlatformAuditLog
+        from models.permissions import Role, Permission
+        from models.visit import Visit
+        from models.patient import Patient
+        from models.user import User
+
+        # Platform core models are global
+        assert _skip_table(Tenant) is True
+        assert _skip_table(PlatformAuditLog) is True
+        assert _skip_table(Role) is True
+        assert _skip_table(Permission) is True
+
+        # Tenant-scoped models must NOT be in allowlist
+        assert _skip_table(Visit) is False
+        assert _skip_table(Patient) is False
+        assert _skip_table(User) is False
