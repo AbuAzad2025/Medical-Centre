@@ -1101,5 +1101,118 @@ def edit_visit(visit_id):
     doctors = User.query.filter(User.role.in_(['doctor', 'emergency']), User.is_active == True).order_by(User.full_name).all()
     return render_template('reception/edit_visit.html', visit=visit, departments=departments, doctors=doctors)
 
+
+# ========== Ticket 7: Add Service Without Reopening Clinical Workflow ==========
+
+@reception_bp.route('/visits/<int:visit_id>/add-service', methods=['POST'])
+@login_required
+def add_service_to_visit(visit_id):
+    """إضافة خدمة إلى زيارة بدون إعادة فتح العلاج (Ticket 7)."""
+    if current_user.role not in ['reception', 'super_admin']:
+        flash('ليس لديك الصلاحيات لإضافة خدمة', 'danger')
+        return redirect(url_for('auth.login'))
+
+    try:
+        from utils.tenant_query import get_tenant_record, TenantContextError
+        try:
+            visit = get_tenant_record(Visit, visit_id)
+        except TenantContextError:
+            flash('الزيارة غير موجودة', 'error')
+            return redirect(url_for('reception.visits'))
+
+        # Ticket 4: archived visits cannot receive financial mutations
+        if visit.archive_status == 'ARCHIVED':
+            flash('الزيارة مؤرشفة ولا يمكن تعديلها', 'error')
+            return redirect(url_for('reception.view_visit', visit_id=visit_id))
+
+        # Ticket 7: only queued, in-progress, or completed (but not archived) visits
+        if visit.status not in {'CHECKED_IN', 'IN_PROGRESS', 'COMPLETED'}:
+            flash('لا يمكن إضافة خدمة لهذه الزيارة', 'warning')
+            return redirect(url_for('reception.view_visit', visit_id=visit_id))
+
+        service_id = request.form.get('service_id', type=int)
+        if not service_id:
+            flash('يجب اختيار خدمة', 'warning')
+            return redirect(url_for('reception.view_visit', visit_id=visit_id))
+
+        from models.service import ServiceMaster
+        try:
+            svc = get_tenant_record(ServiceMaster, service_id)
+        except TenantContextError:
+            flash('الخدمة غير موجودة', 'error')
+            return redirect(url_for('reception.view_visit', visit_id=visit_id))
+
+        if not svc.is_active:
+            flash('الخدمة غير متاحة', 'warning')
+            return redirect(url_for('reception.view_visit', visit_id=visit_id))
+
+        # Ensure an invoice exists for the visit
+        from models.invoice import Invoice
+        invoice = Invoice.query.filter_by(visit_id=visit.id).order_by(Invoice.created_at.desc()).first()
+        if not invoice:
+            invoice = Invoice(
+                invoice_number=f"INV-{visit.id}-{int(__import__('datetime').datetime.now(__import__('datetime').timezone.utc).timestamp())}",
+                visit_id=visit.id,
+                created_by=current_user.id,
+                status='ISSUED',
+                currency=getattr(visit, 'currency', None) or 'ILS',
+                total_amount=visit.total_amount or 0,
+                paid_amount=visit.paid_amount or 0,
+            )
+            db.session.add(invoice)
+            db.session.flush()
+
+        # Create invoice service line
+        from models.invoice import InvoiceService as InvoiceLine
+        line = InvoiceLine(
+            invoice_id=invoice.id,
+            department_id=svc.department_id or visit.department_id,
+            visit_id=visit.id,
+            service_master_id=svc.id,
+            service_code=svc.code,
+            service_name=svc.name_ar or svc.name,
+            quantity=1,
+            unit_price=svc.base_price or 0,
+            total_price=svc.base_price or 0,
+            created_by=current_user.id,
+        )
+        db.session.add(line)
+
+        # Update visit total (aggregate)
+        visit.total_amount = (visit.total_amount or 0) + (svc.base_price or 0)
+
+        # Update invoice total
+        invoice.total_amount = (invoice.total_amount or 0) + (svc.base_price or 0)
+
+        # Update payment status if outstanding
+        remaining = visit.remaining_amount
+        if remaining > 0:
+            visit.payment_status = PaymentStatus.PARTIAL if visit.paid_amount > 0 else PaymentStatus.PENDING
+
+        db.session.commit()
+
+        # Audit trail
+        from models.audit_trail import AuditTrail
+        audit = AuditTrail(
+            user_id=current_user.id,
+            action='update',
+            entity_type='visit',
+            entity_id=visit_id,
+            description=f'إضافة خدمة {svc.name} ({svc.code}) - زيارة {visit_id}',
+            ip_address=request.remote_addr
+        )
+        db.session.add(audit)
+        db.session.commit()
+
+        flash(f'تمت إضافة الخدمة {svc.name} إلى الزيارة', 'success')
+        return redirect(url_for('reception.view_visit', visit_id=visit_id))
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error adding service to visit: {str(e)}")
+        flash('حدث خطأ أثناء إضافة الخدمة', 'error')
+        return redirect(url_for('reception.view_visit', visit_id=visit_id))
+
+
 # Import submodules (must be at bottom after all helpers)
 from . import patients
