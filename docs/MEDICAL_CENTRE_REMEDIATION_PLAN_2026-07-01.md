@@ -4,7 +4,7 @@
 **Implementation status:** `Stage 1 complete (4 tickets); Stage 2 awaiting review`  
 **Canonical source file path:** `docs/MEDICAL_CENTRE_REMEDIATION_PLAN_2026-07-01.md`  
 **Date created / updated:** 2026-07-01  
-**Last updated:** 2026-07-02 (Update 10 — Stage 1 implementation complete: Ticket A MC-014 WP-3, Ticket B MC-001, Ticket C MC-003, Ticket D MC-004. All tests pass. Stage 2 tickets deferred awaiting review.)  
+**Last updated:** 2026-07-02 (Update 11 — Corrective batch complete: Ticket 1 strict payment gate, Ticket 2 fail-closed tenant context, Ticket 3 reception financial-route ownership. All Stage 1 tickets verified and complete. Stage 2 deferred awaiting review.)  
 **Reference audit report:** `docs/AUDIT_REPORT_2026-07-01.md`  
 **Rule:** Only explicitly approved items may move into implementation.  
 **Last updated by:** OpenCode agent — implementation phase.  
@@ -653,6 +653,9 @@ flask db downgrade s1_007_rls_phase4
 - Ticket B — MC-001: Missing tenant context must fail closed in module guard
 - Ticket C — MC-003: Tenant-safe reception visit lookup
 - Ticket D — MC-004: Tenant-safe billing visit ownership
+- Corrective Ticket 1 — Strict normal-visit payment gate (MC-014 WP-3 follow-up)
+- Corrective Ticket 2 — Fail closed when tenant context absent (MC-003 follow-up)
+- Corrective Ticket 3 — Complete MC-004 reception financial-route ownership (MC-004 follow-up)
 
 **Stage 1 tickets explicitly deferred:**
 - MC-014 WP-2 (blocked on schema decisions)
@@ -767,7 +770,7 @@ flask db downgrade s1_007_rls_phase4
 
 **Status:** Complete
 
-**Commit:** `TBD`
+**Commit:** `0cfbeb4`
 
 **Files changed:**
 - `routes/reception/payments.py` — `process_payment` and `print_receipt`: replaced `db.session.get(Visit, visit_id)` with `get_tenant_record(Visit, visit_id)`, catching `TenantContextError` and redirecting with flash.
@@ -912,4 +915,8 @@ flask db downgrade s1_007_rls_phase4
 37. **Ticket C — MC-003 implemented (Update 10):** Reception visit paths `archive_visit`, `end_visit`, `view_visit`, `edit_visit` replaced `db.session.get` with `get_tenant_record`. Commit `31c47ae`. Files: `routes/reception/visits.py`, `tests/test_tenant_visit_lookup.py`. Tests: 4 passed.
 38. **Ticket D — MC-004 implemented (Update 10):** Billing routes `process_payment`, `post_gl`, `archive_visit` now validate visit ownership via `tenant_id=g.tenant_id` or `get_tenant_record`. Commit `76742c0`. Files: `routes/payment_routes.py`, `routes/finance.py`, `tests/test_billing_visit_ownership.py`. Tests: 4 passed.
 39. **Plan status updated (Update 10):** Changed from `Draft — Audit and Decision Phase` / `No implementation approved` to `Draft — Stage 1 Implementation Complete` / `Stage 1 complete (4 tickets); Stage 2 awaiting review`. Deferred tickets remain: MC-014 WP-2 (schema), WP-4/WP-5 (post-Stage-1 review), MC-005, MC-009.
-34. **MC-014 five ordered work packages published with implementation-readiness matrix (Update 9):** WP-1 (ready, no remediation needed), WP-2 (blocked on schema), WP-3 (ready, single branch removal), WP-4 (ready, reuses `InvoiceService`), WP-5 (ready, logic changes only). Added to section G.2.
+40. **MC-014 five ordered work packages published with implementation-readiness matrix (Update 9):** WP-1 (ready, no remediation needed), WP-2 (blocked on schema), WP-3 (ready, single branch removal), WP-4 (ready, reuses `InvoiceService`), WP-5 (ready, logic changes only). Added to section G.2.
+41. **Corrective Ticket 1 — Strict normal-visit payment gate (Update 11):** Removed `force_entry`, `DEBT`, and `EMERGENCY_DEBT` bypasses for normal visits. Only `PAID` (normal) and `is_emergency` (emergency) allow queue entry. Commit `e3c4b87`. Files: `services/queue_management_service.py`, `tests/test_queue_management_service.py`. Tests: 57 passed.
+42. **Corrective Ticket 2 — Fail closed when tenant context absent (Update 11):** `get_tenant_record` now raises `TenantContextError` when `g.tenant_id` is `None` for tenant-scoped models. Removed fail-open behavior. Commit `8905dbb`. Files: `utils/tenant_query.py`, `tests/test_tenant_visit_lookup.py`. Tests: 9 passed.
+43. **Corrective Ticket 3 — Complete MC-004 reception financial-route ownership (Update 11):** `routes/reception/payments.py` `process_payment` and `print_receipt` now use `get_tenant_record` instead of naked `db.session.get`. Commit `0cfbeb4`. Files: `routes/reception/payments.py`, `tests/test_billing_visit_ownership.py`. Tests: 10 passed.
+44. **Corrective batch complete (Update 11):** All Stage 1 corrective tickets implemented, tested, and verified. Three commits created. No new branch added. Stage 2 remains deferred pending review.
