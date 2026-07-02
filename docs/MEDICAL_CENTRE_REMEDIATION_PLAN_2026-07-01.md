@@ -1078,7 +1078,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 **Status:** Complete
 
-**Commit:** `TBD`
+**Commit:** `eece7ff`
 
 **Files changed:**
 - `migrations/versions/s1_008_custom_service_lifecycle.py` — new migration: adds `is_custom`, `approved_by`, `approved_at`, `created_by` to `service_master`; adds `service_master_id`, `created_by` to `invoice_services`; updates `audit_trails` `chk_entity_type` to include `'service'`.
