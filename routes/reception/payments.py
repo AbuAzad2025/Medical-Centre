@@ -26,6 +26,7 @@ import logging
 from services.access_control_service import AccessControlService
 from app.shared.pos_charge import execute_pos_charge
 from app.shared.user_messages import user_message
+from utils.tenant_query import get_tenant_record, TenantContextError
 
 
 
@@ -58,8 +59,9 @@ def process_payment(visit_id):
     if 'billing' not in getattr(g, 'enabled_modules', set()):
         flash('وحدة الفوترة غير مفعلة في باقتك الحالية', 'error')
         return redirect(url_for('main.dashboard'))
-    visit = db.session.get(Visit, visit_id)
-    if not visit:
+    try:
+        visit = get_tenant_record(Visit, visit_id)
+    except TenantContextError:
         flash('الزيارة غير موجودة', 'error')
         return redirect(url_for('reception.queue_management'))
     try:
@@ -121,8 +123,9 @@ def print_receipt(visit_id):
         flash('وحدة الفوترة غير مفعلة في باقتك الحالية', 'error')
         return redirect(url_for('main.dashboard'))
     
-    visit = db.session.get(Visit, visit_id)
-    if not visit:
+    try:
+        visit = get_tenant_record(Visit, visit_id)
+    except TenantContextError:
         flash('الزيارة غير موجودة', 'error')
         return redirect(url_for('reception.queue_management'))
     try:

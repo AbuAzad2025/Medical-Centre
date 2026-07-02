@@ -698,7 +698,7 @@ flask db downgrade s1_007_rls_phase4
 
 **Status:** Complete
 
-**Commit:** `TBD`
+**Commit:** `e3c4b87`
 
 **Owner rule (final):** `No normal non-emergency visit may enter any queue before the full initial reception-selected fees are paid.` Emergency is the only confirmed pre-treatment payment exception.
 
@@ -730,7 +730,7 @@ flask db downgrade s1_007_rls_phase4
 
 **Status:** Complete
 
-**Commit:** `TBD`
+**Commit:** `8905dbb`
 
 **Files changed:**
 - `utils/tenant_query.py` — `get_tenant_record`: removed fail-open behavior when `resolved_tenant_id is None` for tenant-scoped models; now raises `TenantContextError` before fetching the record.
@@ -760,6 +760,34 @@ flask db downgrade s1_007_rls_phase4
 **Findings/blockers:** None.
 
 **Rollback path:** Revert the removal of the `PARTIAL` branch in `_check_queue_entry_conditions`.
+
+---
+
+### Corrective Ticket 3 — Complete MC-004 reception financial-route ownership (MC-004 follow-up)
+
+**Status:** Complete
+
+**Commit:** `TBD`
+
+**Files changed:**
+- `routes/reception/payments.py` — `process_payment` and `print_receipt`: replaced `db.session.get(Visit, visit_id)` with `get_tenant_record(Visit, visit_id)`, catching `TenantContextError` and redirecting with flash.
+- `tests/test_billing_visit_ownership.py` — added `TestReceptionFinancialRouteOwnership` with 6 tests.
+
+**Evidence:**
+- `routes/reception/payments.py` lines 54-62, 126-130: Both routes now use `get_tenant_record` for tenant-safe visit lookup before any read or mutation.
+- Cross-tenant access redirects to queue management with a generic "not found" flash, preventing disclosure.
+
+**Tests run and actual results:**
+- `tests/test_billing_visit_ownership.py` — 10 passed, 2 warnings in 12.80s
+- `test_reception_process_payment_same_tenant` — PASSED
+- `test_reception_process_payment_cross_tenant` — PASSED (redirects, no disclosure)
+- `test_reception_print_receipt_same_tenant` — PASSED
+- `test_reception_print_receipt_cross_tenant` — PASSED (redirects, no disclosure)
+- `test_reception_process_payment_missing_tenant_context` — PASSED (unauthenticated → redirect)
+- `test_reception_print_receipt_missing_tenant_context` — PASSED (unauthenticated → redirect)
+- All 4 original MC-004 billing tests also pass
+
+**Findings/blockers:** None.
 
 ---
 
