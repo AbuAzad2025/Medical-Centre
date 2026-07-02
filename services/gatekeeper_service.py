@@ -10,7 +10,7 @@ from flask import current_app
 from app_factory import db
 from models.visit import Visit
 from models.payment import Payment, PaymentMethod, PaymentStatus
-from models.invoice import Invoice
+from models.invoice import Invoice, InvoiceService
 from models.audit_trail import AuditTrail
 from models.user import User
 from utils.tenant_query import get_tenant_record, TenantContextError
@@ -124,6 +124,23 @@ class GatekeeperService:
             if visit.is_emergency or visit.is_strong_pay:
                 if not visit.financial_completed_at:
                     return False, "يتطلب اكتمال الدفع للطوارئ/الدفع القوي"
+
+            # Ticket 8: service-line reconciliation — when itemized lines exist, aggregate total must match
+            has_lines = db.session.query(
+                db.func.count(InvoiceService.id)
+            ).filter(
+                InvoiceService.visit_id == visit.id
+            ).scalar() > 0
+
+            if has_lines:
+                itemized_total = db.session.query(
+                    db.func.coalesce(db.func.sum(InvoiceService.total_price), Decimal(0))
+                ).filter(
+                    InvoiceService.visit_id == visit.id
+                ).scalar()
+
+                if Decimal(visit.total_amount or 0) != Decimal(itemized_total or 0):
+                    return False, "مبلغ الزيارة لا يتوافق مع مجموع الخدمات — يتطلب تسوية الخدمات"
 
             return True, "يمكن الأرشفة"
 

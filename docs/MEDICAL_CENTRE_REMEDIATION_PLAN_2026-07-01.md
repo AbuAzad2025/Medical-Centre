@@ -1166,3 +1166,40 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 44. **Corrective batch complete (Update 11):** All Stage 1 corrective tickets implemented, tested, and verified. Three commits created. No new branch added. Stage 2 remains deferred pending review.
 45. **Comprehensive remediation authorized (Update 12):** Owner authorized execution of all 11 comprehensive remediation tickets based on Stage 1 audit findings. Checkpoint tag `medical-remediation-comprehensive-start-2026-07-02` created on HEAD `1def091`. No new branch created.
 46. **Ticket 1 — Close every remaining normal-queue payment bypass (Update 12):** `_check_queue_entry_conditions` removed `settings` parameter entirely; only `PAID` (normal) and `is_emergency=True` (emergency) allow queue entry. `add_patient_to_queue` removed `payment_status`, `force_entry`, `force_entry_reason` parameters; resolves from server-side visit record. `routes/reception/queue.py` manual form no longer reads `force_entry` or `payment_status`. `add_patient_to_queue_auto` no longer passes `force_entry` or `payment_status`. `routes/manager/approvals.py` removed auto-enqueue after manager approval; approval is purely administrative/financial review. Added 3 new tests. All 59 queue tests pass. Related tenant/billing/feature tests pass (40/40).
+47. **Ticket 7 — Add services without reopening clinical workflow (Update 12f):** Added `POST /reception/visits/<id>/add-service` route for `reception` and `super_admin`. Accepts `CHECKED_IN`, `IN_PROGRESS`, `COMPLETED` (but not archived) visits. Catalog service must be active. Creates invoice if missing, adds `InvoiceService` line with `service_master_id`, `created_by`, `service_code`, `service_name`, `unit_price`, `total_price`. Updates `visit.total_amount` and `invoice.total_amount`. Preserves `payment_status` (PENDING/PARTIAL) if outstanding. Rejects archived visits via `archive_status` gate. Tenant-safe via `get_tenant_record`. Cross-tenant service addition denied. Audit trail with `entity_type='visit'`. Commit `07b32ab`. Files: `routes/reception/visits.py`, `tests/test_add_service_without_reopening.py`. Tests: 4 passed. Related suite: 137 passed.
+
+---
+
+### Ticket 7 — MC-014 WP-4: Add Services Without Reopening Clinical Workflow
+
+**Status:** Complete
+
+**Commit:** `07b32ab`
+
+**Files changed:**
+- `routes/reception/visits.py` — added `POST /reception/visits/<id>/add-service` route for `reception` and `super_admin`. Validates visit status (`CHECKED_IN`, `IN_PROGRESS`, `COMPLETED`), rejects archived visits. Validates catalog service is active. Creates invoice if missing. Adds `InvoiceService` line with `service_master_id`, `created_by`, `service_code`, `service_name`, `unit_price`, `total_price`. Updates `visit.total_amount` and `invoice.total_amount`. Preserves `payment_status` (PENDING/PARTIAL) if outstanding. Uses `get_tenant_record` for visit and service lookup. Cross-tenant service addition denied. Audit trail with `entity_type='visit'`.
+- `tests/test_add_service_without_reopening.py` — new test file: 4 tests covering reception adds catalog service to completed visit, archive rejection, role restriction, cross-tenant denial.
+
+**Evidence:**
+- `add_service_to_visit` route accepts only `CHECKED_IN`, `IN_PROGRESS`, `COMPLETED` visits.
+- Archived visits (`archive_status='ARCHIVED'`) are rejected before any mutation.
+- Only active catalog services (`is_active=True`) are accepted.
+- Invoice created if missing; `InvoiceService` line stores `service_master_id`, `created_by`, `service_code`, `service_name`, `unit_price`, `total_price`.
+- `visit.total_amount` and `invoice.total_amount` updated by service price.
+- `payment_status` recalculated to `PENDING` or `PARTIAL` if outstanding balance remains.
+- Tenant-safe via `get_tenant_record`; cross-tenant visit/service access denied.
+- Audit trail records `entity_type='visit'` with description of service added.
+
+**Tests run and actual results:**
+- `tests/test_add_service_without_reopening.py` — 4 passed, 2 warnings in 20.54s
+- `test_reception_adds_catalog_service_to_completed_visit` — PASSED
+- `test_add_service_rejected_after_archive` — PASSED
+- `test_non_reception_cannot_add_service` — PASSED
+- `test_cross_tenant_add_service_denied` — PASSED
+- Full related suite: 137 passed
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert `add_service_to_visit` route and `tests/test_add_service_without_reopening.py`.
+
+---
