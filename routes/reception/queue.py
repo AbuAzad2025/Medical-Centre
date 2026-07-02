@@ -110,10 +110,9 @@ def add_patient_to_queue():
             queue_type = request.form.get('queue_type', 'normal')
             is_emergency = 'is_emergency' in request.form
             emergency_reason = request.form.get('emergency_reason') if is_emergency else None
-            force_entry = 'force_entry' in request.form
-            force_entry_reason = request.form.get('force_entry_reason') if force_entry else None
-            payment_status = request.form.get('payment_status', 'PENDING')
-            
+            # Ticket 1: force_entry and payment_status are resolved from the
+            # authoritative server-side visit record, never from the form.
+
             # إلزام اختيار طبيب للأقسام التخصصية
             try:
                 dept_obj = db.session.get(Department, int(department_id))
@@ -136,9 +135,6 @@ def add_patient_to_queue():
                 queue_type=queue_type,
                 is_emergency=is_emergency,
                 emergency_reason=emergency_reason,
-                force_entry=force_entry,
-                force_entry_reason=force_entry_reason,
-                payment_status=payment_status,
                 created_by=current_user.id
             )
             
@@ -995,22 +991,30 @@ def calculate_no_show_rate():
 
 
 def add_patient_to_queue_auto(visit_id, department_id, doctor_id=None):
-    """إضافة المريض للطابور تلقائياً"""
+    """إضافة المريض للطابور تلقائياً.
+
+    Ticket 1: payment_status and is_emergency are resolved from the
+    authoritative server-side visit record inside add_patient_to_queue.
+    force_entry is removed; manager force-payment approval is never a
+    queue-entry bypass.
+    """
     try:
         from services.queue_management_service import QueueManagementService
-        
+        from utils.tenant_query import get_tenant_record, TenantContextError
+
         queue_service = QueueManagementService()
-        
-        # جلب بيانات الزيارة
-        visit = db.session.get(Visit, visit_id)
+
+        # tenant-safe visit lookup (resolved inside the service as well)
+        try:
+            visit = get_tenant_record(Visit, int(visit_id))
+        except (TenantContextError, Exception):
+            return False, "الزيارة غير موجودة"
         if not visit:
             return False, "الزيارة غير موجودة"
 
         is_emergency = bool(getattr(visit, 'is_emergency', False)) or str(getattr(visit, 'visit_type', '') or '').upper() == 'EMERGENCY'
         emergency_reason = (getattr(visit, 'symptoms', None) or '').strip() if is_emergency else None
-        is_force_payment = bool(getattr(visit, 'is_force_payment', False))
-        force_payment_reason = (getattr(visit, 'force_payment_reason', None) or '').strip() if is_force_payment else None
-        
+
         # إضافة المريض للطابور
         result = queue_service.add_patient_to_queue(
             patient_id=visit.patient_id,
@@ -1019,12 +1023,9 @@ def add_patient_to_queue_auto(visit_id, department_id, doctor_id=None):
             visit_id=visit_id,
             queue_type='normal',
             is_emergency=is_emergency,
-            emergency_reason=emergency_reason,
-            force_entry=is_force_payment,
-            force_entry_reason=force_payment_reason,
-            payment_status=visit.payment_status
+            emergency_reason=emergency_reason
         )
-        
+
         return result
     except Exception as e:
         logging.error(f"Error adding patient to queue: {str(e)}")

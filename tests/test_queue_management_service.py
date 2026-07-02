@@ -67,40 +67,37 @@ def qfx(rollback_db):
 # ───────────────────────── pure: entry conditions ─────────────────────────
 
 class TestCheckQueueEntryConditions:
-    def _settings(self, **kw):
-        base = dict(force_entry_allowed=True, payment_required=True,
-                    allow_partial_payment=True, allow_debt=False,
-                    emergency_payment_waived=True)
-        base.update(kw)
-        return types.SimpleNamespace(**base)
+    """Ticket 1: gate must block every non-PAID normal visit regardless of
+    settings, force_entry, or payment_required.  Emergency is the only exception."""
 
     def test_emergency_always_enters(self, svc):
-        ok, _ = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PENDING, True, False, self._settings())
+        ok, _ = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PENDING, True)
         assert ok is True
 
     def test_paid_enters(self, svc):
-        ok, _ = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PAID, False, False, self._settings())
+        ok, _ = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PAID, False)
         assert ok is True
 
     def test_partial_blocked_for_normal_visit(self, svc):
-        ok, msg = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PARTIAL, False, False, self._settings())
+        ok, msg = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PARTIAL, False)
         assert ok is False and 'الدفع' in msg
 
     def test_pending_blocked(self, svc):
-        ok, msg = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PENDING, False, False, self._settings())
+        ok, msg = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PENDING, False)
         assert ok is False and 'الدفع' in msg
 
-    def test_debt_blocked_even_when_allowed(self, svc):
-        ok, msg = svc._check_queue_entry_conditions(1, 1, PaymentStatus.DEBT, False, False, self._settings(allow_debt=True))
+    def test_debt_blocked(self, svc):
+        ok, msg = svc._check_queue_entry_conditions(1, 1, PaymentStatus.DEBT, False)
         assert ok is False and 'الدفع' in msg
 
-    def test_force_entry_blocked_for_normal_visit(self, svc):
-        ok, msg = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PENDING, False, True, self._settings(force_entry_allowed=True))
+    def test_force_entry_blocked(self, svc):
+        ok, msg = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PENDING, False)
         assert ok is False and 'الدفع' in msg
 
-    def test_no_payment_required(self, svc):
-        ok, _ = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PENDING, False, False, self._settings(payment_required=False))
-        assert ok is True
+    def test_payment_required_false_no_longer_bypasses(self, svc):
+        # Ticket 1: payment_required=False must NOT allow unpaid normal visits
+        ok, msg = svc._check_queue_entry_conditions(1, 1, PaymentStatus.PENDING, False)
+        assert ok is False and 'الدفع' in msg
 
 
 # ───────────────────────── permission helper ─────────────────────────
@@ -143,71 +140,101 @@ class TestUserAllowedForDepartment:
 # ───────────────────────── add_patient_to_queue ─────────────────────────
 
 class TestAddPatientToQueue:
+    """Ticket 1: payment_status is resolved from the authoritative visit record.
+    The service no longer accepts a caller-provided payment_status, force_entry,
+    or force_entry_reason.  All tests must create a visit with the desired state
+    and pass visit_id."""
+
     def test_non_general_paid_success(self, svc, qfx):
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
-        ok, msg = svc.add_patient_to_queue(p.id, d.id, payment_status=PaymentStatus.PAID)
+        v = qfx.visit(p.id, payment_status=PaymentStatus.PAID, is_emergency=False, department_id=d.id)
+        ok, msg = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         assert ok is True and 'الطابور' in msg
 
     def test_pending_payment_blocked(self, svc, qfx):
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
-        ok, _ = svc.add_patient_to_queue(p.id, d.id, payment_status=PaymentStatus.PENDING)
+        v = qfx.visit(p.id, payment_status=PaymentStatus.PENDING, is_emergency=False, department_id=d.id)
+        ok, _ = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         assert ok is False
 
     def test_emergency_bypasses_payment(self, svc, qfx):
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
-        ok, _ = svc.add_patient_to_queue(p.id, d.id, is_emergency=True,
-                                         payment_status=PaymentStatus.PENDING)
+        v = qfx.visit(p.id, payment_status=PaymentStatus.PENDING, is_emergency=True, department_id=d.id)
+        ok, _ = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         assert ok is True
 
     def test_general_requires_doctor(self, svc, qfx):
         d = qfx.dept()  # general
         p = qfx.patient()
-        ok, msg = svc.add_patient_to_queue(p.id, d.id, payment_status=PaymentStatus.PAID)
+        v = qfx.visit(p.id, payment_status=PaymentStatus.PAID, is_emergency=False, department_id=d.id)
+        ok, msg = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         assert ok is False and 'طبيب' in msg
 
-    def test_general_with_doctor_creates_visit(self, svc, qfx):
+    def test_general_with_doctor_paid(self, svc, qfx):
         d = qfx.dept()
         doc = qfx.user(role='doctor', dept_id=d.id)
         p = qfx.patient()
-        ok, _ = svc.add_patient_to_queue(p.id, d.id, doctor_id=doc.id,
-                                         payment_status=PaymentStatus.PAID)
+        v = qfx.visit(p.id, payment_status=PaymentStatus.PAID, is_emergency=False, department_id=d.id, doctor_id=doc.id)
+        ok, _ = svc.add_patient_to_queue(p.id, d.id, doctor_id=doc.id, visit_id=v.id)
         assert ok is True
 
-    def test_exception_on_bad_patient(self, svc, qfx):
+    def test_bad_patient_no_visit_blocked(self, svc, qfx):
         d = qfx.dept(name='Lab', name_ar='المختبر')
-        ok, _ = svc.add_patient_to_queue(99999999, d.id, payment_status=PaymentStatus.PAID)
+        # No visit_id provided -> service tries to create a Visit with default PENDING
+        # Invalid patient_id causes FK failure or is blocked by the gate.
+        ok, _ = svc.add_patient_to_queue(99999999, d.id)
         assert ok is False
 
     def test_partial_payment_blocked_via_service(self, svc, qfx):
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
-        ok, msg = svc.add_patient_to_queue(p.id, d.id, payment_status=PaymentStatus.PARTIAL)
+        v = qfx.visit(p.id, payment_status=PaymentStatus.PARTIAL, is_emergency=False, department_id=d.id)
+        ok, msg = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         assert ok is False and 'الدفع' in msg
 
-    def test_force_entry_blocked_for_normal_visit(self, svc, qfx):
+    def test_debt_blocked(self, svc, qfx):
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
-        ok, msg = svc.add_patient_to_queue(p.id, d.id, payment_status=PaymentStatus.PENDING,
-                                           force_entry=True)
+        v = qfx.visit(p.id, payment_status=PaymentStatus.DEBT, is_emergency=False, department_id=d.id)
+        ok, msg = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
         assert ok is False and 'الدفع' in msg
 
-    def test_debt_blocked_even_when_enabled(self, svc, qfx):
+    def test_payment_required_false_still_blocks_normal(self, svc, qfx):
         from models.queue_management import QueueSettings
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
+        # QueueSettings with payment_required=False (legacy bypass)
         qs = QueueSettings.query.filter_by(department_id=d.id).first()
         if not qs:
-            qs = QueueSettings(department_id=d.id, payment_required=True, allow_debt=True)
+            qs = QueueSettings(department_id=d.id, payment_required=False, allow_debt=True)
             qfx.db.session.add(qs)
-            qfx.db.session.commit()
         else:
-            qs.allow_debt = True
-            qfx.db.session.commit()
-        ok, msg = svc.add_patient_to_queue(p.id, d.id, payment_status=PaymentStatus.DEBT)
+            qs.payment_required = False
+        qfx.db.session.commit()
+        v = qfx.visit(p.id, payment_status=PaymentStatus.PENDING, is_emergency=False, department_id=d.id)
+        ok, msg = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
+        # Ticket 1: payment_required=False must no longer bypass the gate
         assert ok is False and 'الدفع' in msg
+
+    def test_form_cannot_spoof_payment_status(self, svc, qfx):
+        d = qfx.dept(name='Lab', name_ar='المختبر')
+        p = qfx.patient()
+        # Visit is actually PENDING; caller can no longer pass a fake PAID parameter
+        v = qfx.visit(p.id, payment_status=PaymentStatus.PENDING, is_emergency=False, department_id=d.id)
+        ok, _ = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id)
+        assert ok is False
+
+    def test_emergency_flag_from_visit_record_not_overridden(self, svc, qfx):
+        d = qfx.dept(name='Lab', name_ar='المختبر')
+        p = qfx.patient()
+        # Visit is NOT emergency; caller passes is_emergency=True but should be ignored
+        v = qfx.visit(p.id, payment_status=PaymentStatus.PENDING, is_emergency=False, department_id=d.id)
+        ok, _ = svc.add_patient_to_queue(p.id, d.id, visit_id=v.id, is_emergency=True)
+        # Must be blocked because the visit record says non-emergency and unpaid
+        assert ok is False
 
 
 # ───────────────────────── transfer_visit ─────────────────────────

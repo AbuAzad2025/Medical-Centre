@@ -103,17 +103,12 @@ def approve_force_payment(visit_id):
         visit.payment_status = PaymentStatus.DEBT  # تحديد كدين معتمد
         
         db.session.commit()
-        
-        # إدراج الزيارة في طابور القسم تلقائياً إذا لم تكن مدرجة
-        try:
-            from models.queue_management import QueueManagement
-            existing_ticket = QueueManagement.query.filter_by(visit_id=visit_id, department_id=visit.department_id).first()
-            if not existing_ticket:
-                from routes.reception.queue import add_patient_to_queue_auto
-                add_patient_to_queue_auto(visit_id=visit_id, department_id=visit.department_id, doctor_id=visit.doctor_id)
-        except Exception as e:
 
-            logging.warning(f"Error in {__name__}: {e}")
+        # Ticket 1: Manager approval of a force-payment is purely an
+        # administrative/financial review.  It does NOT grant queue-entry
+        # authorization.  Queue entry still follows the same backend rule:
+        # normal visits must be PAID; emergency is the only exception.
+
         # تسجيل في التدقيق
         from models.audit_trail import AuditTrail
         audit = AuditTrail(

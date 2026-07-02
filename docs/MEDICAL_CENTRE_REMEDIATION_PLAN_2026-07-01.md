@@ -1,10 +1,10 @@
 # Medical Centre — Remediation Plan
 
-**Plan status:** `Draft — Stage 1 Implementation Complete`  
-**Implementation status:** `Stage 1 complete (4 tickets); Stage 2 awaiting review`  
+**Plan status:** `Comprehensive Remediation In Progress`  
+**Implementation status:** `Comprehensive remediation executing (11 tickets); Stage 1 baseline + 7 corrective tickets preserved; new comprehensive batch in progress`  
 **Canonical source file path:** `docs/MEDICAL_CENTRE_REMEDIATION_PLAN_2026-07-01.md`  
 **Date created / updated:** 2026-07-01  
-**Last updated:** 2026-07-02 (Update 11 — Corrective batch complete: Ticket 1 strict payment gate, Ticket 2 fail-closed tenant context, Ticket 3 reception financial-route ownership. All Stage 1 tickets verified and complete. Stage 2 deferred awaiting review.)  
+**Last updated:** 2026-07-02 (Comprehensive remediation start: checkpoint tag `medical-remediation-comprehensive-start-2026-07-02` on HEAD `1def091`. Ticket 1 — Close every remaining normal-queue payment bypass implemented.)  
 **Reference audit report:** `docs/AUDIT_REPORT_2026-07-01.md`  
 **Rule:** Only explicitly approved items may move into implementation.  
 **Last updated by:** OpenCode agent — implementation phase.  
@@ -874,7 +874,66 @@ flask db downgrade s1_007_rls_phase4
 
 ---
 
-**End of Plan. Stage 1 implementation complete. Awaiting review before Stage 2.**
+## L. Comprehensive Remediation — Implementation Tracking
+
+Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def091`)
+
+---
+
+### Ticket 1 — Close Every Remaining Normal-Queue Payment Bypass
+
+**Status:** Complete
+
+**Commit:** `TBD`
+
+**Owner rule (final):** `No normal non-emergency visit may enter any queue before the full initial reception-selected fees are paid.` Emergency is the only confirmed pre-treatment payment exception. Manager force-payment approval is purely administrative/financial review and never grants queue-entry rights. `payment_required=False` is no longer a bypass.
+
+**Files changed:**
+- `services/queue_management_service.py` — `_check_queue_entry_conditions`: removed `settings` parameter entirely; removed `payment_required` conditional; only `PAID` (normal) and `is_emergency=True` (emergency) allow entry. `add_patient_to_queue`: removed `payment_status`, `force_entry`, `force_entry_reason` parameters; resolves `payment_status` and `is_emergency` from authoritative server-side visit record via `get_tenant_record`; removes `force_entry` from ticket creation and priority logic.
+- `routes/reception/queue.py` — `add_patient_to_queue` manual route: removed `force_entry` and `payment_status` form processing. `add_patient_to_queue_auto`: removed `force_entry` and `force_entry_reason` from service call; uses `get_tenant_record` for tenant-safe visit lookup; passes `visit_id` only.
+- `routes/manager/approvals.py` — `approve_force_payment`: removed auto-enqueue block; manager approval is now purely administrative/financial review with no queue-entry side effect.
+- `tests/test_queue_management_service.py` — updated `TestCheckQueueEntryConditions` (removed `settings` and `force_entry` params; `test_no_payment_required` now expects `False`); updated `TestAddPatientToQueue` (all tests now create visits with specific `payment_status` and pass `visit_id`); added `test_payment_required_false_still_blocks_normal`, `test_form_cannot_spoof_payment_status`, `test_emergency_flag_from_visit_record_not_overridden`.
+
+**Evidence:**
+- `services/queue_management_service.py` lines 246-264: `_check_queue_entry_conditions` now only checks `is_emergency` then `payment_status == PAID`. No settings, no `payment_required` bypass, no `force_entry`.
+- `services/queue_management_service.py` lines 84-181: `add_patient_to_queue` resolves `payment_status` and `is_emergency` from `get_tenant_record(Visit, visit_id)` when `visit_id` is provided; creates new Visit with default `PENDING` when no `visit_id` (blocked for normal by gate). No `force_entry` parameter accepted.
+- `routes/reception/queue.py` lines 92-153: manual form no longer reads `force_entry` or `payment_status` from request.
+- `routes/reception/queue.py` lines 997-1026: `add_patient_to_queue_auto` no longer passes `force_entry` or `payment_status`.
+- `routes/manager/approvals.py` lines 107-116: auto-enqueue removed; manager approval is financial-only.
+
+**Tests run and actual results:**
+- `tests/test_queue_management_service.py` — 59 passed, 2 warnings in 30.09s
+- `test_emergency_always_enters` — PASSED
+- `test_paid_enters` — PASSED
+- `test_partial_blocked_for_normal_visit` — PASSED
+- `test_pending_blocked` — PASSED
+- `test_debt_blocked` — PASSED
+- `test_force_entry_blocked` — PASSED
+- `test_payment_required_false_no_longer_bypasses` — PASSED
+- `test_non_general_paid_success` — PASSED
+- `test_pending_payment_blocked` — PASSED
+- `test_emergency_bypasses_payment` — PASSED
+- `test_general_requires_doctor` — PASSED
+- `test_general_with_doctor_paid` — PASSED
+- `test_bad_patient_no_visit_blocked` — PASSED
+- `test_partial_payment_blocked_via_service` — PASSED
+- `test_debt_blocked` — PASSED
+- `test_payment_required_false_still_blocks_normal` — PASSED
+- `test_form_cannot_spoof_payment_status` — PASSED
+- `test_emergency_flag_from_visit_record_not_overridden` — PASSED
+- `tests/test_tenant_visit_lookup.py` — 9 passed
+- `tests/test_billing_visit_ownership.py` — 10 passed
+- `tests/integration/test_feature_gating.py` — 21 passed
+
+**Regression scan:** No regressions in related tests.
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert `_check_queue_entry_conditions` to accept `settings` and `force_entry` parameters; restore `payment_status`, `force_entry`, `force_entry_reason` parameters to `add_patient_to_queue`; restore form processing in `routes/reception/queue.py`; restore auto-enqueue in `routes/manager/approvals.py`.
+
+---
+
+**End of Stage 1 / Start of Comprehensive Remediation.**
 
 **Change log for this update:**
 1. **B-017 added:** Post-queue service addition and financial settlement. Doctor routes add lab/radiology/prescriptions mid-visit (only while `IN_PROGRESS`) but do not update `visit.total_amount`, `InvoiceItem`, `Payment`, or `Receipt` totals. `GatekeeperService.can_archive_visit()` does not recalculate for post-creation services. No services can be added after `COMPLETED`. Finding count updated to 17.
@@ -920,3 +979,5 @@ flask db downgrade s1_007_rls_phase4
 42. **Corrective Ticket 2 — Fail closed when tenant context absent (Update 11):** `get_tenant_record` now raises `TenantContextError` when `g.tenant_id` is `None` for tenant-scoped models. Removed fail-open behavior. Commit `8905dbb`. Files: `utils/tenant_query.py`, `tests/test_tenant_visit_lookup.py`. Tests: 9 passed.
 43. **Corrective Ticket 3 — Complete MC-004 reception financial-route ownership (Update 11):** `routes/reception/payments.py` `process_payment` and `print_receipt` now use `get_tenant_record` instead of naked `db.session.get`. Commit `0cfbeb4`. Files: `routes/reception/payments.py`, `tests/test_billing_visit_ownership.py`. Tests: 10 passed.
 44. **Corrective batch complete (Update 11):** All Stage 1 corrective tickets implemented, tested, and verified. Three commits created. No new branch added. Stage 2 remains deferred pending review.
+45. **Comprehensive remediation authorized (Update 12):** Owner authorized execution of all 11 comprehensive remediation tickets based on Stage 1 audit findings. Checkpoint tag `medical-remediation-comprehensive-start-2026-07-02` created on HEAD `1def091`. No new branch created.
+46. **Ticket 1 — Close every remaining normal-queue payment bypass (Update 12):** `_check_queue_entry_conditions` removed `settings` parameter entirely; only `PAID` (normal) and `is_emergency=True` (emergency) allow queue entry. `add_patient_to_queue` removed `payment_status`, `force_entry`, `force_entry_reason` parameters; resolves from server-side visit record. `routes/reception/queue.py` manual form no longer reads `force_entry` or `payment_status`. `add_patient_to_queue_auto` no longer passes `force_entry` or `payment_status`. `routes/manager/approvals.py` removed auto-enqueue after manager approval; approval is purely administrative/financial review. Added 3 new tests. All 59 queue tests pass. Related tenant/billing/feature tests pass (40/40).

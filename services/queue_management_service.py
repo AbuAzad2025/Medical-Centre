@@ -81,72 +81,68 @@ class QueueManagementService:
         except Exception:
             return False
     
-    def add_patient_to_queue(self, patient_id, department_id, doctor_id=None, 
+    def add_patient_to_queue(self, patient_id, department_id, doctor_id=None,
                            visit_id=None, appointment_id=None, queue_type='normal',
                            is_emergency=False, emergency_reason=None,
-                           force_entry=False, force_entry_reason=None,
-                           payment_status=PaymentStatus.PENDING, created_by=None):
-        """إضافة مريض إلى الطابور"""
+                           created_by=None):
+        """إضافة مريض إلى الطابور.
+
+        Ticket 1 — Close Every Remaining Normal-Queue Payment Bypass
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        - payment_status is resolved from the authoritative server-side visit
+          record (visit.payment_status), never from a caller parameter.
+        - force_entry is removed; manager force-payment approval is purely an
+          administrative/financial review and never grants queue-entry rights.
+        - Emergency remains the only pre-treatment payment exception.
+        """
         try:
             from models.queue_management import QueueManagement, QueueSettings
             from models.visit import Visit
             from models.department import Department
-            
-            # التحقق من إعدادات الطابور
-            settings = QueueSettings.query.filter_by(department_id=department_id).first()
-            if not settings:
-                # إنشاء إعدادات افتراضية
-                settings = QueueSettings(
-                    department_id=department_id,
-                    payment_required=True,
-                    emergency_payment_waived=True,
-                    force_entry_allowed=True,
-                    allow_partial_payment=True,
-                    allow_debt=False
-                )
-                db.session.add(settings)
-                db.session.flush()
-            
-            # التحقق من شروط الدخول
-            can_enter, reason = self._check_queue_entry_conditions(
-                patient_id, department_id, payment_status, is_emergency, 
-                force_entry, settings
-            )
-            
-            if not can_enter:
-                return False, reason
 
-            dept_obj = get_tenant_record(Department, int(department_id)) if department_id else None
-            if dept_obj and getattr(dept_obj, 'get_type', lambda: 'general')() == 'general':
-                if not doctor_id:
-                    if visit_id:
-                        try:
-                            v = get_tenant_record(Visit, int(visit_id))
-                        except TenantContextError:
-                            return False, "يجب اختيار طبيب للقسم التخصصي"
-                        if not v.doctor_id:
-                            return False, "يجب اختيار طبيب للقسم التخصصي"
-                    else:
-                        return False, "يجب اختيار طبيب للقسم التخصصي"
-
-            if doctor_id and not visit_id:
+            # ── resolve authoritative payment status from the visit record ──
+            resolved_payment_status = PaymentStatus.PENDING
+            if visit_id:
+                v = get_tenant_record(Visit, int(visit_id))
+                if v:
+                    resolved_payment_status = getattr(v, 'payment_status', PaymentStatus.PENDING)
+                    is_emergency = bool(getattr(v, 'is_emergency', False))
+            else:
+                # new visit: default to PENDING (will be blocked for normal)
                 v = Visit(
                     patient_id=int(patient_id),
                     department_id=int(department_id),
-                    doctor_id=int(doctor_id),
+                    doctor_id=int(doctor_id) if doctor_id else None,
                     status=VisitState.OPEN,
-                    payment_status=payment_status,
                     created_by=created_by
                 )
                 db.session.add(v)
                 db.session.flush()
                 visit_id = v.id
-            elif visit_id:
-                v = get_tenant_record(Visit, int(visit_id))
-                if v and payment_status:
-                    v.payment_status = payment_status
+                resolved_payment_status = v.payment_status
 
-            # إنشاء تذكرة الطابور
+            # ── gate: only PAID (normal) or emergency may enter ──
+            can_enter, reason = self._check_queue_entry_conditions(
+                patient_id, department_id, resolved_payment_status, is_emergency
+            )
+            if not can_enter:
+                return False, reason
+
+            # ── department-type validation (unchanged) ──
+            dept_obj = get_tenant_record(Department, int(department_id)) if department_id else None
+            if dept_obj and getattr(dept_obj, 'get_type', lambda: 'general')() == 'general':
+                if not doctor_id:
+                    if visit_id:
+                        try:
+                            v_check = get_tenant_record(Visit, int(visit_id))
+                        except TenantContextError:
+                            return False, "يجب اختيار طبيب للقسم التخصصي"
+                        if not v_check.doctor_id:
+                            return False, "يجب اختيار طبيب للقسم التخصصي"
+                    else:
+                        return False, "يجب اختيار طبيب للقسم التخصصي"
+
+            # ── create queue ticket ──
             ticket = QueueManagement(
                 queue_number=f"Q{int(datetime.now(timezone.utc).timestamp())}",
                 patient_id=patient_id,
@@ -154,26 +150,24 @@ class QueueManagementService:
                 department_id=department_id,
                 is_emergency=is_emergency,
                 emergency_reason=emergency_reason,
-                force_entry=force_entry,
-                force_entry_reason=force_entry_reason,
                 created_at=datetime.now(timezone.utc)
             )
-            
+
             # تحديد مستوى الأولوية
             if is_emergency:
                 ticket.priority_level = 'urgent'
-            elif force_entry or queue_type in {'vip', 'priority'}:
+            elif queue_type in {'vip', 'priority'}:
                 ticket.priority_level = 'high'
             else:
                 ticket.priority_level = 'normal'
-            
+
             db.session.add(ticket)
             db.session.commit()
             self._emit_queue_updates()
-            
+
             self.logger.info(f"Patient {patient_id} added to queue with queue number {ticket.queue_number}")
             return True, f"تم إضافة المريض إلى الطابور - الرقم {ticket.queue_number}"
-            
+
         except Exception as e:
             db.session.rollback()
             self.logger.error(f"Error adding patient to queue: {str(e)}")
@@ -243,25 +237,28 @@ class QueueManagementService:
             self.logger.error(f"Transfer visit error: {str(e)}")
             return False, "transfer_failed"
     
-    def _check_queue_entry_conditions(self, patient_id, department_id, payment_status, 
-                                   is_emergency, force_entry, settings):
-        """التحقق من شروط دخول الطابور"""
-        
+    def _check_queue_entry_conditions(self, patient_id, department_id, payment_status,
+                                   is_emergency):
+        """التحقق من شروط دخول الطابور.
+
+        Ticket 1 — Close Every Remaining Normal-Queue Payment Bypass
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        Normal non-emergency visits must be FULLY PAID before queue entry.
+        No other bypass is allowed: payment_required=False, PARTIAL, PENDING,
+        DEBT, force-entry, and manager force-payment approval are all blocked.
+        Emergency is the only confirmed pre-treatment payment exception.
+        The gate NEVER trusts a caller-provided payment_status; it must be
+        resolved from the authoritative server-side visit record before calling
+        this method.
+        """
         # الطوارئ دائماً يمكنها الدخول
         if is_emergency:
             return True, "طوارئ - دخول مباشر"
-        
-        # التحقق من حالة الدفع
-        # Corrective Ticket 1: normal non-emergency visits must be FULLY PAID before queue entry.
-        # force_entry, DEBT, and PARTIAL are not approved exceptions for normal visits.
-        # Emergency is the only confirmed pre-treatment payment exception.
-        if settings.payment_required:
-            if payment_status == PaymentStatus.PAID:
-                return True, "تم الدفع - يمكن الدخول"
-            else:
-                return False, "يجب الدفع أولاً"
-        
-        return True, "لا يتطلب دفع"
+
+        # Normal visits: only FULLY PAID may enter.  All other states are blocked.
+        if payment_status == PaymentStatus.PAID:
+            return True, "تم الدفع - يمكن الدخول"
+        return False, "يجب الدفع أولاً"
     
     def get_queue_status(self, department_id, doctor_id=None):
         """الحصول على حالة الطابور"""
