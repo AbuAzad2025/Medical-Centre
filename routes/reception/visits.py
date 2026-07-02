@@ -234,10 +234,12 @@ def _process_custom_services(custom_names, custom_prices, department_id, current
             price = float(cs_price_raw or 0)
         except ValueError:
             price = 0.0
+        # Ticket 6: custom services must NOT match an existing approved catalog service
         existing = ServiceMaster.query.filter(
             db.func.lower(ServiceMaster.name) == db.func.lower(name),
             ServiceMaster.department_id == int(department_id),
-            ServiceMaster.is_active == True
+            ServiceMaster.is_active == True,
+            ServiceMaster.is_custom == False
         ).first()
         if existing:
             ids.append(str(existing.id))
@@ -249,7 +251,8 @@ def _process_custom_services(custom_names, custom_prices, department_id, current
                 description=f"خدمة يدوية مضافة من الاستقبال بواسطة {current_user.full_name or current_user.username}",
                 category=category, department_id=int(department_id),
                 base_price=price, emergency_price=price, insurance_price=price,
-                currency='ILS', is_active=True
+                currency='ILS', is_active=False, is_custom=True,
+                created_by=current_user.id
             )
             db.session.add(svc)
             db.session.flush()

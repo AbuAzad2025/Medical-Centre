@@ -1074,6 +1074,50 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 ---
 
+### Ticket 6 — MC-014 WP-2: Controlled Custom-Service Lifecycle
+
+**Status:** Complete
+
+**Commit:** `TBD`
+
+**Files changed:**
+- `migrations/versions/s1_008_custom_service_lifecycle.py` — new migration: adds `is_custom`, `approved_by`, `approved_at`, `created_by` to `service_master`; adds `service_master_id`, `created_by` to `invoice_services`; updates `audit_trails` `chk_entity_type` to include `'service'`.
+- `models/service.py` — `ServiceMaster`: added `is_custom`, `approved_by`, `approved_at`, `created_by` fields with relationships.
+- `models/invoice.py` — `InvoiceService`: added `service_master_id`, `created_by` fields with relationships.
+- `models/audit_trail.py` — added `'service'` to `chk_entity_type` check constraint.
+- `routes/reception/visits.py` — `_process_custom_services`: creates custom services with `is_custom=True`, `is_active=False`, `created_by=current_user.id`; excludes inactive custom services from catalog match.
+- `routes/reception/payments.py` — `process_payment`: sets `created_by` on `InvoiceLine`.
+- `routes/manager/approvals.py` — added `custom_service_approvals`, `approve_custom_service`, `reject_custom_service` routes with tenant-safe lookup and audit trail.
+- `tests/test_custom_service_lifecycle.py` — new test file: 7 tests covering custom service creation (inactive), manager approval (active), manager rejection (inactive), cross-tenant denial, invoice service creator linkage, catalog exclusion before approval, catalog inclusion after approval.
+- `tests/test_queue_management_service.py` — updated `qfx.dept` helper to use random suffix for uniqueness across persistent test DB runs.
+
+**Evidence:**
+- Migration `s1_008_custom_service_lifecycle` applied to PostgreSQL test database successfully.
+- `service_master` now stores `is_custom`, `approved_by`, `approved_at`, `created_by`.
+- `invoice_services` now stores `service_master_id` and `created_by`.
+- `audit_trails` accepts `entity_type='service'`.
+- Custom services created by reception are inactive and not visible in catalog (`api_department_services` queries `is_active=True`).
+- Manager approval sets `is_active=True` and makes service available for future visits.
+- Manager rejection preserves historical data but keeps service inactive.
+- Cross-tenant manager approval is blocked by `get_tenant_record`.
+
+**Tests run and actual results:**
+- `tests/test_custom_service_lifecycle.py` — 7 passed, 2 warnings in 14.42s
+- `test_custom_service_created_inactive` — PASSED
+- `test_approved_custom_service_becomes_active` — PASSED
+- `test_rejected_custom_service_stays_inactive` — PASSED
+- `test_cross_tenant_custom_service_approval_denied` — PASSED
+- `test_invoice_service_has_created_by` — PASSED
+- `test_custom_service_not_in_catalog_before_approval` — PASSED
+- `test_custom_service_in_catalog_after_approval` — PASSED
+- Full related suite: 133 passed
+
+**Findings/blockers:** None.
+
+**Rollback path:** Downgrade migration `s1_008_custom_service_lifecycle` via `flask db downgrade s1_007_rls_phase4`; revert model and route changes.
+
+---
+
 **End of Stage 1 / Start of Comprehensive Remediation.**
 
 **Change log for this update:**

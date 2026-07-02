@@ -30,11 +30,19 @@ class ServiceMaster(TenantMixin, db.Model):
     
     is_active = db.Column(db.Boolean, default=True, index=True)
 
+    # Ticket 6: custom service lifecycle fields
+    is_custom = db.Column(db.Boolean, default=False, nullable=True, index=True)
+    approved_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    approved_at = db.Column(db.DateTime, nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
     department = db.relationship('Department', lazy='selectin')
     pricing_management = db.relationship('PricingManagement', back_populates='service')
+    approver = db.relationship('User', foreign_keys=[approved_by], lazy='selectin')
+    creator = db.relationship('User', foreign_keys=[created_by], lazy='selectin')
 
 
     def __repr__(self) -> str:

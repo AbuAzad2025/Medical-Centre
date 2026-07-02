@@ -199,3 +199,130 @@ def reject_force_payment(visit_id):
         logging.error(f"Error rejecting force payment: {str(e)}")
         flash('تعذر تنفيذ الرفض حالياً، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('manager.force_payment_approvals'))
+
+
+# ==================== موافقات الخدمات المخصصة (Ticket 6) ====================
+
+@manager_bp.route('/custom-service-approvals')
+@login_required
+@manager_or_admin_only
+def custom_service_approvals():
+    """صفحة موافقات الخدمات المخصصة"""
+    try:
+        from models.service import ServiceMaster
+        pending = ServiceMaster.query.filter(
+            ServiceMaster.is_custom == True,
+            ServiceMaster.is_active == False,
+            ServiceMaster.approved_by == None
+        ).order_by(ServiceMaster.created_at.desc()).all()
+
+        approved = ServiceMaster.query.filter(
+            ServiceMaster.is_custom == True,
+            ServiceMaster.is_active == True,
+            ServiceMaster.approved_by != None
+        ).order_by(ServiceMaster.approved_at.desc()).all()
+
+        return render_template('manager/custom_service_approvals.html',
+                             pending_services=pending,
+                             approved_services=approved)
+    except Exception as e:
+        logging.error(f"Error loading custom service approvals: {str(e)}")
+        flash('حدث خطأ في تحميل صفحة الموافقات', 'error')
+        return redirect(url_for('manager.dashboard'))
+
+
+@manager_bp.route('/approve-custom-service/<int:service_id>', methods=['POST'])
+@login_required
+@manager_or_admin_only
+def approve_custom_service(service_id):
+    """الموافقة على خدمة مخصصة وتحويلها إلى كتالوج قابل لإعادة الاستخدام"""
+    try:
+        from models.service import ServiceMaster
+        from utils.tenant_query import get_tenant_record, TenantContextError
+        try:
+            svc = get_tenant_record(ServiceMaster, service_id)
+        except TenantContextError:
+            flash('الخدمة غير موجودة', 'error')
+            return redirect(url_for('manager.custom_service_approvals'))
+
+        if not svc.is_custom:
+            flash('هذه ليست خدمة مخصصة', 'error')
+            return redirect(url_for('manager.custom_service_approvals'))
+        if svc.approved_by:
+            flash('تمت الموافقة على هذه الخدمة مسبقاً', 'warning')
+            return redirect(url_for('manager.custom_service_approvals'))
+
+        svc.is_active = True
+        svc.approved_by = current_user.id
+        svc.approved_at = datetime.now(timezone.utc)
+        db.session.commit()
+
+        from models.audit_trail import AuditTrail
+        audit = AuditTrail(
+            user_id=current_user.id,
+            action='APPROVE',
+            entity_type='service',
+            entity_id=service_id,
+            description=f'موافقة على خدمة مخصصة - {svc.name}',
+            ip_address=request.remote_addr
+        )
+        db.session.add(audit)
+        db.session.commit()
+
+        flash(f'تمت الموافقة على الخدمة المخصصة {svc.name}', 'success')
+        logging.info(f"Custom service approved: {service_id} by User {current_user.id}")
+        return redirect(url_for('manager.custom_service_approvals'))
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error approving custom service: {str(e)}")
+        flash('تعذر تنفيذ الموافقة حالياً', 'error')
+        return redirect(url_for('manager.custom_service_approvals'))
+
+
+@manager_bp.route('/reject-custom-service/<int:service_id>', methods=['POST'])
+@login_required
+@manager_or_admin_only
+def reject_custom_service(service_id):
+    """رفض خدمة مخصصة (تبقى غير نشطة ولا تُستخدم في الكتالوج)"""
+    try:
+        from models.service import ServiceMaster
+        from utils.tenant_query import get_tenant_record, TenantContextError
+        try:
+            svc = get_tenant_record(ServiceMaster, service_id)
+        except TenantContextError:
+            flash('الخدمة غير موجودة', 'error')
+            return redirect(url_for('manager.custom_service_approvals'))
+
+        if not svc.is_custom:
+            flash('هذه ليست خدمة مخصصة', 'error')
+            return redirect(url_for('manager.custom_service_approvals'))
+
+        rejection_reason = request.form.get('rejection_reason', '')
+        svc.is_active = False
+        svc.approved_by = current_user.id
+        svc.approved_at = datetime.now(timezone.utc)
+        svc.description = f"[مرفوض] {svc.description or ''}\nسبب الرفض: {rejection_reason}"
+        db.session.commit()
+
+        from models.audit_trail import AuditTrail
+        audit = AuditTrail(
+            user_id=current_user.id,
+            action='REJECT',
+            entity_type='service',
+            entity_id=service_id,
+            description=f'رفض خدمة مخصصة - {svc.name} - {rejection_reason}',
+            ip_address=request.remote_addr
+        )
+        db.session.add(audit)
+        db.session.commit()
+
+        flash(f'تم رفض الخدمة المخصصة {svc.name}', 'warning')
+        logging.info(f"Custom service rejected: {service_id} by User {current_user.id}")
+        return redirect(url_for('manager.custom_service_approvals'))
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error rejecting custom service: {str(e)}")
+        flash('تعذر تنفيذ الرفض حالياً', 'error')
+        return redirect(url_for('manager.custom_service_approvals'))

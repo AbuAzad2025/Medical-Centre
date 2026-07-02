@@ -33,7 +33,10 @@ def qfx(rollback_db):
         return p
 
     def dept(name='General Clinic', name_ar='العيادة العامة'):
-        d = Department(name=name, name_ar=name_ar, is_active=True)
+        # Ticket 6: add random suffix to ensure uniqueness across test runs
+        # (persistent PostgreSQL test database may retain previous run data)
+        unique_name = f"{name}-{uuid.uuid4().hex[:6]}"
+        d = Department(name=unique_name, name_ar=name_ar, is_active=True)
         db.session.add(d)
         db.session.commit()
         return d
@@ -132,7 +135,8 @@ class TestUserAllowedForDepartment:
         assert svc._is_user_allowed_for_department(99999999, d.id) is False
 
     def test_role_mismatch_for_lab_dept(self, svc, qfx):
-        d = qfx.dept(name='Lab', name_ar='المختبر')
+        import uuid
+        d = qfx.dept(name=f'Lab-{uuid.uuid4().hex[:6]}', name_ar='المختبر')
         u = qfx.user(role='doctor', dept_id=d.id)
         assert svc._is_user_allowed_for_department(u.id, d.id) is False
 

@@ -95,6 +95,7 @@ def process_payment(visit_id):
                     quantity=1,
                     unit_price=visit.total_amount or 0,
                     total_price=visit.total_amount or 0,
+                    created_by=current_user.id,
                 )
                 db.session.add(line)
 

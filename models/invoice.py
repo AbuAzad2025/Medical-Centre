@@ -90,6 +90,10 @@ class InvoiceService(TenantMixin, db.Model):
     total_price = db.Column(db.Numeric(12, 2), default=0, nullable=False)
     notes = db.Column(db.Text, nullable=True)
 
+    # Ticket 6: link to canonical service and record creator
+    service_master_id = db.Column(db.Integer, db.ForeignKey('service_master.id', ondelete='SET NULL'), nullable=True, index=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+
     __table_args__ = (
         CheckConstraint("quantity > 0", name='chk_line_qty_positive'),
         CheckConstraint("unit_price >= 0", name='chk_line_unit_price_non_negative'),
@@ -99,6 +103,7 @@ class InvoiceService(TenantMixin, db.Model):
     invoice = db.relationship('Invoice', back_populates='lines', lazy='selectin')
     department = db.relationship('Department', lazy='selectin')
     visit = db.relationship('Visit', lazy='selectin')
+    service_master = db.relationship('ServiceMaster', lazy='selectin')
 
     def __repr__(self) -> str:
         return f"<InvoiceService {self.service_code} x{self.quantity}>"
