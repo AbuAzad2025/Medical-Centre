@@ -1001,7 +1001,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 **Status:** Complete
 
-**Commit:** `TBD`
+**Commit:** `52d1019`
 
 **Files changed:**
 - `services/gatekeeper_service.py` — `can_archive_visit`: added `visit.status == 'COMPLETED'` check; added `visit.archive_status == 'ARCHIVED'` check (re-archival guard). `create_system_receipt`: added archive status block.
