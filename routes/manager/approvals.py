@@ -3,7 +3,7 @@
 from routes.manager import manager_bp
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for
+from flask import render_template, request, jsonify, flash, redirect, url_for, g
 from flask_login import login_required, current_user
 from utils.decorators import manager_or_admin_only, can_approve_force_payment, prevent_self_approval, role_required, role_required_json
 from models.patient import Patient
@@ -37,15 +37,18 @@ from app.shared.enums import PaymentStatus
 def force_payment_approvals():
     """صفحة موافقات الدفع القسري"""
     try:
+        # Ticket 2: defence-in-depth — list only visits in the current tenant
+        tenant_filter = {'tenant_id': g.tenant_id} if hasattr(g, 'tenant_id') and g.tenant_id is not None else {}
+
         # الدفعات القسرية المعلقة
-        pending_approvals = Visit.query.filter(
+        pending_approvals = Visit.query.filter_by(**tenant_filter).filter(
             Visit.is_force_payment == True,
             Visit.force_payment_approved_by == None
         ).order_by(Visit.created_at.desc()).all()
-        
+
         # الدفعات القسرية المعتمدة (آخر 30 يوم)
         thirty_days_ago = datetime.now() - timedelta(days=30)
-        approved_payments = Visit.query.filter(
+        approved_payments = Visit.query.filter_by(**tenant_filter).filter(
             Visit.is_force_payment == True,
             Visit.force_payment_approved_by != None,
             Visit.force_payment_approved_at >= thirty_days_ago
@@ -71,37 +74,42 @@ def force_payment_approvals():
 def approve_force_payment(visit_id):
     """الموافقة على دفع قسري"""
     try:
-        visit = db.session.get(Visit, visit_id)
+        from utils.tenant_query import get_tenant_record, TenantContextError
+        try:
+            visit = get_tenant_record(Visit, visit_id)
+        except TenantContextError:
+            flash('الزيارة غير موجودة', 'error')
+            return redirect(url_for('manager.force_payment_approvals'))
         if not visit:
             flash('الزيارة غير موجودة', 'error')
             return redirect(url_for('manager.force_payment_approvals'))
-        
+
         # التحقق من أنها زيارة دفع قسري
         if not visit.is_force_payment:
             flash('هذه ليست زيارة دفع قسري', 'error')
             return redirect(url_for('manager.force_payment_approvals'))
-        
+
         # التحقق من أنها غير معتمدة
         if visit.force_payment_approved_by:
             flash('تم الموافقة على هذا الدفع مسبقاً', 'warning')
             return redirect(url_for('manager.force_payment_approvals'))
-        
+
         # التحقق من الصلاحية
         is_valid, message = GatekeeperService.validate_force_payment(
             visit_id,
             current_user.id,
             visit.force_payment_reason
         )
-        
+
         if not is_valid:
             flash(message, 'error')
             return redirect(url_for('manager.force_payment_approvals'))
-        
+
         # الموافقة
         visit.force_payment_approved_by = current_user.id
         visit.force_payment_approved_at = datetime.now(timezone.utc)
         visit.payment_status = PaymentStatus.DEBT  # تحديد كدين معتمد
-        
+
         db.session.commit()
 
         # Ticket 1: Manager approval of a force-payment is purely an
@@ -121,12 +129,12 @@ def approve_force_payment(visit_id):
         )
         db.session.add(audit)
         db.session.commit()
-        
+
         flash(f'تمت الموافقة على الدفع القسري للزيارة #{visit.id}', 'success')
         logging.info(f"Force payment approved: Visit {visit_id} by User {current_user.id}")
-        
+
         return redirect(url_for('manager.force_payment_approvals'))
-    
+
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error approving force payment: {str(e)}")
@@ -139,30 +147,35 @@ def approve_force_payment(visit_id):
 def reject_force_payment(visit_id):
     """رفض دفع قسري"""
     try:
-        visit = db.session.get(Visit, visit_id)
+        from utils.tenant_query import get_tenant_record, TenantContextError
+        try:
+            visit = get_tenant_record(Visit, visit_id)
+        except TenantContextError:
+            flash('الزيارة غير موجودة', 'error')
+            return redirect(url_for('manager.force_payment_approvals'))
         if not visit:
             flash('الزيارة غير موجودة', 'error')
             return redirect(url_for('manager.force_payment_approvals'))
         rejection_reason = request.form.get('rejection_reason', '')
-        
+
         # التحقق من أنها زيارة دفع قسري
         if not visit.is_force_payment:
             flash('هذه ليست زيارة دفع قسري', 'error')
             return redirect(url_for('manager.force_payment_approvals'))
-        
+
         # التحقق من السبب
         if not rejection_reason or len(rejection_reason.strip()) < 10:
             flash('يجب تقديم سبب واضح للرفض (10 أحرف على الأقل)', 'error')
             return redirect(url_for('manager.force_payment_approvals'))
-        
+
         # الرفض
         visit.is_force_payment = False
         visit.payment_method = 'CASH'
         visit.payment_status = PaymentStatus.PENDING
         visit.force_payment_reason = f'[مرفوض] {visit.force_payment_reason}\nسبب الرفض: {rejection_reason}'
-        
+
         db.session.commit()
-        
+
         # تسجيل في التدقيق
         from models.audit_trail import AuditTrail
         audit = AuditTrail(
@@ -175,12 +188,12 @@ def reject_force_payment(visit_id):
         )
         db.session.add(audit)
         db.session.commit()
-        
+
         flash(f'تم رفض الدفع القسري للزيارة #{visit.id}', 'warning')
         logging.info(f"Force payment rejected: Visit {visit_id} by User {current_user.id}")
-        
+
         return redirect(url_for('manager.force_payment_approvals'))
-    
+
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error rejecting force payment: {str(e)}")

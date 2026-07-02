@@ -933,6 +933,37 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 ---
 
+### Ticket 2 — Complete Tenant-Safe Financial Approval Routes
+
+**Status:** Complete
+
+**Commit:** `TBD`
+
+**Files changed:**
+- `routes/manager/approvals.py` — `approve_force_payment`: replaced `db.session.get(Visit, visit_id)` with `get_tenant_record(Visit, visit_id)`; handles `TenantContextError` as non-disclosing redirect. `reject_force_payment`: same tenant-safe replacement. `force_payment_approvals`: added explicit `tenant_id=g.tenant_id` filter to list queries as defense-in-depth. Added `g` import.
+- `tests/test_manager_approval_tenant.py` — new test file: same-tenant approve/reject, cross-tenant approve/reject denied, missing tenant context denied, no auto-enqueue.
+
+**Evidence:**
+- `routes/manager/approvals.py` lines 74-77, 147-150: Both `approve_force_payment` and `reject_force_payment` use `get_tenant_record(Visit, visit_id)` before any read or mutation. `TenantContextError` redirects with generic "not found" flash, preventing cross-tenant disclosure.
+- `routes/manager/approvals.py` lines 41-52: List queries now include `filter_by(tenant_id=g.tenant_id)` as defense-in-depth.
+- Cross-tenant requests: `get_tenant_record` raises `TenantContextError` because `g.tenant_id` does not match the visit's `tenant_id`, resulting in redirect without data disclosure.
+
+**Tests run and actual results:**
+- `tests/test_manager_approval_tenant.py` — 6 passed, 2 warnings in 13.72s
+- `test_manager_approve_same_tenant` — PASSED
+- `test_manager_reject_same_tenant` — PASSED
+- `test_manager_approve_cross_tenant_denied` — PASSED (redirects, no disclosure)
+- `test_manager_reject_cross_tenant_denied` — PASSED (redirects, no disclosure)
+- `test_manager_approval_missing_tenant_context` — PASSED (redirects, no disclosure)
+- `test_manager_approval_does_not_enqueue` — PASSED (no queue ticket created)
+- Full related suite: 105 passed (queue + billing + tenant + feature gating)
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert `get_tenant_record` back to `db.session.get` in both approval routes; remove `tenant_id` filter from list queries; remove `g` import.
+
+---
+
 **End of Stage 1 / Start of Comprehensive Remediation.**
 
 **Change log for this update:**
