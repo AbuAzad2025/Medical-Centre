@@ -514,6 +514,62 @@ def end_treatment(visit_id):
         flash('حدث خطأ في إنهاء العلاج', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
+# ========== Ticket 9: Controlled Return-to-Treatment Workflow ==========
+
+@doctor_bp.route('/return-to-treatment/<int:visit_id>', methods=['POST'])
+@login_required
+@role_required('doctor', 'admin', 'manager', 'super_admin')
+def return_to_treatment(visit_id):
+    """إعادة فتح زيارة منتهية للعلاج (Ticket 9) — يتطلب سبباً ويُسجَّل في audit trail."""
+    try:
+        from utils.tenant_query import get_tenant_record, TenantContextError
+        try:
+            visit = get_tenant_record(Visit, visit_id)
+        except TenantContextError:
+            flash('الزيارة غير موجودة', 'error')
+            return redirect(url_for('doctor.patient_queue'))
+
+        if visit.status != 'COMPLETED':
+            flash('إعادة فتح العلاج متاحة فقط للزيارات المنتهية', 'warning')
+            return redirect(url_for('doctor.patient_queue'))
+
+        reason = (request.form.get('reason') or request.json.get('reason') if request.is_json else request.form.get('reason')) or ''
+        if not reason or len(reason.strip()) < 3:
+            flash('يجب تقديم سبب مقنع لإعادة فتح العلاج (3 أحرف على الأقل)', 'warning')
+            return redirect(url_for('doctor.patient_queue'))
+
+        try:
+            VisitStateMachineService.return_to_treatment(visit, actor=current_user, reason=reason)
+        except ValueError as exc:
+            flash(str(exc), 'warning')
+            return redirect(url_for('doctor.patient_queue'))
+
+        db.session.commit()
+
+        # Audit trail
+        try:
+            db.session.add(AuditTrail(
+                entity_type='visit',
+                entity_id=visit_id,
+                action='update',
+                user_id=current_user.id,
+                user_ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                description=f'إعادة فتح العلاج — السبب: {reason}',
+                new_values=json.dumps({'status': 'IN_PROGRESS', 'reason': reason})
+            ))
+            db.session.commit()
+        except Exception as e:
+            logging.warning(f"Error in {__name__}: {e}")
+
+        flash('تم إعادة فتح العلاج بنجاح', 'success')
+        return redirect(url_for('doctor.patient_queue'))
+    except Exception as e:
+        logging.error(f"Error returning to treatment: {str(e)}", exc_info=True)
+        flash('حدث خطأ في إعادة فتح العلاج', 'error')
+        return redirect(url_for('doctor.patient_queue'))
+
+
 # مسارات إضافية للطبيب الاحترافي
 
 @doctor_bp.route('/visits')

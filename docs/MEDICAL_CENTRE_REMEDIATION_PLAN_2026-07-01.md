@@ -1167,6 +1167,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 45. **Comprehensive remediation authorized (Update 12):** Owner authorized execution of all 11 comprehensive remediation tickets based on Stage 1 audit findings. Checkpoint tag `medical-remediation-comprehensive-start-2026-07-02` created on HEAD `1def091`. No new branch created.
 46. **Ticket 1 — Close every remaining normal-queue payment bypass (Update 12):** `_check_queue_entry_conditions` removed `settings` parameter entirely; only `PAID` (normal) and `is_emergency=True` (emergency) allow queue entry. `add_patient_to_queue` removed `payment_status`, `force_entry`, `force_entry_reason` parameters; resolves from server-side visit record. `routes/reception/queue.py` manual form no longer reads `force_entry` or `payment_status`. `add_patient_to_queue_auto` no longer passes `force_entry` or `payment_status`. `routes/manager/approvals.py` removed auto-enqueue after manager approval; approval is purely administrative/financial review. Added 3 new tests. All 59 queue tests pass. Related tenant/billing/feature tests pass (40/40).
 47. **Ticket 7 — Add services without reopening clinical workflow (Update 12f):** Added `POST /reception/visits/<id>/add-service` route for `reception` and `super_admin`. Accepts `CHECKED_IN`, `IN_PROGRESS`, `COMPLETED` (but not archived) visits. Catalog service must be active. Creates invoice if missing, adds `InvoiceService` line with `service_master_id`, `created_by`, `service_code`, `service_name`, `unit_price`, `total_price`. Updates `visit.total_amount` and `invoice.total_amount`. Preserves `payment_status` (PENDING/PARTIAL) if outstanding. Rejects archived visits via `archive_status` gate. Tenant-safe via `get_tenant_record`. Cross-tenant service addition denied. Audit trail with `entity_type='visit'`. Commit `07b32ab`. Files: `routes/reception/visits.py`, `tests/test_add_service_without_reopening.py`. Tests: 4 passed. Related suite: 137 passed.
+48. **Ticket 8 — Service-line reconciliation and final archive enforcement (Update 12g):** Added service-line reconciliation check to `GatekeeperService.can_archive_visit`. When `InvoiceService` lines exist for a visit, aggregate `visit.total_amount` must equal itemized sum of `InvoiceService.total_price`. Zero-amount visits with no services remain allowed. Existing visits without itemized lines are not blocked (backward compatibility). Prevents archive of visits with unbilled or unreconciled service lines. Commit `02f76ea`. Files: `services/gatekeeper_service.py`, `tests/test_service_line_reconciliation.py`. Tests: 3 passed. Related suite: 140 passed.
 
 ---
 
@@ -1201,5 +1202,35 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 **Findings/blockers:** None.
 
 **Rollback path:** Revert `add_service_to_visit` route and `tests/test_add_service_without_reopening.py`.
+
+---
+
+### Ticket 8 — Service-Line Reconciliation and Final Archive Enforcement
+
+**Status:** Complete
+
+**Commit:** `02f76ea`
+
+**Files changed:**
+- `services/gatekeeper_service.py` — `can_archive_visit`: added service-line reconciliation check. When `InvoiceService` lines exist for a visit, aggregate `visit.total_amount` must equal itemized sum of `InvoiceService.total_price`. Zero-amount visits with no services remain allowed. Existing visits without itemized lines are not blocked (backward compatibility).
+- `tests/test_service_line_reconciliation.py` — new test file: 3 tests covering archive allowed when reconciled, archive blocked when mismatch, archive allowed for zero-amount no-service visits.
+
+**Evidence:**
+- `can_archive_visit` queries count of `InvoiceService` lines for the visit.
+- When lines exist, computes `sum(total_price)` and compares with `visit.total_amount`.
+- Mismatch blocks archive with message "مبلغ الزيارة لا يتوافق مع مجموع الخدمات — يتطلب تسوية الخدمات".
+- No lines + zero total_amount → archive allowed (backward compatibility for pre-itemization visits).
+- No lines + non-zero total_amount → archive allowed (backward compatibility), but future visits should have itemized lines.
+
+**Tests run and actual results:**
+- `tests/test_service_line_reconciliation.py` — 3 passed, 2 warnings in 5.61s
+- `test_archive_allowed_when_reconciled` — PASSED
+- `test_archive_blocked_when_mismatch` — PASSED
+- `test_archive_allowed_zero_amount_no_services` — PASSED
+- Full related suite: 140 passed
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert reconciliation check in `can_archive_visit`.
 
 ---
