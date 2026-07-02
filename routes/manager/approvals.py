@@ -125,7 +125,7 @@ def approve_force_payment(visit_id):
             entity_type='visit',
             entity_id=visit_id,
             description=f'موافقة على دفع قسري - {visit.force_payment_reason}',
-            ip_address=request.remote_addr
+            user_ip=request.remote_addr
         )
         db.session.add(audit)
         db.session.commit()
@@ -184,7 +184,7 @@ def reject_force_payment(visit_id):
             entity_type='visit',
             entity_id=visit_id,
             description=f'رفض دفع قسري - {rejection_reason}',
-            ip_address=request.remote_addr
+            user_ip=request.remote_addr
         )
         db.session.add(audit)
         db.session.commit()
@@ -264,7 +264,7 @@ def approve_custom_service(service_id):
             entity_type='service',
             entity_id=service_id,
             description=f'موافقة على خدمة مخصصة - {svc.name}',
-            ip_address=request.remote_addr
+            user_ip=request.remote_addr
         )
         db.session.add(audit)
         db.session.commit()
@@ -312,7 +312,7 @@ def reject_custom_service(service_id):
             entity_type='service',
             entity_id=service_id,
             description=f'رفض خدمة مخصصة - {svc.name} - {rejection_reason}',
-            ip_address=request.remote_addr
+            user_ip=request.remote_addr
         )
         db.session.add(audit)
         db.session.commit()

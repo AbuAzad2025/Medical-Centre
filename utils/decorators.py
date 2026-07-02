@@ -347,7 +347,7 @@ def log_action(action_type):
                     user_id=current_user.id if current_user.is_authenticated else None,
                     action=action_type,
                     entity_type=f.__name__,
-                    ip_address=request.remote_addr,
+                    user_ip=request.remote_addr,
                     user_agent=request.user_agent.string,
                     description=f"User {current_user.username if current_user.is_authenticated else 'Anonymous'} performed {action_type}"
                 )
