@@ -884,7 +884,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 **Status:** Complete
 
-**Commit:** `TBD`
+**Commit:** `8be0688`
 
 **Owner rule (final):** `No normal non-emergency visit may enter any queue before the full initial reception-selected fees are paid.` Emergency is the only confirmed pre-treatment payment exception. Manager force-payment approval is purely administrative/financial review and never grants queue-entry rights. `payment_required=False` is no longer a bypass.
 
