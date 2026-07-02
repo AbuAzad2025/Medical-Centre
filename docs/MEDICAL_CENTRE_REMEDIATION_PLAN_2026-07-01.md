@@ -1169,6 +1169,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 47. **Ticket 7 — Add services without reopening clinical workflow (Update 12f):** Added `POST /reception/visits/<id>/add-service` route for `reception` and `super_admin`. Accepts `CHECKED_IN`, `IN_PROGRESS`, `COMPLETED` (but not archived) visits. Catalog service must be active. Creates invoice if missing, adds `InvoiceService` line with `service_master_id`, `created_by`, `service_code`, `service_name`, `unit_price`, `total_price`. Updates `visit.total_amount` and `invoice.total_amount`. Preserves `payment_status` (PENDING/PARTIAL) if outstanding. Rejects archived visits via `archive_status` gate. Tenant-safe via `get_tenant_record`. Cross-tenant service addition denied. Audit trail with `entity_type='visit'`. Commit `07b32ab`. Files: `routes/reception/visits.py`, `tests/test_add_service_without_reopening.py`. Tests: 4 passed. Related suite: 137 passed.
 48. **Ticket 8 — Service-line reconciliation and final archive enforcement (Update 12g):** Added service-line reconciliation check to `GatekeeperService.can_archive_visit`. When `InvoiceService` lines exist for a visit, aggregate `visit.total_amount` must equal itemized sum of `InvoiceService.total_price`. Zero-amount visits with no services remain allowed. Existing visits without itemized lines are not blocked (backward compatibility). Prevents archive of visits with unbilled or unreconciled service lines. Commit `02f76ea`. Files: `services/gatekeeper_service.py`, `tests/test_service_line_reconciliation.py`. Tests: 3 passed. Related suite: 140 passed.
 49. **Ticket 9 — Controlled return-to-treatment workflow (Update 12h):** Added `VisitStateMachineService.return_to_treatment(visit, actor, reason)` method. Only `doctor`/`manager`/`super_admin` roles authorized; `reception` blocked. Only `COMPLETED` visits can be reopened; other statuses raise `ValueError`. Requires `actor` parameter. Directly sets `status=IN_PROGRESS` with VSM authorization flag. Route `POST /doctor/return-to-treatment/<visit_id>` with `role_required` and reason validation (>=3 chars). Audit trail with `entity_type='visit'`, `action='update'`, reason in description. Commit `2b08965`. Files: `services/visit_state_machine_service.py`, `routes/doctor/visits.py`, `tests/test_return_to_treatment.py`. Tests: 4 passed. Related suite: 144 passed.
+50. **Ticket 10 — Audited platform tenant assumption (Update 12i):** Added `PlatformAuditLog` creation to `SaaSRegistrationService.register_organization`. Log action=`SAAS_SIGNUP` with JSON details (slug, name, admin_username, admin_role, pending_payment, package_version_id, billing_type). Captures `client_ip` and `user_agent` when available; imported `request` from flask. `TenantProvisioningService` already logs `CREATE_TENANT`; this adds SaaS-specific signup audit with IP/admin details. Commit `bdfba99`. Files: `services/saas_registration_service.py`, `tests/test_platform_tenant_audit.py`. Tests: 2 passed. Related suite: 146 passed.
 
 ---
 
@@ -1266,5 +1267,34 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 **Findings/blockers:** None.
 
 **Rollback path:** Revert `return_to_treatment` method and route.
+
+---
+
+### Ticket 10 — Audited Platform Tenant Assumption
+
+**Status:** Complete
+
+**Commit:** `bdfba99`
+
+**Files changed:**
+- `services/saas_registration_service.py` — added `PlatformAuditLog` creation after tenant and admin are committed. Action=`SAAS_SIGNUP`, entity_type=`tenant`, entity_id=`tenant.id`. Details include JSON with slug, name, admin_username, admin_role, pending_payment, package_version_id, billing_type. Captures `client_ip` and `user_agent` from request context or explicit parameter. Imported `request` from flask to resolve NameError.
+- `tests/test_platform_tenant_audit.py` — new test file: 2 tests covering registration creates platform audit log, and IP is included when client_ip is provided.
+
+**Evidence:**
+- `PlatformAuditLog` entry created with `action='SAAS_SIGNUP'` on every SaaS registration.
+- Details include JSON with tenant slug, name, admin username, role, pending payment status, package version, billing type.
+- `ip_address` captured from `client_ip` parameter or `request.remote_addr` when request context exists.
+- `user_agent` captured from `request.headers` when request context exists.
+- `TenantProvisioningService._audit` already logs `CREATE_TENANT` and `ACTIVATE`; `SAAS_SIGNUP` complements with signup-specific metadata.
+
+**Tests run and actual results:**
+- `tests/test_platform_tenant_audit.py` — 2 passed, 2 warnings in 6.48s
+- `test_registration_creates_platform_audit_log` — PASSED
+- `test_registration_audit_log_includes_ip_when_available` — PASSED
+- Full related suite: 146 passed
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert platform audit log creation in `register_organization`.
 
 ---
