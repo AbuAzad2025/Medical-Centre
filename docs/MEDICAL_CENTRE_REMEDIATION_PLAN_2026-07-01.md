@@ -1173,6 +1173,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 51. **Ticket 11 — RLS runtime verification and deployment guard (Update 12j):** Added `scripts/rls_deployment_guard.py` with 4 verification checks: (1) application role does NOT have BYPASSRLS, (2) `row_security` setting is ON for current connection, (3) all tenant-scoped tables have RLS enabled and enforced, (4) all tenant-scoped tables have at least one RLS policy. Includes comprehensive list of 80+ tenant-scoped tables. Uses raw psycopg2 connection for direct PostgreSQL catalog queries. Exit code 0 = all checks pass (safe to deploy), 1 = failures (do not deploy). Commit `ffebb34`. Files: `scripts/rls_deployment_guard.py`, `tests/test_rls_deployment_guard.py`. Tests: 5 passed. Related suite: 151 passed.
 52. **Ticket 1 (Corrective) — Finish archive, settlement, and financial mutation lockdown (Update 12k):** Added `paid_amount >= total_amount` check to `GatekeeperService.can_archive_visit`. Added reception-only role check to `GatekeeperService.archive_visit` (only `reception` and `super_admin`). Disabled finance archive route for `admin`/`manager` (returns 403). Centralized final-state checks in `GatekeeperService`. All financial mutations already block archived visits via existing route checks. Commit `d8d3a56`. Files: `services/gatekeeper_service.py`, `routes/finance.py`, `tests/test_archive_lockdown.py`, `tests/test_billing_visit_ownership.py`. Tests: 10 new archive lockdown tests pass. Related suite: 158 passed.
 53. **Ticket 2 (Corrective) — Document and test platform-global tenant context (Update 13):** Added docstring to `purge_cancelled_tenants` explaining why it runs outside `for_each_tenant` (only touches global models: `Tenant`, `PlatformAuditLog`; sets explicit `tenant_id` on `TenantSubscriptionHistory`). Added 3 tests to `test_background_tenant_context.py`: verify `purge_cancelled_tenants` uses only global models, verify it doesn't create tenant-scoped records without explicit tenant_id, and verify the global-model allowlist contains expected tables. Commit `edaf63e`. Files: `app/core/saas/lifecycle.py`, `tests/test_background_tenant_context.py`. Tests: 11 passed.
+54. **Ticket 3 (Corrective) — Complete custom-service workflow compliance (Update 14):** Added defensive role check (`current_user.role != 'reception'` → 403) inside `_process_custom_services`. Fixed `chk_action` constraint on `audit_trails` — added `APPROVE`/`REJECT` to model and migration `s1_009`. Route was silently swallowing `CheckViolation` in the catch-all exception handler. Added 3 tests: rejection preserves price/name, model allows `entity_type='service'`, model allows `action='APPROVE'/'REJECT'`. Commit `d220e75`. Files: `models/audit_trail.py`, `routes/reception/visits.py`, `tests/test_custom_service_lifecycle.py`, `migrations/versions/s1_009_audit_action_constraint.py`. Tests: 10 passed. Related suite: 71 passed.
 
 ---
 
@@ -1393,6 +1394,37 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 ---
 
+### Ticket 3 (Corrective) — Complete Custom-Service Workflow Compliance
+
+**Status:** Complete
+
+**Commit:** `d220e75`
+
+**Files changed:**
+- `models/audit_trail.py` — added `'APPROVE'`, `'REJECT'` to `chk_action` check constraint
+- `routes/reception/visits.py` — added defensive role check to `_process_custom_services`: `current_user.role != 'reception'` → `abort(403)`
+- `tests/test_custom_service_lifecycle.py` — added `TestTicket3CorrectiveCustomService` with 3 tests: rejection preserves price/name, model allows `entity_type='service'`, model allows `action='APPROVE'/'REJECT'`
+- `migrations/versions/s1_009_audit_action_constraint.py` — new migration: adds `'APPROVE'`, `'REJECT'` to `audit_trails.chk_action`
+
+**Evidence:**
+- `_process_custom_services` now aborts 403 if `current_user.role != 'reception'` (defense-in-depth even though only `create_visit` calls it, which already has `@can_create_visits` decorator)
+- Manager rejection preserves `base_price`, `name`, `code` — only sets `is_active=False`, `approved_by`, `approved_at` and prepends description with `[مرفوض]`
+- Route audit trail creation (`AuditTrail(action='APPROVE'/'REJECT', entity_type='service')`) previously failed silently with `CheckViolation` because `chk_action` constraint only allowed lowercase actions. The catch-all exception handler in the route swallowed the error. Fix: `chk_action` now includes `'APPROVE'` and `'REJECT'`.
+- Cross-tenant isolation already enforced by `get_tenant_record` in approval/rejection routes; audit trail is tenant-scoped via `TenantMixin`.
+
+**Tests run and actual results:**
+- `tests/test_custom_service_lifecycle.py` — 10 passed, 2 warnings in 17.55s
+- `test_rejection_preserves_price_and_name` — PASSED (base_price=250, name, code preserved)
+- `test_approval_creates_audit_trail` — PASSED (model constraint allows `entity_type='service'`)
+- `test_rejection_creates_audit_trail` — PASSED (model constraint allows `action='APPROVE'/'REJECT'`)
+- Full related suite (8 test files): 71 passed in 63.11s
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert `_process_custom_services` role check; revert `chk_action` constraint (migration downgrade `s1_008`); revert test additions.
+
+---
+
 **Comprehensive Remediation Complete.**
 
 All 11 tickets implemented, tested, and committed on `main`:
@@ -1412,5 +1444,6 @@ All 11 tickets implemented, tested, and committed on `main`:
 | 11 | RLS runtime verification and deployment guard | `ffebb34` | 5/5 | 151/151 |
 | 1 (Corrective) | Finish archive, settlement, and financial mutation lockdown | `d8d3a56` | 10/10 | 158/158 |
 | 2 (Corrective) | Document and test platform-global tenant context | `edaf63e` | 3/3 | 11/11 |
+| 3 (Corrective) | Complete custom-service workflow compliance | `d220e75` | 3/3 | 71/71 |
 
-**Total: 13 commits, 158 tests passed, 0 failures.**
+**Total: 14 commits, 158 tests passed, 0 failures.**
