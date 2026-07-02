@@ -88,7 +88,14 @@ def process_payment(visit_id):
     visit = db.session.query(Visit).filter_by(id=visit_id, tenant_id=g.tenant_id).with_for_update().first()
     if not visit:
         abort(404)
-    
+
+    # Ticket 4: archived visits cannot receive ordinary financial mutations
+    if visit.archive_status == 'ARCHIVED':
+        if request.is_json or (request.headers.get('Accept') or '').lower().startswith('application/json'):
+            return jsonify({'success': False, 'message': 'الزيارة مؤرشفة ولا يمكن تعديلها مالياً'}), 422
+        flash('الزيارة مؤرشفة ولا يمكن تعديلها مالياً', 'error')
+        return redirect(url_for('payment.process_payment', visit_id=visit_id))
+
     if request.method == 'POST':
         try:
             def _wants_json():

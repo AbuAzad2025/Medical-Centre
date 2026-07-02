@@ -96,6 +96,13 @@ def archive_visit(visit_id):
     except TenantContextError:
         flash('الزيارة غير موجودة', 'error')
         return redirect(url_for('reception.visits'))
+    # Ticket 4: defense-in-depth
+    if visit.status != 'COMPLETED':
+        flash('يجب إنهاء العلاج أولاً قبل الأرشفة', 'warning')
+        return redirect(url_for('reception.visits'))
+    if visit.archive_status == 'ARCHIVED':
+        flash('الزيارة مؤرشفة مسبقاً', 'warning')
+        return redirect(url_for('reception.visits'))
     try:
         ok, msg = GatekeeperService.archive_visit(visit.id, current_user.id)
         if ok:

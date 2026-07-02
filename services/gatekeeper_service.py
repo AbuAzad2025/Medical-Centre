@@ -90,29 +90,43 @@ class GatekeeperService:
     @staticmethod
     def can_archive_visit(visit_id, user_id):
         """
-        التحقق من إمكانية أرشفة الزيارة
+        التحقق من إمكانية أرشفة الزيارة.
+
+        Ticket 4: Archive, settlement, and financial mutation lockdown.
+        - Visit must be clinically COMPLETED before administrative archive.
+        - Already archived visits cannot be re-archived.
+        - Financial preconditions (gl_posted_at, financial_locked, financial_completed_at)
+          remain enforced.
         """
         try:
             try:
                 visit = get_tenant_record(Visit, visit_id)
             except TenantContextError:
                 return False, "الزيارة غير موجودة"
-            
+
+            # Ticket 4: must be clinically completed before administrative archive
+            if visit.status != 'COMPLETED':
+                return False, "يجب إنهاء العلاج أولاً قبل الأرشفة"
+
+            # Ticket 4: already archived visits cannot be re-archived
+            if visit.archive_status == 'ARCHIVED':
+                return False, "الزيارة مؤرشفة مسبقاً"
+
             # التحقق من الترحيل المالي
             if not visit.gl_posted_at:
                 return False, "يتطلب الترحيل المالي أولاً"
-            
+
             # التحقق من القفل المالي
             if visit.financial_locked:
                 return False, "الزيارة مقفلة مالياً"
-            
+
             # للطوارئ أو الدفع القوي: التحقق من اكتمال الدفع
             if visit.is_emergency or visit.is_strong_pay:
                 if not visit.financial_completed_at:
                     return False, "يتطلب اكتمال الدفع للطوارئ/الدفع القوي"
-            
+
             return True, "يمكن الأرشفة"
-            
+
         except Exception as e:
             current_app.logger.error(f"خطأ في التحقق من الأرشفة: {str(e)}")
             return False, f"خطأ في النظام: {str(e)}"
@@ -120,14 +134,20 @@ class GatekeeperService:
     @staticmethod
     def create_system_receipt(visit_id, user_id, amount, payment_method='cash'):
         """
-        إنشاء سند قبض نظامي
+        إنشاء سند قبض نظامي.
+
+        Ticket 4: Block ordinary financial mutations on archived visits.
         """
         try:
             try:
                 visit = get_tenant_record(Visit, visit_id)
             except TenantContextError:
                 return False, "الزيارة غير موجودة"
-            
+
+            # Ticket 4: archived visits cannot receive ordinary financial mutations
+            if visit.archive_status == 'ARCHIVED':
+                return False, "الزيارة مؤرشفة ولا يمكن إضافة سند قبض"
+
             # إنشاء رقم سند فريد
             receipt_number = f"RCP-{datetime.now().strftime('%Y%m%d%H%M%S')}-{visit_id}"
             

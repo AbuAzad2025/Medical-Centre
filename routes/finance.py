@@ -125,21 +125,29 @@ def post_gl():
 
 @finance_bp.route('/visits/<int:visit_id>/archive', methods=['POST'])
 @login_required
-@role_required_json('accountant', 'admin', 'manager')
+@role_required_json('admin', 'manager')
 def archive_visit(visit_id):
-    """أرشفة الزيارة - Finance فقط"""
-    
-    
+    """أرشفة الزيارة - Finance فقط (admin/manager override; accountant excluded).
+
+    Ticket 4: Accountant may post payment/GL but must not own visit archive flow.
+    Reception is the primary archive initiator via routes/reception/visits.py.
+    """
     try:
         # MC-004: validate visit ownership before delegating to service
         try:
-            get_tenant_record(Visit, visit_id)
+            visit = get_tenant_record(Visit, visit_id)
         except TenantContextError:
             return jsonify({'error': 'الزيارة غير موجودة'}), 404
-        
+
+        # Ticket 4: defense-in-depth checks before delegating to service
+        if visit.status != 'COMPLETED':
+            return jsonify({'error': 'يجب إنهاء العلاج أولاً قبل الأرشفة'}), 422
+        if visit.archive_status == 'ARCHIVED':
+            return jsonify({'error': 'الزيارة مؤرشفة مسبقاً'}), 422
+
         # استخدام حراسة الخدمة
         success, message = GatekeeperService.archive_visit(visit_id, current_user.id)
-        
+
         if success:
             return jsonify({
                 'success': True,
@@ -147,7 +155,7 @@ def archive_visit(visit_id):
             })
         else:
             return jsonify({'error': message}), 422
-            
+
     except Exception as e:
         logging.error(f"Error archiving visit: {str(e)}")
         return jsonify({'error': 'تعذر أرشفة الزيارة حالياً'}), 500

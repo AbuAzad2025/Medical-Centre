@@ -54,7 +54,8 @@ class TestBillingVisitOwnership:
         _db.session.add(v)
         _db.session.commit()
 
-        login_as(client, 'acct_arch_mc004', 'accountant')
+        # Ticket 4: accountant is no longer allowed to archive; use manager
+        login_as(client, 'mgr_arch_mc004', 'manager')
 
         # Request to archive a non-existent visit ID (cross-tenant simulation)
         resp = client.post('/finance/visits/99999999/archive')

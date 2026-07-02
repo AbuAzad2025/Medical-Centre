@@ -997,6 +997,49 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 ---
 
+### Ticket 4 — Archive, Settlement, and Financial Mutation Lockdown
+
+**Status:** Complete
+
+**Commit:** `TBD`
+
+**Files changed:**
+- `services/gatekeeper_service.py` — `can_archive_visit`: added `visit.status == 'COMPLETED'` check; added `visit.archive_status == 'ARCHIVED'` check (re-archival guard). `create_system_receipt`: added archive status block.
+- `routes/reception/visits.py` — `archive_visit`: added defense-in-depth `status != 'COMPLETED'` and `archive_status == 'ARCHIVED'` checks before delegating to gatekeeper.
+- `routes/finance.py` — `archive_visit`: removed `accountant` from role list (admin/manager only); added defense-in-depth status and archive checks.
+- `routes/payment_routes.py` — `process_payment`: added archive status block with 422 redirect.
+- `routes/reception/payments.py` — `process_payment`: added archive status block.
+- `tests/test_archive_lockdown.py` — new test file: 11 tests covering gatekeeper non-completed block, re-archival block, completed success, reception route blocks, finance route role restriction (accountant 403), payment mutation blocked after archive, system receipt blocked after archive.
+- `tests/test_billing_visit_ownership.py` — updated `test_finance_archive_rejects_cross_tenant_visit` to use manager role (accountant no longer allowed).
+
+**Evidence:**
+- `services/gatekeeper_service.py` lines 91-135: `can_archive_visit` now requires `status == 'COMPLETED'` and rejects `archive_status == 'ARCHIVED'`.
+- `routes/finance.py` line 128: `@role_required_json('admin', 'manager')` — accountant excluded.
+- `routes/payment_routes.py` lines 91-99: Archive check blocks payment processing on archived visits.
+- `routes/reception/payments.py` lines 67-70: Archive check blocks invoice creation on archived visits.
+- `services/gatekeeper_service.py` lines 127-130: `create_system_receipt` rejects archived visits.
+
+**Tests run and actual results:**
+- `tests/test_archive_lockdown.py` — 11 passed, 2 warnings in 28.58s
+- `test_non_completed_visit_cannot_archive` — PASSED
+- `test_already_archived_visit_cannot_rearchive` — PASSED
+- `test_completed_visit_can_archive_when_conditions_met` — PASSED
+- `test_reception_archive_non_completed_blocked` — PASSED
+- `test_reception_archive_archived_blocked` — PASSED
+- `test_reception_archive_success_when_conditions_met` — PASSED
+- `test_accountant_cannot_archive` — PASSED (403)
+- `test_manager_can_archive_via_finance` — PASSED
+- `test_reception_payment_blocked_after_archive` — PASSED
+- `test_accountant_payment_blocked_after_archive` — PASSED
+- `test_system_receipt_blocked_after_archive` — PASSED
+- Full related suite: 118 passed
+
+**Findings/blockers:** None.
+
+**Rollback path:** Revert `can_archive_visit` to remove status and re-archival checks; restore `accountant` in finance route role list; remove archive blocks from payment routes; revert `test_billing_visit_ownership.py` test.
+
+---
+
 **End of Stage 1 / Start of Comprehensive Remediation.**
 
 **Change log for this update:**

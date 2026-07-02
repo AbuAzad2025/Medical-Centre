@@ -64,6 +64,10 @@ def process_payment(visit_id):
     except TenantContextError:
         flash('الزيارة غير موجودة', 'error')
         return redirect(url_for('reception.queue_management'))
+    # Ticket 4: archived visits cannot receive ordinary financial mutations
+    if visit.archive_status == 'ARCHIVED':
+        flash('الزيارة مؤرشفة ولا يمكن تعديلها مالياً', 'error')
+        return redirect(url_for('reception.queue_management'))
     try:
         from models.invoice import Invoice, InvoiceService as InvoiceLine
 
