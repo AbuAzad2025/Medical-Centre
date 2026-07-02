@@ -45,6 +45,11 @@ def get_tenant_record(
     """
     resolved_tenant_id = tenant_id if tenant_id is not None else getattr(g, "tenant_id", None)
 
+    # If the model supports tenant scoping but no tenant context is available,
+    # fail closed rather than returning a cross-tenant record.
+    if resolved_tenant_id is None and hasattr(model, "tenant_id"):
+        raise TenantContextError(error_message)
+
     # Always fetch via db.session.get first so test monkeypatches and
     # SQLAlchemy session proxies work identically to the original code.
     record = db.session.get(model, record_id)

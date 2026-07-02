@@ -55,7 +55,7 @@ class TestGetTenantRecordVisit:
             with pytest.raises(TenantContextError):
                 get_tenant_record(Visit, 99999999)
 
-    def test_no_tenant_context_skips_check(self, app, test_tenant):
+    def test_missing_tenant_context_raises(self, app, test_tenant):
         tenant_id = test_tenant.id
         p = Patient(first_name='ت', last_name='ت')
         _db.session.add(p)
@@ -68,7 +68,92 @@ class TestGetTenantRecordVisit:
         with app.test_request_context():
             from flask import g
             g.tenant_id = None
-            # When tenant_id is None, get_tenant_record should not enforce tenant check
-            # but should still return the record if it exists
-            record = get_tenant_record(Visit, v.id)
+            # Missing tenant context must fail closed for tenant-scoped models
+            with pytest.raises(TenantContextError):
+                get_tenant_record(Visit, v.id)
+
+    def test_explicit_tenant_id_overrides_context(self, app, test_tenant):
+        tenant_id = test_tenant.id
+        p = Patient(first_name='ت', last_name='ت')
+        _db.session.add(p)
+        _db.session.commit()
+
+        v = Visit(patient_id=p.id, tenant_id=tenant_id, status='OPEN')
+        _db.session.add(v)
+        _db.session.commit()
+
+        with app.test_request_context():
+            from flask import g
+            g.tenant_id = 999999  # wrong context
+            # explicit tenant_id parameter should succeed
+            record = get_tenant_record(Visit, v.id, tenant_id=tenant_id)
             assert record.id == v.id
+
+
+class TestReceptionRoutesFailClosedWithoutTenant:
+    def test_view_visit_fails_without_tenant_context(self, app, test_tenant, client):
+        tenant_id = test_tenant.id
+        p = Patient(first_name='ت', last_name='ت')
+        _db.session.add(p)
+        _db.session.commit()
+
+        v = Visit(patient_id=p.id, tenant_id=tenant_id, status='OPEN')
+        _db.session.add(v)
+        _db.session.commit()
+
+        # Simulate a request without tenant context (g.tenant_id = None)
+        with app.test_request_context():
+            from flask import g
+            g.tenant_id = None
+            # The route will catch TenantContextError and flash/redirect
+            resp = client.get(f'/reception/view_visit/{v.id}', follow_redirects=False)
+            # Should redirect (flash error) rather than exposing cross-tenant data
+            assert resp.status_code == 302
+
+    def test_edit_visit_fails_without_tenant_context(self, app, test_tenant, client):
+        tenant_id = test_tenant.id
+        p = Patient(first_name='ت', last_name='ت')
+        _db.session.add(p)
+        _db.session.commit()
+
+        v = Visit(patient_id=p.id, tenant_id=tenant_id, status='OPEN')
+        _db.session.add(v)
+        _db.session.commit()
+
+        with app.test_request_context():
+            from flask import g
+            g.tenant_id = None
+            resp = client.get(f'/reception/edit_visit/{v.id}', follow_redirects=False)
+            assert resp.status_code == 302
+
+    def test_end_visit_fails_without_tenant_context(self, app, test_tenant, client):
+        tenant_id = test_tenant.id
+        p = Patient(first_name='ت', last_name='ت')
+        _db.session.add(p)
+        _db.session.commit()
+
+        v = Visit(patient_id=p.id, tenant_id=tenant_id, status='OPEN')
+        _db.session.add(v)
+        _db.session.commit()
+
+        with app.test_request_context():
+            from flask import g
+            g.tenant_id = None
+            resp = client.post(f'/reception/visits/{v.id}/end', follow_redirects=False)
+            assert resp.status_code == 302
+
+    def test_archive_visit_fails_without_tenant_context(self, app, test_tenant, client):
+        tenant_id = test_tenant.id
+        p = Patient(first_name='ت', last_name='ت')
+        _db.session.add(p)
+        _db.session.commit()
+
+        v = Visit(patient_id=p.id, tenant_id=tenant_id, status='OPEN')
+        _db.session.add(v)
+        _db.session.commit()
+
+        with app.test_request_context():
+            from flask import g
+            g.tenant_id = None
+            resp = client.post(f'/reception/visits/{v.id}/archive', follow_redirects=False)
+            assert resp.status_code == 302

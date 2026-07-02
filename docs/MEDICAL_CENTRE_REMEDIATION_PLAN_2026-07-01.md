@@ -724,6 +724,41 @@ flask db downgrade s1_007_rls_phase4
 
 **Findings/blockers:** None.
 
+---
+
+### Corrective Ticket 2 — Fail closed when tenant context is absent (MC-003 follow-up)
+
+**Status:** Complete
+
+**Commit:** `TBD`
+
+**Files changed:**
+- `utils/tenant_query.py` — `get_tenant_record`: removed fail-open behavior when `resolved_tenant_id is None` for tenant-scoped models; now raises `TenantContextError` before fetching the record.
+- `tests/test_tenant_visit_lookup.py` — replaced `test_no_tenant_context_skips_check` with `test_missing_tenant_context_raises`; added `test_explicit_tenant_id_overrides_context`; added `TestReceptionRoutesFailClosedWithoutTenant` with four route tests (`view_visit`, `edit_visit`, `end_visit`, `archive_visit`).
+
+**Evidence:**
+- `utils/tenant_query.py` lines 49-51: If `resolved_tenant_id is None` and the model has `tenant_id`, the function raises `TenantContextError` immediately.
+- `routes/reception/visits.py` (`archive_visit`, `end_visit`, `view_visit`, `edit_visit`) already catch `TenantContextError` and redirect with a flash message, so no route-level changes were needed.
+
+**Tests run and actual results:**
+- `tests/test_tenant_visit_lookup.py` — 9 passed, 2 warnings in 4.76s
+- `test_same_tenant_visit_found` — PASSED
+- `test_cross_tenant_visit_raises` — PASSED
+- `test_missing_visit_raises` — PASSED
+- `test_missing_tenant_context_raises` — PASSED
+- `test_explicit_tenant_id_overrides_context` — PASSED
+- `test_view_visit_fails_without_tenant_context` — PASSED
+- `test_edit_visit_fails_without_tenant_context` — PASSED
+- `test_end_visit_fails_without_tenant_context` — PASSED
+- `test_archive_visit_fails_without_tenant_context` — PASSED
+- `tests/test_billing_visit_ownership.py` — 4 passed (cross-tenant + same-tenant)
+- `tests/integration/test_feature_gating.py` — 21 passed
+
+**Regression scan results:**
+- Ran `pytest tests/ -k "tenant"` — 4 pre-existing failures identified in unrelated SaaS/billing/migration tests (`test_send_appointment_reminders_filters_by_tenant`, `test_tenant_module_grants_capability`, `test_migrate_legacy_tenant_creates_line_and_entitlements`, `test_migrate_fails_if_active_lines_exist`). None call `get_tenant_record`; all pre-date this change.
+
+**Findings/blockers:** None.
+
 **Rollback path:** Revert the removal of the `PARTIAL` branch in `_check_queue_entry_conditions`.
 
 ---
