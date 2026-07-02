@@ -692,6 +692,38 @@ flask db downgrade s1_007_rls_phase4
 
 **Findings/blockers:** None.
 
+---
+
+### Corrective Ticket 1 — Strict normal-visit payment gate (MC-014 WP-3 follow-up)
+
+**Status:** Complete
+
+**Commit:** `TBD`
+
+**Owner rule (final):** `No normal non-emergency visit may enter any queue before the full initial reception-selected fees are paid.` Emergency is the only confirmed pre-treatment payment exception.
+
+**Files changed:**
+- `services/queue_management_service.py` — `_check_queue_entry_conditions`: removed `force_entry` bypass for normal visits; removed `DEBT` bypass for normal visits; removed `EMERGENCY_DEBT` branch; only `PAID` (normal) and `is_emergency=True` (emergency) allow entry when `payment_required=True`.
+- `tests/test_queue_management_service.py` — replaced `test_force_entry_allowed` with `test_force_entry_blocked_for_normal_visit`; replaced `test_debt_enters_when_allowed` with `test_debt_blocked_even_when_allowed`; removed `test_emergency_debt_waived`; updated `test_force_entry_partial_allowed` → `test_force_entry_blocked_for_normal_visit`; updated `test_debt_allowed_when_enabled` → `test_debt_blocked_even_when_enabled`.
+
+**Evidence:**
+- `services/queue_management_service.py` lines 246-272: Normal visits under `payment_required=True` now only pass when `payment_status == PaymentStatus.PAID`. `PARTIAL`, `PENDING`, `DEBT`, and `force_entry` are all rejected.
+- All queue-entry paths (`routes/reception/visits.py` auto-add, `routes/reception/queue.py` manual entry, `routes/reception/appointments.py` appointment entry, `routes/manager/approvals.py` manager approval) use `add_patient_to_queue`, which calls `_check_queue_entry_conditions`.
+
+**Tests run and actual results:**
+- `tests/test_queue_management_service.py` — 57 passed, 2 warnings in 32.77s
+- `test_emergency_always_enters` — PASSED
+- `test_paid_enters` — PASSED
+- `test_partial_blocked_for_normal_visit` — PASSED
+- `test_pending_blocked` — PASSED
+- `test_debt_blocked_even_when_allowed` — PASSED
+- `test_force_entry_blocked_for_normal_visit` — PASSED
+- `test_emergency_bypasses_payment` — PASSED (service-level)
+- `test_force_entry_blocked_for_normal_visit` — PASSED (service-level)
+- `test_debt_blocked_even_when_enabled` — PASSED (service-level)
+
+**Findings/blockers:** None.
+
 **Rollback path:** Revert the removal of the `PARTIAL` branch in `_check_queue_entry_conditions`.
 
 ---

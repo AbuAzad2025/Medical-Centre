@@ -251,21 +251,15 @@ class QueueManagementService:
         if is_emergency:
             return True, "طوارئ - دخول مباشر"
         
-        # الدخول القوي
-        if force_entry and settings.force_entry_allowed:
-            return True, "دخول قوي - معتمد"
-        
         # التحقق من حالة الدفع
-        # MC-014 WP-3: normal non-emergency visits must be fully paid before queue entry
+        # Corrective Ticket 1: normal non-emergency visits must be FULLY PAID before queue entry.
+        # force_entry, DEBT, and PARTIAL are not approved exceptions for normal visits.
+        # Emergency is the only confirmed pre-treatment payment exception.
         if settings.payment_required:
             if payment_status == PaymentStatus.PAID:
                 return True, "تم الدفع - يمكن الدخول"
-            elif payment_status == PaymentStatus.DEBT and getattr(settings, 'allow_debt', False):
-                return True, "دين معتمد - يمكن الدخول"
-            elif payment_status == PaymentStatus.EMERGENCY_DEBT and settings.emergency_payment_waived:
-                return True, "دين طوارئ - يمكن الدخول"
             else:
-                return False, "يجب الدفع أولاً أو الحصول على موافقة للدين"
+                return False, "يجب الدفع أولاً"
         
         return True, "لا يتطلب دفع"
     
