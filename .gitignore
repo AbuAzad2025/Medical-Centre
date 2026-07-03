@@ -90,4 +90,26 @@ agent-tools/
 # Ad-hoc scripts at repo root only (scripts/dev/ is tracked)
 /dev/
 
+# Assistant workspace metadata (AutoClaw)
+.openclaw/
+AGENTS.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md
+evolution-drafts/
+MEMORY.md
+
+# Tool caches
+.mypy_cache/
+.ruff_cache/
+pytestdebug.log
+
+# Temporary debug scripts at repo root
+_debug_*.py
+_trace_*.py
+forensic_*.py
+run_failing_test.py
+
 .tests_deleted/
