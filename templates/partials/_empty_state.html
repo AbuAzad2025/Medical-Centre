@@ -1,4 +1,4 @@
-{# G-129: friendly empty states — not a bare table row #}
+{# G-129: friendly empty states — classic + premium variant #}
 {% macro empty_state(icon='fas fa-inbox', title='لا توجد بيانات', description='', action_url='', action_label='', action_class='btn-primary') %}
 <div class="empty-state text-center py-5 px-3 animate-in" role="status">
     <i class="{{ icon }} fa-3x text-muted mb-3" aria-hidden="true"></i>
@@ -10,6 +10,29 @@
     <a href="{{ action_url }}" class="btn {{ action_class }} btn-sm">
         {{ action_label }}
     </a>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{# Premium centered panel with optional SVG illustration #}
+{% macro empty_state_premium(title='لا توجد بيانات', subtitle='', icon='fas fa-inbox', illustration_url='', action_label='', action_url='', action_class='btn-primary', secondary_label='', secondary_url='') %}
+<div class="empty-state-premium animate-in" role="status">
+    {% if illustration_url %}
+    <img src="{{ illustration_url }}" alt="" class="empty-illustration" aria-hidden="true">
+    {% else %}
+    <i class="{{ icon }} fa-4x text-muted mb-3" aria-hidden="true" style="opacity: 0.25;"></i>
+    {% endif %}
+    <h5 class="empty-title">{{ title }}</h5>
+    {% if subtitle %}
+    <p class="empty-subtitle">{{ subtitle }}</p>
+    {% endif %}
+    {% if action_url and action_label %}
+    <div class="empty-actions">
+        {% if secondary_url and secondary_label %}
+        <a href="{{ secondary_url }}" class="btn btn-outline-secondary btn-sm">{{ secondary_label }}</a>
+        {% endif %}
+        <a href="{{ action_url }}" class="btn {{ action_class }} btn-sm">{{ action_label }}</a>
+    </div>
     {% endif %}
 </div>
 {% endmacro %}

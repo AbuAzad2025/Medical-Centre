@@ -41,15 +41,43 @@
     text-decoration: none;
     font-size: 0.7rem;
     touch-action: manipulation;
+    position: relative;
+    transition: color 0.2s ease;
+  }
+
+  .mobile-bottom-nav a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline: 25%;
+    height: 3px;
+    background: var(--color-primary, #0f4c81);
+    border-radius: 0 0 3px 3px;
+    transform: scaleX(0);
+    transition: transform 0.25s ease;
   }
 
   .mobile-bottom-nav a i {
     font-size: 1.15rem;
+    transition: transform 0.2s ease;
   }
 
   .mobile-bottom-nav a.active {
     color: var(--color-primary, #0f4c81);
     font-weight: 600;
+  }
+
+  .mobile-bottom-nav a.active::before {
+    transform: scaleX(1);
+  }
+
+  .mobile-bottom-nav a.active i {
+    transform: translateY(-1px);
+  }
+
+  .mobile-bottom-nav .mobile-nav-label {
+    font-size: 0.68rem;
+    line-height: 1.2;
   }
 }
 

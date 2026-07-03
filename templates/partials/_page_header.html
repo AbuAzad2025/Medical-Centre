@@ -1,19 +1,30 @@
 {# Phase 5 — unified page header (clinical-page-header).
-   hero_class: optional gradient/hero wrapper class for department dashboards. #}
-{% macro page_header(title, subtitle='', icon='', breadcrumbs=[], actions=[], hero_class='') %}
+   hero_class: optional gradient/hero wrapper class for department dashboards.
+   back_url / back_label: optional back button to the left of breadcrumbs. #}
+{% macro page_header(title, subtitle='', icon='', breadcrumbs=[], actions=[], hero_class='', back_url='', back_label='رجوع') %}
 <div class="clinical-page-header fade-in-up{% if hero_class %} clinical-page-header--hero text-white {{ hero_class }}{% endif %}">
     <div>
-        {% if breadcrumbs %}
-        <nav class="clinical-breadcrumb" aria-label="مسار التنقل">
-            {% for crumb in breadcrumbs %}
-                {% if crumb.url %}
-                <a href="{{ crumb.url }}">{{ crumb.label }}</a>
-                {% else %}
-                {{ crumb.label }}
-                {% endif %}
-                {% if not loop.last %} / {% endif %}
-            {% endfor %}
-        </nav>
+        {% if back_url or breadcrumbs %}
+        <div class="page-header__breadcrumb-wrap">
+            {% if back_url %}
+            <a href="{{ back_url }}" class="page-header__back" aria-label="{{ back_label }}">
+                <i class="fas fa-arrow-{{ 'right' if not request or not dir_is_rtl else 'left' }} ms-0 me-0"></i>
+                <span class="d-none d-sm-inline">{{ back_label }}</span>
+            </a>
+            {% endif %}
+            {% if breadcrumbs %}
+            <nav class="clinical-breadcrumb" aria-label="مسار التنقل">
+                {% for crumb in breadcrumbs %}
+                    {% if crumb.url %}
+                    <a href="{{ crumb.url }}">{{ crumb.label }}</a>
+                    {% else %}
+                    {{ crumb.label }}
+                    {% endif %}
+                    {% if not loop.last %} / {% endif %}
+                {% endfor %}
+            </nav>
+            {% endif %}
+        </div>
         {% endif %}
         <h1>{% if icon %}<i class="{{ icon }} me-2" aria-hidden="true"></i>{% endif %}{{ title }}</h1>
         {% if subtitle %}<p class="{% if hero_class %}opacity-75{% else %}text-muted{% endif %} mb-0">{{ subtitle }}</p>{% endif %}

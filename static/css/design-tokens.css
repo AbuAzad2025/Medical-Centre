@@ -50,10 +50,16 @@
   --radius-md: 0.625rem; /* 10px */
   --radius-lg: 0.875rem; /* 14px */
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 6%);
-  --shadow-md: 0 4px 12px rgb(0 0 0 / 8%);
-  --shadow-lg: 0 10px 24px rgb(0 0 0 / 10%);
+  /* Shadows — refined: softer, more professional */
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 4%), 0 1px 2px rgb(0 0 0 / 4%);
+  --shadow-md: 0 2px 8px rgb(0 0 0 / 5%), 0 4px 12px rgb(0 0 0 / 5%);
+  --shadow-lg: 0 4px 16px rgb(0 0 0 / 6%), 0 8px 24px rgb(0 0 0 / 6%);
+  --shadow-xl: 0 8px 32px rgb(0 0 0 / 7%), 0 12px 40px rgb(0 0 0 / 5%);
+
+  /* Focus ring — accessibility */
+  --focus-ring: 0 0 0 3px rgba(15, 76, 129, 0.18);
+  --focus-ring-offset: 2px;
+  --focus-ring-color: rgba(15, 76, 129, 0.18);
 
   /* Layout */
   --sidebar-width: 260px;
@@ -100,6 +106,22 @@ body.clinical-theme a {
 
 body.clinical-theme a:hover {
   color: var(--color-primary-dark);
+}
+
+/* ── Global focus ring — accessibility ── */
+body.clinical-theme *:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+body.clinical-theme input:focus-visible,
+body.clinical-theme select:focus-visible,
+body.clinical-theme textarea:focus-visible,
+body.clinical-theme button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-color: var(--color-primary);
 }
 
 /* Utility classes that mirror tokens */

@@ -1,9 +1,25 @@
-<!-- Flash Messages (converted to toasts by flash.js) -->
+<!-- Flash Messages — styled with icons and dismiss support -->
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     <div class="flash-messages" aria-live="polite">
         {% for category, message in messages %}
-        <div class="flash-message {{ category }}">{{ message }}</div>
+        {% set icon_map = {
+            'success': 'fa-circle-check',
+            'error': 'fa-circle-xmark',
+            'danger': 'fa-circle-xmark',
+            'warning': 'fa-triangle-exclamation',
+            'info': 'fa-circle-info',
+            'message': 'fa-message',
+            'primary': 'fa-circle-info'
+        } %}
+        {% set icon = icon_map.get(category, 'fa-circle-info') %}
+        <div class="flash-message flash-{{ category or 'info' }}" role="alert">
+            <span class="flash-icon"><i class="fas {{ icon }}"></i></span>
+            <span class="flash-text">{{ message }}</span>
+            <button type="button" class="flash-dismiss" aria-label="إغلاق" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
         {% endfor %}
     </div>
     {% endif %}

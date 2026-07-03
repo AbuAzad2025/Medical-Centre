@@ -1,9 +1,10 @@
+{# Mobile bottom navigation — polished design with indicator bar #}
 {% if current_user.is_authenticated and mobile_nav_items %}
-<nav class="mobile-bottom-nav d-lg-none" aria-label="تنقل سريع">
+<nav class="mobile-bottom-nav d-lg-none" aria-label="تنقل سريع" role="navigation">
   {% for item in mobile_nav_items %}
-  <a href="{{ item.href }}" class="{% if item.active %}active{% endif %}">
-    <i class="fas {{ item.icon }}"></i>
-    <span>{{ item.label }}</span>
+  <a href="{{ item.href }}" class="{% if item.active %}active{% endif %}" {% if item.active %}aria-current="page"{% endif %}>
+    <i class="fas {{ item.icon }}" aria-hidden="true"></i>
+    <span class="mobile-nav-label">{{ item.label }}</span>
   </a>
   {% endfor %}
 </nav>

@@ -22,6 +22,25 @@
             </span>
 
             {% if current_user.is_authenticated %}
+            <!-- Notification bell with count badge -->
+            <div class="dropdown" id="notificationDropdown">
+                <button type="button" class="btn btn-light btn-sm position-relative" data-bs-toggle="dropdown" aria-expanded="false" aria-label="الإشعارات" title="الإشعارات">
+                    <i class="fas fa-bell"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationCount" style="font-size: 0.6rem; display: none;">
+                        0
+                    </span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-0" style="min-width: 320px; max-height: 400px; overflow-y: auto;">
+                    <div class="dropdown-header px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
+                        <span class="fw-bold">الإشعارات</span>
+                        <small class="text-muted" id="notificationBadge" style="display:none;"></small>
+                    </div>
+                    <div id="notificationList" class="p-3 text-center text-muted small">
+                        <i class="fas fa-bell-slash fa-2x mb-2 d-block opacity-25"></i>
+                        لا توجد إشعارات جديدة
+                    </div>
+                </div>
+            </div>
             <button type="button" class="btn btn-light btn-sm" id="themeToggleBtn" aria-label="تبديل الوضع الليلي" title="وضع ليلي / نهاري">
                 <i class="fas fa-moon" data-theme-icon></i>
             </button>

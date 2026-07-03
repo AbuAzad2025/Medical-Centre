@@ -21,6 +21,42 @@
   box-shadow: var(--shadow-card-hover);
 }
 
+/* ── Card — clinical variant (left-accent border, clean medical display) ── */
+.card-clinical {
+  border: 1px solid var(--border-subtle);
+  border-inline-start: 4px solid var(--azad-blue);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 4%);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  transition: box-shadow 0.25s ease;
+}
+.card-clinical:hover {
+  box-shadow: 0 2px 10px rgb(0 0 0 / 6%);
+}
+.card-clinical .cc-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+.card-clinical .cc-value {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.card-clinical .cc-unit {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-inline-start: 0.25rem;
+}
+
 .card.card-modern {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
@@ -139,6 +175,20 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Stat cards — refined typography */
+.card-stat .card-stat__number {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-family: var(--font-heading);
+}
+.card-stat .card-stat__label {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  font-weight: 500;
 }
 
 /* Stat display */
@@ -335,6 +385,50 @@
   font-size: 0.9rem;
   margin-bottom: 0;
 }
+
+/* ── Table — clinical variant (striped, clean borders, hover highlight) ── */
+.table-clinical {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.table-clinical thead th {
+  background: linear-gradient(180deg, rgba(15,76,129,0.04), rgba(15,76,129,0.01));
+  color: var(--azad-blue);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.7rem 1rem;
+  border-bottom: 2px solid var(--border-subtle);
+  text-align: start;
+  white-space: nowrap;
+}
+.table-clinical tbody td {
+  padding: 0.65rem 1rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+.table-clinical tbody tr:nth-child(even) {
+  background: rgba(248, 250, 252, 0.7);
+}
+.table-clinical tbody tr:hover {
+  background: rgba(15, 76, 129, 0.03);
+}
+.table-clinical tbody tr:last-child td {
+  border-bottom: none;
+}
+.table-clinical .cell-highlight {
+  font-weight: 700;
+  color: var(--azad-blue);
+}
+.table-clinical .cell-abnormal {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+/* Main table styles */
 
 .table thead th {
   background: linear-gradient(180deg, rgba(15,76,129,0.06), rgba(15,76,129,0.02));
@@ -632,6 +726,71 @@
 .status-pill.warning { background: rgba(217, 119, 6, 0.1); color: #92400e; }
 .status-pill.info { background: rgba(14, 165, 233, 0.1); color: #075985; }
 .status-pill.pending { background: rgba(100, 116, 139, 0.1); color: #475569; }
+
+/* ── Clinical state badge variants ── */
+.badge-critical, .badge.bg-critical {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+.badge-stable, .badge.bg-stable {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+.badge-waiting, .badge.bg-waiting {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+.badge-discharged, .badge.bg-discharged {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+.badge-scheduled, .badge.bg-scheduled {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+.badge-in-progress, .badge.bg-in-progress {
+  background: #ecfeff;
+  color: #0891b2;
+  border: 1px solid #a5f3fc;
+}
+.badge-completed, .badge.bg-completed {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+/* ── Status indicator (colored dot + label) ── */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.status-indicator::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-indicator.online::before, .status-indicator.active::before { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.2); }
+.status-indicator.offline::before, .status-indicator.inactive::before { background: #94a3b8; }
+.status-indicator.busy::before { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.2); }
+.status-indicator.critical::before { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.2); animation: statusPulse 2s ease-in-out infinite; }
+.status-indicator.stable::before { background: #22c55e; }
+.status-indicator.waiting::before { background: #f59e0b; }
+
+@keyframes statusPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(239,68,68,0.2); }
+  50% { box-shadow: 0 0 0 6px rgba(239,68,68,0.08); }
+}
 
 /* ═══════════════════════════════════════════════
    MODALS
@@ -1243,6 +1402,48 @@
   flex-wrap: wrap;
 }
 
+/* ── Empty state — premium centered panel ── */
+.empty-state-premium {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 3%);
+  min-height: 320px;
+}
+.empty-state-premium svg,
+.empty-state-premium .empty-illustration {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 1.25rem;
+  opacity: 0.7;
+}
+.empty-state-premium .empty-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+.empty-state-premium .empty-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  max-width: 400px;
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+.empty-state-premium .empty-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 /* ═══════════════════════════════════════════════
    FILTER / SEARCH BAR
    ═══════════════════════════════════════════════ */
@@ -1488,10 +1689,31 @@
    FORM ENHANCEMENTS
    ═══════════════════════════════════════════════ */
 
+/* ── Input sizing refinements ── */
+.form-control-lg {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: var(--radius-md);
+}
+.form-control-sm {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.82rem;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Focus ring refinement ── */
+.form-control:focus,
+.form-select:focus,
+textarea.form-control:focus {
+  border-color: var(--azad-blue);
+  box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.12);
+  outline: none;
+}
+
 /* Required field indicator */
 .form-label .required {
   color: var(--color-danger);
-  margin-right: 2px;
+  margin-inline-start: 2px;
 }
 
 /* Enhanced validation feedback */

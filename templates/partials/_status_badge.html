@@ -1,7 +1,46 @@
-{# Generic status badge — wraps enum_label (G-14) #}
-{% macro status_badge(value, enum_name, extra_class='bg-secondary') %}
+{# Generic status badge — auto maps status to color via enum_label (G-14) #}
+{% macro status_badge(value, enum_name, extra_class='') %}
 {% if value %}
-<span class="badge {{ extra_class }}">{{ value | enum_label(enum_name) }}</span>
+{% set label = value | enum_label(enum_name) %}
+{% set lower_val = value | lower %}
+{% set color_map = {
+    'active': 'badge-scheduled',
+    'inactive': 'badge-discharged',
+    'pending': 'badge-waiting',
+    'completed': 'badge-completed',
+    'cancelled': 'badge-critical',
+    'scheduled': 'badge-scheduled',
+    'in_progress': 'badge-in-progress',
+    'in-progress': 'badge-in-progress',
+    'waiting': 'badge-waiting',
+    'confirmed': 'badge-scheduled',
+    'checked_in': 'badge-in-progress',
+    'no_show': 'badge-discharged',
+    'discharged': 'badge-discharged',
+    'critical': 'badge-critical',
+    'stable': 'badge-stable',
+    'paid': 'badge-completed',
+    'unpaid': 'badge-waiting',
+    'partial': 'badge-waiting',
+    'overdue': 'badge-critical',
+    'draft': 'badge-discharged',
+    'submitted': 'badge-scheduled',
+    'approved': 'badge-completed',
+    'rejected': 'badge-critical',
+    'available': 'badge-stable',
+    'unavailable': 'badge-discharged',
+    'positive': 'badge-critical',
+    'negative': 'badge-stable',
+    'normal': 'badge-stable',
+    'abnormal': 'badge-waiting',
+    'high': 'badge-critical',
+    'low': 'badge-waiting',
+    'open': 'badge-scheduled',
+    'closed': 'badge-completed'
+} %}
+{% set resolved_class = color_map.get(lower_val, 'bg-secondary') %}
+{% set final_class = extra_class if extra_class else resolved_class %}
+<span class="badge {{ final_class }}">{{ label }}</span>
 {% else %}
 <span class="text-muted">—</span>
 {% endif %}
