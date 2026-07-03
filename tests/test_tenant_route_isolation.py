@@ -20,51 +20,103 @@ from app.core.tenant.models import Tenant
 
 @pytest.fixture(scope='function')
 def tenant_a(app):
-    t = Tenant.query.filter_by(slug='tenant-a').first()
-    if not t:
-        t = Tenant(
-            slug='tenant-a',
-            name='Tenant A',
-            contact_email='a@example.com',
-            status='active',
-            product_profile_code=ProductProfile.STANDALONE_PHARMACY,
-        )
-        _db.session.add(t)
+    from flask import g
+    prev = g.get('_tenant_filter_bypass', False)
+    g._tenant_filter_bypass = True
+    try:
+        t = Tenant.query.filter_by(slug='tenant-a').first()
+        if not t:
+            t = Tenant(
+                slug='tenant-a',
+                name='Tenant A',
+                contact_email='a@example.com',
+                status='active',
+                product_profile_code=ProductProfile.STANDALONE_PHARMACY,
+            )
+            _db.session.add(t)
+            _db.session.commit()
+        # Ensure pharmacy/medication modules are active (idempotent across test runs)
+        from app.core.module.models import TenantModule
+        for mn in ('pharmacy', 'medication', 'laboratory', 'lab_catalog', 'lab'):
+            try:
+                existing = TenantModule.query.filter_by(tenant_id=t.id, module_name=mn).first()
+                if not existing:
+                    _db.session.add(TenantModule(tenant_id=t.id, module_name=mn, is_active=True))
+                    _db.session.flush()
+            except Exception:
+                _db.session.rollback()
         _db.session.commit()
+    finally:
+        if prev:
+            g._tenant_filter_bypass = True
+        else:
+            g.pop('_tenant_filter_bypass', None)
     return t
 
 
 @pytest.fixture(scope='function')
 def tenant_b(app):
-    t = Tenant.query.filter_by(slug='tenant-b').first()
-    if not t:
-        t = Tenant(
-            slug='tenant-b',
-            name='Tenant B',
-            contact_email='b@example.com',
-            status='active',
-            product_profile_code=ProductProfile.STANDALONE_PHARMACY,
-        )
-        _db.session.add(t)
+    from flask import g
+    prev = g.get('_tenant_filter_bypass', False)
+    g._tenant_filter_bypass = True
+    try:
+        t = Tenant.query.filter_by(slug='tenant-b').first()
+        if not t:
+            t = Tenant(
+                slug='tenant-b',
+                name='Tenant B',
+                contact_email='b@example.com',
+                status='active',
+                product_profile_code=ProductProfile.STANDALONE_PHARMACY,
+            )
+            _db.session.add(t)
+            _db.session.commit()
+        from app.core.module.models import TenantModule
+        for mn in ('pharmacy', 'medication', 'laboratory', 'lab_catalog', 'lab'):
+            try:
+                existing = TenantModule.query.filter_by(tenant_id=t.id, module_name=mn).first()
+                if not existing:
+                    _db.session.add(TenantModule(tenant_id=t.id, module_name=mn, is_active=True))
+                    _db.session.flush()
+            except Exception:
+                _db.session.rollback()
         _db.session.commit()
+    finally:
+        if prev:
+            g._tenant_filter_bypass = True
+        else:
+            g.pop('_tenant_filter_bypass', None)
     return t
 
 
 @pytest.fixture(scope='function')
 def manager_a(app, tenant_a):
-    u = User.query.filter_by(username='manager_a').first()
-    if not u:
-        u = User(
-            username='manager_a',
-            email='ma@example.com',
-            full_name='Manager A',
-            role='manager',
-            is_active=True,
-            tenant_id=tenant_a.id,
-        )
-        u.set_password('test123')
-        _db.session.add(u)
-        _db.session.commit()
+    """Create a unique manager user per test to avoid duplicate-key errors."""
+    from flask import g
+    uid_suffix = uuid.uuid4().hex[:8]
+    username = f'manager_a_{uid_suffix}'
+    email = f'ma_{uid_suffix}@example.com'
+    prev = g.get('_tenant_filter_bypass', False)
+    g._tenant_filter_bypass = True
+    try:
+        u = User.query.filter_by(username=username, tenant_id=tenant_a.id).first()
+        if not u:
+            u = User(
+                username=username,
+                email=email,
+                full_name='Manager A',
+                role='manager',
+                is_active=True,
+                tenant_id=tenant_a.id,
+            )
+            u.set_password('test123')
+            _db.session.add(u)
+            _db.session.commit()
+    finally:
+        if prev:
+            g._tenant_filter_bypass = True
+        else:
+            g.pop('_tenant_filter_bypass', None)
     return u
 
 
@@ -72,11 +124,16 @@ def manager_a(app, tenant_a):
 def client_a(app, client, manager_a, tenant_a):
     from app.core.rate_limiter import _shared_store
     _shared_store.clear()
-    client.post('/auth/login', data={
-        'username': 'manager_a',
+    resp = client.post('/auth/login', data={
+        'username': manager_a.username,
         'password': 'test123',
         'tenant_slug': tenant_a.slug,
     })
+    with client.session_transaction() as sess:
+        sess['_user_id'] = str(manager_a.id)
+        sess['tenant_id'] = int(tenant_a.id)
+        sess['tenant_slug'] = tenant_a.slug
+        sess['_fresh'] = True
     return client
 
 
@@ -167,6 +224,7 @@ def lab_panel_b(app, tenant_b):
     return p
 
 
+@pytest.mark.no_tenant_context
 class TestMedicationCatalogIsolation:
     def test_medication_list_excludes_other_tenant(self, client_a, medication_b):
         resp = client_a.get('/medication/list')
@@ -190,6 +248,7 @@ class TestMedicationCatalogIsolation:
         assert medication_b.trade_name == 'TenantB Med'
 
 
+@pytest.mark.no_tenant_context
 class TestSupplierIsolation:
     def test_supplier_list_excludes_other_tenant(self, client_a, supplier_b):
         resp = client_a.get('/medication/suppliers')
@@ -220,6 +279,7 @@ class TestSupplierIsolation:
         assert purchase_b.batch_number.encode() not in resp.data
 
 
+@pytest.mark.no_tenant_context
 class TestPosIsolation:
     def test_pos_interface_excludes_other_tenant_medication(self, client_a, medication_b):
         resp = client_a.get('/medication/pos')
@@ -252,6 +312,7 @@ class TestPosIsolation:
         assert f'#{sale_b.id:06d}'.encode() not in resp.data
 
 
+@pytest.mark.no_tenant_context
 class TestLabCatalogIsolation:
     def test_lab_catalog_edit_requires_same_tenant(self, client_a, lab_test_b):
         original_code = lab_test_b.code

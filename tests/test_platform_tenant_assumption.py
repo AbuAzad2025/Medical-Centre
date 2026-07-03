@@ -354,7 +354,27 @@ class TestMiddlewareTenantAssumption:
             _login(client, user.id, None)
 
         resp = client.get(f"/t/{slug}/reception/visits")
-        assert resp.status_code != 403, f"Super admin with assumption blocked (got {resp.status_code})"
+        assert resp.status_code == 200, f"Super admin with assumption blocked (got {resp.status_code})"
+
+    def test_super_admin_with_assumption_cross_tenant_blocked(self, app, client):
+        """Super admin with assumption for Tenant A cannot access Tenant B."""
+        app.config["ENABLE_SAAS_MODE"] = True
+
+        with app.app_context():
+            tenant_a = _create_tenant(_unique_slug("sa"))
+            tenant_b = _create_tenant(_unique_slug("sb"))
+            user = _create_user("sa_cross", "super_admin", tenant_id=None)
+            PlatformAssumptionService.create_assumption(
+                user_id=user.id,
+                assumed_tenant_id=tenant_a.id,
+                reason="Assumption for tenant A only",
+            )
+            slug_a = tenant_a.slug
+            slug_b = tenant_b.slug
+            _login(client, user.id, None)
+
+        resp = client.get(f"/t/{slug_b}/reception/visits")
+        assert resp.status_code == 403, f"Expected 403 cross-tenant, got {resp.status_code}"
 
     def test_super_admin_expired_assumption_blocked(self, app, client):
         """Super admin with expired assumption → 403."""

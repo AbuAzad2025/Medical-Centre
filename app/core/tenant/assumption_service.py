@@ -101,10 +101,6 @@ class PlatformAssumptionService:
         """Middleware hook: abort 403 if authenticated user does not match resolved tenant."""
         from flask import abort, request
         from flask_login import current_user
-        import sys as _sys
-        from flask import session as _sess
-        print(f"[enforce] current_user={current_user} auth={current_user.is_authenticated} _id_in_sess={_sess.get('_id')!r} _uid_in_sess={_sess.get('_user_id')!r}", file=_sys.stderr)
-
         if not current_user.is_authenticated:
             return
 
