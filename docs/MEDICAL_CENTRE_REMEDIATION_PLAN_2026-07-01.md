@@ -1502,7 +1502,9 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 **Status:** Complete
 
-**Commit:** `54c5586`
+**Commit:** `856c033`
+
+**Corrective:** `04fc5e0` — weak assertions tightened, route isolation fixtures fixed, migration idempotency improved
 
 **Owner rules implemented:**
 - Explicit target tenant required for every assumption
@@ -1544,7 +1546,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 **Related test suites:**
 - `tests/test_background_tenant_context.py`: 11/11 passed (background tenant context isolation)
 - `tests/test_tenant_service.py`: passed (tenant service layer)
-- `tests/test_tenant_route_isolation.py`: 30 passed (15 pre-existing fixture errors unrelated to MC-005)
+- `tests/test_tenant_route_isolation.py`: 10/15 passed, 0 errors (5 lab catalog tests fail on module name — pre-existing, not MC-005 regression; was 15 errors before fixture fix)
 
 **Findings:**
 1. `session_protection='strong'` revealed `_login()` helper `_create_identifier()` mismatch between bare `test_request_context()` and `client.get()` — fixed in `d919efc` (separate commit)
@@ -1554,6 +1556,10 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 **Rollback path:** Revert the commit; drop `platform_tenant_assumptions` table via migration downgrade; revert `app_factory.py` user_loader bypass (restore conditional logic); remove `owner` role additions from `routes/reception/visits.py` and `services/feature_gate_service.py`.
 
 **Remaining blockers:** None.
+
+**Open issue:** 5 LabCatalogIsolation tests fail with 403 on module guard — name resolution needed for lab catalog module. Not an MC-005 regression (was 403 before MC-005 as well; MC-005 merely made it consistent by enforcing tenant-access before module guard).
+
+**Migration note:** `db.create_all()` pre-creates `platform_tenant_assumptions` table without the composite index `ix_platform_assumption_user_active`. The migration was fixed to check `index_exists()` separately and create the index even when the table already exists.
 
 ---
 
