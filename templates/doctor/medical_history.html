@@ -2,31 +2,59 @@
 {% block title %}السجل الطبي{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-3">السجل الطبي: {{ patient.full_name }}</h2>
+  <h2 class="mb-3"><i class="fas fa-notes-medical me-2"></i>السجل الطبي: {{ patient.full_name }}</h2>
+  
   <div class="row g-3">
     <div class="col-lg-6">
-      <div class="card shadow-sm"><div class="card-header">السجلات</div><div class="card-body">
-        <ul class="list-group">
-          {% for r in medical_records or [] %}
-          <li class="list-group-item">{{ r.created_at }} — {{ r.diagnosis }} — {{ r.notes }}</li>
+      <div class="card shadow-sm h-100">
+        <div class="card-header py-2"><h6 class="mb-0"><i class="fas fa-folder-open me-2"></i>السجلات الطبية</h6></div>
+        <div class="card-body p-0">
+          {% if medical_records %}
+          <table class="clinical-table">
+            <thead><tr><th>التاريخ</th><th>التشخيص</th><th>الملاحظات</th></tr></thead>
+            <tbody>
+              {% for r in medical_records or [] %}
+              <tr>
+                <td class="text-muted small">{{ r.created_at.strftime('%Y-%m-%d') if r.created_at else '—' }}</td>
+                <td class="fw-bold">{{ r.diagnosis or '—' }}</td>
+                <td class="small">{{ r.notes or '—' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
           {% else %}
-          <li class="list-group-item text-center">لا سجلات</li>
-          {% endfor %}
-        </ul>
-      </div></div>
+          <div class="text-center py-4 text-muted"><i class="fas fa-folder-open fa-2x mb-2"></i><p>لا سجلات</p></div>
+          {% endif %}
+        </div>
+      </div>
     </div>
     <div class="col-lg-6">
-      <div class="card shadow-sm"><div class="card-header">زيارات سابقة</div><div class="card-body">
-        <ul class="list-group">
-          {% for v in previous_visits or [] %}
-          <li class="list-group-item">{{ v.visit_date }} — {{ v.visit_type }} — {{ v.status | enum_label('VisitState') }}</li>
+      <div class="card shadow-sm h-100">
+        <div class="card-header py-2"><h6 class="mb-0"><i class="fas fa-history me-2"></i>زيارات سابقة</h6></div>
+        <div class="card-body p-0">
+          {% if previous_visits %}
+          <table class="clinical-table">
+            <thead><tr><th>التاريخ</th><th>النوع</th><th>الحالة</th></tr></thead>
+            <tbody>
+              {% for v in previous_visits or [] %}
+              <tr>
+                <td class="text-muted small">{{ v.visit_date.strftime('%Y-%m-%d') if v.visit_date else '—' }}</td>
+                <td>
+                  {% if v.visit_type in ['first','FIRST'] %}<span class="clinical-badge clinical-badge--info">أولى</span>
+                  {% elif v.visit_type in ['follow_up','FOLLOW_UP'] %}<span class="clinical-badge clinical-badge--pending">متابعة</span>
+                  {% else %}{{ v.visit_type }}{% endif %}
+                </td>
+                <td>{{ v.status | enum_label('VisitState') }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
           {% else %}
-          <li class="list-group-item text-center">لا زيارات</li>
-          {% endfor %}
-        </ul>
-      </div></div>
+          <div class="text-center py-4 text-muted"><i class="fas fa-history fa-2x mb-2"></i><p>لا زيارات</p></div>
+          {% endif %}
+        </div>
+      </div>
     </div>
   </div>
 </div>
 {% endblock %}
-

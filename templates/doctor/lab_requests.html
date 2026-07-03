@@ -7,21 +7,12 @@
 {% if module_active('lab') %}
 <div class="container-fluid">
     {{ page_header('طلبات المختبر', subtitle='إدارة طلبات التحاليل', icon='fas fa-flask', actions=[{'label': 'العودة للوحة التحكم', 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.dashboard'), 'style': 'secondary'}]) }}
-
-    <!-- Lab Requests List -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">طلبات التحاليل</h6>
-                </div>
-                <div class="card-body">
-                    <div class="text-center py-5">
-                        <i class="fas fa-flask fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">لا توجد طلبات تحاليل</h5>
-                        <p class="text-muted">ستظهر طلبات التحاليل هنا عند إنشائها</p>
-                    </div>
-                </div>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="text-center py-5">
+                <i class="fas fa-flask fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">لا توجد طلبات تحاليل</h5>
+                <p class="text-muted">ستظهر طلبات التحاليل هنا عند إنشائها</p>
             </div>
         </div>
     </div>
