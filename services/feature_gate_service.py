@@ -9,7 +9,7 @@ from app.core.module.validators import get_active_modules_for_tenant
 
 def _is_admin_user() -> bool:
     try:
-        return current_user.is_authenticated and current_user.role == "super_admin"
+        return current_user.is_authenticated and current_user.role in ("super_admin", "owner")
     except Exception:
         return False
 

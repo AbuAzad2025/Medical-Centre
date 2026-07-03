@@ -298,6 +298,15 @@ def set_tenant_context():
     if not tenant:
         return
 
+    # MC-005: enforce tenant-access for authenticated users
+    if not is_exempt:
+        try:
+            from app.core.tenant.assumption_service import PlatformAssumptionService
+            PlatformAssumptionService.enforce_tenant_access()
+        except Exception:
+            from flask import abort
+            abort(403, description="Cross-tenant access denied")
+
     from app.shared.enums import TenantStatus
     if tenant.status == TenantStatus.PENDING:
         if not any(request.path.startswith(p) for p in _PENDING_ALLOWED_PREFIXES):

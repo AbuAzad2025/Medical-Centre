@@ -881,6 +881,49 @@ def check_tenant_limits(tenant_id: int) -> dict[str, bool]:
     }
 
 
+class PlatformTenantAssumption(db.Model):
+    """Audited tenant assumption by platform users (MC-005).
+
+    A super_admin or owner may explicitly assume a tenant identity for
+    cross-tenant support, configuration, or troubleshooting.  Assumptions
+    are time-bound, audited, and must be explicitly created via the
+    owner API before the user can access tenant-scoped routes.
+    """
+    __tablename__ = 'platform_tenant_assumptions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    assumed_tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=False, index=True)
+    assumed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    reason = db.Column(db.String(500), nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=True)
+    revoked_at = db.Column(db.DateTime, nullable=True)
+    revoked_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    revoke_reason = db.Column(db.String(500), nullable=True)
+
+    user = db.relationship('User', foreign_keys=[user_id], lazy='select')
+    assumed_tenant = db.relationship('Tenant', foreign_keys=[assumed_tenant_id], lazy='select')
+    creator = db.relationship('User', foreign_keys=[assumed_by], lazy='select')
+    revoker = db.relationship('User', foreign_keys=[revoked_by], lazy='select')
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "assumed_tenant_id": self.assumed_tenant_id,
+            "assumed_by": self.assumed_by,
+            "reason": self.reason,
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "expires_at": self.expires_at.isoformat() if self.expires_at else None,
+            "revoked_at": self.revoked_at.isoformat() if self.revoked_at else None,
+            "revoked_by": self.revoked_by,
+            "revoke_reason": self.revoke_reason,
+        }
+
+
 class NotificationRule(db.Model):
     """Owner-configured notification triggers (email/webhook)."""
     __tablename__ = 'notification_rules'

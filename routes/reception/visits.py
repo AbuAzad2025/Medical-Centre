@@ -37,7 +37,7 @@ from utils.tenant_query import get_tenant_record, TenantContextError
 
 @reception_bp.route('/visits')
 @login_required
-@role_required('reception', 'super_admin', 'manager')
+@role_required('reception', 'super_admin', 'manager', 'owner')
 def visits():
     """قائمة الزيارات - الوحدة المركزية"""
     

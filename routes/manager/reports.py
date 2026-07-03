@@ -3,7 +3,7 @@
 from routes.manager import manager_bp
 
 # Imports
-from flask import render_template, request, jsonify, flash, redirect, url_for
+from flask import render_template, request, jsonify, flash, redirect, url_for, g
 from flask_login import login_required, current_user
 from utils.decorators import manager_or_admin_only, can_approve_force_payment, prevent_self_approval, role_required, role_required_json
 from models.patient import Patient

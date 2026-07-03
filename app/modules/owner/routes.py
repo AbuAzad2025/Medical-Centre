@@ -2498,3 +2498,85 @@ def owner_backups():
     }
     return render_template("owner/backups.html", backups=backups, stats=stats)
 
+
+# ═══════════════════════════════════════════════════════════════
+# MC-005 Platform Tenant Assumption API
+# ═══════════════════════════════════════════════════════════════
+
+@owner_bp.route("/api/assumptions", methods=["GET"])
+@login_required
+@owner_required
+def owner_list_assumptions():
+    """List active tenant assumptions."""
+    from app.core.tenant.assumption_service import PlatformAssumptionService
+
+    user_id = request.args.get("user_id", type=int)
+    assumptions = PlatformAssumptionService.get_active_assumptions(user_id=user_id)
+    return jsonify({
+        "assumptions": [a.to_dict() for a in assumptions],
+        "count": len(assumptions),
+    })
+
+
+@owner_bp.route("/api/assumptions", methods=["POST"])
+@login_required
+@owner_required
+def owner_create_assumption():
+    """Create a new tenant assumption for a platform user."""
+    from app.core.tenant.assumption_service import PlatformAssumptionService, PlatformAssumptionError
+
+    data = request.get_json(silent=True) or {}
+    user_id = data.get("user_id")
+    assumed_tenant_id = data.get("assumed_tenant_id")
+    reason = data.get("reason", "")
+    expires_in_hours = data.get("expires_in_hours")
+    if expires_in_hours is not None:
+        try:
+            expires_in_hours = int(expires_in_hours)
+        except (ValueError, TypeError):
+            expires_in_hours = None
+
+    if not user_id or not assumed_tenant_id:
+        return jsonify({"error": "user_id and assumed_tenant_id are required"}), 400
+
+    expires_at = None
+    if expires_in_hours:
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=expires_in_hours)
+
+    try:
+        assumption = PlatformAssumptionService.create_assumption(
+            user_id=user_id,
+            assumed_tenant_id=assumed_tenant_id,
+            reason=reason,
+            assumed_by=current_user.id,
+            expires_at=expires_at,
+        )
+        _log_action("CREATE_ASSUMPTION", "platform_tenant_assumption", assumption.id,
+                     f"user={user_id} tenant={assumed_tenant_id} reason={reason}")
+        return jsonify({"assumption": assumption.to_dict()}), 201
+    except PlatformAssumptionError as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@owner_bp.route("/api/assumptions/<int:assumption_id>/revoke", methods=["POST"])
+@login_required
+@owner_required
+def owner_revoke_assumption(assumption_id):
+    """Revoke an active tenant assumption."""
+    from app.core.tenant.assumption_service import PlatformAssumptionService
+
+    data = request.get_json(silent=True) or {}
+    revoke_reason = data.get("revoke_reason", "Revoked by owner")
+
+    assumption = PlatformAssumptionService.revoke_assumption(
+        assumption_id=assumption_id,
+        revoked_by=current_user.id,
+        revoke_reason=revoke_reason,
+    )
+    if not assumption:
+        return jsonify({"error": "Assumption not found"}), 404
+
+    _log_action("REVOKE_ASSUMPTION", "platform_tenant_assumption", assumption_id,
+                 f"revoked_by={current_user.id} reason={revoke_reason}")
+    return jsonify({"assumption": assumption.to_dict()})
+

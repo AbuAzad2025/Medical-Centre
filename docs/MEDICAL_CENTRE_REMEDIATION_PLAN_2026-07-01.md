@@ -1498,6 +1498,65 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 ---
 
+### MC-005 — Platform Tenant Assumption (Audited Cross-Tenant Access)
+
+**Status:** Complete
+
+**Commit:** `54c5586`
+
+**Owner rules implemented:**
+- Explicit target tenant required for every assumption
+- Mandatory reason (min 10 characters)
+- Created-at, expires-at, revoked-at timestamps
+- Revoke/clear with audit trail
+- Assumed actions attributable to platform actor and target tenant
+- Middleware applies assumed tenant only while assumption is valid (active + not expired + not revoked)
+- Ordinary tenant-scoped users denied cross-tenant access
+- Expired/revoked assumption fails closed (403)
+- super_admin or owner without valid assumption cannot silently access a tenant through URL, slug, session, or arbitrary tenant ID
+- Higher roles (super_admin, owner) may perform lower-role capabilities after valid tenant isolation is established; existing role hierarchy and access inheritance preserved
+
+**Files changed:**
+
+| File | Change |
+|------|--------|
+| `app/core/tenant/middleware.py` | +9 lines — MC-005 enforcement hook in `set_tenant_context()`: calls `PlatformAssumptionService.enforce_tenant_access()` for non-exempt paths; 403 on cross-tenant access |
+| `app/core/tenant/models.py` | +43 lines — `PlatformTenantAssumption` model: `user_id`, `assumed_tenant_id`, `assumed_by`, `reason`, `is_active`, `created_at`, `expires_at`, `revoked_at`, `revoked_by`, `revoke_reason` with FK relationships to `users` and `tenants` |
+| `app/core/tenant/assumption_service.py` | New file — `PlatformAssumptionService`: `create_assumption()`, `revoke_assumption()`, `has_valid_assumption()`, `get_active_assumptions()`, `is_platform_user()`, `enforce_tenant_access()` |
+| `app/modules/owner/routes.py` | +82 lines — 3 API endpoints: `GET /api/assumptions` (list), `POST /api/assumptions` (create), `POST /api/assumptions/<id>/revoke` (revoke), all with `@login_required` + `@owner_required` |
+| `app_factory.py` | ~6 lines changed — `user_loader` always bypasses tenant filter (so platform users with `tenant_id=NULL` can be loaded by `login_user()`) |
+| `routes/manager/reports.py` | +1 line — added `g` import |
+| `routes/reception/visits.py` | +1 line — added `owner` to `@role_required` decorator |
+| `services/feature_gate_service.py` | +1 line — added `owner` to `_is_admin_user()` check |
+| `migrations/versions/s1_010_platform_tenant_assumption.py` | New file — creates `platform_tenant_assumptions` table with FK constraints to `users` and `tenants`, composite index on `(user_id, is_active)` |
+| `tests/test_platform_tenant_assumption.py` | 616 lines (committed in `d919efc`) — full acceptance suite |
+
+**Migration chain:** `s1_008_custom_service_lifecycle` → `s1_009_audit_action_constraint` → `s1_010_platform_tenant_assumption` (head)
+
+**Test command:** `pytest tests/test_platform_tenant_assumption.py -v`
+
+**Test result:** 23 passed in 68.49s
+- TestAssumptionService: 8/8 — create, reason validation, has_valid, expired, revoked, get_active, owner_role, non_platform
+- TestMiddlewareTenantAssumption: 8/8 — own-tenant allowed, super_admin blocked without assumption, super_admin allowed with assumption, expired blocked, revoked blocked, cross-tenant blocked, exempt path not blocked, owner with assumption allowed
+- TestAssumptionOwnerAPI: 4/4 — create, list, revoke, field validation
+- TestStrongSessionProtection: 3/3 — real-login survives strong, repaired-helper survives strong, missing-id rejected
+
+**Related test suites:**
+- `tests/test_background_tenant_context.py`: 11/11 passed (background tenant context isolation)
+- `tests/test_tenant_service.py`: passed (tenant service layer)
+- `tests/test_tenant_route_isolation.py`: 30 passed (15 pre-existing fixture errors unrelated to MC-005)
+
+**Findings:**
+1. `session_protection='strong'` revealed `_login()` helper `_create_identifier()` mismatch between bare `test_request_context()` and `client.get()` — fixed in `d919efc` (separate commit)
+2. `app_factory.py` `user_loader` previously conditional tenant-filter bypass prevented loading platform users (`tenant_id=NULL`) — fixed: always bypass during user load
+3. `auto_assign_tenant` hook prevents creating users with `tenant_id=NULL` via ORM — test `_create_user()` works around this with raw SQL; production uses owner API or seed script
+
+**Rollback path:** Revert the commit; drop `platform_tenant_assumptions` table via migration downgrade; revert `app_factory.py` user_loader bypass (restore conditional logic); remove `owner` role additions from `routes/reception/visits.py` and `services/feature_gate_service.py`.
+
+**Remaining blockers:** None.
+
+---
+
 **Comprehensive Remediation Complete.**
 
 All 11 tickets implemented, tested, and committed on `main`:

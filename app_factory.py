@@ -312,14 +312,16 @@ def create_app(config_name: str | None = None) -> Flask:
             except Exception:
                 expected_version = 0
         prev_bypass = g.get('_tenant_filter_bypass', False)
-        if not g.get('tenant_id'):
-            g._tenant_filter_bypass = True
+        # Always bypass tenant filter when loading a user — otherwise the
+        # filter would block platform users (tenant_id=NULL) when the early
+        # tenant-binding before_request has already set g.tenant_id.
+        g._tenant_filter_bypass = True
         try:
             user = db.session.get(User, uid)
         finally:
             if prev_bypass:
                 g._tenant_filter_bypass = True
-            elif not g.get('tenant_id'):
+            else:
                 g.pop('_tenant_filter_bypass', None)
         if not user:
             return None
