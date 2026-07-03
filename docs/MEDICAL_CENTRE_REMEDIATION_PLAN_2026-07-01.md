@@ -1463,6 +1463,41 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 ---
 
+---
+
+### Session-Security Correction — Test Helper `_id` Mismatch
+
+**Status:** Complete
+
+**Commit:** `d919efc`
+
+**Root cause:** The `_login()` helper in `tests/test_platform_tenant_assumption.py` called `login_user()` inside a bare `test_request_context()` without explicit `environ_base`. That context generated Flask-Login's `_id` using `remote_addr=None` and `User-Agent=None` (since `test_request_context()` provides no environ defaults), while actual `client.get()` requests use `remote_addr='127.0.0.1'` and `User-Agent='Werkzeug/2.3.7'`. Under `login_manager.session_protection='strong'` (`app_factory.py:291`), Flask-Login's `_session_protection_failed()` compared the mismatched hashes and cleared the session, causing a 302 redirect to login.
+
+**Fix:** Pass `environ_base={'REMOTE_ADDR': '127.0.0.1', 'HTTP_USER_AGENT': f'Werkzeug/{werkzeug.__version__}'}` to `test_request_context()` so both contexts produce identical `_id` hashes.
+
+**Production config preserved:** `session_protection='strong'` — never weakened.
+
+**Files changed:** `tests/test_platform_tenant_assumption.py` — 616 lines (new file, includes full MC-005 test suite + 3 regression tests).
+
+**Test command:** `pytest tests/test_platform_tenant_assumption.py -v`
+
+**Test result:** 23 passed in 52.00s
+- TestAssumptionService: 8/8 passed
+- TestMiddlewareTenantAssumption: 8/8 passed
+- TestAssumptionOwnerAPI: 4/4 passed
+- TestStrongSessionProtection: 3/3 passed (real-login, repaired-helper, missing-id-rejected)
+
+**Helpers inspected and verified correct:**
+- `tests/tenant_context.py::login_test_client` — uses real POST login (correct)
+- `tests/conftest.py::login_as` → `_login` inner — delegates to `login_test_client` (correct)
+- `tests/test_phase14_launch.py::_login_as` — delegates to `login_test_client` (correct)
+
+**Temp debug files removed:** `_debug_cookies.py`, `_trace_session.py`, `forensic_investigator.py`, `forensic_session_trace.py`, `run_failing_test.py`
+
+**MC-005 implementation work:** All uncommitted MC-005 source, migration, route, middleware, and model changes preserved untouched.
+
+---
+
 **Comprehensive Remediation Complete.**
 
 All 11 tickets implemented, tested, and committed on `main`:
