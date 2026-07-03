@@ -2,46 +2,56 @@
 {% import 'macros/forms.html' as forms %}
 {% block title %}وصفة طبية{% endblock %}
 {% block content %}
-<div class="container-fluid">
-  <div class="patient-summary-bar mb-3">
-    <div class="ps-avatar"><i class="fas fa-prescription-bottle"></i></div>
-    <div><div class="fw-bold">الوصفة — زيارة #{{ visit.id }}</div><div class="text-muted small">المريض: {{ visit.patient.full_name if visit.patient else '' }}</div></div>
-    <div class="ps-divider"></div>
-    <div class="ps-item"><span class="ps-label">القسم</span><span class="ps-value">{{ visit.department.name_ar if visit.department else '—' }}</span></div>
-    <div class="ps-item"><span class="ps-label">التشخيص</span><span class="ps-value">{{ visit.medical_record.diagnosis if visit.medical_record else '—' }}</span></div>
-  </div>
-
+<div class="container">
+  <h2 class="mb-3">الوصفة للزيارة #{{ visit.id }}</h2>
+  <div class="card shadow-sm"><div class="card-body">
+    <p>المريض: {{ visit.patient.full_name if visit.patient else '' }}</p>
+    <p>القسم: {{ visit.department.name_ar if visit.department else '' }}</p>
+    <p>التشخيص: {{ visit.medical_record.diagnosis if visit.medical_record else '' }}</p>
+  </div></div>
   {% if visit_prescriptions %}
-  <div class="card shadow-sm mb-3">
-    <div class="card-header py-2"><h6 class="mb-0"><i class="fas fa-history me-2"></i>وصفات هذه الزيارة</h6></div>
-    <div class="card-body p-0">
-      <table class="clinical-table">
-        <thead><tr><th>#</th><th>رقم الوصفة</th><th>عدد الأدوية</th><th>التاريخ</th><th></th></tr></thead>
-        <tbody>
-          {% for p in visit_prescriptions %}
-          <tr>
-            <td>{{ p.id }}</td><td><span class="fw-bold">{{ p.prescription_number }}</span></td>
-            <td><span class="clinical-badge clinical-badge--info">{{ p.items.count() }} دواء</span></td>
-            <td class="text-muted small">{{ p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '' }}</td>
-            <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('doctor.print_prescription', prescription_id=p.id) }}" target="_blank"><i class="fas fa-print me-1"></i>طباعة</a></td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <div class="card shadow-sm mt-3">
+    <div class="card-header">وصفات هذه الزيارة</div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>رقم الوصفة</th>
+              <th>عدد الأدوية</th>
+              <th>التاريخ</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in visit_prescriptions %}
+            <tr>
+              <td>{{ p.id }}</td>
+              <td>{{ p.prescription_number }}</td>
+              <td>{{ p.items.count() }}</td>
+              <td>{{ p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '' }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('doctor.print_prescription', prescription_id=p.id) }}" target="_blank">
+                  <i class="fas fa-print me-1"></i>طباعة
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
   {% endif %}
-
-  <div class="card shadow-sm">
-    <div class="card-header py-3"><h6 class="mb-0"><i class="fas fa-plus-circle me-2 text-primary"></i>إنشاء وصفة</h6></div>
+  <div class="card mt-3">
+    <div class="card-header">إنشاء وصفة</div>
     <div class="card-body">
       <form method="post">
         {{ forms.csrf() }}
-        
-        <!-- Template Selector -->
-        <div class="row g-3 mb-3">
+        <div class="row g-3 mb-2">
           <div class="col-md-6">
-            <label class="form-label fw-bold"><i class="fas fa-copy me-1"></i>قوالب الطبيب</label>
+            <label class="form-label">قوالب الطبيب</label>
             <select class="form-select" id="templateSelect">
               <option value="">بدون قالب</option>
               {% for t in doctor_templates or [] %}
@@ -62,55 +72,56 @@
           {% endfor %}
         </datalist>
 
-        <!-- Prescription Items Table -->
-        <div class="clinical-form-section">
-          <h6><i class="fas fa-tablets me-2"></i>الأدوية</h6>
-          <div class="table-responsive">
-            <table class="clinical-table" id="rxItemsTable">
-              <thead>
-                <tr>
-                  <th style="min-width:280px;">الدواء</th>
-                  <th style="min-width:140px;">الجرعة</th>
-                  <th style="min-width:140px;">التكرار</th>
-                  <th style="min-width:100px;">المدة (أيام)</th>
-                  <th style="min-width:90px;">الكمية</th>
-                  <th style="min-width:180px;">تعليمات</th>
-                  <th style="width:1%;"></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <button type="button" class="btn btn-outline-primary mt-2" id="addRxItemBtn">
-            <i class="fas fa-plus me-1"></i>إضافة دواء
-          </button>
-        </div>
-
         <div class="row g-3">
-          <div class="col-md-6 clinical-form-group">
-            <label class="form-label fw-bold">تعليمات إضافية (للوصفة كاملة)</label>
+          <div class="col-12">
+            <div class="table-responsive">
+              <table class="table table-sm align-middle" id="rxItemsTable">
+                <thead>
+                  <tr>
+                    <th style="min-width: 340px;">الدواء</th>
+                    <th style="min-width: 160px;">الجرعة</th>
+                    <th style="min-width: 160px;">التكرار</th>
+                    <th style="min-width: 120px;">المدة (أيام)</th>
+                    <th style="min-width: 100px;">الكمية</th>
+                    <th style="min-width: 200px;">تعليمات</th>
+                    <th style="width: 1%;"></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <button type="button" class="btn btn-outline-primary" id="addRxItemBtn">
+              <i class="fas fa-plus me-1"></i>إضافة دواء
+            </button>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">تعليمات إضافية (للوصفة كاملة)</label>
             <textarea class="form-control" name="additional_notes" rows="3" placeholder="أي تعليمات عامة للصيدلية أو للمريض"></textarea>
           </div>
 
-          <div class="col-md-6 clinical-form-group">
-            <label class="form-label fw-bold">أدوية غير موجودة (اختياري)</label>
+          <div class="col-md-6">
+            <label class="form-label">أدوية غير موجودة (اختياري)</label>
             <textarea class="form-control" name="non_catalog_medications" rows="3" placeholder="اكتب أسماء الأدوية غير الموجودة لإشعار الصيدلية"></textarea>
           </div>
 
           <div class="col-md-6">
-            <div class="form-check mt-2">
+            <div class="form-check mt-4">
               <input class="form-check-input" type="checkbox" id="save_as_template" name="save_as_template">
-              <label class="form-check-label fw-bold" for="save_as_template">حفظ كقالب للطبيب</label>
+              <label class="form-check-label" for="save_as_template">حفظ كقالب للطبيب</label>
             </div>
           </div>
-          <div class="col-md-6 clinical-form-group">
-            <label class="form-label fw-bold">اسم القالب (عند الحفظ)</label>
+          <div class="col-md-6">
+            <label class="form-label">اسم القالب (عند الحفظ)</label>
             <input type="text" class="form-control" name="template_name" placeholder="مثال: نزلة برد">
           </div>
 
-          <div class="col-12 d-flex gap-2">
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>حفظ الوصفة</button>
-            <a href="{{ url_for('doctor.patient_details', visit_id=visit.id) }}" class="btn btn-secondary">رجوع</a>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-prescription-bottle-alt me-1"></i>
+              حفظ الوصفة
+            </button>
+            <a href="{{ url_for('doctor.patient_details', visit_id=visit.id) }}" class="btn btn-secondary ms-2">رجوع</a>
           </div>
         </div>
       </form>

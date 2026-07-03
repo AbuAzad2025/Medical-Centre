@@ -14,205 +14,359 @@
         subtitle='إدارة المرضى المخصصين للطبيب',
         icon='fas fa-users',
         actions=[
-            {'url': url_for('doctor.dashboard'), 'label': 'لوحة التحكم', 'icon': 'fas fa-arrow-left', 'style': 'secondary'},
+            {'url': url_for('doctor.dashboard'), 'label': 'العودة للوحة التحكم', 'icon': 'fas fa-arrow-left', 'style': 'secondary'},
             {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync', 'style': 'primary', 'data_action': 'refreshQueue'}
         ]
     ) }}
-
     <!-- Doctor Patient Search -->
-    <div class="card shadow-sm mb-3">
-        <div class="card-header py-2"><h6 class="mb-0"><i class="fas fa-search me-2"></i>بحث عن مريض</h6></div>
-        <div class="card-body">
-            <div class="row g-3 align-items-center">
-                <div class="col-md-6">
-                    <input type="text" id="doctorPatientSearch" class="form-control" placeholder="اكتب اسم المريض أو الهاتف أو الهوية...">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-search me-2"></i>بحث عن مريض</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-6">
+                            <input type="text" id="doctorPatientSearch" class="form-control" placeholder="اكتب اسم المريض أو الهاتف أو الهوية...">
+                        </div>
+                    </div>
+                    <div id="doctorPatientResults" class="list-group mt-3" class="d-none"></div>
                 </div>
             </div>
-            <div id="doctorPatientResults" class="list-group mt-3" style="display:none;"></div>
         </div>
     </div>
 
     <!-- Queue Statistics -->
-    <div class="quick-stats-row">
-        <div class="quick-stat">
-            <div class="qs-icon" style="background:#eff6ff;color:#2563eb;"><i class="fas fa-users"></i></div>
-            <div class="qs-info">
-                <div class="qs-value" id="stat-total">{{ queue_stats.total_patients or 0 }}</div>
-                <div class="qs-label">إجمالي المرضى</div>
-            </div>
-        </div>
-        <div class="quick-stat">
-            <div class="qs-icon" style="background:#f0fdf4;color:#16a34a;"><i class="fas fa-check-circle"></i></div>
-            <div class="qs-info">
-                <div class="qs-value" id="stat-ready">{{ queue_stats.ready_patients or 0 }}</div>
-                <div class="qs-label">جاهز للعلاج</div>
-            </div>
-        </div>
-        <div class="quick-stat">
-            <div class="qs-icon" style="background:#fffbeb;color:#d97706;"><i class="fas fa-clock"></i></div>
-            <div class="qs-info">
-                <div class="qs-value" id="stat-in-progress">{{ queue_stats.in_progress or 0 }}</div>
-                <div class="qs-label">قيد العلاج</div>
-            </div>
-        </div>
-        <div class="quick-stat">
-            <div class="qs-icon" style="background:#f0fdfa;color:#0d9488;"><i class="fas fa-hourglass-half"></i></div>
-            <div class="qs-info">
-                <div class="qs-value"><span id="stat-wait">{{ queue_stats.average_wait_time or 0 }}</span> د</div>
-                <div class="qs-label">متوسط الانتظار</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Queue Table -->
-    <div class="card shadow-sm">
-        <div class="card-header d-flex justify-content-between align-items-center py-3">
-            <h6 class="mb-0"><i class="fas fa-list-check text-primary me-2"></i>قائمة المرضى</h6>
-            <span class="badge bg-secondary">{{ total }} مريض</span>
-        </div>
-        <div class="card-body p-0">
-            {% if patients %}
-                <div class="table-responsive">
-                    <table class="clinical-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>اسم المريض</th>
-                                <th>نوع الزيارة</th>
-                                <th>الوقت</th>
-                                <th>الحالة</th>
-                                <th>الأولوية</th>
-                                <th>الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for patient in patients %}
-                            <tr class="{% if patient.status == 'IN_PROGRESS' %}row-warning{% endif %}">
-                                <td>{{ loop.index }}</td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-size:0.85rem;font-weight:700;">
-                                            {{ patient.patient.full_name[0] if patient.patient else '?' }}
-                                        </div>
-                                        <div>
-                                            <strong>{{ patient.patient.full_name if patient.patient else 'غير محدد' }}</strong><br>
-                                            <small class="text-muted">{{ patient.patient.national_id if patient.patient else '' }}</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    {% if patient.visit_type in ['first','FIRST'] %}
-                                        <span class="clinical-badge clinical-badge--info">أولى</span>
-                                    {% elif patient.visit_type in ['follow_up','FOLLOW_UP'] %}
-                                        <span class="clinical-badge clinical-badge--info">متابعة</span>
-                                    {% elif patient.visit_type in ['emergency','EMERGENCY'] %}
-                                        <span class="clinical-badge clinical-badge--critical">طوارئ</span>
-                                    {% elif patient.visit_type in ['REGULAR'] %}
-                                        <span class="clinical-badge clinical-badge--pending">اعتيادية</span>
-                                    {% elif patient.visit_type in ['CONSULTATION','consultation'] %}
-                                        <span class="clinical-badge clinical-badge--normal">استشارة</span>
-                                    {% else %}
-                                        <span class="clinical-badge clinical-badge--pending">{{ patient.visit_type }}</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-muted small">{% if patient.visit_time %}{{ patient.visit_time.strftime('%H:%M') }}{% else %}—{% endif %}</td>
-                                <td>
-                                    {% if patient.status == 'OPEN' %}
-                                        <span class="clinical-badge clinical-badge--info">في الانتظار</span>
-                                    {% elif patient.status == 'IN_PROGRESS' %}
-                                        <span class="clinical-badge clinical-badge--in-progress">قيد العلاج</span>
-                                    {% elif patient.status == 'COMPLETED' %}
-                                        <span class="clinical-badge clinical-badge--normal">مكتمل</span>
-                                    {% elif patient.status == 'ARCHIVED' %}
-                                        <span class="clinical-badge clinical-badge--pending">مؤرشف</span>
-                                    {% else %}
-                                        <span class="clinical-badge clinical-badge--pending">{{ patient.status | enum_label('VisitState') }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if patient.visit_type == 'emergency' %}
-                                        <span class="clinical-badge clinical-badge--critical">عاجل</span>
-                                    {% else %}
-                                        <span class="clinical-badge clinical-badge--normal">عادي</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-1 flex-wrap">
-                                        {% if patient.status == 'OPEN' %}
-                                            {% if can_start_map.get(patient.id, False) %}
-                                                <form method="POST" action="{{ url_for('doctor.start_treatment', visit_id=patient.id) }}" class="d-inline">
-                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <button type="submit" class="btn btn-success btn-sm"><i class="fas fa-play me-1"></i>بدء</button>
-                                                </form>
-                                            {% else %}
-                                                <form method="POST" action="{{ url_for('doctor.call_patient', visit_id=patient.id) }}" class="d-inline">
-                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <button type="submit" class="btn btn-warning btn-sm"><i class="fas fa-bullhorn me-1"></i>استدعاء</button>
-                                                </form>
-                                            {% endif %}
-                                        {% endif %}
-                                        <a href="{{ url_for('doctor.patient_details', visit_id=patient.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-eye me-1"></i>عرض</a>
-                                        {% if patient.status == 'IN_PROGRESS' %}
-                                            <form method="POST" action="{{ url_for('doctor.end_treatment', visit_id=patient.id) }}" class="d-inline">
-                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirmSubmit(event, 'هل أنت متأكد من إنهاء العلاج؟')"><i class="fas fa-stop me-1"></i>إنهاء</button>
-                                            </form>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Pagination -->
-                <div class="d-flex justify-content-between align-items-center p-3 border-top">
-                    <div class="text-muted small">عرض {{ total }} مريض</div>
-                    <div class="btn-group btn-group-sm">
-                        <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}" href="{{ url_for('doctor.patient_queue', page=page-1) }}">السابق</a>
-                        <span class="btn btn-outline-secondary">صفحة {{ page }} من {{ pages if pages > 0 else 1 }}</span>
-                        <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}" href="{{ url_for('doctor.patient_queue', page=page+1) }}">التالي</a>
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-modern h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small fw-bold mb-2">إجمالي المرضى</div>
+                            <div class="h2 mb-0 fw-bold gradient-text" id="stat-total">{{ queue_stats.total_patients or 0 }}</div>
+                        </div>
+                        <div class="icon-circle bg-primary bg-opacity-10 text-primary">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
                     </div>
                 </div>
-            {% else %}
-                {{ empty_state(icon='fas fa-user-clock', title='لا مرضى بالانتظار حالياً', description='جميع المرضى المخصصين لك قد تم علاجهم أو لا توجد زيارات جديدة.', action_url=url_for('doctor.dashboard'), action_label='العودة للوحة التحكم') }}
-            {% endif %}
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-modern h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small fw-bold mb-2">جاهز للعلاج</div>
+                            <div class="h2 mb-0 fw-bold gradient-text" id="stat-ready">{{ queue_stats.ready_patients or 0 }}</div>
+                        </div>
+                        <div class="icon-circle bg-success bg-opacity-10 text-success">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-modern h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small fw-bold mb-2">قيد العلاج</div>
+                            <div class="h2 mb-0 fw-bold gradient-text" id="stat-in-progress">{{ queue_stats.in_progress or 0 }}</div>
+                        </div>
+                        <div class="icon-circle bg-warning bg-opacity-10 text-warning">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card card-modern h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-uppercase text-muted small fw-bold mb-2">متوسط الانتظار</div>
+                            <div class="h2 mb-0 fw-bold gradient-text"><span id="stat-wait">{{ queue_stats.average_wait_time or 0 }}</span> دقيقة</div>
+                        </div>
+                        <div class="icon-circle bg-info bg-opacity-10 text-info">
+                            <i class="fas fa-hourglass-half fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Linked Requests -->
-    <div class="card shadow-sm mt-3">
-        <div class="card-header py-2"><h6 class="mb-0"><i class="fas fa-vials me-2"></i>طلبات الفحوصات المرتبطة بزيارات اليوم</h6></div>
-        <div class="card-body p-0">
-            {% if linked_requests and linked_requests|length > 0 %}
-            <table class="clinical-table">
-                <thead><tr><th>الزيارة</th><th>المريض</th><th>مختبر (معلق)</th><th>أشعة (معلق)</th><th>إجراءات سريعة</th></tr></thead>
-                <tbody>
-                    {% for r in linked_requests %}
-                    <tr>
-                        <td><span class="fw-bold">#{{ r.visit_id }}</span></td>
-                        <td>{{ r.patient_name }}</td>
-                        <td>{% if r.lab_pending > 0 %}<span class="clinical-badge clinical-badge--warning">{{ r.lab_pending }}</span>{% else %}<span class="clinical-badge clinical-badge--normal">0</span>{% endif %}</td>
-                        <td>{% if r.rad_pending > 0 %}<span class="clinical-badge clinical-badge--warning">{{ r.rad_pending }}</span>{% else %}<span class="clinical-badge clinical-badge--normal">0</span>{% endif %}</td>
-                        <td>
-                            <div class="d-flex gap-1 flex-wrap">
-                                <a href="{{ url_for('doctor.notes', visit_id=r.visit_id, type='general') }}" class="btn btn-outline-secondary btn-sm" title="مذكرة عامة"><i class="fas fa-sticky-note"></i></a>
-                                {% if module_active('lab') %}
-                                <a href="{{ url_for('doctor.lab_request', visit_id=r.visit_id) }}" class="btn btn-outline-warning btn-sm" title="طلب مختبر"><i class="fas fa-flask"></i></a>
-                                {% endif %}
-                                {% if module_active('radiology') %}
-                                <a href="{{ url_for('doctor.radiology_request', visit_id=r.visit_id) }}" class="btn btn-outline-info btn-sm" title="طلب أشعة"><i class="fas fa-x-ray"></i></a>
-                                {% endif %}
-                                <a href="{{ url_for('doctor.patient_details', visit_id=r.visit_id) }}" class="btn btn-outline-primary btn-sm" title="عرض"><i class="fas fa-eye"></i></a>
+    <!-- Queue Management -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 fw-bold text-primary">
+                        <i class="fas fa-list me-2"></i>قائمة المرضى
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if patients %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>اسم المريض</th>
+                                        <th>نوع الزيارة</th>
+                                        <th>الوقت</th>
+                                        <th>الحالة</th>
+                                        <th>الأولوية</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for patient in patients %}
+                                    <tr class="{% if patient.status == 'OPEN' %}table-success{% elif patient.status == 'IN_PROGRESS' %}table-warning{% endif %}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                    {{ patient.patient.full_name[0] if patient.patient else '?' }}
+                                                </div>
+                                                <div>
+                                                    <strong>{{ patient.patient.full_name if patient.patient else 'غير محدد' }}</strong><br>
+                                                    <small class="text-muted">{{ patient.patient.national_id if patient.patient else 'غير محدد' }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if patient.visit_type in ['first','FIRST'] %}
+                                                <span class="badge text-bg-primary">أولى</span>
+                                            {% elif patient.visit_type in ['follow_up','FOLLOW_UP'] %}
+                                                <span class="badge text-bg-info">متابعة</span>
+                                            {% elif patient.visit_type in ['emergency','EMERGENCY'] %}
+                                                <span class="badge text-bg-danger">طوارئ</span>
+                                            {% elif patient.visit_type in ['REGULAR'] %}
+                                                <span class="badge text-bg-secondary">اعتيادية</span>
+                                            {% elif patient.visit_type in ['CONSULTATION','consultation'] %}
+                                                <span class="badge text-bg-success">استشارة</span>
+                                            {% else %}
+                                                <span class="badge text-bg-secondary">{{ patient.visit_type }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if patient.visit_time %}
+                                                {{ patient.visit_time.strftime('%H:%M') }}
+                                            {% else %}
+                                                غير محدد
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if patient.status == 'OPEN' %}
+                                                <span class="badge text-bg-success">في الانتظار</span>
+                                            {% elif patient.status == 'IN_PROGRESS' %}
+                                                <span class="badge text-bg-warning">قيد العلاج</span>
+                                            {% elif patient.status == 'COMPLETED' %}
+                                                <span class="badge text-bg-info">مكتمل</span>
+                                            {% elif patient.status == 'ARCHIVED' %}
+                                                <span class="badge text-bg-secondary">مؤرشف</span>
+                                            {% else %}
+                                                <span class="badge text-bg-secondary">{{ patient.status | enum_label('VisitState') }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if patient.visit_type == 'emergency' %}
+                                                <span class="badge text-bg-danger">عاجل</span>
+                                            {% else %}
+                                                <span class="badge text-bg-info">عادي</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                {% if patient.status == 'OPEN' %}
+                                                    {% if can_start_map.get(patient.id, False) %}
+                                                        <form method="POST" action="{{ url_for('doctor.start_treatment', visit_id=patient.id) }}" class="d-inline">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn btn-success btn-sm" title="بدء العلاج">
+                                                                <i class="fas fa-play me-1"></i> <span class="btn-label">بدء</span>
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <form method="POST" action="{{ url_for('doctor.call_patient', visit_id=patient.id) }}" class="d-inline">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn btn-warning btn-sm" title="استدعاء المريض">
+                                                                <i class="fas fa-bullhorn me-1"></i> <span class="btn-label">استدعاء</span>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                {% endif %}
+                                                
+                                                <a href="{{ url_for('doctor.patient_details', visit_id=patient.id) }}" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-eye me-1"></i>عرض
+                                                </a>
+                                                
+                                                {% if patient.status == 'IN_PROGRESS' %}
+                                                    <form method="POST" action="{{ url_for('doctor.end_treatment', visit_id=patient.id) }}" class="d-inline">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirmSubmit(event, 'هل أنت متأكد من إنهاء العلاج؟')">
+                                                            <i class="fas fa-stop me-1"></i>إنهاء
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted small">عرض {{ total }} مريض</div>
+                            <div class="btn-group">
+                                <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
+                                   href="{{ url_for('doctor.patient_queue', page=page-1) }}">السابق</a>
+                                <span class="btn btn-outline-secondary">Page {{ page }} of {{ pages if pages > 0 else 1 }}</span>
+                                <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
+                                   href="{{ url_for('doctor.patient_queue', page=page+1) }}">التالي</a>
                             </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div class="text-center py-3 text-muted small">لا توجد طلبات مرتبطة حالياً</div>
-            {% endif %}
+                        </div>
+                    {% else %}
+                        {{ empty_state(
+                            icon='fas fa-user-clock',
+                            title='لا مرضى بالانتظار حالياً',
+                            description='جميع المرضى المخصصين لك قد تم علاجهم أو لا توجد زيارات جديدة.',
+                            action_url=url_for('doctor.dashboard'),
+                            action_label='العودة للوحة التحكم'
+                        ) }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 fw-bold text-primary">
+                        <i class="fas fa-bolt me-2"></i>إجراءات سريعة
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-primary w-100">
+                                <i class="fas fa-tachometer-alt me-2"></i>لوحة التحكم
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-info w-100" onclick="refreshQueue()">
+                                <i class="fas fa-sync me-2"></i>تحديث الطابور
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('doctor.patients') }}" class="btn btn-warning w-100">
+                                <i class="fas fa-users me-2"></i>بحث المرضى
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('doctor.prescriptions') }}" class="btn btn-secondary w-100">
+                                <i class="fas fa-prescription me-2"></i>الوصفات الطبية
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Linked Requests for Today's Visits -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 fw-bold text-primary">
+                        <i class="fas fa-vials me-2"></i>طلبات الفحوصات المرتبطة بزيارات اليوم
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if linked_requests and linked_requests|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>الزيارة</th>
+                                        <th>المريض</th>
+                                        <th>مختبر (معلق)</th>
+                                        <th>أشعة (معلق)</th>
+                                        <th>إجراءات سريعة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in linked_requests %}
+                                    <tr>
+                                        <td>#{{ r.visit_id }}</td>
+                                        <td>{{ r.patient_name }}</td>
+                                        <td>
+                                            {% if r.lab_pending > 0 %}
+                                                <span class="badge bg-danger">{{ r.lab_pending }}</span>
+                                            {% else %}
+                                                <span class="badge bg-success">0</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if r.rad_pending > 0 %}
+                                                <span class="badge bg-warning">{{ r.rad_pending }}</span>
+                                            {% else %}
+                                                <span class="badge bg-success">0</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ url_for('doctor.notes', visit_id=r.visit_id, type='general') }}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-sticky-note me-1"></i>مذكرة عامة
+                                                </a>
+                                                {% if module_active('lab') %}
+                                                <a href="{{ url_for('doctor.notes', visit_id=r.visit_id, type='lab') }}" class="btn btn-outline-warning btn-sm">
+                                                    <i class="fas fa-sticky-note me-1"></i>مذكرة تحاليل
+                                                </a>
+                                                <a href="{{ url_for('doctor.lab_request', visit_id=r.visit_id) }}" class="btn btn-outline-warning btn-sm">
+                                                    <i class="fas fa-flask me-1"></i>طلب مختبر
+                                                </a>
+                                                {% endif %}
+                                                {% if module_active('radiology') %}
+                                                <a href="{{ url_for('doctor.notes', visit_id=r.visit_id, type='radiology') }}" class="btn btn-outline-info btn-sm">
+                                                    <i class="fas fa-sticky-note me-1"></i>مذكرة تصوير
+                                                </a>
+                                                <a href="{{ url_for('doctor.radiology_request', visit_id=r.visit_id) }}" class="btn btn-outline-info btn-sm">
+                                                    <i class="fas fa-x-ray me-1"></i>طلب أشعة
+                                                </a>
+                                                {% endif %}
+                                                <a href="{{ url_for('doctor.patient_details', visit_id=r.visit_id) }}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-eye me-1"></i>عرض
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-info-circle fa-2x mb-2"></i>
+                            <p>لا توجد طلبات مرتبطة حالياً</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>
