@@ -66,6 +66,7 @@ jobs:
         env:
           FLASK_ENV: production
           ENABLE_SAAS_MODE: "true"
+          RLS_BYPASS_ALLOWED: "1"
 
   test:
     runs-on: ubuntu-latest
@@ -111,6 +112,7 @@ jobs:
       CELERY_ENABLED: "true"
       CELERY_TASK_ALWAYS_EAGER: "true"
       ENABLE_SAAS_MODE: "true"
+      RLS_BYPASS_ALLOWED: "1"
       STRIPE_SECRET_KEY: sk_test_ci_e2e
       STRIPE_WEBHOOK_SECRET: whsec_test_ci_e2e
 

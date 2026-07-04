@@ -91,6 +91,36 @@ def create_app(config_name: str | None = None) -> Flask:
     # تهيئة الإضافات
     db.init_app(app)
 
+    # Startup guard: fail fast if the application DB role is superuser or has
+    # BYPASSRLS — RLS would be silently ineffective.  Override with env var
+    # RLS_BYPASS_ALLOWED=1 for local development only.
+    try:
+        with app.app_context():
+            from sqlalchemy import text as _sa_text
+            row = db.session.execute(
+                _sa_text("SELECT current_user AS who, rolsuper, rolbypassrls "
+                         "FROM pg_roles WHERE rolname = current_user")
+            ).fetchone()
+            if row:
+                who, is_super, bypass = row
+                bypass_allowed = os.environ.get('RLS_BYPASS_ALLOWED', '').strip() in ('1', 'true', 'yes')
+                if (is_super or bypass) and not bypass_allowed:
+                    import sys as _sys
+                    _sys.stderr.write(
+                        "\n!!! FATAL: Application database role '%s' has "
+                        "SUPERUSER=%s BYPASSRLS=%s.  RLS would be bypassed.\n"
+                        "!!! Set RLS_BYPASS_ALLOWED=1 in env (local dev only) or "
+                        "switch to a restricted role.\n" % (who, is_super, bypass)
+                    )
+                    raise RuntimeError(
+                        f"RLS startup guard rejected superuser/BYPASSRLS role "
+                        f"'{who}'.  Set RLS_BYPASS_ALLOWED=1 to override."
+                    )
+    except RuntimeError:
+        raise
+    except Exception:
+        pass  # Table may not exist yet (first migration); guard is best-effort.
+
     @app.before_request
     def _bind_tenant_from_session_early():
         try:
