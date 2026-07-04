@@ -125,12 +125,32 @@ flask run --port=5001
 
 ## الاختبارات وCI
 
+### الأوامر الأساسية
+
 ```bash
+# بدء البيئة المحلية (تطوير)
 set ENABLE_SAAS_MODE=true
+flask db upgrade
+python scripts/ops/bootstrap_platform.py
+flask run --port=5001
+```
+
+```bash
+# تشغيل اختبارات التكنولوجيا الكاملة
 python -m pytest tests/ -q
 ```
 
-GitHub Actions: تهجيرات على PostgreSQL 16، pytest كامل مع `ENABLE_SAAS_MODE=true`، flake8، تغطية كود.
+```bash
+# إصدار أمر محمي RLS القائم على قاعدة البيانات
+python scripts/dev/setup_runtime_role.py
+```
+
+```bash
+# نسخ قاعدة بيانات التطوير المحلية احتياطياً وإعادة تهيئة البيانات التجريبية
+python scripts/dev/local_reset_seed.py --confirm-local-reset
+```
+
+GitHub Actions: تهجيرات على PostgreSQL 16، يثبت رول قاعدة البيانات المحدد، يجري pytest كامل مع `ENABLE_SAAS_MODE=true`، flake8، تغطية الكود.
 
 ---
 
