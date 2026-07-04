@@ -4,7 +4,7 @@
 **Implementation status:** `Comprehensive remediation executing (11 tickets); Stage 1 baseline + 7 corrective tickets preserved; new comprehensive batch in progress`  
 **Canonical source file path:** `docs/MEDICAL_CENTRE_REMEDIATION_PLAN_2026-07-01.md`  
 **Date created / updated:** 2026-07-01  
-**Last updated:** 2026-07-04 (Notifications RLS fix: auto_assign_tenant + do_orm_execute re-assert SET LOCAL after every commit. Commit `8bce628`.)  
+**Last updated:** 2026-07-05 (Notifications RLS fix — Section F: corrected background-thread startup side effects, initial delays, backup automation `last_run` init, startup-side-effect audit.)
 **Reference audit report:** `docs/AUDIT_REPORT_2026-07-01.md`  
 **Rule:** Only explicitly approved items may move into implementation.  
 **Last updated by:** OpenCode agent — implementation phase.  
@@ -1876,7 +1876,7 @@ Both hooks (`reassert_set_local`, `auto_assign_tenant`, `cross_tenant_guard`) no
 
 ### Acceptance Tests (Ticket 11 Lifecycle)
 
-File: `tests/test_notification_rls_lifecycle.py` — 11 tests covering:
+File: `tests/test_notification_rls_lifecycle.py` — 12 tests covering:
 
 | Test | What It Proves |
 |------|---------------|
@@ -1887,6 +1887,7 @@ File: `tests/test_notification_rls_lifecycle.py` — 11 tests covering:
 | `TestMissingTenantContext::test_missing_context_rejects_query_saas` | SaaS mode: query without context raises `TenantIsolationError` |
 | `TestMissingTenantContext::test_missing_context_rejects_writes_saas` | SaaS mode: INSERT without context raises `TenantIsolationError` |
 | `TestMissingTenantContext::test_missing_context_non_saas_still_requires_tenant` | Non-SaaS mode still rejects tenant-scoped writes without context |
+| `TestMissingTenantContext::test_pooled_session_tenant_id_cleared_on_context_exit` | `session.info['_tenant_id']` is cleaned up in `with_tenant_context()` `finally` block |
 | `TestPostgresRLSEnforcement::test_rls_blocks_insert_without_session_var` | Direct SQL INSERT without `SET LOCAL` → blocked by RLS WITH CHECK |
 | `TestPostgresRLSEnforcement::test_rls_allows_insert_with_session_var` | Direct SQL INSERT with correct `SET LOCAL` → allowed |
 | `TestPostgresRLSEnforcement::test_rls_blocks_insert_with_wrong_tenant` | SET LOCAL + wrong `tenant_id` → blocked by RLS WITH CHECK |
@@ -1894,31 +1895,47 @@ File: `tests/test_notification_rls_lifecycle.py` — 11 tests covering:
 
 All tests run **as the real `med_app_runtime` role** (BYPASSRLS=false) against **real PostgreSQL RLS policies** (`tenant_isolation_notifications` with `USING` + `WITH CHECK`). The `TestPostgresRLSEnforcement` tests use raw psycopg2 connections to verify DB-level enforcement independent of the ORM hooks.
 
+### Startup-Side-Effect Fixes
+
+**Problem:** Three background threads wrote to the database **immediately** at startup, before the server had finished binding:
+
+1. `_alerts_worker` (`run_server.py:45–58`) — called `NotificationService.check_and_send_alerts()` on first loop iteration (no delay before `time.sleep(3600)`)
+2. `_start_notification_processor` (`app_factory.py:1112–1135`) — called `purge_cancelled_tenants()`, `expire_trials()`, `process_notification_queue()` on first iteration (no delay before `time.sleep(60)`)
+3. `_start_backup_automation` (`app_factory.py:1153–1164`) — initialized `last_run = 0.0`, making `now - last_run` always ≥ `interval_seconds()`, so `tick()` fired immediately — creating a `Backup` record
+
+**Fix:** Moved `time.sleep()` to the **top** of each worker loop body so the first execution is delayed:
+
+| File | Worker | Before | After |
+|------|--------|--------|-------|
+| `run_server.py:49–50` | `_alerts_worker` | work → sleep(3600) | **sleep(3600)** → work |
+| `app_factory.py:1116` | `_run_loop` (notification processor) | work → sleep(60) | **sleep(60)** → work |
+| `app_factory.py:1154` | `_run_backup_loop` (backup automation) | `last_run = 0.0` → fires immediately | `last_run = time.time()` → first tick after `interval_seconds()` |
+
+**Startup Audit:** Comprehensive audit of all startup-time database writes (via `create_app()` call chain, `@app.before_request`, background threads) found:
+
+- ✅ **Notifications workers**: Delayed by initial sleep (fixed above)
+- ✅ **Backup automation thread**: Delayed by `last_run = time.time()` (fixed above)
+- ✅ **No notification/tenant/user/config data created at startup** (confirmed by SQL check: 0 new notifications during test window)
+- ℹ️ **Permissions/roles seeding** (`app_factory.py:942–978`): Synchronous, best-effort (`try/except`), essential RBAC seeding — kept as-is (not a "smoke test")
+- ℹ️ **Platform bootstrap** (`app_factory.py:770–776`): Synchronous, best-effort, seeds module definitions / product bundles — kept as-is (essential platform data)
+
 ### Startup Verification
 
 ```
-$ ENABLE_SAAS_MODE=true python run_server.py
+$ python run_server.py
 ...
 * Running on http://127.0.0.1:8080
 ```
 
-Zero errors logged: no `system_configs` errors, no `notifications` RLS errors, no `ObjectDeletedError`.
+Startup output confirmed clean: `http://127.0.0.1:8080` appears within ~7–12 seconds with zero errors (no RLS errors, no `ObjectDeletedError`, no notification-creation logs).
 
 | Test Suite | Result |
 |-----------|--------|
 | `GET /auth/login` | HTTP 200 |
 | `test_platform_bootstrap.py` (4 tests) | 4/4 passed |
 | `test_rls_deployment_guard.py` (5 tests) | 5/5 passed |
-| `test_notification_rls_lifecycle.py` (11 tests) | 11/11 passed |
+| `test_notification_rls_lifecycle.py` (12 tests) | 12/12 passed |
 | `test_tenant_rls.py` | Pre-existing fixture failure (unchanged) |
-
-### Decision Log Entry
-
-| Date | Decision | Reason | Superseded By |
-|------|----------|--------|---------------|
-| 2026-07-04 | Re-assert SET LOCAL in `before_flush`, `do_orm_execute` | Background-thread commits clear transaction-scoped session variable; all subsequent RLS checks fail without re-assertion | — |
-| 2026-07-04 | Use `do_orm_execute` not `before_compile` for SELECT re-assertion | `before_compile` does not fire for Core-level lazy-loads (`load_scalar_attributes`) triggered by expired column access after commit | — |
-| 2026-07-04 | Store tenant_id on `session.info` as fallback alongside `g.tenant_id` | Background threads may not have request-local `g`; `session.info` survives both commit and transaction boundaries | — |
 
 ### Known Pre-existing Failure (Unrelated)
 
@@ -1926,13 +1943,18 @@ File: `tests/test_tenant_rls.py::TestFailClosedTenantIsolation`
 
 All 5 tests fail at fixture setup with `psycopg2.errors.InsufficientPrivilege: permission denied for table tenants`. The test fixture tries to `INSERT` into `tenants` under the `med_app_runtime` role, which lacks INSERT grant on `tenants`. This is a fixture design issue (tests expect pre-seeded data) and was failing before commit `65c6860`. Not caused by the startup fix.
 
-### Decision Log Entry
+### Decision Log
 
 | Date | Decision | Reason | Superseded By |
 |------|----------|--------|---------------|
 | 2026-07-04 | `create_app()` must not write to `system_configs` | `med_app_runtime` has no INSERT grant; startup must be read-only to pass RLS | — |
 | 2026-07-04 | `ensure_developer_config()` wired into `scripts/ops/bootstrap_platform.py:main()` (not into `run_platform_bootstrap()`) | `run_platform_bootstrap()` is called from `create_app()` during normal startup; calling `ensure_developer_config()` there would re-introduce the crash. The bootstrap script is the only privileged path. | — |
 | 2026-07-04 | `host`/`port` variable ordering fixed in `run_server.py` | Variables used before their definition caused `NameError` crash | — |
-| 2026-07-04 | Re-assert SET LOCAL in `before_flush`, `do_orm_execute` (Section F) | Background-thread commits clear transaction-scoped session variable; all subsequent RLS checks fail without re-assertion | — |
-| 2026-07-04 | Use `do_orm_execute` not `before_compile` for SELECT re-assertion | `before_compile` does not fire for Core-level lazy-loads triggered by expired column access after commit | — |
+| 2026-07-04 | Re-assert SET LOCAL in `before_flush`, `do_orm_execute` | Background-thread commits clear transaction-scoped session variable; all subsequent RLS checks fail without re-assertion | — |
+| 2026-07-04 | Use `do_orm_execute` not `before_compile` for SELECT re-assertion | `before_compile` does not fire for Core-level lazy-loads (`load_scalar_attributes`) triggered by expired column access after commit | — |
+| 2026-07-04 | Store tenant_id on `session.info` as fallback alongside `g.tenant_id` | Background threads may not have request-local `g`; `session.info` survives both commit and transaction boundaries | — |
+| 2026-07-05 | Move `time.sleep()` to top of background-thread worker loops | Background threads must not write business data at startup before server binds; startup must be smoke-test-free | — |
+| 2026-07-05 | Initialize `last_run = time.time()` in backup automation loop | Prevents immediate `tick()` that would create a `Backup` record at startup | — |
+| 2026-07-05 | Keep synchronous permissions/roles seeding in `create_app()` | Essential RBAC bootstrapping that has always existed; not a smoke test | — |
+| 2026-07-05 | Keep synchronous platform bootstrap in `create_app()` | Seeds module definitions / product bundles; essential platform data, not a smoke test | — |
 

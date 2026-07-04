@@ -47,6 +47,7 @@ if __name__ == '__main__':
             from services.notification_service import NotificationService
 
             while True:
+                time.sleep(3600)  # delay first+every run — startup must not write data
                 try:
                     for_each_tenant(
                         flask_app,
@@ -55,7 +56,6 @@ if __name__ == '__main__':
                     logger.info("⏰ تم تنفيذ مهمة التنبيهات المجدولة")
                 except Exception as e:
                     logger.error(f"خطأ في مهمة التنبيهات المجدولة: {str(e)}")
-                time.sleep(3600)
 
         t = threading.Thread(target=_alerts_worker, args=(app,), daemon=True)
         t.start()

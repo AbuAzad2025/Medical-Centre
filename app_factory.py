@@ -1114,6 +1114,7 @@ def create_app(config_name: str | None = None) -> Flask:
             from services.notification_service import process_notification_queue, NotificationService
 
             while True:
+                time.sleep(60)  # delay first+every run — startup must not write data
                 try:
                     from app.core.saas.lifecycle import TenantProvisioningService
                     # Ticket 5: purge_cancelled_tenants is platform-level (Tenant is
@@ -1132,7 +1133,6 @@ def create_app(config_name: str | None = None) -> Flask:
                     )
                 except Exception:
                     pass
-                time.sleep(60)
 
         thread = threading.Thread(target=_run_loop, daemon=True, name='notif-processor')
         thread.start()
@@ -1151,7 +1151,7 @@ def create_app(config_name: str | None = None) -> Flask:
                 from services.backup_automation_service import BackupAutomationService
 
                 def _run_backup_loop():
-                    last_run = 0.0
+                    last_run = time.time()  # startup must not write data — first tick after interval_seconds
                     while True:
                         try:
                             if BackupAutomationService.is_enabled():
