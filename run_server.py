@@ -36,7 +36,7 @@ if __name__ == '__main__':
         logger.info("✅ تم إنشاء التطبيق بنجاح")
         logger.info(f"📊 عدد المسارات المسجلة: {len(list(app.url_map.iter_rules()))}")
         logger.info(f"📦 عدد Blueprints: {len(app.blueprints)}")
-        logger.info("🌐 السيرفر يعمل على: http://127.0.0.1:5002")
+        logger.info(f"🌐 السيرفر يعمل على: http://{host}:{port}")
         logger.info("=" * 60)
 
         def _alerts_worker(flask_app):

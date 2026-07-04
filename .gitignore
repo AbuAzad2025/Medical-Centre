@@ -91,6 +91,7 @@ agent-tools/
 /dev/
 
 # Assistant workspace metadata (AutoClaw)
+.cluster/
 .openclaw/
 AGENTS.md
 HEARTBEAT.md

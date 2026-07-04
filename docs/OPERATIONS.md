@@ -29,7 +29,7 @@ docker compose up -d --build
 ```bash
 flask db upgrade                    # هجرة Alembic
 python scripts/ops/bootstrap_platform.py   # كتالوج الباقات + SaaS setup
-flask run --port=5001
+python run_server.py
 ```
 
 **--- التطبيق HTTPS في الإنتاج:** أضف gunicorn + proxy.
@@ -45,7 +45,7 @@ python -m pytest tests/ -q --tb=short
 
 يجري CI شفافة:
 - يمنح دور قاعدة البيانات المحدود (`med_app_runtime`) مسؤوليات `SELECT/INSERT/UPDATE/DELETE` المناسبة على الطاولات المستأجرة في قاعدة بيانات test.
-- يشغل `verify_rls_enforcement.py` كخطوة CI لثبت أدوار التطبيق TLS SQLite.
+- يشغل `pytest tests/test_tenant_rls.py` كخطوة CI للتحقق من أدوار التطبيق.
 
 ---
 
@@ -54,7 +54,7 @@ python -m pytest tests/ -q --tb=short
 **ملاحظة:** يجب أن يتم تشغيل هذه الخطوة خارج البيئة الآمنة للتطبيق لأن الادعاء على `postgres` مع `CREATE ROLE`.
 
 ```bash
-python scripts/dev/setup_runtime_role.py
+python scripts/bootstrap/setup_runtime_role.py
 ```
 
 يخلق بيئة الإنتاج الآمنة المحدود `med_app_runtime` (مع `NOBYPASSRLS`) ويكتب `DATABASE_URL` الفعالة لـ Flask.
@@ -131,8 +131,8 @@ python scripts/ops/bootstrap_platform.py
 
 | البيئة | المستخدمة لـ | الرابط |
 |------------|-----------|------|
-| المتطور (`.venv`) | SSO عبر Safari، الاختبار السريع، التشغيل | `flask run`، `python scripts/dev/local_reset_seed.py` |
-| التجريبي (`docker compose`) | CI/B المستقر | `docker compose exec app flask run` |
+| المتطور (`.venv`) | SSO عبر Safari، الاختبار السريع، التشغيل | `python run_server.py`، `python scripts/dev/local_reset_seed.py` |
+| التجريبي (`docker compose`) | CI/B المستقر | `docker compose exec app python run_server.py` |
 | الإنتاج (`.env + gunicorn` + proxy) | إنتاج العملاء | `gunicorn -c gunicorn.conf.py wsgi:app` |
 | CI (مهاجر CI السابق) | CI | يطلق `python -m pytest` |
 
