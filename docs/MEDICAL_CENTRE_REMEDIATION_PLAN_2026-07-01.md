@@ -4,7 +4,7 @@
 **Implementation status:** `Comprehensive remediation executing (11 tickets); Stage 1 baseline + 7 corrective tickets preserved; new comprehensive batch in progress`  
 **Canonical source file path:** `docs/MEDICAL_CENTRE_REMEDIATION_PLAN_2026-07-01.md`  
 **Date created / updated:** 2026-07-01  
-**Last updated:** 2026-07-04 (Startup fix: `create_app()` no longer writes to `system_configs`. Commit `65c6860`.)  
+**Last updated:** 2026-07-04 (Notifications RLS fix: auto_assign_tenant + do_orm_execute re-assert SET LOCAL after every commit. Commit `8bce628`.)  
 **Reference audit report:** `docs/AUDIT_REPORT_2026-07-01.md`  
 **Rule:** Only explicitly approved items may move into implementation.  
 **Last updated by:** OpenCode agent — implementation phase.  
@@ -1823,6 +1823,79 @@ Server binds successfully. No `InsufficientPrivilege` or `NameError`.
 - Tenant login (`admin_tenant1:password`) — dashboard rendered
 - No INSERT/UPDATE on `system_configs` during any of the above (confirmed by absence of prior crash pattern)
 
+## F. Notifications RLS — Re-assert SET LOCAL After Every Commit (2026-07-04)
+
+**Commit:** `8bce628`
+
+**Severity:** P0 — Server startup emitted RLS errors for `notifications` table, plus `ObjectDeletedError` ("Instance has been deleted") on lazy-loads after background-thread commits.
+
+### Root Cause
+
+Two background threads started at startup iterate all active tenants and call notification service functions (`send_notification`, `send_appointment_reminders`, `check_and_send_alerts`, etc.):
+
+1. `_start_notification_processor` in `app_factory.py:1108–1142` — runs every 60 seconds
+2. `_alerts_worker` in `run_server.py:45–62` — runs every hour
+
+Each call to `send_notification()` calls `db.session.commit()`, which clears the PostgreSQL **transaction-scoped** `SET LOCAL app.tenant_id` session variable. Any subsequent operation (INSERT, SELECT, lazy-load) in the same session hits the RLS `USING` / `WITH CHECK` policy — `current_setting('app.tenant_id', true)` returns NULL — and fails with `InsufficientPrivilege` or `ObjectDeletedError`.
+
+The notification model (`Notification`, `NotificationQueue`, `NotificationTemplate`) extends `TenantMixin` (tenant-scoped with `tenant_id` column) and is protected by:
+```
+CREATE POLICY tenant_isolation_notifications ON notifications
+    USING (tenant_id = current_setting('app.tenant_id', true)::int)
+    WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::int);
+```
+
+The `auto_assign_tenant` `before_flush` hook (in `tenant_filter.py`) assigns `tenant_id = g.tenant_id` to new objects, but cannot pass the RLS `WITH CHECK` when `app.tenant_id` is NULL.
+
+### Fix: Re-assert SET LOCAL Before Every ORM Statement
+
+Three event listeners in `app/shared/tenant_filter.py` now re-assert `SET LOCAL app.tenant_id = '<tid>'` whenever a prior commit may have cleared it:
+
+| Event | Fires For | Coverage |
+|-------|-----------|----------|
+| `before_flush` (Session) | Every flush (INSERT/UPDATE/DELETE) | Bulk writes, SAVEPOINT releases |
+| `do_orm_execute` (Session) | Every ORM `session.execute()` call | Query SELECTs, lazy-loads, column-refreshes, `load_on_ident()` |
+| `before_compile` (Query) | Every ORM `Query` compilation | Explicit `Model.query` calls (handled by `do_orm_execute` now) |
+
+The `do_orm_execute` event is the key addition — it fires for Core-level lazy-loads (triggered by accessing an expired object's attribute after commit) that do not go through the `Query`-based `before_compile` path.
+
+### Why SET LOCAL Re-assertion Is Safe
+
+- `SET LOCAL` is idempotent: setting the same value is a no-op on PostgreSQL
+- The `try/except Exception: pass` pattern mirrors the existing error handling in `bind_g_tenant()` (`middleware.py:216–217`)
+- Re-assertion happens only when `g.tenant_id` is set (tenant context is active)
+- It does not change the RLS policy, grant privileges, or bypass tenant isolation
+
+### Regression Tests
+
+File: `tests/test_platform_bootstrap.py::test_auto_assign_tenant_works_after_prior_commit`
+
+Verifies that after a commit (which clears `SET LOCAL`), a subsequent INSERT into the `notifications` table still receives the correct `tenant_id` from `auto_assign_tenant`. Two successive inserts with different objects, both correctly assigned.
+
+### Startup Verification
+
+```
+$ ENABLE_SAAS_MODE=true python run_server.py
+...
+* Running on http://127.0.0.1:8080
+```
+
+Zero errors logged: no `system_configs` errors, no `notifications` RLS errors, no `ObjectDeletedError`.
+
+| Test | Result |
+|------|--------|
+| `GET /auth/login` | HTTP 200 |
+| `test_platform_bootstrap.py` (4 tests) | 4/4 passed |
+| `test_rls_deployment_guard.py` (5 tests) | 5/5 passed |
+| `test_tenant_rls.py` | Pre-existing fixture failure (unchanged) |
+
+### Decision Log Entry
+
+| Date | Decision | Reason | Superseded By |
+|------|----------|--------|---------------|
+| 2026-07-04 | Re-assert SET LOCAL in `before_flush`, `do_orm_execute` | Background-thread commits clear transaction-scoped session variable; all subsequent RLS checks fail without re-assertion | — |
+| 2026-07-04 | Use `do_orm_execute` not `before_compile` for SELECT re-assertion | `before_compile` does not fire for Core-level lazy-loads (`load_scalar_attributes`) triggered by expired column access after commit | — |
+
 ### Known Pre-existing Failure (Unrelated)
 
 File: `tests/test_tenant_rls.py::TestFailClosedTenantIsolation`
@@ -1836,3 +1909,5 @@ All 5 tests fail at fixture setup with `psycopg2.errors.InsufficientPrivilege: p
 | 2026-07-04 | `create_app()` must not write to `system_configs` | `med_app_runtime` has no INSERT grant; startup must be read-only to pass RLS | — |
 | 2026-07-04 | `ensure_developer_config()` wired into `scripts/ops/bootstrap_platform.py:main()` (not into `run_platform_bootstrap()`) | `run_platform_bootstrap()` is called from `create_app()` during normal startup; calling `ensure_developer_config()` there would re-introduce the crash. The bootstrap script is the only privileged path. | — |
 | 2026-07-04 | `host`/`port` variable ordering fixed in `run_server.py` | Variables used before their definition caused `NameError` crash | — |
+| 2026-07-04 | Re-assert SET LOCAL in `before_flush`, `do_orm_execute` (Section F) | Background-thread commits clear transaction-scoped session variable; all subsequent RLS checks fail without re-assertion | — |
+| 2026-07-04 | Use `do_orm_execute` not `before_compile` for SELECT re-assertion | `before_compile` does not fire for Core-level lazy-loads triggered by expired column access after commit | — |

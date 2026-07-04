@@ -13,7 +13,7 @@ AuthorizationError is raised to prevent data leaks.
 """
 from flask import current_app, g
 from sqlalchemy import event
-from sqlalchemy.orm import Query
+from sqlalchemy.orm import Query, Session as OrmSession
 from app.extensions import db
 
 
@@ -140,6 +140,34 @@ def tenant_filter_query(query):
 
 
 # ---------------------------------------------------------------------------
+# 1b. RLS CONTEXT — re-assert SET LOCAL before every ORM statement
+#     A prior commit in the same session clears the transaction-scoped
+#     SET LOCAL app.tenant_id variable.  Without re-assertion, subsequent
+#     lazy-loads, column-refreshes, and ORM-level INSERT/UPDATE/DELETE
+#     would fail the RLS USING / WITH CHECK because
+#     current_setting('app.tenant_id', true) returns NULL.
+# ---------------------------------------------------------------------------
+
+@event.listens_for(OrmSession, 'do_orm_execute')
+def reassert_set_local(orm_execute_state):
+    """Re-assert SET LOCAL app.tenant_id before every ORM statement.
+
+    Catches lazy-loads triggered by expired-attribute access after a
+    prior commit, where ``before_flush`` does not fire (no flush occurs
+    for a plain SELECT).
+    """
+    tid = _current_tenant_id()
+    if tid is None:
+        return
+    try:
+        orm_execute_state.session.execute(
+            db.text(f"SET LOCAL app.tenant_id = '{tid}'"),
+        )
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
 # 2. AUTO-ASSIGN — every INSERT gets tenant_id = g.tenant_id
 # ---------------------------------------------------------------------------
 
@@ -170,6 +198,13 @@ def auto_assign_tenant(session, flush_context, instances):
                     f"Tenant-scoped record {instance.__class__.__name__} created without tenant context"
                 )
         return
+
+    # Re-assert SET LOCAL — the previous transaction's commit (if any) cleared it,
+    # so the RLS WITH CHECK on the coming INSERT would see NULL and fail.
+    try:
+        session.execute(db.text(f"SET LOCAL app.tenant_id = '{tid}'"))
+    except Exception:
+        pass
 
     for instance in session.new:
         mapper = getattr(instance, '__mapper__', None)
