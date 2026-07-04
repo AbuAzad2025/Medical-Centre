@@ -63,8 +63,7 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-ينفّذ تلقائياً: `flask db upgrade` → `bootstrap_platform` → `gunicorn`.  
-راجع `scripts/ops/README.md`.
+ينفّذ تلقائياً: `flask db upgrade` → `bootstrap_platform` → `gunicorn`.
 
 ### محلي (تطوير)
 
@@ -72,12 +71,10 @@ docker compose up -d --build
 python -m venv .venv
 .venv\Scripts\Activate.ps1          # Windows
 pip install -r requirements.txt
-set ENABLE_SAAS_MODE=true
-set DATABASE_URL=postgresql://...
-flask db upgrade
-python scripts/ops/bootstrap_platform.py
-flask run --port=5001
+python run_server.py
 ```
+
+الرابط: `http://127.0.0.1:8080`
 
 ---
 
@@ -123,34 +120,33 @@ flask run --port=5001
 
 ---
 
-## الاختبارات وCI
+## الاختبارات
 
-### الأوامر الأساسية
-
-```bash
-# بدء البيئة المحلية (تطوير)
-set ENABLE_SAAS_MODE=true
-flask db upgrade
-python scripts/ops/bootstrap_platform.py
-flask run --port=5001
-```
+### تشغيل كل الاختبارات
 
 ```bash
-# تشغيل اختبارات التكنولوجيا الكاملة
 python -m pytest tests/ -q
 ```
 
-```bash
-# إصدار أمر محمي RLS القائم على قاعدة البيانات
-python scripts/dev/setup_runtime_role.py
-```
+### تشغيل اختبارات RLS فقط (تتطلب PostgreSQL)
 
 ```bash
-# نسخ قاعدة بيانات التطوير المحلية احتياطياً وإعادة تهيئة البيانات التجريبية
+python -m pytest tests/test_tenant_rls.py tests/test_rls_deployment_guard.py tests/test_notification_rls_lifecycle.py -q --tb=short
+```
+
+### إعادة تعيين بيانات التطوير المحلية
+
+```bash
 python scripts/dev/local_reset_seed.py --confirm-local-reset
 ```
 
-GitHub Actions: تهجيرات على PostgreSQL 16، يثبت رول قاعدة البيانات المحدد، يجري pytest كامل مع `ENABLE_SAAS_MODE=true`، flake8، تغطية الكود.
+### تهيئة دور قاعدة البيانات المحدود (لـ CI أو الإنتاج)
+
+```bash
+python scripts/bootstrap/setup_runtime_role.py
+```
+
+**CI:** GitHub Actions — تهجيرات على PostgreSQL 16، يثبت دور `med_app_runtime`، يجري `pytest tests/ -q` مع `ENABLE_SAAS_MODE=true`.
 
 ---
 

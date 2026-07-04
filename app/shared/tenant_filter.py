@@ -11,10 +11,15 @@ Fail-closed: in SaaS mode, queries on tenant-scoped models MUST have a
 tenant_id in context or an explicit bypass flag.  Without one, an
 AuthorizationError is raised to prevent data leaks.
 """
+import logging
+
 from flask import current_app, g
 from sqlalchemy import event
+from sqlalchemy.sql.elements import TextClause
 from sqlalchemy.orm import Query, Session as OrmSession
 from app.extensions import db
+
+logger = logging.getLogger(__name__)
 
 
 class TenantIsolationError(PermissionError):
@@ -161,15 +166,31 @@ def reassert_set_local(orm_execute_state):
     prior commit, where ``before_flush`` does not fire (no flush occurs
     for a plain SELECT).
     """
+    # Skip raw text clauses to avoid recursive dispatch —
+    # our own session.execute(db.text("SET LOCAL …")) triggers
+    # do_orm_execute, which would re-enter this handler.
+    if isinstance(orm_execute_state.statement, TextClause):
+        return
+
     tid = _current_tenant_id(session=orm_execute_state.session)
     if tid is None:
+        return
+    # SET LOCAL is PostgreSQL-specific; skip on SQLite etc.
+    dialect = getattr(db.engine, 'dialect', None)
+    if dialect is None or dialect.name != 'postgresql':
         return
     try:
         orm_execute_state.session.execute(
             db.text(f"SET LOCAL app.tenant_id = '{tid}'"),
         )
     except Exception:
-        pass
+        logger.exception(
+            'SET LOCAL app.tenant_id = %s failed in reassert_set_local', tid,
+        )
+        raise TenantIsolationError(
+            'SET LOCAL re-assertion failed: tenant context cannot be '
+            f'applied (tenant_id={tid})'
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -206,10 +227,19 @@ def auto_assign_tenant(session, flush_context, instances):
 
     # Re-assert SET LOCAL — the previous transaction's commit (if any) cleared it,
     # so the RLS WITH CHECK on the coming INSERT would see NULL and fail.
-    try:
-        session.execute(db.text(f"SET LOCAL app.tenant_id = '{tid}'"))
-    except Exception:
-        pass
+    # Only applies to PostgreSQL; skip on SQLite etc.
+    dialect = getattr(db.engine, 'dialect', None)
+    if dialect is not None and dialect.name == 'postgresql':
+        try:
+            session.execute(db.text(f"SET LOCAL app.tenant_id = '{tid}'"))
+        except Exception:
+            logger.exception(
+                'SET LOCAL app.tenant_id = %s failed in auto_assign_tenant', tid,
+            )
+            raise TenantIsolationError(
+                'SET LOCAL re-assertion during flush failed: tenant context '
+                f'cannot be applied (tenant_id={tid})'
+            )
 
     for instance in session.new:
         mapper = getattr(instance, '__mapper__', None)

@@ -1,10 +1,10 @@
 # Medical Centre — Remediation Plan
 
 **Plan status:** `Comprehensive Remediation In Progress`  
-**Implementation status:** `Comprehensive remediation executing (11 tickets); Stage 1 baseline + 7 corrective tickets preserved; new comprehensive batch in progress`  
+**Implementation status:** `Comprehensive remediation complete (11 tickets + UI modernization + startup fix + notifications RLS fix); Corrective 2026-07-05: CI reconciliation, docs corrections, fail-closed tenant-binding`  
 **Canonical source file path:** `docs/MEDICAL_CENTRE_REMEDIATION_PLAN_2026-07-01.md`  
 **Date created / updated:** 2026-07-01  
-**Last updated:** 2026-07-05 (Notifications RLS fix — Section F: corrected background-thread startup side effects, initial delays, backup automation `last_run` init, startup-side-effect audit.)
+**Last updated:** 2026-07-05 (Corrective: CI reconciliation, docs corrections, fail-closed tenant-binding in tenant_filter.py. Commit `d98637d`.)
 **Reference audit report:** `docs/AUDIT_REPORT_2026-07-01.md`  
 **Rule:** Only explicitly approved items may move into implementation.  
 **Last updated by:** OpenCode agent — implementation phase.  
@@ -1170,7 +1170,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 48. **Ticket 8 — Service-line reconciliation and final archive enforcement (Update 12g):** Added service-line reconciliation check to `GatekeeperService.can_archive_visit`. When `InvoiceService` lines exist for a visit, aggregate `visit.total_amount` must equal itemized sum of `InvoiceService.total_price`. Zero-amount visits with no services remain allowed. Existing visits without itemized lines are not blocked (backward compatibility). Prevents archive of visits with unbilled or unreconciled service lines. Commit `02f76ea`. Files: `services/gatekeeper_service.py`, `tests/test_service_line_reconciliation.py`. Tests: 3 passed. Related suite: 140 passed.
 49. **Ticket 9 — Controlled return-to-treatment workflow (Update 12h):** Added `VisitStateMachineService.return_to_treatment(visit, actor, reason)` method. Only `doctor`/`manager`/`super_admin` roles authorized; `reception` blocked. Only `COMPLETED` visits can be reopened; other statuses raise `ValueError`. Requires `actor` parameter. Directly sets `status=IN_PROGRESS` with VSM authorization flag. Route `POST /doctor/return-to-treatment/<visit_id>` with `role_required` and reason validation (>=3 chars). Audit trail with `entity_type='visit'`, `action='update'`, reason in description. Commit `2b08965`. Files: `services/visit_state_machine_service.py`, `routes/doctor/visits.py`, `tests/test_return_to_treatment.py`. Tests: 4 passed. Related suite: 144 passed.
 50. **Ticket 10 — Audited platform tenant assumption (Update 12i):** Added `PlatformAuditLog` creation to `SaaSRegistrationService.register_organization`. Log action=`SAAS_SIGNUP` with JSON details (slug, name, admin_username, admin_role, pending_payment, package_version_id, billing_type). Captures `client_ip` and `user_agent` when available; imported `request` from flask. `TenantProvisioningService` already logs `CREATE_TENANT`; this adds SaaS-specific signup audit with IP/admin details. Commit `bdfba99`. Files: `services/saas_registration_service.py`, `tests/test_platform_tenant_audit.py`. Tests: 2 passed. Related suite: 146 passed.
-51. **Ticket 11 — RLS runtime verification and deployment guard (Update 12j):** Added `scripts/rls_deployment_guard.py` with 4 verification checks: (1) application role does NOT have BYPASSRLS, (2) `row_security` setting is ON for current connection, (3) all tenant-scoped tables have RLS enabled and enforced, (4) all tenant-scoped tables have at least one RLS policy. Includes comprehensive list of 80+ tenant-scoped tables. Uses raw psycopg2 connection for direct PostgreSQL catalog queries. Exit code 0 = all checks pass (safe to deploy), 1 = failures (do not deploy). Commit `ffebb34`. Files: `scripts/rls_deployment_guard.py`, `tests/test_rls_deployment_guard.py`. Tests: 5 passed. Related suite: 151 passed.
+51. **Ticket 11 — RLS runtime verification and deployment guard (Update 12j):** Added 4 verification checks in `tests/test_rls_deployment_guard.py`: (1) application role does NOT have BYPASSRLS, (2) `row_security` setting is ON for current connection, (3) all tenant-scoped tables have RLS enabled and enforced, (4) all tenant-scoped tables have at least one RLS policy. Includes comprehensive list of 80+ tenant-scoped tables. Uses raw psycopg2 connection for direct PostgreSQL catalog queries. Commit `ffebb34`. File: `tests/test_rls_deployment_guard.py`. Tests: 5 passed. (Note: Standalone `scripts/rls_deployment_guard.py` was removed 2026-07-05 since pytest covered all assertions.)
 52. **Ticket 1 (Corrective) — Finish archive, settlement, and financial mutation lockdown (Update 12k):** Added `paid_amount >= total_amount` check to `GatekeeperService.can_archive_visit`. Added reception-only role check to `GatekeeperService.archive_visit` (only `reception` and `super_admin`). Disabled finance archive route for `admin`/`manager` (returns 403). Centralized final-state checks in `GatekeeperService`. All financial mutations already block archived visits via existing route checks. Commit `d8d3a56`. Files: `services/gatekeeper_service.py`, `routes/finance.py`, `tests/test_archive_lockdown.py`, `tests/test_billing_visit_ownership.py`. Tests: 10 new archive lockdown tests pass. Related suite: 158 passed.
 53. **Ticket 2 (Corrective) — Document and test platform-global tenant context (Update 13):** Added docstring to `purge_cancelled_tenants` explaining why it runs outside `for_each_tenant` (only touches global models: `Tenant`, `PlatformAuditLog`; sets explicit `tenant_id` on `TenantSubscriptionHistory`). Added 3 tests to `test_background_tenant_context.py`: verify `purge_cancelled_tenants` uses only global models, verify it doesn't create tenant-scoped records without explicit tenant_id, and verify the global-model allowlist contains expected tables. Commit `edaf63e`. Files: `app/core/saas/lifecycle.py`, `tests/test_background_tenant_context.py`. Tests: 11 passed.
 54. **Ticket 3 (Corrective) — Complete custom-service workflow compliance (Update 14):** Added defensive role check (`current_user.role != 'reception'` → 403) inside `_process_custom_services`. Fixed `chk_action` constraint on `audit_trails` — added `APPROVE`/`REJECT` to model and migration `s1_009`. Route was silently swallowing `CheckViolation` in the catch-all exception handler. Added 3 tests: rejection preserves price/name, model allows `entity_type='service'`, model allows `action='APPROVE'/'REJECT'`. Commit `d220e75`. Files: `models/audit_trail.py`, `routes/reception/visits.py`, `tests/test_custom_service_lifecycle.py`, `migrations/versions/s1_009_audit_action_constraint.py`. Tests: 10 passed. Related suite: 71 passed.
@@ -1310,7 +1310,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 **Commit:** `ffebb34`
 
 **Files changed:**
-- `scripts/rls_deployment_guard.py` — new deployment guard script with 4 verification checks: (1) application role does NOT have BYPASSRLS, (2) `row_security` setting is ON for current connection, (3) all tenant-scoped tables have RLS enabled and enforced (`relrowsecurity=true`, `relforcerowsecurity=true`), (4) all tenant-scoped tables have at least one RLS policy. Includes comprehensive list of 80+ tenant-scoped tables. Uses raw psycopg2 connection for direct PostgreSQL catalog queries. Exit code 0 = all checks pass (safe to deploy), 1 = failures (do not deploy).
+- `tests/test_rls_deployment_guard.py` — deployment guard tests with 4 verification checks: (1) application role does NOT have BYPASSRLS, (2) `row_security` setting is ON for current connection, (3) all tenant-scoped tables have RLS enabled and enforced (`relrowsecurity=true`, `relforcerowsecurity=true`), (4) all tenant-scoped tables have at least one RLS policy. Includes comprehensive list of 80+ tenant-scoped tables. Uses raw psycopg2 connection for direct PostgreSQL catalog queries.
 - `tests/test_rls_deployment_guard.py` — new test file: 5 tests covering BYPASSRLS check, row_security check, table RLS status check, policy existence check, and table list completeness.
 
 **Evidence:**
@@ -1332,7 +1332,7 @@ Checkpoint tag: `medical-remediation-comprehensive-start-2026-07-02` (HEAD `1def
 
 **Findings/blockers:** None.
 
-**Rollback path:** Remove `scripts/rls_deployment_guard.py` and `tests/test_rls_deployment_guard.py`.
+**Rollback path:** Remove `tests/test_rls_deployment_guard.py` (also restore `scripts/rls_deployment_guard.py` if rolled back from its deletion).
 
 ---
 
@@ -1876,7 +1876,7 @@ Both hooks (`reassert_set_local`, `auto_assign_tenant`, `cross_tenant_guard`) no
 
 ### Acceptance Tests (Ticket 11 Lifecycle)
 
-File: `tests/test_notification_rls_lifecycle.py` — 12 tests covering:
+File: `tests/test_notification_rls_lifecycle.py` — 15 tests covering:
 
 | Test | What It Proves |
 |------|---------------|
@@ -1892,6 +1892,9 @@ File: `tests/test_notification_rls_lifecycle.py` — 12 tests covering:
 | `TestPostgresRLSEnforcement::test_rls_allows_insert_with_session_var` | Direct SQL INSERT with correct `SET LOCAL` → allowed |
 | `TestPostgresRLSEnforcement::test_rls_blocks_insert_with_wrong_tenant` | SET LOCAL + wrong `tenant_id` → blocked by RLS WITH CHECK |
 | `TestPostgresRLSEnforcement::test_rls_select_filters_without_session_var` | Row invisible via raw connection without `SET LOCAL` |
+| `TestFailClosedTenantBinding::test_fail_closed_when_reassert_set_local_fails` | `do_orm_execute` SET LOCAL failure → `TenantIsolationError` for tenant-scoped SELECT |
+| `TestFailClosedTenantBinding::test_fail_closed_when_auto_assign_set_local_fails` | `before_flush` SET LOCAL failure → `TenantIsolationError` for tenant-scoped INSERT |
+| `TestFailClosedTenantBinding::test_global_read_still_works_without_tenant_context` | Global table query still works with explicit bypass, no tenant context |
 
 All tests run **as the real `med_app_runtime` role** (BYPASSRLS=false) against **real PostgreSQL RLS policies** (`tenant_isolation_notifications` with `USING` + `WITH CHECK`). The `TestPostgresRLSEnforcement` tests use raw psycopg2 connections to verify DB-level enforcement independent of the ORM hooks.
 
@@ -1934,7 +1937,7 @@ Startup output confirmed clean: `http://127.0.0.1:8080` appears within ~7–12 s
 | `GET /auth/login` | HTTP 200 |
 | `test_platform_bootstrap.py` (4 tests) | 4/4 passed |
 | `test_rls_deployment_guard.py` (5 tests) | 5/5 passed |
-| `test_notification_rls_lifecycle.py` (12 tests) | 12/12 passed |
+| `test_notification_rls_lifecycle.py` (15 tests) | 15/15 passed |
 | `test_tenant_rls.py` | Pre-existing fixture failure (unchanged) |
 
 ### Known Pre-existing Failure (Unrelated)
@@ -1957,4 +1960,63 @@ All 5 tests fail at fixture setup with `psycopg2.errors.InsufficientPrivilege: p
 | 2026-07-05 | Initialize `last_run = time.time()` in backup automation loop | Prevents immediate `tick()` that would create a `Backup` record at startup | — |
 | 2026-07-05 | Keep synchronous permissions/roles seeding in `create_app()` | Essential RBAC bootstrapping that has always existed; not a smoke test | — |
 | 2026-07-05 | Keep synchronous platform bootstrap in `create_app()` | Seeds module definitions / product bundles; essential platform data, not a smoke test | — |
+| 2026-07-05 | Delete `scripts/rls_deployment_guard.py`; inline functions into `test_rls_deployment_guard.py` | Standalone script duplicated assertions already covered by pytest (5 tests) | — |
+| 2026-07-05 | Remove `scripts/ci/` directory (contained only empty `__init__.py`) | No CI helper scripts existed; all advertised scripts (`verify_migrations.py`, `audit_rls_coverage.py`, `check_schema_parity.py`) were never created | — |
+| 2026-07-05 | Update `scripts/README.md` to remove references to non-existent `ci/` scripts | Documentation must reflect repository reality | — |
+| 2026-07-05 | Remove `MEMORY.md` reference from `docs/OPERATIONS.md` | Operations docs must not reference assistant-memory artifacts | — |
+| 2026-07-05 | Restructure `docs/OPERATIONS.md`: routine dev first, then separate sections for privileged ops, CI internals, production, manual recovery | Clear separation of daily developer commands vs privileged/deployment-only tasks | — |
+| 2026-07-05 | Fix `README.md` startup command to `python run_server.py` (was `flask run --port=5001`) | Canonical startup URL is `http://127.0.0.1:8080`; `run_server.py` is the correct entry point | — |
+| 2026-07-05 | Raise `TenantIsolationError` instead of silently swallowing `SET LOCAL` failures in `tenant_filter.py` (`reassert_set_local`, `auto_assign_tenant`) | Silent `except Exception: pass` in a security-critical tenant-context path could hide a failed tenant binding; tenant-scoped operations must fail closed | — |
+| 2026-07-05 | Add 3 focused pytest tests proving fail-closed behavior when SET LOCAL fails (`TestFailClosedTenantBinding` in `test_notification_rls_lifecycle.py`) | Regression coverage: forced SET LOCAL failure must propagate `TenantIsolationError` for tenant-scoped reads and writes, while global-table reads still work without context | — |
+
+---
+
+## M. Corrective Batch — CI Reconciliation, Docs Corrections, Fail-Closed Tenant Binding (2026-07-05)
+
+**Status:** Complete
+
+**Commit:** `d98637d`
+
+**Scope:** Three independent corrections tracked under one focused change:
+
+### A. CI Reconciliation
+- Inlined `scripts/rls_deployment_guard.py` (4 check functions) into `tests/test_rls_deployment_guard.py`. Deleted the standalone script — pytest already covers all assertions.
+- Deleted `scripts/ci/` directory (contained only empty `__init__.py`; all 3 advertised scripts — `verify_migrations.py`, `audit_rls_coverage.py`, `check_schema_parity.py` — never existed).
+- Updated `scripts/README.md`: removed `ci/` row and non-existent script table.
+
+### B. Docs Corrections
+- Restructured `docs/OPERATIONS.md`: routine developer commands first (`python run_server.py`, `flask db upgrade`, `pytest`), then separate sections for privileged ops, CI internals, production deployment, manual recovery. Removed `MEMORY.md` reference.
+- Fixed `README.md` startup command to `python run_server.py` at `http://127.0.0.1:8080` (was `flask run --port=5001`). Corrected CI/test commands. Removed stale `scripts/dev/setup_runtime_role.py` reference.
+
+### C. Fail-Closed Tenant Binding
+- `app/shared/tenant_filter.py`: `except Exception: pass` replaced with `raise TenantIsolationError(...)` in both `reassert_set_local` (do_orm_execute) and `auto_assign_tenant` (before_flush). Added `logger.exception(...)` for observability.
+- Both handlers skip SET LOCAL on non-PostgreSQL dialects (`db.engine.dialect.name` check) to avoid SQLite test breakage.
+- `TextClause` guard in `reassert_set_local` prevents recursive `do_orm_execute` dispatch when the handler executes `session.execute(db.text("SET LOCAL …"))`.
+- 3 new focused tests in `TestFailClosedTenantBinding` (`test_notification_rls_lifecycle.py`): forced SET LOCAL failure propagates `TenantIsolationError` for tenant-scoped SELECT and INSERT; global-table reads still work without context.
+
+### Test Results
+| Suite | Tests | Result |
+|-------|-------|--------|
+| `test_notification_rls_lifecycle.py` | 15 (12 existing + 3 new) | 15/15 passed |
+| `test_rls_deployment_guard.py` | 5 | 5/5 passed |
+| `test_platform_bootstrap.py` | 4 | 4/4 passed |
+| `test_tenant_rls.py` | — | Pre-existing fixture failures (5 errors, see below) |
+| `test_migrations.py` | — | Pre-existing failures (see below) |
+
+**Pre-existing failures:**
+- `tests/test_tenant_rls.py::TestFailClosedTenantIsolation` (5 tests): All fail at fixture setup — `psycopg2.errors.InsufficientPrivilege: permission denied for table tenants`. Test fixtures try to INSERT into `tenants` under `med_app_runtime` which lacks INSERT grant. Pre-dates this corrective batch.
+- `tests/test_gate_bs4_codemod.py`: `ModuleNotFoundError: No module named 'scripts.dev.bs4_audit'`. Pre-existing import error.
+
+### Files Changed
+| File | Change |
+|------|--------|
+| `app/shared/tenant_filter.py` | Fail-closed SET LOCAL: `except Exception: pass` → `raise TenantIsolationError(...)`; dialect guard; `TextClause` skip |
+| `scripts/rls_deployment_guard.py` | **Deleted** |
+| `scripts/ci/__init__.py` | **Deleted** |
+| `scripts/README.md` | Removed `ci/` row and script table |
+| `docs/OPERATIONS.md` | Restructured: routine dev first, privileged/CI/production sections; removed `MEMORY.md` ref |
+| `README.md` | Startup command fixed to `python run_server.py`; CI/test commands corrected |
+| `tests/test_notification_rls_lifecycle.py` | +3 tests: `TestFailClosedTenantBinding` |
+| `tests/test_rls_deployment_guard.py` | Inlined 4 check functions from deleted standalone script |
+| `docs/MEDICAL_CENTRE_REMEDIATION_PLAN_2026-07-01.md` | This section |
 

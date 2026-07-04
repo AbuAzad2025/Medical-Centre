@@ -320,6 +320,68 @@ class TestMissingTenantContext:
             db.session.rollback()
 
 
+class TestFailClosedTenantBinding:
+    """``SET LOCAL`` failures must propagate, not be silently swallowed."""
+
+    def _patch_target_session(self, monkeypatch):
+        """Monkeypatch ``execute`` on the **underlying** ORM Session, not
+        the ``scoped_session`` wrapper.  Both ``reassert_set_local`` and
+        ``auto_assign_tenant`` receive the raw Session via their event
+        parameters, so the scoped_session patch misses them."""
+        sess = db.session.registry()
+        _orig = sess.execute
+
+        def _mock(stmt, *a, **kw):
+            if 'SET LOCAL' in str(stmt) and 'app.tenant_id' in str(stmt):
+                raise RuntimeError('Simulated SET LOCAL failure')
+            return _orig(stmt, *a, **kw)
+
+        monkeypatch.setattr(sess, 'execute', _mock)
+
+    def test_fail_closed_when_reassert_set_local_fails(self, app, monkeypatch):
+        """When ``reassert_set_local`` (do_orm_execute) cannot SET LOCAL,
+        ``TenantIsolationError`` must propagate for a tenant-scoped SELECT."""
+        from tests.tenant_context import ensure_default_test_tenant, bind_tenant_on_g
+
+        tenant = ensure_default_test_tenant(app)
+        self._patch_target_session(monkeypatch)
+
+        with app.test_request_context():
+            app.config['ENABLE_SAAS_MODE'] = True
+            bind_tenant_on_g(tenant, db_session=db.session)
+            with pytest.raises(TenantIsolationError):
+                Notification.query.all()
+
+    def test_fail_closed_when_auto_assign_set_local_fails(self, app, monkeypatch):
+        """When ``auto_assign_tenant`` (before_flush) cannot SET LOCAL,
+        ``TenantIsolationError`` must propagate for a tenant-scoped INSERT."""
+        from tests.tenant_context import ensure_default_test_tenant, bind_tenant_on_g
+
+        tenant = ensure_default_test_tenant(app)
+        self._patch_target_session(monkeypatch)
+
+        with app.test_request_context():
+            bind_tenant_on_g(tenant, db_session=db.session)
+            n = Notification(
+                title='FailClosedFlush', message='SET LOCAL flush failure',
+                notification_type='info',
+            )
+            db.session.add(n)
+            with pytest.raises(TenantIsolationError):
+                db.session.flush()
+            db.session.rollback()
+
+    def test_global_read_still_works_without_tenant_context(self, app):
+        """Global/platform table reads legitimately need no tenant context."""
+        with app.test_request_context():
+            app.config['ENABLE_SAAS_MODE'] = True
+            g.tenant_id = None
+            g._tenant_filter_bypass = True
+            from app.core.tenant.models import Tenant
+            rows = Tenant.query.limit(1).all()
+            assert isinstance(rows, list)
+
+
 # ===================================================================
 #  4. PostgreSQL RLS Enforcement (direct SQL, bypasses ORM hooks)
 # ===================================================================

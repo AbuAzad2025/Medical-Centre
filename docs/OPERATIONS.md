@@ -1,153 +1,104 @@
 # العمليات
 
-**نظرة عامة:** بضع أوامر واضحة وموثقة لكل مسار تشغيل عادي. لا حاجة لمسارات ملفات عشوائية أو أدلة مساعدة منفصلة.
+**نظرة عامة:** بضع أوامر واضحة وموثقة لكل مسار تشغيل عادي.
 
 ---
 
-## 1. الإعداد المحلي لأول مرة
+## 1. التطوير اليومي (Routine Development)
+
+### بدء التطبيق محلياً
 
 ```bash
-# قم بتخزين متغيرات البيئة الخاصة بك
-cp .env.example .env
-# قم بتعديل SECRET_KEY وكلمات المرور حسب الحاجة
-
-# التثبيت المطلوب عبر pip فقط (Linux/macOS)
-python -m venv .venv && .venv/bin/pip install -r requirements.txt
-
-# أو استخدم حزمة Docker Compose الكاملة (موصى به)
-docker compose up -d --build
-```
-
----
-
-## 2. بدء التطبيق
-
-**المشروع (Docker):** `docker compose up -d` ثم `curl http://localhost:8080/__health`.
-
-**محلي (Flask):**
-
-```bash
-flask db upgrade                    # هجرة Alembic
-python scripts/ops/bootstrap_platform.py   # كتالوج الباقات + SaaS setup
 python run_server.py
 ```
 
-**--- التطبيق HTTPS في الإنتاج:** أضف gunicorn + proxy.
+يتوقع الرابط: `http://127.0.0.1:8080`
 
----
+لا يقوم الخادم بكتابة بيانات أعمال عند بدء التشغيل.
 
-## 3. تشغيل اختبار سلسلة التطبيق الكاملة (فقط في CI/staging)
-
-```bash
-set ENABLE_SAAS_MODE=true
-python -m pytest tests/ -q --tb=short
-```
-
-يجري CI شفافة:
-- يمنح دور قاعدة البيانات المحدود (`med_app_runtime`) مسؤوليات `SELECT/INSERT/UPDATE/DELETE` المناسبة على الطاولات المستأجرة في قاعدة بيانات test.
-- يشغل `pytest tests/test_tenant_rls.py` كخطوة CI للتحقق من أدوار التطبيق.
-
----
-
-## 4. توفير بنية قاعدة البيانات API المحدد (يحتاج أذونات PostgreSQL)
-
-**ملاحظة:** يجب أن يتم تشغيل هذه الخطوة خارج البيئة الآمنة للتطبيق لأن الادعاء على `postgres` مع `CREATE ROLE`.
+### تشغيل التهجيرات (Migrations)
 
 ```bash
-python scripts/bootstrap/setup_runtime_role.py
+flask db upgrade
 ```
 
-يخلق بيئة الإنتاج الآمنة المحدود `med_app_runtime` (مع `NOBYPASSRLS`) ويكتب `DATABASE_URL` الفعالة لـ Flask.
+### تشغيل كل الاختبارات
 
-**هذا مستقل عن عامل التطبيق ولا ينبغي تشغيله تلقائياً.**
+```bash
+python -m pytest tests/ -q
+```
+
+### تشغيل اختبارات PostgreSQL/RLS فقط
+
+```bash
+python -m pytest tests/test_tenant_rls.py tests/test_rls_deployment_guard.py tests/test_notification_rls_lifecycle.py -q --tb=short
+```
+
+اختبارات RLS تتطلب PostgreSQL مع دور `med_app_runtime` مفعّل.
 
 ---
 
-## 5. LLM/assistant القابل لإعادة الإنتاج (فقط في بيئة التطوير المحلية)
+## 2. إعادة تعيين بيانات التطوير المحلية (Local Demo-Data Reset)
 
 ```bash
 python scripts/dev/local_reset_seed.py --confirm-local-reset
 ```
 
-**الضمانات:** فقط على المضيف المحلي/127.0.0.1، إنشاء نسخة احتياطية قبل إعادة التهيئة، يتطلب تأكيد مطابق لعنوان IP في الإنتاج.
-
-- يرسل قاعدة بيانات test المحلية إلى ملف `pg_dump` ببيانات وصفية.
-- يخلق tenant للاختبار، مستخدمين للاختبار، مسارات زيارات تجريبية صغيرة، ولوحة تحكم كاملة.
-- يستخدم `User.set_password()` لتجنب تخزين كلمات المرور في الكود.
-
-**تجنب:** لا يعيد تهيئة شيء خارج مضيف localhost/127.0.0.1::1.
+**الضمانات:** فقط على المضيف المحلي/127.0.0.1، إنشاء نسخة احتياطية قبل إعادة التهيئة.
 
 ---
 
-## 6. PostgreSQL/RLS التحقق بعد عملية bootstrap
+## 3. تهيئة المنصة الأساسية (Privileged Platform Bootstrap)
+
+يتطلب صلاحيات PostgreSQL عالية (`CREATE ROLE`، `INSERT` على جداول عامة).
 
 ```bash
-# إنشاء رول DB المحدد وتثبيته
+# إنشاء دور قاعدة البيانات المحدود (مرة واحدة فقط)
 python scripts/bootstrap/setup_runtime_role.py
 
-# تشغيل اختبارات RLS/SaaS وتصحيح الأمان
-python -m pytest tests/test_tenant_rls.py tests/test_rls_deployment_guard.py -q --tb=short
-```
-
-**ملاحظة:** هذه خطوة CI/bootstrap مطلوبة قبل تشغيل الاختبارات، وليست جزءاً من مسار تطوير التطبيق الطبيعي.
-
----
-
-## 7. بيئة الإنتاج الأساسية (نعم، فقط للمشرف)
-
-```bash
-# + استخدام المفتاح المناسب|سر Stripe.
+# تهيئة كتالوج المنتجات والأدوار
 flask db upgrade
 python scripts/ops/bootstrap_platform.py
 ```
 
-يشمل: هجرة PostgreSQL، كتالوج منتجات SaaS، و `admin`,
-`owner`, `manager`, `reception`, `doctor`, `accountant`، إلك.
-
 ---
 
-## 8. الرعاية والإصلاح اليدوي (حالات الطوارئ فقط)
+## 4. تفاصيل CI (CI Internals — لا يحتاج المطور العادي)
 
-| الحالة | المكان | ملاحظة |
-|-----------|----------|-------|
-| النقل اليدوي لقاعدة البيانات | `scripts/manual/ready_for_migration/` | طلب manual، تأكيد قابل للاسترداد |
-| التنظيف الميزاني للطوارئ | `scripts/manual/cost_reconciliation/` | مستودع أخطاء mendatory |
-
-جميع عمليات الاسترداد اليدوية لديها `README.md` منفصل يصف سبباً، من يجب أن يشغله، الآثار الجانبية، وإجراءات الاسترداد.
-
----
-
-## 9. المتغيرات البيئية (لا تخزن اسماء الخدمة)
-
-راجع `.env.example` (لا يتم إرسالها أبداً إلى المستودع).
-
-يمكن تعديلها بشكل آمن في:
-- `docker compose` (لا حاجة لـ .env)
-- `.env.local` (للتطوير) في Gitignore
-
----
-
-## 10. البيئة مقابل التطوير
-
-| البيئة | المستخدمة لـ | الرابط |
-|------------|-----------|------|
-| المتطور (`.venv`) | SSO عبر Safari، الاختبار السريع، التشغيل | `python run_server.py`، `python scripts/dev/local_reset_seed.py` |
-| التجريبي (`docker compose`) | CI/B المستقر | `docker compose exec app python run_server.py` |
-| الإنتاج (`.env + gunicorn` + proxy) | إنتاج العملاء | `gunicorn -c gunicorn.conf.py wsgi:app` |
-| CI (مهاجر CI السابق) | CI | يطلق `python -m pytest` |
-
----
-
-## الحفظ والتخلص عبر الأوقات
-
-- قاعدة بيانات الإنتاج: `docker compose exec postgres pg_dump`، خارجة من النسخ الاحتياطي النظامي أو مراقبة جزء الملف.
-- دليل التشغيل: `docs/OPERATIONS.md` مستودع واحد للعمليات الصحيحة.
-- ذاكرة المشروع: `MEMORY.md` (يحتوي على إجراءات الطوارئ والمخاطر، الأدلة، الأمور الصعبة).
-
----
-
-## جدوى بيئة التطوير المحلية
+يستخدم CI الأمر التالي لتشغيل الاختبارات:
 
 ```bash
-# يجب يجب يجب يجب يجب يجب يجب يجب يجب يجب يجب يجب يجب يجب يجب يجب يجب يجب يجب.
+python -m pytest tests/ -q --tb=short
 ```
+
+يتطلب CI:
+- PostgreSQL 16 مع دور `med_app_runtime` (صلاحيات `SELECT/INSERT/UPDATE/DELETE` على الجداول المستأجرة).
+- متغير `ENABLE_SAAS_MODE=true`.
+- لا يشمل استدعاء سكربتات CI مساعدة (تم دمج التغطية في pytest).
+
+---
+
+## 5. النشر الإنتاجي (Production Deployment)
+
+```bash
+flask db upgrade
+python scripts/ops/bootstrap_platform.py
+gunicorn -c gunicorn.conf.py wsgi:app
+```
+
+يتطلب متغيرات البيئة: `SECRET_KEY`، `DATABASE_URL`، مفاتيح Stripe إن وجدت.
+
+---
+
+## 6. الإصلاح اليدوي (Manual / Emergency Recovery)
+
+| الحالة | المكان |
+|--------|--------|
+| النقل اليدوي لقاعدة البيانات | `scripts/manual/ready_for_migration/` |
+| التنظيف الميزاني للطوارئ | `scripts/manual/cost_reconciliation/` |
+
+---
+
+## 7. متغيرات البيئة
+
+راجع `.env.example` (لا يتم إرسالها إلى المستودع).
