@@ -18,6 +18,7 @@ from sqlalchemy import text
 from app.extensions import db
 from app.shared.tenant_filter import TenantIsolationError
 from models.notification import Notification
+from services.tenant_job_runner import with_tenant_context
 from tests.tenant_context import bind_tenant_on_g
 
 
@@ -196,6 +197,79 @@ class TestCrossTenantIsolation:
             assert Notification.query.filter_by(
                 title='CrossTenant-Secret-A2',
             ).first() is None
+
+    def test_pooled_session_tenant_id_cleared_on_context_exit(self, app, tenant_ids):
+        """``session.info['_tenant_id']`` is cleared when
+        ``with_tenant_context()`` exits, preventing stale tenant identity on
+        a pooled (reused) session.
+
+        1. Tenant A job runs and commits.
+        2. Context exits — ``session.info['_tenant_id']`` cleaned.
+        3. Same session without tenant: write raises ``TenantIsolationError``.
+        4. Same session without tenant: query in SaaS mode raises.
+        5. Tenant B job runs successfully.
+        6. Tenant B cannot see Tenant A's notification.
+        7. After Tenant B exit: session remains clean.
+        """
+        tid_a, tid_b = tenant_ids
+
+        # -- 1. Tenant A job --
+        def job_a():
+            n = Notification(
+                title='Pooled-Reuse-A', message='A',
+                notification_type='info',
+            )
+            db.session.add(n)
+            db.session.commit()
+
+        with_tenant_context(app, tid_a, job_a)
+
+        # -- 2. After exit: session.info['_tenant_id'] must be clean --
+        assert '_tenant_id' not in db.session.info, \
+            'session.info[_tenant_id] leaked after with_tenant_context() exit'
+
+        # -- 3. Same pooled session, no tenant context: write rejected --
+        n = Notification(
+            title='Pooled-Orphan', message='no tenant',
+            notification_type='info',
+        )
+        db.session.add(n)
+        with pytest.raises(TenantIsolationError):
+            db.session.commit()
+        db.session.rollback()
+
+        # -- 4. Same session, no tenant context: query rejected (SaaS) --
+        with app.test_request_context():
+            app.config['ENABLE_SAAS_MODE'] = True
+            g.tenant_id = None
+            g._tenant_filter_bypass = False
+            with pytest.raises(TenantIsolationError):
+                Notification.query.all()
+
+        # -- 5. Tenant B job --
+        b_query_result = []
+
+        def job_b():
+            n = Notification(
+                title='Pooled-Reuse-B', message='B',
+                notification_type='info',
+            )
+            db.session.add(n)
+            db.session.commit()
+            # Query while in Tenant B context
+            b_query_result.append(
+                Notification.query.filter_by(title='Pooled-Reuse-A').first(),
+            )
+
+        with_tenant_context(app, tid_b, job_b)
+
+        # -- 6. Tenant B cannot see Tenant A --
+        assert b_query_result[0] is None, \
+            'Tenant B should not see Tenant A notification'
+
+        # -- 7. After Tenant B exit: still clean --
+        assert '_tenant_id' not in db.session.info, \
+            'session.info[_tenant_id] leaked after second context exit'
 
 
 # ===================================================================

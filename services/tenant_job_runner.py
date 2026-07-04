@@ -80,6 +80,10 @@ def with_tenant_context(app: Flask, tenant_id: int, job: Callable[[], T]) -> Opt
         try:
             return job()
         finally:
+            try:
+                _ext_db.session.info.pop('_tenant_id', None)
+            except Exception:
+                pass
             for key in ('tenant_id', 'current_tenant', 'tenant_slug', '_tenant_filter_bypass'):
                 try:
                     g.pop(key, None)
