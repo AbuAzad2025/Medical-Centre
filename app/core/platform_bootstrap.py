@@ -64,6 +64,37 @@ def ensure_saas_packages() -> int:
     return max(after - before, 0) if before >= 0 else len(created)
 
 
+_DEVELOPER_DEFAULTS = [
+    {"key": "developer_company", "value": "شركة آزاد للأنظمة الذكية", "type": "string"},
+    {"key": "developer_name", "value": "المهندس أحمد غنام", "type": "string"},
+    {"key": "developer_logo_url", "value": "", "type": "string"},
+    {"key": "developer_mobile", "value": "+ --------", "type": "string"},
+    {"key": "developer_location", "value": "رام الله - فلسطين", "type": "string"},
+]
+
+
+def ensure_developer_config() -> int:
+    """Seed developer info into system_configs if absent (idempotent, platform bootstrap)."""
+    from models.system_config import SystemConfig
+
+    added = 0
+    for d in _DEVELOPER_DEFAULTS:
+        if not SystemConfig.query.filter_by(config_key=d["key"]).first():
+            db.session.add(
+                SystemConfig(
+                    config_key=d["key"],
+                    config_value=d["value"],
+                    config_type=d["type"],
+                    category="general",
+                    is_system=True,
+                )
+            )
+            added += 1
+    if added:
+        db.session.commit()
+    return added
+
+
 def run_platform_bootstrap(*, quiet: bool = False) -> dict[str, Any]:
     """Run full platform bootstrap. Safe to call on every deploy."""
     if os.environ.get('SKIP_PLATFORM_BOOTSTRAP', '').lower() in ('1', 'true', 'yes'):
@@ -74,7 +105,6 @@ def run_platform_bootstrap(*, quiet: bool = False) -> dict[str, Any]:
     modules_added = ensure_module_definitions()
     bundle_count = ensure_product_bundles()
     packages_added = ensure_saas_packages()
-
     summary = {
         'module_definitions_added': modules_added,
         'product_bundles': bundle_count,

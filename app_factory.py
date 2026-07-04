@@ -414,22 +414,8 @@ def create_app(config_name: str | None = None) -> Flask:
                         app.logger.setLevel(lvl)
                         for h in app.logger.handlers:
                             h.setLevel(lvl)
-                # تهيئة معلومات شركة البرمجة والمبرمج
-                defaults = [
-                    {"key": "developer_company", "value": "شركة آزاد للأنظمة الذكية", "type": "string"},
-                    {"key": "developer_name", "value": "المهندس أحمد غنام", "type": "string"},
-                    {"key": "developer_logo_url", "value": "", "type": "string"},
-                    {"key": "developer_mobile", "value": "+ --------", "type": "string"},
-                    {"key": "developer_location", "value": "رام الله - فلسطين", "type": "string"}
-                ]
-                for d in defaults:
-                    if not SystemConfig.query.filter_by(config_key=d["key"]).first():
-                        sc = SystemConfig(config_key=d["key"], config_value=d["value"], config_type=d["type"], category="general", is_system=True)
-                        db.session.add(sc)
-                try:
-                    db.session.commit()
-                except Exception:
-                    db.session.rollback()
+                # developer_* config seeding moved to platform_bootstrap.ensure_developer_config()
+                # (privileged bootstrap path — normal startup is read-only)
             if insp.has_table("users"):
                 from models.user import User
                 # من الآمن استيراد Department فقط عند الحاجة

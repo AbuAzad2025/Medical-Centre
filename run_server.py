@@ -32,6 +32,9 @@ if __name__ == '__main__':
     logger.info("🚀 بدء تشغيل النظام الطبي...")
     
     try:
+        host = os.environ.get('HOST', '127.0.0.1')
+        port = int(os.environ.get('PORT', '8080'))
+
         app = create_app()
         logger.info("✅ تم إنشاء التطبيق بنجاح")
         logger.info(f"📊 عدد المسارات المسجلة: {len(list(app.url_map.iter_rules()))}")
@@ -58,8 +61,6 @@ if __name__ == '__main__':
         t.start()
         logger.info("🕒 تم تفعيل مهمة التنبيهات كل ساعة")
         
-        host = os.environ.get('HOST', '127.0.0.1')
-        port = int(os.environ.get('PORT', '8080'))
         debug = os.environ.get('FLASK_DEBUG', 'false').lower() in ('true', '1', 'on')
         socketio.run(
             app,
