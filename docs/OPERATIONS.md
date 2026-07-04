@@ -79,17 +79,17 @@ python scripts/dev/local_reset_seed.py --confirm-local-reset
 
 ---
 
-## 6. التحقق SSL RLS والتماسك (فقط في CI)
+## 6. PostgreSQL/RLS التحقق بعد عملية bootstrap
 
 ```bash
-# تثبيات SSL RLS الأساسية (في CI)
-python scripts/ci/verify_rls_enforcement.py
+# إنشاء رول DB المحدد وتثبيته
+python scripts/bootstrap/setup_runtime_role.py
 
-# حماية بدء التطبيق (في CI) – تضمن أن BYPASSRLS يتم رفضه لمستخدم قاعدة بيانات <superuser>
-python scripts/ci/verify_rls_guard_rejection.py
+# تشغيل اختبارات RLS/SaaS وتصحيح الأمان
+python -m pytest tests/test_tenant_rls.py tests/test_rls_deployment_guard.py -q --tb=short
 ```
 
-**ملاحظة:** هذه ضرورية لـ CI لتثبت الانعزالية الكاملة ولا ينبغي الاعتماد عليها في أعمال التطوير اليومية.
+**ملاحظة:** هذه خطوة CI/bootstrap مطلوبة قبل تشغيل الاختبارات، وليست جزءاً من مسار تطوير التطبيق الطبيعي.
 
 ---
 
@@ -102,7 +102,7 @@ python scripts/ops/bootstrap_platform.py
 ```
 
 يشمل: هجرة PostgreSQL، كتالوج منتجات SaaS، و `admin`,
-`owner`, `manager`, `reception`, `doctor`, `accountant`، إلخ.
+`owner`, `manager`, `reception`, `doctor`, `accountant`، إلك.
 
 ---
 
