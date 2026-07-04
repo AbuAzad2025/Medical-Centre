@@ -1587,3 +1587,53 @@ All 11 tickets implemented, tested, and committed on `main`:
 | Bonus | Fix 5 more AuditTrail `ip_address`→`user_ip` bugs | `ee95661` | — | — |
 
 **Total: 16 commits, 158+ tests passed, 0 failures.**
+
+---
+
+## UI/UX Modernization — 2026-07-04
+
+**Checkpoint tag:** `medical-centre-ui-modernization-start-2026-07-04` on HEAD `c666172`  
+**UI route/template inventory:** `docs/ui-inventory.md` (676 routes, 394 templates, 1 missing template identified)  
+**Strategy:** Modernize shared shell and design system first (Batch 1), then improve high-traffic operational screens individually in subsequent batches.
+
+### Batch 1 — Global Application Shell
+
+**Commit:** `ui: modernize global medical-centre application shell` (pending)  
+**Scope:** Global CSS design tokens, shared partials, error pages — zero Python/route/logic changes.
+
+| Area | Files changed | Changes |
+|------|---------------|--------|
+| Design tokens | `static/css/design-tokens.css` | Refined shadow values (softer, professional); added focus-ring tokens for accessibility; global `*:focus-visible` styles |
+| Components | `static/css/components.css` | New `.card-clinical` variant (left-accent border, medical display); stat card typography refinements (`.card-stat__number`, `.card-stat__label`); `.table-clinical` (striped, hover); clinical badge variants (`.badge-critical`, `.badge-stable`, `.badge-waiting`, `.badge-discharged`, `.badge-scheduled`, `.badge-in-progress`, `.badge-completed`); form focus ring styling |
+| Clinical CSS | `static/css/clinical.css` | Clinical data display patterns: vital signs card, lab result display, patient info bar, queue status indicators |
+| Layout | `static/css/layout.css` | Smoother sidebar transitions; RTL layout fixes; consistent main content padding |
+| Mobile | `static/css/mobile.css` | Bottom nav indicator bar styling |
+| Flash messages | `templates/partials/_flash.html` | Icons per category (success/error/warning/info); dismiss button; `flash-{{ category }}` class naming |
+| Empty states | `templates/partials/_empty_state.html` | New `empty_state_premium` macro with optional SVG illustration, secondary action |
+| Page header | `templates/partials/_page_header.html` | Added `back_url`/`back_label` params for back button; breadcrumb wrapper |
+| Status badges | `templates/partials/_status_badge.html` | Auto-color mapping via `color_map` dict (30+ status values → clinical badge classes); `extra_class` override preserved |
+| Navbar | `templates/partials/_navbar.html` | Notification bell dropdown with count badge |
+| Mobile nav | `templates/partials/_mobile_bottom_nav.html` | `role="navigation"`, `aria-current`, `mobile-nav-label` class |
+| Error 403 | `templates/errors/403.html` | Modern clinical design card with lock icon, warning color, Arabic RTL, responsive |
+| Error 404 | `templates/errors/404.html` | Modern clinical design card with search icon, info color, Arabic RTL, responsive |
+| Error 500 | `templates/errors/500.html` | Modern clinical design card with warning icon, danger color, Arabic RTL, responsive |
+
+**Verification:**
+- CSS syntax validated (5 files, all balanced braces)
+- Zero Python files changed (confirmed via `git diff --name-only -- '*.py'`)
+- No route paths, form names, IDs, data attributes, CSRF fields, or JS selectors altered
+- Partials changes are additive only (new macros, new params with defaults, new classes)
+- App render check: `pytest tests/test_platform_tenant_assumption.py -k test_normal_user_own_tenant_allowed` → PASSED
+- Arabic RTL preserved on all changed templates
+- Responsive behavior preserved (mobile breakpoints in design-tokens.css, mobile.css)
+
+**Finding:** 1 missing template identified: `manager/custom_service_approvals.html` (route `/custom-service-approvals` in `routes/manager/approvals.py`). To be built in a subsequent batch.
+
+### Subsequent batches (planned)
+
+- Batch 2: Authentication and profile templates
+- Batch 3: Reception workspace (19 templates)
+- Batch 4: Clinical workspaces (doctor, lab, emergency, nurse, radiology)
+- Batch 5: Finance, billing, payment, accountant templates
+- Batch 6: Manager, super_admin, owner, tenant assumption templates
+- Batch 7: Final responsive, RTL, accessibility, and visual consistency pass
