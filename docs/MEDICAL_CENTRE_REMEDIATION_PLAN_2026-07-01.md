@@ -1866,11 +1866,33 @@ The `do_orm_execute` event is the key addition — it fires for Core-level lazy-
 - Re-assertion happens only when `g.tenant_id` is set (tenant context is active)
 - It does not change the RLS policy, grant privileges, or bypass tenant isolation
 
-### Regression Tests
+### Session-Scoped Tenant ID (Narrow Correction)
 
-File: `tests/test_platform_bootstrap.py::test_auto_assign_tenant_works_after_prior_commit`
+Both hooks (`reassert_set_local`, `auto_assign_tenant`, `cross_tenant_guard`) now check `session.info['_tenant_id']` as a first-priority fallback before reading `g.tenant_id`. This ensures the hooks work correctly in background threads where Flask `g` may not be fully established.
 
-Verifies that after a commit (which clears `SET LOCAL`), a subsequent INSERT into the `notifications` table still receives the correct `tenant_id` from `auto_assign_tenant`. Two successive inserts with different objects, both correctly assigned.
+- `bind_g_tenant()` sets `db.session.info['_tenant_id']` (middleware.py)
+- `with_tenant_context()` sets `db.session.info['_tenant_id']` (tenant_job_runner.py)
+- `_current_tenant_id(session=...)` reads `session.info['_tenant_id']` first, then `g.tenant_id`
+
+### Acceptance Tests (Ticket 11 Lifecycle)
+
+File: `tests/test_notification_rls_lifecycle.py` — 11 tests covering:
+
+| Test | What It Proves |
+|------|---------------|
+| `TestNotificationWorkerLifecycle::test_two_notifications_after_commit` | N1→commit→N2→commit→query works — core fix regression |
+| `TestNotificationWorkerLifecycle::test_lazy_load_after_commit_no_object_deleted_error` | Expired-attribute access after commit does not raise `ObjectDeletedError` |
+| `TestCrossTenantIsolation::test_tenant_b_cannot_see_tenant_a_notification` | Tenant A's notification invisible to Tenant B |
+| `TestCrossTenantIsolation::test_tenant_b_cannot_see_after_expire_all` | Same isolation after `expire_all()` (fresh session) |
+| `TestMissingTenantContext::test_missing_context_rejects_query_saas` | SaaS mode: query without context raises `TenantIsolationError` |
+| `TestMissingTenantContext::test_missing_context_rejects_writes_saas` | SaaS mode: INSERT without context raises `TenantIsolationError` |
+| `TestMissingTenantContext::test_missing_context_non_saas_still_requires_tenant` | Non-SaaS mode still rejects tenant-scoped writes without context |
+| `TestPostgresRLSEnforcement::test_rls_blocks_insert_without_session_var` | Direct SQL INSERT without `SET LOCAL` → blocked by RLS WITH CHECK |
+| `TestPostgresRLSEnforcement::test_rls_allows_insert_with_session_var` | Direct SQL INSERT with correct `SET LOCAL` → allowed |
+| `TestPostgresRLSEnforcement::test_rls_blocks_insert_with_wrong_tenant` | SET LOCAL + wrong `tenant_id` → blocked by RLS WITH CHECK |
+| `TestPostgresRLSEnforcement::test_rls_select_filters_without_session_var` | Row invisible via raw connection without `SET LOCAL` |
+
+All tests run **as the real `med_app_runtime` role** (BYPASSRLS=false) against **real PostgreSQL RLS policies** (`tenant_isolation_notifications` with `USING` + `WITH CHECK`). The `TestPostgresRLSEnforcement` tests use raw psycopg2 connections to verify DB-level enforcement independent of the ORM hooks.
 
 ### Startup Verification
 
@@ -1882,11 +1904,12 @@ $ ENABLE_SAAS_MODE=true python run_server.py
 
 Zero errors logged: no `system_configs` errors, no `notifications` RLS errors, no `ObjectDeletedError`.
 
-| Test | Result |
-|------|--------|
+| Test Suite | Result |
+|-----------|--------|
 | `GET /auth/login` | HTTP 200 |
 | `test_platform_bootstrap.py` (4 tests) | 4/4 passed |
 | `test_rls_deployment_guard.py` (5 tests) | 5/5 passed |
+| `test_notification_rls_lifecycle.py` (11 tests) | 11/11 passed |
 | `test_tenant_rls.py` | Pre-existing fixture failure (unchanged) |
 
 ### Decision Log Entry
@@ -1895,6 +1918,7 @@ Zero errors logged: no `system_configs` errors, no `notifications` RLS errors, n
 |------|----------|--------|---------------|
 | 2026-07-04 | Re-assert SET LOCAL in `before_flush`, `do_orm_execute` | Background-thread commits clear transaction-scoped session variable; all subsequent RLS checks fail without re-assertion | — |
 | 2026-07-04 | Use `do_orm_execute` not `before_compile` for SELECT re-assertion | `before_compile` does not fire for Core-level lazy-loads (`load_scalar_attributes`) triggered by expired column access after commit | — |
+| 2026-07-04 | Store tenant_id on `session.info` as fallback alongside `g.tenant_id` | Background threads may not have request-local `g`; `session.info` survives both commit and transaction boundaries | — |
 
 ### Known Pre-existing Failure (Unrelated)
 
@@ -1911,3 +1935,4 @@ All 5 tests fail at fixture setup with `psycopg2.errors.InsufficientPrivilege: p
 | 2026-07-04 | `host`/`port` variable ordering fixed in `run_server.py` | Variables used before their definition caused `NameError` crash | — |
 | 2026-07-04 | Re-assert SET LOCAL in `before_flush`, `do_orm_execute` (Section F) | Background-thread commits clear transaction-scoped session variable; all subsequent RLS checks fail without re-assertion | — |
 | 2026-07-04 | Use `do_orm_execute` not `before_compile` for SELECT re-assertion | `before_compile` does not fire for Core-level lazy-loads triggered by expired column access after commit | — |
+

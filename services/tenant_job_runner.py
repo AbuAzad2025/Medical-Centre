@@ -75,6 +75,8 @@ def with_tenant_context(app: Flask, tenant_id: int, job: Callable[[], T]) -> Opt
         if tenant is None:
             return None
         bind_g_tenant(tenant)
+        from app.extensions import db as _ext_db
+        _ext_db.session.info['_tenant_id'] = tenant.id
         try:
             return job()
         finally:

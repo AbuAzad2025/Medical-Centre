@@ -32,8 +32,12 @@ def _is_saas_mode() -> bool:
         return False
 
 
-def _current_tenant_id():
-    """Return tenant_id from Flask context, or None (super-admin / single-tenant)."""
+def _current_tenant_id(session=None):
+    """Return tenant_id from session.info or Flask g, or None."""
+    if session is not None:
+        tid = session.info.get('_tenant_id')
+        if tid is not None:
+            return tid
     try:
         return g.get('tenant_id')
     except RuntimeError:
@@ -99,7 +103,8 @@ def _check_bundle_limits_on_create(instance, tenant_id):
 @event.listens_for(Query, "before_compile", retval=True)
 def tenant_filter_query(query):
     """Automatically append tenant_id filter to all multi-tenant queries."""
-    tid = _current_tenant_id()
+    session = getattr(query, 'session', None)
+    tid = _current_tenant_id(session=session)
     if tid is None:
         if _is_saas_mode() and not _is_tenant_bypass():
             for desc in query.column_descriptions:
@@ -156,7 +161,7 @@ def reassert_set_local(orm_execute_state):
     prior commit, where ``before_flush`` does not fire (no flush occurs
     for a plain SELECT).
     """
-    tid = _current_tenant_id()
+    tid = _current_tenant_id(session=orm_execute_state.session)
     if tid is None:
         return
     try:
@@ -181,7 +186,7 @@ def auto_assign_tenant(session, flush_context, instances):
     persist with tenant_id=NULL. Only explicitly documented global models
     may be created without tenant context.
     """
-    tid = _current_tenant_id()
+    tid = _current_tenant_id(session=session)
     if tid is None:
         # Fail-closed: any tenant-scoped new record without explicit tenant_id
         # must raise an error, unless it is a proven global model.
@@ -227,7 +232,7 @@ def auto_assign_tenant(session, flush_context, instances):
 
 def _cross_tenant_check(session, is_delete=False):
     """Guard against cross-tenant UPDATE/DELETE on dirty/deleted objects."""
-    tid = _current_tenant_id()
+    tid = _current_tenant_id(session=session)
     if tid is None:
         return  # super-admin or single-tenant — skip
 
@@ -287,7 +292,7 @@ def cross_tenant_guard(session, flush_context, instances):
     _cross_tenant_check(session, is_delete=True)
 
     # Check bundle limits on dirty (updated) User/Patient instances
-    tid = _current_tenant_id()
+    tid = _current_tenant_id(session=session)
     if tid is not None:
         for instance in session.dirty:
             if instance.__tablename__ in ('users', 'patients'):
