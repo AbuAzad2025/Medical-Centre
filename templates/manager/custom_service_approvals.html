@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}موافقات الخدمات المخصصة - إدارة المنصة{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    {% from "partials/_page_header.html" import page_header %}
+    {{ page_header(
+        title='موافقات الخدمات المخصصة',
+        subtitle='مراجعة والموافقة على الخدمات المخصصة التي أنشأها الاستقبال',
+        icon='fas fa-clipboard-check',
+        breadcrumbs=[
+            {'label': 'الرئيسية', 'url': url_for('manager.dashboard')},
+            {'label': 'الموافقات'},
+        ]
+    ) }}
+
+    <div class="row g-4 mt-1">
+        <!-- Pending Services -->
+        <div class="col-12">
+            <div class="card-modern">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock text-warning me-2"></i>
+                        خدمات بانتظار الموافقة
+                        <span class="badge bg-warning text-dark ms-2">{{ pending_services|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if pending_services %}
+                    <div class="table-responsive">
+                        <table class="table table-clinical mb-0">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>اسم الخدمة</th>
+                                    <th>الرمز</th>
+                                    <th>الفئة</th>
+                                    <th>السعر الأساسي</th>
+                                    <th>سعر الطوارئ</th>
+                                    <th>العملة</th>
+                                    <th class="text-center" style="width: 180px;">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for svc in pending_services %}
+                                <tr>
+                                    <td class="text-muted">{{ loop.index }}</td>
+                                    <td>
+                                        <strong>{{ svc.name_ar or svc.name }}</strong>
+                                        {% if svc.description %}
+                                        <br><small class="text-muted">{{ svc.description[:80] }}{% if svc.description|length > 80 %}...{% endif %}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td><code>{{ svc.code }}</code></td>
+                                    <td>
+                                        {% set cat_map = {'doctor': 'طبيب', 'lab': 'مختبر', 'radiology': 'أشعة', 'general': 'عام'} %}
+                                        <span class="badge bg-secondary">{{ cat_map.get(svc.category, svc.category) }}</span>
+                                    </td>
+                                    <td class="fw-semibold">{{ "%.2f"|format(svc.base_price) }}</td>
+                                    <td>{{ "%.2f"|format(svc.emergency_price) if svc.emergency_price else '—' }}</td>
+                                    <td>{{ svc.currency }}</td>
+                                    <td class="text-center">
+                                        <form method="POST" action="{{ url_for('manager.approve_custom_service', service_id=svc.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد من الموافقة على هذه الخدمة؟')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-success" title="موافقة">
+                                                <i class="fas fa-check"></i> موافقة
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('manager.reject_custom_service', service_id=svc.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد من رفض هذه الخدمة؟')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="رفض">
+                                                <i class="fas fa-times"></i> رفض
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    {% from "partials/_empty_state.html" import empty_state %}
+                    {{ empty_state(
+                        icon='fas fa-check-circle',
+                        title='لا توجد خدمات بانتظار الموافقة',
+                        description='جميع الخدمات المخصصة تمت مراجعتها',
+                        action_url=url_for('manager.dashboard'),
+                        action_label='العودة للوحة الإدارة'
+                    ) }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Approved Services -->
+        <div class="col-12">
+            <div class="card-modern">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        خدمات تمت الموافقة عليها
+                        <span class="badge bg-success ms-2">{{ approved_services|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if approved_services %}
+                    <div class="table-responsive">
+                        <table class="table table-clinical mb-0">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>اسم الخدمة</th>
+                                    <th>الرمز</th>
+                                    <th>الفئة</th>
+                                    <th>السعر الأساسي</th>
+                                    <th>العملة</th>
+                                    <th>تاريخ الموافقة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for svc in approved_services %}
+                                <tr>
+                                    <td class="text-muted">{{ loop.index }}</td>
+                                    <td><strong>{{ svc.name_ar or svc.name }}</strong></td>
+                                    <td><code>{{ svc.code }}</code></td>
+                                    <td>
+                                        {% set cat_map = {'doctor': 'طبيب', 'lab': 'مختبر', 'radiology': 'أشعة', 'general': 'عام'} %}
+                                        <span class="badge bg-secondary">{{ cat_map.get(svc.category, svc.category) }}</span>
+                                    </td>
+                                    <td class="fw-semibold">{{ "%.2f"|format(svc.base_price) }}</td>
+                                    <td>{{ svc.currency }}</td>
+                                    <td class="text-muted">{{ svc.approved_at.strftime('%Y-%m-%d %H:%M') if svc.approved_at else '—' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    {% from "partials/_empty_state.html" import empty_state %}
+                    {{ empty_state(
+                        icon='fas fa-folder-open',
+                        title='لا توجد خدمات معتمدة بعد',
+                        description='الخدمات المخصصة التي تتم الموافقة عليها ستظهر هنا'
+                    ) }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
