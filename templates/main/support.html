@@ -2,58 +2,60 @@
 
 {% block title %}الدعم الفني - {{ branding.organization_name if branding else 'المركز الصحي المتخصص' }}{% endblock %}
 
+{% block extra_css %}
+<style>
+.support-hero { background: linear-gradient(145deg, #0c4a6e, #082f4a); color: #fff; padding: 4rem 2rem; text-align: center; }
+.support-hero h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+.support-hero p { opacity: 0.75; font-size: 0.95rem; max-width: 500px; margin: 0 auto; }
+.support-card { border: none; border-radius: 14px; box-shadow: 0 4px 20px rgba(12,74,110,0.06); }
+.contact-box { padding: 1.5rem; border: 1px solid #e2e8f0; border-radius: 12px; text-align: center; height: 100%; background: #f8fafc; }
+.contact-box i { font-size: 1.75rem; margin-bottom: 0.75rem; }
+.contact-box h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.35rem; }
+.contact-box p { font-size: 0.9rem; margin-bottom: 0.25rem; }
+.contact-box small { color: #94a3b8; font-size: 0.78rem; }
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="support-hero">
+    <div class="container">
+        <h1>مركز الدعم الفني</h1>
+        <p>نحن هنا لمساعدتك — فريق الدعم الفني لمنصة أزاد الطبية</p>
+    </div>
+</div>
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card card-modern">
-                <div class="card-body p-5">
-                    <div class="text-center mb-5">
-                        <i class="fas fa-headset fa-4x text-primary mb-3"></i>
-                        <h1 class="mb-3">مركز الدعم الفني</h1>
-                        <p class="lead text-muted">نحن هنا لمساعدتك في حل أي مشكلة تواجهها</p>
-                    </div>
-                    
+            <div class="card support-card">
+                <div class="card-body p-4 p-md-5">
+
                     <div class="row g-4 mb-5">
                         <div class="col-md-6">
-                            <div class="p-4 border rounded-3 h-100 text-center bg-light">
-                                <i class="fas fa-phone fa-2x text-success mb-3"></i>
+                            <div class="contact-box">
+                                <i class="fas fa-phone" style="color:#0c4a6e;"></i>
                                 <h4>اتصل بنا</h4>
-                                <p class="mb-0">{{ branding.organization_phone if branding else '+970-XX-XXXXXXX' }}</p>
-                                <small class="text-muted">متاح 24/7 للحالات الطارئة</small>
+                                <p>{{ branding.organization_phone if branding else '+970-XX-XXXXXXX' }}</p>
+                                <small>متاح 24/7 للحالات الطارئة</small>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-4 border rounded-3 h-100 text-center bg-light">
-                                <i class="fas fa-envelope fa-2x text-info mb-3"></i>
+                            <div class="contact-box">
+                                <i class="fas fa-envelope" style="color:#0d9488;"></i>
                                 <h4>راسلنا</h4>
-                                <p class="mb-0">{{ branding.organization_email if branding else 'support@medical-center.com' }}</p>
-                                <small class="text-muted">سنرد عليك خلال 24 ساعة</small>
+                                <p>{{ branding.organization_email if branding else 'support@medical-center.com' }}</p>
+                                <small>سنرد عليك خلال 24 ساعة</small>
                             </div>
                         </div>
                     </div>
 
-                    <div class="support-info">
-                        <h4 class="mb-3">معلومات الدعم التقني للنظام</h4>
-                        <div class="alert alert-info">
-                            <div class="d-flex">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-info-circle fa-2x"></i>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h5 class="alert-heading">شركة التطوير</h5>
-                                    <p class="mb-0">تم تطوير هذا النظام وتشغيله بواسطة <strong>{{ developer_company or 'شركة أزاد للأنظمة الذكية' }}</strong>.</p>
-                                    <hr>
-                                    <p class="mb-0">
-                                        للدعم المباشر من المطور: <strong>{{ developer_name or 'أحمد غنام' }}</strong>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="support-info mb-4 p-4" style="background:#f0f5fa;border-radius:12px;">
+                        <h5 class="fw-bold mb-2">معلومات الدعم التقني للنظام</h5>
+                        <p class="mb-1">تم تطوير هذا النظام وتشغيله بواسطة <strong>{{ developer_company or 'شركة أزاد للأنظمة الذكية' }}</strong>.</p>
+                        <p class="mb-0">للدعم المباشر من المطور: <strong>{{ developer_name or 'أحمد غنام' }}</strong></p>
                     </div>
 
                     <div class="faq-section mt-5">
-                        <h4 class="mb-4">الأسئلة الشائعة</h4>
+                        <h5 class="fw-bold mb-4">الأسئلة الشائعة</h5>
                         <div class="accordion" id="accordionExample">
                             <div class="accordion-item border-0 mb-2 shadow-sm">
                                 <h2 class="accordion-header" id="headingOne">

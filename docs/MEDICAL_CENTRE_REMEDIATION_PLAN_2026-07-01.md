@@ -1669,3 +1669,88 @@ All browser-facing routes now have templates. The design system (design tokens, 
 - **Routes/models/migrations/logic changed:** 0
 - **Render checks:** pytest PASSED (app boots, templates render, auth works)
 - **Git status:** clean
+
+---
+
+## E. UI Elevation — Medical Centre Login and Landing Experience
+
+**Date:** 2026-07-04  
+**Objective:** Elevate the login screen and all public landing/entry pages into a premium, calm, modern medical-platform experience.  
+**Rules:** No backend routes, business logic, API contracts, authentication rules, form fields/names, CSRF, JS selectors, tenant isolation, or permissions changed.
+
+### Pages improved
+
+| Page | Template | Route | Changes |
+|------|----------|-------|---------|
+| Login | `templates/auth/login.html` | `GET/POST /auth/login` | Complete redesign — calm dark hero (navy/teal gradient), clean white form card, removed decorative elements (ribbon, heart-pulse SVG, visual circles, icons row, embroidery stripe, gradient badge), replaced footer features with simple footer, removed generic security-note. Preserved every form field, CSRF, JS hook, tenant loading script, flash partial. |
+| Landing | `templates/main/landing.html` | `GET /` | Complete redesign — clean sticky header, premium hero with single dominant CTA, bundle data shown as restrained capabilities grid (no auto-scroll carousel, no pricing), real system capabilities overview section, clean closing CTA. Removed auto-scrolling carousel animation, feature cards grid, generic SaaS clutter. Preserved all route data (`grouped` variable, bundle iteration). |
+| About | `templates/main/about.html` | `GET /about-system` | Refined with hero banner, cleaner feature grid, improved card styling. Extends `base.html`. |
+| Support | `templates/main/support.html` | `GET /technical-support` | Refined with hero banner, cleaner contact boxes, improved info section styling. Extends `base.html`. |
+| Error 403 | `templates/errors/403.html` | Error handler | Refined with brand-consistent navy palette, refined card dimensions. |
+| Error 404 | `templates/errors/404.html` | Error handler | Refined with brand-consistent navy palette, refined card dimensions. |
+| Error 500 | `templates/errors/500.html` | Error handler | Refined with brand-consistent navy palette, refined card dimensions. |
+| SaaS signup | `templates/saas/signup.html` | `GET/POST /saas/signup` | Refined with branded card header, improved form styling, consistent with new login aesthetic. |
+
+### Key visual/UX decisions
+
+1. **Color palette refined:** Deep navy (#0c4a6e) as primary trust color, teal (#0d9488) as calm accent, replacing lighter blue scheme.
+2. **Login hero:** Dark gradient (navy-dark → navy → teal) creates a premium, focused atmosphere. Decorative elements removed in favour of clean typography and subtle background geometry.
+3. **Login form card:** Clean white card on light-gray background with generous padding and spacing. Fields have refined focus states, consistent border radius, and colour-coded icons.
+4. **Login footer:** Simplified to a minimal bar with link to about/privacy/support and brand credit.
+5. **Landing page:** Clean sticky header, premium hero section with single primary CTA (login) and secondary support CTA. Auto-scrolling bundle carousel replaced with a restrained grid of facility-profile cards (real system data, no pricing displayed). Capabilities section shows real system modules (appointments, patient records, lab/radiology, billing, pharmacy, multi-tenant management).
+6. **Content pages (about, support):** Added hero banner matching the brand gradient for visual consistency. Refined card styling.
+7. **Error pages:** Unified with the new brand palette, simplified card design.
+8. **SaaS signup:** Branded card header matching the login aesthetic, refined form field styling.
+
+### Templates/CSS/assets changed
+
+| File | Type | Lines changed |
+|------|------|-------------|
+| `static/css/medical-login.css` | CSS | 653-line rewrite |
+| `templates/auth/login.html` | Template | Full restructure (preserved all form fields/JS) |
+| `templates/main/landing.html` | Template | Full restructure (preserved route data contract) |
+| `templates/main/about.html` | Template | Refined content page |
+| `templates/main/support.html` | Template | Refined content page |
+| `templates/errors/403.html` | Template | Refined styling |
+| `templates/errors/404.html` | Template | Refined styling |
+| `templates/errors/500.html` | Template | Refined styling |
+| `templates/saas/signup.html` | Template | Refined styling |
+
+### Route/render checks
+
+- `/` (landing) — renders with `grouped` bundle data; all links work (login, owner login, about, privacy, terms, support)
+- `/auth/login` — renders with all form fields, CSRF, flash messages, mode=owner support
+- `/auth/login?mode=owner` — renders owner-specific copy, no tenant field
+- `/about-system` — renders clean content page within base shell
+- `/technical-support` — renders FAQ accordion, contact info within base shell
+- `/privacy-policy` — unchanged, renders clean content
+- `/terms-of-use` — unchanged, renders clean content
+- `/saas/signup` — renders with form fields, CSRF, captcha support
+- Error pages (403/404/500) — render with consistent branding
+
+### Behavioral verification
+
+- **Form fields:** All IDs preserved (username, password, loginBtn, loginLoading, togglePassword, capsLock, remember, tenantField, tenant_slug)
+- **CSRF:** Meta tag and hidden input preserved
+- **Form action:** POST to `url_for('auth.login')` preserved
+- **Password toggle:** JS hook `togglePassword` → `login.js` toggles `type` attr
+- **Caps-lock indicator:** JS hook `capsLock` → `login.js` `getModifierState('CapsLock')`
+- **Forgot password:** `data-action="forgot-password"` → SweetAlert2 info dialog
+- **Login loading:** `loginLoading` show/hide, `.btn-text`/`.btn-icon` hide on submit
+- **Tenant selection:** `tenantField`/`tenant_slug` → fetch from `/auth/api/tenants-list`
+- **Mode=owner:** Hidden `mode=owner` input, no tenant field, owner-specific copy
+- **Flash messages:** `_flash.html` partial included with category-based styling
+
+### Security/backend verification
+
+- **Python files changed: 0**
+- **Routes, models, migrations, services changed: 0**
+- **Authentication rules, session protection, role flow unchanged: confirmed**
+- **Tenant isolation, permissions, CSRF unchanged: confirmed**
+- **No external image deps, remote fonts (beyond existing Cairo), trackers, or heavy frontend libs added: confirmed**
+
+### Commit
+
+```
+ui: elevate medical-centre login and landing experience
+```

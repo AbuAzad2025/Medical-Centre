@@ -10,108 +10,26 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <style>
-        :root {
-            --color-primary: #0f4c81;
-            --color-danger: #dc2626;
-            --color-bg: #f4f7fb;
-            --color-surface: #ffffff;
-            --color-border: #e2e8f0;
-            --color-text: #0f172a;
-            --color-text-muted: #64748b;
-            --radius-lg: 0.875rem;
-            --shadow-lg: 0 4px 16px rgb(0 0 0 / 6%), 0 8px 24px rgb(0 0 0 / 6%);
-        }
-        * { box-sizing: border-box; }
-        body {
-            font-family: 'Cairo', system-ui, sans-serif;
-            background: var(--color-bg);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            padding: 1rem;
-            color: var(--color-text);
-        }
-        .error-card {
-            background: var(--color-surface);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            max-width: 480px;
-            width: 100%;
-            padding: 3rem 2rem;
-            text-align: center;
-            border: 1px solid var(--color-border);
-        }
-        .error-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 1.5rem;
-            border-radius: 50%;
-            background: rgba(220, 38, 38, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--color-danger);
-            font-size: 2rem;
-        }
-        .error-code {
-            font-size: 3.5rem;
-            font-weight: 800;
-            color: var(--color-danger);
-            line-height: 1;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
-        }
-        .error-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--color-text);
-            margin-bottom: 0.75rem;
-        }
-        .error-desc {
-            color: var(--color-text-muted);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 2rem;
-        }
-        .btn-back {
-            background: var(--color-primary);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 1.75rem;
-            border-radius: 0.625rem;
-            font-weight: 600;
-            font-size: 0.95rem;
-            text-decoration: none;
-            transition: background 0.2s ease, transform 0.15s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .btn-back:hover {
-            background: #0a365a;
-            color: #fff;
-            transform: translateY(-1px);
-        }
-        @media (max-width: 480px) {
-            .error-card { padding: 2rem 1.25rem; }
-            .error-code { font-size: 2.5rem; }
-        }
+        :root { --md-navy: #0c4a6e; --md-navy-dark: #082f4a; --md-teal: #0d9488; --md-text: #0f172a; --md-text-sec: #475569; --md-text-muted: #94a3b8; --md-bg: #f0f5fa; --md-card: #ffffff; --md-border: #e2e8f0; --md-radius: 12px; --md-shadow: 0 8px 32px rgba(12,74,110,0.08); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', system-ui, sans-serif; background: var(--md-bg); min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 1rem; color: var(--md-text); -webkit-font-smoothing: antialiased; }
+        .error-card { background: var(--md-card); border-radius: var(--md-radius); box-shadow: var(--md-shadow); max-width: 440px; width: 100%; padding: 3rem 2rem; text-align: center; }
+        .error-icon { width: 72px; height: 72px; margin: 0 auto 1.25rem; border-radius: 50%; background: rgba(220,38,38,0.08); display: flex; align-items: center; justify-content: center; color: #dc2626; font-size: 1.75rem; }
+        .error-code { font-size: 3rem; font-weight: 800; color: #dc2626; line-height: 1; margin-bottom: 0.5rem; }
+        .error-title { font-size: 1.15rem; font-weight: 700; color: var(--md-text); margin-bottom: 0.5rem; }
+        .error-desc { color: var(--md-text-sec); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.75rem; }
+        .btn-back { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--md-navy); color: #fff; border: none; padding: 0.65rem 1.5rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; font-family: 'Cairo', sans-serif; text-decoration: none; transition: background 0.2s; }
+        .btn-back:hover { background: var(--md-navy-dark); color: #fff; }
+        @media (max-width: 480px) { .error-card { padding: 2rem 1.25rem; } .error-code { font-size: 2.5rem; } }
     </style>
 </head>
 <body>
     <div class="error-card">
-        <div class="error-icon">
-            <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
-        </div>
+        <div class="error-icon"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i></div>
         <div class="error-code">500</div>
         <div class="error-title">تعذر تنفيذ الطلب</div>
         <p class="error-desc">واجهنا مشكلة فنية أثناء معالجة طلبك. يرجى المحاولة مرة أخرى لاحقاً، أو التواصل مع الدعم الفني إذا استمرت المشكلة.</p>
-        <a href="/" class="btn-back">
-            <i class="fas fa-arrow-right" aria-hidden="true"></i>
-            العودة للصفحة الرئيسية
-        </a>
+        <a href="/" class="btn-back"><i class="fas fa-arrow-right" aria-hidden="true"></i> العودة للصفحة الرئيسية</a>
     </div>
 </body>
 </html>
