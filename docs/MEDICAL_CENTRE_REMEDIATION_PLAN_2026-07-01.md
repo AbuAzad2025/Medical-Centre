@@ -4,7 +4,7 @@
 **Implementation status:** `Comprehensive remediation complete (11 tickets + UI modernization + startup fix + notifications RLS fix); Corrective 2026-07-05: CI reconciliation, docs corrections, fail-closed tenant-binding`  
 **Canonical source file path:** `docs/MEDICAL_CENTRE_REMEDIATION_PLAN_2026-07-01.md`  
 **Date created / updated:** 2026-07-01  
-**Last updated:** 2026-07-05 (Corrective: CI reconciliation, docs corrections, fail-closed tenant-binding in tenant_filter.py. Commit `d98637d`.)
+**Last updated:** 2026-07-05 (Corrective: CI reconciliation, docs corrections, fail-closed tenant-binding in tenant_filter.py. Commit `55d5707`.)
 **Reference audit report:** `docs/AUDIT_REPORT_2026-07-01.md`  
 **Rule:** Only explicitly approved items may move into implementation.  
 **Last updated by:** OpenCode agent — implementation phase.  
@@ -1975,7 +1975,7 @@ All 5 tests fail at fixture setup with `psycopg2.errors.InsufficientPrivilege: p
 
 **Status:** Complete
 
-**Commit:** `d98637d`
+**Commit:** `55d5707`
 
 **Scope:** Three independent corrections tracked under one focused change:
 
