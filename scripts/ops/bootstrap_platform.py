@@ -14,7 +14,7 @@ os.environ.setdefault('FLASK_APP', 'wsgi:app')
 
 def main() -> int:
     from app_factory import create_app
-    from app.core.platform_bootstrap import run_platform_bootstrap
+    from app.core.platform_bootstrap import run_platform_bootstrap, ensure_developer_config
 
     app = create_app(os.environ.get('FLASK_ENV', 'production'))
     with app.app_context():
@@ -22,6 +22,8 @@ def main() -> int:
         if summary.get('skipped'):
             print('Platform bootstrap skipped (SKIP_PLATFORM_BOOTSTRAP)')
             return 0
+        dev_added = ensure_developer_config()
+        summary['developer_configs_added'] = dev_added
         print('OK', summary)
     return 0
 

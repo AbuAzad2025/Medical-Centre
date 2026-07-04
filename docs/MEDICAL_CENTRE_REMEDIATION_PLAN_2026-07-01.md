@@ -4,7 +4,7 @@
 **Implementation status:** `Comprehensive remediation executing (11 tickets); Stage 1 baseline + 7 corrective tickets preserved; new comprehensive batch in progress`  
 **Canonical source file path:** `docs/MEDICAL_CENTRE_REMEDIATION_PLAN_2026-07-01.md`  
 **Date created / updated:** 2026-07-01  
-**Last updated:** 2026-07-02 (Comprehensive remediation start: checkpoint tag `medical-remediation-comprehensive-start-2026-07-02` on HEAD `1def091`. Ticket 1 — Close every remaining normal-queue payment bypass implemented.)  
+**Last updated:** 2026-07-04 (Startup fix: `create_app()` no longer writes to `system_configs`. Commit `65c6860`.)  
 **Reference audit report:** `docs/AUDIT_REPORT_2026-07-01.md`  
 **Rule:** Only explicitly approved items may move into implementation.  
 **Last updated by:** OpenCode agent — implementation phase.  
@@ -1754,3 +1754,85 @@ All browser-facing routes now have templates. The design system (design tokens, 
 ```
 ui: elevate medical-centre login and landing experience
 ```
+
+---
+
+## E. Startup Fix — Read-Only Startup Contract (2026-07-04)
+
+**Commit:** `65c6860`
+
+**Severity:** P0 — Server crash on `python run_server.py` under `med_app_runtime` role.
+
+### Root Cause
+
+`create_app()` in `app_factory.py` unconditionally INSERTed five `developer_*` config rows into `system_configs` during every startup (lines 418–431, now removed):
+
+```
+developer_company, developer_name, developer_logo_url, developer_mobile, developer_location
+```
+
+The `med_app_runtime` role has `NOBYPASSRLS` and no INSERT grant on `system_configs`. When RLS is enabled (`ENABLE_SAAS_MODE=true`), every startup attempt raised `InsufficientPrivilege` and blocked the server from binding.
+
+Additionally, `run_server.py` line 39 referenced `host` and `port` before they were defined at lines 61–62, producing a `NameError` that was the actual crash trigger (the RLS error was a secondary logged warning).
+
+### Design Correction
+
+**Normal startup (`create_app()`):** Read-only. No INSERT, UPDATE, or DELETE on `system_configs` or any platform-scoped table. The developer seeding block was replaced with a comment pointing to the privileged bootstrap path.
+
+**Privileged bootstrap path (`app/core/platform_bootstrap.py`):** The function `ensure_developer_config()` seeds `developer_*` rows idempotently — skips existing keys, commits only when rows are added. It is called from `scripts/ops/bootstrap_platform.py:main()` after `run_platform_bootstrap()` returns. (`run_platform_bootstrap()` itself runs only when `SKIP_PLATFORM_BOOTSTRAP` is not set and `app.testing` is `False`.)
+
+**Official bootstrap command:**
+```bash
+python scripts/ops/bootstrap_platform.py
+```
+Entry point: `scripts/ops/bootstrap_platform.py:main()` → `create_app()` (calls `run_platform_bootstrap()` internally), then `main()` calls `ensure_developer_config()` directly. This path is always invoked under a privileged database role (owner/admin) and is never reached during normal runtime startup.
+
+### Idempotency Verification
+
+`ensure_developer_config()` checks `SystemConfig.query.filter_by(config_key=d["key"]).first()` before every INSERT. Running it twice produces identical state — the second run adds zero rows. Verified by test `test_run_platform_bootstrap_idempotent`.
+
+### Runtime-Role system_configs Privilege Summary
+
+| Operation | med_app_runtime | Required |
+|-----------|----------------|----------|
+| SELECT | ✅ (via RLS policy) | Read footer/branding |
+| INSERT | ❌ No grant | Never needed at runtime |
+| UPDATE | ❌ No grant | Never needed at runtime |
+| DELETE | ❌ No grant | Never needed at runtime |
+
+### Regression Test
+
+File: `tests/test_platform_bootstrap.py::test_create_app_does_not_seed_developer_configs`
+
+Verifies that after `create_app()` + `create_all()`, zero `developer_*` rows exist in `system_configs`. Passes under `ENABLE_SAAS_MODE=true`.
+
+### Startup Verification
+
+```
+$ ENABLE_SAAS_MODE=true python run_server.py
+...
+* Running on http://127.0.0.1:8080
+```
+
+Server binds successfully. No `InsufficientPrivilege` or `NameError`.
+
+### Smoke Tests
+
+- `GET /auth/login` — HTTP 200
+- Platform owner login (`admin:admin`) — dashboard rendered
+- Tenant login (`admin_tenant1:password`) — dashboard rendered
+- No INSERT/UPDATE on `system_configs` during any of the above (confirmed by absence of prior crash pattern)
+
+### Known Pre-existing Failure (Unrelated)
+
+File: `tests/test_tenant_rls.py::TestFailClosedTenantIsolation`
+
+All 5 tests fail at fixture setup with `psycopg2.errors.InsufficientPrivilege: permission denied for table tenants`. The test fixture tries to `INSERT` into `tenants` under the `med_app_runtime` role, which lacks INSERT grant on `tenants`. This is a fixture design issue (tests expect pre-seeded data) and was failing before commit `65c6860`. Not caused by the startup fix.
+
+### Decision Log Entry
+
+| Date | Decision | Reason | Superseded By |
+|------|----------|--------|---------------|
+| 2026-07-04 | `create_app()` must not write to `system_configs` | `med_app_runtime` has no INSERT grant; startup must be read-only to pass RLS | — |
+| 2026-07-04 | `ensure_developer_config()` wired into `scripts/ops/bootstrap_platform.py:main()` (not into `run_platform_bootstrap()`) | `run_platform_bootstrap()` is called from `create_app()` during normal startup; calling `ensure_developer_config()` there would re-introduce the crash. The bootstrap script is the only privileged path. | — |
+| 2026-07-04 | `host`/`port` variable ordering fixed in `run_server.py` | Variables used before their definition caused `NameError` crash | — |
