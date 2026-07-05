@@ -986,11 +986,13 @@ def owner_audit_logs():
 
 
     entity_type = request.args.get('entity_type', '')
+    search = request.args.get('q', '')
     q = PlatformAuditLog.query
     if entity_type:
         q = q.filter_by(entity_type=entity_type)
     logs = q.order_by(PlatformAuditLog.created_at.desc()).limit(100).all()
-    return render_template('owner/audit_logs.html', logs=logs, entity_type=entity_type)
+    return render_template('owner/audit_logs.html', logs=logs, entity_type=entity_type,
+                           search=search, pagination=None)
 
 
 # ─────────────────────────────────────────────

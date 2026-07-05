@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-23",
-  "total_routes": 634,
+  "total_routes": 648,
   "summary": {
     "public": 9,
     "internal": 1,
@@ -186,22 +186,6 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "api_dashboard.dashboard_snapshot",
-      "path": "/api/dashboard/snapshot",
-      "methods": [
-        "GET"
-      ],
-      "classification": "authenticated"
-    },
-    {
-      "endpoint": "saas_billing.stripe_webhook",
-      "path": "/api/billing/stripe/webhook",
-      "methods": [
-        "POST"
-      ],
-      "classification": "public"
-    },
-    {
       "endpoint": "saas_billing.create_checkout",
       "path": "/api/billing/checkout",
       "methods": [
@@ -218,6 +202,14 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "saas_billing.stripe_webhook",
+      "path": "/api/billing/stripe/webhook",
+      "methods": [
+        "POST"
+      ],
+      "classification": "public"
+    },
+    {
       "endpoint": "saas_billing.cancel_subscription",
       "path": "/api/billing/subscription/cancel",
       "methods": [
@@ -230,6 +222,14 @@
       "path": "/api/billing/subscription/change-plan",
       "methods": [
         "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "api_dashboard.dashboard_snapshot",
+      "path": "/api/dashboard/snapshot",
+      "methods": [
+        "GET"
       ],
       "classification": "authenticated"
     },
@@ -266,6 +266,14 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "saas.register_organization",
+      "path": "/api/saas/register",
+      "methods": [
+        "POST"
+      ],
+      "classification": "public"
+    },
+    {
       "endpoint": "main.api_search",
       "path": "/api/search",
       "methods": [
@@ -280,23 +288,6 @@
         "GET"
       ],
       "classification": "authenticated"
-    },
-    {
-      "endpoint": "saas.register_organization",
-      "path": "/api/saas/register",
-      "methods": [
-        "POST"
-      ],
-      "classification": "public"
-    },
-    {
-      "endpoint": "saas.signup_organization",
-      "path": "/saas/signup",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "classification": "public"
     },
     {
       "endpoint": "api_user.user_preferences",
@@ -879,6 +870,14 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "doctor.api_dashboard_stats",
+      "path": "/doctor/api/dashboard-stats",
+      "methods": [
+        "GET"
+      ],
+      "classification": "admin"
+    },
+    {
       "endpoint": "doctor.api_note_templates",
       "path": "/doctor/api/note-templates",
       "methods": [
@@ -911,6 +910,14 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "doctor.api_today_visits",
+      "path": "/doctor/api/today-visits",
+      "methods": [
+        "GET"
+      ],
+      "classification": "admin"
+    },
+    {
       "endpoint": "doctor.appointments",
       "path": "/doctor/appointments",
       "methods": [
@@ -933,6 +940,14 @@
         "GET"
       ],
       "classification": "authenticated"
+    },
+    {
+      "endpoint": "doctor.dashboard_new",
+      "path": "/doctor/dashboard-new",
+      "methods": [
+        "GET"
+      ],
+      "classification": "admin"
     },
     {
       "endpoint": "doctor.dashboard_for_doctor",
@@ -1929,6 +1944,14 @@
       "classification": "admin"
     },
     {
+      "endpoint": "manager.custom_service_approvals",
+      "path": "/manager/custom-service-approvals",
+      "methods": [
+        "GET"
+      ],
+      "classification": "admin"
+    },
+    {
       "endpoint": "manager.dashboard",
       "path": "/manager/dashboard",
       "methods": [
@@ -2256,16 +2279,16 @@
       "classification": "authenticated"
     },
     {
-      "endpoint": "medication.pos_sell",
-      "path": "/medication/pos/sell",
+      "endpoint": "medication.pharmacy_pos_charge",
+      "path": "/medication/pos/charge",
       "methods": [
         "POST"
       ],
       "classification": "authenticated"
     },
     {
-      "endpoint": "medication.pharmacy_pos_charge",
-      "path": "/medication/pos/charge",
+      "endpoint": "medication.pos_sell",
+      "path": "/medication/pos/sell",
       "methods": [
         "POST"
       ],
@@ -2698,6 +2721,14 @@
       "classification": "super-admin"
     },
     {
+      "endpoint": "owner.owner_create_assumption",
+      "path": "/owner/api/assumptions",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
       "endpoint": "owner.api_list_bundles",
       "path": "/owner/api/bundles",
       "methods": [
@@ -2818,6 +2849,14 @@
       "classification": "super-admin"
     },
     {
+      "endpoint": "owner.owner_backups",
+      "path": "/owner/backups",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
       "endpoint": "owner.owner_billing",
       "path": "/owner/billing",
       "methods": [
@@ -2843,8 +2882,40 @@
       "classification": "super-admin"
     },
     {
+      "endpoint": "owner.owner_control",
+      "path": "/owner/control",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
       "endpoint": "owner.owner_dashboard",
       "path": "/owner/dashboard",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_emergency_switches",
+      "path": "/owner/emergency-switches",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_modules",
+      "path": "/owner/modules",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_monitoring",
+      "path": "/owner/monitoring",
       "methods": [
         "GET"
       ],
@@ -2980,6 +3051,22 @@
       "classification": "super-admin"
     },
     {
+      "endpoint": "owner.owner_system_config",
+      "path": "/owner/system-config",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_tasks",
+      "path": "/owner/tasks",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
       "endpoint": "owner.owner_tenant_usage",
       "path": "/owner/tenant-usage/<int:tenant_id>",
       "methods": [
@@ -2998,6 +3085,14 @@
     {
       "endpoint": "owner.owner_activate_tenant",
       "path": "/owner/tenants/<int:tenant_id>/activate",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_activate_default_modules",
+      "path": "/owner/tenants/<int:tenant_id>/activate-modules",
       "methods": [
         "GET"
       ],
@@ -3034,6 +3129,14 @@
       "methods": [
         "GET",
         "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_users",
+      "path": "/owner/users",
+      "methods": [
+        "GET"
       ],
       "classification": "super-admin"
     },
@@ -4264,6 +4367,15 @@
         "POST"
       ],
       "classification": "authenticated"
+    },
+    {
+      "endpoint": "saas.signup_organization",
+      "path": "/saas/signup",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "public"
     },
     {
       "endpoint": "security.password_policy",

@@ -224,23 +224,23 @@ class TestCanArchiveVisit:
         assert ok is False
 
     def test_no_gl_posted(self, make_visit):
-        v = make_visit(gl_posted_at=None)
+        v = make_visit(status='COMPLETED', gl_posted_at=None)
         ok, msg = GK.can_archive_visit(v.id, 1)
         assert ok is False and 'الترحيل المالي' in msg
 
     def test_locked(self, make_visit):
-        v = make_visit(gl_posted_at=datetime.now(timezone.utc), financial_locked=True)
+        v = make_visit(status='COMPLETED', gl_posted_at=datetime.now(timezone.utc), financial_locked=True)
         ok, _ = GK.can_archive_visit(v.id, 1)
         assert ok is False
 
     def test_emergency_without_financial_completed(self, make_visit):
-        v = make_visit(gl_posted_at=datetime.now(timezone.utc), financial_locked=False,
+        v = make_visit(status='COMPLETED', gl_posted_at=datetime.now(timezone.utc), financial_locked=False,
                        is_emergency=True, financial_completed_at=None)
         ok, msg = GK.can_archive_visit(v.id, 1)
         assert ok is False and 'اكتمال الدفع' in msg
 
     def test_ok(self, make_visit):
-        v = make_visit(gl_posted_at=datetime.now(timezone.utc), financial_locked=False)
+        v = make_visit(status='COMPLETED', gl_posted_at=datetime.now(timezone.utc), financial_locked=False)
         ok, _ = GK.can_archive_visit(v.id, 1)
         assert ok is True
 
@@ -328,12 +328,12 @@ class TestArchiveVisit:
         assert ok is False
 
     def test_blocked_when_cannot_archive(self, make_visit):
-        v = make_visit(gl_posted_at=None)
+        v = make_visit(gl_posted_at=None, status='COMPLETED')
         ok, _ = GK.archive_visit(v.id, 1)
         assert ok is False
 
     def test_success(self, make_visit, staff_id):
-        v = make_visit(gl_posted_at=datetime.now(timezone.utc), financial_locked=False)
+        v = make_visit(status='COMPLETED', gl_posted_at=datetime.now(timezone.utc), financial_locked=False)
         ok, _ = GK.archive_visit(v.id, staff_id)
         assert ok is True
         assert v.archive_status == 'ARCHIVED'

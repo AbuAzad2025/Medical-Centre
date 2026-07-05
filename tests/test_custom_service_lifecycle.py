@@ -177,8 +177,13 @@ class TestCustomServiceLifecycle:
         with app.test_request_context():
             from flask import g
             g.tenant_id = tenant_id
+            from models.user import User
+            user = User(username='approver', email='approver@test.local', role='manager', is_active=True, tenant_id=tenant_id)
+            user.set_password('test')
+            _db.session.add(user)
+            _db.session.flush()
             svc.is_active = True
-            svc.approved_by = 1
+            svc.approved_by = user.id
             svc.approved_at = __import__('datetime').datetime.now(__import__('datetime').timezone.utc)
             _db.session.commit()
 

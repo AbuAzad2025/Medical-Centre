@@ -31,13 +31,24 @@ def _db_is_postgresql():
 # ---------------------------------------------------------------------------
 
 def _rls_connection():
-    """Return a raw psycopg2 connection to the same database."""
+    """Return a raw psycopg2 connection to the same database.
+
+    Skips if the current database user is a superuser — PostgreSQL RLS
+    does not apply to superusers or BYPASSRLS roles.
+    """
     url = (os.environ.get('TEST_DATABASE_URL')
            or os.environ.get('DATABASE_URL'))
     if not url or not url.startswith('postgresql'):
         pytest.skip('PostgreSQL required for RLS enforcement tests')
     import psycopg2
-    return psycopg2.connect(url)
+    conn = psycopg2.connect(url)
+    with conn.cursor() as cur:
+        cur.execute("SELECT rolsuper FROM pg_roles WHERE rolname = current_user")
+        row = cur.fetchone()
+        if row and row[0]:
+            conn.close()
+            pytest.skip('Current database user is superuser; RLS is bypassed')
+    return conn
 
 
 # ===================================================================

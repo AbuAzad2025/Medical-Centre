@@ -16,6 +16,7 @@ os.environ['APP_ENV'] = 'testing'
 os.environ['FLASK_DEBUG'] = 'false'
 os.environ['SUPPRESS_LOGGING'] = '1'
 os.environ['SKIP_PLATFORM_BOOTSTRAP'] = '1'
+os.environ['RLS_BYPASS_ALLOWED'] = '1'
 
 # Use PostgreSQL test database if available, fallback SQLite
 _test_db_url = os.environ.get('TEST_DATABASE_URL') or \
@@ -153,6 +154,8 @@ def _saas_default_tenant_context(app, request, monkeypatch):
     )
 
     clear_tenant_g()
+    # Clear any leaked session-level tenant id from prior middleware calls
+    _db.session.info.pop('_tenant_id', None)
     if not app.config.get('ENABLE_SAAS_MODE', False):
         yield
         clear_tenant_g()

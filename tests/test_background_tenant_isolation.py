@@ -87,8 +87,8 @@ class TestNotificationQueueTenantIsolation:
             from flask import g
 
             g._tenant_filter_bypass = True
-            # Create real tenants and a dummy user; production DB has FK and
-            # NOT NULL constraints that the ORM model doesn't reflect.
+            # Create real tenants; production DB has FK and NOT NULL constraints
+            # that the ORM model doesn't reflect.
             t1 = Tenant(slug=_unique_slug('notif-t1'), name='Notif T1', contact_email='t1@example.com', status='ACTIVE')
             t2 = Tenant(slug=_unique_slug('notif-t2'), name='Notif T2', contact_email='t2@example.com', status='ACTIVE')
             db.session.add_all([t1, t2])
@@ -143,6 +143,9 @@ class TestAppointmentRemindersTenantIsolation:
             t1 = Tenant(slug=_unique_slug('appt-t1'), name='Appt T1', contact_email='t1@example.com', status='ACTIVE')
             t2 = Tenant(slug=_unique_slug('appt-t2'), name='Appt T2', contact_email='t2@example.com', status='ACTIVE')
             db.session.add_all([t1, t2])
+            db.session.commit()
+            # Set g.tenant_id so get_tenant_record can verify ownership
+            g.tenant_id = t1.id
             db.session.commit()
 
             patient1 = Patient(tenant_id=t1.id, first_name='P1', last_name='Test', phone='0500000001')

@@ -43,6 +43,7 @@ def audit_manager_nav_coverage(app: Flask) -> list[str]:
             '/manager/dashboard', '/manager/settlements', '/manager/budget',
             '/manager/monthly-comparison', '/manager/financial-reports',
             '/manager/exchange-rates', '/manager/force-payment-approvals',
+            '/manager/custom-service-approvals',
             '/manager/pricing', '/manager/departments', '/manager/unit-control',
             '/manager/user-management', '/manager/staff', '/manager/staff/absence',
             '/manager/staff/capacity', '/manager/staff/schedule',

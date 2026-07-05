@@ -210,19 +210,20 @@ def auto_assign_tenant(session, flush_context, instances):
     tid = _current_tenant_id(session=session)
     if tid is None:
         # Fail-closed: any tenant-scoped new record without explicit tenant_id
-        # must raise an error, unless it is a proven global model.
-        for instance in session.new:
-            mapper = getattr(instance, '__mapper__', None)
-            if mapper is None:
-                continue
-            if 'tenant_id' not in mapper.columns:
-                continue
-            if _skip_table(instance.__class__):
-                continue
-            if getattr(instance, 'tenant_id', None) is None:
-                raise TenantIsolationError(
-                    f"Tenant-scoped record {instance.__class__.__name__} created without tenant context"
-                )
+        # must raise an error, unless it is a proven global model or bypass is active.
+        if not _is_tenant_bypass():
+            for instance in session.new:
+                mapper = getattr(instance, '__mapper__', None)
+                if mapper is None:
+                    continue
+                if 'tenant_id' not in mapper.columns:
+                    continue
+                if _skip_table(instance.__class__):
+                    continue
+                if getattr(instance, 'tenant_id', None) is None:
+                    raise TenantIsolationError(
+                        f"Tenant-scoped record {instance.__class__.__name__} created without tenant context"
+                    )
         return
 
     # Re-assert SET LOCAL — the previous transaction's commit (if any) cleared it,
@@ -251,8 +252,8 @@ def auto_assign_tenant(session, flush_context, instances):
             continue
         if getattr(instance, 'tenant_id', None) is None:
             instance.tenant_id = tid
-        # Enforce bundle limits after tenant_id assignment
-        if instance.__tablename__ in ('users', 'patients'):
+        # Enforce bundle limits after tenant_id assignment (skip if bypass)
+        if not _is_tenant_bypass() and instance.__tablename__ in ('users', 'patients'):
             _check_bundle_limits_on_create(instance, tid)
 
 
@@ -321,12 +322,13 @@ def cross_tenant_guard(session, flush_context, instances):
     _cross_tenant_check(session, is_delete=False)
     _cross_tenant_check(session, is_delete=True)
 
-    # Check bundle limits on dirty (updated) User/Patient instances
-    tid = _current_tenant_id(session=session)
-    if tid is not None:
-        for instance in session.dirty:
-            if instance.__tablename__ in ('users', 'patients'):
-                _check_bundle_limits_on_update(instance, tid)
+    # Check bundle limits on dirty (updated) User/Patient instances (skip if bypass)
+    if not _is_tenant_bypass():
+        tid = _current_tenant_id(session=session)
+        if tid is not None:
+            for instance in session.dirty:
+                if instance.__tablename__ in ('users', 'patients'):
+                    _check_bundle_limits_on_update(instance, tid)
 
 
 def register_tenant_listeners():

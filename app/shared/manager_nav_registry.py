@@ -37,6 +37,7 @@ _MANAGER_SECTIONS: List[_MgrSectionSpec] = [
             _MgrSpec('financial_reports', 'تقارير مالية', 'fas fa-file-invoice-dollar', 'manager.financial_reports', '/manager/financial-reports'),
             _MgrSpec('exchange_rates', 'أسعار الصرف', 'fas fa-exchange-alt', 'manager.exchange_rates', '/manager/exchange-rates'),
             _MgrSpec('force_payment', 'اعتماد الدفع الإجباري', 'fas fa-gavel', 'manager.force_payment_approvals', '/manager/force-payment-approvals'),
+            _MgrSpec('custom_service_approvals', 'موافقات الخدمات المخصصة', 'fas fa-concierge-bell', 'manager.custom_service_approvals', '/manager/custom-service-approvals'),
             _MgrSpec('pricing', 'تسعير الخدمات', 'fas fa-tags', 'manager.pricing', '/manager/pricing'),
         ],
     ),
