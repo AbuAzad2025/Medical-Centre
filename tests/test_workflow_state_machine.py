@@ -45,10 +45,12 @@ def wf_visit(rollback_db):
 
 
 class TestWorkflowOrchestrator:
+    @pytest.mark.no_tenant_context
     def test_clinical_transition_via_vsm(self, wf_visit):
         assert WorkflowOrchestrator.transition(wf_visit, VisitState.CHECKED_IN) is True
         assert wf_visit.status == VisitState.CHECKED_IN
 
+    @pytest.mark.no_tenant_context
     def test_invalid_transition_rejected(self, wf_visit):
         assert WorkflowOrchestrator.transition(wf_visit, VisitState.COMPLETED) is False
 
