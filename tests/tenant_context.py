@@ -127,7 +127,7 @@ def login_test_client(client, user, tenant, password: str = 'test123'):
     })
     tid = getattr(user, 'tenant_id', None) or getattr(tenant, 'id', None)
     version = int(getattr(user, 'session_version', 0) or 0)
-    user_id = f'{user.id}:{version}' if version else str(user.id)
+    user_id = f'{user.id}:{version}'
     with client.session_transaction() as sess:
         sess['_user_id'] = user_id
         if tid is not None:

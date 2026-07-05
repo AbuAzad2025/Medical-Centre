@@ -114,3 +114,13 @@ forensic_*.py
 run_failing_test.py
 
 .tests_deleted/
+
+# Runtime artifacts (must NOT be tracked)
+cookies.txt
+server_*.txt
+temp_analysis.py
+unique_constraint_audit.json
+/AUDIT_REPORT_*.md
+.python-version
+launcher.py
+start_server.bat

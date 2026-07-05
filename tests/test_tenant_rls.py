@@ -1,42 +1,31 @@
 """Integration tests for database-level tenant isolation (fail-closed behavior)."""
 
-import uuid
-from datetime import datetime, timezone
-
 import pytest
 from flask import g
 
 from app.extensions import db
-from app.core.tenant.models import Tenant, TenantStatus
+from app.core.tenant.models import Tenant
 from app.shared.tenant_filter import TenantIsolationError
 from models.patient import Patient
 
 
 @pytest.fixture
 def tenant_a(app):
-    t = Tenant(
-        slug=f'tenant-a-{uuid.uuid4().hex[:6]}',
-        name='Tenant A',
-        contact_email='a@test.local',
-        status=TenantStatus.ACTIVE,
-        product_profile_code='standalone_clinic',
-    )
-    db.session.add(t)
-    db.session.commit()
+    from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG
+    t = Tenant.query.filter_by(slug=DEFAULT_TEST_TENANT_SLUG).first()
+    if t is None:
+        raise RuntimeError(
+            f'Default tenant "{DEFAULT_TEST_TENANT_SLUG}" not found — bootstrap first'
+        )
     return t
 
 
 @pytest.fixture
 def tenant_b(app):
-    t = Tenant(
-        slug=f'tenant-b-{uuid.uuid4().hex[:6]}',
-        name='Tenant B',
-        contact_email='b@test.local',
-        status=TenantStatus.ACTIVE,
-        product_profile_code='standalone_clinic',
-    )
-    db.session.add(t)
-    db.session.commit()
+    from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG
+    t = Tenant.query.filter(Tenant.slug != DEFAULT_TEST_TENANT_SLUG).first()
+    if t is None:
+        raise RuntimeError('No second tenant found in database')
     return t
 
 
@@ -61,20 +50,25 @@ class TestFailClosedTenantIsolation:
 
     def test_cross_tenant_data_invisible(self, app, tenant_a, tenant_b):
         """Tenant A cannot see Tenant B's data."""
-        p = Patient(
-            tenant_id=tenant_b.id,
-            first_name='Secret',
-            last_name='Patient',
-            gender='male',
-            phone='0000000000',
-        )
-        db.session.add(p)
-        db.session.commit()
-        patient_id = p.id
+        from tests.tenant_context import bind_tenant_on_g
 
         with app.test_request_context():
             app.config['ENABLE_SAAS_MODE'] = True
-            g.tenant_id = tenant_a.id
+            bind_tenant_on_g(tenant_b, db_session=db.session)
+            p = Patient(
+                tenant_id=tenant_b.id,
+                first_name='Secret',
+                last_name='Patient',
+                gender='male',
+                phone='0000000000',
+            )
+            db.session.add(p)
+            db.session.commit()
+            patient_id = p.id
+
+        with app.test_request_context():
+            app.config['ENABLE_SAAS_MODE'] = True
+            bind_tenant_on_g(tenant_a, db_session=db.session)
             found = Patient.query.filter_by(id=patient_id).first()
             assert found is None
 

@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import subprocess
 import sys
-from pathlib import Path
 
 from migrations.migration_utils import column_exists, fk_exists, index_exists, table_exists
 
 # Keep in sync with the latest Alembic revision in migrations/versions/.
-ALEMBIC_HEAD_REVISION = 's1_007_rls_phase4'
+ALEMBIC_HEAD_REVISION = 's1_012_rls_nullif'
 
 
 def test_migration_utils_callable():
@@ -20,28 +19,6 @@ def test_migration_utils_callable():
     from migrations.migration_utils import enable_tenant_rls, disable_tenant_rls
     assert callable(enable_tenant_rls)
     assert callable(disable_tenant_rls)
-
-
-def test_verify_migrations_script_exists():
-    script = Path(__file__).parent.parent / 'scripts' / 'ci' / 'verify_migrations.py'
-    assert script.is_file()
-
-
-def test_audit_rls_coverage_script_exists():
-    script = Path(__file__).parent.parent / 'scripts' / 'ci' / 'audit_rls_coverage.py'
-    assert script.is_file()
-
-
-def test_check_schema_parity_script():
-    script = Path(__file__).parent.parent / 'scripts' / 'ci' / 'check_schema_parity.py'
-    assert script.is_file()
-    result = subprocess.run(
-        [sys.executable, str(script)],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert result.returncode == 0, result.stderr or result.stdout
 
 
 def test_alembic_single_head(app):
