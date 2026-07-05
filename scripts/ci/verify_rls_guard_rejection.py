@@ -38,12 +38,7 @@ except Exception as e:
 
 
 def main() -> int:
-    env = {
-        **os.environ,
-        # Exclude RLS_BYPASS_ALLOWED
-        k: v for k, v in os.environ.items()
-        if k != 'RLS_BYPASS_ALLOWED'
-    }
+    env = {k: v for k, v in os.environ.items() if k != 'RLS_BYPASS_ALLOWED'}
     env.pop('RLS_BYPASS_ALLOWED', None)
 
     result = subprocess.run(
