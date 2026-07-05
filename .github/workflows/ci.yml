@@ -1,3 +1,4 @@
+# re-register workflow after force-push history rewrite
 name: CI
 
 on:
