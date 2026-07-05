@@ -27,6 +27,10 @@ def _no_bundle_limits(monkeypatch):
         'app.shared.tenant_filter._check_bundle_limits_on_create',
         lambda *a, **k: None,
     )
+    monkeypatch.setattr(
+        'app.shared.tenant_filter._check_bundle_limits_on_update',
+        lambda *a, **k: None,
+    )
 
 
 @pytest.fixture
