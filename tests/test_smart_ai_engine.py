@@ -128,9 +128,9 @@ class TestProcessQueryRouting:
 
 
 class TestAnalyzeUserErrors:
-    def test_analyze_user_errors_with_data(self, engine, rollback_db):
+    def test_analyze_user_errors_with_data(self, engine, rollback_db, test_tenant):
         from models.user import User
-        u = User(username='aiu_' + str(id(engine)), email='ai@test.local', full_name='AI', role='doctor', is_active=False)
+        u = User(username='aiu_' + str(id(engine)), email='ai@test.local', full_name='AI', role='doctor', is_active=False, tenant_id=test_tenant.id)
         u.set_password('x')
         rollback_db.session.add(u)
         rollback_db.session.commit()
@@ -206,7 +206,7 @@ class TestHandlerImplementations:
         res = engine._handle_user_query('معلومات المستخدمين')
         assert 'المستخدمين' in res['response']
 
-    def test_handle_user_query_name_search(self, engine, rollback_db):
+    def test_handle_user_query_name_search(self, engine, rollback_db, test_tenant):
         from models.user import User
         u = User(
             username='ai_search_' + str(id(engine)),
@@ -214,6 +214,7 @@ class TestHandlerImplementations:
             full_name='SearchTarget',
             role='receptionist',
             is_active=True,
+            tenant_id=test_tenant.id,
         )
         u.set_password('x')
         rollback_db.session.add(u)
@@ -267,7 +268,7 @@ class TestHandlerImplementations:
 
 
 class TestAnalyzeWithFixtureData:
-    def test_analyze_doctor_problems_with_inactive_doctor(self, engine, rollback_db):
+    def test_analyze_doctor_problems_with_inactive_doctor(self, engine, rollback_db, test_tenant):
         from models.user import User
         d = User(
             username='aidoc_' + str(id(engine)),
@@ -275,6 +276,7 @@ class TestAnalyzeWithFixtureData:
             full_name='Inactive Doc',
             role='doctor',
             is_active=False,
+            tenant_id=test_tenant.id,
         )
         d.set_password('x')
         rollback_db.session.add(d)
@@ -335,13 +337,14 @@ class TestAnalyzeWithFixtureData:
         res = engine._handle_department_query('department Cardiology')
         assert 'Cardiology' in res['response']
 
-    def test_analyze_user_errors_comprehensive(self, engine, rollback_db):
+    def test_analyze_user_errors_comprehensive(self, engine, rollback_db, test_tenant):
         from models.user import User
+        tid = test_tenant.id
         users = [
-            User(username='aie1_' + str(id(engine)), email='', full_name='No Email', role='nurse', is_active=True),
-            User(username='aie2_' + str(id(engine)), email='e2@test.local', full_name='No Login', role='admin', is_active=True),
-            User(username='aie3_' + str(id(engine)), email='e3@test.local', full_name='No Role', role='', is_active=True),
-            User(username='aie4_' + str(id(engine)), email='e4@test.local', full_name='No Dept Doc', role='doctor', is_active=True),
+            User(username='aie1_' + str(id(engine)), email='', full_name='No Email', role='nurse', is_active=True, tenant_id=tid),
+            User(username='aie2_' + str(id(engine)), email='e2@test.local', full_name='No Login', role='admin', is_active=True, tenant_id=tid),
+            User(username='aie3_' + str(id(engine)), email='e3@test.local', full_name='No Role', role='', is_active=True, tenant_id=tid),
+            User(username='aie4_' + str(id(engine)), email='e4@test.local', full_name='No Dept Doc', role='doctor', is_active=True, tenant_id=tid),
         ]
         for u in users:
             u.set_password('x')

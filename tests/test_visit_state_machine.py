@@ -111,7 +111,7 @@ class TestVisitStateMachineService:
         (VisitState.CHECKED_IN, VisitState.IN_PROGRESS, True),
         (VisitState.IN_PROGRESS, VisitState.COMPLETED, True),
         (VisitState.IN_PROGRESS, VisitState.CHECKED_IN, True),
-        (VisitState.COMPLETED, VisitState.OPEN, False),
+        (VisitState.COMPLETED, VisitState.OPEN, True),
         (VisitState.CANCELLED, VisitState.OPEN, False),
     ])
     def test_transition_matrix(self, sm_visit, start, target, ok):

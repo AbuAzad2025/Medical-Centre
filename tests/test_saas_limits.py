@@ -30,7 +30,7 @@ def limit_tenant(app):
         name='Limit Tenant',
         contact_email='lim@test.local',
         status=TenantStatus.ACTIVE,
-        product_profile_code='standalone_clinic',
+        product_profile_code='doctor_clinic_full',
     )
     db.session.add(t)
     db.session.commit()

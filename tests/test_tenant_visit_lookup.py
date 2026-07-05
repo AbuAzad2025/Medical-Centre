@@ -13,7 +13,7 @@ from app_factory import db as _db
 class TestGetTenantRecordVisit:
     def test_same_tenant_visit_found(self, app, test_tenant):
         tenant_id = test_tenant.id
-        p = Patient(first_name='ت', last_name='ت')
+        p = Patient(first_name='ت', last_name='ت', tenant_id=tenant_id)
         _db.session.add(p)
         _db.session.commit()
 
@@ -34,7 +34,7 @@ class TestGetTenantRecordVisit:
         _db.session.add(other)
         _db.session.commit()
 
-        p = Patient(first_name='ت', last_name='ت')
+        p = Patient(first_name='ت', last_name='ت', tenant_id=tenant_id)
         _db.session.add(p)
         _db.session.commit()
 
@@ -57,7 +57,7 @@ class TestGetTenantRecordVisit:
 
     def test_missing_tenant_context_raises(self, app, test_tenant):
         tenant_id = test_tenant.id
-        p = Patient(first_name='ت', last_name='ت')
+        p = Patient(first_name='ت', last_name='ت', tenant_id=tenant_id)
         _db.session.add(p)
         _db.session.commit()
 
@@ -75,7 +75,7 @@ class TestGetTenantRecordVisit:
     def test_explicit_matching_tenant_id_allowed(self, app, test_tenant):
         """Ticket 3: explicit tenant_id that matches g.tenant_id is allowed."""
         tenant_id = test_tenant.id
-        p = Patient(first_name='ت', last_name='ت')
+        p = Patient(first_name='ت', last_name='ت', tenant_id=tenant_id)
         _db.session.add(p)
         _db.session.commit()
 
@@ -92,7 +92,7 @@ class TestGetTenantRecordVisit:
     def test_explicit_conflicting_tenant_id_rejected(self, app, test_tenant):
         """Ticket 3: explicit tenant_id that conflicts with g.tenant_id is rejected."""
         tenant_id = test_tenant.id
-        p = Patient(first_name='ت', last_name='ت')
+        p = Patient(first_name='ت', last_name='ت', tenant_id=tenant_id)
         _db.session.add(p)
         _db.session.commit()
 
@@ -110,7 +110,7 @@ class TestGetTenantRecordVisit:
     def test_explicit_tenant_id_rejected_when_context_missing(self, app, test_tenant):
         """Ticket 3: explicit tenant_id is rejected when g.tenant_id is absent."""
         tenant_id = test_tenant.id
-        p = Patient(first_name='ت', last_name='ت')
+        p = Patient(first_name='ت', last_name='ت', tenant_id=tenant_id)
         _db.session.add(p)
         _db.session.commit()
 
@@ -129,7 +129,7 @@ class TestGetTenantRecordVisit:
 class TestReceptionRoutesFailClosedWithoutTenant:
     def test_view_visit_fails_without_tenant_context(self, app, test_tenant, client):
         tenant_id = test_tenant.id
-        p = Patient(first_name='ت', last_name='ت')
+        p = Patient(first_name='ت', last_name='ت', tenant_id=tenant_id)
         _db.session.add(p)
         _db.session.commit()
 
@@ -148,7 +148,7 @@ class TestReceptionRoutesFailClosedWithoutTenant:
 
     def test_edit_visit_fails_without_tenant_context(self, app, test_tenant, client):
         tenant_id = test_tenant.id
-        p = Patient(first_name='ت', last_name='ت')
+        p = Patient(first_name='ت', last_name='ت', tenant_id=tenant_id)
         _db.session.add(p)
         _db.session.commit()
 
@@ -164,7 +164,7 @@ class TestReceptionRoutesFailClosedWithoutTenant:
 
     def test_end_visit_fails_without_tenant_context(self, app, test_tenant, client):
         tenant_id = test_tenant.id
-        p = Patient(first_name='ت', last_name='ت')
+        p = Patient(first_name='ت', last_name='ت', tenant_id=tenant_id)
         _db.session.add(p)
         _db.session.commit()
 
@@ -180,7 +180,7 @@ class TestReceptionRoutesFailClosedWithoutTenant:
 
     def test_archive_visit_fails_without_tenant_context(self, app, test_tenant, client):
         tenant_id = test_tenant.id
-        p = Patient(first_name='ت', last_name='ت')
+        p = Patient(first_name='ت', last_name='ت', tenant_id=tenant_id)
         _db.session.add(p)
         _db.session.commit()
 
