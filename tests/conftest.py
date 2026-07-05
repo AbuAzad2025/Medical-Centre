@@ -169,6 +169,10 @@ def _saas_default_tenant_context(app, request, monkeypatch):
         'app.shared.tenant_filter._check_bundle_limits_on_create',
         lambda *a, **k: None,
     )
+    monkeypatch.setattr(
+        'app.shared.tenant_filter._check_bundle_limits_on_update',
+        lambda *a, **k: None,
+    )
 
     tenant = ensure_default_test_tenant(app)
     with app.test_request_context():
