@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 
 import sqlalchemy as sa
@@ -27,7 +28,23 @@ def psql(conn, sql: str):
     conn.execute(sa.text(sql))
 
 
+def _run_upgrade() -> None:
+    env = {**os.environ, 'RLS_BYPASS_ALLOWED': '1', 'FLASK_APP': 'wsgi:app'}
+    result = subprocess.run(
+        [sys.executable, '-m', 'flask', 'db', 'upgrade'],
+        capture_output=True, text=True, timeout=60, env=env,
+    )
+    if result.returncode != 0:
+        print(result.stdout)
+        print(result.stderr, file=sys.stderr)
+        raise SystemExit(1)
+    print('OK  flask db upgrade completed')
+
+
 def main() -> int:
+    # Run migrations first so tables exist
+    _run_upgrade()
+
     admin = sa.create_engine(ADMIN_URL, isolation_level='AUTOCOMMIT')
     db_name = DATABASE_URL.rsplit('/', 1)[-1]
 
