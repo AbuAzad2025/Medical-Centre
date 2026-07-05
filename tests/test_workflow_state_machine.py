@@ -54,6 +54,7 @@ class TestWorkflowOrchestrator:
     def test_invalid_transition_rejected(self, wf_visit):
         assert WorkflowOrchestrator.transition(wf_visit, VisitState.COMPLETED) is False
 
+    @pytest.mark.no_tenant_context
     def test_archive_delegates_to_gatekeeper(self, wf_visit):
         _complete_visit(wf_visit)
         with patch('services.gatekeeper_service.GatekeeperService.archive_visit', return_value=(True, 'ok')) as arch:
@@ -61,6 +62,7 @@ class TestWorkflowOrchestrator:
         assert ok is True
         arch.assert_called_once_with(wf_visit.id, 1)
 
+    @pytest.mark.no_tenant_context
     def test_create_case_initializes_open(self, wf_visit):
         set_vsm_authorized(True)
         try:
@@ -75,10 +77,12 @@ class TestWorkflowOrchestrator:
 
 
 class TestVisitWorkflowService:
+    @pytest.mark.no_tenant_context
     def test_transition_to_in_progress(self, wf_visit):
         VisitWorkflowService.transition(wf_visit, VisitWorkflowStatus.IN_PROGRESS)
         assert wf_visit.status == VisitState.IN_PROGRESS
 
+    @pytest.mark.no_tenant_context
     def test_archive_via_gatekeeper(self, wf_visit):
         _complete_visit(wf_visit)
         wf_visit.payment_status = 'PAID'
@@ -86,14 +90,17 @@ class TestVisitWorkflowService:
             VisitWorkflowService.transition(wf_visit, VisitWorkflowStatus.ARCHIVED, performed_by=1)
         arch.assert_called_once_with(wf_visit.id, 1)
 
+    @pytest.mark.no_tenant_context
     def test_assign_to_doctor(self, wf_visit):
         VisitWorkflowService.assign_to_doctor(wf_visit, doctor_id=99)
         assert wf_visit.doctor_id == 99
         assert wf_visit.status == VisitState.IN_PROGRESS
 
+    @pytest.mark.no_tenant_context
     def test_invalid_transition_raises(self, wf_visit):
         with pytest.raises(ValueError):
             VisitWorkflowService.transition(wf_visit, VisitWorkflowStatus.COMPLETED)
 
+    @pytest.mark.no_tenant_context
     def test_vsm_try_transition_helper(self, wf_visit):
         assert VisitStateMachineService.try_transition(wf_visit, VisitState.CHECKED_IN) is True
