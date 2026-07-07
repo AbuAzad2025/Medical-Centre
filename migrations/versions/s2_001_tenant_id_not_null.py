@@ -40,8 +40,7 @@ GLOBAL_TENANT_TABLES = frozenset({
 def _get_tenant_scoped_tables() -> list[str]:
     """Return public table names that have a 'tenant_id' column and are
     NOT in the global-table allowlist."""
-    conn = op.get_bind()
-    rows = conn.execute(
+    rows = op.execute(
         """
         SELECT c.relname
         FROM pg_catalog.pg_class c
@@ -58,27 +57,26 @@ def _get_tenant_scoped_tables() -> list[str]:
     return [row[0] for row in rows if row[0] not in GLOBAL_TENANT_TABLES]
 
 
-def _backfill_nulls(table: str, conn) -> int:
+def _backfill_nulls(table: str) -> int:
     """Backfill any NULL tenant_id rows to 0, returning the count.
 
     Backfilling to 0 (a sentinel that doesn't match any real tenant) is a
     safety measure so the migration doesn't fail on unexpected NULL rows.
     In a properly isolated system this path should never be reached.
     """
-    result = conn.execute(
+    result = op.execute(
         f"UPDATE {table} SET tenant_id = 0 WHERE tenant_id IS NULL"
     )
     return result.rowcount
 
 
 def upgrade() -> None:
-    conn = op.get_bind()
     tables = _get_tenant_scoped_tables()
     total_backfilled = 0
 
     for table in tables:
         # Safety: backfill any NULL tenant_id before adding NOT NULL
-        n = _backfill_nulls(table, conn)
+        n = _backfill_nulls(table)
         if n:
             print(
                 f"WARNING: Backfilled {n} NULL tenant_id rows in '{table}'"
