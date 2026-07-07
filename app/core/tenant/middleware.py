@@ -248,11 +248,17 @@ def set_tenant_context():
         '/saas/',
         '/api/billing/stripe/',
         '/__health',
+        '/health',
+        '/metrics',
         '/kiosk/',
         '/pwa/',
+        '/privacy-policy',
+        '/terms-of-use',
+        '/technical-support',
+        '/about-system',
     ]
 
-    is_exempt = any(request.path.startswith(p) for p in exempt_paths)
+    is_exempt = any(request.path.startswith(p) for p in exempt_paths) or request.path == '/'
 
     bind_tenant_from_session()
     tenant = g.get('current_tenant')
@@ -291,6 +297,21 @@ def set_tenant_context():
 
     if tenant:
         bind_g_tenant(tenant)
+
+        # R4: Redirect bare tenant-scoped requests to /t/<slug>/ prefix
+        # If the user has tenant context but accessed the resource without
+        # the /t/<slug>/ path prefix (i.e., the WSGI middleware didn't
+        # extract the slug), redirect them to the canonical URL.
+        if (not request.environ.get('tenant.slug')
+                and not is_exempt
+                and request.method in ('GET', 'HEAD')
+                and 'text/html' in request.headers.get('Accept', '')):
+            from flask import redirect
+            query = request.query_string.decode() if request.query_string else ''
+            target = f'/t/{tenant.slug}{request.path}'
+            if query:
+                target += f'?{query}'
+            return redirect(target)
     else:
         g.current_tenant = None
         g.tenant_id = None

@@ -13,14 +13,13 @@ PARTS = DATABASE_URL.rsplit('@', 1)
 ADMIN_URL = f'postgresql://postgres:testpass@{PARTS[1]}'
 ROLE_NAME = 'med_app_runtime_ci_test'
 
-GLOBAL_TABLES = frozenset({
-    'alembic_version', 'tenants', 'module_definitions', 'product_bundles',
-    'packages', 'package_versions', 'package_version_pricing',
-    'package_version_availability', 'package_version_entitlements',
-    'package_version_limits', 'subscription_plans', 'stripe_webhook_events',
-    'cpt_codes', 'drg_codes', 'drug_interactions', 'icd10_codes',
-    'lab_test_panel_items', 'notification_rules', 'platform_tenant_assumptions',
-    'enterprise_contract_entitlements', 'developer_configs',
+# NOTE: Global tables are auto-detected via information_schema.columns.
+# Tables WITHOUT a tenant_id column are inherently global.
+# Tables WITH tenant_id but in this set are platform-level (no RLS).
+PLATFORM_TENANT_TABLES = frozenset({
+    'tenants', 'roles', 'permissions', 'role_permissions', 'user_permissions',
+    'module_permissions', 'department_permissions',
+    'system_configs', 'branding_settings', 'platform_audit_logs',
 })
 
 
@@ -63,8 +62,28 @@ def main() -> int:
             JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
             WHERE n.nspname = 'public' AND c.relkind = 'r'
         """)).fetchall()
-        all_tables = {r[0] for r in rows}
-        tenant_tables = all_tables - GLOBAL_TABLES
+        all_tables = [r[0] for r in rows]
+        # Find all tenant-scoped tables (have tenant_id column, not platform-level)
+        tenant_tables = set()
+        tenant_col_tables = {
+            r[0] for r in c.execute(sa.text("""
+                SELECT DISTINCT c.relname
+                FROM pg_catalog.pg_class c
+                JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+                JOIN information_schema.columns col
+                  ON col.table_name = c.relname
+                 AND col.table_schema = 'public'
+                WHERE n.nspname = 'public'
+                  AND c.relkind = 'r'
+                  AND col.column_name = 'tenant_id'
+            """)).fetchall()
+        }
+        for tbl in all_tables:
+            if tbl not in tenant_col_tables:
+                continue  # No tenant_id column → global table
+            if tbl in PLATFORM_TENANT_TABLES:
+                continue  # Has tenant_id but platform-level
+            tenant_tables.add(tbl)
 
         for tbl in sorted(tenant_tables):
             psql(c, f"GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE {tbl} TO {ROLE_NAME}")

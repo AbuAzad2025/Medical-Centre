@@ -22,6 +22,7 @@ from models.patient_satisfaction import PatientSatisfactionSurvey
 from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
+from utils.tenant_query import get_tenant_record, TenantContextError
 from app_factory import db
 import logging
 from services.access_control_service import AccessControlService
@@ -43,7 +44,10 @@ def checkin_online_booking():
 
     booking = None
     if booking_id:
-        booking = db.session.get(OnlineBooking, booking_id)
+        try:
+            booking = get_tenant_record(OnlineBooking, booking_id)
+        except TenantContextError:
+            booking = None
     elif booking_reference:
         booking = OnlineBooking.query.filter_by(booking_reference=booking_reference).first()
 
@@ -56,7 +60,10 @@ def checkin_online_booking():
         return redirect(url_for('reception.dashboard'))
 
     if booking.patient_id:
-        patient = db.session.get(Patient, booking.patient_id)
+        try:
+            patient = get_tenant_record(Patient, booking.patient_id)
+        except TenantContextError:
+            patient = None
     else:
         patient = None
 
@@ -151,8 +158,9 @@ def checkin_online_booking():
 @login_required
 @role_required('reception', 'super_admin', 'manager')
 def checkin_appointment(appointment_id: int):
-    appointment = db.session.get(Appointment, appointment_id)
-    if not appointment:
+    try:
+        appointment = get_tenant_record(Appointment, appointment_id)
+    except TenantContextError:
         flash('الموعد غير موجود', 'error')
         return redirect(url_for('reception.appointments'))
 
@@ -164,7 +172,13 @@ def checkin_appointment(appointment_id: int):
         flash('لا يمكن تحويل الموعد بدون تحديد قسم', 'warning')
         return redirect(url_for('reception.appointments'))
 
-    patient = db.session.get(Patient, appointment.patient_id) if appointment.patient_id else None
+    if appointment.patient_id:
+        try:
+            patient = get_tenant_record(Patient, appointment.patient_id)
+        except TenantContextError:
+            patient = None
+    else:
+        patient = None
     if not patient:
         flash('المريض غير موجود', 'error')
         return redirect(url_for('reception.appointments'))
@@ -397,8 +411,9 @@ def follow_ups():
 @login_required
 @role_required('reception', 'super_admin', 'manager')
 def confirm_appointment(appointment_id: int):
-    appointment = db.session.get(Appointment, appointment_id)
-    if not appointment:
+    try:
+        appointment = get_tenant_record(Appointment, appointment_id)
+    except TenantContextError:
         return jsonify({'success': False, 'message': 'الموعد غير موجود'}), 404
     if appointment.status in {'CANCELLED', 'NO_SHOW', 'DONE'}:
         return jsonify({'success': False, 'message': 'لا يمكن تأكيد هذا الموعد'}), 400
@@ -412,8 +427,9 @@ def confirm_appointment(appointment_id: int):
 @login_required
 @role_required('reception', 'super_admin', 'manager')
 def cancel_appointment(appointment_id: int):
-    appointment = db.session.get(Appointment, appointment_id)
-    if not appointment:
+    try:
+        appointment = get_tenant_record(Appointment, appointment_id)
+    except TenantContextError:
         return jsonify({'success': False, 'message': 'الموعد غير موجود'}), 404
     if appointment.status == AppointmentState.DONE:
         return jsonify({'success': False, 'message': 'لا يمكن إلغاء موعد مكتمل'}), 400
@@ -427,8 +443,9 @@ def cancel_appointment(appointment_id: int):
 @login_required
 @role_required('reception', 'super_admin', 'manager')
 def no_show_appointment(appointment_id: int):
-    appointment = db.session.get(Appointment, appointment_id)
-    if not appointment:
+    try:
+        appointment = get_tenant_record(Appointment, appointment_id)
+    except TenantContextError:
         return jsonify({'success': False, 'message': 'الموعد غير موجود'}), 404
     if appointment.status in {'CANCELLED', 'DONE'}:
         return jsonify({'success': False, 'message': 'لا يمكن وضع هذه الحالة'}), 400
@@ -488,11 +505,14 @@ def create_appointment():
             follow_up_id = request.form.get('follow_up_id')
             follow_up_id = int(follow_up_id) if follow_up_id and str(follow_up_id).isdigit() else None
             if follow_up_id:
-                fu = db.session.get(FollowUpRequest, follow_up_id)
-                if fu and fu.status in {'PENDING'}:
-                    fu.status = 'SCHEDULED'
-                    fu.appointment_id = appointment.id
-                    fu.updated_at = datetime.now(timezone.utc)
+                try:
+                    fu = get_tenant_record(FollowUpRequest, follow_up_id)
+                    if fu.status in {'PENDING'}:
+                        fu.status = 'SCHEDULED'
+                        fu.appointment_id = appointment.id
+                        fu.updated_at = datetime.now(timezone.utc)
+                except TenantContextError:
+                    pass
 
             db.session.commit()
             
@@ -576,8 +596,9 @@ def edit_appointment(appointment_id):
         flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
         return redirect(url_for('auth.login'))
     
-    appointment = db.session.get(Appointment, appointment_id)
-    if not appointment:
+    try:
+        appointment = get_tenant_record(Appointment, appointment_id)
+    except TenantContextError:
         flash('الموعد غير موجود', 'error')
         return redirect(url_for('reception.queue_management'))
     

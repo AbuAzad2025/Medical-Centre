@@ -27,6 +27,103 @@ class TenantIsolationError(PermissionError):
 
 
 # ---------------------------------------------------------------------------
+# GLOBAL TABLE DETECTION
+#
+# Two-layer dynamic detection:
+# 1. Models WITHOUT a 'tenant_id' column → inherently global, no filtering.
+# 2. Models WITH 'tenant_id' but listed in _GLOBAL_TENANT_TABLES →
+#    cross-tenant by design (e.g., auth tables, tenant registry).
+#
+# Adding a new model to the database is automatically handled — no manual
+# edits to this file needed for new tenant-scoped or global tables.
+# ---------------------------------------------------------------------------
+
+# Tables that DO have a tenant_id column but are global / cross-tenant
+# by design and must NOT be tenant-filtered.
+#
+# NOTE: Keep ``scripts/ci/audit_rls_coverage.py`` in sync — its
+# ``PLATFORM_TENANT_TABLES`` must mirror this set exactly.
+_GLOBAL_TENANT_TABLES = frozenset({
+    'tenants',
+    'roles', 'permissions', 'role_permissions', 'user_permissions',
+    'module_permissions', 'department_permissions',
+    'system_configs', 'branding_settings',
+    'platform_audit_logs',  # has tenant_id column but is cross-tenant audit trail
+})
+
+
+def _skip_table(model_class) -> bool:
+    """Determine if a model is global (non-tenant-scoped).
+
+    Uses dynamic detection:
+    1. If the model lacks a 'tenant_id' mapped column → inherently global.
+       No hardcoded table-name list needed — metadata introspection
+       automatically handles all tables without tenant_id.
+    2. If the model has 'tenant_id' but is in the ``_GLOBAL_TENANT_TABLES``
+       allowlist → cross-tenant by design (tenant registry, auth tables,
+       system configs, etc.).
+    3. Otherwise → tenant-scoped (subject to tenant filtering).
+    """
+    mapper = getattr(model_class, '__mapper__', None)
+    if mapper is None:
+        return False  # Can't determine — treat as tenant-scoped (fail-safe)
+    if 'tenant_id' not in mapper.columns:
+        return True  # No tenant_id column → inherently global
+    name = getattr(model_class, '__tablename__', '')
+    return name in _GLOBAL_TENANT_TABLES
+
+
+# ---------------------------------------------------------------------------
+# GLOBAL SESSION.GET() GUARD — catch cross-tenant loads from pk lookups
+# ---------------------------------------------------------------------------
+
+@event.listens_for(OrmSession, 'loaded_as_persistent')
+def _guard_session_get(target, context):
+    """Fail-closed guard for ``db.session.get()`` which bypasses the
+    ``before_compile`` tenant filter.
+
+    ``session.get(Model, pk)`` does not go through the Query pipeline,
+    so the ``tenant_filter_query`` listener cannot intercept it.  This
+    listener fires for *every* object the session loads from the database
+    (including eager-loaded relationships, deferred columns, and
+    ``session.get()`` lookups) and verifies the object's ``tenant_id``
+    matches the current context.
+
+    Explicitly skipped:
+    - Objects whose model lacks a ``tenant_id`` column (global tables).
+    - Objects whose model is in the ``_skip_table()`` allowlist.
+    - Operations under ``_tenant_filter_bypass`` (platform / super-admin).
+    """
+    if _is_tenant_bypass():
+        return
+
+    mapper = getattr(target, '__mapper__', None)
+    if mapper is None or 'tenant_id' not in mapper.columns:
+        return
+    if _skip_table(target.__class__):
+        return
+
+    tid = _current_tenant_id()
+    if tid is None:
+        # In SaaS mode, any load of a tenant-scoped object without a
+        # tenant context is suspicious — fail closed.
+        if _is_saas_mode():
+            raise TenantIsolationError(
+                f"Tenant-scoped object {target.__class__.__name__}:{getattr(target, 'id', '?')} "
+                f"loaded without tenant context"
+            )
+        return
+
+    instance_tid = getattr(target, 'tenant_id', None)
+    if instance_tid is not None and instance_tid != tid:
+        raise PermissionError(
+            f"Cross-tenant access blocked via session.get(): "
+            f"{target.__class__.__name__}:{getattr(target, 'id', '?')} "
+            f"(tenant={instance_tid}) does not belong to current tenant (tenant={tid})"
+        )
+
+
+# ---------------------------------------------------------------------------
 # HELPERS
 # ---------------------------------------------------------------------------
 
@@ -61,19 +158,6 @@ def _model_has_tenant_column(model_class) -> bool:
     """Check if the model class has a 'tenant_id' mapped column."""
     mapper = getattr(model_class, '__mapper__', None)
     return mapper is not None and 'tenant_id' in mapper.columns
-
-
-def _skip_table(model_class) -> bool:
-    """Tables that should NEVER be tenant-filtered (shared across tenants)."""
-    name = getattr(model_class, '__tablename__', '')
-    return name in {
-        'tenants', 'subscription_plans', 'alembic_version',
-        'module_definitions', 'notification_rules',
-        'roles', 'permissions', 'role_permissions', 'user_permissions', 'module_permissions', 'department_permissions',
-        'system_configs', 'branding_settings',
-        'icd10_codes', 'cpt_codes', 'drg_codes',
-        'product_bundles', 'platform_audit_logs',
-    }
 
 
 def _check_bundle_limits_on_create(instance, tenant_id):

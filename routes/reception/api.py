@@ -27,6 +27,7 @@ from models.patient_satisfaction import PatientSatisfactionSurvey
 from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
+from utils.tenant_query import get_tenant_record, TenantContextError
 from app_factory import db
 import logging
 from services.access_control_service import AccessControlService
@@ -73,8 +74,9 @@ def api_department_staff():
     
     try:
         # جلب موظفي القسم حسب نوع القسم
-        department = db.session.get(Department, department_id)
-        if not department:
+        try:
+            department = get_tenant_record(Department, department_id)
+        except TenantContextError:
             return jsonify({'error': 'القسم غير موجود'}), 404
         
         dept_type = department.get_type()
@@ -132,8 +134,9 @@ def api_department_services():
     department_id = request.args.get('department_id', type=int)
     if not department_id:
         return jsonify({'error': 'القسم مطلوب'}), 400
-    dept = db.session.get(Department, department_id)
-    if not dept:
+    try:
+        dept = get_tenant_record(Department, department_id)
+    except TenantContextError:
         return jsonify({'error': 'القسم غير موجود'}), 404
     from models.service import ServiceMaster
     from sqlalchemy import or_ as _or
@@ -286,8 +289,9 @@ def api_fhir_patient(patient_id):
     try:
         from models.patient import Patient
         from models.visit import Visit
-        patient = db.session.get(Patient, patient_id)
-        if not patient:
+        try:
+            patient = get_tenant_record(Patient, patient_id)
+        except TenantContextError:
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على المريض المطلوب'}]}), 404
         gender_map = {'M': 'male', 'F': 'female'}
         resource = {
@@ -321,8 +325,9 @@ def api_fhir_encounter(visit_id):
         from models.patient import Patient
         from models.user import User
         from models.department import Department
-        visit = db.session.get(Visit, visit_id)
-        if not visit:
+        try:
+            visit = get_tenant_record(Visit, visit_id)
+        except TenantContextError:
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على الزيارة المطلوبة'}]}), 404
         patient = db.session.get(Patient, visit.patient_id) if visit.patient_id else None
         doctor = db.session.get(User, visit.doctor_id) if visit.doctor_id else None
@@ -364,8 +369,9 @@ def api_fhir_appointment(appointment_id):
         from models.patient import Patient
         from models.user import User
         from models.department import Department
-        appt = db.session.get(Appointment, appointment_id)
-        if not appt:
+        try:
+            appt = get_tenant_record(Appointment, appointment_id)
+        except TenantContextError:
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على الموعد المطلوب'}]}), 404
         patient = db.session.get(Patient, appt.patient_id) if appt.patient_id else None
         doctor = db.session.get(User, appt.doctor_id) if appt.doctor_id else None
@@ -404,8 +410,11 @@ def api_fhir_practitioner(user_id):
     try:
         from models.user import User
         from models.department import Department
-        user = db.session.get(User, user_id)
-        if not user or user.role != 'doctor':
+        try:
+            user = get_tenant_record(User, user_id)
+        except TenantContextError:
+            return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على الطبيب المطلوب'}]}), 404
+        if user.role != 'doctor':
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على الطبيب المطلوب'}]}), 404
         dept = db.session.get(Department, user.department_id) if user.department_id else None
         resource = {
@@ -428,8 +437,9 @@ def api_fhir_practitioner(user_id):
 def api_fhir_organization(department_id):
     try:
         from models.department import Department
-        dept = db.session.get(Department, department_id)
-        if not dept:
+        try:
+            dept = get_tenant_record(Department, department_id)
+        except TenantContextError:
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على القسم المطلوب'}]}), 404
         resource = {
             'resourceType': 'Organization',
@@ -587,7 +597,10 @@ def get_accessible_departments_for_user(user_role, user_id=None, user_department
         from services.access_control_service import AccessControlService
         if user_id:
             from models.user import User
-            user = db.session.get(User, user_id)
+            try:
+                user = get_tenant_record(User, user_id)
+            except TenantContextError:
+                user = None
         else:
             user = None
         if user:

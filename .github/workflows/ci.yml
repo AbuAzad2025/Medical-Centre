@@ -2,6 +2,8 @@
 name: CI
 
 on:
+  schedule:
+    - cron: "0 9 * * 1"   # Monday 09:00 UTC — weekly stale action item audit
   push:
     branches: [main, develop]
   pull_request:
@@ -68,6 +70,89 @@ jobs:
           FLASK_ENV: production
           ENABLE_SAAS_MODE: "true"
           RLS_BYPASS_ALLOWED: "1"
+
+      - name: Re-audit RLS coverage after bootstrap
+        run: python scripts/ci/audit_rls_coverage.py
+
+      - name: Audit orphaned tenant_id=0 rows
+        run: python scripts/ops/audit_orphaned_tenant_rows.py
+        env:
+          DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_migrate_ci
+          RLS_BYPASS_ALLOWED: "1"
+
+  # ── Security audit gate ────────────────────────────────────────────────
+  # Runs all 5 security audit scripts sequentially against a fresh PostgreSQL.
+  # Each script starts its own flask db upgrade, so the DB is self-contained.
+  # Fails fast: any non-zero exit code immediately blocks deployment.
+  security-audit:
+    runs-on: ubuntu-latest
+    needs: migrate
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: medical_audit
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      SECRET_KEY: ci-test-secret-key
+      APP_ENV: testing
+      FLASK_ENV: testing
+      FLASK_APP: wsgi:app
+      SUPPRESS_BACKGROUND_WORKER: "1"
+      SUPPRESS_LOGGING: "1"
+      DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_audit
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: 1/5 — Verify RLS startup guard rejects superuser
+        run: python scripts/ci/verify_rls_guard_rejection.py
+
+      - name: 2/5 — Verify RLS enforcement (runtime role + proof)
+        run: python scripts/ci/verify_rls_enforcement.py
+
+      - name: 3/5 — Audit RLS coverage on all tenant-scoped tables
+        run: python scripts/ci/audit_rls_coverage.py
+
+      - name: 4/5 — Audit orphaned tenant_id=0 rows
+        run: python scripts/ops/audit_orphaned_tenant_rows.py
+
+      - name: 5/5 — Check for stale action items
+        run: python scripts/ci/audit_stale_action_items.py --stale-days 30
+
+  # Weekly scan of the incident log for stale action items (runs Monday 09:00 UTC)
+  stale-action-items:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Check for stale action items
+        run: python scripts/ci/audit_stale_action_items.py --stale-days 30
 
   test:
     runs-on: ubuntu-latest
@@ -138,12 +223,6 @@ jobs:
       - name: Syntax lint (flake8 E9/F63/F7/F82)
         run: |
           python -m flake8 app routes services models utils tests scripts --count --select=E9,F63,F7,F82 --statistics
-
-      - name: Verify RLS startup guard rejects superuser
-        run: python scripts/ci/verify_rls_guard_rejection.py
-
-      - name: Create runtime role + RLS enforcement proof
-        run: python scripts/ci/verify_rls_enforcement.py
 
       - name: Run tests with coverage
         run: |

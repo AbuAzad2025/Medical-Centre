@@ -11,6 +11,7 @@ from models.patient_account import PatientAccount
 from models.appointment import Appointment
 from models.user import User, StaffWorkSchedule, StaffAbsence
 from models.department import Department
+from utils.tenant_query import get_tenant_record, TenantContextError
 from app_factory import db
 import logging
 from datetime import datetime, timedelta, timezone
@@ -29,7 +30,6 @@ def _extract_meeting_link(notes):
     return None
 
 @booking_bp.route('/register', methods=['GET', 'POST'])
-@booking_bp.route('/booking/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         try:
@@ -100,7 +100,6 @@ def register():
 
 
 @booking_bp.route('/dashboard')
-@booking_bp.route('/booking/dashboard')
 @login_required
 def dashboard_portal():
     if current_user.role not in ['patient', 'admin', 'super_admin', 'manager', 'reception']:
@@ -120,7 +119,6 @@ def dashboard_portal():
 
 
 @booking_bp.route('/cancel/<int:booking_id>', methods=['POST'])
-@booking_bp.route('/booking/cancel/<int:booking_id>', methods=['POST'])
 @login_required
 def cancel_booking(booking_id):
     if current_user.role != 'patient':
@@ -191,7 +189,6 @@ def cancel_booking(booking_id):
         return redirect(url_for('booking.dashboard_portal'))
 
 @booking_bp.route('/')
-@booking_bp.route('/booking')
 def index():
     """صفحة الحجز الرئيسية"""
     try:
@@ -210,7 +207,6 @@ def index():
         return redirect(url_for('main.dashboard'))
 
 @booking_bp.route('/create', methods=['GET', 'POST'])
-@booking_bp.route('/booking/create', methods=['GET', 'POST'])
 def create_booking():
     """إنشاء حجز جديد"""
     if request.method == 'POST':
@@ -372,7 +368,6 @@ def create_booking():
                          patient_prefill=patient_prefill)
 
 @booking_bp.route('/confirmation/<int:booking_id>')
-@booking_bp.route('/booking/confirmation/<int:booking_id>')
 def confirmation(booking_id):
     """تأكيد الحجز"""
     try:
@@ -387,7 +382,6 @@ def confirmation(booking_id):
         return redirect(url_for('booking.index'))
 
 @booking_bp.route('/telemedicine/<int:booking_id>')
-@booking_bp.route('/booking/telemedicine/<int:booking_id>')
 def telemedicine_room(booking_id):
     try:
         booking = db.session.get(OnlineBooking, booking_id)
@@ -401,7 +395,6 @@ def telemedicine_room(booking_id):
         return redirect(url_for('booking.index'))
 
 @booking_bp.route('/payment/<int:booking_id>', methods=['GET', 'POST'])
-@booking_bp.route('/booking/payment/<int:booking_id>', methods=['GET', 'POST'])
 def payment(booking_id):
     """دفع رسوم الحجز"""
     booking = db.session.get(OnlineBooking, booking_id)

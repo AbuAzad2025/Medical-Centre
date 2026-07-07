@@ -1,0 +1,68 @@
+{
+  "title": "MedicalSystem - Orphaned Tenant Rows Detected",
+  "ruleGroup": "tenant-isolation",
+  "folderUID": "",
+  "for": "5m",
+  "annotations": {
+    "summary": "Orphaned rows (tenant_id=0) detected in tenant-scoped tables",
+    "description": "Total orphaned rows: {{ $value }}. See per-table breakdown in the 'Medical System — Tenant Isolation' dashboard.\n\nRemediation:\n  python scripts/ops/audit_orphaned_tenant_rows.py --fix-to <real_tenant_id>   # reassign\n  python scripts/ops/audit_orphaned_tenant_rows.py --delete                    # delete\n  Run with --dry-run first to preview."
+  },
+  "labels": {
+    "severity": "warning",
+    "team": "infrastructure",
+    "category": "data-integrity"
+  },
+  "data": [
+    {
+      "refId": "A",
+      "queryType": "",
+      "relativeTimeRange": {
+        "from": 300,
+        "to": 0
+      },
+      "datasourceUid": "${DS_PROMETHEUS}",
+      "model": {
+        "type": "prometheus",
+        "expr": "medical_orphaned_tenant_rows{table=\"__total__\"}",
+        "interval": "",
+        "intervalMs": 60000,
+        "maxDataPoints": 1,
+        "refId": "A"
+      }
+    },
+    {
+      "refId": "B",
+      "queryType": "",
+      "relativeTimeRange": {
+        "from": 0,
+        "to": 0
+      },
+      "datasourceUid": "__expr__",
+      "model": {
+        "type": "threshold",
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [0],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": ["A"]
+            },
+            "reducer": {
+              "type": "last"
+            }
+          }
+        ],
+        "refId": "B"
+      }
+    }
+  ],
+  "condition": "B",
+  "noDataState": "OK",
+  "execErrState": "Alerting",
+  "isPaused": false
+}

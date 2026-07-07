@@ -1,0 +1,70 @@
+{# ─── Dashboard Stats Card Grid ───────────────────────────
+   Usage: {% include 'partials/_dashboard_stats.html' %}
+   Requires: stats dict with keys like {total_patients, today_visits, pending_labs, active_prescriptions, monthly_revenue, bed_occupancy}
+#}
+{% if stats is defined %}
+<div class="dashboard-stats-grid row g-3 mb-4">
+    {% macro stat_card(label, value, icon, color, bg, url) %}
+    <div class="col-6 col-md-4 col-lg">
+        <a href="{{ url }}" class="text-decoration-none">
+            <div class="stat-card h-100 p-3" style="
+                background:var(--color-surface);
+                border:1px solid var(--color-border);
+                border-radius:var(--radius-lg);
+                transition:all 0.2s ease;
+                cursor:pointer;
+            ">
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="stat-icon d-flex align-items-center justify-content-center rounded-3" style="
+                        width:42px;height:42px;
+                        background:{{ bg }}15;
+                        color:{{ color }};
+                        font-size:1.1rem;
+                    ">
+                        <i class="fas {{ icon }}"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold" style="font-size:1.35rem;color:var(--color-text);line-height:1.2;">
+                            {{ value }}
+                        </div>
+                        <div class="small" style="color:var(--color-text-muted);">{{ label }}</div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endmacro %}
+
+    {% if stats.total_patients is defined %}
+    {{ stat_card('إجمالي المرضى', stats.total_patients, 'fa-users', '#0ea5e9', '#0ea5e9', url_for('reception.patients') if 'reception' in request.endpoint or True else '#') }}
+    {% endif %}
+
+    {% if stats.today_visits is defined %}
+    {{ stat_card('زيارات اليوم', stats.today_visits, 'fa-calendar-check', '#10b981', '#10b981', '#') }}
+    {% endif %}
+
+    {% if stats.pending_labs is defined %}
+    {{ stat_card('فحوصات معلقة', stats.pending_labs, 'fa-flask', '#8b5cf6', '#8b5cf6', '#') }}
+    {% endif %}
+
+    {% if stats.active_prescriptions is defined %}
+    {{ stat_card('وصفات نشطة', stats.active_prescriptions, 'fa-prescription', '#ec4899', '#ec4899', '#') }}
+    {% endif %}
+
+    {% if stats.monthly_revenue is defined %}
+    {{ stat_card('إيرادات الشهر', stats.monthly_revenue, 'fa-coins', '#f59e0b', '#f59e0b', '#') }}
+    {% endif %}
+
+    {% if stats.bed_occupancy is defined %}
+    {{ stat_card('إشغال الأسرة', stats.bed_occupancy, 'fa-bed', '#6366f1', '#6366f1', '#') }}
+    {% endif %}
+</div>
+
+<style>
+.stat-card:hover {
+    border-color: var(--color-primary) !important;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+</style>
+{% endif %}

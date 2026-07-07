@@ -72,6 +72,28 @@ services:
         condition: service_healthy
     command: celery -A celery_worker.celery worker --loglevel=info -E
 
+  # Prometheus exporter — exposes tenant isolation metrics at :9180/metrics
+  # Scrape target for Prometheus: {exporter_host}:9180
+  metrics-exporter:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "9180:9180"
+    environment:
+      DATABASE_URL: postgresql://${PG_USER:-postgres}:${PG_PASSWORD:-changeme}@db:5432/${PG_DB_NAME:-medical_system}
+      PORT: "9180"
+      SCRAPE_INTERVAL: "60"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request, sys; resp = urllib.request.urlopen('http://localhost:9180/metrics'); sys.exit(0 if resp.status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    command: python scripts/ops/prometheus_exporter.py
+
 volumes:
   pgdata:
   uploads:

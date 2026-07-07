@@ -1,0 +1,53 @@
+{# ─── Patient Journey Workflow Tracker ──────────────────────
+   Usage: {% include 'partials/_patient_journey.html' %}
+   Requires context: current_step (int 1-6), patient_id, visit_id
+   Steps: 1=Registration, 2=Triage, 3=Doctor, 4=Lab/Radiology, 5=Pharmacy, 6=Discharge
+#}
+{% if current_step is defined %}
+{% set steps = [
+    {'id':1,'icon':'fa-user-plus','label_en':'Registration','label_ar':'التسجيل','color':'#0ea5e9'},
+    {'id':2,'icon':'fa-heart-pulse','label_en':'Triage','label_ar':'الفرز','color':'#f59e0b'},
+    {'id':3,'icon':'fa-stethoscope','label_en':'Doctor','label_ar':'الطبيب','color':'#10b981'},
+    {'id':4,'icon':'fa-flask','label_en':'Lab/Rad','label_ar':'فحوصات','color':'#8b5cf6'},
+    {'id':5,'icon':'fa-pills','label_en':'Pharmacy','label_ar':'الصيدلية','color':'#ec4899'},
+    {'id':6,'icon':'fa-circle-check','label_en':'Discharge','label_ar':'الخروج','color':'#6366f1'}
+] %}
+<div class="journey-tracker mb-4" style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:1.25rem 1.5rem;">
+    <h6 class="mb-3 fw-bold" style="color:var(--color-text);font-size:0.875rem;">
+        <i class="fas fa-route me-2" style="color:var(--color-primary);"></i>مسار المريض
+    </h6>
+    <div class="journey-steps d-flex align-items-center" style="overflow-x:auto;gap:0.75rem;flex-wrap:wrap;">
+        {% for s in steps %}
+        {% set completed = s.id < current_step %}
+        {% set active = s.id == current_step %}
+        <div class="journey-step d-flex align-items-center" style="flex-shrink:0;">
+            <div class="step-indicator d-flex flex-column align-items-center" style="min-width:64px;">
+                <div class="step-circle d-flex align-items-center justify-content-center rounded-circle
+                    {% if completed %}bg-success text-white{% elif active %} text-white{% else %}bg-light text-muted{% endif %}"
+                    style="width:40px;height:40px;font-size:0.9rem;
+                    {% if active %}background:{{ s.color }} !important;box-shadow:0 0 0 4px {{ s.color }}33;{% endif %}
+                    transition:all 0.3s ease;">
+                    {% if completed %}<i class="fas fa-check"></i>{% else %}<i class="fas {{ s.icon }}"></i>{% endif %}
+                </div>
+                <small class="mt-1 text-center step-label" style="font-size:0.65rem;max-width:64px;line-height:1.25;
+                    {% if completed or active %}color:{{ s.color }};font-weight:700;{% else %}color:var(--color-text-muted);{% endif %}">
+                    {{ s.label_ar }}
+                </small>
+            </div>
+            {% if not loop.last %}
+            <div class="step-connector mx-1" style="width:2rem;height:2px;
+                background:{% if s.id < current_step %}var(--color-success){% else %}var(--color-border){% endif %};
+                border-radius:1px;transition:background 0.3s ease;">
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% if completed_steps is defined and in_progress_since is defined %}
+    <div class="journey-meta mt-3 pt-2 border-top" style="font-size:0.75rem;color:var(--color-text-muted);display:flex;gap:1.5rem;flex-wrap:wrap;">
+        <span><i class="fas fa-clock me-1"></i>قيد المتابعة منذ {{ in_progress_since }}</span>
+        <span><i class="fas fa-check-double me-1"></i>{{ completed_steps }} من {{ steps|length }} خطوات مكتملة</span>
+    </div>
+    {% endif %}
+</div>
+{% endif %}

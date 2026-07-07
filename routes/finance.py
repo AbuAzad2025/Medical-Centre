@@ -150,7 +150,7 @@ def payments():
         per_page = max(10, min(per_page, 200))
         page = request.args.get('page', type=int) or 1
         page = max(1, page)
-        payments = Payment.query.order_by(Payment.created_at.desc()).limit(per_page).offset((page - 1) * per_page).all()
+        payments = Payment.query.filter_by(tenant_id=g.tenant_id).order_by(Payment.created_at.desc()).limit(per_page).offset((page - 1) * per_page).all()
         return render_template('finance/payments.html', payments=payments)
         
     except Exception as e:
@@ -170,7 +170,7 @@ def invoices():
         per_page = max(10, min(per_page, 200))
         page = request.args.get('page', type=int) or 1
         page = max(1, page)
-        invoices = Invoice.query.order_by(Invoice.created_at.desc()).limit(per_page).offset((page - 1) * per_page).all()
+        invoices = Invoice.query.filter_by(tenant_id=g.tenant_id).order_by(Invoice.created_at.desc()).limit(per_page).offset((page - 1) * per_page).all()
         return render_template('finance/invoices.html', invoices=invoices)
         
     except Exception as e:
@@ -191,7 +191,8 @@ def audit():
         page = request.args.get('page', type=int) or 1
         page = max(1, page)
         audit_entries = AuditTrail.query.filter(
-            AuditTrail.entity_type.in_(['visit', 'payment', 'invoice'])
+            AuditTrail.entity_type.in_(['visit', 'payment', 'invoice']),
+            AuditTrail.tenant_id == g.tenant_id
         ).order_by(AuditTrail.created_at.desc()).limit(per_page).offset((page - 1) * per_page).all()
         
         return render_template('finance/audit.html', audit_entries=audit_entries)
@@ -234,8 +235,9 @@ def slow_queries_weekly():
 def slow_queries_weekly_detail(report_id):
     try:
         from models.audit_trail import SlowQueryReport
-        report = db.session.get(SlowQueryReport, report_id)
-        if not report:
+        try:
+            report = get_tenant_record(SlowQueryReport, report_id)
+        except TenantContextError:
             flash('التقرير غير موجود', 'error')
             return redirect(url_for('finance.slow_queries_weekly'))
         return render_template('finance/slow_queries_weekly_detail.html', report=report)

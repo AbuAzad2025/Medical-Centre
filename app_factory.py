@@ -421,8 +421,6 @@ def create_app(config_name: str | None = None) -> Flask:
                 # من الآمن استيراد Department فقط عند الحاجة
                 # from models.department import Department
                 pass
-
-                pass
             else:
                 app.logger.info("جدول users غير موجود بعد؛ سيتم تخطّي إنشاء الأدمن حتى إكمال الترحيلات.")
         except Exception as e:
@@ -543,6 +541,7 @@ def create_app(config_name: str | None = None) -> Flask:
     from routes.saas_routes import saas_bp
     from routes.saas_billing_routes import saas_billing_bp
     from routes.specialty_forms import specialty_forms_bp
+    from routes.monitoring_routes import monitoring_bp
 
     # Module guards — must be added BEFORE register_blueprint, and only ONCE
     def _guard_factory(module_name):
@@ -605,23 +604,33 @@ def create_app(config_name: str | None = None) -> Flask:
 
     @app.context_processor
     def _inject_tenant_url_for():
-        """Provide tenant_url_for() that prefixes /t/<slug>/ in SaaS mode."""
-        from flask import url_for, g
-        def tenant_url_for(endpoint, **values):
+        """Provide tenant_url_for() that prefixes /t/<slug>/ in SaaS mode.
+
+        Also overrides Jinja's ``url_for`` so that ALL template-generated
+        URLs automatically include the ``/t/<slug>/`` prefix for
+        tenant-scoped routes.  This prevents bare-path generation in
+        production HTML without requiring every template to use
+        ``tenant_url_for`` instead of ``url_for``.
+        """
+        from flask import url_for as _flask_url_for, g
+
+        def _tenant_url_for(endpoint, **values):
             if not app.config.get('ENABLE_SAAS_MODE', False):
-                return url_for(endpoint, **values)
+                return _flask_url_for(endpoint, **values)
             tenant_slug = getattr(g, 'tenant_slug', None)
             if not tenant_slug:
-                return url_for(endpoint, **values)
-            url = url_for(endpoint, **values)
+                return _flask_url_for(endpoint, **values)
+            url = _flask_url_for(endpoint, **values)
             if not url.startswith('/'):
                 return url
-            if url.startswith('/t/') or url.startswith('/static/'):
-                return url
-            if url.startswith('/owner/') or url.startswith('/super-admin/') or url.startswith('/auth/'):
+            if url.startswith(('/t/', '/static/', '/owner/', '/super-admin/', '/auth/')):
                 return url
             return f'/t/{tenant_slug}{url}'
-        return dict(tenant_url_for=tenant_url_for)
+
+        return dict(
+            tenant_url_for=_tenant_url_for,
+            url_for=_tenant_url_for,
+        )
 
     _add_guard_once(reception_bp, "reception")
     _add_guard_once(doctor_bp, "doctor")
@@ -722,6 +731,7 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(inbox_bp)
     app.register_blueprint(saas_bp)
     app.register_blueprint(saas_billing_bp)
+    app.register_blueprint(monitoring_bp)
 
     # Tenant middleware — safe fallback if tables don't exist yet
     @app.before_request
@@ -857,7 +867,18 @@ def create_app(config_name: str | None = None) -> Flask:
     @app.context_processor
     def inject_workflow_helpers():
         from services.workflow_orchestrator import WorkflowOrchestrator
-        return {'visit_next_actions': WorkflowOrchestrator.next_actions}
+        from services.visit_workflow_validator import (
+            VisitStage, VisitWorkflowValidator, resolve_visit_status_badge_class
+        )
+        return {
+            'visit_next_actions': WorkflowOrchestrator.next_actions,
+            'VisitStage': VisitStage,
+            'can_transition': VisitWorkflowValidator.can_transition,
+            'visit_stage_label': VisitStage.stage_label_ar,
+            'visit_stage_icon': VisitStage.stage_icon,
+            'visit_status_badge_class': resolve_visit_status_badge_class,
+            'visit_stage_order': VisitStage.get_journey_stage_number,
+        }
 
     @app.context_processor
     def inject_owner_nav():
@@ -970,8 +991,6 @@ def create_app(config_name: str | None = None) -> Flask:
                 _assign('emergency', ['patient_create','patient_update','patient_read','medical_records_create'])
                 _assign('accountant', ['financial_view','financial_manage','financial_reports','financial_export','pricing_manage'])
                 _assign('pharmacist', ['medical_records_read','reports_view'])
-
-            pass
 
             pass
         except Exception:
