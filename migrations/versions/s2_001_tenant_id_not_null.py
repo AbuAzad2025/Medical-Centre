@@ -18,6 +18,7 @@ Revision: s2_001_tenant_id_not_null
 Revises: s1_012_rls_nullif
 """
 from alembic import op
+from sqlalchemy import text
 
 revision = 's2_001_tenant_id_not_null'
 down_revision = 's1_012_rls_nullif'
@@ -40,43 +41,45 @@ GLOBAL_TENANT_TABLES = frozenset({
 def _get_tenant_scoped_tables() -> list[str]:
     """Return public table names that have a 'tenant_id' column and are
     NOT in the global-table allowlist."""
-    rows = op.execute(
-        """
-        SELECT c.relname
-        FROM pg_catalog.pg_class c
-        JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-        JOIN information_schema.columns col
-          ON col.table_name = c.relname
-         AND col.table_schema = 'public'
-        WHERE n.nspname = 'public'
-          AND c.relkind = 'r'
-          AND col.column_name = 'tenant_id'
-        ORDER BY c.relname
-        """
+    conn = op.get_bind()
+    rows = conn.execute(
+        text("""
+            SELECT c.relname
+            FROM pg_catalog.pg_class c
+            JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+            JOIN information_schema.columns col
+              ON col.table_name = c.relname
+             AND col.table_schema = 'public'
+            WHERE n.nspname = 'public'
+              AND c.relkind = 'r'
+              AND col.column_name = 'tenant_id'
+            ORDER BY c.relname
+        """)
     ).fetchall()
     return [row[0] for row in rows if row[0] not in GLOBAL_TENANT_TABLES]
 
 
-def _backfill_nulls(table: str) -> int:
+def _backfill_nulls(table: str, conn) -> int:
     """Backfill any NULL tenant_id rows to 0, returning the count.
 
     Backfilling to 0 (a sentinel that doesn't match any real tenant) is a
     safety measure so the migration doesn't fail on unexpected NULL rows.
     In a properly isolated system this path should never be reached.
     """
-    result = op.execute(
-        f"UPDATE {table} SET tenant_id = 0 WHERE tenant_id IS NULL"
+    result = conn.execute(
+        text(f"UPDATE {table} SET tenant_id = 0 WHERE tenant_id IS NULL")
     )
     return result.rowcount
 
 
 def upgrade() -> None:
+    conn = op.get_bind()
     tables = _get_tenant_scoped_tables()
     total_backfilled = 0
 
     for table in tables:
         # Safety: backfill any NULL tenant_id before adding NOT NULL
-        n = _backfill_nulls(table)
+        n = _backfill_nulls(table, conn)
         if n:
             print(
                 f"WARNING: Backfilled {n} NULL tenant_id rows in '{table}'"
