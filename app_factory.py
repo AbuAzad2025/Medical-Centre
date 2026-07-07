@@ -877,7 +877,7 @@ def create_app(config_name: str | None = None) -> Flask:
             'visit_stage_label': VisitStage.stage_label_ar,
             'visit_stage_icon': VisitStage.stage_icon,
             'visit_status_badge_class': resolve_visit_status_badge_class,
-            'visit_stage_order': VisitStage.get_journey_stage_number,
+            'visit_stage_order': VisitWorkflowValidator.get_journey_stage_number,
         }
 
     @app.context_processor
