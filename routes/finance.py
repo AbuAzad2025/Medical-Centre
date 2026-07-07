@@ -1,6 +1,6 @@
  
 
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, g
 from flask_login import login_required, current_user
 from utils.decorators import role_required, role_required_json
 from models.visit import Visit
