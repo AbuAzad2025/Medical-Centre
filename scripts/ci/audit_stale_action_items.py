@@ -147,6 +147,9 @@ def parse_action_items(markdown: str) -> list[ActionItem]:
         if in_table and stripped.startswith("|") and stripped.count("|") >= 4:
             cells = [c.strip() for c in stripped.strip("|").split("|")]
             if len(cells) >= 6:
+                # Skip placeholder rows where all fields are em-dashes
+                if all(c in ("", "—", "-") for c in cells):
+                    continue
                 items.append(ActionItem(
                     num=cells[0],
                     incident_id=cells[1],
