@@ -8,8 +8,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from datetime import datetime, timezone
-from io import BytesIO
-import base64, qrcode
+from app.shared.print_context import generate_qr_data_uri
 from models.user import User, StaffWorkSchedule, StaffAbsence
 from models.patient import Patient
 from models.visit import Visit
@@ -193,11 +192,7 @@ def print_receipt(visit_id):
             survey_url = url_for('reception.survey', token=survey.token, _external=True)
     except Exception:
         survey_url = None
-    payload = f"RCPT|{visit.id}|{visit.patient_id}|{visit.total_amount}"
-    img = qrcode.make(payload)
-    buf = BytesIO()
-    img.save(buf, format='PNG')
-    qr_data_uri = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('utf-8')
+    qr_data_uri = generate_qr_data_uri(f"RCPT|{visit.id}|{visit.patient_id}|{visit.total_amount}")
     return render_template(
         'print/receipt.html',
         visit=visit,
@@ -227,11 +222,7 @@ def print_invoice(invoice_id):
     if not invoice:
         flash('الفاتورة غير موجودة', 'error')
         return redirect(url_for('reception.queue_management'))
-    payload = f"INV|{invoice.id}|{invoice.visit_id}|{invoice.total_amount}"
-    img = qrcode.make(payload)
-    buf = BytesIO()
-    img.save(buf, format='PNG')
-    qr_data_uri = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('utf-8')
+    qr_data_uri = generate_qr_data_uri(f"INV|{invoice.id}|{invoice.visit_id}|{invoice.total_amount}")
     return render_template('print/invoice.html', invoice=invoice, qr_data_uri=qr_data_uri)
 
 @reception_bp.route('/print_prescription/<int:prescription_id>')
@@ -247,11 +238,9 @@ def print_prescription(prescription_id):
     if not prescription:
         flash('الوصفة غير موجودة', 'error')
         return redirect(url_for('reception.queue_management'))
-    payload = f"RX|{prescription.id}|{prescription.patient_id}|{prescription.created_at.isoformat() if prescription.created_at else ''}"
-    img = qrcode.make(payload)
-    buf = BytesIO()
-    img.save(buf, format='PNG')
-    qr_data_uri = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('utf-8')
+    qr_data_uri = generate_qr_data_uri(
+        f"RX|{prescription.id}|{prescription.patient_id}|{prescription.created_at.isoformat() if prescription.created_at else ''}"
+    )
     return render_template('print/prescription.html', prescription=prescription, qr_data_uri=qr_data_uri)
 
 def get_payment_methods():

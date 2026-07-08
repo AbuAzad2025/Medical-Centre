@@ -15,10 +15,10 @@ from services.report_service import ReportService
 from services.financial_service import financial_service
 from app_factory import db
 from sqlalchemy import func, and_
-import logging, base64, qrcode
+import logging
 from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
-from io import BytesIO
+from app.shared.print_context import generate_qr_data_uri
 from app.shared.enums import InvoiceStatus
 
 
@@ -103,11 +103,7 @@ def receipt(payment_id):
                 survey_url = url_for('reception.survey', token=survey.token, _external=True)
         except Exception:
             survey_url = None
-        payload = f"RCPT|{visit.id}|{visit.patient_id}|{visit.total_amount}"
-        img = qrcode.make(payload)
-        buf = BytesIO()
-        img.save(buf, format='PNG')
-        qr_data_uri = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('utf-8')
+        qr_data_uri = generate_qr_data_uri(f"RCPT|{visit.id}|{visit.patient_id}|{visit.total_amount}")
         return render_template('print/receipt.html', visit=visit, printed_at=datetime.now(timezone.utc), survey_url=survey_url, qr_data_uri=qr_data_uri)
     except Exception as e:
         logging.error(f"Error generating receipt: {str(e)}")

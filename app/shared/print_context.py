@@ -51,6 +51,28 @@ def resolve_print_slots(doc_type: str, branding) -> Tuple[Optional[str], Optiona
     return header, footer
 
 
+def generate_qr_data_uri(payload: str) -> str:
+    """Generate a base64-encoded QR code data URI from a string payload.
+
+    Uses the ``qrcode`` library to create a QR image in memory, saves it
+    as PNG, and returns a ``data:image/png;base64,...`` URI suitable for
+    inline ``<img src="…">`` in print templates.
+
+    Example::
+
+        qr_data_uri = generate_qr_data_uri(f"RX|{rx.id}|{rx.patient_id}")
+    """
+    import base64
+    from io import BytesIO
+
+    import qrcode
+
+    img = qrcode.make(payload)
+    buf = BytesIO()
+    img.save(buf, format='PNG')
+    return 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('utf-8')
+
+
 def resolve_print_context(doc_type: str, branding=None) -> Dict[str, Any]:
     """Full print template context — tenant header/footer + platform stamp (§34.10)."""
     doc_type = (doc_type or 'report').lower()

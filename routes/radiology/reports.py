@@ -14,8 +14,8 @@ from models.radiology_result import RadiologyResult
 from models.file_management import FileUpload
 from models.system_config import SystemConfig
 from app_factory import db
-import qrcode
-import logging, json, os, base64, secrets
+from app.shared.print_context import generate_qr_data_uri
+import logging, json, os, secrets
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
 
@@ -63,11 +63,7 @@ def print_report(radiology_scan_id=None):
                 flash('نتيجة الأشعة غير موجودة', 'error')
                 return redirect(url_for('radiology.reports'))
             result = req.results[0]
-        payload = f"RAD|{result.id}|{result.patient_id}|{result.created_at.isoformat()}"
-        img = qrcode.make(payload)
-        buf = BytesIO()
-        img.save(buf, format='PNG')
-        qr_data_uri = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('utf-8')
+        qr_data_uri = generate_qr_data_uri(f"RAD|{result.id}|{result.patient_id}|{result.created_at.isoformat()}")
         return render_template('print/radiology_report.html', radiology_result=result, qr_data_uri=qr_data_uri)
     except Exception as e:
         logging.error(f"Error printing radiology report {radiology_scan_id}: {str(e)}")
