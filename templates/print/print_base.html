@@ -27,7 +27,28 @@
         <section class="print-subject-strip">{% block subject_strip %}{% endblock %}</section>
         <main class="print-body">{% block body %}{% endblock %}</main>
         <footer class="print-totals">{% block totals %}{% endblock %}</footer>
-        <section class="print-signatures">{% block signatures %}{% endblock %}</section>
+        <section class="print-signatures">{% block signatures %}
+{% if current_user and current_user.is_authenticated and current_user.digital_signature %}
+<div class="print-signature-box">
+    <img src="{{ current_user.digital_signature }}" alt="{{ _('توقيع') }}" class="print-signature-img">
+    <div class="print-signature-label">{{ current_user.full_name }}</div>
+</div>
+{% else %}
+<div class="print-signature-box">
+    <div class="print-signature-line"></div>
+    <div class="print-signature-label">{% block signature_label %}{{ _('التوقيع') }}{% endblock %}</div>
+</div>
+{% endif %}
+{% endblock %}</section>
+
+        {% block qr_code %}
+{% if qr_data_uri %}
+<div class="print-qr-section">
+    <img src="{{ qr_data_uri }}" alt="QR" class="print-qr-img">
+    <div class="print-qr-label">{{ _('رمز التحقق') }}</div>
+</div>
+{% endif %}
+{% endblock %}
 
         <footer class="print-footer">
             <div class="print-legal">{% block legal_footer %}{% endblock %}</div>

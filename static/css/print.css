@@ -212,6 +212,7 @@ body.print-doc {
   margin-bottom: 0.35rem;
 }
 
+.print-signature-img { max-height: 3rem; max-width: 120px; object-fit: contain; }
 .print-signature-label { font-size: 0.8rem; color: var(--print-muted); }
 
 .print-footer-tenant {
@@ -276,6 +277,10 @@ body.print-doc {
 .badge-sev-critical { background: #dc3545; color: #fff; padding: 0.1rem 0.45rem; border-radius: 0.75rem; font-size: 0.75rem; }
 
 .ws-pre-line { white-space: pre-line; word-break: break-word; }
+.print-page-break {
+  page-break-after: always;
+  break-after: page;
+}
 
 @media print {
   .no-print, .print-action-btn { display: none !important; }
