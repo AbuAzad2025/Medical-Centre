@@ -91,7 +91,6 @@ class TestCreateSaleCommissionAndOptions:
     def test_create_sale_prescription_marked_dispensed(self, app, test_tenant):
         """After a successful sale the prescription status should be DISPENSED."""
         from models.medication import Prescription
-        from app.extensions import db
 
         patient_id = _make_patient(app, test_tenant)
         rx_id = _make_prescription(app, test_tenant, patient_id)
@@ -109,6 +108,8 @@ class TestCreateSaleCommissionAndOptions:
 
     def test_create_sale_commission_fields(self, app, test_tenant):
         """Sale row gets correct tenant_id and sale_number prefix."""
+        from models.medication import PharmacySale
+
         patient_id = _make_patient(app, test_tenant)
         rx_id = _make_prescription(app, test_tenant, patient_id)
         items = [{'medication_id': 1, 'quantity': 1, 'unit_price': 4.0}]
@@ -120,7 +121,6 @@ class TestCreateSaleCommissionAndOptions:
             tenant_id=test_tenant.id,
         )
 
-        from models.medication import PharmacySale
         sale = PharmacySale.query.get(result['sale_id'])
         assert sale.tenant_id == test_tenant.id
         assert sale.sale_number.startswith('SALE-')
@@ -184,7 +184,7 @@ class TestCreateSaleCommissionAndOptions:
                 prescription_id=rx_id,
                 dispensed_by=1,
                 items=items,
-                # tenant_id intentionally omitted → defaults to g.tenant_id
+                # tenant_id intentionally omitted -> defaults to g.tenant_id
             )
         finally:
             g.pop('tenant_id', None)
@@ -193,7 +193,7 @@ class TestCreateSaleCommissionAndOptions:
 
 
 # ===========================================================================
-# void_sale tests (bonus – consistency with commit-failure guard)
+# void_sale tests
 # ===========================================================================
 
 class TestVoidSale:
@@ -220,11 +220,12 @@ class TestVoidSale:
 
     def test_void_sale_not_found(self, app, test_tenant):
         result = PharmacySaleService.void_sale(999_999)
-        assert 'error' in result    def test_void_sale_commit_failure(self, app, test_tenant):
+        assert 'error' in result
+
+    def test_void_sale_commit_failure(self, app, test_tenant):
         sale_id = self._create_sale(app, test_tenant)
 
         with patch('services.pharmacy_sale_service.db') as mock_db:
-            # Let the real query run to find the sale, but mock commit to fail
             from models.medication import PharmacySale
             sale_obj = PharmacySale.query.get(sale_id)
             mock_db.session.query.return_value.filter.return_value.filter.return_value.first.return_value = sale_obj
