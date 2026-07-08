@@ -5,19 +5,10 @@
 {% block print_button_label %}طباعة التقرير{% endblock %}
 {% block doc_heading %}تقرير الأشعة{% endblock %}
 
-{% block extra_print_head %}
-{% if qr_data_uri %}
-<style>.print-qr { text-align: center; margin-bottom: 0.5rem; } .print-qr img { max-width: 96px; height: auto; }</style>
-{% endif %}
-{% endblock %}
-
 {% block doc_meta %}
 <span class="print-doc-meta__item"><strong>رقم الطلب:</strong> {{ radiology_result.request.request_number if radiology_result.request else '—' }}</span>
 <span class="print-doc-meta__item"><strong>تاريخ التقرير:</strong> {{ radiology_result.created_at.strftime('%Y-%m-%d %H:%M') if radiology_result.created_at else '—' }}</span>
 <span class="print-doc-meta__item"><strong>الحالة:</strong> {{ radiology_result.status | enum_label('OrderState') if radiology_result.status else '—' }}</span>
-{% if qr_data_uri %}
-<span class="print-doc-meta__item print-qr"><img src="{{ qr_data_uri }}" alt="QR"></span>
-{% endif %}
 {% endblock %}
 
 {% block subject_strip %}

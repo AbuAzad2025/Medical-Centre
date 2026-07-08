@@ -5,20 +5,11 @@
 {% block print_button_label %}طباعة التقرير{% endblock %}
 {% block doc_heading %}تقرير نتائج التحاليل{% endblock %}
 
-{% block extra_print_head %}
-{% if qr_data_uri %}
-<style>.print-qr { text-align: center; } .print-qr img { max-width: 96px; height: auto; }</style>
-{% endif %}
-{% endblock %}
-
 {% block doc_meta %}
 <span class="print-doc-meta__item"><strong>المنشأة:</strong> {{ branding.organization_name if branding and branding.organization_name else (ui.organization_name if ui else '—') }}</span>
 <span class="print-doc-meta__item"><strong>رقم الطلب:</strong> {{ lab_request.request_number or lab_request.id }}</span>
 <span class="print-doc-meta__item"><strong>تاريخ الطباعة:</strong> {{ printed_at or '—' }}</span>
 <span class="print-doc-meta__item"><strong>الحالة:</strong> {{ lab_request.status | enum_label('OrderState') if lab_request.status else '—' }}</span>
-{% if qr_data_uri %}
-<span class="print-doc-meta__item print-qr"><img src="{{ qr_data_uri }}" alt="QR"></span>
-{% endif %}
 {% endblock %}
 
 {% block subject_strip %}
