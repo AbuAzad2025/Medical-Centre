@@ -5,7 +5,8 @@ from utils.decorators import role_required
 from sqlalchemy import func
 from decimal import Decimal
 from datetime import datetime, timezone, date
-import logging, json
+import logging, json, base64, qrcode
+from io import BytesIO
 
 from routes.medication_routes import medication_bp
 from models.medication import Medication, PharmacySale, PharmacySaleItem, PharmacyReturn
@@ -211,11 +212,17 @@ def print_sale_receipt(sale_id):
             id=sale.created_by,
             tenant_id=current_user.tenant_id,
         ).first()
+    payload = f"POS|{sale.id}|{sale.total_amount}|{sale.sale_number or sale.id}"
+    img = qrcode.make(payload)
+    buf = BytesIO()
+    img.save(buf, format='PNG')
+    qr_data_uri = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('utf-8')
     return render_template(
         'print/pharmacy_sale_receipt.html',
         sale=sale,
         cashier=cashier,
         printed_at=datetime.now(timezone.utc),
+        qr_data_uri=qr_data_uri,
     )
 
 

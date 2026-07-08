@@ -23,8 +23,9 @@ from services.prescription_service import prescription_service
 from app_factory import db
 from app.shared.enums import VisitState
 from sqlalchemy import and_, or_, desc, func, case
-import logging, json, secrets
+import logging, json, secrets, base64, qrcode
 from datetime import datetime, date, timedelta, timezone
+from io import BytesIO
 
 
 # =============================================
@@ -388,8 +389,14 @@ def print_prescription(prescription_id):
             flash('الوصفة غير موجودة', 'error')
             return redirect(url_for('doctor.patient_queue'))
         
+        payload = f"RX|{prescription.id}|{prescription.patient_id}|{prescription.created_at.isoformat() if prescription.created_at else ''}"
+        img = qrcode.make(payload)
+        buf = BytesIO()
+        img.save(buf, format='PNG')
+        qr_data_uri = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('utf-8')
         return render_template('print/prescription.html',
-                             prescription=prescription)
+                             prescription=prescription,
+                             qr_data_uri=qr_data_uri)
     except Exception as e:
         logging.error(f"Error printing prescription: {str(e)}")
         flash('حدث خطأ في طباعة الوصفة', 'error')

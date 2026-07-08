@@ -18,8 +18,9 @@ from models.medical_record import MedicalRecord
 from services.emergency_service import emergency_service
 from app_factory import db
 from sqlalchemy import and_, or_, desc, case
-import logging, json
+import logging, json, base64, qrcode
 from datetime import datetime, date, timedelta, timezone
+from io import BytesIO
 
 
 # =============================================
@@ -59,8 +60,14 @@ def print_emergency_report(emergency_id):
             flash('حالة الطوارئ غير موجودة', 'error')
             return redirect(url_for('emergency.patient_queue'))
         
+        payload = f"ER|{emergency.id}|{emergency.patient_id}|{emergency.created_at.isoformat() if emergency.created_at else ''}"
+        img = qrcode.make(payload)
+        buf = BytesIO()
+        img.save(buf, format='PNG')
+        qr_data_uri = 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('utf-8')
         return render_template('print/emergency_report.html',
-                             emergency=emergency)
+                             emergency=emergency,
+                             qr_data_uri=qr_data_uri)
     except Exception as e:
         logging.error(f"Error printing emergency report: {str(e)}")
         flash('حدث خطأ في طباعة تقرير الطوارئ', 'error')
