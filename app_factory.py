@@ -217,6 +217,7 @@ def create_app(config_name: str | None = None) -> Flask:
     app.jinja_env.filters['enum_label'] = enum_label
     app.jinja_env.filters['user_message'] = resolve_user_message
     app.jinja_env.globals['resolve_visit_payment_status_badge'] = resolve_visit_payment_status_badge
+    app.jinja_env.globals['_'] = lambda s: s
 
     from app.shared.print_context import resolve_print_context
     from app.shared.branding_context import get_branding_row

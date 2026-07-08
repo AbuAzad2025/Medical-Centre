@@ -2,6 +2,7 @@
 PharmacySaleService - manages pharmacy sales and dispensing workflow
 """
 from datetime import datetime, timezone
+from uuid import uuid4
 from flask import g
 from app.extensions import db
 from app.shared.enums import PrescriptionState
@@ -12,7 +13,7 @@ class PharmacySaleService:
 
     @staticmethod
     def create_sale(prescription_id: int, dispensed_by: int, items: list[dict], tenant_id: int | None = None) -> dict:
-        from models.medication import Prescription, PrescriptionItem, PharmacySale, PharmacySaleItem
+        from models.medication import Prescription, PharmacySale, PharmacySaleItem, Medication
         tenant_id = tenant_id or getattr(g, 'tenant_id', None)
         prescription = Prescription.query.filter(Prescription.id == prescription_id, Prescription.tenant_id == tenant_id).first()
         if not prescription:
@@ -20,7 +21,7 @@ class PharmacySaleService:
         sale = PharmacySale(
             tenant_id=tenant_id,
             patient_id=prescription.patient_id,
-            sale_number=f"SALE-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
+            sale_number=f"SALE-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{uuid4().hex[:6]}",
             total_amount=0,
             status='completed',
         )
@@ -28,15 +29,31 @@ class PharmacySaleService:
         db.session.flush()
         total = 0
         for item in items:
+            med_id = item.get('medication_id')
+            if not med_id:
+                db.session.rollback()
+                return {"error": "medication_id required"}
+            med = Medication.query.filter(
+                Medication.id == med_id,
+                Medication.tenant_id == tenant_id,
+            ).first()
+            if not med:
+                db.session.rollback()
+                return {"error": f"Medication {med_id} not found"}
+            qty = item.get('quantity', 1)
+            unit_price = item.get('unit_price', 0)
+            line_total = qty * unit_price
             sale_item = PharmacySaleItem(
                 tenant_id=tenant_id,
                 sale_id=sale.id,
-                medication_id=item.get('medication_id'),
-                quantity=item.get('quantity', 1),
-                unit_price=item.get('unit_price', 0),
+                medication_id=med_id,
+                medication_name=med.trade_name or med.scientific_name or str(med_id),
+                quantity=qty,
+                unit_price=unit_price,
+                total_price=line_total,
             )
             db.session.add(sale_item)
-            total += item.get('quantity', 1) * item.get('unit_price', 0)
+            total += line_total
         sale.total_amount = total
         prescription.status = PrescriptionState.DISPENSED
         try:
