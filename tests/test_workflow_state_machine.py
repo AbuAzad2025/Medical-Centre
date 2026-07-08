@@ -34,7 +34,13 @@ def _no_bundle_limits(monkeypatch):
 
 
 @pytest.fixture
-def wf_visit(rollback_db):
+def wf_visit(rollback_db, monkeypatch):
+    # Bypass tenant filter since these tests use @pytest.mark.no_tenant_context
+    # and create tenant-scoped records without a tenant context
+    monkeypatch.setattr(
+        'app.shared.tenant_filter._is_tenant_bypass',
+        lambda: True,
+    )
     p = Patient(first_name='و', last_name='س', phone='050' + format(uuid.uuid4().int % 10**7, '07d'))
     rollback_db.session.add(p)
     rollback_db.session.commit()
@@ -72,6 +78,7 @@ class TestWorkflowOrchestrator:
         WorkflowOrchestrator.create_case(wf_visit, VisitState.OPEN)
         assert wf_visit.status == VisitState.OPEN
 
+    @pytest.mark.no_tenant_context
     def test_valid_transitions_from_open(self):
         assert VisitState.CHECKED_IN in WorkflowOrchestrator.valid_transitions(VisitState.OPEN)
 

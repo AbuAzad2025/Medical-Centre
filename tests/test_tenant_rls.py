@@ -23,14 +23,32 @@ def tenant_a(app):
 @pytest.fixture
 def tenant_b(app):
     from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG
-    t = Tenant.query.filter(Tenant.slug != DEFAULT_TEST_TENANT_SLUG).first()
-    if t is None:
-        raise RuntimeError('No second tenant found in database')
+    from flask import g
+    import uuid
+    prev = g.get('_tenant_filter_bypass', False)
+    g._tenant_filter_bypass = True
+    try:
+        t = Tenant.query.filter(Tenant.slug != DEFAULT_TEST_TENANT_SLUG).first()
+        if t is None:
+            t = Tenant(
+                slug=f'tenant-b-{uuid.uuid4().hex[:8]}',
+                name='Tenant B',
+                contact_email='tenantb@test.local',
+                status='active',
+                product_profile_code='multi_department_center',
+            )
+            db.session.add(t)
+            db.session.commit()
+    finally:
+        if prev:
+            g._tenant_filter_bypass = True
+        else:
+            g.pop('_tenant_filter_bypass', None)
     return t
 
 
+@pytest.mark.no_tenant_context
 class TestFailClosedTenantIsolation:
-    @pytest.mark.no_tenant_context
     def test_saas_mode_no_tenant_raises_isolation_error(self, app, tenant_a):
         """In SaaS mode, querying a tenant-scoped model without g.tenant_id raises."""
         with app.test_request_context():

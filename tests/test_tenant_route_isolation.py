@@ -224,6 +224,7 @@ def lab_panel_b(app, tenant_b):
     return p
 
 
+@pytest.mark.no_tenant_context
 class TestMedicationCatalogIsolation:
     def test_medication_list_excludes_other_tenant(self, client_a, medication_b):
         resp = client_a.get('/medication/list')
@@ -247,6 +248,7 @@ class TestMedicationCatalogIsolation:
         assert medication_b.trade_name == 'TenantB Med'
 
 
+@pytest.mark.no_tenant_context
 class TestSupplierIsolation:
     def test_supplier_list_excludes_other_tenant(self, client_a, supplier_b):
         resp = client_a.get('/medication/suppliers')
@@ -277,6 +279,7 @@ class TestSupplierIsolation:
         assert purchase_b.batch_number.encode() not in resp.data
 
 
+@pytest.mark.no_tenant_context
 class TestPosIsolation:
     def test_pos_interface_excludes_other_tenant_medication(self, client_a, medication_b):
         resp = client_a.get('/medication/pos')
@@ -309,6 +312,7 @@ class TestPosIsolation:
         assert f'#{sale_b.id:06d}'.encode() not in resp.data
 
 
+@pytest.mark.no_tenant_context
 class TestLabCatalogIsolation:
     def test_lab_catalog_edit_requires_same_tenant(self, client_a, lab_test_b):
         original_code = lab_test_b.code

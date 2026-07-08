@@ -141,6 +141,7 @@ class TestNotificationWorkerLifecycle:
 # ===================================================================
 
 @pytest.mark.usefixtures('app')
+@pytest.mark.no_tenant_context
 class TestCrossTenantIsolation:
     """Prove Tenant A's notification is invisible to Tenant B after commit.
 
@@ -288,6 +289,7 @@ class TestCrossTenantIsolation:
 # ===================================================================
 
 @pytest.mark.usefixtures('app')
+@pytest.mark.no_tenant_context
 class TestMissingTenantContext:
     """Without tenant context: query returns 0 rows, writes are rejected."""
 
@@ -331,6 +333,7 @@ class TestMissingTenantContext:
             db.session.rollback()
 
 
+@pytest.mark.no_tenant_context
 class TestFailClosedTenantBinding:
     """``SET LOCAL`` failures must propagate, not be silently swallowed."""
 
