@@ -561,12 +561,10 @@ def create_app(config_name: str | None = None) -> Flask:
             if not tenant:
                 abort(403, description="Tenant context is required in SaaS mode.")
             try:
-                # Use cached enabled_modules from g (set by set_tenant_context)
-                enabled = getattr(g, 'enabled_modules', None)
-                if enabled is None or module_name not in enabled:
-                    from app.core.module.validators import get_active_modules_for_tenant
-                    enabled = get_active_modules_for_tenant(tenant.id)
-                    g.enabled_modules = enabled
+                # Always query fresh — don't rely on stale g.enabled_modules cache
+                from app.core.module.validators import get_active_modules_for_tenant
+                enabled = get_active_modules_for_tenant(tenant.id)
+                g.enabled_modules = enabled
                 if module_name not in enabled:
                     abort(403, description=f"Module '{module_name}' is not activated for this tenant.")
             except HTTPException:
