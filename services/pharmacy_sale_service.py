@@ -39,7 +39,11 @@ class PharmacySaleService:
             total += item.get('quantity', 1) * item.get('unit_price', 0)
         sale.total_amount = total
         prescription.status = PrescriptionState.DISPENSED
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception as exc:
+            db.session.rollback()
+            raise RuntimeError('final commit fail') from exc
         return {"sale_id": sale.id, "total_amount": total}
 
     @staticmethod
@@ -49,7 +53,11 @@ class PharmacySaleService:
         if not sale:
             return {"error": "Sale not found"}
         sale.status = PrescriptionState.CANCELLED
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception as exc:
+            db.session.rollback()
+            raise RuntimeError('final commit fail') from exc
         return {"sale_id": sale.id, "status": PrescriptionState.CANCELLED}
 
     @staticmethod
