@@ -126,20 +126,26 @@ class BrandingSettings(TenantMixin, db.Model):
     @classmethod
     def create_default(cls, user_id):
         """إنشاء إعدادات افتراضية"""
-        tenant_id = cls._tenant_id()
-        default_branding = cls(
-            tenant_id=tenant_id,
-            organization_name='المركز الصحي المتخصص',
-            organization_name_en='Specialized Medical Center',
-            organization_address='فلسطين',
-            organization_phone='+970-123456789',
-            organization_email='info@medical-center.com',
-            created_by=user_id,
-            updated_by=user_id
-        )
-        db.session.add(default_branding)
-        db.session.commit()
-        return default_branding
+        import logging
+        try:
+            tenant_id = cls._tenant_id()
+            default_branding = cls(
+                tenant_id=tenant_id,
+                organization_name='المركز الصحي المتخصص',
+                organization_name_en='Specialized Medical Center',
+                organization_address='فلسطين',
+                organization_phone='+970-123456789',
+                organization_email='info@medical-center.com',
+                created_by=user_id,
+                updated_by=user_id
+            )
+            db.session.add(default_branding)
+            db.session.commit()
+            return default_branding
+        except Exception:
+            db.session.rollback()
+            logging.error("BrandingSettings.create_default failed")
+            raise
 
 
 class SystemTheme(TenantMixin, db.Model):
@@ -171,45 +177,51 @@ class SystemTheme(TenantMixin, db.Model):
     @classmethod
     def create_default_themes(cls):
         """إنشاء الثيمات الافتراضية"""
-        themes = [
-            {
-                'name': 'Medical Blue',
-                'name_ar': 'أزرق طبي',
-                'description': 'ثيم أزرق مناسب للمراكز الطبية',
-                'primary_color': '#2563eb',
-                'secondary_color': '#10b981',
-                'accent_color': '#f59e0b',
-                'background_color': '#f8fafc',
-                'text_color': '#1f2937'
-            },
-            {
-                'name': 'Green Health',
-                'name_ar': 'أخضر صحي',
-                'description': 'ثيم أخضر للصحة والشفاء',
-                'primary_color': '#059669',
-                'secondary_color': '#0d9488',
-                'accent_color': '#d97706',
-                'background_color': '#f0fdf4',
-                'text_color': '#064e3b'
-            },
-            {
-                'name': 'Professional Gray',
-                'name_ar': 'رمادي مهني',
-                'description': 'ثيم رمادي مهني وأنيق',
-                'primary_color': '#374151',
-                'secondary_color': '#6b7280',
-                'accent_color': '#f59e0b',
-                'background_color': '#f9fafb',
-                'text_color': '#111827'
-            }
-        ]
-        
-        for theme_data in themes:
-            existing = cls.query.filter_by(name=theme_data['name']).first()
-            if not existing:
-                theme = cls(**theme_data)
-                if theme_data['name'] == 'Medical Blue':
-                    theme.is_default = True
-                db.session.add(theme)
-        
-        db.session.commit()
+        import logging
+        try:
+            themes = [
+                {
+                    'name': 'Medical Blue',
+                    'name_ar': 'أزرق طبي',
+                    'description': 'ثيم أزرق مناسب للمراكز الطبية',
+                    'primary_color': '#2563eb',
+                    'secondary_color': '#10b981',
+                    'accent_color': '#f59e0b',
+                    'background_color': '#f8fafc',
+                    'text_color': '#1f2937'
+                },
+                {
+                    'name': 'Green Health',
+                    'name_ar': 'أخضر صحي',
+                    'description': 'ثيم أخضر للصحة والشفاء',
+                    'primary_color': '#059669',
+                    'secondary_color': '#0d9488',
+                    'accent_color': '#d97706',
+                    'background_color': '#f0fdf4',
+                    'text_color': '#064e3b'
+                },
+                {
+                    'name': 'Professional Gray',
+                    'name_ar': 'رمادي مهني',
+                    'description': 'ثيم رمادي مهني وأنيق',
+                    'primary_color': '#374151',
+                    'secondary_color': '#6b7280',
+                    'accent_color': '#f59e0b',
+                    'background_color': '#f9fafb',
+                    'text_color': '#111827'
+                }
+            ]
+            
+            for theme_data in themes:
+                existing = cls.query.filter_by(name=theme_data['name']).first()
+                if not existing:
+                    theme = cls(**theme_data)
+                    if theme_data['name'] == 'Medical Blue':
+                        theme.is_default = True
+                    db.session.add(theme)
+            
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            logging.error("SystemTheme.create_default_themes failed")
+            raise

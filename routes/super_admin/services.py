@@ -139,6 +139,8 @@ def create_service():
         return jsonify({'success': True, 'message': 'تم إنشاء الخدمة بنجاح', 'service_id': service.id}), 200
         
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Create service error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إنشاء الخدمة حالياً'}), 500
 
@@ -194,6 +196,8 @@ def edit_service(service_id):
         departments = Department.query.filter_by(is_active=True).all()
         return render_template('super_admin/edit_service.html', service=service, departments=departments)
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Edit service error: {str(e)}")
         flash('حدث خطأ في تعديل الخدمة', 'error')
         return redirect(url_for('super_admin.services'))
@@ -259,6 +263,8 @@ def service_pricing(service_id):
         
         return render_template('super_admin/service_pricing.html', service=service, pricing=pricing)
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Service pricing error: {str(e)}")
         flash('حدث خطأ في إدارة التسعير', 'error')
         return redirect(url_for('super_admin.services'))
@@ -280,6 +286,8 @@ def activate_service(service_id):
         
         return jsonify({'success': True, 'message': 'تم تفعيل الخدمة'}), 200
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Activate service error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر تفعيل الخدمة حالياً'}), 500
 
@@ -300,6 +308,8 @@ def deactivate_service(service_id):
         
         return jsonify({'success': True, 'message': 'تم إلغاء تفعيل الخدمة'}), 200
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Deactivate service error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إلغاء تفعيل الخدمة حالياً'}), 500
 

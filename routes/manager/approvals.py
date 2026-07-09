@@ -213,13 +213,15 @@ def custom_service_approvals():
         pending = ServiceMaster.query.filter(
             ServiceMaster.is_custom == True,
             ServiceMaster.is_active == False,
-            ServiceMaster.approved_by == None
+            ServiceMaster.approved_by == None,
+            ServiceMaster.tenant_id == current_user.tenant_id
         ).order_by(ServiceMaster.created_at.desc()).all()
 
         approved = ServiceMaster.query.filter(
             ServiceMaster.is_custom == True,
             ServiceMaster.is_active == True,
-            ServiceMaster.approved_by != None
+            ServiceMaster.approved_by != None,
+            ServiceMaster.tenant_id == current_user.tenant_id
         ).order_by(ServiceMaster.approved_at.desc()).all()
 
         return render_template('manager/custom_service_approvals.html',

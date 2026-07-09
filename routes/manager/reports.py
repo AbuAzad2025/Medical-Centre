@@ -30,22 +30,16 @@ from datetime import datetime, date, timedelta, timezone
 
 @manager_bp.route('/reports')
 @login_required
+@role_required('manager', 'admin')
 def reports():
     """التقارير"""
-    if current_user.role not in ['manager', 'admin']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
-    
     return render_template('manager/reports.html')
 
 
 @manager_bp.route('/reports-center')
 @login_required
+@role_required('manager', 'admin', 'super_admin')
 def reports_center():
-    if current_user.role not in ['manager', 'admin', 'super_admin']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
-
     try:
         from services.report_center_service import ReportCenterService
         from models.department import Department
@@ -89,8 +83,8 @@ def reports_center():
             result = {'capacity': ReportCenterService.capacity_impact(start_date, end_date)}
         elif report == 'booking':
             booking = ReportCenterService.booking_report(start_dt, end_dt)
-            dept_names = {d.id: (d.name_ar or d.name) for d in Department.query.all()}
-            doctor_names = {u.id: u.full_name for u in User.query.filter_by(role='doctor').all()}
+            dept_names = {d.id: (d.name_ar or d.name) for d in Department.query.filter(Department.tenant_id == current_user.tenant_id).all()}
+            doctor_names = {u.id: u.full_name for u in User.query.filter_by(role='doctor').filter(User.tenant_id == current_user.tenant_id).all()}
             booking['top_departments_named'] = [{'label': dept_names.get(did) or 'غير محدد', 'count': cnt} for did, cnt in booking.get('top_departments', [])]
             booking['top_doctors_named'] = [{'label': doctor_names.get(did) or 'غير محدد', 'count': cnt} for did, cnt in booking.get('top_doctors', [])]
             result = {'booking': booking}
@@ -99,7 +93,7 @@ def reports_center():
         elif report == 'radiology_revision':
             result = {'radiology_revision': ReportCenterService.radiology_revision_rate(start_dt, end_dt)}
 
-        departments = Department.query.filter_by(is_active=True).all()
+        departments = Department.query.filter_by(is_active=True).filter(Department.tenant_id == current_user.tenant_id).all()
         from app.shared.report_template_service import list_templates
         saved_templates = list_templates()
         return render_template(
@@ -118,12 +112,9 @@ def reports_center():
 
 @manager_bp.route('/analytics')
 @login_required
+@role_required('manager', 'admin')
 def analytics():
     """التحليلات"""
-    if current_user.role not in ['manager', 'admin']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
-
     try:
         billing_active = 'billing' in getattr(g, 'enabled_modules', set())
         from app.shared.enums import VisitState
@@ -131,32 +122,32 @@ def analytics():
             'reception': {
                 'name': 'الاستقبال',
                 'status': 'active',
-                'pending_visits': Visit.query.filter(Visit.status == VisitState.OPEN).count(),
+                'pending_visits': Visit.query.filter(Visit.status == VisitState.OPEN, Visit.tenant_id == current_user.tenant_id).count(),
             },
             'doctor': {
                 'name': 'الأطباء',
                 'status': 'active',
-                'in_progress_visits': Visit.query.filter(Visit.status == VisitState.IN_PROGRESS).count(),
+                'in_progress_visits': Visit.query.filter(Visit.status == VisitState.IN_PROGRESS, Visit.tenant_id == current_user.tenant_id).count(),
             },
             'emergency': {
                 'name': 'الطوارئ',
                 'status': 'active',
-                'emergency_visits': Visit.query.filter(Visit.visit_type == 'emergency').count(),
+                'emergency_visits': Visit.query.filter(Visit.visit_type == 'emergency', Visit.tenant_id == current_user.tenant_id).count(),
             },
             'lab': {
                 'name': 'المختبر',
                 'status': 'active',
-                'lab_requests': LabRequest.query.count(),
+                'lab_requests': LabRequest.query.filter(LabRequest.tenant_id == current_user.tenant_id).count(),
             },
             'radiology': {
                 'name': 'الأشعة',
                 'status': 'active',
-                'radiology_requests': RadiologyRequest.query.count(),
+                'radiology_requests': RadiologyRequest.query.filter(RadiologyRequest.tenant_id == current_user.tenant_id).count(),
             },
             'accountant': {
                 'name': 'المحاسبة',
                 'status': 'active' if billing_active else 'disabled',
-                'open_invoices': 0 if not billing_active else Invoice.query.filter(Invoice.status != 'paid').count(),
+                'open_invoices': 0 if not billing_active else Invoice.query.filter(Invoice.status != 'paid', Invoice.tenant_id == current_user.tenant_id).count(),
             },
         }
         return render_template('manager/monitoring.html', units_status=units_status, billing_active=billing_active)
@@ -246,7 +237,7 @@ def drill_down(report_type):
 
     if report_type == 'visits':
         title = 'تفاصيل الزيارات'
-        q = Visit.query.filter(Visit.visit_date >= start_dt, Visit.visit_date <= end_dt)
+        q = Visit.query.filter(Visit.visit_date >= start_dt, Visit.visit_date <= end_dt, Visit.tenant_id == current_user.tenant_id)
         if dept_id:
             q = q.filter_by(department_id=int(dept_id))
         results = q.order_by(Visit.visit_date.desc()).limit(200).all()
@@ -255,14 +246,14 @@ def drill_down(report_type):
             flash('تقارير الإيرادات غير متاحة في باقتك الحالية', 'error')
             return redirect(url_for('manager.dashboard'))
         title = 'تفاصيل الإيرادات'
-        q = Payment.query.filter(Payment.payment_date >= start_dt, Payment.payment_date <= end_dt)
+        q = Payment.query.filter(Payment.payment_date >= start_dt, Payment.payment_date <= end_dt, Payment.tenant_id == current_user.tenant_id)
         results = q.order_by(Payment.payment_date.desc()).limit(200).all()
     elif report_type == 'patients':
         title = 'المرضى الجدد'
-        results = Patient.query.filter(Patient.created_at >= start_dt, Patient.created_at <= end_dt).order_by(Patient.created_at.desc()).limit(200).all()
+        results = Patient.query.filter(Patient.created_at >= start_dt, Patient.created_at <= end_dt, Patient.tenant_id == current_user.tenant_id).order_by(Patient.created_at.desc()).limit(200).all()
     else:
         flash('نوع التقرير غير معروف', 'error')
         return redirect(url_for('manager.dashboard'))
 
     return render_template('manager/drill_down.html', report_type=report_type, title=title,
-                           results=results, start=start, end=end, departments=Department.query.all())
+                           results=results, start=start, end=end, departments=Department.query.filter(Department.tenant_id == current_user.tenant_id).all())

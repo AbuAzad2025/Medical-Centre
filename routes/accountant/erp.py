@@ -31,8 +31,12 @@ def api_erp_export():
     try:
         limit = request.args.get('limit', type=int) or 200
         limit = max(50, min(limit, 1000))
-        invoices = Invoice.query.order_by(Invoice.created_at.desc()).limit(limit).all()
-        payments = Payment.query.order_by(Payment.created_at.desc()).limit(limit).all()
+        invoices = Invoice.query.filter(
+            Invoice.tenant_id == current_user.tenant_id
+        ).order_by(Invoice.created_at.desc()).limit(limit).all()
+        payments = Payment.query.filter(
+            Payment.tenant_id == current_user.tenant_id
+        ).order_by(Payment.created_at.desc()).limit(limit).all()
         return jsonify({
             'success': True,
             'invoices': [i.to_dict() for i in invoices],

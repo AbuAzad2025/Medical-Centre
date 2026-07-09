@@ -40,7 +40,7 @@ def pharmacy_pos_charge():
     """Charge card via local POS terminal (same device as reception)."""
     amount_raw = None
     if request.is_json:
-        amount_raw = (request.json or {}).get('amount')
+        amount_raw = (request.get_json(silent=True) or {}).get('amount')
     else:
         amount_raw = request.form.get('amount')
     result, status = execute_pos_charge(amount_raw)
@@ -81,7 +81,7 @@ def api_medications_search():
 def pos_sell():
     """Process a POS sale (no patient required)"""
     try:
-        data = request.get_json(force=True)
+        data = request.get_json(force=True, silent=True)
         if not data or 'items' not in data or not data['items']:
             return jsonify({'success': False, 'message': 'لا توجد أصناف في الفاتورة'}), 400
 

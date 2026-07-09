@@ -80,6 +80,7 @@ def create_department():
         return jsonify({'success': True, 'message': 'تم إنشاء القسم بنجاح', 'department_id': department.id}), 200
         
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Create department error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إنشاء القسم حالياً'}), 500
 
@@ -132,6 +133,7 @@ def edit_department(department_id):
         
         return render_template('super_admin/edit_department.html', department=department)
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Edit department error: {str(e)}")
         flash('حدث خطأ في تعديل القسم', 'error')
         return redirect(url_for('super_admin.departments'))
@@ -169,7 +171,7 @@ def add_staff_to_department(department_id):
         from models.user import User
         from app_factory import db
         
-        data = request.get_json()
+        data = request.get_json(silent=True)
         user_id = data.get('user_id')
         
         user = db.session.get(User, user_id)
@@ -180,6 +182,7 @@ def add_staff_to_department(department_id):
         
         return jsonify({'success': True, 'message': 'تم إضافة الموظف للقسم'}), 200
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Add staff error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إضافة الموظف للقسم حالياً'}), 500
 
@@ -192,7 +195,7 @@ def remove_staff_from_department(department_id):
         from models.user import User
         from app_factory import db
         
-        data = request.get_json()
+        data = request.get_json(silent=True)
         user_id = data.get('user_id')
         
         user = db.session.get(User, user_id)
@@ -203,6 +206,7 @@ def remove_staff_from_department(department_id):
         
         return jsonify({'success': True, 'message': 'تم إزالة الموظف من القسم'}), 200
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Remove staff error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إزالة الموظف من القسم حالياً'}), 500
 
@@ -223,6 +227,7 @@ def activate_department(department_id):
         
         return jsonify({'success': True, 'message': 'تم تفعيل القسم'}), 200
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Activate department error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر تفعيل القسم حالياً'}), 500
 
@@ -243,6 +248,7 @@ def deactivate_department(department_id):
         
         return jsonify({'success': True, 'message': 'تم إلغاء تفعيل القسم'}), 200
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Deactivate department error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إلغاء تفعيل القسم حالياً'}), 500
 

@@ -126,8 +126,8 @@ def create_app(config_name: str | None = None) -> Flask:
         try:
             from app.core.tenant.middleware import bind_tenant_from_session
             bind_tenant_from_session()
-        except Exception:
-            pass
+        except Exception as e:
+            app.logger.debug("Tenant bind early (expected on first request): %s", e)
 
     login_manager.init_app(app)
     migrate.init_app(app, db)

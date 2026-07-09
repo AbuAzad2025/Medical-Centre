@@ -39,7 +39,7 @@ def index():
     return redirect(url_for('doctor.dashboard'))
 
 def _doctor_note_templates_cfg():
-    return SystemConfig.query.filter_by(config_key='doctor_note_templates').first()
+    return SystemConfig.query.filter_by(config_key='doctor_note_templates').filter(SystemConfig.tenant_id == current_user.tenant_id).first()
 
 def _default_doctor_note_templates():
     return [
@@ -65,7 +65,11 @@ def _get_doctor_note_templates():
         db.session.add(cfg)
         templates = _default_doctor_note_templates()
         cfg.set_value(templates)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
         return templates
 
     templates = cfg.get_value() if cfg.config_type == 'json' else []
@@ -75,7 +79,11 @@ def _get_doctor_note_templates():
         templates = _default_doctor_note_templates()
         cfg.set_value(templates)
         cfg.updated_by = getattr(current_user, 'id', None)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
     return templates
 
 def _save_doctor_note_templates(templates):
@@ -98,7 +106,11 @@ def _save_doctor_note_templates(templates):
     cfg.config_type = 'json'
     cfg.set_value(templates)
     cfg.updated_by = getattr(current_user, 'id', None)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
 
 def _doctor_dashboard_layout_cfg_key():
     return f'doctor_dashboard_layout_{current_user.id}'
@@ -111,7 +123,7 @@ def _default_doctor_dashboard_layout():
     ]
 
 def _get_doctor_dashboard_layout():
-    cfg = SystemConfig.query.filter_by(config_key=_doctor_dashboard_layout_cfg_key()).first()
+    cfg = SystemConfig.query.filter_by(config_key=_doctor_dashboard_layout_cfg_key()).filter(SystemConfig.tenant_id == current_user.tenant_id).first()
     if not cfg:
         cfg = SystemConfig(
             config_key=_doctor_dashboard_layout_cfg_key(),
@@ -127,7 +139,11 @@ def _get_doctor_dashboard_layout():
         db.session.add(cfg)
         layout = _default_doctor_dashboard_layout()
         cfg.set_value(layout)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
         return layout
     layout = cfg.get_value() if cfg.config_type == 'json' else []
     if not isinstance(layout, list) or not layout:
@@ -135,11 +151,15 @@ def _get_doctor_dashboard_layout():
         cfg.config_type = 'json'
         cfg.set_value(layout)
         cfg.updated_by = getattr(current_user, 'id', None)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
     return layout
 
 def _save_doctor_dashboard_layout(items):
-    cfg = SystemConfig.query.filter_by(config_key=_doctor_dashboard_layout_cfg_key()).first()
+    cfg = SystemConfig.query.filter_by(config_key=_doctor_dashboard_layout_cfg_key()).filter(SystemConfig.tenant_id == current_user.tenant_id).first()
     if not cfg:
         cfg = SystemConfig(
             config_key=_doctor_dashboard_layout_cfg_key(),
@@ -156,14 +176,19 @@ def _save_doctor_dashboard_layout(items):
     cfg.config_type = 'json'
     cfg.set_value(items)
     cfg.updated_by = getattr(current_user, 'id', None)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
 
 
 def _sync_follow_up_request_for_visit(visit: Visit, actor_user_id: int):
     suggested = getattr(visit, 'follow_up_date', None)
     required = bool(getattr(visit, 'follow_up_required', False))
+    tid = visit.tenant_id
     if required and suggested:
-        existing = FollowUpRequest.query.filter_by(source_visit_id=visit.id).order_by(FollowUpRequest.created_at.desc()).first()
+        existing = FollowUpRequest.query.filter(FollowUpRequest.source_visit_id == visit.id, FollowUpRequest.tenant_id == tid).order_by(FollowUpRequest.created_at.desc()).first()
         if existing and existing.status in {'CANCELLED', 'DONE'}:
             existing = None
         if existing:
@@ -175,6 +200,7 @@ def _sync_follow_up_request_for_visit(visit: Visit, actor_user_id: int):
             existing.updated_at = datetime.now(timezone.utc)
         else:
             db.session.add(FollowUpRequest(
+                tenant_id=tid,
                 patient_id=visit.patient_id,
                 doctor_id=visit.doctor_id,
                 source_visit_id=visit.id,
@@ -185,7 +211,7 @@ def _sync_follow_up_request_for_visit(visit: Visit, actor_user_id: int):
             ))
         return
 
-    existing = FollowUpRequest.query.filter_by(source_visit_id=visit.id).order_by(FollowUpRequest.created_at.desc()).first()
+    existing = FollowUpRequest.query.filter(FollowUpRequest.source_visit_id == visit.id, FollowUpRequest.tenant_id == tid).order_by(FollowUpRequest.created_at.desc()).first()
     if existing and existing.status in {'PENDING'}:
         existing.status = 'CANCELLED'
         existing.updated_at = datetime.now(timezone.utc)

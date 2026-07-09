@@ -37,11 +37,11 @@ def api_what_if():
         data = request.get_json(silent=True) or {}
         add_staff = int(data.get('add_staff') or 0)
         add_rooms = int(data.get('add_rooms') or 0)
-        base_visits = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])).count()
+        base_visits = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]), Visit.tenant_id == current_user.tenant_id).count()
         capacity_gain = (add_staff * 6) + (add_rooms * 8)
         predicted_throughput = int(base_visits + capacity_gain)
         predicted_wait = max(5, int(30 - (capacity_gain / 2)))
-        predicted_revenue = float(db.session.query(func.sum(Payment.amount)).scalar() or 0) * (1 + (capacity_gain / 100))
+        predicted_revenue = float(db.session.query(func.sum(Payment.amount)).filter(Payment.tenant_id == current_user.tenant_id).scalar() or 0) * (1 + (capacity_gain / 100))
         return jsonify({
             'success': True,
             'predicted_throughput': predicted_throughput,

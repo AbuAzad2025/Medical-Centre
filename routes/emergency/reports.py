@@ -5,7 +5,7 @@ from routes.emergency import emergency_bp
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
-from utils.decorators import role_required_json
+from utils.decorators import role_required, role_required_json
 from models.patient import Patient
 from models.visit import Visit
 from models.user import User
@@ -29,11 +29,9 @@ from app.shared.print_context import generate_qr_data_uri
 
 @emergency_bp.route('/emergency-report/<int:emergency_id>')
 @login_required
+@role_required('emergency', 'manager')
 def emergency_report(emergency_id):
     """تقرير الطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         emergency = emergency_service.get_case(emergency_id)
@@ -48,11 +46,9 @@ def emergency_report(emergency_id):
 
 @emergency_bp.route('/print-emergency-report/<int:emergency_id>')
 @login_required
+@role_required('emergency', 'manager')
 def print_emergency_report(emergency_id):
     """طباعة تقرير الطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         emergency = emergency_service.get_case(emergency_id)

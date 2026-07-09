@@ -3,6 +3,7 @@ Quality & Compliance Routes — مركزية إدارة الجودة والام�
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
+from utils.decorators import role_required, role_required_json
 from app_factory import db
 from datetime import datetime, date, timedelta
 from sqlalchemy import func
@@ -11,26 +12,19 @@ from app.shared.enums import EmergencyStatus, OrderState, VisitState, VisitArchi
 
 quality_bp = Blueprint('quality', __name__)
 
-
-
-def _allowed():
-    return current_user.role in ('manager', 'admin', 'super_admin')
+QUALITY_ROLES = ('manager', 'admin', 'super_admin')
 
 
 @quality_bp.route('/dashboard')
 @login_required
+@role_required('manager', 'admin', 'super_admin')
 def dashboard():
     """لوحة تحكم الجودة والامتثال المركزية"""
-    if not _allowed():
-        flash('ليس لديك صلاحية الوصول', 'error')
-        return redirect(url_for('main.dashboard'))
-
     try:
         today = date.today()
         week_ago = today - timedelta(days=7)
         month_ago = today - timedelta(days=30)
 
-        # استيراد النماذج داخل الدالة لتجنب ImportError أثناء بدء التشغيل
         from models.audit_trail import AuditTrail
         from models.lab_request import LabRequest
         from models.radiology_request import RadiologyRequest
@@ -38,7 +32,6 @@ def dashboard():
         from models.emergency import EmergencyCase
         from models.user import User
 
-        # Audit trail stats
         total_audits = AuditTrail.query.count()
         audits_today = AuditTrail.query.filter(
             func.date(AuditTrail.created_at) == today
@@ -50,7 +43,6 @@ def dashboard():
             AuditTrail.action.in_(['login_failed', 'unauthorized_access', 'permission_denied'])
         ).count()
 
-        # Departmental quality metrics (using available stats)
         lab_requests_today = LabRequest.query.filter(
             func.date(LabRequest.created_at) == today
         ).count()
@@ -87,7 +79,6 @@ def dashboard():
         ).count()
         emergency_quality = round((emergency_completed_today / max(emergency_today, 1)) * 100, 1)
 
-        # Recent audit entries
         recent_audits = AuditTrail.query.order_by(
             AuditTrail.created_at.desc()
         ).limit(10).all()
@@ -114,12 +105,9 @@ def dashboard():
 
 @quality_bp.route('/audits')
 @login_required
+@role_required('manager', 'admin', 'super_admin')
 def audits():
     """سجل التدقيق المركزي"""
-    if not _allowed():
-        flash('ليس لديك صلاحية الوصول', 'error')
-        return redirect(url_for('main.dashboard'))
-
     try:
         from models.audit_trail import AuditTrail
         page = request.args.get('page', 1, type=int)
@@ -143,15 +131,11 @@ def audits():
 
 @quality_bp.route('/incidents')
 @login_required
+@role_required('manager', 'admin', 'super_admin')
 def incidents():
     """إدارة الحوادث والأحداث السلبية (incidents placeholder)"""
-    if not _allowed():
-        flash('ليس لديك صلاحية الوصول', 'error')
-        return redirect(url_for('main.dashboard'))
-
     try:
         from models.audit_trail import AuditTrail
-        # نستخدم سجل التدقيق كمصدر مؤقت للأحداث الأمنية
         page = request.args.get('page', 1, type=int)
         q = AuditTrail.query.filter(
             AuditTrail.action.in_([
@@ -172,11 +156,9 @@ def incidents():
 
 @quality_bp.route('/api/quality-metrics')
 @login_required
+@role_required_json('manager', 'admin', 'super_admin')
 def api_quality_metrics():
     """API لبيانات الجودة (للاستخدام في Charts)"""
-    if not _allowed():
-        return jsonify({'error': 'Unauthorized'}), 403
-
     try:
         from models.lab_request import LabRequest
         from models.radiology_request import RadiologyRequest

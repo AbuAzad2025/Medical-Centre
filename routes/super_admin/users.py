@@ -230,6 +230,7 @@ def edit_user(user_id):
                              extra_department_ids=extra_department_ids)
         
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Edit user error: {str(e)}")
         flash('تعذر تحديث المستخدم، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.users'))
@@ -317,6 +318,7 @@ def ban_user(user_id):
         return redirect(url_for('super_admin.users'))
         
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Ban user error: {str(e)}")
         flash('حدث خطأ في حظر المستخدم', 'error')
         return redirect(url_for('super_admin.users'))
@@ -341,6 +343,7 @@ def unban_user(user_id):
         return redirect(url_for('super_admin.users'))
         
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Unban user error: {str(e)}")
         flash('حدث خطأ في إلغاء حظر المستخدم', 'error')
         return redirect(url_for('super_admin.users'))
@@ -377,6 +380,7 @@ def force_logout_user(user_id):
         return redirect(url_for('super_admin.users'))
         
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Force logout error: {str(e)}")
         flash('حدث خطأ في إجبار تسجيل الخروج', 'error')
         return redirect(url_for('super_admin.users'))

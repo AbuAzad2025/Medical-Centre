@@ -5,7 +5,7 @@ from routes.emergency import emergency_bp, _set_emergency_status
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
-from utils.decorators import role_required_json
+from utils.decorators import role_required, role_required_json
 from models.patient import Patient
 from models.visit import Visit
 from models.user import User
@@ -29,11 +29,9 @@ from datetime import datetime, date, timedelta, timezone
 
 @emergency_bp.route('/treatment/<int:emergency_id>', methods=['GET', 'POST'])
 @login_required
+@role_required('emergency', 'manager')
 def treatment(emergency_id):
     """علاج الطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         emergency = emergency_service.get_case(emergency_id)
@@ -73,11 +71,9 @@ def treatment(emergency_id):
 
 @emergency_bp.route('/end-treatment/<int:emergency_id>', methods=['POST'])
 @login_required
+@role_required('emergency', 'manager')
 def end_treatment(emergency_id):
     """إنهاء العلاج في الطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         emergency = emergency_service.get_case(emergency_id)
@@ -115,11 +111,9 @@ def end_treatment(emergency_id):
 
 @emergency_bp.route('/start-treatment/<int:emergency_id>', methods=['POST'])
 @login_required
+@role_required('emergency', 'manager')
 def start_treatment(emergency_id):
     """بدء علاج حالة الطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         emergency = emergency_service.get_case(emergency_id)
@@ -143,10 +137,8 @@ def start_treatment(emergency_id):
 
 @emergency_bp.route('/emergency-visits')
 @login_required
+@role_required('emergency', 'manager')
 def emergency_visits():
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     try:
         visits = Visit.query.filter(Visit.visit_type == 'EMERGENCY').order_by(desc(Visit.created_at)).all()
         return render_template('emergency/emergency_visits.html', visits=visits)
@@ -157,10 +149,8 @@ def emergency_visits():
 
 @emergency_bp.route('/emergency-treatment/<int:visit_id>', methods=['GET', 'POST'])
 @login_required
+@role_required('emergency', 'doctor', 'manager')
 def emergency_treatment(visit_id):
-    if current_user.role not in ['emergency', 'doctor', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     try:
         visit = Visit.query.filter_by(id=visit_id).first()
         if not visit:
@@ -204,9 +194,8 @@ def emergency_treatment(visit_id):
 
 @emergency_bp.route('/emergency-visits/<int:visit_id>/complete', methods=['POST'])
 @login_required
+@role_required_json('emergency', 'manager')
 def complete_visit(visit_id):
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     try:
         visit = Visit.query.filter_by(id=visit_id).first()
         if not visit:

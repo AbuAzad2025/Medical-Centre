@@ -240,18 +240,11 @@ class LoginAttempt(TenantMixin, db.Model):
         """تحويل إلى قاموس"""
         return {
             'id': self.id,
-            'event_type': self.event_type,
-            'description': self.description,
-            'severity': self.severity,
+            'username': self.username,
             'user_id': self.user_id,
+            'success': self.success,
             'user_name': self.user.full_name if self.user else None,
             'user_ip': self.user_ip,
             'user_agent': self.user_agent,
-            'additional_data': self.additional_data,
-            'is_resolved': self.is_resolved,
-            'resolved_by': self.resolved_by,
-            'resolver_name': self.resolver.full_name if self.resolver else None,
-            'resolved_at': self.resolved_at.isoformat() if self.resolved_at else None,
-            'resolution_notes': self.resolution_notes,
             'created_at': self.created_at.isoformat()
         }

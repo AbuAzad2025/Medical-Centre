@@ -34,7 +34,7 @@ def prescriptions():
         from models.medication import Prescription
         
         # جلب جميع الروشتات
-        prescriptions = Prescription.query.order_by(Prescription.created_at.desc()).all()
+        prescriptions = Prescription.query.filter(Prescription.tenant_id == current_user.tenant_id).order_by(Prescription.created_at.desc()).all()
         
         return render_template('medication/prescriptions.html', prescriptions=prescriptions)
     
@@ -51,7 +51,7 @@ def api_prescriptions():
         visit_id = request.args.get('visit_id', type=int)
         patient_id = request.args.get('patient_id', type=int)
         status = request.args.get('status', type=str)
-        q = Prescription.query
+        q = Prescription.query.filter(Prescription.tenant_id == current_user.tenant_id)
         if visit_id:
             q = q.filter(Prescription.visit_id == visit_id)
         if patient_id:

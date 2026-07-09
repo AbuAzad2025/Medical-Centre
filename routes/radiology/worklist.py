@@ -30,7 +30,7 @@ from werkzeug.utils import secure_filename
 def _parse_radiology_payload():
     """استخراج البيانات من الطلب (JSON أو form)"""
     if request.is_json:
-        payload = request.get_json() or {}
+        payload = request.get_json(silent=True) or {}
     else:
         payload = dict(request.form) if request.form else {}
     is_critical_raw = payload.get('is_critical')

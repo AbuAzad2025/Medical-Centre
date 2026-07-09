@@ -43,6 +43,7 @@ def financial_report():
         
         # جلب البيانات المالية
         payments = Payment.query.filter(
+            Payment.tenant_id == current_user.tenant_id,
             func.date(Payment.created_at) >= start_date,
             func.date(Payment.created_at) <= end_date
         ).all()
@@ -71,22 +72,22 @@ def financial_report():
 
 @accountant_bp.route('/daily-summary')
 @login_required
+@role_required('accountant', 'admin', 'manager')
 def daily_summary():
     """الملخص اليومي"""
-    if current_user.role not in ['accountant', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         today = date.today()
         
         # المدفوعات اليوم
         today_payments = Payment.query.filter(
+            Payment.tenant_id == current_user.tenant_id,
             func.date(Payment.created_at) == today
         ).all()
         
         # الزيارات المكتملة اليوم
         completed_visits = Visit.query.filter(
+            Visit.tenant_id == current_user.tenant_id,
             Visit.archive_status == VisitArchiveStatus.ARCHIVED,
             Visit.completed_at >= datetime.combine(today, datetime.min.time()),
             Visit.completed_at <= datetime.combine(today, datetime.max.time())
@@ -94,6 +95,7 @@ def daily_summary():
         
         # الفواتير الجديدة
         new_invoices = Invoice.query.filter(
+            Invoice.tenant_id == current_user.tenant_id,
             Invoice.created_at >= datetime.combine(today, datetime.min.time()),
             Invoice.created_at <= datetime.combine(today, datetime.max.time())
         ).all()
@@ -118,10 +120,8 @@ def daily_summary():
 
 @accountant_bp.route('/reports')
 @login_required
+@role_required('accountant', 'admin', 'manager')
 def reports():
     """التقارير المالية"""
-    if current_user.role not in ['accountant', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     return redirect(url_for('payment.payment_reports'))

@@ -37,15 +37,26 @@ def get_accounting_smart_analytics():
         month_ago = today - timedelta(days=30)
 
         # تحليل المدفوعات
-        total_payments = Payment.query.count()
+        total_payments = Payment.query.filter(
+            Payment.tenant_id == current_user.tenant_id
+        ).count()
         today_payments = Payment.query.filter(
+            Payment.tenant_id == current_user.tenant_id,
             func.date(Payment.created_at) == today
         ).count()
         
         # تحليل الفواتير
-        total_invoices = Invoice.query.count()
-        open_invoices = Invoice.query.filter(Invoice.status == InvoiceStatus.ISSUED).count()
-        paid_invoices = Invoice.query.filter(Invoice.status == InvoiceStatus.PAID).count()
+        total_invoices = Invoice.query.filter(
+            Invoice.tenant_id == current_user.tenant_id
+        ).count()
+        open_invoices = Invoice.query.filter(
+            Invoice.tenant_id == current_user.tenant_id,
+            Invoice.status == InvoiceStatus.ISSUED
+        ).count()
+        paid_invoices = Invoice.query.filter(
+            Invoice.tenant_id == current_user.tenant_id,
+            Invoice.status == InvoiceStatus.PAID
+        ).count()
         
         # معدل التحصيل
         collection_rate = (paid_invoices / total_invoices * 100) if total_invoices > 0 else 0
@@ -55,14 +66,18 @@ def get_accounting_smart_analytics():
             Payment.method,
             func.count(Payment.id).label('count'),
             func.sum(Payment.amount).label('total')
+        ).filter(
+            Payment.tenant_id == current_user.tenant_id
         ).group_by(Payment.method).all()
         
         # تحليل الاتجاهات
         weekly_trend = Payment.query.filter(
+            Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(week_ago, datetime.min.time())
         ).count()
         
         monthly_trend = Payment.query.filter(
+            Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(month_ago, datetime.min.time())
         ).count()
 
@@ -96,6 +111,7 @@ def get_financial_forecasting():
             
             monthly_revenue = db.session.query(func.sum(Payment.amount)).filter(
                 and_(
+                    Payment.tenant_id == current_user.tenant_id,
                     Payment.created_at >= month_start,
                     Payment.created_at < month_end
                 )
@@ -141,21 +157,25 @@ def get_cash_flow_analysis():
             func.date(Payment.created_at).label('date'),
             func.sum(Payment.amount).label('amount')
         ).filter(
+            Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(week_ago, datetime.min.time())
         ).group_by(func.date(Payment.created_at)).all()
 
         # تحليل التدفق الأسبوعي
         weekly_inflow = db.session.query(func.sum(Payment.amount)).filter(
+            Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(week_ago, datetime.min.time())
         ).scalar() or 0
 
         # تحليل التدفق الشهري
         monthly_inflow = db.session.query(func.sum(Payment.amount)).filter(
+            Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(month_ago, datetime.min.time())
         ).scalar() or 0
 
         # تحليل المبالغ المستحقة
         pending_amount = db.session.query(func.sum(Invoice.total_amount - Invoice.paid_amount)).filter(
+            Invoice.tenant_id == current_user.tenant_id,
             Invoice.status == InvoiceStatus.ISSUED
         ).scalar() or 0
 
@@ -182,6 +202,8 @@ def get_payment_optimization():
             func.count(Payment.id).label('count'),
             func.avg(Payment.amount).label('avg_amount'),
             func.sum(Payment.amount).label('total_amount')
+        ).filter(
+            Payment.tenant_id == current_user.tenant_id
         ).group_by(Payment.method).all()
 
         # تحليل أوقات الدفع (متوافق مع أكثر من محرك قاعدة بيانات)
@@ -189,16 +211,21 @@ def get_payment_optimization():
             payment_times = db.session.query(
                 func.extract('hour', Payment.created_at).label('hour'),
                 func.count(Payment.id).label('count')
+            ).filter(
+                Payment.tenant_id == current_user.tenant_id
             ).group_by(func.extract('hour', Payment.created_at)).all()
         except Exception:
             payment_times = db.session.query(
                 func.extract('hour', Payment.created_at).label('hour'),
                 func.count(Payment.id).label('count')
+            ).filter(
+                Payment.tenant_id == current_user.tenant_id
             ).group_by(func.extract('hour', Payment.created_at)).all()
 
         # تحليل المدفوعات المتأخرة
         late_payments = Invoice.query.filter(
             and_(
+                Invoice.tenant_id == current_user.tenant_id,
                 Invoice.status == InvoiceStatus.ISSUED,
                 Invoice.created_at < datetime.now() - timedelta(days=30)
             )
@@ -232,9 +259,16 @@ def get_financial_health_monitoring():
         from sqlalchemy import func, and_
 
         # مؤشرات الصحة المالية
-        total_revenue = db.session.query(func.sum(Payment.amount)).scalar() or 0
-        total_invoices = Invoice.query.count()
-        paid_invoices = Invoice.query.filter(Invoice.status == InvoiceStatus.PAID).count()
+        total_revenue = db.session.query(func.sum(Payment.amount)).filter(
+            Payment.tenant_id == current_user.tenant_id
+        ).scalar() or 0
+        total_invoices = Invoice.query.filter(
+            Invoice.tenant_id == current_user.tenant_id
+        ).count()
+        paid_invoices = Invoice.query.filter(
+            Invoice.tenant_id == current_user.tenant_id,
+            Invoice.status == InvoiceStatus.PAID
+        ).count()
         
         # معدل التحصيل
         collection_rate = (paid_invoices / total_invoices * 100) if total_invoices > 0 else 0
@@ -242,7 +276,10 @@ def get_financial_health_monitoring():
         # المبالغ المستحقة
         outstanding_amount = db.session.query(
             func.sum(Invoice.total_amount - Invoice.paid_amount)
-        ).filter(Invoice.status == InvoiceStatus.ISSUED).scalar() or 0
+        ).filter(
+            Invoice.tenant_id == current_user.tenant_id,
+            Invoice.status == InvoiceStatus.ISSUED
+        ).scalar() or 0
 
         # تحليل المخاطر
         risk_indicators = analyze_financial_risks(collection_rate, outstanding_amount, total_revenue)
@@ -514,14 +551,31 @@ def calculate_financial_health_score(collection_rate, outstanding_amount):
 def get_revenue_cycle_metrics():
     try:
         from models.insurance import InsuranceClaim
-        total_claims = InsuranceClaim.query.count()
-        submitted = InsuranceClaim.query.filter(InsuranceClaim.status == InsuranceClaimStatus.SUBMITTED).count()
-        approved = InsuranceClaim.query.filter(InsuranceClaim.status == InsuranceClaimStatus.APPROVED).count()
-        rejected = InsuranceClaim.query.filter(InsuranceClaim.status == InsuranceClaimStatus.REJECTED).count()
-        paid = InsuranceClaim.query.filter(InsuranceClaim.status == InsuranceClaimStatus.PAID).count()
+        total_claims = InsuranceClaim.query.filter(
+            InsuranceClaim.tenant_id == current_user.tenant_id
+        ).count()
+        submitted = InsuranceClaim.query.filter(
+            InsuranceClaim.tenant_id == current_user.tenant_id,
+            InsuranceClaim.status == InsuranceClaimStatus.SUBMITTED
+        ).count()
+        approved = InsuranceClaim.query.filter(
+            InsuranceClaim.tenant_id == current_user.tenant_id,
+            InsuranceClaim.status == InsuranceClaimStatus.APPROVED
+        ).count()
+        rejected = InsuranceClaim.query.filter(
+            InsuranceClaim.tenant_id == current_user.tenant_id,
+            InsuranceClaim.status == InsuranceClaimStatus.REJECTED
+        ).count()
+        paid = InsuranceClaim.query.filter(
+            InsuranceClaim.tenant_id == current_user.tenant_id,
+            InsuranceClaim.status == InsuranceClaimStatus.PAID
+        ).count()
         outstanding = db.session.query(
             db.func.sum(Invoice.total_amount - Invoice.paid_amount)
-        ).filter(Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])).scalar() or 0
+        ).filter(
+            Invoice.tenant_id == current_user.tenant_id,
+            Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
+        ).scalar() or 0
         return {
             'total_claims': int(total_claims or 0),
             'submitted': int(submitted or 0),
@@ -535,7 +589,9 @@ def get_revenue_cycle_metrics():
 
 def get_erp_integration_status():
     try:
-        last_sync = Payment.query.order_by(Payment.created_at.desc()).first()
+        last_sync = Payment.query.filter(
+            Payment.tenant_id == current_user.tenant_id
+        ).order_by(Payment.created_at.desc()).first()
         return {
             'status': 'active' if last_sync else 'idle',
             'last_sync': last_sync.created_at.isoformat() if last_sync and last_sync.created_at else None
@@ -545,10 +601,18 @@ def get_erp_integration_status():
 
 def get_margin_analytics():
     try:
-        total_revenue = db.session.query(db.func.sum(Payment.amount)).scalar() or 0
-        issued_invoices = Invoice.query.filter(Invoice.status.in_([InvoiceStatus.ISSUED, InvoiceStatus.PAID])).count()
+        total_revenue = db.session.query(db.func.sum(Payment.amount)).filter(
+            Payment.tenant_id == current_user.tenant_id
+        ).scalar() or 0
+        issued_invoices = Invoice.query.filter(
+            Invoice.tenant_id == current_user.tenant_id,
+            Invoice.status.in_([InvoiceStatus.ISSUED, InvoiceStatus.PAID])
+        ).count()
         collection_rate = 0
-        total_invoiced = db.session.query(db.func.sum(Invoice.total_amount)).filter(Invoice.status.in_([InvoiceStatus.ISSUED, InvoiceStatus.PAID])).scalar() or 0
+        total_invoiced = db.session.query(db.func.sum(Invoice.total_amount)).filter(
+            Invoice.tenant_id == current_user.tenant_id,
+            Invoice.status.in_([InvoiceStatus.ISSUED, InvoiceStatus.PAID])
+        ).scalar() or 0
         if total_invoiced:
             collection_rate = (float(total_revenue) / float(total_invoiced)) * 100
         gross_margin = float(total_revenue) * 0.25

@@ -62,12 +62,8 @@ def dashboard():
 
 @reception_bp.route('/staff/schedule', methods=['GET', 'POST'])
 @login_required
-@role_required('reception', 'super_admin', 'manager')
-
+@role_required('reception', 'manager')
 def reception_staff_schedule():
-    if current_user.role not in ['reception', 'manager', 'super_admin']:
-        flash('ليس لديك الصلاحيات للوصول', 'danger')
-        return redirect(url_for('reception.dashboard'))
     if request.method == 'POST':
         try:
             user_id = request.form.get('user_id', type=int)
@@ -102,10 +98,8 @@ def reception_staff_schedule():
 
 @reception_bp.route('/staff/absence', methods=['GET', 'POST'])
 @login_required
+@role_required('reception', 'manager')
 def reception_staff_absence():
-    if current_user.role not in ['reception', 'manager', 'super_admin']:
-        flash('ليس لديك الصلاحيات للوصول', 'danger')
-        return redirect(url_for('reception.dashboard'))
     if request.method == 'POST':
         try:
             user_id = request.form.get('user_id', type=int)

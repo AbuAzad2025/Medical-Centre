@@ -264,28 +264,14 @@ def add_patient():
 
 @reception_bp.route('/view_patient/<int:patient_id>')
 @login_required
+@role_required('reception', 'manager')
 def view_patient(patient_id):
     """عرض تفاصيل المريض - الوحدة المركزية"""
-    allowed_roles = ['reception', 'manager']
-    if current_user.role not in allowed_roles:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
     
     patient = db.session.get(Patient, patient_id)
     if not patient:
         flash('المريض غير موجود', 'error')
         return redirect(url_for('reception.queue_management'))
-    
-    # تقييد الوصول حسب الدور للمختبر والأشعة
-    try:
-        if current_user.role in ['lab', 'radiology']:
-            from services.access_control_service import AccessControlService
-            accessible_patients = AccessControlService.get_user_accessible_patients(current_user.id)
-            if not any(p.id == patient_id for p in accessible_patients):
-                flash('لا تملك صلاحية عرض هذا المريض', 'warning')
-                return redirect(url_for('main.dashboard'))
-    except Exception as e:
-        logging.warning(f"Access check failed in view_patient: {str(e)}")
     
     visits = Visit.query.filter_by(patient_id=patient_id).order_by(Visit.created_at.desc()).limit(10).all()
     appointments = Appointment.query.filter_by(patient_id=patient_id).order_by(Appointment.starts_at.desc()).limit(10).all()
@@ -501,10 +487,9 @@ def delete_patient(patient_id):
 
 @reception_bp.route('/api/smart-patient-search')
 @login_required
+@role_required_json('reception', 'manager', 'admin', 'doctor')
 def api_smart_patient_search():
     """API للبحث الذكي عن المرضى — يفوّض إلى SearchService الموحّد."""
-    if current_user.role not in ['reception', 'super_admin', 'manager', 'admin', 'doctor']:
-        return jsonify({'error': 'ليس لديك الصلاحيات'}), 403
 
     search_term = request.args.get('q', '').strip()
     try:

@@ -26,7 +26,7 @@
                                 <form method="POST" action="{{ url_for('super_admin.seed_users') }}" class="d-inline">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <input type="hidden" name="per_role" value="1">
-                                    <input type="hidden" name="default_password" value="123456">
+                                    <input type="hidden" name="default_password" value="">
                                     <button type="submit" class="btn btn-warning btn-lg">
                                         <i class="fas fa-user-shield me-2"></i>
                                         إنشاء حسابات افتراضية

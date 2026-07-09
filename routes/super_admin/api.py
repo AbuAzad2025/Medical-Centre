@@ -121,7 +121,7 @@ def api_ai_assistant():
         from services.smart_ai_engine import SmartAIEngine
         from services.ai_validator import AIValidator
         
-        data = request.get_json()
+        data = request.get_json(silent=True)
         user_message = data.get('message', '').strip()
         
         # إنشاء محرك الذكاء الاصطناعي

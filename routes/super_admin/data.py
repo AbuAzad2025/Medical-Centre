@@ -26,7 +26,7 @@ def branch_templates():
     try:
         from models.system_config import SystemConfig
         if request.method == 'POST':
-            data = request.get_json() or {}
+            data = request.get_json(silent=True) or {}
             items = data.get('items') or []
             cfg = SystemConfig.query.filter_by(config_key='branch_templates').first()
             if not cfg:
@@ -39,6 +39,7 @@ def branch_templates():
         items = cfg.get_value() if cfg else []
         return render_template('super_admin/branch_templates.html', items=items if isinstance(items, list) else [])
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Branch templates error: {str(e)}")
         return render_template('super_admin/branch_templates.html', items=[])
 

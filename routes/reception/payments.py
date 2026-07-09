@@ -37,14 +37,13 @@ from utils.tenant_query import get_tenant_record, TenantContextError
 
 @reception_bp.route('/pos/charge', methods=['POST'])
 @login_required
+@role_required_json('reception', 'accountant', 'manager')
 def pos_charge():
-    if current_user.role not in ['reception', 'accountant', 'super_admin', 'manager']:
-        return jsonify({'success': False, 'message': user_message('pos_unauthorized')}), 403
     if 'billing' not in getattr(g, 'enabled_modules', set()):
         return jsonify({'success': False, 'message': 'وحدة الفوترة غير مفعلة في باقتك الحالية'}), 403
     amount_raw = None
     if request.is_json:
-        amount_raw = (request.json or {}).get('amount')
+        amount_raw = (request.get_json(silent=True) or {}).get('amount')
     else:
         amount_raw = request.form.get('amount')
     result, status = execute_pos_charge(amount_raw)
@@ -52,11 +51,8 @@ def pos_charge():
 
 @reception_bp.route('/visits/<int:visit_id>/send-to-accounting', methods=['POST'])
 @login_required
-
+@role_required('reception', 'manager')
 def process_payment(visit_id):
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
     if 'billing' not in getattr(g, 'enabled_modules', set()):
         flash('وحدة الفوترة غير مفعلة في باقتك الحالية', 'error')
         return redirect(url_for('main.dashboard'))
@@ -120,11 +116,9 @@ def process_payment(visit_id):
 
 @reception_bp.route('/print_receipt/<int:visit_id>')
 @login_required
+@role_required('reception', 'manager')
 def print_receipt(visit_id):
     """طباعة سند القبض - الوحدة المركزية"""
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
     if 'billing' not in getattr(g, 'enabled_modules', set()):
         flash('وحدة الفوترة غير مفعلة في باقتك الحالية', 'error')
         return redirect(url_for('main.dashboard'))
@@ -208,11 +202,9 @@ def print_receipt(visit_id):
 
 @reception_bp.route('/print_invoice/<int:invoice_id>')
 @login_required
+@role_required('reception', 'manager', 'accountant')
 def print_invoice(invoice_id):
     """طباعة الفاتورة"""
-    if current_user.role not in ['reception', 'super_admin', 'manager', 'accountant']:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
     if 'billing' not in getattr(g, 'enabled_modules', set()):
         flash('وحدة الفوترة غير مفعلة في باقتك الحالية', 'error')
         return redirect(url_for('main.dashboard'))
@@ -227,11 +219,9 @@ def print_invoice(invoice_id):
 
 @reception_bp.route('/print_prescription/<int:prescription_id>')
 @login_required
+@role_required('doctor', 'manager')
 def print_prescription(prescription_id):
     """طباعة الروشتة الطبية"""
-    if current_user.role not in ['doctor', 'super_admin', 'manager']:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
     
     from models.medical_record import Prescription
     prescription = db.session.get(Prescription, prescription_id)
@@ -294,6 +284,7 @@ def cash_register():
     today = db.func.current_date()
     # Calculate expected from payments
     payments = Payment.query.filter(
+        Payment.tenant_id == current_user.tenant_id,
         db.func.date(Payment.created_at) == today,
         Payment.status.in_([PaymentStatus.CONFIRMED, PaymentStatus.PAID])
     ).all()
@@ -319,15 +310,21 @@ def daily_close():
     from models.cash_register import CashRegister
     reg = CashRegister.get_or_create_today(current_user.id)
     if request.method == 'POST':
-        reg.actual_cash = float(request.form.get('actual_cash', 0))
-        reg.actual_card = float(request.form.get('actual_card', 0))
-        reg.actual_insurance = float(request.form.get('actual_insurance', 0))
-        reg.actual_total = (reg.actual_cash or 0) + (reg.actual_card or 0) + (reg.actual_insurance or 0)
-        reg.variance = (reg.actual_total or 0) - (float(reg.expected_total or 0))
-        reg.is_closed = True
-        reg.is_open = False
-        reg.closed_at = datetime.now(timezone.utc)
-        db.session.commit()
-        flash('تم إغلاق اليومية بنجاح', 'success')
-        return redirect(url_for('reception.cash_register'))
+        try:
+            reg.actual_cash = float(request.form.get('actual_cash', 0))
+            reg.actual_card = float(request.form.get('actual_card', 0))
+            reg.actual_insurance = float(request.form.get('actual_insurance', 0))
+            reg.actual_total = (reg.actual_cash or 0) + (reg.actual_card or 0) + (reg.actual_insurance or 0)
+            reg.variance = (reg.actual_total or 0) - (float(reg.expected_total or 0))
+            reg.is_closed = True
+            reg.is_open = False
+            reg.closed_at = datetime.now(timezone.utc)
+            db.session.commit()
+            flash('تم إغلاق اليومية بنجاح', 'success')
+            return redirect(url_for('reception.cash_register'))
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error in daily close: {str(e)}")
+            flash('حدث خطأ أثناء إغلاق اليومية', 'error')
+            return redirect(url_for('reception.cash_register'))
     return render_template('reception/daily_close.html', register=reg)

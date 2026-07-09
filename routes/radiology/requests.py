@@ -77,11 +77,9 @@ def add_scan_post():
 
 @radiology_bp.route('/results')
 @login_required
+@role_required('radiology', 'manager')
 def results():
     """نتائج الأشعة"""
-    if current_user.role not in ['radiology', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         from models.radiology_request import RadiologyRequest

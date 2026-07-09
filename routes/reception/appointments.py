@@ -249,12 +249,8 @@ def checkin_appointment(appointment_id: int):
 @reception_bp.route('/appointments')
 @login_required
 @role_required('reception', 'manager')
-
 def appointments():
     """قائمة المواعيد - الوحدة المركزية"""
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
     
     # البحث والفلترة
     search = request.args.get('search', '')
@@ -456,11 +452,9 @@ def no_show_appointment(appointment_id: int):
 
 @reception_bp.route('/create_appointment', methods=['GET', 'POST'])
 @login_required
+@role_required('reception', 'manager')
 def create_appointment():
     """إنشاء موعد جديد - الوحدة المركزية"""
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
     
     if request.method == 'POST':
         try:
@@ -560,12 +554,9 @@ def create_appointment():
 
 @reception_bp.route('/view_appointment/<int:appointment_id>')
 @login_required
-@role_required('reception', 'super_admin', 'manager')
+@role_required('reception', 'manager')
 def view_appointment(appointment_id):
     """عرض تفاصيل الموعد - الوحدة المركزية"""
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
     
     appointment = db.session.get(Appointment, appointment_id)
     if not appointment:
@@ -590,11 +581,9 @@ def view_appointment(appointment_id):
 
 @reception_bp.route('/edit_appointment/<int:appointment_id>', methods=['GET', 'POST'])
 @login_required
+@role_required('reception', 'manager')
 def edit_appointment(appointment_id):
     """تعديل الموعد - الوحدة المركزية"""
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
     
     try:
         appointment = get_tenant_record(Appointment, appointment_id)
@@ -704,11 +693,9 @@ def edit_appointment(appointment_id):
 
 @reception_bp.route('/api/available-times')
 @login_required
-
+@role_required_json('reception', 'manager')
 def api_available_times():
     """API لجلب الأوقات المتاحة"""
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
 
     doctor_id = request.args.get('doctor_id', type=int)
     date_str = request.args.get('date')

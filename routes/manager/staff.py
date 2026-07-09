@@ -65,7 +65,7 @@ def unit_control():
                 continue
             is_active = key in active_modules
             role = _MODULE_ROLE_MAP.get(key)
-            user_count = User.query.filter_by(role=role).count() if role else 0
+            user_count = User.query.filter(User.tenant_id == tenant_id, User.role == role).count() if role else 0
             units.append({
                 'module_name': key,
                 'name': meta.name_ar,
@@ -156,13 +156,15 @@ def unit_toggle():
 
 @manager_bp.route('/user-management')
 @login_required
+@role_required('manager', 'admin')
 def user_management():
     """إدارة المستخدمين"""
-    if current_user.role not in ['manager', 'admin']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
+    
     try:
-        users = User.query.filter(User.role != 'super_admin').all()
+        users = User.query.filter(
+            User.tenant_id == current_user.tenant_id,
+            User.role != 'super_admin'
+        ).all()
         return render_template('manager/user_management.html', users=users)
     except Exception as e:
         logging.error(f"Error in user management: {str(e)}")
@@ -171,10 +173,9 @@ def user_management():
 
 @manager_bp.route('/staff/schedule', methods=['GET', 'POST'])
 @login_required
+@role_required('manager', 'admin', 'super_admin')
 def staff_schedule():
-    if current_user.role not in ['manager', 'admin', 'super_admin']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('manager.dashboard'))
+    
     if request.method == 'POST':
         try:
             user_id = request.form.get('user_id', type=int)
@@ -203,19 +204,22 @@ def staff_schedule():
             db.session.rollback()
             logging.error(str(e))
             flash('حدث خطأ في حفظ الجدول', 'error')
-    users = User.query.filter(User.role.in_(['doctor','lab','radiology']), User.is_active == True).all()
+    users = User.query.filter(
+        User.tenant_id == current_user.tenant_id,
+        User.role.in_(['doctor','lab','radiology']),
+        User.is_active == True
+    ).all()
     user_id = request.args.get('user_id', type=int)
     schedules = []
     if user_id:
-        schedules = StaffWorkSchedule.query.filter_by(user_id=user_id).order_by(StaffWorkSchedule.day_of_week.asc()).all()
+        schedules = StaffWorkSchedule.query.filter_by(user_id=user_id).filter(StaffWorkSchedule.tenant_id == current_user.tenant_id).order_by(StaffWorkSchedule.day_of_week.asc()).all()
     return render_template('manager/staff_schedule.html', users=users, schedules=schedules, selected_user_id=user_id)
 
 @manager_bp.route('/staff/absence', methods=['GET', 'POST'])
 @login_required
+@role_required('manager', 'admin', 'super_admin')
 def staff_absence():
-    if current_user.role not in ['manager', 'admin', 'super_admin']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('manager.dashboard'))
+    
     if request.method == 'POST':
         try:
             user_id = request.form.get('user_id', type=int)
@@ -237,21 +241,22 @@ def staff_absence():
             db.session.rollback()
             logging.error(str(e))
             flash('حدث خطأ في إضافة الغياب', 'error')
-    users = User.query.filter(User.role.in_(['doctor','lab','radiology']), User.is_active == True).all()
+    users = User.query.filter(
+        User.tenant_id == current_user.tenant_id,
+        User.role.in_(['doctor','lab','radiology']),
+        User.is_active == True
+    ).all()
     user_id = request.args.get('user_id', type=int)
     absences = []
     if user_id:
-        absences = StaffAbsence.query.filter_by(user_id=user_id).order_by(StaffAbsence.start_date.desc()).all()
+        absences = StaffAbsence.query.filter_by(user_id=user_id).filter(StaffAbsence.tenant_id == current_user.tenant_id).order_by(StaffAbsence.start_date.desc()).all()
     return render_template('manager/staff_absence.html', users=users, absences=absences, selected_user_id=user_id)
 
 
 @manager_bp.route('/staff/capacity')
 @login_required
+@role_required('manager', 'admin', 'super_admin')
 def staff_capacity():
-    if current_user.role not in ['manager', 'admin', 'super_admin']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('manager.dashboard'))
-
     try:
         start_raw = (request.args.get('start_date') or '').strip()
         end_raw = (request.args.get('end_date') or '').strip()
@@ -279,15 +284,19 @@ def staff_capacity():
         if end_date < start_date:
             end_date = start_date
 
-        departments = Department.query.filter_by(is_active=True).order_by(Department.name_ar.asc()).all()
+        departments = Department.query.filter_by(is_active=True).filter(Department.tenant_id == current_user.tenant_id).order_by(Department.name_ar.asc()).all()
         dept_ids = [department_id] if department_id else [d.id for d in departments]
 
-        doctors_q = User.query.filter(User.role == 'doctor', User.is_active == True)
+        doctors_q = User.query.filter(
+            User.tenant_id == current_user.tenant_id,
+            User.role == 'doctor',
+            User.is_active == True
+        )
         if dept_ids:
             doctors_q = doctors_q.filter(User.department_id.in_(dept_ids))
         doctors = doctors_q.all()
 
-        schedules = StaffWorkSchedule.query.filter(StaffWorkSchedule.user_id.in_([u.id for u in doctors])).all() if doctors else []
+        schedules = StaffWorkSchedule.query.filter(StaffWorkSchedule.user_id.in_([u.id for u in doctors]), StaffWorkSchedule.tenant_id == current_user.tenant_id).all() if doctors else []
         sched_map = {}
         for s in schedules:
             sched_map.setdefault(s.user_id, {})[int(s.day_of_week)] = s
@@ -295,7 +304,8 @@ def staff_capacity():
         abs_q = StaffAbsence.query.filter(
             StaffAbsence.user_id.in_([u.id for u in doctors]) if doctors else False,
             StaffAbsence.start_date <= end_date,
-            StaffAbsence.end_date >= start_date
+            StaffAbsence.end_date >= start_date,
+            StaffAbsence.tenant_id == current_user.tenant_id
         )
         absences = abs_q.all() if doctors else []
         abs_map = {}
@@ -362,13 +372,15 @@ def staff_capacity():
 
 @manager_bp.route('/staff')
 @login_required
+@role_required('manager', 'admin')
 def staff():
     """إدارة الموظفين"""
-    if current_user.role not in ['manager', 'admin']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
+    
     try:
-        users = User.query.filter(User.role != 'super_admin').all()
+        users = User.query.filter(
+            User.tenant_id == current_user.tenant_id,
+            User.role != 'super_admin'
+        ).all()
         return render_template('manager/user_management.html', users=users)
     except Exception as e:
         logging.error(f"Error in staff management: {str(e)}")

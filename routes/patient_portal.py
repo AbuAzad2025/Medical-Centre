@@ -308,8 +308,12 @@ def download_document(file_id):
         abort(403)
     if not upload.file_path or not os.path.isfile(upload.file_path):
         abort(404)
-    upload.last_accessed = datetime.now(timezone.utc)
-    db.session.commit()
+    try:
+        upload.last_accessed = datetime.now(timezone.utc)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error updating file access time: {e}")
     return send_file(
         upload.file_path,
         as_attachment=True,
@@ -353,14 +357,19 @@ def feedback():
         comments = request.form.get('comments')
         visit_id = request.form.get('visit_id', type=int)
         if rating:
-            survey = PatientSatisfactionSurvey(
-                patient_id=patient.id,
-                visit_id=visit_id,
-                overall_rating=rating,
-                comments=comments
-            )
-            db.session.add(survey)
-            db.session.commit()
-            flash('شكراً لتقييمك', 'success')
-            return redirect(url_for('portal.dashboard'))
+            try:
+                survey = PatientSatisfactionSurvey(
+                    patient_id=patient.id,
+                    visit_id=visit_id,
+                    overall_rating=rating,
+                    comments=comments
+                )
+                db.session.add(survey)
+                db.session.commit()
+                flash('شكراً لتقييمك', 'success')
+                return redirect(url_for('portal.dashboard'))
+            except Exception as e:
+                db.session.rollback()
+                logging.error(f"Error saving feedback: {e}")
+                flash('حدث خطأ أثناء حفظ التقييم', 'error')
     return render_template('portal/feedback.html', patient=patient)

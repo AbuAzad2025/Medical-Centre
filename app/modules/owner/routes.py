@@ -1511,6 +1511,7 @@ def owner_bundles():
 # ─────────────────────────────────────────────
 @owner_bp.route("/api/bundles", methods=["GET"])
 @login_required
+@owner_required
 @rate_limit(max_requests=30, window_seconds=60)
 def api_list_bundles():
     """List all product bundles."""
@@ -1539,6 +1540,7 @@ def api_list_bundles():
 
 @owner_bp.route("/api/bundles/<int:bundle_id>", methods=["GET"])
 @login_required
+@owner_required
 @rate_limit(max_requests=60, window_seconds=60)
 def api_get_bundle(bundle_id):
     """Get a single bundle detail."""
@@ -1571,6 +1573,7 @@ def api_get_bundle(bundle_id):
 
 @owner_bp.route("/api/bundles", methods=["POST"])
 @login_required
+@owner_required
 @rate_limit(max_requests=20, window_seconds=60)
 def api_create_bundle():
     """Create a new product bundle."""
@@ -1607,6 +1610,7 @@ def api_create_bundle():
 
 @owner_bp.route("/api/bundles/<int:bundle_id>", methods=["PUT"])
 @login_required
+@owner_required
 @rate_limit(max_requests=20, window_seconds=60)
 def api_update_bundle(bundle_id):
     """Update a product bundle."""
@@ -1643,6 +1647,7 @@ def api_update_bundle(bundle_id):
 
 @owner_bp.route("/api/bundles/<int:bundle_id>", methods=["DELETE"])
 @login_required
+@owner_required
 @rate_limit(max_requests=10, window_seconds=60)
 def api_delete_bundle(bundle_id):
     """Delete (deactivate) a product bundle."""
@@ -1666,6 +1671,7 @@ def api_delete_bundle(bundle_id):
 # ─────────────────────────────────────────────
 @owner_bp.route("/api/tenants/provision", methods=["POST"])
 @login_required
+@owner_required
 @rate_limit(max_requests=10, window_seconds=60)
 def api_provision_tenant():
     """Create a new tenant via TenantProvisioningService (bundle_slug → PackageVersion)."""
@@ -1771,6 +1777,7 @@ def api_tenant_limits(tenant_id):
 
 @owner_bp.route("/api/tenants/<int:tenant_id>/record-usage", methods=["POST"])
 @login_required
+@owner_required
 @rate_limit(max_requests=30, window_seconds=60)
 def api_record_usage(tenant_id):
     """Manually trigger a resource usage snapshot for a tenant."""

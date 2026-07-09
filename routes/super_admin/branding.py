@@ -180,6 +180,8 @@ def apply_branding_theme(theme_id):
             },
         })
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Apply theme error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 400
 
@@ -256,6 +258,8 @@ def update_branding():
         return redirect(url_for('super_admin.branding'))
 
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Update branding error: {str(e)}")
         if _wants_json():
             return jsonify({'success': False, 'error': str(e)}), 400

@@ -5,7 +5,7 @@ from routes.emergency import emergency_bp, _set_emergency_status
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
-from utils.decorators import role_required_json
+from utils.decorators import role_required, role_required_json
 from models.patient import Patient
 from models.visit import Visit
 from models.user import User
@@ -29,11 +29,9 @@ from datetime import datetime, date, timedelta, timezone
 
 @emergency_bp.route('/patient-queue')
 @login_required
+@role_required('emergency', 'manager')
 def patient_queue():
     """طابور المرضى في الطوارئ - إدارة متقدمة"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     page = request.args.get('page', 1, type=int)
     per_page = 25
@@ -80,11 +78,9 @@ def patient_queue():
 
 @emergency_bp.route('/triage')
 @login_required
+@role_required('emergency', 'doctor', 'manager')
 def triage_list():
     """قائمة الفرز"""
-    if current_user.role not in ['emergency', 'doctor', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         return redirect(url_for('emergency.patient_queue'))
@@ -95,11 +91,9 @@ def triage_list():
 
 @emergency_bp.route('/triage/<int:emergency_id>', methods=['GET', 'POST'])
 @login_required
+@role_required('emergency', 'manager')
 def triage(emergency_id):
     """تقييم حالة المريض (Triage)"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         emergency = emergency_service.get_case(emergency_id)
@@ -176,18 +170,14 @@ def triage(emergency_id):
 
 @emergency_bp.route('/patients')
 @login_required
+@role_required('emergency', 'manager')
 def patients():
     """مرضى الطوارئ — تُحوِّل لطابور المرضى الكامل (يبني queue_stats)."""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     return redirect(url_for('emergency.patient_queue'))
 
 @emergency_bp.route('/queue')
 @login_required
+@role_required('emergency', 'manager')
 def queue():
     """طابور الطوارئ — تُحوِّل لطابور المرضى الكامل (يبني queue_stats)."""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     return redirect(url_for('emergency.patient_queue'))

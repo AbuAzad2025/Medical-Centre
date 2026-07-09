@@ -5,7 +5,7 @@ from routes.emergency import emergency_bp
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for, g
 from flask_login import login_required, current_user
-from utils.decorators import role_required_json
+from utils.decorators import role_required, role_required_json
 from models.patient import Patient
 from models.visit import Visit
 from models.user import User
@@ -29,11 +29,9 @@ from app.shared.print_context import generate_qr_data_uri
 
 @emergency_bp.route('/prescription/<int:emergency_id>', methods=['GET', 'POST'])
 @login_required
+@role_required('emergency', 'manager')
 def prescription(emergency_id):
     """وصفة طبية للطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         emergency = emergency_service.get_case(emergency_id)
@@ -77,11 +75,9 @@ def prescription(emergency_id):
 
 @emergency_bp.route('/lab-request/<int:emergency_id>', methods=['GET', 'POST'])
 @login_required
+@role_required('emergency', 'manager')
 def lab_request(emergency_id):
     """طلب فحوصات للطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     if 'lab' not in getattr(g, 'enabled_modules', set()):
         flash('وحدة المختبر غير مفعلة في باقة العيادة', 'error')
         return redirect(url_for('emergency.patient_queue'))
@@ -120,11 +116,9 @@ def lab_request(emergency_id):
 
 @emergency_bp.route('/radiology-request/<int:emergency_id>', methods=['GET', 'POST'])
 @login_required
+@role_required('emergency', 'manager')
 def radiology_request(emergency_id):
     """طلب أشعة للطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     if 'radiology' not in getattr(g, 'enabled_modules', set()):
         flash('وحدة الأشعة غير مفعلة في باقة العيادة', 'error')
         return redirect(url_for('emergency.patient_queue'))
@@ -167,11 +161,9 @@ def radiology_request(emergency_id):
 
 @emergency_bp.route('/print-prescription/<int:prescription_id>')
 @login_required
+@role_required('emergency', 'manager')
 def print_prescription(prescription_id):
     """طباعة الوصفة الطبية للطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         prescription = Prescription.query.filter_by(id=prescription_id).first()

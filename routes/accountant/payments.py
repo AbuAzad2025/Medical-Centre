@@ -36,6 +36,7 @@ def open_invoices():
     try:
         # جلب الفواتير المفتوحة
         invoices = Invoice.query.filter(
+            Invoice.tenant_id == current_user.tenant_id,
             Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
         ).order_by(Invoice.created_at.desc()).all()
         
@@ -54,7 +55,9 @@ def payments():
     
     try:
         # جلب المدفوعات
-        payments = Payment.query.order_by(Payment.created_at.desc()).all()
+        payments = Payment.query.filter(
+            Payment.tenant_id == current_user.tenant_id
+        ).order_by(Payment.created_at.desc()).all()
         
         return render_template('accountant/payments.html', payments=payments)
     except Exception as e:

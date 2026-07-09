@@ -231,23 +231,28 @@ class WhatsAppConfig(TenantMixin, db.Model):
     @staticmethod
     def set_config(key, value, description=None, is_encrypted=False):
         """تعيين إعداد"""
-        config = WhatsAppConfig.query.filter_by(config_key=key).first()
-        if config:
-            config.config_value = value
-            config.description = description
-            config.is_encrypted = is_encrypted
-            config.updated_at = datetime.now(timezone.utc)
-        else:
-            config = WhatsAppConfig(
-                config_key=key,
-                config_value=value,
-                description=description,
-                is_encrypted=is_encrypted
-            )
-            db.session.add(config)
-        
-        db.session.commit()
-        return config
+        import logging
+        try:
+            config = WhatsAppConfig.query.filter_by(config_key=key).first()
+            if config:
+                config.config_value = value
+                config.description = description
+                config.is_encrypted = is_encrypted
+                config.updated_at = datetime.now(timezone.utc)
+            else:
+                config = WhatsAppConfig(
+                    config_key=key,
+                    config_value=value,
+                    description=description,
+                    is_encrypted=is_encrypted
+                )
+                db.session.add(config)
+            
+            db.session.commit()
+            return config
+        except Exception:
+            db.session.rollback()
+            raise
     
     def to_dict(self):
         """تحويل إلى قاموس"""

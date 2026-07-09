@@ -40,8 +40,8 @@ def pricing():
         from models.service import ServiceMaster
         from models.department import Department
         
-        services = ServiceMaster.query.order_by(ServiceMaster.updated_at.desc()).all()
-        departments = Department.query.filter_by(is_active=True).all()
+        services = ServiceMaster.query.filter(ServiceMaster.tenant_id == current_user.tenant_id).order_by(ServiceMaster.updated_at.desc()).all()
+        departments = Department.query.filter_by(is_active=True).filter(Department.tenant_id == current_user.tenant_id).all()
         
         return render_template('manager/pricing.html', services=services, departments=departments)
     except Exception as e:
@@ -58,7 +58,7 @@ def get_services_api():
     """API لجلب كافة الخدمات"""
     try:
         from models.service import ServiceMaster
-        services = ServiceMaster.query.order_by(ServiceMaster.updated_at.desc()).all()
+        services = ServiceMaster.query.filter(ServiceMaster.tenant_id == current_user.tenant_id).order_by(ServiceMaster.updated_at.desc()).all()
         return jsonify({
             'success': True,
             'data': [{
@@ -96,7 +96,7 @@ def add_service_api():
         if not data.get('name') or not data.get('code'):
             return jsonify({'success': False, 'message': 'الاسم وكود الخدمة مطلوبان'}), 400
             
-        existing = ServiceMaster.query.filter_by(code=data['code']).first()
+        existing = ServiceMaster.query.filter_by(code=data['code']).filter(ServiceMaster.tenant_id == current_user.tenant_id).first()
         if existing:
             return jsonify({'success': False, 'message': 'كود الخدمة موجود مسبقاً'}), 400
 

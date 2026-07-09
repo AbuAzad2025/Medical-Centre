@@ -1,6 +1,7 @@
 """Unified search API routes (G-84)."""
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
+from utils.decorators import role_required_json
 
 api_search_bp = Blueprint('api_search', __name__)
 
@@ -11,10 +12,8 @@ _ALLOWED_PATIENT_ROLES = frozenset({
 
 @api_search_bp.route('/patients')
 @login_required
+@role_required_json('reception', 'super_admin', 'admin', 'manager', 'doctor', 'nurse', 'emergency')
 def search_patients():
-    if getattr(current_user, 'role', None) not in _ALLOWED_PATIENT_ROLES:
-        return jsonify({'error': 'ليس لديك صلاحية البحث عن المرضى'}), 403
-
     from app.shared.search_service import SearchService
 
     q = request.args.get('q', '').strip()

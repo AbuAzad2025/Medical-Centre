@@ -1,6 +1,7 @@
 from datetime import datetime, timezone, date, time
 from app_factory import db
 from app.shared.mixins import TenantMixin
+import logging
 
 
 class CashRegister(TenantMixin, db.Model):
@@ -48,18 +49,23 @@ class CashRegister(TenantMixin, db.Model):
 
     @classmethod
     def get_or_create_today(cls, user_id=None):
-        today = date.today()
-        reg = cls.query.filter_by(register_date=today, is_closed=False).first()
-        if not reg:
-            reg = cls(
-                register_date=today,
-                receptionist_id=user_id,
-                shift_name='morning',
-                is_open=True
-            )
-            db.session.add(reg)
-            db.session.commit()
-        return reg
+        try:
+            today = date.today()
+            reg = cls.query.filter_by(register_date=today, is_closed=False).first()
+            if not reg:
+                reg = cls(
+                    register_date=today,
+                    receptionist_id=user_id,
+                    shift_name='morning',
+                    is_open=True
+                )
+                db.session.add(reg)
+                db.session.commit()
+            return reg
+        except Exception:
+            db.session.rollback()
+            logging.error("CashRegister.get_or_create_today failed")
+            raise
 
     def to_dict(self):
         return {

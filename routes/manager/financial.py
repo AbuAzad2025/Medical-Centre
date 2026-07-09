@@ -36,8 +36,15 @@ def settlements():
     """تسويات شهرية/فترية حسب القسم أو الطبيب"""
     try:
         # مصادر الفلاتر
-        doctors = User.query.filter_by(role='doctor', is_active=True).order_by(User.full_name.asc()).all()
-        departments = Department.query.filter_by(is_active=True).order_by(Department.name.asc()).all()
+        doctors = User.query.filter(
+            User.tenant_id == current_user.tenant_id,
+            User.role == 'doctor',
+            User.is_active == True
+        ).order_by(User.full_name.asc()).all()
+        departments = Department.query.filter(
+            Department.tenant_id == current_user.tenant_id,
+            Department.is_active == True
+        ).order_by(Department.name.asc()).all()
 
         mode = (request.args.get('mode') or 'doctor').lower()  # doctor | department
         doctor_id = request.args.get('doctor_id', type=int)
@@ -68,6 +75,7 @@ def settlements():
 
         # استعلام الزيارات ضمن الفترة
         q = Visit.query.filter(
+            Visit.tenant_id == current_user.tenant_id,
             Visit.visit_date >= period_start,
             Visit.visit_date <= period_end,
             Visit.status == VisitState.COMPLETED
@@ -93,7 +101,8 @@ def settlements():
                 pricing = DoctorPricing.query.filter(
                     DoctorPricing.doctor_id == v.doctor_id,
                     DoctorPricing.department_id == v.department_id,
-                    DoctorPricing.is_active == True
+                    DoctorPricing.is_active == True,
+                    DoctorPricing.tenant_id == current_user.tenant_id
                 ).order_by(DoctorPricing.effective_from.desc()).first()
             except Exception:
                 pricing = None
@@ -191,7 +200,7 @@ def settlements_export():
             next_month = (period_start.replace(day=28) + timedelta(days=4)).replace(day=1)
             period_end = next_month - timedelta(days=1)
 
-        q = Visit.query.filter(Visit.visit_date >= period_start, Visit.visit_date <= period_end, Visit.status == VisitState.COMPLETED)
+        q = Visit.query.filter(Visit.tenant_id == current_user.tenant_id, Visit.visit_date >= period_start, Visit.visit_date <= period_end, Visit.status == VisitState.COMPLETED)
         if mode == 'doctor' and doctor_id:
             q = q.filter(Visit.doctor_id == doctor_id)
         elif mode == 'department' and department_id:
@@ -251,11 +260,9 @@ def settlements_export():
 
 @manager_bp.route('/financial-reports')
 @login_required
+@role_required('manager', 'admin')
 def financial_reports():
     """التقارير المالية"""
-    if current_user.role not in ['manager', 'admin']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     return render_template('manager/reports.html')
 
@@ -270,17 +277,23 @@ def budget_dashboard():
     month = int(request.args.get('month', today.month))
 
     if request.method == 'POST':
-        dept_id = request.form.get('department_id')
-        dept_id = int(dept_id) if dept_id else None
-        b = Budget.get_or_create(year, month, dept_id, current_user.id)
-        b.revenue_target = Decimal(request.form.get('revenue_target', 0))
-        b.visits_target = int(request.form.get('visits_target', 0))
-        b.new_patients_target = int(request.form.get('new_patients_target', 0))
-        b.expenses_target = Decimal(request.form.get('expenses_target', 0))
-        b.notes = request.form.get('notes', '')
-        db.session.commit()
-        flash('تم حفظ الميزانية', 'success')
-        return redirect(url_for('manager.budget_dashboard', year=year, month=month))
+        try:
+            dept_id = request.form.get('department_id')
+            dept_id = int(dept_id) if dept_id else None
+            b = Budget.get_or_create(year, month, dept_id, current_user.id)
+            b.revenue_target = Decimal(request.form.get('revenue_target', 0))
+            b.visits_target = int(request.form.get('visits_target', 0))
+            b.new_patients_target = int(request.form.get('new_patients_target', 0))
+            b.expenses_target = Decimal(request.form.get('expenses_target', 0))
+            b.notes = request.form.get('notes', '')
+            db.session.commit()
+            flash('تم حفظ الميزانية', 'success')
+            return redirect(url_for('manager.budget_dashboard', year=year, month=month))
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error saving budget: {str(e)}")
+            flash('حدث خطأ أثناء حفظ الميزانية', 'error')
+            return redirect(url_for('manager.budget_dashboard', year=year, month=month))
 
     start = date(year, month, 1)
     if month == 12:
@@ -289,14 +302,21 @@ def budget_dashboard():
         end = date(year, month + 1, 1)
 
     actual_revenue = db.session.query(func.sum(Payment.amount)).filter(
+        Payment.tenant_id == current_user.tenant_id,
         Payment.payment_date >= start, Payment.payment_date < end,
         Payment.status.in_([PaymentStatus.CONFIRMED, PaymentStatus.PAID])
     ).scalar() or 0
 
-    actual_visits = Visit.query.filter(Visit.visit_date >= start, Visit.visit_date < end).count()
-    actual_new_patients = Patient.query.filter(Patient.created_at >= start, Patient.created_at < end).count()
+    actual_visits = Visit.query.filter(
+        Visit.tenant_id == current_user.tenant_id,
+        Visit.visit_date >= start, Visit.visit_date < end
+    ).count()
+    actual_new_patients = Patient.query.filter(
+        Patient.tenant_id == current_user.tenant_id,
+        Patient.created_at >= start, Patient.created_at < end
+    ).count()
 
-    budgets = Budget.query.filter_by(year=year, month=month).all()
+    budgets = Budget.query.filter_by(tenant_id=current_user.tenant_id, year=year, month=month).all()
     dept_budgets = {b.department_id: b for b in budgets}
 
     return render_template('manager/budget.html',
@@ -305,7 +325,7 @@ def budget_dashboard():
                            actual_visits=actual_visits,
                            actual_new_patients=actual_new_patients,
                            dept_budgets=dept_budgets,
-                           departments=Department.query.all())
+                           departments=Department.query.filter(Department.tenant_id == current_user.tenant_id).all())
 
 
 @manager_bp.route('/monthly-comparison')
@@ -328,10 +348,17 @@ def monthly_comparison():
             end = date(y, m + 1, 1)
 
         rev = db.session.query(func.sum(Payment.amount)).filter(
+            Payment.tenant_id == current_user.tenant_id,
             Payment.payment_date >= start, Payment.payment_date < end
         ).scalar() or 0
-        vis = Visit.query.filter(Visit.visit_date >= start, Visit.visit_date < end).count()
-        newp = Patient.query.filter(Patient.created_at >= start, Patient.created_at < end).count()
+        vis = Visit.query.filter(
+            Visit.tenant_id == current_user.tenant_id,
+            Visit.visit_date >= start, Visit.visit_date < end
+        ).count()
+        newp = Patient.query.filter(
+            Patient.tenant_id == current_user.tenant_id,
+            Patient.created_at >= start, Patient.created_at < end
+        ).count()
 
         months.append({'label': f"{y}-{m:02d}", 'revenue': float(rev), 'visits': vis, 'new_patients': newp})
 
@@ -417,8 +444,16 @@ def fetch_api_exchange_rates():
 def deactivate_exchange_rate(rate_id):
     """تعطيل سعر صرف"""
     from models.exchange_rate import ExchangeRate
-    rate = ExchangeRate.query.get_or_404(rate_id)
-    rate.is_active = False
-    db.session.commit()
-    flash(f'تم تعطيل سعر {rate.from_currency} → {rate.to_currency}', 'success')
+    rate = ExchangeRate.query.filter(
+        ExchangeRate.tenant_id == current_user.tenant_id,
+        ExchangeRate.id == rate_id
+    ).first_or_404()
+    try:
+        rate.is_active = False
+        db.session.commit()
+        flash(f'تم تعطيل سعر {rate.from_currency} → {rate.to_currency}', 'success')
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error deactivating exchange rate: {str(e)}")
+        flash('حدث خطأ أثناء تعطيل سعر الصرف', 'error')
     return redirect(url_for('manager.exchange_rates'))

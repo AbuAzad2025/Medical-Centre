@@ -5,7 +5,7 @@ from routes.emergency import emergency_bp, _set_emergency_status
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
-from utils.decorators import role_required_json
+from utils.decorators import role_required, role_required_json
 from models.patient import Patient
 from models.visit import Visit
 from models.user import User
@@ -29,11 +29,9 @@ from datetime import datetime, date, timedelta, timezone
 
 @emergency_bp.route('/cases')
 @login_required
+@role_required('emergency', 'manager')
 def list_emergency_cases():
     """حالات الطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         page = request.args.get('page', 1, type=int)
@@ -83,10 +81,8 @@ def list_emergency_cases():
 
 @emergency_bp.route('/cases/<int:id>')
 @login_required
+@role_required('emergency', 'manager')
 def view_emergency_case(id):
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     try:
         emergency = emergency_service.get_case(id)
         if not emergency:
@@ -121,10 +117,8 @@ def view_emergency_case(id):
 
 @emergency_bp.route('/cases/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
+@role_required('emergency', 'manager')
 def edit_emergency_case(id):
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     try:
         emergency = emergency_service.get_case(id)
         if not emergency:
@@ -201,10 +195,8 @@ def edit_emergency_case(id):
 
 @emergency_bp.route('/cases/<int:id>/resolve', methods=['POST'])
 @login_required
+@role_required('emergency', 'manager')
 def resolve_emergency_case(id):
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     try:
         emergency = emergency_service.get_case(id)
         if not emergency:
@@ -222,11 +214,10 @@ def resolve_emergency_case(id):
 
 @emergency_bp.route('/cases/create', methods=['POST'])
 @login_required
+@role_required_json('emergency', 'manager')
 def create_emergency_case():
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     try:
-        data = request.get_json() if request.is_json else request.form
+        data = request.get_json(silent=True) if request.is_json else request.form
         patient_id = data.get('patient_id')
         if not patient_id:
             return jsonify({'success': False, 'message': 'رقم المريض مطلوب'}), 400
@@ -313,9 +304,8 @@ def create_emergency_case():
 
 @emergency_bp.route('/cases/<int:id>/convert', methods=['POST'])
 @login_required
+@role_required('reception')
 def convert_emergency_case(id):
-    if current_user.role not in ['reception', 'super_admin']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     try:
         emergency = emergency_service.get_case(id)
         if not emergency:
@@ -323,7 +313,7 @@ def convert_emergency_case(id):
         visit = emergency.visit
         if not visit:
             return jsonify({'success': False, 'message': 'الزيارة غير موجودة'}), 404
-        dest = request.json.get('new_destination') if request.is_json else request.form.get('new_destination')
+        dest = (request.get_json(silent=True) or {}).get('new_destination') if request.is_json else request.form.get('new_destination')
         if not dest:
             return jsonify({'success': False, 'message': 'الوجهة مطلوبة'}), 400
         dest = str(dest).lower().strip()

@@ -26,7 +26,7 @@ from sqlalchemy import func
 @role_required('pharmacist', 'admin', 'manager')
 def api_external_drug_import():
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
         items = data.get('items') or []
         imported = 0
         updated = 0
@@ -38,7 +38,8 @@ def api_external_drug_import():
             if not trade_name:
                 continue
             med = Medication.query.filter(
-                Medication.trade_name == trade_name
+                Medication.trade_name == trade_name,
+                Medication.tenant_id == current_user.tenant_id
             ).first()
             if not med:
                 med = Medication(
@@ -97,7 +98,8 @@ def api_external_drug_search():
         meds = Medication.query.filter(
             Medication.trade_name.contains(q) |
             Medication.scientific_name.contains(q) |
-            Medication.generic_name.contains(q)
+            Medication.generic_name.contains(q),
+            Medication.tenant_id == current_user.tenant_id
         ).order_by(Medication.trade_name.asc()).limit(20).all()
         return jsonify({'success': True, 'items': [m.to_dict() for m in meds]}), 200
     except Exception as e:
@@ -137,7 +139,8 @@ def consumption_report():
         PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
     ).filter(
         PrescriptionDispenseLog.dispensed_at >= start_dt,
-        PrescriptionDispenseLog.dispensed_at <= end_dt
+        PrescriptionDispenseLog.dispensed_at <= end_dt,
+        Prescription.tenant_id == current_user.tenant_id
     )
 
     rows = []

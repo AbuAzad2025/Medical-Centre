@@ -5,7 +5,7 @@ from routes.emergency import emergency_bp
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
-from utils.decorators import role_required_json
+from utils.decorators import role_required, role_required_json
 from models.patient import Patient
 from models.visit import Visit
 from models.user import User
@@ -35,10 +35,8 @@ def index():
 
 @emergency_bp.route('/reports')
 @login_required
+@role_required('emergency', 'manager')
 def reports():
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
 
     try:
         start_raw = (request.args.get('start_date') or '').strip()
@@ -133,11 +131,9 @@ def reports():
 
 @emergency_bp.route('/dashboard')
 @login_required
+@role_required('emergency', 'manager')
 def dashboard():
     """لوحة تحكم الطوارئ الاحترافية"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
 
     try:
         # إحصائيات متقدمة للطوارئ

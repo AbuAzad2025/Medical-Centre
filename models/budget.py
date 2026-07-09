@@ -1,6 +1,8 @@
 from datetime import datetime, timezone, date
 from app_factory import db
 from app.shared.mixins import TenantMixin
+import logging
+
 
 class Budget(TenantMixin, db.Model):
     """نموذج الميزانية الشهرية - Budget vs Actual"""
@@ -41,9 +43,14 @@ class Budget(TenantMixin, db.Model):
 
     @classmethod
     def get_or_create(cls, year, month, department_id=None, user_id=None):
-        b = cls.query.filter_by(year=year, month=month, department_id=department_id).first()
-        if not b:
-            b = cls(year=year, month=month, department_id=department_id, created_by=user_id)
-            db.session.add(b)
-            db.session.commit()
-        return b
+        try:
+            b = cls.query.filter_by(year=year, month=month, department_id=department_id).first()
+            if not b:
+                b = cls(year=year, month=month, department_id=department_id, created_by=user_id)
+                db.session.add(b)
+                db.session.commit()
+            return b
+        except Exception:
+            db.session.rollback()
+            logging.error(f"Budget.get_or_create failed for year={year} month={month}")
+            raise

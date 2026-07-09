@@ -41,10 +41,9 @@ from services.pos_terminal_service import PosTerminalService
 
 @reception_bp.route('/api/doctors')
 @login_required
+@role_required_json('reception', 'manager')
 def api_doctors():
     """API لجلب الأطباء"""
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     
     department_id = request.args.get('department_id')
     appointment_type = request.args.get('appointment_type')
@@ -63,10 +62,9 @@ def api_doctors():
 
 @reception_bp.route('/api/department-staff')
 @login_required
+@role_required_json('reception', 'manager')
 def api_department_staff():
     """API لجلب موظفي القسم المناسبين"""
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        return jsonify({'error': 'ليس لديك الصلاحيات'}), 403
     
     department_id = request.args.get('department_id', type=int)
     if not department_id:
@@ -127,10 +125,8 @@ def api_department_staff():
 
 @reception_bp.route('/api/department-services')
 @login_required
-
+@role_required_json('reception', 'manager')
 def api_department_services():
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        return jsonify({'error': 'ليس لديك الصلاحيات'}), 403
     department_id = request.args.get('department_id', type=int)
     if not department_id:
         return jsonify({'error': 'القسم مطلوب'}), 400
@@ -172,11 +168,9 @@ def api_department_services():
 
 @reception_bp.route('/api/queue-department-status/<int:department_id>')
 @login_required
-
+@role_required_json('reception', 'manager', 'lab', 'radiology', 'doctor')
 def api_queue_status(department_id):
     """API لحالة الطابور"""
-    if current_user.role not in ['reception', 'super_admin', 'manager', 'lab', 'radiology', 'doctor']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
 
     try:
         from services.queue_management_service import QueueManagementService
@@ -198,9 +192,8 @@ def api_queue_status(department_id):
 
 @reception_bp.route('/api/queue-status-all')
 @login_required
+@role_required_json('reception', 'manager', 'lab', 'radiology', 'doctor')
 def api_queue_status_all():
-    if current_user.role not in ['reception', 'super_admin', 'manager', 'lab', 'radiology', 'doctor']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     try:
         from services.queue_management_service import QueueManagementService
         from models.department import Department
@@ -251,9 +244,8 @@ def api_queue_status_all():
 
 @reception_bp.route('/api/queue-wait-metrics')
 @login_required
+@role_required_json('reception', 'manager', 'lab', 'radiology', 'doctor')
 def api_queue_wait_metrics():
-    if current_user.role not in ['reception', 'super_admin', 'manager', 'lab', 'radiology', 'doctor']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     try:
         from services.queue_management_service import QueueManagementService
         from models.department import Department
@@ -458,10 +450,9 @@ def api_fhir_organization(department_id):
 
 @reception_bp.route('/api/patient-queue-position/<int:patient_id>/<int:department_id>')
 @login_required
+@role_required_json('reception')
 def api_patient_queue_position(patient_id, department_id):
     """API لموقع المريض في الطابور"""
-    if current_user.role != 'reception':
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
 
     try:
         from services.queue_management_service import QueueManagementService
@@ -480,9 +471,8 @@ def api_patient_queue_position(patient_id, department_id):
 
 @reception_bp.route('/api/queue-snapshot')
 @login_required
+@role_required_json('reception', 'manager')
 def api_queue_snapshot():
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     try:
         active_queue_items = QueueManagement.query.filter(
             QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS])
@@ -513,9 +503,8 @@ def api_queue_snapshot():
 
 @reception_bp.route('/api/display/waiting')
 @login_required
+@role_required_json('reception', 'manager')
 def api_display_waiting():
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     try:
         waiting = QueueManagement.query.filter(
             QueueManagement.status == QueueState.WAITING
@@ -554,9 +543,8 @@ def api_display_waiting():
 
 @reception_bp.route('/api/display/calls')
 @login_required
+@role_required_json('reception', 'manager')
 def api_display_calls():
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     try:
         called = QueueManagement.query.filter(
             QueueManagement.status.in_([QueueState.CALLED, QueueState.IN_PROGRESS])

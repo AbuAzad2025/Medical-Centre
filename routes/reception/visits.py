@@ -87,10 +87,9 @@ def visits():
 
 @reception_bp.route('/visits/<int:visit_id>/archive', methods=['POST'])
 @login_required
+@role_required('reception')
 def archive_visit(visit_id):
-    if current_user.role not in ['reception', 'super_admin']:
-        flash('ليس لديك الصلاحيات لأرشفة الزيارة.', 'danger')
-        return redirect(url_for('reception.visits'))
+
     try:
         visit = get_tenant_record(Visit, visit_id)
     except TenantContextError:
@@ -118,10 +117,9 @@ def archive_visit(visit_id):
 # إنهاء الزيارة (اختصار للأرشفة) مع نفس قيود الدفع
 @reception_bp.route('/visits/<int:visit_id>/end', methods=['POST'])
 @login_required
+@role_required('reception')
 def end_visit(visit_id):
-    if current_user.role not in ['reception', 'super_admin']:
-        flash('ليس لديك الصلاحيات لإنهاء الزيارة.', 'danger')
-        return redirect(url_for('reception.visits'))
+
     try:
         visit = get_tenant_record(Visit, visit_id)
     except TenantContextError:
@@ -144,10 +142,9 @@ def end_visit(visit_id):
 
 @reception_bp.route('/export/visits')
 @login_required
+@role_required('reception', 'manager', 'accountant')
 def export_visits():
-    if current_user.role not in ['reception', 'manager', 'super_admin', 'accountant']:
-        flash('ليس لديك الصلاحيات لتصدير الزيارات.', 'danger')
-        return redirect(url_for('reception.visits'))
+
     import csv
     from io import StringIO
     search = request.args.get('search', '')
@@ -196,12 +193,11 @@ def export_visits():
 
 @reception_bp.route('/visits/<int:visit_id>/transfer', methods=['POST'])
 @login_required
-
+@role_required_json('reception')
 def transfer_visit(visit_id):
-    if current_user.role not in ['reception', 'super_admin']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
-    new_department_id = request.form.get('department_id') or (request.json.get('department_id') if request.is_json else None)
-    new_doctor_id = request.form.get('doctor_id') or (request.json.get('doctor_id') if request.is_json else None)
+
+    new_department_id = request.form.get('department_id') or (request.get_json(silent=True) or {}).get('department_id')
+    new_doctor_id = request.form.get('doctor_id') or (request.get_json(silent=True) or {}).get('doctor_id')
     from services.queue_management_service import QueueManagementService
     ok, msg = QueueManagementService().transfer_visit(visit_id, new_department_id, new_doctor_id, transferred_by=current_user.id, source='reception')
     if ok:
@@ -755,13 +751,10 @@ def create_visit():
 
 @reception_bp.route('/view_visit/<int:visit_id>')
 @login_required
-@role_required('reception', 'super_admin', 'manager')
+@role_required('reception', 'manager')
 def view_visit(visit_id):
     """عرض تفاصيل الزيارة - الوحدة المركزية"""
-    if current_user.role not in ['reception', 'manager']:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
-    
+
     try:
         visit = get_tenant_record(Visit, visit_id)
     except TenantContextError:
@@ -771,11 +764,9 @@ def view_visit(visit_id):
 
 @reception_bp.route('/api/visit-pricing')
 @login_required
-
+@role_required_json('reception', 'manager')
 def api_visit_pricing():
     """API لحساب تكلفة الزيارة حسب إعدادات المدير"""
-    if current_user.role not in ['reception', 'super_admin', 'manager']:
-        return jsonify({'error': 'ليس لديك الصلاحيات'}), 403
     
     department_id = request.args.get('department_id')
     doctor_id = request.args.get('doctor_id')
@@ -1062,10 +1053,8 @@ def calculate_doctor_cost(doctor_id, department_id, visit_type, is_emergency, pa
 
 @reception_bp.route('/edit_visit/<int:visit_id>', methods=['GET', 'POST'])
 @login_required
+@role_required('reception', 'manager')
 def edit_visit(visit_id):
-    if current_user.role not in ['reception', 'manager']:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
 
     try:
         visit = get_tenant_record(Visit, visit_id)
@@ -1109,11 +1098,9 @@ def edit_visit(visit_id):
 
 @reception_bp.route('/visits/<int:visit_id>/add-service', methods=['POST'])
 @login_required
+@role_required('reception')
 def add_service_to_visit(visit_id):
     """إضافة خدمة إلى زيارة بدون إعادة فتح العلاج (Ticket 7)."""
-    if current_user.role not in ['reception', 'super_admin']:
-        flash('ليس لديك الصلاحيات لإضافة خدمة', 'danger')
-        return redirect(url_for('auth.login'))
 
     try:
         from utils.tenant_query import get_tenant_record, TenantContextError

@@ -147,7 +147,7 @@ def api_fhir_lab_observation_import():
 @role_required('lab', 'doctor', 'admin', 'manager')
 def api_hl7_import():
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
         patient_id = data.get('patient_id')
         visit_id = data.get('visit_id')
         tests = data.get('tests') or []

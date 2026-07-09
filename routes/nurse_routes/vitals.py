@@ -5,7 +5,7 @@ from routes.nurse_routes import nurse_bp, _accessible_department_ids
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
-from utils.decorators import role_required
+from utils.decorators import role_required, role_required_json
 from app.shared.enums import VisitState
 from models.patient import Patient
 from models.visit import Visit
@@ -23,11 +23,9 @@ from sqlalchemy import func, and_, or_, desc
 
 @nurse_bp.route('/vital-signs')
 @login_required
+@role_required('nurse', 'manager')
 def vital_signs():
     """العلامات الحيوية"""
-    if current_user.role not in ['nurse', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         from models.nurse import VitalSigns
@@ -69,10 +67,9 @@ def vital_signs():
 
 @nurse_bp.route('/record-vital-signs/<int:patient_id>', methods=['POST'])
 @login_required
+@role_required_json('nurse', 'manager')
 def record_vital_signs(patient_id):
     """تسجيل العلامات الحيوية"""
-    if current_user.role not in ['nurse', 'admin', 'manager']:
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     
     try:
         from models.nurse import VitalSigns

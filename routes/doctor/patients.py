@@ -42,11 +42,13 @@ def medical_history(patient_id):
         
         # جلب السجل الطبي الكامل
         medical_records = MedicalRecord.query.filter(
-            MedicalRecord.patient_id == patient_id
+            MedicalRecord.patient_id == patient_id,
+            MedicalRecord.tenant_id == g.tenant_id
         ).order_by(desc(MedicalRecord.created_at)).all()
         
         previous_visits = Visit.query.filter(
-            Visit.patient_id == patient_id
+            Visit.patient_id == patient_id,
+            Visit.tenant_id == g.tenant_id
         ).order_by(desc(Visit.visit_date)).limit(10).all()
         
         return render_template('doctor/medical_history.html',
@@ -69,7 +71,8 @@ def prescriptions_history(patient_id):
         
         # جلب الوصفات السابقة
         prescriptions = Prescription.query.filter(
-            Prescription.patient_id == patient_id
+            Prescription.patient_id == patient_id,
+            Prescription.tenant_id == g.tenant_id
         ).order_by(desc(Prescription.created_at)).all()
         
         return render_template('doctor/prescriptions_history.html',
@@ -108,7 +111,7 @@ def patients():
         q = (request.args.get('q') or '').strip()
         from sqlalchemy import or_, func
 
-        base_query = Patient.query
+        base_query = Patient.query.filter(Patient.tenant_id == g.tenant_id)
         if q:
             like = f"%{q}%"
             base_query = base_query.filter(
@@ -196,7 +199,7 @@ def medical_records():
 @role_required_json('doctor', 'admin', 'manager')
 def api_patient_search():
     q = request.args.get('q', '').strip()
-    query = Patient.query
+    query = Patient.query.filter(Patient.tenant_id == g.tenant_id)
     if q:
         query = query.filter(
             db.or_(
@@ -234,7 +237,7 @@ def dental_chart(patient_id):
     lower_left = [{'fdi': f'3{i}', 'x': i*38, 'y': 0} for i in range(8, 0, -1)]
     lower_right = [{'fdi': f'4{i}', 'x': 160 + i*38, 'y': 0} for i in range(1, 9)]
 
-    chart = DentalChart.query.filter_by(patient_id=patient_id).order_by(DentalChart.created_at.desc()).first()
+    chart = DentalChart.query.filter(DentalChart.patient_id == patient_id, DentalChart.tenant_id == g.tenant_id).order_by(DentalChart.created_at.desc()).first()
     teeth_map = {}
     if chart:
         for tooth in chart.teeth:
@@ -291,6 +294,7 @@ def save_dental_chart():
 
     try:
         chart = DentalChart(
+            tenant_id=g.tenant_id,
             patient_id=patient_id,
             visit_id=visit_id,
             doctor_id=current_user.id,

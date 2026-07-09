@@ -19,17 +19,22 @@ fhir_bp = Blueprint('fhir', __name__)
 
 
 def _log_fhir_access(action, resource_type, resource_id=None, request_body=None, response_status=200):
-    log = FHIRAuditLog(
-        action=action,
-        resource_type=resource_type,
-        resource_id=resource_id,
-        user_id=current_user.id if current_user.is_authenticated else None,
-        ip_address=request.remote_addr,
-        request_body=request_body[:1000] if request_body else None,
-        response_status=response_status
-    )
-    db.session.add(log)
-    db.session.commit()
+    import logging
+    try:
+        log = FHIRAuditLog(
+            action=action,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            user_id=current_user.id if current_user.is_authenticated else None,
+            ip_address=request.remote_addr,
+            request_body=request_body[:1000] if request_body else None,
+            response_status=response_status
+        )
+        db.session.add(log)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"FHIR audit log error: {e}")
 
 @fhir_bp.route('/Patient', methods=['GET'])
 @login_required

@@ -372,7 +372,7 @@ def save_visit_summary(visit_id):
         # يدعم JSON أو form
         data = {}
         if request.is_json:
-            data = request.get_json() or {}
+            data = request.get_json(silent=True) or {}
         else:
             for k in ['chief_complaint','history_of_present_illness','physical_examination','vital_signs','diagnosis','treatment_plan','recommendations','follow_up_date','follow_up_notes']:
                 data[k] = request.form.get(k)

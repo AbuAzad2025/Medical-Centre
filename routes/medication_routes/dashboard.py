@@ -42,35 +42,44 @@ def index():
 def dashboard():
     """لوحة تحكم الأدوية"""
     try:
-        total_medications = Medication.query.count()
+        tid = current_user.tenant_id
+        total_medications = Medication.query.filter(Medication.tenant_id == tid).count()
         low_stock_medications = Medication.query.filter(
-            Medication.stock_quantity <= Medication.minimum_stock
+            Medication.stock_quantity <= Medication.minimum_stock,
+            Medication.tenant_id == tid
         ).count()
         today = date.today()
         today_sales = db.session.query(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
-            func.date(PharmacySale.created_at) == today
+            func.date(PharmacySale.created_at) == today,
+            PharmacySale.tenant_id == tid
         ).scalar()
         month_sales = db.session.query(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
             func.extract('month', PharmacySale.created_at) == today.month,
-            func.extract('year', PharmacySale.created_at) == today.year
+            func.extract('year', PharmacySale.created_at) == today.year,
+            PharmacySale.tenant_id == tid
         ).scalar()
         expired = Medication.query.filter(
             Medication.expiry_date.isnot(None),
-            Medication.expiry_date < today
+            Medication.expiry_date < today,
+            Medication.tenant_id == tid
         ).count()
         today_prescriptions = Prescription.query.filter(
-            func.date(Prescription.created_at) == today
+            func.date(Prescription.created_at) == today,
+            Prescription.tenant_id == tid
         ).count()
         low_stock_list = Medication.query.filter(
-            Medication.stock_quantity <= Medication.minimum_stock
+            Medication.stock_quantity <= Medication.minimum_stock,
+            Medication.tenant_id == tid
         ).limit(10).all()
 
         pending_prescriptions = Prescription.query.filter(
-            Prescription.status == 'active'
+            Prescription.status == 'active',
+            Prescription.tenant_id == tid
         ).order_by(Prescription.created_at.desc()).limit(10).all()
 
         recent_sales = PharmacySale.query.filter(
-            func.date(PharmacySale.created_at) == today
+            func.date(PharmacySale.created_at) == today,
+            PharmacySale.tenant_id == tid
         ).order_by(PharmacySale.created_at.desc()).limit(10).all()
 
         from app.shared.dashboard_service import render_command_center

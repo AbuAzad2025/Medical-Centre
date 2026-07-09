@@ -63,16 +63,18 @@ def get_pharmacy_smart_analytics():
         from sqlalchemy import func
 
         # تحليل الأدوية
-        total_medications = Medication.query.count()
-        active_medications = Medication.query.filter(Medication.is_active == True).count()
+        total_medications = Medication.query.filter(Medication.tenant_id == current_user.tenant_id).count()
+        active_medications = Medication.query.filter(Medication.is_active == True, Medication.tenant_id == current_user.tenant_id).count()
         low_stock_medications = Medication.query.filter(
-            Medication.stock_quantity <= Medication.minimum_stock
+            Medication.stock_quantity <= Medication.minimum_stock,
+            Medication.tenant_id == current_user.tenant_id
         ).count()
         
         # تحليل المخزون
-        total_stock_value = db.session.query(func.sum(Medication.price * Medication.stock_quantity)).scalar() or 0
+        total_stock_value = db.session.query(func.sum(Medication.price * Medication.stock_quantity)).filter(Medication.tenant_id == current_user.tenant_id).scalar() or 0
         low_stock_value = db.session.query(func.sum(Medication.price * Medication.stock_quantity)).filter(
-            Medication.stock_quantity <= Medication.minimum_stock
+            Medication.stock_quantity <= Medication.minimum_stock,
+            Medication.tenant_id == current_user.tenant_id
         ).scalar() or 0
         
         # تحليل الفئات
@@ -80,10 +82,10 @@ def get_pharmacy_smart_analytics():
             Medication.category,
             func.count(Medication.id).label('count'),
             func.sum(Medication.stock_quantity).label('total_stock')
-        ).group_by(Medication.category).all()
+        ).filter(Medication.tenant_id == current_user.tenant_id).group_by(Medication.category).all()
         
         # تحليل الاستخدام
-        most_used_medications = Medication.query.order_by(
+        most_used_medications = Medication.query.filter(Medication.tenant_id == current_user.tenant_id).order_by(
             Medication.stock_quantity.desc()
         ).limit(5).all()
 
@@ -108,23 +110,26 @@ def get_inventory_optimization():
         from sqlalchemy import func, and_
 
         # تحليل المخزون
-        total_medications = Medication.query.count()
+        total_medications = Medication.query.filter(Medication.tenant_id == current_user.tenant_id).count()
         low_stock_count = Medication.query.filter(
-            Medication.stock_quantity <= Medication.minimum_stock
+            Medication.stock_quantity <= Medication.minimum_stock,
+            Medication.tenant_id == current_user.tenant_id
         ).count()
         
         # تحليل انتهاء الصلاحية
         expiring_soon = Medication.query.filter(
             and_(
                 Medication.expiry_date.isnot(None),
-                Medication.expiry_date <= datetime.now().date() + timedelta(days=30)
+                Medication.expiry_date <= datetime.now().date() + timedelta(days=30),
+                Medication.tenant_id == current_user.tenant_id
             )
         ).count()
         
         # تحليل القيمة
-        total_value = db.session.query(func.sum(Medication.price * Medication.stock_quantity)).scalar() or 0
+        total_value = db.session.query(func.sum(Medication.price * Medication.stock_quantity)).filter(Medication.tenant_id == current_user.tenant_id).scalar() or 0
         low_stock_value = db.session.query(func.sum(Medication.price * Medication.stock_quantity)).filter(
-            Medication.stock_quantity <= Medication.minimum_stock
+            Medication.stock_quantity <= Medication.minimum_stock,
+            Medication.tenant_id == current_user.tenant_id
         ).scalar() or 0
         
         # اقتراحات التحسين
@@ -155,30 +160,35 @@ def get_medication_safety_monitoring():
         expired_medications = Medication.query.filter(
             and_(
                 Medication.expiry_date.isnot(None),
-                Medication.expiry_date < datetime.now().date()
+                Medication.expiry_date < datetime.now().date(),
+                Medication.tenant_id == current_user.tenant_id
             )
         ).count()
         
         expiring_soon = Medication.query.filter(
             and_(
                 Medication.expiry_date.isnot(None),
-                Medication.expiry_date <= datetime.now().date() + timedelta(days=30)
+                Medication.expiry_date <= datetime.now().date() + timedelta(days=30),
+                Medication.tenant_id == current_user.tenant_id
             )
         ).count()
         
         # تحليل التفاعلات الدوائية
         medications_with_interactions = Medication.query.filter(
-            Medication.drug_interactions.isnot(None)
+            Medication.drug_interactions.isnot(None),
+            Medication.tenant_id == current_user.tenant_id
         ).count()
         
         # تحليل الآثار الجانبية
         medications_with_side_effects = Medication.query.filter(
-            Medication.side_effects.isnot(None)
+            Medication.side_effects.isnot(None),
+            Medication.tenant_id == current_user.tenant_id
         ).count()
         
         # تحليل الموانع
         medications_with_contraindications = Medication.query.filter(
-            Medication.contraindications.isnot(None)
+            Medication.contraindications.isnot(None),
+            Medication.tenant_id == current_user.tenant_id
         ).count()
 
         return {
@@ -201,21 +211,23 @@ def get_prescription_analytics():
         from models.medication import Prescription
 
         # تحليل الوصفات
-        total_prescriptions = Prescription.query.count()
-        active_prescriptions = Prescription.query.filter(Prescription.status == PrescriptionState.ACTIVE).count()
-        dispensed_prescriptions = Prescription.query.filter(Prescription.status == PrescriptionState.DISPENSED).count()
+        total_prescriptions = Prescription.query.filter(Prescription.tenant_id == current_user.tenant_id).count()
+        active_prescriptions = Prescription.query.filter(Prescription.status == PrescriptionState.ACTIVE, Prescription.tenant_id == current_user.tenant_id).count()
+        dispensed_prescriptions = Prescription.query.filter(Prescription.status == PrescriptionState.DISPENSED, Prescription.tenant_id == current_user.tenant_id).count()
         
         # تحليل التكلفة
-        total_cost = db.session.query(func.sum(Prescription.total_cost)).scalar() or 0
-        avg_cost = db.session.query(func.avg(Prescription.total_cost)).scalar() or 0
+        total_cost = db.session.query(func.sum(Prescription.total_cost)).filter(Prescription.tenant_id == current_user.tenant_id).scalar() or 0
+        avg_cost = db.session.query(func.avg(Prescription.total_cost)).filter(Prescription.tenant_id == current_user.tenant_id).scalar() or 0
         
         # تحليل الاتجاهات
         weekly_prescriptions = Prescription.query.filter(
-            Prescription.created_at >= datetime.now() - timedelta(days=7)
+            Prescription.created_at >= datetime.now() - timedelta(days=7),
+            Prescription.tenant_id == current_user.tenant_id
         ).count()
         
         monthly_prescriptions = Prescription.query.filter(
-            Prescription.created_at >= datetime.now() - timedelta(days=30)
+            Prescription.created_at >= datetime.now() - timedelta(days=30),
+            Prescription.tenant_id == current_user.tenant_id
         ).count()
 
         return {
@@ -239,28 +251,32 @@ def get_drug_interaction_checker():
 
         # تحليل الأدوية مع التفاعلات
         medications_with_interactions = Medication.query.filter(
-            Medication.drug_interactions.isnot(None)
+            Medication.drug_interactions.isnot(None),
+            Medication.tenant_id == current_user.tenant_id
         ).count()
         
         # تحليل شدة التفاعلات
         severe_interactions = Medication.query.filter(
             and_(
                 Medication.drug_interactions.isnot(None),
-                Medication.drug_interactions.contains('severe')
+                Medication.drug_interactions.contains('severe'),
+                Medication.tenant_id == current_user.tenant_id
             )
         ).count()
         
         moderate_interactions = Medication.query.filter(
             and_(
                 Medication.drug_interactions.isnot(None),
-                Medication.drug_interactions.contains('moderate')
+                Medication.drug_interactions.contains('moderate'),
+                Medication.tenant_id == current_user.tenant_id
             )
         ).count()
         
         mild_interactions = Medication.query.filter(
             and_(
                 Medication.drug_interactions.isnot(None),
-                Medication.drug_interactions.contains('mild')
+                Medication.drug_interactions.contains('mild'),
+                Medication.tenant_id == current_user.tenant_id
             )
         ).count()
 
@@ -316,22 +332,25 @@ def get_pharmacy_predictive_insights():
         weekly_demand = PrescriptionItem.query.join(
             Prescription, PrescriptionItem.prescription_id == Prescription.id
         ).filter(
-            Prescription.created_at >= now - timedelta(days=7)
+            Prescription.created_at >= now - timedelta(days=7),
+            Prescription.tenant_id == current_user.tenant_id
         ).count()
         monthly_demand = PrescriptionItem.query.join(
             Prescription, PrescriptionItem.prescription_id == Prescription.id
         ).filter(
-            Prescription.created_at >= now - timedelta(days=30)
+            Prescription.created_at >= now - timedelta(days=30),
+            Prescription.tenant_id == current_user.tenant_id
         ).count()
         prev_week = PrescriptionItem.query.join(
             Prescription, PrescriptionItem.prescription_id == Prescription.id
         ).filter(
             Prescription.created_at >= now - timedelta(days=14),
-            Prescription.created_at < now - timedelta(days=7)
+            Prescription.created_at < now - timedelta(days=7),
+            Prescription.tenant_id == current_user.tenant_id
         ).count()
         growth_rate = ((weekly_demand - prev_week) / prev_week * 100) if prev_week else 0
 
-        low_stock = Medication.query.filter(Medication.stock_quantity <= Medication.minimum_stock).count()
+        low_stock = Medication.query.filter(Medication.stock_quantity <= Medication.minimum_stock, Medication.tenant_id == current_user.tenant_id).count()
         predicted_stock_needs = int(low_stock or 0)
 
         return {

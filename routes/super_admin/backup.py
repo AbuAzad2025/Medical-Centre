@@ -96,7 +96,7 @@ def create_backup():
         from services.pg_backup_service import PgBackupError, build_backup_path, run_pg_dump_sql_gz
         from app.shared.enums import BackupStatus
 
-        data = request.get_json() if request.is_json else {}
+        data = request.get_json(silent=True) if request.is_json else {}
         req_type = data.get('type', 'full')
         timestamp = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
         backup_name = f'backup_{req_type}_{timestamp}'
@@ -152,6 +152,8 @@ def create_backup():
             return jsonify({'success': False, 'message': str(exc)}), 500
 
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Error creating backup: {str(e)}")
         return jsonify({
             'success': False,
@@ -184,6 +186,8 @@ def restore_backup(backup_id):
             return jsonify({'success': False, 'message': 'فشل في استعادة النسخة الاحتياطية'}), 500
             
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Error restoring backup: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر استعادة النسخة الاحتياطية حالياً'}), 500
 
@@ -214,6 +218,8 @@ def delete_backup(backup_id):
         return jsonify({'success': True, 'message': 'تم حذف النسخة الاحتياطية بنجاح'})
             
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Error deleting backup: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر حذف النسخة الاحتياطية حالياً'}), 500
 
@@ -241,6 +247,8 @@ def cancel_backup(backup_id):
         return jsonify({'success': True, 'message': 'تم إلغاء النسخة الاحتياطية بنجاح'})
             
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Error cancelling backup: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إلغاء النسخة الاحتياطية حالياً'}), 500
 
@@ -254,7 +262,7 @@ def backup_schedule():
         from app_factory import db
         
         if request.method == 'POST':
-            data = request.get_json()
+            data = request.get_json(silent=True)
             
             # Helper to update or create config
             def update_config(key, value, type='string'):
@@ -287,6 +295,8 @@ def backup_schedule():
             })
             
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Error in backup schedule: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر حفظ جدولة النسخ الاحتياطي حالياً'}), 500
 

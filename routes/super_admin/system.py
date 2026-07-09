@@ -35,7 +35,7 @@ def system_config():
         if request.method == 'POST':
             # معالجة حفظ الإعدادات
             if request.is_json:
-                data = request.get_json()
+                data = request.get_json(silent=True)
                 allowed = {
                     'log_level': {'type': 'string', 'choices': ['DEBUG','INFO','WARNING','ERROR','CRITICAL'], 'category': 'system'},
                     'timezone': {'type': 'string', 'choices': ['Asia/Gaza','Asia/Jerusalem','UTC'], 'category': 'general'},
@@ -133,7 +133,7 @@ def system_config():
                     db.session.add(audit)
                     db.session.commit()
                 except Exception as e:
-
+                    db.session.rollback()
                     logging.warning(f"Error in {__name__}: {e}")
                 return jsonify({'success': True, 'message': 'تم حفظ الإعدادات بنجاح'}), 200
             else:
@@ -156,6 +156,7 @@ def system_config():
         return render_template('super_admin/system_config.html')
         
     except Exception as e:
+        db.session.rollback()
         logging.error(f"System config error: {str(e)}")
         import traceback
         traceback.print_exc()
@@ -194,7 +195,7 @@ def queue_settings():
         if request.method == 'POST':
             if not request.is_json:
                 return jsonify({'success': False, 'message': 'الطلب يجب أن يكون JSON'}), 400
-            data = request.get_json() or {}
+            data = request.get_json(silent=True) or {}
             items = data.get('items') or []
             for it in items:
                 dept_id = it.get('department_id')
@@ -237,6 +238,7 @@ def queue_settings():
             return jsonify({'success': True}), 200
         return render_template('super_admin/queue_settings.html')
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Queue settings error: {str(e)}")
         return jsonify({'success': False, 'message': 'حدث خطأ في إعدادات الأقسام'}), 500
 
@@ -328,6 +330,7 @@ def system_cleanup():
         return redirect(url_for('super_admin.system_maintenance'))
         
     except Exception as e:
+        db.session.rollback()
         logging.error(f"System cleanup error: {str(e)}")
         flash('حدث خطأ في تنظيف النظام', 'error')
         return redirect(url_for('super_admin.system_maintenance'))
@@ -340,7 +343,7 @@ def test_sms():
     """إرسال رسالة SMS تجريبية"""
     try:
         import json
-        data = request.get_json(force=True) or {}
+        data = request.get_json(force=True, silent=True) or {}
         phone_number = data.get('phone_number', '')
         if not phone_number:
             return jsonify({'success': False, 'message': 'يرجى إدخال رقم الهاتف'}), 400
@@ -450,7 +453,7 @@ def save_backup_settings():
         from models.system_config import SystemConfig
         from app_factory import db
         
-        data = request.get_json()
+        data = request.get_json(silent=True)
         
         # دالة مساعدة لتحديث الإعدادات
         def update_config(key, value):
@@ -470,6 +473,7 @@ def save_backup_settings():
         return jsonify({'success': True, 'message': 'تم حفظ الإعدادات بنجاح'})
         
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Error saving backup settings: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر حفظ إعدادات النسخ الاحتياطي حالياً'}), 500
 
@@ -480,7 +484,7 @@ def maintenance_automation():
     try:
         from models.system_config import SystemConfig
         if request.method == 'POST':
-            data = request.get_json() or {}
+            data = request.get_json(silent=True) or {}
             cfg = SystemConfig.query.filter_by(config_key='maintenance_automation').first()
             if not cfg:
                 cfg = SystemConfig(config_key='maintenance_automation', category='system', is_system=True, config_type='json')
@@ -497,5 +501,6 @@ def maintenance_automation():
         settings = cfg.get_value() if cfg else {}
         return render_template('super_admin/maintenance_automation.html', settings=settings)
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Maintenance automation error: {str(e)}")
         return render_template('super_admin/maintenance_automation.html', settings={})

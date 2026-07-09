@@ -20,7 +20,9 @@ def manager_settings():
         if not request.is_json:
             return jsonify({'success': False, 'message': 'طلب غير صالح'}), 400
 
-        data = request.get_json(force=True)
+        data = request.get_json(force=True, silent=True)
+        if not data:
+            return jsonify({'success': False, 'message': 'بيانات غير صالحة'}), 400
         tenant_id = getattr(current_user, 'tenant_id', None)
         if not tenant_id:
             return jsonify({'success': False, 'message': 'لا يوجد تينانت'}), 400
@@ -48,7 +50,12 @@ def manager_settings():
             settings['radiology'] = data['radiology']
 
         tenant.settings = settings
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            logging.error("Failed to save manager settings")
+            return jsonify({'success': False, 'message': 'تعذر حفظ الإعدادات'}), 500
 
         return jsonify({'success': True, 'message': 'تم حفظ الإعدادات بنجاح'})
 
@@ -66,7 +73,7 @@ def manager_settings():
 @require_platform_capability('sms_live')
 def manager_test_sms():
     try:
-        data = request.get_json(force=True) or {}
+        data = request.get_json(force=True, silent=True) or {}
         phone_number = data.get('phone_number', '')
         if not phone_number:
             return jsonify({'success': False, 'message': 'يرجى إدخال رقم الهاتف'}), 400

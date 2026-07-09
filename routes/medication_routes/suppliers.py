@@ -29,20 +29,24 @@ def add_supplier():
         if not name:
             flash('اسم المورد مطلوب', 'error')
             return render_template('pharmacy/add_supplier.html')
-        supplier = Supplier(
-            tenant_id=current_user.tenant_id,
-            name=name,
-            contact_person=request.form.get('contact_person', '').strip(),
-            phone=request.form.get('phone', '').strip(),
-            email=request.form.get('email', '').strip(),
-            address=request.form.get('address', '').strip(),
-            tax_id=request.form.get('tax_id', '').strip(),
-            notes=request.form.get('notes', '').strip(),
-        )
-        db.session.add(supplier)
-        db.session.commit()
-        flash('تم إضافة المورد بنجاح', 'success')
-        return redirect(url_for('medication.suppliers'))
+        try:
+            supplier = Supplier(
+                tenant_id=current_user.tenant_id,
+                name=name,
+                contact_person=request.form.get('contact_person', '').strip(),
+                phone=request.form.get('phone', '').strip(),
+                email=request.form.get('email', '').strip(),
+                address=request.form.get('address', '').strip(),
+                tax_id=request.form.get('tax_id', '').strip(),
+                notes=request.form.get('notes', '').strip(),
+            )
+            db.session.add(supplier)
+            db.session.commit()
+            flash('تم إضافة المورد بنجاح', 'success')
+            return redirect(url_for('medication.suppliers'))
+        except Exception:
+            db.session.rollback()
+            flash('حدث خطأ في إضافة المورد', 'error')
     return render_template('pharmacy/add_supplier.html')
 
 
@@ -58,17 +62,21 @@ def edit_supplier(supplier_id):
         flash('المورد غير موجود', 'error')
         return redirect(url_for('medication.suppliers'))
     if request.method == 'POST':
-        supplier.name = request.form.get('name', '').strip()
-        supplier.contact_person = request.form.get('contact_person', '').strip()
-        supplier.phone = request.form.get('phone', '').strip()
-        supplier.email = request.form.get('email', '').strip()
-        supplier.address = request.form.get('address', '').strip()
-        supplier.tax_id = request.form.get('tax_id', '').strip()
-        supplier.notes = request.form.get('notes', '').strip()
-        supplier.updated_at = datetime.now(timezone.utc)
-        db.session.commit()
-        flash('تم تحديث المورد بنجاح', 'success')
-        return redirect(url_for('medication.suppliers'))
+        try:
+            supplier.name = request.form.get('name', '').strip()
+            supplier.contact_person = request.form.get('contact_person', '').strip()
+            supplier.phone = request.form.get('phone', '').strip()
+            supplier.email = request.form.get('email', '').strip()
+            supplier.address = request.form.get('address', '').strip()
+            supplier.tax_id = request.form.get('tax_id', '').strip()
+            supplier.notes = request.form.get('notes', '').strip()
+            supplier.updated_at = datetime.now(timezone.utc)
+            db.session.commit()
+            flash('تم تحديث المورد بنجاح', 'success')
+            return redirect(url_for('medication.suppliers'))
+        except Exception:
+            db.session.rollback()
+            flash('حدث خطأ في تحديث المورد', 'error')
     return render_template('pharmacy/add_supplier.html', supplier=supplier)
 
 
@@ -83,10 +91,15 @@ def delete_supplier(supplier_id):
     if not supplier:
         flash('المورد غير موجود', 'error')
         return redirect(url_for('medication.suppliers'))
-    db.session.delete(supplier)
-    db.session.commit()
-    flash('تم حذف المورد بنجاح', 'success')
-    return redirect(url_for('medication.suppliers'))
+    try:
+        db.session.delete(supplier)
+        db.session.commit()
+        flash('تم حذف المورد بنجاح', 'success')
+        return redirect(url_for('medication.suppliers'))
+    except Exception:
+        db.session.rollback()
+        flash('حدث خطأ في حذف المورد', 'error')
+        return redirect(url_for('medication.suppliers'))
 
 
 @medication_bp.route('/purchases')
@@ -165,9 +178,13 @@ def add_purchase():
             medication.stock_quantity = (medication.stock_quantity or 0) + quantity
             medication.updated_at = datetime.now(timezone.utc)
 
-        db.session.commit()
-        flash('تم إضافة المشتريات بنجاح', 'success')
-        return redirect(url_for('medication.purchases'))
+        try:
+            db.session.commit()
+            flash('تم إضافة المشتريات بنجاح', 'success')
+            return redirect(url_for('medication.purchases'))
+        except Exception:
+            db.session.rollback()
+            flash('حدث خطأ في إضافة المشتريات', 'error')
 
     medications = Medication.query.filter(
         Medication.tenant_id == current_user.tenant_id,

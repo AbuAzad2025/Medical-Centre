@@ -22,11 +22,9 @@ from sqlalchemy import func, and_, or_, desc
 
 @nurse_bp.route('/patient-care')
 @login_required
+@role_required('nurse', 'manager')
 def patient_care():
     """رعاية المرضى"""
-    if current_user.role not in ['nurse', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         patients = Patient.query.order_by(desc(Patient.created_at)).limit(20).all()
@@ -39,11 +37,9 @@ def patient_care():
 
 @nurse_bp.route('/patient-monitoring')
 @login_required
+@role_required('nurse', 'manager')
 def patient_monitoring():
     """مراقبة المرضى"""
-    if current_user.role not in ['nurse', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         patients = Patient.query.order_by(desc(Patient.created_at)).limit(20).all()

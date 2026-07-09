@@ -3,10 +3,11 @@ Patient Education Materials Routes
 """
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory
 from flask_login import login_required, current_user
-from utils.decorators import handle_route_errors
+from utils.decorators import handle_route_errors, role_required
 from app_factory import db
 from models import PatientEducationMaterial, PatientEducationAssignment, Patient
 import os
+import logging
 from werkzeug.utils import secure_filename
 
 patient_education_bp = Blueprint('patient_education', __name__)
@@ -41,8 +42,12 @@ def index():
 @handle_route_errors
 def view_material(material_id):
     material = PatientEducationMaterial.query.get_or_404(material_id)
-    material.view_count += 1
-    db.session.commit()
+    try:
+        material.view_count += 1
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error updating view count: {e}")
     assignments = PatientEducationAssignment.query.filter_by(material_id=material_id).order_by(
         PatientEducationAssignment.created_at.desc()).limit(20).all()
     return render_template('patient_education/view.html', material=material, assignments=assignments)
@@ -50,6 +55,7 @@ def view_material(material_id):
 
 @patient_education_bp.route('/new', methods=['GET', 'POST'])
 @login_required
+@role_required('manager', 'admin', 'super_admin')
 @handle_route_errors
 def new_material():
     if request.method == 'POST':
@@ -86,6 +92,7 @@ def new_material():
 
 @patient_education_bp.route('/edit/<int:material_id>', methods=['GET', 'POST'])
 @login_required
+@role_required('manager', 'admin', 'super_admin')
 @handle_route_errors
 def edit_material(material_id):
     material = PatientEducationMaterial.query.get_or_404(material_id)
@@ -114,6 +121,7 @@ def edit_material(material_id):
 
 @patient_education_bp.route('/assign', methods=['POST'])
 @login_required
+@role_required('manager', 'admin', 'super_admin', 'doctor')
 @handle_route_errors
 def assign_material():
     patient_id = request.form.get('patient_id', type=int)

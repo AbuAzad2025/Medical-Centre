@@ -5,7 +5,7 @@ from routes.emergency import emergency_bp
 # Imports
 from flask import render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required, current_user
-from utils.decorators import role_required_json
+from utils.decorators import role_required, role_required_json
 from models.patient import Patient
 from models.visit import Visit
 from models.user import User
@@ -29,11 +29,9 @@ from datetime import datetime, date, timedelta, timezone
 
 @emergency_bp.route('/patient-details/<int:emergency_id>')
 @login_required
+@role_required('emergency', 'manager')
 def patient_details(emergency_id):
     """تفاصيل حالة الطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         emergency = emergency_service.get_case(emergency_id)
@@ -75,11 +73,9 @@ def patient_details(emergency_id):
 
 @emergency_bp.route('/medical-history/<int:patient_id>')
 @login_required
+@role_required('emergency', 'manager')
 def medical_history(patient_id):
     """السجل الطبي للمريض في الطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         patient = Patient.query.filter_by(id=patient_id).first()
@@ -109,11 +105,9 @@ def medical_history(patient_id):
 
 @emergency_bp.route('/prescriptions-history/<int:patient_id>')
 @login_required
+@role_required('emergency', 'manager')
 def prescriptions_history(patient_id):
     """تاريخ الوصفات الطبية للمريض في الطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         patient = Patient.query.filter_by(id=patient_id).first()
@@ -136,11 +130,9 @@ def prescriptions_history(patient_id):
 
 @emergency_bp.route('/lab-results/<int:patient_id>')
 @login_required
+@role_required('emergency', 'manager')
 def lab_results(patient_id):
     """نتائج المختبر للمريض في الطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         patient = Patient.query.filter_by(id=patient_id).first()
@@ -163,11 +155,9 @@ def lab_results(patient_id):
 
 @emergency_bp.route('/radiology-results/<int:patient_id>')
 @login_required
+@role_required('emergency', 'manager')
 def radiology_results(patient_id):
     """نتائج الأشعة للمريض في الطوارئ"""
-    if current_user.role not in ['emergency', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         patient = Patient.query.filter_by(id=patient_id).first()

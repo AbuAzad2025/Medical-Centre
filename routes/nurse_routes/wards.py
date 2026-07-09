@@ -22,20 +22,16 @@ from sqlalchemy import func, and_, or_, desc
 
 @nurse_bp.route('/patients')
 @login_required
+@role_required('nurse', 'manager')
 def patients():
     """مرضى التمريض"""
-    if current_user.role not in ['nurse', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     return redirect(url_for('nurse.patient_care'))
 
 @nurse_bp.route('/wards')
 @login_required
+@role_required('nurse', 'manager')
 def wards():
     """الأجنحة"""
-    if current_user.role not in ['nurse', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     return render_template('nurse/patient_monitoring.html')

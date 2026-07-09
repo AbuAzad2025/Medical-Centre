@@ -405,7 +405,7 @@ def payment_history():
         date_from = request.args.get('date_from', '')
         date_to = request.args.get('date_to', '')
         
-        query = Payment.query
+        query = Payment.query.filter(Payment.tenant_id == current_user.tenant_id)
         
         if status:
             query = query.filter(Payment.status == status.upper())
@@ -467,6 +467,7 @@ def payment_reports():
             db.func.count(Payment.id).label('count'),
             db.func.sum(Payment.amount).label('total')
         ).filter(
+            Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(week_ago, datetime.min.time())
         ).group_by(db.func.date(Payment.created_at)).all()
         
@@ -476,6 +477,7 @@ def payment_reports():
             db.func.count(Payment.id).label('count'),
             db.func.sum(Payment.amount).label('total')
         ).filter(
+            Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(week_ago, datetime.min.time())
         ).group_by(Payment.method).all()
         
@@ -494,8 +496,9 @@ def payment_reports():
 def request_refund(payment_id):
     """Create a refund request for a payment."""
     try:
-        amount = request.form.get('amount') or request.json.get('amount')
-        reason = request.form.get('reason') or request.json.get('reason', '')
+        json_data = request.json or {}
+        amount = request.form.get('amount') or json_data.get('amount')
+        reason = request.form.get('reason') or json_data.get('reason', '')
         ok, result = refund_service.request_refund(
             tenant_id=getattr(current_user, 'tenant_id', None),
             payment_id=payment_id,

@@ -270,7 +270,7 @@ def worklist_complete(request_id):
         if not req:
             return jsonify({'success': False, 'message': 'الطلب غير موجود'}), 404
         # إنشاء نتيجة مبسطة إذا لم تُرفق
-        result_payload = request.get_json() or {}
+        result_payload = request.get_json(silent=True) or {}
         if result_payload:
             res = LabResult(
                 request_id=req.id,

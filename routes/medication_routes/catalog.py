@@ -75,12 +75,9 @@ def list_medications():
 
 @medication_bp.route('/add', methods=['GET', 'POST'])
 @login_required
+@role_required('pharmacist', 'admin', 'manager')
 def add_medication():
     """إضافة دواء جديد"""
-    if current_user.role not in ['pharmacist', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
-    
     if request.method == 'POST':
         try:
             expiry_date = request.form.get('expiry_date')

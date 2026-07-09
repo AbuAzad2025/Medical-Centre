@@ -24,21 +24,20 @@ from sqlalchemy import func
 
 @medication_bp.route('/stock-alerts')
 @login_required
+@role_required('pharmacist', 'admin', 'manager')
 def stock_alerts():
     """تنبيهات المخزون"""
-    if current_user.role not in ['pharmacist', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
-    
     try:
         # الأدوية منخفضة المخزون
         low_stock = Medication.query.filter(
-            Medication.stock_quantity <= Medication.minimum_stock
+            Medication.stock_quantity <= Medication.minimum_stock,
+            Medication.tenant_id == current_user.tenant_id
         ).all()
         
         # الأدوية المنتهية الصلاحية قريباً
         expiring_soon = Medication.query.filter(
-            Medication.expiry_date <= datetime.now() + timedelta(days=30)
+            Medication.expiry_date <= datetime.now() + timedelta(days=30),
+            Medication.tenant_id == current_user.tenant_id
         ).all()
         
         return render_template('medication/stock_alerts.html', 
@@ -54,7 +53,7 @@ def stock_alerts():
 @role_required('pharmacist', 'admin', 'manager')
 def supply_requests():
     status = (request.args.get('status') or '').strip().upper()
-    q = MedicationSupplyRequest.query
+    q = MedicationSupplyRequest.query.filter(MedicationSupplyRequest.tenant_id == current_user.tenant_id)
     if status:
         q = q.filter(MedicationSupplyRequest.status == status)
     requests_list = q.order_by(MedicationSupplyRequest.created_at.desc()).limit(200).all()
@@ -118,7 +117,7 @@ def create_supply_request():
             flash('حدث خطأ في إنشاء طلب التوريد', 'error')
             return redirect(url_for('medication.supply_requests'))
 
-    low_stock = Medication.query.filter(Medication.stock_quantity <= Medication.minimum_stock).order_by(Medication.trade_name.asc()).all()
+    low_stock = Medication.query.filter(Medication.stock_quantity <= Medication.minimum_stock, Medication.tenant_id == current_user.tenant_id).order_by(Medication.trade_name.asc()).all()
     suggested = {}
     for m in low_stock:
         cur = int(m.stock_quantity or 0)

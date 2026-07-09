@@ -133,6 +133,8 @@ def edit_role(role_id):
                              mode='edit')
         
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Edit role error: {str(e)}")
         flash('تعذر تحديث الدور، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.roles'))
@@ -177,6 +179,8 @@ def manage_role_permissions(role_id):
                              role_permissions=role_permissions)
         
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Manage role permissions error: {str(e)}")
         flash('حدث خطأ في إدارة صلاحيات الدور', 'error')
         return redirect(url_for('super_admin.roles'))
@@ -391,6 +395,8 @@ def create_permission():
         return redirect(url_for('super_admin.permissions'))
         
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Create permission error: {str(e)}")
         flash('حدث خطأ في إنشاء الصلاحية', 'error')
         return redirect(url_for('super_admin.permissions'))
@@ -420,6 +426,8 @@ def edit_permission(permission_id):
         return redirect(url_for('super_admin.permissions'))
         
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Edit permission error: {str(e)}")
         flash('حدث خطأ في تعديل الصلاحية', 'error')
         return redirect(url_for('super_admin.permissions'))
@@ -444,6 +452,8 @@ def delete_permission(permission_id):
         return redirect(url_for('super_admin.permissions'))
         
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Delete permission error: {str(e)}")
         flash('حدث خطأ في حذف الصلاحية', 'error')
         return redirect(url_for('super_admin.permissions'))
@@ -474,6 +484,8 @@ def create_role_simple():
         return redirect(url_for('super_admin.users'))
         
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Create role error: {str(e)}")
         flash('حدث خطأ في إنشاء الدور', 'error')
         return redirect(url_for('super_admin.users'))
@@ -504,6 +516,8 @@ def create_permission_simple():
         return redirect(url_for('super_admin.users'))
         
     except Exception as e:
+        from app_factory import db
+        db.session.rollback()
         logging.error(f"Create permission error: {str(e)}")
         flash('حدث خطأ في إنشاء الصلاحية', 'error')
         return redirect(url_for('super_admin.users'))

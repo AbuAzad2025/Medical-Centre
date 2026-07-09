@@ -30,14 +30,11 @@ from datetime import datetime, date, timedelta, timezone
 
 @manager_bp.route('/departments')
 @login_required
+@role_required('manager', 'admin')
 def departments():
     """إدارة الأقسام"""
-    if current_user.role not in ['manager', 'admin']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
-    
     try:
-        departments = Department.query.all()
+        departments = Department.query.filter(Department.tenant_id == current_user.tenant_id).all()
         return render_template('manager/departments.html', departments=departments)
     except Exception as e:
         logging.error(f"Error loading departments: {str(e)}")

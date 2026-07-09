@@ -26,17 +26,16 @@ from decimal import Decimal
 
 @accountant_bp.route('/invoices')
 @login_required
+@role_required('accountant', 'admin', 'manager')
 def invoices():
     """الفواتير"""
-    if current_user.role not in ['accountant', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     page = request.args.get('page', 1, type=int)
     per_page = 25
     
     try:
         query = Visit.query.filter(
+            Visit.tenant_id == current_user.tenant_id,
             Visit.payment_status.in_(['PENDING', 'PARTIAL', 'DEBT'])
         ).order_by(Visit.created_at.desc())
         
@@ -54,11 +53,9 @@ def invoices():
 
 @accountant_bp.route('/financial')
 @login_required
+@role_required('accountant', 'admin', 'manager')
 def financial():
     """الإدارة المالية"""
-    if current_user.role not in ['accountant', 'admin', 'manager']:
-        flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
-        return redirect(url_for('main.dashboard'))
     
     try:
         from models.patient import Patient
@@ -70,7 +67,7 @@ def financial():
 
         patients = []
         if q:
-            pq = Patient.query
+            pq = Patient.query.filter(Patient.tenant_id == current_user.tenant_id)
             if q.isdigit():
                 pq = pq.filter(Patient.id == int(q))
             else:
@@ -89,12 +86,19 @@ def financial():
         if patient_id:
             selected_patient = db.session.get(Patient, patient_id)
             if selected_patient:
-                visits = Visit.query.filter(Visit.patient_id == patient_id).order_by(Visit.created_at.desc()).limit(200).all()
+                visits = Visit.query.filter(
+                    Visit.tenant_id == current_user.tenant_id,
+                    Visit.patient_id == patient_id
+                ).order_by(Visit.created_at.desc()).limit(200).all()
                 visit_ids = [v.id for v in visits]
                 invoices = []
                 if visit_ids:
-                    invoices = Invoice.query.filter(Invoice.visit_id.in_(visit_ids)).order_by(Invoice.created_at.desc()).all()
+                    invoices = Invoice.query.filter(
+                        Invoice.tenant_id == current_user.tenant_id,
+                        Invoice.visit_id.in_(visit_ids)
+                    ).order_by(Invoice.created_at.desc()).all()
                 payments = Payment.query.filter(
+                    Payment.tenant_id == current_user.tenant_id,
                     Payment.patient_id == patient_id,
                     Payment.status == PaymentStatus.CONFIRMED
                 ).order_by(Payment.payment_date.desc()).limit(500).all()

@@ -46,13 +46,9 @@ def calls_display():
 
 @reception_bp.route('/queue')
 @login_required
-@role_required('reception', 'super_admin', 'manager')
+@role_required('reception', 'manager')
 def queue_management():
     """إدارة الطابور الموحد - الوحدة المركزية"""
-    # التحقق من الصلاحيات
-    if current_user.role not in ['reception', 'lab', 'radiology', 'admin', 'manager', 'super_admin', 'doctor', 'emergency']:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
 
     try:
         from services.queue_management_service import QueueManagementService
@@ -89,11 +85,9 @@ def queue_management():
 
 @reception_bp.route('/queue/add-patient', methods=['GET', 'POST'])
 @login_required
+@role_required('reception')
 def add_patient_to_queue():
     """إضافة مريض إلى الطابور - الوحدة المركزية"""
-    if current_user.role not in ['reception']:
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
 
     if request.method == 'POST':
         try:
@@ -172,12 +166,10 @@ def add_patient_to_queue():
 
 @reception_bp.route('/queue/call-next/<int:department_id>')
 @login_required
+@role_required('reception')
 def call_next_patient(department_id):
     """استدعاء المريض التالي"""
-    if current_user.role != 'reception':
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
-
+    
     try:
         from services.queue_management_service import QueueManagementService
         
@@ -204,11 +196,9 @@ def call_next_patient(department_id):
 
 @reception_bp.route('/queue/start-treatment/<int:ticket_id>')
 @login_required
+@role_required('reception')
 def start_treatment(ticket_id):
     """بدء العلاج"""
-    if current_user.role != 'reception':
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
 
     try:
         from services.queue_management_service import QueueManagementService
@@ -233,11 +223,9 @@ def start_treatment(ticket_id):
 
 @reception_bp.route('/queue/complete-treatment/<int:ticket_id>')
 @login_required
+@role_required('reception')
 def complete_treatment(ticket_id):
     """إكمال العلاج"""
-    if current_user.role != 'reception':
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
 
     try:
         from services.queue_management_service import QueueManagementService
@@ -262,11 +250,9 @@ def complete_treatment(ticket_id):
 
 @reception_bp.route('/queue/skip-patient/<int:ticket_id>', methods=['POST'])
 @login_required
+@role_required('reception')
 def skip_patient(ticket_id):
     """تخطي المريض"""
-    if current_user.role != 'reception':
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
 
     try:
         from services.queue_management_service import QueueManagementService
@@ -294,11 +280,9 @@ def skip_patient(ticket_id):
 
 @reception_bp.route('/queue/return-to-queue/<int:ticket_id>', methods=['POST'])
 @login_required
+@role_required('reception')
 def return_to_queue(ticket_id):
     """إرجاع المريض للطابور"""
-    if current_user.role != 'reception':
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
 
     try:
         from services.queue_management_service import QueueManagementService
@@ -321,11 +305,9 @@ def return_to_queue(ticket_id):
 
 @reception_bp.route('/queue/cancel-ticket/<int:ticket_id>', methods=['POST'])
 @login_required
+@role_required('reception')
 def cancel_ticket(ticket_id):
     """إلغاء التذكرة"""
-    if current_user.role != 'reception':
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
 
     try:
         from services.queue_management_service import QueueManagementService
@@ -353,11 +335,9 @@ def cancel_ticket(ticket_id):
 
 @reception_bp.route('/queue/approve-emergency-debt/<int:ticket_id>', methods=['POST'])
 @login_required
+@role_required('reception')
 def approve_emergency_debt(ticket_id):
     """الموافقة على دين الطوارئ"""
-    if current_user.role != 'reception':
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
 
     try:
         from services.queue_management_service import QueueManagementService
@@ -386,11 +366,9 @@ def approve_emergency_debt(ticket_id):
 
 @reception_bp.route('/queue/approve-force-entry/<int:ticket_id>', methods=['POST'])
 @login_required
+@role_required('reception')
 def approve_force_entry(ticket_id):
     """الموافقة على الدخول القوي"""
-    if current_user.role != 'reception':
-        flash('ليس لديك الصلاحيات للوصول إلى هذه الصفحة.', 'danger')
-        return redirect(url_for('auth.login'))
 
     try:
         from services.queue_management_service import QueueManagementService

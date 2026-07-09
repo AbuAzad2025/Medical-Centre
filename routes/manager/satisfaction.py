@@ -35,7 +35,7 @@ def patient_satisfaction_dashboard():
     """لوحة رضا المرضى"""
     try:
         from models.patient_satisfaction import PatientSatisfactionSurvey
-        surveys = PatientSatisfactionSurvey.query.order_by(PatientSatisfactionSurvey.created_at.desc()).limit(100).all()
+        surveys = PatientSatisfactionSurvey.query.filter(PatientSatisfactionSurvey.tenant_id == current_user.tenant_id).order_by(PatientSatisfactionSurvey.created_at.desc()).limit(100).all()
         total = len(surveys) if surveys else 0
         if total > 0:
             avg_score = sum(float(s.overall_satisfaction or 0) for s in surveys) / total

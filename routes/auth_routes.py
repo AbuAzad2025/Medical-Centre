@@ -7,6 +7,7 @@ from flask import Blueprint, request, jsonify, session, redirect, url_for, flash
 from flask.typing import ResponseReturnValue
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_wtf.csrf import generate_csrf, validate_csrf
+from utils.decorators import role_required_json
 from models.user import User
 from models.permissions import Role
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -491,10 +492,9 @@ def get_redirect_url_by_role(role):
 
 @auth_bp.route('/impersonate/<int:user_id>', methods=['POST'])
 @login_required
+@role_required_json('super_admin', 'owner')
 def impersonate(user_id):
     """Owner impersonates another user for visual inspection"""
-    if current_user.role not in ('super_admin', 'owner'):
-        return jsonify({'success': False, 'message': 'غير مصرح'}), 403
     target = User.query.get(user_id)
     if not target or not target.is_active:
         return jsonify({'success': False, 'message': 'المستخدم غير موجود'}), 404

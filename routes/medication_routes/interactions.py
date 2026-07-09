@@ -65,7 +65,7 @@ def interactions():
             flash('حدث خطأ في حفظ التداخل', 'error')
             return redirect(url_for('medication.interactions'))
 
-    meds = Medication.query.filter_by(is_active=True).order_by(Medication.trade_name.asc()).limit(2000).all()
+    meds = Medication.query.filter_by(is_active=True).filter(Medication.tenant_id == current_user.tenant_id).order_by(Medication.trade_name.asc()).limit(2000).all()
     rows = DrugInteraction.query.order_by(DrugInteraction.created_at.desc()).limit(500).all()
     return render_template('medication/interactions.html', medications=meds, interactions=rows)
 

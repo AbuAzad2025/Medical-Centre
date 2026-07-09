@@ -120,7 +120,7 @@ def quality():
 @role_required('radiology', 'doctor', 'admin', 'manager')
 def api_ai_assist():
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
         modality = (data.get('modality') or '').strip().upper()
         body_part = (data.get('body_part') or '').strip().lower()
         impression = (data.get('impression') or '').strip().lower()
