@@ -10,6 +10,7 @@ from datetime import datetime, date, timezone
 from typing import Any
 
 from app_factory import db
+from utils.db_safety import safe_commit
 from sqlalchemy import and_, or_, case
 
 
@@ -118,10 +119,10 @@ class EmergencyService:
             if priority:
                 case.priority = priority
             db.session.add(case)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="Failed to create emergency case"):
+                return None
             return case
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating emergency case: {str(e)}")
             return None
 
@@ -134,7 +135,7 @@ class EmergencyService:
         case.status = status
         if status == "COMPLETED":
             case.completed_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to update case status", reraise=True)
         return True
 
     @staticmethod
@@ -147,7 +148,7 @@ class EmergencyService:
         if not case:
             return False
         case.status = "TREATMENT"
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to assign doctor", reraise=True)
         return True
 
     # ==================== TRIAGE ====================
@@ -165,7 +166,7 @@ class EmergencyService:
         if vital_signs is not None:
             # vital_signs is a TEXT column storing a JSON string
             case.vital_signs = json.dumps(vital_signs) if isinstance(vital_signs, (dict, list)) else vital_signs
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to triage patient", reraise=True)
         return True
 
     # ==================== NOTIFICATION ====================

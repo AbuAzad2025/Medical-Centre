@@ -5,6 +5,7 @@ import json
 from typing import Any
 
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from models.reporting import ReportTemplate
 
 REPORT_ENTITIES = {
@@ -119,7 +120,7 @@ def save_builder_template(
         )
         tpl.set_template_variables_dict(payload)
         db.session.add(tpl)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     return tpl
 
 

@@ -12,6 +12,7 @@ from models.visit import Visit
 from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
 from models.drug_interaction import DrugInteraction
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json
 from datetime import datetime, timezone, timedelta, date
 from sqlalchemy import func
@@ -56,11 +57,11 @@ def interactions():
                     created_at=datetime.now(timezone.utc),
                     updated_at=datetime.now(timezone.utc),
                 ))
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم حفظ التداخل', 'success')
             return redirect(url_for('medication.interactions'))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error saving interaction: {str(e)}")
             flash('حدث خطأ في حفظ التداخل', 'error')
             return redirect(url_for('medication.interactions'))
@@ -78,9 +79,9 @@ def toggle_interaction(interaction_id: int):
     try:
         row.is_active = not bool(row.is_active)
         row.updated_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True, 'is_active': bool(row.is_active)}), 200
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error toggling interaction: {str(e)}")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from app.shared.enums import VisitState, AppointmentState, PaymentStatus, VisitArchiveStatus
 from sqlalchemy import and_, or_, func, desc, asc, text
 from app_factory import db
+from utils.db_safety import safe_commit
 from models.patient import Patient
 from models.visit import Visit
 from models.appointment import Appointment
@@ -1006,9 +1007,9 @@ class ReportService:
                     mean_time=row.get('mean_time') or 0,
                     rows=int(row.get('rows') or 0)
                 ))
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل حفظ تقرير الاستعلامات الأسبوعي"):
+                return {'success': False, 'message': 'تعذر حفظ تقرير الاستعلامات الأسبوعي'}
             return {'success': True, 'report_id': rq.id}
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error capturing weekly slow queries: {str(e)}")
             return {'success': False, 'message': 'تعذر حفظ تقرير الاستعلامات الأسبوعي'}

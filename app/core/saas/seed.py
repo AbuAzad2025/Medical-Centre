@@ -10,6 +10,7 @@ from decimal import Decimal
 from typing import Optional
 
 from app.extensions import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.core.module.registry import MODULE_REGISTRY
 from app.core.saas.models import (
     Package,
@@ -136,7 +137,7 @@ def seed_packages_from_product_bundles(
             )
         )
 
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         created_ids.append(package.id)
         if created_package_ids is not None:
             created_package_ids.append(package.id)

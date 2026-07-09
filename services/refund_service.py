@@ -10,6 +10,7 @@ from decimal import Decimal
 from typing import Any
 
 from app_factory import db
+from utils.db_safety import safe_rollback
 from utils.tenant_query import get_tenant_record, TenantContextError
 
 
@@ -64,7 +65,7 @@ class RefundService:
             db.session.flush()
             return True, request
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="فشل إنشاء طلب الاسترداد")
             logging.error(f"Error creating refund request: {str(e)}")
             return False, str(e)
 
@@ -177,7 +178,7 @@ class RefundService:
             db.session.flush()
             return True, request
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="فشل تنفيذ الاسترداد")
             logging.error(f"Error executing refund: {str(e)}")
             return False, str(e)
 

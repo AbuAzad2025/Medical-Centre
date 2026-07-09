@@ -5,6 +5,7 @@ from flask_login import login_required, current_user
 from utils.decorators import role_required
 from app.core.platform_capabilities import require_platform_capability
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.core.tenant.models import Tenant
 import logging
 import json
@@ -51,9 +52,9 @@ def manager_settings():
 
         tenant.settings = settings
         try:
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error("Failed to save manager settings")
             return jsonify({'success': False, 'message': 'تعذر حفظ الإعدادات'}), 500
 

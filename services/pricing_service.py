@@ -1,4 +1,4 @@
-"""
+﻿"""
 خدمة إدارة الأسعار - Pricing Management Service
 Medical System Pricing Management Service
 """
@@ -6,6 +6,7 @@ Medical System Pricing Management Service
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import and_, or_, func
 from app_factory import db
+from utils.db_safety import safe_commit
 from models.pricing import ServicePrice, DoctorPricing, InsuranceProvider, PricingCatalog
 from models.user import User
 from models.department import Department
@@ -188,12 +189,12 @@ class PricingService:
             )
             
             db.session.add(service_price)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             
             return {'success': True, 'message': 'تم إنشاء سعر الخدمة بنجاح', 'service_price_id': service_price.id}
             
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating service price: {str(e)}")
             return {'success': False, 'message': 'تعذر إنشاء سعر الخدمة حالياً'}
     
@@ -217,12 +218,12 @@ class PricingService:
             )
             
             db.session.add(doctor_pricing)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             
             return {'success': True, 'message': 'تم إنشاء أسعار الطبيب بنجاح', 'pricing_id': doctor_pricing.id}
             
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating doctor pricing: {str(e)}")
             return {'success': False, 'message': 'تعذر إنشاء أسعار الطبيب حالياً'}
     
@@ -241,12 +242,12 @@ class PricingService:
                     setattr(service_price, key, value)
             
             service_price.updated_at = datetime.now(timezone.utc)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             
             return {'success': True, 'message': 'تم تحديث سعر الخدمة بنجاح'}
             
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error updating service price: {str(e)}")
             return {'success': False, 'message': 'تعذر تحديث سعر الخدمة حالياً'}
     
@@ -433,11 +434,12 @@ class PricingService:
                     service_price = ServicePrice(**service_data)
                     db.session.add(service_price)
             
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+            
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'message': 'تم إنشاء الأسعار الافتراضية بنجاح'}
             
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating default pricing: {str(e)}")
             return {'success': False, 'message': 'تعذر إنشاء الأسعار الافتراضية حالياً'}
     
@@ -555,10 +557,10 @@ class PricingService:
                     db.session.add(dept)
                     created += 1
                 result[item['name']] = dept
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created, 'departments': {k: v.id for k, v in result.items()}}
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error seeding departments: {str(e)}")
             return {'success': False, 'message': 'تعذر تهيئة الأقسام حالياً'}
 
@@ -592,10 +594,10 @@ class PricingService:
                 db.session.add(user)
                 created += 1
                 result.append(user)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created, 'doctors': [u.id for u in result]}
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error seeding doctors: {str(e)}")
             return {'success': False, 'message': 'تعذر تهيئة الأطباء حالياً'}
 
@@ -623,10 +625,10 @@ class PricingService:
             else:
                 if rad_dept and rad_user.department_id != rad_dept.id:
                     rad_user.department_id = rad_dept.id
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created, 'technicians': [u.id for u in [lab_user, rad_user] if u]}
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error seeding technicians: {str(e)}")
             return {'success': False, 'message': 'تعذر تهيئة الفنيين حالياً'}
 
@@ -646,10 +648,10 @@ class PricingService:
                     svc = ServiceMaster(code=d['code'], name=d['name'], name_ar=d['name_ar'], category=d['category'], base_price=d.get('base_price', 0), insurance_price=d.get('insurance_price'), emergency_price=d.get('emergency_price'), is_active=True)
                     db.session.add(svc)
                     created += 1
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created}
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error seeding service master: {str(e)}")
             return {'success': False, 'message': 'تعذر تهيئة الخدمات الرئيسية حالياً'}
 
@@ -729,10 +731,10 @@ class PricingService:
                     sp = ServicePrice(**i)
                     db.session.add(sp)
                     created += 1
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created}
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error seeding service prices: {str(e)}")
             return {'success': False, 'message': 'تعذر تهيئة أسعار الخدمات حالياً'}
 
@@ -747,10 +749,10 @@ class PricingService:
                     dp = DoctorPricing(doctor_id=doc.id, department_id=doc.department_id, consultation_price=50.0, follow_up_price=35.0, emergency_price=100.0, vip_price=120.0, is_active=True, effective_from=datetime.now(timezone.utc))
                     db.session.add(dp)
                     created += 1
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created}
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error seeding doctor pricing: {str(e)}")
             return {'success': False, 'message': 'تعذر تهيئة أسعار الأطباء حالياً'}
 
@@ -833,10 +835,10 @@ class PricingService:
                     pc = PricingCatalog(**i, is_active=True, is_temporary=False, created_by=creator.id)
                     db.session.add(pc)
                     created += 1
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'created': created}
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error seeding pricing catalog: {str(e)}")
             return {'success': False, 'message': 'تعذر تهيئة كتالوج الأسعار حالياً'}
 
@@ -871,10 +873,10 @@ class PricingService:
                     for extra in items[1:]:
                         db.session.delete(extra)
                         removed += 1
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'removed': removed}
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error cleaning service prices: {str(e)}")
             return {'success': False, 'message': 'تعذر تنظيف أسعار الخدمات حالياً'}
 
@@ -893,10 +895,10 @@ class PricingService:
                     for extra in items[1:]:
                         db.session.delete(extra)
                         removed += 1
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'removed': removed}
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error cleaning pricing catalog: {str(e)}")
             return {'success': False, 'message': 'تعذر تنظيف كتالوج الأسعار حالياً'}
 
@@ -915,10 +917,10 @@ class PricingService:
                     for extra in items[1:]:
                         db.session.delete(extra)
                         removed += 1
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'removed': removed}
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error cleaning doctor pricing: {str(e)}")
             return {'success': False, 'message': 'تعذر تنظيف أسعار الأطباء حالياً'}
 
@@ -938,10 +940,10 @@ class PricingService:
                             for dp in dps:
                                 db.session.delete(dp)
                         deactivated += 1
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'deactivated': deactivated}
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error cleaning users: {str(e)}")
             return {'success': False, 'message': 'تعذر تنظيف المستخدمين حالياً'}
 
@@ -1027,9 +1029,10 @@ class PricingService:
                         db.session.delete(dp)
                 db.session.delete(u)
                 deleted += 1
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية قاعدة البيانات"):
+                return {'success': False, 'message': 'تعذر تنفيذ العملية حالياً'}
             return {'success': True, 'deleted': deleted, 'kept': len(kept_ids)}
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error purging users: {str(e)}")
             return {'success': False, 'message': 'تعذر تنفيذ عملية الحذف حالياً'}
+

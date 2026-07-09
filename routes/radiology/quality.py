@@ -15,6 +15,7 @@ from models.file_management import FileUpload
 from models.system_config import SystemConfig
 from app.shared.enums import OrderState, RadiologyResultStatus
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json, os, base64, secrets
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
@@ -58,7 +59,7 @@ def quality():
             RadiologyRequest.updated_at <= end_dt
         ).scalar()
     except Exception:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         avg_tat_seconds = None
     avg_tat_minutes = float(avg_tat_seconds or 0) / 60.0 if avg_tat_seconds is not None else 0.0
 
@@ -161,9 +162,9 @@ def second_review_result(result_id):
             return jsonify({'success': False, 'message': 'النتيجة غير موجودة'}), 404
         res.reviewed_by = current_user.id
         res.reviewed_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True}), 200
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Second review radiology result error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر حفظ المراجعة حالياً'}), 500

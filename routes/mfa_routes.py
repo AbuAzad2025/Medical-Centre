@@ -4,6 +4,7 @@ Two-Factor Authentication Routes
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session, jsonify
 from flask_login import login_required, current_user
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from models import UserMFASettings, MFALoginAttempt
 from utils.decorators import handle_route_errors
 import pyotp
@@ -27,7 +28,7 @@ def setup():
     if not mfa:
         mfa = UserMFASettings(user_id=current_user.id)
         db.session.add(mfa)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
     if mfa.totp_enabled:
         flash('2FA مفعّل بالفعل', 'info')
@@ -47,7 +48,7 @@ def setup():
             # Generate backup codes
             codes = [secrets.token_hex(4) for _ in range(10)]
             mfa.backup_codes = json.dumps([hashlib.sha256(c.encode()).hexdigest() for c in codes])
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تفعيل 2FA بنجاح!', 'success')
             return render_template('mfa/backup_codes.html', codes=codes)
         else:
@@ -56,7 +57,7 @@ def setup():
     # Generate new secret if not exists
     if not mfa.totp_secret:
         mfa.totp_secret = pyotp.random_base32()
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
     totp = pyotp.TOTP(mfa.totp_secret)
     provisioning_uri = totp.provisioning_uri(
@@ -120,7 +121,7 @@ def verify():
 
         if success:
             mfa.last_mfa_at = datetime.now(timezone.utc)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             session.pop('mfa_pending_user_id', None)
             from flask_login import login_user
             from models import User
@@ -129,7 +130,7 @@ def verify():
             flash('تم التحقق بنجاح', 'success')
             return redirect(url_for('main.dashboard'))
         else:
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('رمز التحقق غير صحيح', 'danger')
 
     return render_template('mfa/verify.html')
@@ -153,7 +154,7 @@ def disable():
         mfa.totp_verified = False
         mfa.totp_secret = None
         mfa.backup_codes = None
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم تعطيل 2FA', 'info')
     return redirect(url_for('mfa.status'))
 
@@ -176,6 +177,6 @@ def api_check():
     totp = pyotp.TOTP(mfa.totp_secret)
     if totp.verify(code, valid_window=1):
         mfa.last_mfa_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return {'success': True}
     return {'success': False, 'error': 'Invalid code'}, 401

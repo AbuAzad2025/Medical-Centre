@@ -8,6 +8,7 @@ from typing import Optional
 
 from app.extensions import db
 from app.shared.enums import BackupStatus
+from utils.db_safety import safe_commit
 from models.backup import Backup
 from services.pg_backup_service import PgBackupError, build_backup_path, run_pg_dump_sql_gz
 
@@ -61,7 +62,7 @@ class BackupAutomationService:
             description='Automated PostgreSQL pg_dump backup',
         )
         db.session.add(record)
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to save backup record", reraise=True)
 
         try:
             size = run_pg_dump_sql_gz(path)
@@ -71,13 +72,13 @@ class BackupAutomationService:
             cloud_uri = cls.upload_to_cloud(path)
             if cloud_uri:
                 record.backup_notes = f'cloud_uri={cloud_uri}'
-            db.session.commit()
+            safe_commit(db.session, error_message="Failed to finalise backup record", reraise=True)
             logger.info('Automated backup completed id=%s path=%s', record.id, path)
             return record
         except PgBackupError as exc:
             record.backup_status = BackupStatus.FAILED
             record.backup_notes = str(exc)
-            db.session.commit()
+            safe_commit(db.session, error_message="Failed to save backup failure status")
             logger.error('Automated backup failed id=%s: %s', record.id, exc)
             raise BackupAutomationError(str(exc)) from exc
 

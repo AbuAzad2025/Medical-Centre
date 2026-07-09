@@ -34,6 +34,7 @@ WHAT IT DOES
 """
 
 from __future__ import annotations
+from utils.db_safety import safe_commit
 
 import argparse
 import json
@@ -282,7 +283,7 @@ def _reset_data(db) -> None:
                 "WHERE id = 1"
             )
         )
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         print("  CLEARED tenants (kept id=1 platform)")
         # Ensure platform tenant id=1 exists (may have been lost in a prior failed run).
         row = db.session.execute(
@@ -299,7 +300,7 @@ def _reset_data(db) -> None:
                 storage_mode=StorageMode.LOCAL,
             )
             db.session.add(t)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             print("  RECREATED platform tenant (id=1)")
     finally:
         db.session.execute(_text("SET session_replication_role = 'origin'"))
@@ -372,7 +373,7 @@ def _seed_platform_owner(db, strong_pw: str):
     )
     u.set_password(strong_pw)
     db.session.add(u)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     print(f"  Created platform owner: master")
     return u
 
@@ -466,7 +467,7 @@ def _seed_tenant_centres(db, bundles: list[dict], shared_pw: str) -> dict:
         name_safe = b["name"].encode("ascii", errors="replace").decode()
         print(f"  Centre: {name_safe} ({slug}) — {n_mods} modules, {n_users} users")
 
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     return centres
 
 
@@ -695,8 +696,7 @@ def _seed_demo_data(db, centres: dict):
                 )
                 db.session.add(rr)
 
-        db.session.commit()
-
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     print("  Demo data seeded for all centres.")
 
 

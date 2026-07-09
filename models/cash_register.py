@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, date, time
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.mixins import TenantMixin
 import logging
 
@@ -60,10 +61,10 @@ class CashRegister(TenantMixin, db.Model):
                     is_open=True
                 )
                 db.session.add(reg)
-                db.session.commit()
+                safe_commit(db.session, error_message="database commit failed", reraise=True)
             return reg
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error("CashRegister.get_or_create_today failed")
             raise
 

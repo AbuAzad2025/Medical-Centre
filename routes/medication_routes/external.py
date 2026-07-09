@@ -12,6 +12,7 @@ from models.visit import Visit
 from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
 from models.drug_interaction import DrugInteraction
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json
 from datetime import datetime, timezone, timedelta, date
 from sqlalchemy import func
@@ -80,10 +81,10 @@ def api_external_drug_import():
                 if item.get('minimum_stock') is not None:
                     med.minimum_stock = item.get('minimum_stock')
                 updated += 1
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True, 'imported': imported, 'updated': updated}), 200
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error importing external drug catalog: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر استيراد الدليل الدوائي'}), 500
 

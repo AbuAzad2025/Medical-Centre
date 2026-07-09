@@ -20,6 +20,7 @@ from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from sqlalchemy import and_, or_, desc, func, case
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
@@ -317,9 +318,9 @@ def save_dental_chart():
             )
             db.session.add(tooth)
 
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True, 'chart_id': chart.id})
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error saving dental chart: {e}")
         return jsonify({'success': False, 'message': 'تعذّر حفظ خريطة الأسنان'}), 500

@@ -4,6 +4,7 @@ InventoryLedgerService — mandatory stock ledger for every movement
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
+from utils.db_safety import safe_commit
 
 
 class InventoryLedgerService:
@@ -36,7 +37,7 @@ class InventoryLedgerService:
             created_by=getattr(g, 'current_user', None) and g.current_user.id or None,
         )
         db.session.add(movement)
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to record stock movement", reraise=True)
         return {"id": movement.id, "type": movement_type, "quantity": quantity}
 
     @staticmethod

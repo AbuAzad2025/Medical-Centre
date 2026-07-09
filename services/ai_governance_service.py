@@ -4,6 +4,7 @@ AIRecommendationGovernanceService - governance and audit for AI recommendations
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
+from utils.db_safety import safe_commit
 
 
 class AIRecommendationGovernanceService:
@@ -27,7 +28,7 @@ class AIRecommendationGovernanceService:
             created_at=datetime.now(timezone.utc),
         )
         db.session.add(prediction)
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to log AI recommendation", reraise=True)
         return {"prediction_id": prediction.id, "status": "logged"}
 
     @staticmethod

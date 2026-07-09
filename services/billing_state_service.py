@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
 from app.shared.enums import BillingState, PaymentStatus
+from utils.db_safety import safe_commit
 from utils.tenant_query import get_tenant_record
 
 
@@ -77,7 +78,7 @@ class ReceiptService:
         )
         receipt.generate_receipt_number()
         db.session.add(receipt)
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to issue receipt", reraise=True)
         return {"receipt_id": receipt.id, "status": "issued"}
 
     @staticmethod
@@ -88,7 +89,7 @@ class ReceiptService:
             receipt.status = 'printed'
             receipt.is_printed = True
             receipt.printed_at = datetime.now(timezone.utc)
-            db.session.commit()
+            safe_commit(db.session, error_message="Failed to mark receipt printed", reraise=True)
 
     @staticmethod
     def void_receipt(receipt_id: int, reason: str = ""):
@@ -97,7 +98,7 @@ class ReceiptService:
         if receipt:
             receipt.status = 'voided'
             receipt.void_reason = reason
-            db.session.commit()
+            safe_commit(db.session, error_message="Failed to void receipt", reraise=True)
 
 
 class PaymentAllocationService:

@@ -23,6 +23,7 @@ from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging
 from services.access_control_service import AccessControlService
 from services.pos_terminal_service import PosTerminalService
@@ -245,7 +246,7 @@ def add_patient():
             )
             
             db.session.add(patient)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             
             if _wants_json():
                 return jsonify({'success': True, 'patient_id': patient.id})
@@ -253,7 +254,7 @@ def add_patient():
             return redirect(url_for('reception.patients'))
             
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error adding patient: {str(e)}")
             if _wants_json():
                 return jsonify({'success': False, 'message': 'تعذر إضافة المريض، يرجى التحقق من البيانات والمحاولة مرة أخرى'}), 400
@@ -428,14 +429,14 @@ def edit_patient(patient_id):
             patient.last_menstruation_date = last_menstruation_date
             patient.pregnancy_notes = pregnancy_notes
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             if _wants_json():
                 return jsonify({'success': True, 'patient_id': patient.id})
             flash('تم تحديث بيانات المريض بنجاح.', 'success')
             return redirect(url_for('reception.view_patient', patient_id=patient_id))
             
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             if _wants_json():
                 return jsonify({'success': False, 'message': 'تعذر تحديث بيانات المريض، يرجى التحقق من البيانات والمحاولة مرة أخرى'}), 400
             flash('تعذر تحديث بيانات المريض، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
@@ -477,10 +478,10 @@ def delete_patient(patient_id):
             flash('لا يمكن حذف المريض لوجود ' + ' و '.join(parts) + '. يرجى أرشفة/حذف السجلات المرتبطة أولاً.', 'warning')
             return redirect(url_for('reception.patients'))
         db.session.delete(patient)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم حذف المريض بنجاح.', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error deleting patient: {str(e)}")
         flash('حدث خطأ أثناء حذف المريض.', 'error')
     return redirect(url_for('reception.patients'))

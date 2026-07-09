@@ -14,6 +14,7 @@ from typing import Iterator, Optional, Tuple
 from flask import g, has_request_context, request
 
 from app.extensions import db
+from utils.db_safety import safe_commit
 from app.core.saas.lifecycle import ProvisioningError, TenantProvisioningService
 from app.core.saas.models import PackageVersion, PackageVersionAvailability, PackageVersionAvailabilityStatus
 from app.core.tenant.models import Tenant, PlatformAuditLog
@@ -253,7 +254,7 @@ class SaasRegistrationService:
         )
         admin.set_password(admin_password)
         db.session.add(admin)
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to save admin user", reraise=True)
 
         # Ticket 10: platform audit trail for tenant creation
         try:
@@ -278,7 +279,7 @@ class SaasRegistrationService:
             ip_address=ip,
             user_agent=ua,
         ))
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to save audit log", reraise=True)
 
         logger.info(
             'SaaS registration complete tenant_id=%s slug=%s admin=%s pending_payment=%s',

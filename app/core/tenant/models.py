@@ -4,6 +4,7 @@ Tenant Models — multi-tenancy foundation
 from datetime import datetime, timezone
 from decimal import Decimal
 from app.extensions import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import SubscriptionType, TenantStatus, StorageMode, ProductProfile
 import json
 
@@ -310,7 +311,7 @@ class ResourceUsage(db.Model):
             total_invoices=Invoice.query.filter_by(tenant_id=tenant_id).count(),
         )
         db.session.add(snapshot)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return snapshot
 
 
@@ -855,7 +856,7 @@ def seed_default_bundles() -> None:
             profile_code=slug,
         )
         db.session.add(b)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     print(f"Seeded {len(bundle_defs)} default ProductBundles")
 
 

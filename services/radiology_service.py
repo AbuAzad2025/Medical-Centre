@@ -12,6 +12,7 @@ from typing import Any
 
 from flask import g
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from werkzeug.utils import secure_filename
 
 
@@ -148,7 +149,7 @@ class RadiologyService:
             db.session.flush()
             return result
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="فشل إنشاء نتيجة الأشعة")
             logging.error(f"Error creating radiology result: {str(e)}")
             return None
 
@@ -165,10 +166,9 @@ class RadiologyService:
                 result.completed_at = datetime.now(timezone.utc)
             req.status = "DONE"
             req.updated_at = datetime.now(timezone.utc)
-            db.session.commit()
+            safe_commit(db.session, error_message="فشل اعتماد نتيجة الأشعة", reraise=True)
             return True
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error finalizing radiology result: {str(e)}")
             return False
 
@@ -180,10 +180,9 @@ class RadiologyService:
             if not req or req.status != "REQUESTED":
                 return False
             req.status = "IN_PROGRESS"
-            db.session.commit()
+            safe_commit(db.session, error_message="فشل استلام طلب الأشعة", reraise=True)
             return True
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error claiming radiology request: {str(e)}")
             return False
 
@@ -265,9 +264,8 @@ class RadiologyService:
                 user_id=user_id, created_at=datetime.now(timezone.utc),
             )
             db.session.add(log)
-            db.session.commit()
+            safe_commit(db.session, error_message="فشل تسجيل إجراء الأشعة")
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error logging radiology action: {str(e)}")
 
     # ==================== DASHBOARD ====================

@@ -5,6 +5,7 @@ Medical System Branding Management
 
 from datetime import datetime, timezone
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.mixins import TenantMixin
 import os
 
@@ -140,10 +141,10 @@ class BrandingSettings(TenantMixin, db.Model):
                 updated_by=user_id
             )
             db.session.add(default_branding)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             return default_branding
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error("BrandingSettings.create_default failed")
             raise
 
@@ -220,8 +221,8 @@ class SystemTheme(TenantMixin, db.Model):
                         theme.is_default = True
                     db.session.add(theme)
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error("SystemTheme.create_default_themes failed")
             raise

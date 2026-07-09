@@ -8,6 +8,7 @@ from functools import wraps
 
 from flask import jsonify, redirect, url_for, flash, current_app, request
 from flask_login import current_user
+from utils.db_safety import safe_commit, safe_rollback
 
 _PLATFORM_ROLES = frozenset({"super_admin", "owner"})
 _SENSITIVE_API_PREFIXES = (
@@ -69,7 +70,7 @@ def _audit_owner_api_access() -> None:
             details=f"path={request.path}, method={request.method}",
         )
         db.session.add(log)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     except Exception:
         from app.extensions import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")

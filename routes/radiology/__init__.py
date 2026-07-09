@@ -15,6 +15,7 @@ from models.file_management import FileUpload
 from models.system_config import SystemConfig
 from app.shared.enums import LabResultStatus, OrderState
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging
 from datetime import datetime, date, timezone
 from datetime import timedelta
@@ -112,7 +113,7 @@ def _get_radiology_report_templates():
         db.session.add(cfg)
         templates = _default_radiology_report_templates()
         cfg.set_value(templates)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return templates
 
     templates = cfg.get_value() if cfg.config_type == 'json' else []
@@ -122,7 +123,7 @@ def _get_radiology_report_templates():
         templates = _default_radiology_report_templates()
         cfg.set_value(templates)
         cfg.updated_by = getattr(current_user, 'id', None)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     return templates
 
 def _save_radiology_report_templates(templates):
@@ -145,7 +146,7 @@ def _save_radiology_report_templates(templates):
     cfg.config_type = 'json'
     cfg.set_value(templates)
     cfg.updated_by = getattr(current_user, 'id', None)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
 
 def _get_radiology_report_macros():
     cfg = _radiology_macros_cfg()
@@ -164,7 +165,7 @@ def _get_radiology_report_macros():
         db.session.add(cfg)
         macros = _default_radiology_report_macros()
         cfg.set_value(macros)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return macros
 
     macros = cfg.get_value() if cfg.config_type == 'json' else []
@@ -174,7 +175,7 @@ def _get_radiology_report_macros():
         macros = _default_radiology_report_macros()
         cfg.set_value(macros)
         cfg.updated_by = getattr(current_user, 'id', None)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     return macros
 
 def _save_radiology_report_macros(macros):
@@ -197,7 +198,7 @@ def _save_radiology_report_macros(macros):
     cfg.config_type = 'json'
     cfg.set_value(macros)
     cfg.updated_by = getattr(current_user, 'id', None)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
 
 
 
@@ -227,7 +228,7 @@ def get_radiology_smart_analytics():
                 db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at))
             ).filter(RadiologyRequest.status == OrderState.DONE).scalar()
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             avg_processing_seconds = None
         avg_processing_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
         return {
@@ -251,7 +252,7 @@ def get_radiology_imaging_optimization():
                 db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at))
             ).filter(RadiologyRequest.status == OrderState.DONE).scalar()
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             avg_processing_seconds = None
         avg_imaging_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
         total_processed = RadiologyRequest.query.filter(RadiologyRequest.status == OrderState.DONE).count()

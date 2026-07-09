@@ -22,6 +22,7 @@ from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging
 from app.shared.enums import VisitState
 from services.access_control_service import AccessControlService
@@ -109,7 +110,7 @@ def archive_visit(visit_id):
         else:
             flash(msg or 'لا يمكن أرشفة الزيارة', 'warning')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error archiving visit: {str(e)}")
         flash('حدث خطأ أثناء الأرشفة', 'error')
     return redirect(url_for('reception.visits'))
@@ -135,7 +136,7 @@ def end_visit(visit_id):
         else:
             flash(msg or 'لا يمكن إنهاء الزيارة', 'warning')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error ending visit: {str(e)}")
         flash('حدث خطأ أثناء إنهاء الزيارة', 'error')
     return redirect(url_for('reception.visits'))
@@ -677,7 +678,7 @@ def create_visit():
             except Exception as _counter_err:
                 logging.warning(f"Could not update patient visit counter: {str(_counter_err)}")
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             
             # ========== المرحلة 12: إضافة للطابور ==========
             # نحاول إضافة المريض للطابور، والخدمة تتحقق من شروط الدفع والديون
@@ -720,11 +721,11 @@ def create_visit():
             
         except ValueError as ve:
             # أخطاء التحقق - تم عرضها بالفعل
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.warning(f"Validation error in create_visit: {str(ve)}")
         except Exception as e:
             # أخطاء غير متوقعة
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash('تعذر إنشاء الزيارة، يرجى المحاولة مرة أخرى', 'error')
             logging.error(f"Error creating visit: {str(e)}", exc_info=True)
     
@@ -1080,11 +1081,11 @@ def edit_visit(visit_id):
             visit.notes = notes
             visit.payment_method = payment_method
 
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تعديل الزيارة بنجاح', 'success')
             return redirect(url_for('reception.view_visit', visit_id=visit.id))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error editing visit: {str(e)}")
             flash('حدث خطأ أثناء تعديل الزيارة', 'error')
             return redirect(url_for('reception.edit_visit', visit_id=visit_id))
@@ -1179,7 +1180,7 @@ def add_service_to_visit(visit_id):
         if remaining > 0:
             visit.payment_status = PaymentStatus.PARTIAL if visit.paid_amount > 0 else PaymentStatus.PENDING
 
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         # Audit trail
         from models.audit_trail import AuditTrail
@@ -1192,13 +1193,13 @@ def add_service_to_visit(visit_id):
             user_ip=request.remote_addr
         )
         db.session.add(audit)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         flash(f'تمت إضافة الخدمة {svc.name} إلى الزيارة', 'success')
         return redirect(url_for('reception.view_visit', visit_id=visit_id))
 
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error adding service to visit: {str(e)}")
         flash('حدث خطأ أثناء إضافة الخدمة', 'error')
         return redirect(url_for('reception.view_visit', visit_id=visit_id))
@@ -1235,7 +1236,7 @@ def reception_return_to_treatment(visit_id):
             flash(str(exc), 'warning')
             return redirect(url_for('reception.view_visit', visit_id=visit_id))
 
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         from models.audit_trail import AuditTrail
         import json
@@ -1249,13 +1250,13 @@ def reception_return_to_treatment(visit_id):
             new_values=json.dumps({'status': 'OPEN', 'reason': reason})
         )
         db.session.add(audit)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         flash('تم إعادة فتح الزيارة للعلاج بنجاح', 'success')
         return redirect(url_for('reception.view_visit', visit_id=visit_id))
 
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error returning visit to treatment: {str(e)}")
         flash('حدث خطأ في إعادة فتح العلاج', 'error')
         return redirect(url_for('reception.view_visit', visit_id=visit_id))

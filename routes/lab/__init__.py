@@ -16,6 +16,7 @@ from models.lab_reagent import LabReagent
 from models.audit_trail import AuditTrail
 from app.shared.enums import LabResultStatus, OrderState
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging
 from datetime import datetime, date, timezone, timedelta
 import json
@@ -61,7 +62,7 @@ def get_lab_smart_analytics():
                 db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
             ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None)).scalar()
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             avg_processing_seconds = None
         avg_processing_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
         return {
@@ -85,7 +86,7 @@ def get_lab_test_optimization():
                 db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
             ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None)).scalar()
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             avg_processing_seconds = None
         avg_processing_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
         total_processed = LabRequest.query.filter(LabRequest.status == OrderState.DONE).count()

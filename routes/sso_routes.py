@@ -4,6 +4,7 @@ SSO / LDAP Configuration Routes
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from models import SSOConfiguration
 from services.sso_service import sso_service
 from utils.decorators import handle_route_errors
@@ -28,7 +29,7 @@ def config():
             default_role=request.form.get('default_role', 'user')
         )
         db.session.add(cfg)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم إضافة إعدادات SSO', 'success')
         return redirect(url_for('sso.config'))
     return render_template('sso/config.html', configs=configs)
@@ -40,6 +41,6 @@ def config():
 def toggle(config_id):
     cfg = SSOConfiguration.query.get_or_404(config_id)
     cfg.is_active = not cfg.is_active
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     flash(f"SSO {'مفعّل' if cfg.is_active else 'معطّل'}", 'success')
     return redirect(url_for('sso.config'))

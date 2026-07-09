@@ -18,6 +18,7 @@ from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
 from services.emergency_service import emergency_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from sqlalchemy import and_, or_, desc, case
 import logging, json
 from datetime import datetime, date, timedelta, timezone
@@ -154,7 +155,7 @@ def triage(emergency_id):
             if emergency.status in [EmergencyStatus.IN_PROGRESS, EmergencyStatus.TRIAGE]:
                 _set_emergency_status(emergency, EmergencyStatus.TREATMENT)
 
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
 
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'success': True})

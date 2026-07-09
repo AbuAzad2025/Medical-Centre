@@ -10,6 +10,7 @@ from decimal import Decimal
 from typing import Any
 
 from app_factory import db
+from utils.db_safety import safe_rollback
 from sqlalchemy import and_
 from utils.tenant_query import get_tenant_record, TenantContextError
 
@@ -94,7 +95,7 @@ class PaymentService:
 
             return True, payment
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="فشل إنشاء الدفعة")
             logging.error(f"Error creating payment: {str(e)}")
             return False, str(e)
 

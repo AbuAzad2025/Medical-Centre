@@ -8,6 +8,7 @@ from typing import Any, Optional
 import stripe
 
 from app.extensions import db
+from utils.db_safety import safe_commit
 from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.models import PackageVersion, PackageVersionPricing
 from app.core.saas.projection import EntitlementProjectionService
@@ -85,7 +86,7 @@ class StripeBillingService:
             metadata={'tenant_id': str(tenant.id), 'tenant_slug': tenant.slug},
         )
         cls._store_stripe_refs(tenant, customer_id=customer.id)
-        db.session.commit()
+        safe_commit(db.session, error_message="فشل حفظ عميل Stripe", reraise=True)
         return customer.id
 
     @classmethod
@@ -164,7 +165,7 @@ class StripeBillingService:
             if getattr(subscription, 'status', None) in ('canceled', 'cancelled'):
                 TenantProvisioningService.cancel_tenant(tenant_id)
                 EntitlementProjectionService.calculate(tenant_id)
-            db.session.commit()
+            safe_commit(db.session, error_message="فشل إلغاء الاشتراك (نهاية الفترة)", reraise=True)
             return {
                 'subscription_id': subscription.id,
                 'status': subscription.status,
@@ -173,7 +174,7 @@ class StripeBillingService:
 
         subscription = stripe.Subscription.cancel(subscription_id)
         TenantProvisioningService.cancel_tenant(tenant_id)
-        db.session.commit()
+        safe_commit(db.session, error_message="فشل إلغاء الاشتراك", reraise=True)
         EntitlementProjectionService.calculate(tenant_id)
         return {
             'subscription_id': subscription.id,
@@ -251,7 +252,7 @@ class StripeBillingService:
             action = 'downgrade'
 
         cls._store_stripe_refs(tenant, subscription_id=subscription_id)
-        db.session.commit()
+        safe_commit(db.session, error_message="فشل تغيير خطة الاشتراك", reraise=True)
         EntitlementProjectionService.calculate(tenant_id)
         return {
             'action': action,

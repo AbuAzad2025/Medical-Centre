@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors, role_required
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from models import PatientEducationMaterial, PatientEducationAssignment, Patient
 import os
 import logging
@@ -44,9 +45,9 @@ def view_material(material_id):
     material = PatientEducationMaterial.query.get_or_404(material_id)
     try:
         material.view_count += 1
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error updating view count: {e}")
     assignments = PatientEducationAssignment.query.filter_by(material_id=material_id).order_by(
         PatientEducationAssignment.created_at.desc()).limit(20).all()
@@ -83,7 +84,7 @@ def new_material():
             material.file_type = filename.rsplit('.', 1)[1].lower()
 
         db.session.add(material)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم إضافة المادة التعليمية بنجاح', 'success')
         return redirect(url_for('patient_education.view_material', material_id=material.id))
 
@@ -112,7 +113,7 @@ def edit_material(material_id):
             material.file_path = f'/static/uploads/education/{filename}'
             material.file_type = filename.rsplit('.', 1)[1].lower()
 
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم تحديث المادة التعليمية', 'success')
         return redirect(url_for('patient_education.view_material', material_id=material.id))
 
@@ -139,7 +140,7 @@ def assign_material():
         notes=notes
     )
     db.session.add(assignment)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     flash('تم إسناد المادة التعليمية للمريض', 'success')
     return redirect(url_for('patient_education.view_material', material_id=material_id))
 

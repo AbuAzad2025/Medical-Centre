@@ -7,6 +7,7 @@ from models.patient import Patient
 from models.visit import Visit
 from models.medication import Medication
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import TaskState, VisitState
 import logging
 from datetime import datetime, timedelta, timezone, date
@@ -58,7 +59,7 @@ def _get_nursing_protocols():
         db.session.add(cfg)
         data = _default_nursing_protocols()
         cfg.set_value(data)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return data
     data = cfg.get_value() if cfg.config_type == 'json' else []
     if not isinstance(data, list) or not data:
@@ -66,7 +67,7 @@ def _get_nursing_protocols():
         cfg.config_type = 'json'
         cfg.set_value(data)
         cfg.updated_by = getattr(current_user, 'id', None)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     return data
 
 def _save_nursing_protocols(items):
@@ -88,7 +89,7 @@ def _save_nursing_protocols(items):
     cfg.config_type = 'json'
     cfg.set_value(items)
     cfg.updated_by = getattr(current_user, 'id', None)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
 
 
 

@@ -12,6 +12,7 @@ from models.visit import Visit
 from models.medication import Medication
 from services.nursing_service import nursing_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json
 from datetime import datetime, timedelta, timezone, date
 from sqlalchemy import func, and_, or_, desc
@@ -115,12 +116,12 @@ def record_vital_signs(patient_id):
             notes=(request.form.get('notes') or '').strip() or None
         )
         db.session.add(record)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         return jsonify({'success': True, 'message': 'تم تسجيل العلامات الحيوية بنجاح', 'data': record.to_dict()})
         
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error recording vital signs: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر تسجيل العلامات الحيوية حالياً'})
 

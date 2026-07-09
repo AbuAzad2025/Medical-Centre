@@ -4,6 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
 specialty_forms_bp = Blueprint('specialty_forms', __name__)
@@ -47,11 +48,11 @@ def new_form():
             db.session.add(version)
             db.session.flush()
             _save_fields_from_request(version.id)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إنشاء النموذج', 'success')
             return redirect(url_for('specialty_forms.edit_version', form_id=form.id, version_id=version.id))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash('حدث خطأ أثناء إنشاء النموذج', 'error')
             import logging
             logging.error(f"Error creating specialty form: {e}")
@@ -86,11 +87,11 @@ def edit_version(form_id, version_id):
                 db.session.delete(old)
             db.session.flush()
             _save_fields_from_request(version.id)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم حفظ النموذج', 'success')
             return redirect(url_for('specialty_forms.edit_version', form_id=form.id, version_id=version.id))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash('حدث خطأ أثناء حفظ النموذج', 'error')
             import logging
             logging.error(f"Error editing specialty form: {e}")
@@ -113,11 +114,11 @@ def publish_version(form_id, version_id):
         version.published_at = datetime.now(timezone.utc)
         version.published_by = current_user.id
         form.latest_published_version_id = version.id
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم نشر النسخة', 'success')
         return redirect(url_for('specialty_forms.view_form', form_id=form.id))
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash('حدث خطأ أثناء نشر النسخة', 'error')
         import logging
         logging.error(f"Error publishing specialty form: {e}")
@@ -154,11 +155,11 @@ def fill_form(form_id):
                 answers=answers, submitted_by=current_user.id
             )
             db.session.add(submission)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم حفظ الإجابات', 'success')
             return redirect(url_for('specialty_forms.view_submission', submission_id=submission.id))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash('حدث خطأ أثناء حفظ الإجابات', 'error')
             import logging
             logging.error(f"Error saving specialty form submission: {e}")

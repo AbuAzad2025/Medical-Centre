@@ -3,6 +3,7 @@
 from models.patient import Patient
 from models.patient_account import PatientAccount
 from app_factory import db
+from utils.db_safety import safe_commit
 
 
 DEFAULT_PORTAL_PREFERENCES = {
@@ -47,7 +48,7 @@ def save_portal_preferences(user, updates: dict) -> bool:
         if key in allowed:
             current[key] = bool(value)
     link.portal_preferences = current
-    db.session.commit()
+    safe_commit(db.session, error_message="Failed to save portal preferences", reraise=True)
     return True
 
 
@@ -81,5 +82,5 @@ def verify_and_link_patient(user, *, national_id=None, phone=None):
             portal_preferences=dict(DEFAULT_PORTAL_PREFERENCES),
         )
         db.session.add(link)
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to link patient account", reraise=True)
     return patient, None

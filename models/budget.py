@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, date
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.mixins import TenantMixin
 import logging
 
@@ -48,9 +49,9 @@ class Budget(TenantMixin, db.Model):
             if not b:
                 b = cls(year=year, month=month, department_id=department_id, created_by=user_id)
                 db.session.add(b)
-                db.session.commit()
+                safe_commit(db.session, error_message="database commit failed", reraise=True)
             return b
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Budget.get_or_create failed for year={year} month={month}")
             raise

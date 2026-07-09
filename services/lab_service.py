@@ -11,6 +11,7 @@ from typing import Any
 from flask import g
 from app_factory import db
 from sqlalchemy import func
+from utils.db_safety import safe_commit
 
 
 class LabService:
@@ -67,7 +68,7 @@ class LabService:
         found_ids = {c.id for c in catalog_items}
         missing = set(test_ids) - found_ids
         if missing:
-            db.session.rollback()
+            safe_commit(db.session, error_message="Unknown or inactive test IDs")
             return False, {"error": f"Unknown or inactive test IDs: {sorted(missing)}"}
 
         for catalog in catalog_items:
@@ -212,10 +213,8 @@ class LabService:
             if req:
                 req.status = "DONE"
                 req.completed_at = now
-            db.session.commit()
-            return True
+            return safe_commit(db.session, error_message="Error finalizing lab results")
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error finalizing lab results: {str(e)}")
             return False
 
@@ -234,10 +233,10 @@ class LabService:
         try:
             entry = LabQualityControlEntry(**entry_data)
             db.session.add(entry)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="Error creating quality entry"):
+                return None
             return entry
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating quality entry: {str(e)}")
             return None
 
@@ -266,10 +265,8 @@ class LabService:
             if not reagent:
                 return False
             reagent.stock_quantity = quantity
-            db.session.commit()
-            return True
+            return safe_commit(db.session, error_message="Error updating reagent")
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error updating reagent: {str(e)}")
             return False
 
@@ -310,9 +307,8 @@ class LabService:
                 created_at=datetime.now(timezone.utc),
             )
             db.session.add(log)
-            db.session.commit()
+            safe_commit(db.session, error_message="Error logging lab action")
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error logging lab action: {str(e)}")
 
     # ==================== DASHBOARD ====================

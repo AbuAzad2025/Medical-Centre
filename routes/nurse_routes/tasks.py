@@ -12,6 +12,7 @@ from models.visit import Visit
 from models.medication import Medication
 from services.nursing_service import nursing_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json
 from datetime import datetime, timedelta, timezone, date
 from sqlalchemy import func, and_, or_, desc
@@ -102,11 +103,11 @@ def create_task():
             related_entity_id=related_entity_id,
             due_date=due_date,
         ))
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تمت إضافة المهمة', 'success')
         return redirect(url_for('nurse.tasks'))
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error creating nurse task: {str(e)}")
         flash('حدث خطأ أثناء إنشاء المهمة', 'error')
         return redirect(url_for('nurse.tasks'))
@@ -139,11 +140,11 @@ def update_task_status(task_id: int):
         else:
             t.completed_at = None
         t.updated_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم تحديث الحالة', 'success')
         return redirect(url_for('nurse.tasks'))
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error updating task status: {str(e)}")
         flash('حدث خطأ أثناء التحديث', 'error')
         return redirect(url_for('nurse.tasks'))

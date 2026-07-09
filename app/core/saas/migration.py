@@ -9,6 +9,7 @@ model without data loss.
 from typing import Optional
 
 from app.extensions import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.models import SubscriptionLine
 
@@ -64,7 +65,7 @@ def migrate_legacy_tenant_to_package(
         line,
         TenantProvisioningService._require_available_package_version(package_version_id),
     )
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
 
     from app.core.saas.projection import EntitlementProjectionService
 

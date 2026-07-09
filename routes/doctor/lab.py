@@ -20,6 +20,7 @@ from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import VisitState
 from sqlalchemy import and_, or_, desc, func, case
 import logging, json, secrets
@@ -78,7 +79,7 @@ def lab_request(visit_id):
             visit.notes = (visit.notes or '')
             visit.notes += (('\n\n' if visit.notes else '') + memo_text)
             visit.lab_tests_ordered = True
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             try:
                 db.session.add(AuditTrail(
                     entity_type='lab_test',
@@ -89,7 +90,7 @@ def lab_request(visit_id):
                     user_agent=request.headers.get('User-Agent'),
                     description='إضافة مذكرة تحاليل' + (' + LabRequest' if structured_ok else '')
                 ))
-                db.session.commit()
+                safe_commit(db.session, error_message="database commit failed", reraise=True)
             except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")

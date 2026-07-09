@@ -5,6 +5,7 @@ from flask import jsonify, redirect, render_template, request, url_for, g
 from flask_login import current_user, login_required
 
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from models.barcode_tracking import BarcodeRegistry, BarcodeScanLog
 from models.lab_request import LabRequest
 from routes.lab import lab_bp
@@ -53,7 +54,7 @@ def barcode_scan(barcode):
         lab_request.received_time = datetime.now(timezone.utc)
 
     lab_request.updated_at = datetime.now(timezone.utc)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
 
     return jsonify({
         'success': True,
@@ -81,6 +82,6 @@ def barcode_print(request_id):
             generated_by_id=current_user.id,
             tenant_id=getattr(current_user, 'tenant_id', None),
         )
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
     return render_template('lab/barcode_print.html', lab_request=lab_request)

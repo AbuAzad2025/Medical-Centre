@@ -11,6 +11,7 @@ from typing import Any
 
 from app_factory import db
 from flask import request
+from utils.db_safety import safe_commit
 from utils.tenant_query import get_tenant_record, TenantContextError
 
 
@@ -24,20 +25,17 @@ class FHIRService:
                    request_body: str | None = None, response_status: int = 200,
                    user_id: int | None = None) -> None:
         from models.fhir_mapping import FHIRAuditLog
-        try:
-            log = FHIRAuditLog(
-                action=action,
-                resource_type=resource_type,
-                resource_id=resource_id,
-                user_id=user_id,
-                ip_address=request.remote_addr,
-                request_body=request_body[:1000] if request_body else None,
-                response_status=response_status,
-            )
-            db.session.add(log)
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
+        log = FHIRAuditLog(
+            action=action,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            user_id=user_id,
+            ip_address=request.remote_addr,
+            request_body=request_body[:1000] if request_body else None,
+            response_status=response_status,
+        )
+        db.session.add(log)
+        safe_commit(db.session, error_message="Failed to log FHIR access")
 
     # ==================== PATIENT RESOURCES ====================
 

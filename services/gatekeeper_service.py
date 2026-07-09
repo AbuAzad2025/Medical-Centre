@@ -14,6 +14,7 @@ from models.invoice import Invoice, InvoiceService
 from models.audit_trail import AuditTrail
 from models.user import User
 from utils.tenant_query import get_tenant_record, TenantContextError
+from utils.db_safety import safe_commit
 import logging
 
 logger = logging.getLogger(__name__)
@@ -45,7 +46,7 @@ class GatekeeperService:
                     return False, "يتطلب إقرار المسؤولية للطوارئ/الدفع القوي"
                 # يبقى القفل المالي مفعل
                 visit.financial_locked = True
-                db.session.commit()
+                safe_commit(db.session, error_message="فشل تحديث القفل المالي للزيارة", reraise=True)
                 return True, "تم الإدراج مع القفل المالي"
             
             # للزيارات العادية: يتطلب سند قبض نظامي
@@ -195,7 +196,7 @@ class GatekeeperService:
                 visit.financial_locked = False
                 visit.financial_completed_at = datetime.now(timezone.utc)
             
-            db.session.commit()
+            safe_commit(db.session, error_message="فشل إنشاء سند القبض النظامي", reraise=True)
             
             # تسجيل التدقيق
             audit = AuditTrail(
@@ -213,7 +214,6 @@ class GatekeeperService:
             
         except Exception as e:
             current_app.logger.error(f"خطأ في إنشاء السند: {str(e)}")
-            db.session.rollback()
             return False, f"خطأ في النظام: {str(e)}"
     
     @staticmethod
@@ -252,7 +252,7 @@ class GatekeeperService:
             visit.paid_amount = amount
             visit.financial_locked = True  # يبقى مقفل حتى السند النظامي
             
-            db.session.commit()
+            safe_commit(db.session, error_message="فشل إنشاء السند المؤقت", reraise=True)
             
             # تسجيل التدقيق
             audit = AuditTrail(
@@ -270,7 +270,6 @@ class GatekeeperService:
             
         except Exception as e:
             current_app.logger.error(f"خطأ في إنشاء السند المؤقت: {str(e)}")
-            db.session.rollback()
             return False, f"خطأ في النظام: {str(e)}"
     
     @staticmethod
@@ -291,9 +290,9 @@ class GatekeeperService:
             # تحديث الزيارة
             visit.liability_acknowledged_at = datetime.now(timezone.utc)
             visit.financial_locked = True
-            
-            db.session.commit()
-            
+
+            safe_commit(db.session, error_message="فشل إقرار المسؤولية", reraise=True)
+
             # تسجيل التدقيق
             audit = AuditTrail(
                 entity_type='visit',
@@ -305,12 +304,11 @@ class GatekeeperService:
                 description='تم إقرار المسؤولية'
             )
             db.session.add(audit)
-            
+
             return True, "تم إقرار المسؤولية"
-            
+
         except Exception as e:
             current_app.logger.error(f"خطأ في إقرار المسؤولية: {str(e)}")
-            db.session.rollback()
             return False, f"خطأ في النظام: {str(e)}"
     
     @staticmethod
@@ -331,9 +329,9 @@ class GatekeeperService:
             
             # تحديث الزيارة
             visit.gl_posted_at = datetime.now(timezone.utc)
-            
-            db.session.commit()
-            
+
+            safe_commit(db.session, error_message="فشل الترحيل المالي", reraise=True)
+
             # تسجيل التدقيق
             audit = AuditTrail(
                 entity_type='visit',
@@ -345,12 +343,11 @@ class GatekeeperService:
                 description='تم الترحيل المالي'
             )
             db.session.add(audit)
-            
+
             return True, "تم الترحيل المالي"
-            
+
         except Exception as e:
             current_app.logger.error(f"خطأ في الترحيل المالي: {str(e)}")
-            db.session.rollback()
             return False, f"خطأ في النظام: {str(e)}"
     
     @staticmethod
@@ -384,9 +381,9 @@ class GatekeeperService:
             visit.archive_status = 'ARCHIVED'
             visit.archived_by = user_id
             visit.archived_at = datetime.now(timezone.utc)
-            
-            db.session.commit()
-            
+
+            safe_commit(db.session, error_message="فشل أرشفة الزيارة", reraise=True)
+
             # تسجيل التدقيق
             audit = AuditTrail(
                 entity_type='visit',
@@ -398,12 +395,11 @@ class GatekeeperService:
                 description='تم الأرشفة'
             )
             db.session.add(audit)
-            
+
             return True, "تم الأرشفة"
-            
+
         except Exception as e:
             current_app.logger.error(f"خطأ في الأرشفة: {str(e)}")
-            db.session.rollback()
             return False, f"خطأ في النظام: {str(e)}"
     
     # ========== وظائف التحقق من قواعد الدفع الجديدة ==========

@@ -148,7 +148,8 @@ class VisitWorkflowValidator:
         
         visit.status = new_stage.value
         if commit:
-            db.session.commit()
+            from utils.db_safety import safe_commit
+            safe_commit(db.session, error_message="Failed to save stage transition", reraise=True)
         
         flash(
             f"تم تحديث حالة المريض إلى '{VisitStage.stage_label_ar(new_stage)}'",

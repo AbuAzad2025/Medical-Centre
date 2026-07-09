@@ -16,6 +16,7 @@ from models.lab_reagent import LabReagent
 from models.audit_trail import AuditTrail
 from app.shared.enums import LabResultStatus
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json, base64
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
@@ -91,10 +92,10 @@ def api_fhir_lab_service_request():
                 status='PENDING'
             ))
         _log_lab_workflow(req.id, 'REQUESTED', 'fhir_service_request')
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'resourceType': 'ServiceRequest', 'id': str(req.id), 'status': 'active', 'subject': {'reference': f'Patient/{patient_id}'}, 'encounter': {'reference': f'Encounter/{visit_id}'}}), 201
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error importing FHIR ServiceRequest: {str(e)}")
         return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر استيراد طلب المختبر'}]}), 500
 
@@ -135,10 +136,10 @@ def api_fhir_lab_observation_import():
         res.performed_by = getattr(current_user, 'id', None)
         req.updated_at = datetime.now(timezone.utc)
         _log_lab_workflow(req.id, req.status, 'fhir_observation')
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'resourceType': 'Observation', 'id': str(res.id), 'status': 'final'}), 200
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error importing FHIR Observation: {str(e)}")
         return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر استيراد نتيجة المختبر'}]}), 500
 
@@ -181,10 +182,10 @@ def api_hl7_import():
                 status='PENDING'
             ))
         _log_lab_workflow(req.id, 'REQUESTED', 'hl7_import')
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True, 'request_id': req.id}), 201
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error importing HL7 lab payload: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر استيراد HL7'}), 500
 

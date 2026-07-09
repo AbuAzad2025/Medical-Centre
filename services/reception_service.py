@@ -10,6 +10,7 @@ from typing import Any
 
 from app_factory import db
 from app.shared.enums import VisitState
+from utils.db_safety import safe_commit
 from sqlalchemy import and_, or_, func
 from utils.tenant_query import get_tenant_record, TenantContextError
 
@@ -51,10 +52,10 @@ class ReceptionService:
                 address=data.get("address"),
             )
             db.session.add(patient)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="Failed to register patient"):
+                return None
             return patient
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error registering patient: {str(e)}")
             return None
 
@@ -85,10 +86,10 @@ class ReceptionService:
                 created_at=datetime.now(timezone.utc),
             )
             db.session.add(visit)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="Failed to create visit"):
+                return None
             return visit
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating visit: {str(e)}")
             return None
 
@@ -110,10 +111,8 @@ class ReceptionService:
             except TenantContextError:
                 return False
             apt.status = "CHECKED_IN"
-            db.session.commit()
-            return True
+            return safe_commit(db.session, error_message="Failed to check in appointment")
         except Exception:
-            db.session.rollback()
             return False
 
     @staticmethod

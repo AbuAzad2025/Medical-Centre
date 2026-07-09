@@ -1,4 +1,4 @@
-"""
+﻿"""
 خدمة إدارة الطابور - Queue Management Service
 Medical System Queue Management Service
 """
@@ -8,6 +8,7 @@ from sqlalchemy import and_, or_, desc, asc, case
 from app.shared.enums import QueueState, VisitState, PaymentStatus
 from services.visit_state_machine_service import VisitStateMachineService
 from app_factory import db
+from utils.db_safety import safe_commit
 from utils.tenant_query import get_tenant_record, TenantContextError
 import logging
 
@@ -162,14 +163,14 @@ class QueueManagementService:
                 ticket.priority_level = 'normal'
 
             db.session.add(ticket)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية الطابور"):
+                return False, "تعذر تنفيذ العملية حالياً"
             self._emit_queue_updates()
 
             self.logger.info(f"Patient {patient_id} added to queue with queue number {ticket.queue_number}")
             return True, f"تم إضافة المريض إلى الطابور - الرقم {ticket.queue_number}"
 
         except Exception as e:
-            db.session.rollback()
             self.logger.error(f"Error adding patient to queue: {str(e)}")
             return False, f"حدث خطأ في إضافة المريض إلى الطابور: {str(e)}"
 
@@ -228,12 +229,13 @@ class QueueManagementService:
                 source=source or 'reception'
             ))
 
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية الطابور"):
+
+                return False, "تعذر تنفيذ العملية حالياً"
             self._emit_queue_updates()
             self._emit_queue_updates()
             return True, "ok"
         except Exception as e:
-            db.session.rollback()
             self.logger.error(f"Transfer visit error: {str(e)}")
             return False, "transfer_failed"
     
@@ -444,13 +446,14 @@ class QueueManagementService:
             next_patient.status = QueueState.CALLED
             next_patient.called_at = datetime.now(timezone.utc)
             
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية الطابور"):
+            
+                return False, "تعذر تنفيذ العملية حالياً"
             
             self.logger.info(f"Patient {next_patient.patient_id} called from queue")
             return True, f"تم استدعاء المريض - التذكرة رقم {next_patient.queue_number}"
             
         except Exception as e:
-            db.session.rollback()
             self.logger.error(f"Error calling next patient: {str(e)}")
             return False, f"حدث خطأ في استدعاء المريض: {str(e)}"
 
@@ -550,7 +553,9 @@ class QueueManagementService:
             # حساب وقت الانتظار الفعلي
             # يمكن حساب وقت الانتظار الفعلي لاحقاً إذا توفر الحقل
             
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية الطابور"):
+            
+                return False, "تعذر تنفيذ العملية حالياً"
             
             try:
                 self.logger.info(f"Treatment started for ticket {ticket.queue_number}")
@@ -559,7 +564,6 @@ class QueueManagementService:
             return True, "تم بدء العلاج"
             
         except Exception as e:
-            db.session.rollback()
             self.logger.error(f"Error starting treatment: {str(e)}")
             return False, f"حدث خطأ في بدء العلاج: {str(e)}"
     
@@ -605,7 +609,9 @@ class QueueManagementService:
                 except Exception:
                     pass
             
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية الطابور"):
+            
+                return False, "تعذر تنفيذ العملية حالياً"
             
             try:
                 self.logger.info(f"Treatment completed for ticket {ticket.queue_number}")
@@ -614,7 +620,6 @@ class QueueManagementService:
             return True, "تم إكمال العلاج"
             
         except Exception as e:
-            db.session.rollback()
             self.logger.error(f"Error completing treatment: {str(e)}")
             return False, f"حدث خطأ في إكمال العلاج: {str(e)}"
     
@@ -632,14 +637,15 @@ class QueueManagementService:
             ticket.status = QueueState.SKIPPED
             ticket.notes = f"تم التخطي - السبب: {reason}" if reason else "تم التخطي"
             
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية الطابور"):
+            
+                return False, "تعذر تنفيذ العملية حالياً"
             self._emit_queue_updates()
             
             self.logger.info(f"Patient skipped for ticket {ticket.queue_number}")
             return True, "تم تخطي المريض"
             
         except Exception as e:
-            db.session.rollback()
             self.logger.error(f"Error skipping patient: {str(e)}")
             return False, f"حدث خطأ في تخطي المريض: {str(e)}"
 
@@ -675,12 +681,13 @@ class QueueManagementService:
                 except Exception:
                     pass
 
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية الطابور"):
+
+                return False, "تعذر تنفيذ العملية حالياً"
             self._emit_queue_updates()
             self._emit_queue_updates()
             return True, "تم إرجاع المريض للطابور"
         except Exception as e:
-            db.session.rollback()
             self.logger.error(f"Error returning patient to queue: {str(e)}")
             return False, f"حدث خطأ في إرجاع المريض للطابور: {str(e)}"
     
@@ -698,7 +705,9 @@ class QueueManagementService:
             ticket.status = QueueState.CANCELLED
             ticket.notes = f"تم الإلغاء - السبب: {reason}" if reason else "تم الإلغاء"
             
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية الطابور"):
+            
+                return False, "تعذر تنفيذ العملية حالياً"
             self._emit_queue_updates()
             self._emit_queue_updates()
             
@@ -706,7 +715,6 @@ class QueueManagementService:
             return True, "تم إلغاء التذكرة"
             
         except Exception as e:
-            db.session.rollback()
             self.logger.error(f"Error cancelling ticket: {str(e)}")
             return False, f"حدث خطأ في إلغاء التذكرة: {str(e)}"
     
@@ -889,13 +897,14 @@ class QueueManagementService:
                 ticket.visit.payment_status = PaymentStatus.EMERGENCY_DEBT
             ticket.emergency_approved_by = approved_by
             
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية الطابور"):
+            
+                return False, "تعذر تنفيذ العملية حالياً"
             
             self.logger.info(f"Emergency debt approved for ticket {ticket.queue_number}")
             return True, "تم الموافقة على دين الطوارئ"
             
         except Exception as e:
-            db.session.rollback()
             self.logger.error(f"Error approving emergency debt: {str(e)}")
             return False, f"حدث خطأ في الموافقة على دين الطوارئ: {str(e)}"
     
@@ -917,12 +926,14 @@ class QueueManagementService:
             # رفع مستوى الأولوية
             ticket.priority_level = 'high'
             
-            db.session.commit()
+            if not safe_commit(db.session, error_message="فشل عملية الطابور"):
+            
+                return False, "تعذر تنفيذ العملية حالياً"
             
             self.logger.info(f"Force entry approved for ticket {ticket.queue_number}")
             return True, "تم الموافقة على الدخول القوي"
             
         except Exception as e:
-            db.session.rollback()
             self.logger.error(f"Error approving force entry: {str(e)}")
             return False, f"حدث خطأ في الموافقة على الدخول القوي: {str(e)}"
+

@@ -19,6 +19,7 @@ from models.radiology_request import RadiologyRequest
 from services.gatekeeper_service import GatekeeperService
 from services.manager_service import manager_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from sqlalchemy import func
 from decimal import Decimal, ROUND_HALF_UP
 import logging
@@ -286,11 +287,11 @@ def budget_dashboard():
             b.new_patients_target = int(request.form.get('new_patients_target', 0))
             b.expenses_target = Decimal(request.form.get('expenses_target', 0))
             b.notes = request.form.get('notes', '')
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم حفظ الميزانية', 'success')
             return redirect(url_for('manager.budget_dashboard', year=year, month=month))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error saving budget: {str(e)}")
             flash('حدث خطأ أثناء حفظ الميزانية', 'error')
             return redirect(url_for('manager.budget_dashboard', year=year, month=month))
@@ -450,10 +451,10 @@ def deactivate_exchange_rate(rate_id):
     ).first_or_404()
     try:
         rate.is_active = False
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash(f'تم تعطيل سعر {rate.from_currency} → {rate.to_currency}', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error deactivating exchange rate: {str(e)}")
         flash('حدث خطأ أثناء تعطيل سعر الصرف', 'error')
     return redirect(url_for('manager.exchange_rates'))

@@ -8,6 +8,7 @@ from flask_login import login_required, current_user
 from utils.decorators import super_admin_required
 from models.backup import Backup
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging
 import os
 from datetime import datetime, timezone
@@ -71,7 +72,7 @@ def create_backup():
                 created_by=current_user.id,
             )
             db.session.add(backup)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
 
             from celery_app import celery_is_enabled, task_always_eager
             from services.backup_queue_service import BackupQueueError, queue_system_backup
@@ -102,7 +103,7 @@ def create_backup():
                 flash('فشل في إنشاء النسخة الاحتياطية', 'error')
                 logger.error('Backup failed for id=%s: %s', backup.id, exc)
 
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             return redirect(url_for('backup.dashboard'))
 
         return render_template('backup/create_backup.html')
@@ -142,7 +143,7 @@ def restore_backup(backup_id):
             backup.restore_count += 1
             backup.last_restore = datetime.now(timezone.utc)
             backup.last_restore_by = current_user.id
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم استعادة النسخة الاحتياطية بنجاح', 'success')
         else:
             flash('فشل في استعادة النسخة الاحتياطية', 'error')
@@ -183,7 +184,7 @@ def delete_backup(backup_id):
         if os.path.exists(backup.backup_path):
             os.remove(backup.backup_path)
         db.session.delete(backup)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم حذف النسخة الاحتياطية بنجاح', 'success')
         return redirect(url_for('backup.list_backups'))
     except Exception as e:

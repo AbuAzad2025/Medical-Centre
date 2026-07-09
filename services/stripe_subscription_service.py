@@ -11,6 +11,7 @@ from typing import Any, Optional
 import stripe
 
 from app.extensions import db
+from utils.db_safety import safe_commit
 from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.models import StripeWebhookEvent, StripeWebhookEventStatus
 from app.core.saas.projection import EntitlementProjectionService
@@ -83,7 +84,7 @@ class StripeSubscriptionService:
                 subscription_id=obj.get('subscription'),
             )
             tenant.status = TenantStatus.ACTIVE
-            db.session.commit()
+            safe_commit(db.session, error_message="فشل معالجة checkout.session.completed", reraise=True)
             EntitlementProjectionService.calculate(tenant.id)
             return {'tenant_id': tenant.id, 'action': 'checkout_completed'}
 
@@ -97,7 +98,7 @@ class StripeSubscriptionService:
             )
             if obj.get('status') in ('active', 'trialing'):
                 tenant.status = TenantStatus.ACTIVE
-            db.session.commit()
+            safe_commit(db.session, error_message="فشل معالجة customer.subscription.created", reraise=True)
             EntitlementProjectionService.calculate(tenant.id)
             return {'tenant_id': tenant.id, 'action': 'subscription_created'}
 
@@ -112,7 +113,7 @@ class StripeSubscriptionService:
                 TenantProvisioningService.suspend_tenant(tenant.id, reason=f'stripe:{status}')
             elif status == 'canceled':
                 TenantProvisioningService.cancel_tenant(tenant.id)
-            db.session.commit()
+            safe_commit(db.session, error_message="فشل معالجة customer.subscription.updated", reraise=True)
             EntitlementProjectionService.calculate(tenant.id)
             return {'tenant_id': tenant.id, 'action': 'subscription_updated', 'stripe_status': status}
 
@@ -120,7 +121,7 @@ class StripeSubscriptionService:
             if tenant is None:
                 return {'ignored': True, 'reason': 'tenant_not_found'}
             TenantProvisioningService.cancel_tenant(tenant.id)
-            db.session.commit()
+            safe_commit(db.session, error_message="فشل معالجة customer.subscription.deleted", reraise=True)
             EntitlementProjectionService.calculate(tenant.id)
             return {'tenant_id': tenant.id, 'action': 'subscription_deleted'}
 
@@ -128,7 +129,7 @@ class StripeSubscriptionService:
             if tenant is None:
                 return {'ignored': True, 'reason': 'tenant_not_found'}
             TenantProvisioningService.suspend_tenant(tenant.id, reason='stripe:payment_failed')
-            db.session.commit()
+            safe_commit(db.session, error_message="فشل معالجة invoice.payment_failed", reraise=True)
             EntitlementProjectionService.calculate(tenant.id)
             return {'tenant_id': tenant.id, 'action': 'payment_failed'}
 
@@ -142,7 +143,7 @@ class StripeSubscriptionService:
                     TenantProvisioningService.renew_base_line(int(line_id))
                 except Exception as exc:
                     logger.warning('Stripe renew_base_line skipped tenant=%s: %s', tenant.id, exc)
-            db.session.commit()
+            safe_commit(db.session, error_message="فشل معالجة invoice.paid", reraise=True)
             EntitlementProjectionService.calculate(tenant.id)
             return {'tenant_id': tenant.id, 'action': 'invoice_paid'}
 
@@ -180,10 +181,9 @@ class StripeSubscriptionService:
             result = cls.handle_event(event)
             record.status = StripeWebhookEventStatus.PROCESSED
             record.processed_at = datetime.now(timezone.utc)
-            db.session.commit()
+            safe_commit(db.session, error_message="فشل تسجيل معالجة webhook", reraise=True)
             return result
         except Exception as exc:
-            db.session.rollback()
             try:
                 failed_record = db.session.get(StripeWebhookEvent, event_id)  # global reference table - no tenant scope
                 if failed_record:
@@ -196,7 +196,7 @@ class StripeSubscriptionService:
                         payload_hash=payload_hash,
                         error_message=str(exc)[:1000],
                     ))
-                db.session.commit()
+                safe_commit(db.session, error_message="فشل تسجيل فشل webhook")
             except Exception:
-                db.session.rollback()
+                pass
             raise

@@ -18,6 +18,7 @@ from models.radiology_request import RadiologyRequest
 from services.gatekeeper_service import GatekeeperService
 from services.manager_service import manager_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from sqlalchemy import func
 from decimal import Decimal, ROUND_HALF_UP
 import logging
@@ -116,11 +117,11 @@ def add_service_api():
             is_active=data.get('is_active', True)
         )
         db.session.add(new_service)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({'success': True, 'message': 'تم إضافة الخدمة بنجاح', 'id': new_service.id})
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         return jsonify({'success': False, 'message': 'تعذر إضافة الخدمة حالياً'}), 500
 
 @manager_bp.route('/api/pricing/services/<int:id>', methods=['PUT'])
@@ -149,10 +150,10 @@ def update_service_api(id):
         if 'max_daily' in data: service.max_daily = data['max_daily']
         if 'is_active' in data: service.is_active = data['is_active']
         
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True, 'message': 'تم تحديث الخدمة بنجاح'})
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         return jsonify({'success': False, 'message': 'تعذر تحديث الخدمة حالياً'}), 500
 
 @manager_bp.route('/api/pricing/services/<int:id>', methods=['DELETE'])
@@ -167,10 +168,10 @@ def delete_service_api(id):
             return jsonify({'success': False, 'message': 'الخدمة غير موجودة'}), 404
             
         db.session.delete(service)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True, 'message': 'تم حذف الخدمة بنجاح'})
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         return jsonify({'success': False, 'message': 'تعذر حذف الخدمة حالياً'}), 500
 
 

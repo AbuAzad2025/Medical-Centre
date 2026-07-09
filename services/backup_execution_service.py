@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 
 from app.extensions import db
 from app.shared.enums import BackupStatus
+from utils.db_safety import safe_commit
 from models.backup import Backup
 from services.backup_automation_service import BackupAutomationError, BackupAutomationService
 from services.pg_backup_service import PgBackupError, run_pg_dump_sql_gz
@@ -24,7 +25,7 @@ def execute_backup_by_id(backup_id: int) -> Backup:
 
     backup.backup_status = BackupStatus.IN_PROGRESS
     backup.started_at = backup.started_at or datetime.now(timezone.utc)
-    db.session.commit()
+    safe_commit(db.session, error_message="Failed to mark backup in_progress", reraise=True)
 
     try:
         size = run_pg_dump_sql_gz(backup.backup_path)
@@ -34,7 +35,7 @@ def execute_backup_by_id(backup_id: int) -> Backup:
         cloud_uri = BackupAutomationService.upload_to_cloud(backup.backup_path)
         if cloud_uri:
             backup.backup_notes = f'cloud_uri={cloud_uri}'
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to finalise backup", reraise=True)
         logger.info('Backup completed id=%s path=%s', backup.id, backup.backup_path)
         return backup
     except PgBackupError as exc:
@@ -45,6 +46,6 @@ def execute_backup_by_id(backup_id: int) -> Backup:
                 os.remove(backup.backup_path)
             except OSError:
                 pass
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to save backup failure status")
         logger.error('Backup failed id=%s: %s', backup.id, exc)
         raise BackupAutomationError(str(exc)) from exc

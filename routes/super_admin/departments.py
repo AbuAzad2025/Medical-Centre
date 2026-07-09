@@ -13,6 +13,7 @@ from services.super_admin_service import super_admin_service
 import logging
 from sqlalchemy import func
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 
 
 # =============================================
@@ -75,12 +76,12 @@ def create_department():
         )
         
         db.session.add(department)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({'success': True, 'message': 'تم إنشاء القسم بنجاح', 'department_id': department.id}), 200
         
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Create department error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إنشاء القسم حالياً'}), 500
 
@@ -127,13 +128,13 @@ def edit_department(department_id):
             department.phone = request.form.get('phone')
             department.is_active = bool(request.form.get('is_active'))
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث القسم بنجاح', 'success')
             return redirect(url_for('super_admin.departments'))
         
         return render_template('super_admin/edit_department.html', department=department)
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Edit department error: {str(e)}")
         flash('حدث خطأ في تعديل القسم', 'error')
         return redirect(url_for('super_admin.departments'))
@@ -178,11 +179,11 @@ def add_staff_to_department(department_id):
         if not user:
             abort(404)
         user.department_id = department_id
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({'success': True, 'message': 'تم إضافة الموظف للقسم'}), 200
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Add staff error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إضافة الموظف للقسم حالياً'}), 500
 
@@ -202,11 +203,11 @@ def remove_staff_from_department(department_id):
         if not user:
             abort(404)
         user.department_id = None
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({'success': True, 'message': 'تم إزالة الموظف من القسم'}), 200
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Remove staff error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إزالة الموظف من القسم حالياً'}), 500
 
@@ -223,11 +224,11 @@ def activate_department(department_id):
         if not department:
             abort(404)
         department.is_active = True
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({'success': True, 'message': 'تم تفعيل القسم'}), 200
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Activate department error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر تفعيل القسم حالياً'}), 500
 
@@ -244,11 +245,11 @@ def deactivate_department(department_id):
         if not department:
             abort(404)
         department.is_active = False
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({'success': True, 'message': 'تم إلغاء تفعيل القسم'}), 200
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Deactivate department error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إلغاء تفعيل القسم حالياً'}), 500
 

@@ -6,6 +6,7 @@ import os
 from typing import Any
 
 from app.extensions import db
+from utils.db_safety import safe_commit, safe_rollback
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ def ensure_module_definitions() -> int:
         )
         added += 1
     if added:
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     return added
 
 
@@ -91,7 +92,7 @@ def ensure_developer_config() -> int:
             )
             added += 1
     if added:
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     return added
 
 

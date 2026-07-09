@@ -6,6 +6,7 @@ assume a tenant identity for cross-tenant operations.
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.core.tenant.models import PlatformTenantAssumption
 
 
@@ -39,7 +40,7 @@ class PlatformAssumptionService:
             expires_at=expires_at,
         )
         db.session.add(assumption)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return assumption
 
     @staticmethod
@@ -58,7 +59,7 @@ class PlatformAssumptionService:
         assumption.revoked_at = datetime.now(timezone.utc)
         assumption.revoked_by = revoked_by
         assumption.revoke_reason = revoke_reason
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return assumption
 
     @staticmethod

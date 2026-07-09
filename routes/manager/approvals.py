@@ -18,6 +18,7 @@ from models.radiology_request import RadiologyRequest
 from services.gatekeeper_service import GatekeeperService
 from services.manager_service import manager_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from sqlalchemy import func
 from decimal import Decimal, ROUND_HALF_UP
 import logging
@@ -110,7 +111,7 @@ def approve_force_payment(visit_id):
         visit.force_payment_approved_at = datetime.now(timezone.utc)
         visit.payment_status = PaymentStatus.DEBT  # تحديد كدين معتمد
 
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         # Ticket 1: Manager approval of a force-payment is purely an
         # administrative/financial review.  It does NOT grant queue-entry
@@ -128,7 +129,7 @@ def approve_force_payment(visit_id):
             user_ip=request.remote_addr
         )
         db.session.add(audit)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         flash(f'تمت الموافقة على الدفع القسري للزيارة #{visit.id}', 'success')
         logging.info(f"Force payment approved: Visit {visit_id} by User {current_user.id}")
@@ -136,7 +137,7 @@ def approve_force_payment(visit_id):
         return redirect(url_for('manager.force_payment_approvals'))
 
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error approving force payment: {str(e)}")
         flash('تعذر تنفيذ الموافقة حالياً، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('manager.force_payment_approvals'))
@@ -174,7 +175,7 @@ def reject_force_payment(visit_id):
         visit.payment_status = PaymentStatus.PENDING
         visit.force_payment_reason = f'[مرفوض] {visit.force_payment_reason}\nسبب الرفض: {rejection_reason}'
 
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         # تسجيل في التدقيق
         from models.audit_trail import AuditTrail
@@ -187,7 +188,7 @@ def reject_force_payment(visit_id):
             user_ip=request.remote_addr
         )
         db.session.add(audit)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         flash(f'تم رفض الدفع القسري للزيارة #{visit.id}', 'warning')
         logging.info(f"Force payment rejected: Visit {visit_id} by User {current_user.id}")
@@ -195,7 +196,7 @@ def reject_force_payment(visit_id):
         return redirect(url_for('manager.force_payment_approvals'))
 
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error rejecting force payment: {str(e)}")
         flash('تعذر تنفيذ الرفض حالياً، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('manager.force_payment_approvals'))
@@ -257,7 +258,7 @@ def approve_custom_service(service_id):
         svc.is_active = True
         svc.approved_by = current_user.id
         svc.approved_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         from models.audit_trail import AuditTrail
         audit = AuditTrail(
@@ -269,14 +270,14 @@ def approve_custom_service(service_id):
             user_ip=request.remote_addr
         )
         db.session.add(audit)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         flash(f'تمت الموافقة على الخدمة المخصصة {svc.name}', 'success')
         logging.info(f"Custom service approved: {service_id} by User {current_user.id}")
         return redirect(url_for('manager.custom_service_approvals'))
 
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error approving custom service: {str(e)}")
         flash('تعذر تنفيذ الموافقة حالياً', 'error')
         return redirect(url_for('manager.custom_service_approvals'))
@@ -305,7 +306,7 @@ def reject_custom_service(service_id):
         svc.approved_by = current_user.id
         svc.approved_at = datetime.now(timezone.utc)
         svc.description = f"[مرفوض] {svc.description or ''}\nسبب الرفض: {rejection_reason}"
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         from models.audit_trail import AuditTrail
         audit = AuditTrail(
@@ -317,14 +318,14 @@ def reject_custom_service(service_id):
             user_ip=request.remote_addr
         )
         db.session.add(audit)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         flash(f'تم رفض الخدمة المخصصة {svc.name}', 'warning')
         logging.info(f"Custom service rejected: {service_id} by User {current_user.id}")
         return redirect(url_for('manager.custom_service_approvals'))
 
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error rejecting custom service: {str(e)}")
         flash('تعذر تنفيذ الرفض حالياً', 'error')
         return redirect(url_for('manager.custom_service_approvals'))

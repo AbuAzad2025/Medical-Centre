@@ -13,6 +13,7 @@ from models.supply_request import MedicationSupplyRequest, MedicationSupplyReque
 from models.drug_interaction import DrugInteraction
 from services.prescription_service import prescription_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json
 from datetime import datetime, timezone, timedelta, date
 from sqlalchemy import func
@@ -108,11 +109,11 @@ def create_supply_request():
                     requested_qty=rq,
                     created_at=datetime.now(timezone.utc)
                 ))
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إنشاء طلب التوريد', 'success')
             return redirect(url_for('medication.view_supply_request', request_id=req.id))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error creating supply request: {str(e)}")
             flash('حدث خطأ في إنشاء طلب التوريد', 'error')
             return redirect(url_for('medication.supply_requests'))
@@ -155,10 +156,10 @@ def approve_supply_request(request_id: int):
         req.approved_by = current_user.id
         req.approved_at = datetime.now(timezone.utc)
         req.updated_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True}), 200
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error approving supply request: {str(e)}")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
 
@@ -200,9 +201,9 @@ def fulfill_supply_request(request_id: int):
         req.fulfilled_by = current_user.id
         req.fulfilled_at = datetime.now(timezone.utc)
         req.updated_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True}), 200
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error fulfilling supply request: {str(e)}")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

@@ -11,6 +11,7 @@ from decimal import Decimal
 from typing import Any
 
 from app_factory import db
+from utils.db_safety import safe_commit
 from sqlalchemy import func
 from utils.tenant_query import get_tenant_record, TenantContextError
 
@@ -94,7 +95,7 @@ class FinancialService:
 
             return {"ok": True, "invoices": [inv.to_dict() for inv in invoices]}
         except Exception as e:
-            db.session.rollback()
+            safe_commit(db.session, error_message="Error reconciling visit payments")
             logging.error(f"Error reconciling visit payments: {str(e)}")
             return {"ok": False, "error": str(e)}
 
@@ -145,10 +146,10 @@ class FinancialService:
                     notes=notes or item_data.get("notes"),
                 )
                 db.session.add(line)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="Failed to create invoice"):
+                return None
             return invoice
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating invoice: {str(e)}")
             return None
 
@@ -178,10 +179,8 @@ class FinancialService:
             if not ok:
                 logging.error(f"Error recording payment: {result}")
                 return False
-            db.session.commit()
-            return True
+            return safe_commit(db.session, error_message="Failed to record payment")
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error recording payment: {str(e)}")
             return False
 
@@ -240,10 +239,10 @@ class FinancialService:
                 status="RECORDED",
             )
             db.session.add(expense)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="Failed to record expense"):
+                return {"success": False, "available": True, "expense": None, "message": "database_error"}
             return {"success": True, "available": True, "expense": expense.to_dict(), "message": None}
         except Exception as e:
-            db.session.rollback()
             logging.error("Error recording expense: %s", e)
             return {"success": False, "available": True, "expense": None, "message": str(e)}
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 
 DEFAULT_USER_PREFERENCES: dict[str, Any] = {
     'theme': 'light',
@@ -68,5 +69,5 @@ def save_user_preferences(user, updates: dict) -> bool:
             dash['pinned_routes'] = [str(x) for x in dash_in['pinned_routes'] if x]
         current['dashboard'] = dash
     user.preferences = current
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     return True

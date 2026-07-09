@@ -12,6 +12,7 @@ from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
 from sqlalchemy import func
+from utils.db_safety import safe_commit, safe_rollback
 
 
 # =============================================
@@ -68,14 +69,14 @@ def create_role():
                 )
                 db.session.add(role_permission)
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             
             flash('تم إنشاء الدور بنجاح', 'success')
             return redirect(url_for('super_admin.roles'))
             
         except Exception as e:
             from app_factory import db
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Create role error: {str(e)}")
             flash('تعذر إنشاء الدور، يرجى المحاولة مرة أخرى', 'error')
     
@@ -117,7 +118,7 @@ def edit_role(role_id):
                 )
                 db.session.add(role_permission)
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             
             flash('تم تحديث الدور بنجاح', 'success')
             return redirect(url_for('super_admin.roles'))
@@ -134,7 +135,7 @@ def edit_role(role_id):
         
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Edit role error: {str(e)}")
         flash('تعذر تحديث الدور، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.roles'))
@@ -166,7 +167,7 @@ def manage_role_permissions(role_id):
                 )
                 db.session.add(role_permission)
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث صلاحيات الدور بنجاح', 'success')
             return redirect(url_for('super_admin.roles'))
         
@@ -180,7 +181,7 @@ def manage_role_permissions(role_id):
         
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Manage role permissions error: {str(e)}")
         flash('حدث خطأ في إدارة صلاحيات الدور', 'error')
         return redirect(url_for('super_admin.roles'))
@@ -257,7 +258,7 @@ def manage_role_department_permissions(role_id):
                     can_manage_department_settings=can_manage_department_settings
                 ))
 
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث صلاحيات الأقسام للدور', 'success')
             return redirect(url_for('super_admin.manage_role_department_permissions', role_id=role_id))
 
@@ -268,7 +269,7 @@ def manage_role_department_permissions(role_id):
 
         return render_template('super_admin/department_permissions.html', role=role, departments=departments, perm_map=perm_map)
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Department permissions error: {str(e)}")
         flash('حدث خطأ في إدارة صلاحيات الأقسام', 'error')
         return redirect(url_for('super_admin.roles'))
@@ -307,7 +308,7 @@ def permissions_matrix():
                         db.session.add(RolePermission(role_id=role.id, permission_id=int(pid), granted_by=current_user.id))
                     except Exception:
                         continue
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث مصفوفة الصلاحيات', 'success')
             return redirect(url_for('super_admin.permissions_matrix'))
 
@@ -318,7 +319,7 @@ def permissions_matrix():
 
         return render_template('super_admin/permissions_matrix.html', roles=roles, permissions=permissions, matrix=matrix)
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Permissions matrix error: {str(e)}")
         flash('حدث خطأ في تحميل مصفوفة الصلاحيات', 'error')
         return redirect(url_for('super_admin.dashboard'))
@@ -345,14 +346,14 @@ def delete_role(role_id):
         RolePermission.query.filter_by(role_id=role.id).delete()
         
         db.session.delete(role)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         flash('تم حذف الدور بنجاح', 'success')
         return redirect(url_for('super_admin.roles'))
         
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Delete role error: {str(e)}")
         flash('تعذر حذف الدور، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.roles'))
@@ -389,14 +390,14 @@ def create_permission():
         )
         
         db.session.add(permission)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         flash('تم إنشاء الصلاحية بنجاح', 'success')
         return redirect(url_for('super_admin.permissions'))
         
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Create permission error: {str(e)}")
         flash('حدث خطأ في إنشاء الصلاحية', 'error')
         return redirect(url_for('super_admin.permissions'))
@@ -420,14 +421,14 @@ def edit_permission(permission_id):
         permission.level = request.form.get('level')
         permission.is_active = bool(request.form.get('is_active'))
         
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         flash('تم تحديث الصلاحية بنجاح', 'success')
         return redirect(url_for('super_admin.permissions'))
         
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Edit permission error: {str(e)}")
         flash('حدث خطأ في تعديل الصلاحية', 'error')
         return redirect(url_for('super_admin.permissions'))
@@ -446,14 +447,14 @@ def delete_permission(permission_id):
             abort(404)
         
         db.session.delete(permission)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         flash('تم حذف الصلاحية بنجاح', 'success')
         return redirect(url_for('super_admin.permissions'))
         
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Delete permission error: {str(e)}")
         flash('حدث خطأ في حذف الصلاحية', 'error')
         return redirect(url_for('super_admin.permissions'))
@@ -478,14 +479,14 @@ def create_role_simple():
         )
         
         db.session.add(role)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         flash('تم إنشاء الدور بنجاح', 'success')
         return redirect(url_for('super_admin.users'))
         
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Create role error: {str(e)}")
         flash('حدث خطأ في إنشاء الدور', 'error')
         return redirect(url_for('super_admin.users'))
@@ -510,14 +511,14 @@ def create_permission_simple():
         )
         
         db.session.add(permission)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         flash('تم إنشاء الصلاحية بنجاح', 'success')
         return redirect(url_for('super_admin.users'))
         
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Create permission error: {str(e)}")
         flash('حدث خطأ في إنشاء الصلاحية', 'error')
         return redirect(url_for('super_admin.users'))

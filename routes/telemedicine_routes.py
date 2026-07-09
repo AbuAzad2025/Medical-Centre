@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from flask_login import login_required, current_user
 from utils.decorators import role_required
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from models import TelemedicineAppointment, Patient, User
 from datetime import datetime, timezone
 import secrets
@@ -63,14 +64,14 @@ def new_appointment():
                 created_by=current_user.id
             )
             db.session.add(tm)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إنشاء الموعد عن بعد بنجاح', 'success')
             return redirect(url_for('telemedicine.index'))
         patients = Patient.query.limit(100).all()
         doctors = User.query.filter_by(is_active=True).all()
         return render_template('telemedicine/new.html', patients=patients, doctors=doctors)
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Telemedicine new appointment error: {str(e)}")
         flash('حدث خطأ أثناء إنشاء الموعد', 'error')
         return redirect(url_for('telemedicine.index'))

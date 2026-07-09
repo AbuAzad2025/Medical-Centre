@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from models import NursingAssessment, Patient, Visit
 from sqlalchemy import func
 from datetime import datetime, timezone
@@ -119,7 +120,7 @@ def new_assessment(patient_id):
                     assessment.risk_level = 'low'
 
         db.session.add(assessment)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم حفظ التقييم بنجاح', 'success')
         return redirect(url_for('nursing_assessment.patient_assessments', patient_id=patient_id))
 

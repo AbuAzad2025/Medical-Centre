@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
 from app.shared.enums import VisitState, AppointmentState, BookingState, OrderState
+from utils.db_safety import safe_commit
 
 
 class AppointmentCheckinService:
@@ -23,7 +24,7 @@ class AppointmentCheckinService:
         db.session.add(visit)
         db.session.flush()
         appointment.status = AppointmentState.CHECKED_IN
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to save check-in", reraise=True)
         return {"visit_id": visit.id, "status": VisitState.CHECKED_IN}
 
     @staticmethod
@@ -39,7 +40,7 @@ class AppointmentCheckinService:
             visit_date=datetime.now(timezone.utc).date(),
         )
         db.session.add(visit)
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to create walkin visit", reraise=True)
         return {"visit_id": visit.id, "status": VisitState.OPEN}
 
 
@@ -76,8 +77,9 @@ class OnlineBookingConversionService:
         db.session.add(visit)
         db.session.flush()
         booking.status = BookingState.CONVERTED
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to convert booking to visit", reraise=True)
         return {"visit_id": visit.id, "patient_id": patient.id, "is_new_patient": is_new_patient}
+
 
     @staticmethod
     def convert_to_appointment(booking) -> dict:
@@ -115,7 +117,7 @@ class OnlineBookingConversionService:
         db.session.add(appointment)
         db.session.flush()
         booking.status = BookingState.CONVERTED
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to convert booking to appointment", reraise=True)
         return {"appointment_id": appointment.id, "patient_id": patient.id}
 
     @staticmethod
@@ -170,7 +172,7 @@ class OnlineBookingConversionService:
         from services.barcode_service import setup_barcode_for_lab_request
         setup_barcode_for_lab_request(lab_request, tenant_id=tenant_id)
         booking.status = BookingState.CONVERTED
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to convert booking to lab order", reraise=True)
         return {"lab_request_id": lab_request.id, "patient_id": patient.id}
 
     @staticmethod
@@ -209,5 +211,5 @@ class OnlineBookingConversionService:
         db.session.add(rad_request)
         db.session.flush()
         booking.status = BookingState.CONVERTED
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to convert booking to radiology order", reraise=True)
         return {"radiology_request_id": rad_request.id, "patient_id": patient.id}

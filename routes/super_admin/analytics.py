@@ -14,6 +14,7 @@ import logging
 from sqlalchemy import func
 from datetime import datetime, date, timedelta, timezone
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 
 
 # =============================================
@@ -292,7 +293,7 @@ def get_predictive_analytics():
                 func.count(Visit.id).label('count')
             ).group_by(func.extract('hour', Visit.created_at)).all()
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             peak_hours = []
         
         peak_hour = max(peak_hours, key=lambda x: x.count) if peak_hours else None
@@ -422,7 +423,7 @@ def get_performance_optimization():
                 func.count(Visit.id).label('count')
             ).group_by(func.extract('hour', Visit.created_at)).all()
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             peak_hours = []
         
         if peak_hours:

@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from app_factory import db
+from utils.db_safety import safe_commit
 from sqlalchemy import func
 from utils.tenant_query import get_tenant_record, TenantContextError
 
@@ -55,10 +56,10 @@ class SuperAdminService:
                 created_at=datetime.now(timezone.utc),
             )
             db.session.add(user)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="Failed to create user"):
+                return None
             return user
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating user: {str(e)}")
             return None
 
@@ -70,7 +71,7 @@ class SuperAdminService:
         except TenantContextError:
             return False
         user.is_active = not user.is_active
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to toggle user status", reraise=True)
         return True
 
     @staticmethod
@@ -94,10 +95,8 @@ class SuperAdminService:
             else:
                 config = SystemConfig(key=key, value=value)
                 db.session.add(config)
-            db.session.commit()
-            return True
+            return safe_commit(db.session, error_message="Failed to update config")
         except Exception:
-            db.session.rollback()
             return False
 
     @staticmethod

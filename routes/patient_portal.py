@@ -21,6 +21,7 @@ from models.vaccination import Immunization
 from models.patient_satisfaction import PatientSatisfactionSurvey
 from models.file_management import FileUpload
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import InvoiceStatus, OrderState
 from datetime import datetime, timezone
 from services.patient_identity_service import (
@@ -310,9 +311,9 @@ def download_document(file_id):
         abort(404)
     try:
         upload.last_accessed = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error updating file access time: {e}")
     return send_file(
         upload.file_path,
@@ -365,11 +366,11 @@ def feedback():
                     comments=comments
                 )
                 db.session.add(survey)
-                db.session.commit()
+                safe_commit(db.session, error_message="database commit failed", reraise=True)
                 flash('شكراً لتقييمك', 'success')
                 return redirect(url_for('portal.dashboard'))
             except Exception as e:
-                db.session.rollback()
+                safe_rollback(db.session, error_message="database rollback")
                 logging.error(f"Error saving feedback: {e}")
                 flash('حدث خطأ أثناء حفظ التقييم', 'error')
     return render_template('portal/feedback.html', patient=patient)

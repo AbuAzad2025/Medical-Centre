@@ -12,6 +12,7 @@ from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
 from services.fhir_service import fhir_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import json, uuid
 from datetime import datetime, timezone
 
@@ -31,9 +32,9 @@ def _log_fhir_access(action, resource_type, resource_id=None, request_body=None,
             response_status=response_status
         )
         db.session.add(log)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"FHIR audit log error: {e}")
 
 @fhir_bp.route('/Patient', methods=['GET'])

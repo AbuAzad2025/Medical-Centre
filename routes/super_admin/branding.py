@@ -21,6 +21,7 @@ from flask_wtf.csrf import validate_csrf
 from werkzeug.utils import secure_filename
 
 from utils.decorators import super_admin_required
+from utils.db_safety import safe_commit, safe_rollback
 
 _DOC_LABELS = {
     'invoice': 'فاتورة',
@@ -168,7 +169,7 @@ def apply_branding_theme(theme_id):
         branding.accent_color = theme.accent_color
         branding.updated_by = current_user.id
         _sync_tenant_colors(branding)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _invalidate_branding_cache()
 
         return jsonify({
@@ -181,7 +182,7 @@ def apply_branding_theme(theme_id):
         })
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Apply theme error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 400
 
@@ -248,7 +249,7 @@ def update_branding():
         _save_logo_file(branding)
         _sync_tenant_colors(branding)
         branding.updated_by = current_user.id
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _invalidate_branding_cache()
 
         if _wants_json():
@@ -259,7 +260,7 @@ def update_branding():
 
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Update branding error: {str(e)}")
         if _wants_json():
             return jsonify({'success': False, 'error': str(e)}), 400

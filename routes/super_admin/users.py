@@ -13,6 +13,7 @@ from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
 from sqlalchemy import func
+from utils.db_safety import safe_commit, safe_rollback
 
 
 # =============================================
@@ -87,7 +88,7 @@ def create_user():
             
             from app_factory import db
             db.session.add(user)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
 
             # إنشاء تسعير للطبيب إن وُجدت قيم أثناء الإنشاء
             if user.role == 'doctor':
@@ -111,14 +112,14 @@ def create_user():
                         is_active=True
                     )
                     db.session.add(dp)
-                    db.session.commit()
+                    safe_commit(db.session, error_message="database commit failed", reraise=True)
             
             flash('تم إنشاء المستخدم بنجاح', 'success')
             return redirect(url_for('super_admin.users'))
             
         except Exception as e:
             from app_factory import db
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Create user error: {str(e)}")
             flash('تعذر إنشاء المستخدم، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
     
@@ -198,7 +199,7 @@ def edit_user(user_id):
                 user.set_password(new_password)
             
             from app_factory import db
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             
             flash('تم تحديث المستخدم بنجاح', 'success')
             return redirect(url_for('super_admin.users'))
@@ -230,7 +231,7 @@ def edit_user(user_id):
                              extra_department_ids=extra_department_ids)
         
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Edit user error: {str(e)}")
         flash('تعذر تحديث المستخدم، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.users'))
@@ -253,14 +254,14 @@ def delete_user(user_id):
             return redirect(url_for('super_admin.users'))
         
         db.session.delete(user)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         flash('تم حذف المستخدم بنجاح', 'success')
         return redirect(url_for('super_admin.users'))
 
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Delete user error: {str(e)}")
         flash('تعذر حذف المستخدم، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('super_admin.users'))
@@ -285,11 +286,11 @@ def reset_user_password(user_id):
         alphabet = string.ascii_letters + string.digits
         temp_password = ''.join(secrets.choice(alphabet) for _ in range(10)) + '!'
         user.set_password(temp_password)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True, 'temp_password': temp_password})
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Reset password error: {str(e)}")
         return jsonify({'success': False, 'message': 'حدث خطأ في إعادة التعيين'}), 500
 
@@ -312,13 +313,13 @@ def ban_user(user_id):
             return redirect(url_for('super_admin.users'))
         
         user.is_active = False
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         flash(f'تم حظر المستخدم {user.full_name} بنجاح', 'success')
         return redirect(url_for('super_admin.users'))
         
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Ban user error: {str(e)}")
         flash('حدث خطأ في حظر المستخدم', 'error')
         return redirect(url_for('super_admin.users'))
@@ -337,13 +338,13 @@ def unban_user(user_id):
             flash('المستخدم غير موجود', 'error')
             return redirect(url_for('super_admin.users'))
         user.is_active = True
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         flash(f'تم إلغاء حظر المستخدم {user.full_name} بنجاح', 'success')
         return redirect(url_for('super_admin.users'))
         
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Unban user error: {str(e)}")
         flash('حدث خطأ في إلغاء حظر المستخدم', 'error')
         return redirect(url_for('super_admin.users'))
@@ -374,13 +375,13 @@ def force_logout_user(user_id):
             description='إجبار المستخدم على تسجيل الخروج',
             notes=f'target_user_id={user.id}'
         ))
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         flash(f'تم إجبار المستخدم {user.full_name} على تسجيل الخروج', 'success')
         return redirect(url_for('super_admin.users'))
         
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Force logout error: {str(e)}")
         flash('حدث خطأ في إجبار تسجيل الخروج', 'error')
         return redirect(url_for('super_admin.users'))

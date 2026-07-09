@@ -6,6 +6,7 @@ Medical System Advanced Notification Model
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint, func
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.mixins import TenantMixin
 import json
 
@@ -61,7 +62,7 @@ class Notification(TenantMixin, db.Model):
         self.is_read = True
         from datetime import timezone, datetime as _dt
         self.read_at = _dt.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     
     def is_expired(self):
         """التحقق من انتهاء صلاحية الإشعار"""

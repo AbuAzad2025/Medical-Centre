@@ -24,6 +24,7 @@ from services.reception_service import reception_service
 from services.core_queries import core_queries
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging
 from services.access_control_service import AccessControlService
 from services.pos_terminal_service import PosTerminalService
@@ -82,11 +83,11 @@ def reception_staff_schedule():
             else:
                 s = StaffWorkSchedule(user_id=user_id, day_of_week=day_of_week, start_time=st, end_time=et, is_active=is_active)
                 db.session.add(s)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم حفظ جدول العمل', 'success')
             return redirect(url_for('reception.reception_staff_schedule', user_id=user_id))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(str(e))
             flash('حدث خطأ في حفظ الجدول', 'danger')
     users = User.query.filter(User.role.in_(['doctor','lab','radiology']), User.is_active == True).all()
@@ -111,11 +112,11 @@ def reception_staff_absence():
             ed = _dt.strptime(end_date, '%Y-%m-%d').date()
             a = StaffAbsence(user_id=user_id, start_date=sd, end_date=ed, reason=reason)
             db.session.add(a)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إضافة الغياب', 'success')
             return redirect(url_for('reception.reception_staff_absence', user_id=user_id))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(str(e))
             flash('حدث خطأ في إضافة الغياب', 'danger')
     users = User.query.filter(User.role.in_(['doctor','lab','radiology']), User.is_active == True).all()
@@ -146,7 +147,7 @@ def survey(token):
             survey.rating = rating
             survey.comment = comment if comment else None
             survey.submitted_at = datetime.now(timezone.utc)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             return render_template('reception/survey.html', survey=survey, submitted=True)
         return render_template('reception/survey.html', survey=survey)
     except Exception as e:

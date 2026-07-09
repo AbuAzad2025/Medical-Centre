@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +64,7 @@ class BiometricAuth:
             is_active=True,
         )
         db.session.add(cred)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         logger.info('Enrolled biometric credential user=%s cred=%s', user_id, cred_id)
         return True
 
@@ -103,7 +104,7 @@ class BiometricAuth:
         if new_count is not None:
             cred.sign_count = int(new_count)
         cred.last_used_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return True
 
     def list_credentials(self, user_id: int, *, tenant_id: Optional[int] = None) -> list[dict]:
@@ -144,7 +145,7 @@ class BiometricAuth:
             expires_at=datetime.now(timezone.utc) + timedelta(minutes=ttl_minutes),
         )
         db.session.add(ch)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return challenge
 
     def consume_challenge(self, challenge: str, *, challenge_type: Optional[str] = None) -> bool:
@@ -159,7 +160,7 @@ class BiometricAuth:
         if ch.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
             return False
         ch.used = True
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return True
 
     def is_enabled(self, user_id: Optional[int] = None) -> bool:

@@ -12,6 +12,7 @@ from typing import Any
 
 from flask import g
 from app_factory import db
+from utils.db_safety import safe_commit
 from sqlalchemy import and_, or_
 
 
@@ -121,7 +122,7 @@ class PrescriptionService:
                         continue
                     med = Medication.query.filter(Medication.id == med_id, Medication.tenant_id == resolved_tenant_id).first()
                     if not med:
-                        db.session.rollback()
+                        safe_commit(db.session, error_message="Medication not found, rolling back")
                         return False, f"Medication {med_id} not found"
 
                     item_qty = int(item_data.get("quantity", 1) or 1)
@@ -142,10 +143,10 @@ class PrescriptionService:
                     db.session.add(item)
 
             prescription.calculate_total_cost()
-            db.session.commit()
+            if not safe_commit(db.session, error_message="Failed to create prescription"):
+                return False, "database_error"
             return True, prescription
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating prescription: {str(e)}")
             return False, str(e)
 
@@ -190,10 +191,8 @@ class PrescriptionService:
             if not med:
                 return False
             med.stock_quantity = (med.stock_quantity or 0) + quantity_change
-            db.session.commit()
-            return True
+            return safe_commit(db.session, error_message="Failed to update stock")
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error updating medication stock: {str(e)}")
             return False
 
@@ -226,10 +225,10 @@ class PrescriptionService:
                 requested_qty=quantity,
             )
             db.session.add(item)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="Failed to create supply request"):
+                return None
             return request
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating supply request: {str(e)}")
             return None
 
@@ -280,9 +279,9 @@ class PrescriptionService:
                 user_id=user_id, created_at=datetime.now(timezone.utc),
             )
             db.session.add(log)
-            db.session.commit()
+            safe_commit(db.session, error_message="Failed to log action")
         except Exception:
-            db.session.rollback()
+            pass
 
 
 # Singleton

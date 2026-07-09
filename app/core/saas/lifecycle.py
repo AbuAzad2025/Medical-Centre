@@ -13,6 +13,7 @@ from typing import Optional
 from dateutil.relativedelta import relativedelta
 
 from app.extensions import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.core.module.models import TenantModule
 from app.core.tenant.models import (
     PlatformAuditLog,
@@ -91,7 +92,7 @@ class TenantProvisioningService:
         db.session.flush()
 
         cls._create_line_grants(line, package_version)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         EntitlementProjectionService.calculate(tenant.id)
         cls._ensure_modules_for_package(tenant.id, package_version)
@@ -137,7 +138,7 @@ class TenantProvisioningService:
         db.session.add(new_line)
         db.session.flush()
         cls._create_line_grants(new_line, new_version)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         EntitlementProjectionService.calculate(tenant.id)
         cls._ensure_modules_for_package(tenant.id, new_version)
@@ -175,7 +176,7 @@ class TenantProvisioningService:
         db.session.add(new_line)
         db.session.flush()
         cls._create_line_grants(new_line, new_version)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         EntitlementProjectionService.calculate(tenant.id)
         # Historical data remains readable; creation is restricted via entitlement resolver.
@@ -219,7 +220,7 @@ class TenantProvisioningService:
         db.session.add(line)
         db.session.flush()
         cls._create_line_grants(line, version)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         EntitlementProjectionService.calculate(tenant.id)
         cls._ensure_modules_for_package(tenant.id, version)
@@ -267,7 +268,7 @@ class TenantProvisioningService:
             ):
                 grant.effective_to = line.effective_to
 
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         EntitlementProjectionService.calculate(line.tenant_id)
         cls._record_history(
             line.tenant_id,
@@ -295,7 +296,7 @@ class TenantProvisioningService:
     ) -> Tenant:
         tenant = cls._require_tenant(tenant_id)
         tenant.status = TenantStatus.SUSPENDED
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         EntitlementProjectionService.calculate(tenant.id)
         cls._record_history(
             tenant.id,
@@ -324,7 +325,7 @@ class TenantProvisioningService:
         if tenant.status != TenantStatus.SUSPENDED:
             raise ProvisioningError("Only suspended tenants can be reactivated.")
         tenant.status = TenantStatus.ACTIVE
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         EntitlementProjectionService.calculate(tenant.id)
         cls._record_history(
             tenant.id,
@@ -359,7 +360,7 @@ class TenantProvisioningService:
             line.ended_at = now
             line.cancellation_date = date.today()
 
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         EntitlementProjectionService.calculate(tenant.id)
         cls._record_history(
             tenant.id,
@@ -529,7 +530,7 @@ class TenantProvisioningService:
                 activated_at=datetime.now(timezone.utc),
             )
             db.session.add(tm)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
     @classmethod
     def _record_history(
@@ -547,7 +548,7 @@ class TenantProvisioningService:
             performed_by=performed_by_user_id,
         )
         db.session.add(history)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
     @classmethod
     def _audit(
@@ -569,7 +570,7 @@ class TenantProvisioningService:
             details=details,
         )
         db.session.add(log)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
     @classmethod
     def run_lifecycle_maintenance(cls) -> dict[str, int]:
@@ -632,5 +633,5 @@ class TenantProvisioningService:
                 )
                 count += 1
         if count:
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
         return count

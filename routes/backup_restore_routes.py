@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from models import BackupRestoreLog, Backup
 import json
 from datetime import datetime, timezone
@@ -28,13 +29,13 @@ def index():
             source_path=backup.file_path if backup else None
         )
         db.session.add(log)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         log.status = 'success'
         log.completed_at = datetime.now(timezone.utc)
         log.duration_seconds = 0
         log.details = json.dumps({'message': 'Restore simulation completed successfully'})
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تمت عملية الاستعادة بنجاح (محاكاة)', 'success')
         return redirect(url_for('backup_restore.index'))
 

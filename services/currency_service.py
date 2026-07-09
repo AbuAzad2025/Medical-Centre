@@ -6,6 +6,7 @@ import logging
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import datetime, timezone, timedelta
 from app_factory import db
+from utils.db_safety import safe_commit
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +104,7 @@ class CurrencyConverter:
             ExchangeRate.source == 'MANUAL'
         ).update({'is_active': False}, synchronize_session=False)
         db.session.add(rate)
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to save manual rate", reraise=True)
         return rate
 
     @classmethod
@@ -129,7 +130,7 @@ class CurrencyConverter:
                         effective_date=datetime.now(timezone.utc),
                     )
                     db.session.add(rate)
-                    db.session.commit()
+                    safe_commit(db.session, error_message="Failed to save external rate")
                     logger.info(f"Fetched external rate {from_currency}->{to_currency}: {rate_val}")
                     return Decimal(str(rate_val))
         except Exception as e:

@@ -17,6 +17,7 @@ from models.audit_trail import AuditTrail
 from app.shared.enums import LabResultStatus, OrderState
 from services.lab_service import lab_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json, base64
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
@@ -232,13 +233,13 @@ def worklist_request(request_id):
                 except Exception:
 
                     logging.warning(f"Error in {__name__}: no audit trail")
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم حفظ نتائج المختبر', 'success')
             return redirect(url_for('lab.worklist_request', request_id=lab_request.id))
 
         return render_template('lab/process.html', lab_request=lab_request)
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error in lab worklist request: {str(e)}")
         flash('حدث خطأ في إدارة الطلب', 'error')
         return redirect(url_for('lab.worklist'))
@@ -254,10 +255,10 @@ def worklist_claim(request_id):
         req.status = OrderState.RECEIVED
         req.updated_at = datetime.now(timezone.utc)
         _log_lab_workflow(req.id, 'RECEIVED', 'claim')
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True, 'message': 'تم استلام الطلب'}), 200
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error claiming lab request: {str(e)}")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
 
@@ -290,7 +291,7 @@ def worklist_complete(request_id):
         req.completed_at = datetime.now(timezone.utc)
         req.updated_at = datetime.now(timezone.utc)
         _log_lab_workflow(req.id, 'DONE', 'complete')
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         try:
             from services.notification_service import NotificationService
@@ -307,6 +308,6 @@ def worklist_complete(request_id):
             logging.warning(f"Error in {__name__}: notification skipped")
         return jsonify({'success': True, 'message': 'تم إكمال الطلب'}), 200
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error completing lab request: {str(e)}")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

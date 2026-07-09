@@ -18,6 +18,7 @@ from models.radiology_request import RadiologyRequest
 from services.gatekeeper_service import GatekeeperService
 from services.manager_service import manager_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from sqlalchemy import func
 from decimal import Decimal, ROUND_HALF_UP
 import logging
@@ -134,7 +135,7 @@ def unit_toggle():
             tm.activated_by = getattr(current_user, 'id', None)
             tm.updated_at = datetime.now(timezone.utc)
 
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         # Invalidate in-memory cache so guard_module picks up change
         if hasattr(g, '_tenant_enabled_modules'):
@@ -150,7 +151,7 @@ def unit_toggle():
         })
 
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error toggling unit: {str(e)}")
         return jsonify({'success': False, 'message': 'حدث خطأ في تحديث حالة الوحدة'}), 500
 
@@ -197,11 +198,11 @@ def staff_schedule():
             else:
                 s = StaffWorkSchedule(user_id=user_id, day_of_week=day_of_week, start_time=st, end_time=et, is_active=is_active)
                 db.session.add(s)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم حفظ جدول العمل', 'success')
             return redirect(url_for('manager.staff_schedule', user_id=user_id))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(str(e))
             flash('حدث خطأ في حفظ الجدول', 'error')
     users = User.query.filter(
@@ -234,11 +235,11 @@ def staff_absence():
             ed = _dt.strptime(end_date, '%Y-%m-%d').date()
             a = StaffAbsence(user_id=user_id, start_date=sd, end_date=ed, reason=reason)
             db.session.add(a)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إضافة الغياب', 'success')
             return redirect(url_for('manager.staff_absence', user_id=user_id))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(str(e))
             flash('حدث خطأ في إضافة الغياب', 'error')
     users = User.query.filter(

@@ -6,6 +6,7 @@ from uuid import uuid4
 from flask import g
 from app.extensions import db
 from app.shared.enums import PrescriptionState
+from utils.db_safety import safe_commit
 
 
 class PharmacySaleService:
@@ -31,14 +32,14 @@ class PharmacySaleService:
         for item in items:
             med_id = item.get('medication_id')
             if not med_id:
-                db.session.rollback()
+                safe_commit(db.session, error_message="medication_id required")
                 return {"error": "medication_id required"}
             med = Medication.query.filter(
                 Medication.id == med_id,
                 Medication.tenant_id == tenant_id,
             ).first()
             if not med:
-                db.session.rollback()
+                safe_commit(db.session, error_message=f"Medication {med_id} not found")
                 return {"error": f"Medication {med_id} not found"}
             qty = item.get('quantity', 1)
             unit_price = item.get('unit_price', 0)
@@ -56,11 +57,7 @@ class PharmacySaleService:
             total += line_total
         sale.total_amount = total
         prescription.status = PrescriptionState.DISPENSED
-        try:
-            db.session.commit()
-        except Exception as exc:
-            db.session.rollback()
-            raise RuntimeError('final commit fail') from exc
+        safe_commit(db.session, error_message="final commit fail", reraise=True)
         return {"sale_id": sale.id, "total_amount": total}
 
     @staticmethod
@@ -70,11 +67,7 @@ class PharmacySaleService:
         if not sale:
             return {"error": "Sale not found"}
         sale.status = PrescriptionState.CANCELLED
-        try:
-            db.session.commit()
-        except Exception as exc:
-            db.session.rollback()
-            raise RuntimeError('final commit fail') from exc
+        safe_commit(db.session, error_message="final commit fail", reraise=True)
         return {"sale_id": sale.id, "status": PrescriptionState.CANCELLED}
 
     @staticmethod

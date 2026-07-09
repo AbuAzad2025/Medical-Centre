@@ -24,6 +24,7 @@ from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
 from utils.tenant_query import get_tenant_record, TenantContextError
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging
 from services.access_control_service import AccessControlService
 from services.pos_terminal_service import PosTerminalService
@@ -135,7 +136,7 @@ def checkin_online_booking():
 
     booking.status = 'completed'
     booking.confirmed_at = booking.confirmed_at or datetime.now(timezone.utc)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
 
     try:
         queue_result = add_patient_to_queue_auto(visit.id, booking.department_id, booking.doctor_id)
@@ -220,7 +221,7 @@ def checkin_appointment(appointment_id: int):
     if appointment.status == AppointmentState.SCHEDULED:
         appointment.status = AppointmentState.CONFIRMED
 
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
 
     try:
         queue_result = add_patient_to_queue_auto(visit.id, appointment.department_id, appointment.doctor_id)
@@ -415,7 +416,7 @@ def confirm_appointment(appointment_id: int):
         return jsonify({'success': False, 'message': 'لا يمكن تأكيد هذا الموعد'}), 400
     appointment.status = AppointmentState.CONFIRMED
     appointment.updated_at = datetime.now(timezone.utc)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     return jsonify({'success': True})
 
 
@@ -431,7 +432,7 @@ def cancel_appointment(appointment_id: int):
         return jsonify({'success': False, 'message': 'لا يمكن إلغاء موعد مكتمل'}), 400
     appointment.status = AppointmentState.CANCELLED
     appointment.updated_at = datetime.now(timezone.utc)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     return jsonify({'success': True})
 
 
@@ -447,7 +448,7 @@ def no_show_appointment(appointment_id: int):
         return jsonify({'success': False, 'message': 'لا يمكن وضع هذه الحالة'}), 400
     appointment.status = AppointmentState.NO_SHOW
     appointment.updated_at = datetime.now(timezone.utc)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     return jsonify({'success': True})
 
 @reception_bp.route('/create_appointment', methods=['GET', 'POST'])
@@ -508,7 +509,7 @@ def create_appointment():
                 except TenantContextError:
                     pass
 
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             
             if _wants_json():
                 return jsonify({'success': True, 'appointment_id': appointment.id})
@@ -516,7 +517,7 @@ def create_appointment():
             return redirect(url_for('reception.appointments'))
             
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             if _wants_json():
                 return jsonify({'success': False, 'message': 'تعذر إنشاء الموعد، يرجى التحقق من البيانات والمحاولة مرة أخرى'}), 400
             flash('تعذر إنشاء الموعد، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
@@ -633,12 +634,12 @@ def edit_appointment(appointment_id):
                 combined_notes = (combined_notes + "\n" + "\n".join(extra_parts)).strip()
             appointment.notes = combined_notes or None
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث الموعد بنجاح.', 'success')
             return redirect(url_for('reception.view_appointment', appointment_id=appointment_id))
             
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash('تعذر تحديث الموعد، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
             logging.error(f"Error updating appointment: {str(e)}")
     

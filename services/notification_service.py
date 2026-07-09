@@ -13,6 +13,7 @@ from models.department import Department
 import logging
 import json
 
+from utils.db_safety import safe_commit
 from utils.tenant_query import get_tenant_record, TenantContextError
 
 class NotificationService:
@@ -57,12 +58,9 @@ class NotificationService:
             )
             
             db.session.add(notification)
-            db.session.commit()
-            
-            return {'success': True, 'message': 'تم إرسال الإشعار بنجاح', 'notification_id': notification.id}
+            return safe_commit(db.session, error_message="send_notification")
             
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error sending notification: {str(e)}")
             return {'success': False, 'message': 'تعذر إرسال الإشعار حالياً'}
     
@@ -124,12 +122,9 @@ class NotificationService:
             for notification in notifications:
                 db.session.add(notification)
             
-            db.session.commit()
-            
-            return {'success': True, 'message': f'تم إرسال {len(notifications)} إشعار بنجاح'}
+            return safe_commit(db.session, error_message="send_bulk_notification")
             
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error sending bulk notification: {str(e)}")
             return {'success': False, 'message': 'تعذر إرسال الإشعارات الجماعية حالياً'}
     
@@ -266,12 +261,9 @@ class NotificationService:
             )
             
             db.session.add(template)
-            db.session.commit()
-            
-            return {'success': True, 'message': 'تم إنشاء قالب الإشعار بنجاح', 'template_id': template.id}
+            return safe_commit(db.session, error_message="create_notification_template")
             
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating notification template: {str(e)}")
             return {'success': False, 'message': 'تعذر إنشاء قالب الإشعار حالياً'}
     
@@ -357,11 +349,9 @@ class NotificationService:
                     )
                     db.session.add(template)
             
-            db.session.commit()
-            return {'success': True, 'message': 'تم إنشاء قوالب الإشعارات الافتراضية بنجاح'}
+            return safe_commit(db.session, error_message="create_default_templates")
             
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating default templates: {str(e)}")
             return {'success': False, 'message': 'تعذر إنشاء قوالب الإشعارات الافتراضية حالياً'}
     
@@ -378,13 +368,13 @@ class NotificationService:
             
             for notification in expired_notifications:
                 db.session.delete(notification)
-            
-            db.session.commit()
-            
+
+            if not safe_commit(db.session, error_message="فشل تنظيف الإشعارات المنتهية"):
+                return {'success': False, 'message': 'تعذر تنظيف الإشعارات المنتهية الصلاحية حالياً'}
+
             return {'success': True, 'message': f'تم حذف {len(expired_notifications)} إشعار منتهي الصلاحية'}
-            
+
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error cleaning up expired notifications: {str(e)}")
             return {'success': False, 'message': 'تعذر تنظيف الإشعارات المنتهية الصلاحية حالياً'}
     
@@ -402,12 +392,12 @@ class NotificationService:
             )
             
             db.session.add(whatsapp_message)
-            db.session.commit()
-            
+            if not safe_commit(db.session, error_message="فشل إرسال رسالة واتساب"):
+                return {'success': False, 'message': 'تعذر إرسال رسالة الواتساب حالياً'}
+
             return {'success': True, 'message': 'تم إضافة رسالة الواتساب إلى الطابور', 'message_id': whatsapp_message.id}
-            
+
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error sending WhatsApp message: {str(e)}")
             return {'success': False, 'message': 'تعذر إرسال رسالة الواتساب حالياً'}
     
@@ -425,12 +415,12 @@ class NotificationService:
             )
             
             db.session.add(email_message)
-            db.session.commit()
-            
+            if not safe_commit(db.session, error_message="فشل إرسال رسالة بريد إلكتروني"):
+                return {'success': False, 'message': 'تعذر إرسال رسالة البريد الإلكتروني حالياً'}
+
             return {'success': True, 'message': 'تم إضافة رسالة البريد الإلكتروني إلى الطابور', 'message_id': email_message.id}
-            
+
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error sending email message: {str(e)}")
             return {'success': False, 'message': 'تعذر إرسال رسالة البريد الإلكتروني حالياً'}
     
@@ -452,12 +442,12 @@ class NotificationService:
             )
             
             db.session.add(queue_item)
-            db.session.commit()
-            
+            if not safe_commit(db.session, error_message="فشل إضافة إشعار إلى الطابور"):
+                return {'success': False, 'message': 'تعذر إضافة الإشعار إلى الطابور حالياً'}
+
             return {'success': True, 'message': 'تم إضافة الإشعار إلى الطابور', 'queue_id': queue_item.id}
-            
+
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error adding to notification queue: {str(e)}")
             return {'success': False, 'message': 'تعذر إضافة الإشعار إلى الطابور حالياً'}
     
@@ -527,12 +517,12 @@ class NotificationService:
                     notification.error_message = str(e)
                     logging.error(f"Error processing notification {notification.id}: {str(e)}")
             
-            db.session.commit()
-            
+            if not safe_commit(db.session, error_message="فشل معالجة طابور الإشعارات"):
+                return {'success': False, 'message': 'تعذر معالجة طابور الإشعارات حالياً', 'processed_count': 0}
+
             return {'success': True, 'message': f'تم معالجة {processed_count} إشعار', 'processed_count': processed_count}
-            
+
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error processing notification queue: {str(e)}")
             return {'success': False, 'message': 'تعذر معالجة طابور الإشعارات حالياً', 'processed_count': 0}
     

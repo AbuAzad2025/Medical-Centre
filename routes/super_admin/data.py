@@ -13,6 +13,7 @@ from services.super_admin_service import super_admin_service
 import logging
 from sqlalchemy import func
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 
 
 # =============================================
@@ -33,13 +34,13 @@ def branch_templates():
                 cfg = SystemConfig(config_key='branch_templates', category='system', is_system=True, config_type='json')
                 db.session.add(cfg)
             cfg.set_value(items)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             return jsonify({'success': True, 'message': 'تم حفظ القوالب'}), 200
         cfg = SystemConfig.query.filter_by(config_key='branch_templates').first()
         items = cfg.get_value() if cfg else []
         return render_template('super_admin/branch_templates.html', items=items if isinstance(items, list) else [])
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Branch templates error: {str(e)}")
         return render_template('super_admin/branch_templates.html', items=[])
 

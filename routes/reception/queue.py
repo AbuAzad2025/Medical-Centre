@@ -23,6 +23,7 @@ from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging
 from services.access_control_service import AccessControlService
 from services.pos_terminal_service import PosTerminalService
@@ -427,7 +428,7 @@ def get_smart_queue_management(department_id=None):
                 func.count(QueueManagement.id).label('count')
             ).group_by(func.extract('hour', QueueManagement.created_at)).all()
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             peak_hours = []
         
         peak_hour = max(peak_hours, key=lambda x: x.count) if peak_hours else None
@@ -474,7 +475,7 @@ def get_patient_flow_analysis():
                 func.count(Visit.id).label('count')
             ).filter(Visit.created_at >= week_ago).group_by(func.extract('hour', Visit.created_at)).all()
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             hourly_flow = []
         
         # تحليل الأقسام
@@ -901,7 +902,7 @@ def get_smart_recommendations():
                 func.avg((func.extract('epoch', Visit.completed_at) - func.extract('epoch', Visit.created_at)) / 60.0)
             ).filter(Visit.completed_at.isnot(None)).scalar() or 0
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             avg_visit_duration = 0
         if avg_visit_duration > 45:
             recommendations.append({
@@ -1033,11 +1034,11 @@ def save_queue_settings(department_id):
         settings.allow_debt = 'allow_debt' in request.form
         settings.emergency_payment_waived = 'emergency_payment_waived' in request.form
         settings.force_entry_allowed = 'force_entry_allowed' in request.form
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم حفظ إعدادات الطابور للقسم.', 'success')
         return redirect(url_for('reception.queue_management'))
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error saving queue settings: {str(e)}")
         flash('حدث خطأ في حفظ الإعدادات', 'error')
         return redirect(url_for('reception.queue_management'))

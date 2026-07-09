@@ -18,6 +18,7 @@ from models.medical_record import MedicalRecord
 from app.shared.enums import EmergencyStatus
 from services.emergency_service import emergency_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from sqlalchemy import and_, or_, desc, case
 import logging, json
 from datetime import datetime, date, timedelta, timezone
@@ -59,7 +60,7 @@ def treatment(emergency_id):
             emergency.treated_by = current_user.id
             emergency.treated_at = datetime.now(timezone.utc)
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تسجيل العلاج بنجاح', 'success')
             return redirect(url_for('emergency.patient_queue'))
         
@@ -101,7 +102,7 @@ def end_treatment(emergency_id):
         except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم إنهاء العلاج بنجاح وإخطار الاستقبال', 'success')
         return redirect(url_for('emergency.patient_queue'))
     except Exception as e:
@@ -126,7 +127,7 @@ def start_treatment(emergency_id):
         emergency.treatment_started_at = datetime.now(timezone.utc)
         emergency.treated_by = current_user.id
         
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         flash('تم بدء العلاج بنجاح', 'success')
         return redirect(url_for('emergency.patient_details', emergency_id=emergency_id))
@@ -182,7 +183,7 @@ def emergency_treatment(visit_id):
             except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             return jsonify({'success': True})
         return render_template('emergency/emergency_treatment.html', visit=visit)
     except Exception as e:
@@ -220,9 +221,9 @@ def complete_visit(visit_id):
         except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True}), 200
     except Exception as e:
         logging.error(f"Complete emergency visit error: {str(e)}")
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         return jsonify({'success': False, 'message': 'تعذر إنهاء الزيارة حالياً'}), 500

@@ -21,6 +21,7 @@ from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import VisitState, QueueState, LabResultStatus
 from services.visit_state_machine_service import VisitStateMachineService
 from sqlalchemy import and_, or_, desc, func, case
@@ -55,7 +56,7 @@ def start_treatment(visit_id):
                     dep_id = d.id if d else None
                 if dep_id:
                     visit.department_id = dep_id
-                    db.session.commit()
+                    safe_commit(db.session, error_message="database commit failed", reraise=True)
                 else:
                     flash('لا يمكن بدء العلاج لأن القسم غير محدد', 'error')
                     return redirect(url_for('doctor.patient_queue'))
@@ -108,7 +109,7 @@ def start_treatment(visit_id):
         except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم تسجيل بدء العلاج وإخطار الاستقبال', 'success')
         return redirect(url_for('doctor.patient_details', visit_id=visit_id))
     except Exception as e:
@@ -420,7 +421,7 @@ def save_visit_summary(visit_id):
         except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         try:
             db.session.add(AuditTrail(
                 entity_type='visit',
@@ -431,7 +432,7 @@ def save_visit_summary(visit_id):
                 user_agent=request.headers.get('User-Agent'),
                 description='حفظ ملخص الزيارة'
             ))
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
         except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
@@ -491,7 +492,7 @@ def end_treatment(visit_id):
         except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         try:
             db.session.add(AuditTrail(
                 entity_type='visit',
@@ -503,7 +504,7 @@ def end_treatment(visit_id):
                 description='إنهاء العلاج',
                 new_values=json.dumps({'status': 'COMPLETED'})
             ))
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
         except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")

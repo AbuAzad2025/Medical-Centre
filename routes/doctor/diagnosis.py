@@ -20,6 +20,7 @@ from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import VisitState, VisitArchiveStatus
 from services.visit_state_machine_service import VisitStateMachineService
 from sqlalchemy import and_, or_, desc, func, case
@@ -104,7 +105,7 @@ def diagnosis(visit_id):
             )
             
             db.session.add(medical_record)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             try:
                 db.session.add(AuditTrail(
                     entity_type='visit',
@@ -116,7 +117,7 @@ def diagnosis(visit_id):
                     description='حفظ التشخيص',
                     new_values=json.dumps({'diagnosis': diagnosis, 'treatment_plan': treatment_plan})
                 ))
-                db.session.commit()
+                safe_commit(db.session, error_message="database commit failed", reraise=True)
             except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")

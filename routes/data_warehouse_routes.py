@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required
 from utils.decorators import handle_route_errors
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from models import DataWarehouseSync, DailyVisitSummary, MonthlyFinanceSummary, Visit
 from sqlalchemy import func
 from datetime import datetime, timezone
@@ -36,7 +37,7 @@ def sync():
         started_at=datetime.now(timezone.utc)
     )
     db.session.add(sync_log)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
 
     if sync_name == 'daily_visits_summary':
         today = datetime.now(timezone.utc).date()
@@ -49,6 +50,6 @@ def sync():
 
     sync_log.status = 'success'
     sync_log.completed_at = datetime.now(timezone.utc)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     flash('تمت المزامنة بنجاح', 'success')
     return redirect(url_for('data_warehouse.dashboard'))

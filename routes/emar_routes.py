@@ -9,6 +9,7 @@ from models.emar import eMARAdministration, MedicationSchedule
 from models.patient import Patient
 from models.medication import Prescription, PrescriptionItem
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from datetime import datetime, date, timezone
 
 emar_bp = Blueprint('emar', __name__)
@@ -50,6 +51,6 @@ def administer(admin_id):
     admin.status = 'GIVEN'
     admin.administered_time = datetime.now(timezone.utc)
     admin.nurse_id = current_user.id
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     flash('تم تسجيل إعطاء الدواء بنجاح', 'success')
     return redirect(url_for('emar.dashboard'))

@@ -13,6 +13,7 @@ from models.user import User, StaffWorkSchedule, StaffAbsence
 from models.department import Department
 from utils.tenant_query import get_tenant_record, TenantContextError
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging
 from datetime import datetime, timedelta, timezone
 import json
@@ -87,13 +88,13 @@ def register():
                 patient_id=patient.id,
                 tenant_id=patient.tenant_id or getattr(user, 'tenant_id', None),
             ))
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
 
             login_user(user, remember=True)
             flash('تم إنشاء الحساب بنجاح', 'success')
             return redirect(url_for('booking.dashboard_portal'))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash('تعذر إنشاء الحساب، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
 
     return render_template('booking/register.html')
@@ -146,7 +147,7 @@ def cancel_booking(booking_id):
             return redirect(url_for('booking.dashboard_portal'))
         booking.status = 'cancelled'
         booking.cancelled_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         try:
             from services.notification_service import NotificationService
             NotificationService.send_notification(
@@ -181,7 +182,7 @@ def cancel_booking(booking_id):
         flash('تم إلغاء الحجز', 'success')
         return redirect(url_for('booking.dashboard_portal'))
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Cancel booking error: {str(e)}")
         if request.accept_mimetypes.best == 'application/json':
             return jsonify({'success': False, 'message': 'تعذر إلغاء الحجز حالياً'}), 500
@@ -282,14 +283,14 @@ def create_booking():
 
                 logging.warning(f"Error in {__name__}: {e}")
             db.session.add(booking)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
 
             if visit_type == 'telemedicine':
                 meeting_token = secrets.token_urlsafe(8)
                 meeting_link = url_for('booking.telemedicine_room', booking_id=booking.id, _external=True) + f"?token={meeting_token}"
                 booking.notes = (booking.notes or '').strip()
                 booking.notes = (booking.notes + ' ' if booking.notes else '') + f"MEET:{meeting_link}"
-                db.session.commit()
+                safe_commit(db.session, error_message="database commit failed", reraise=True)
 
             try:
                 from services.notification_service import NotificationService
@@ -339,7 +340,7 @@ def create_booking():
             return redirect(url_for('booking.confirmation', booking_id=booking.id))
             
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error creating booking: {str(e)}")
             flash('تعذر إنشاء الحجز، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
     
@@ -420,13 +421,13 @@ def payment(booking_id):
             )
             
             db.session.add(payment)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             
             flash('تم إنشاء معاملة الدفع بنجاح', 'success')
             return redirect(url_for('booking.confirmation', booking_id=booking_id))
             
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error processing payment: {str(e)}")
             flash('تعذر معالجة الدفع حالياً، يرجى المحاولة مرة أخرى', 'error')
     

@@ -6,6 +6,7 @@ from flask_login import login_required, current_user
 from utils.decorators import role_required
 from models.lab_test_catalog import LabTestCatalog, LabTestPanel, LabTestPanelItem
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from datetime import datetime, timezone
 import logging
 
@@ -65,10 +66,10 @@ def test_catalog_add():
             sort_order=request.form.get('sort_order', 0) or 0,
         )
         db.session.add(test)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم إضافة الفحص إلى الكتالوج', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logger.exception('Error adding test catalog entry')
         flash(f'خطأ في إضافة الفحص: {e}', 'danger')
     return redirect(url_for('lab.test_catalog', category=request.form.get('category', '')))
@@ -96,10 +97,10 @@ def test_catalog_edit(id):
         test.is_active = request.form.get('is_active', '1') == '1'
         test.sort_order = request.form.get('sort_order', 0) or 0
         test.updated_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم تحديث الفحص', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logger.exception('Error editing test catalog entry')
         flash(f'خطأ في تحديث الفحص: {e}', 'danger')
     return redirect(url_for('lab.test_catalog', category=request.form.get('category', '')))
@@ -115,10 +116,10 @@ def test_catalog_delete(id):
         return redirect(url_for('lab.test_catalog'))
     try:
         db.session.delete(test)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم حذف الفحص', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ في حذف الفحص: {e}', 'danger')
     return redirect(url_for('lab.test_catalog'))
 
@@ -165,10 +166,10 @@ def test_panels_add():
                         sort_order=idx
                     ))
         db.session.add(panel)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم إضافة الباقة', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logger.exception('Error adding panel')
         flash(f'خطأ في إضافة الباقة: {e}', 'danger')
     return redirect(url_for('lab.test_panels'))
@@ -205,10 +206,10 @@ def test_panels_edit(id):
                         test_id=test_id,
                         sort_order=idx
                     ))
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم تحديث الباقة', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logger.exception('Error editing panel')
         flash(f'خطأ في تحديث الباقة: {e}', 'danger')
     return redirect(url_for('lab.test_panels'))
@@ -224,10 +225,10 @@ def test_panels_delete(id):
         return redirect(url_for('lab.test_panels'))
     try:
         db.session.delete(panel)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم حذف الباقة', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ في حذف الباقة: {e}', 'danger')
     return redirect(url_for('lab.test_panels'))
 

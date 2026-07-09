@@ -18,6 +18,7 @@ from models.medical_record import MedicalRecord
 from app.shared.enums import EmergencyStatus
 from services.emergency_service import emergency_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from sqlalchemy import and_, or_, desc, case
 import logging, json
 from datetime import datetime, date, timedelta, timezone
@@ -175,7 +176,7 @@ def edit_emergency_case(id):
                 except Exception as e:
 
                     logging.warning(f"Error in {__name__}: {e}")
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث حالة الطوارئ بنجاح', 'success')
             return redirect(url_for('emergency.view_emergency_case', id=emergency.id))
         doctors = User.query.filter_by(role='doctor').all()
@@ -204,7 +205,7 @@ def resolve_emergency_case(id):
             return redirect(url_for('emergency.list_emergency_cases'))
         _set_emergency_status(emergency, 'COMPLETED')
         emergency.completed_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم حل الحالة بنجاح', 'success')
         return redirect(url_for('emergency.list_emergency_cases'))
     except Exception as e:
@@ -295,11 +296,11 @@ def create_emergency_case():
         except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True, 'visit_id': visit.id, 'case_id': emergency.id}), 200
     except Exception as e:
         logging.error(f"Create emergency case error: {str(e)}")
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         return jsonify({'success': False, 'message': 'تعذر إنشاء حالة الطوارئ حالياً'}), 500
 
 @emergency_bp.route('/cases/<int:id>/convert', methods=['POST'])

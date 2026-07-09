@@ -5,6 +5,7 @@ Medical System WhatsApp Integration Models
 
 from datetime import datetime, timezone
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.mixins import TenantMixin
 import secrets
 import string
@@ -248,10 +249,10 @@ class WhatsAppConfig(TenantMixin, db.Model):
                 )
                 db.session.add(config)
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             return config
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             raise
     
     def to_dict(self):

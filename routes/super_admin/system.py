@@ -15,6 +15,7 @@ import logging
 from sqlalchemy import func
 from datetime import datetime, timezone, timedelta
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 
 
 # =============================================
@@ -126,14 +127,14 @@ def system_config():
                             h.setLevel(level)
 
                 from models.audit_trail import AuditTrail
-                db.session.commit()
+                safe_commit(db.session, error_message="database commit failed", reraise=True)
                 try:
                     change_desc = ', '.join([f"{k}={normalized[k]}" for k in normalized.keys()])
                     audit = AuditTrail(entity_type='system', entity_id=0, action='update', user_id=current_user.id, description='تحديث إعدادات النظام', notes=change_desc)
                     db.session.add(audit)
-                    db.session.commit()
+                    safe_commit(db.session, error_message="database commit failed", reraise=True)
                 except Exception as e:
-                    db.session.rollback()
+                    safe_rollback(db.session, error_message="database rollback")
                     logging.warning(f"Error in {__name__}: {e}")
                 return jsonify({'success': True, 'message': 'تم حفظ الإعدادات بنجاح'}), 200
             else:
@@ -156,7 +157,7 @@ def system_config():
         return render_template('super_admin/system_config.html')
         
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"System config error: {str(e)}")
         import traceback
         traceback.print_exc()
@@ -234,11 +235,11 @@ def queue_settings():
                     qs.allow_partial_payment = bool(ap)
                 if ad is not None:
                     qs.allow_debt = bool(ad)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             return jsonify({'success': True}), 200
         return render_template('super_admin/queue_settings.html')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Queue settings error: {str(e)}")
         return jsonify({'success': False, 'message': 'حدث خطأ في إعدادات الأقسام'}), 500
 
@@ -303,7 +304,7 @@ def system_cleanup():
                 AuditTrail.created_at < datetime.now(timezone.utc) - timedelta(days=90)
             ).delete()
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash(f'تم حذف {old_logs} سجل قديم', 'success')
             
         elif cleanup_type == 'sessions':
@@ -324,13 +325,13 @@ def system_cleanup():
             from services.pricing_service import PricingService
             r_all = PricingService.cleanup_all(max_keep_per_role=1)
             r_purge = PricingService.purge_users_keep_policy()
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم توحيد وتنظيف البيانات بدون إنشاء أي بيانات افتراضية', 'success')
         
         return redirect(url_for('super_admin.system_maintenance'))
         
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"System cleanup error: {str(e)}")
         flash('حدث خطأ في تنظيف النظام', 'error')
         return redirect(url_for('super_admin.system_maintenance'))
@@ -469,11 +470,11 @@ def save_backup_settings():
         update_config('backup_compression', data.get('compression', 'gzip'))
         update_config('backup_auto_enabled', data.get('auto_backup', True))
         
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True, 'message': 'تم حفظ الإعدادات بنجاح'})
         
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error saving backup settings: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر حفظ إعدادات النسخ الاحتياطي حالياً'}), 500
 
@@ -495,12 +496,12 @@ def maintenance_automation():
                 'log_retention_days': int(data.get('log_retention_days') or 90),
                 'auto_backup': bool(data.get('auto_backup', True)),
             })
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             return jsonify({'success': True, 'message': 'تم حفظ إعدادات الأتمتة'}), 200
         cfg = SystemConfig.query.filter_by(config_key='maintenance_automation').first()
         settings = cfg.get_value() if cfg else {}
         return render_template('super_admin/maintenance_automation.html', settings=settings)
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Maintenance automation error: {str(e)}")
         return render_template('super_admin/maintenance_automation.html', settings={})

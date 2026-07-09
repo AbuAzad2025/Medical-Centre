@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
 from app.shared.enums import VisitState, VisitArchiveStatus, QueueState
+from utils.db_safety import safe_commit
 from services.visit_state_machine_service import VisitStateMachineService
 
 
@@ -116,7 +117,7 @@ class QueueService:
             status=QueueState.WAITING,
         )
         db.session.add(q)
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to add to queue", reraise=True)
 
     @staticmethod
     def call_next(station: str, tenant_id: int):
@@ -126,7 +127,7 @@ class QueueService:
         ).order_by(QueueManagement.id.asc()).first()
         if entry:
             entry.status = QueueState.CALLED
-            db.session.commit()
+            safe_commit(db.session, error_message="Failed to call next queue entry", reraise=True)
         return entry
 
     @staticmethod
@@ -137,4 +138,4 @@ class QueueService:
         ).order_by(QueueManagement.id.desc()).first()
         if entry:
             entry.status = QueueState.COMPLETED
-            db.session.commit()
+            safe_commit(db.session, error_message="Failed to complete queue entry", reraise=True)

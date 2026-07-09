@@ -6,6 +6,7 @@ Medical System Audit Trail Models
 from datetime import datetime, timezone
 from sqlalchemy import Index, CheckConstraint
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.mixins import TenantMixin
 
 class AuditTrail(TenantMixin, db.Model):
@@ -220,7 +221,7 @@ class SecurityEvent(TenantMixin, db.Model):
         from datetime import timezone, datetime as _dt
         self.resolved_at = _dt.now(timezone.utc)
         self.resolution_notes = resolution_notes
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
 
 class LoginAttempt(TenantMixin, db.Model):

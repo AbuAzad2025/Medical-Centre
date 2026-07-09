@@ -17,6 +17,7 @@ from models.audit_trail import AuditTrail
 from app.shared.enums import OrderState, LabResultStatus
 from services.lab_service import lab_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json, base64
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
@@ -61,7 +62,7 @@ def quality():
             LabRequest.completed_at.isnot(None),
         ).scalar()
     except Exception:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         avg_tat_seconds = None
     
     avg_tat_minutes = float(avg_tat_seconds or 0) / 60.0 if avg_tat_seconds is not None else 0.0
@@ -194,11 +195,11 @@ def quality_control():
                 recorded_by=current_user.id,
                 recorded_at=datetime.now(timezone.utc)
             ))
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تسجيل ضبط الجودة', 'success')
             return redirect(url_for('lab.quality_control'))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error saving lab QC: {str(e)}")
             flash('حدث خطأ أثناء الحفظ', 'error')
             return redirect(url_for('lab.quality_control'))

@@ -13,6 +13,7 @@ from services.super_admin_service import super_admin_service
 import logging
 from sqlalchemy import func
 from datetime import datetime, timedelta, timezone
+from utils.db_safety import safe_commit, safe_rollback
 
 
 # =============================================
@@ -54,13 +55,13 @@ def api_audit_log():
         )
         
         db.session.add(audit)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({'success': True, 'message': 'تم تسجيل الحدث'}), 200
         
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"API audit log error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر تسجيل الحدث حالياً'}), 500
 

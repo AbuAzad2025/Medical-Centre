@@ -14,6 +14,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from utils.db_safety import safe_commit, safe_rollback
 
 # إنشاء Blueprint للمصادقة
 auth_bp = Blueprint('auth', __name__)
@@ -150,9 +151,9 @@ def login() -> ResponseReturnValue:
                                     description='تم حظر محاولة تسجيل دخول بسبب تجاوز الحد',
                                     notes=f'username={username}'
                                 ))
-                                db.session.commit()
+                                safe_commit(db.session, error_message="database commit failed", reraise=True)
                             except Exception:
-                                db.session.rollback()
+                                safe_rollback(db.session, error_message="database rollback")
 
                             msg = 'تم تجميد تسجيل الدخول مؤقتاً بسبب محاولات فاشلة متكررة. حاول لاحقاً.'
                             if is_ajax:
@@ -198,11 +199,11 @@ def login() -> ResponseReturnValue:
                             user_agent=request.headers.get('User-Agent'),
                             description='تسجيل دخول'
                         ))
-                        db.session.commit()
+                        safe_commit(db.session, error_message="database commit failed", reraise=True)
                     except Exception:
                         try:
                             from app_factory import db
-                            db.session.rollback()
+                            safe_rollback(db.session, error_message="database rollback")
                         except Exception as e:
 
                             logging.warning(f"Error in {__name__}: {e}")
@@ -287,11 +288,11 @@ def login() -> ResponseReturnValue:
                         description='فشل تسجيل دخول',
                         notes=f'username={username}'
                     ))
-                    db.session.commit()
+                    safe_commit(db.session, error_message="database commit failed", reraise=True)
                 except Exception:
                     try:
                         from app_factory import db
-                        db.session.rollback()
+                        safe_rollback(db.session, error_message="database rollback")
                     except Exception as e:
 
                         logging.warning(f"Error in {__name__}: {e}")
@@ -342,11 +343,11 @@ def logout():
                 user_agent=request.headers.get('User-Agent'),
                 description='تسجيل خروج'
             ))
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
     except Exception:
         try:
             from app_factory import db
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
         except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
@@ -393,7 +394,7 @@ def profile():
                 user.set_password(new_password)
                 
             from app_factory import db
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث الملف الشخصي بنجاح', 'success')
             return redirect(url_for('auth.profile'))
             
@@ -451,7 +452,7 @@ def change_password():
         from werkzeug.security import generate_password_hash
         current_user.password_hash = generate_password_hash(new_password)
         from app_factory import db
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({
             'success': True,

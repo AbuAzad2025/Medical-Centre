@@ -12,6 +12,7 @@ from models.visit import Visit
 from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
 from models.drug_interaction import DrugInteraction
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json
 from datetime import datetime, timezone, timedelta, date
 from sqlalchemy import func
@@ -107,13 +108,13 @@ def add_medication():
             )
             
             db.session.add(medication)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             
             flash('تم إضافة الدواء بنجاح', 'success')
             return redirect(url_for('medication.list_medications'))
             
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error adding medication: {str(e)}")
             flash('تعذر إضافة الدواء، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
     
@@ -158,13 +159,13 @@ def edit_medication(medication_id):
             medication.standard_instructions = (request.form.get('standard_instructions') or '').strip() or None
             medication.description = (request.form.get('description') or '').strip() or None
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             
             flash('تم تحديث الدواء بنجاح', 'success')
             return redirect(url_for('medication.list_medications'))
             
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error editing medication: {str(e)}")
             flash('تعذر تحديث الدواء، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
     

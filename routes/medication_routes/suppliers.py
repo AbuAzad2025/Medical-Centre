@@ -8,6 +8,7 @@ import logging
 from routes.medication_routes import medication_bp
 from models.medication import Supplier, MedicationPurchase, Medication
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 
 
 @medication_bp.route('/suppliers')
@@ -41,11 +42,11 @@ def add_supplier():
                 notes=request.form.get('notes', '').strip(),
             )
             db.session.add(supplier)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إضافة المورد بنجاح', 'success')
             return redirect(url_for('medication.suppliers'))
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash('حدث خطأ في إضافة المورد', 'error')
     return render_template('pharmacy/add_supplier.html')
 
@@ -71,11 +72,11 @@ def edit_supplier(supplier_id):
             supplier.tax_id = request.form.get('tax_id', '').strip()
             supplier.notes = request.form.get('notes', '').strip()
             supplier.updated_at = datetime.now(timezone.utc)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث المورد بنجاح', 'success')
             return redirect(url_for('medication.suppliers'))
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash('حدث خطأ في تحديث المورد', 'error')
     return render_template('pharmacy/add_supplier.html', supplier=supplier)
 
@@ -93,11 +94,11 @@ def delete_supplier(supplier_id):
         return redirect(url_for('medication.suppliers'))
     try:
         db.session.delete(supplier)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم حذف المورد بنجاح', 'success')
         return redirect(url_for('medication.suppliers'))
     except Exception:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash('حدث خطأ في حذف المورد', 'error')
         return redirect(url_for('medication.suppliers'))
 
@@ -179,11 +180,11 @@ def add_purchase():
             medication.updated_at = datetime.now(timezone.utc)
 
         try:
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إضافة المشتريات بنجاح', 'success')
             return redirect(url_for('medication.purchases'))
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash('حدث خطأ في إضافة المشتريات', 'error')
 
     medications = Medication.query.filter(

@@ -23,6 +23,7 @@ from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging
 from services.access_control_service import AccessControlService
 from app.shared.pos_charge import execute_pos_charge
@@ -105,11 +106,11 @@ def process_payment(visit_id):
         else:
             visit.payment_status = PaymentStatus.PENDING
 
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم إرسال الزيارة للمحاسبة بنجاح.', 'success')
         return redirect(url_for('reception.view_visit', visit_id=visit_id))
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error sending visit to accounting: {str(e)}")
         flash('حدث خطأ أثناء إرسال الزيارة للمحاسبة.', 'error')
         return redirect(url_for('reception.queue_management'))
@@ -295,7 +296,7 @@ def cash_register():
     reg.expected_card = exp_card
     reg.expected_insurance = exp_ins
     reg.expected_total = exp_cash + exp_card + exp_ins
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     return render_template('reception/cash_register.html', register=reg, payments=payments)
 
 
@@ -319,11 +320,11 @@ def daily_close():
             reg.is_closed = True
             reg.is_open = False
             reg.closed_at = datetime.now(timezone.utc)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إغلاق اليومية بنجاح', 'success')
             return redirect(url_for('reception.cash_register'))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error in daily close: {str(e)}")
             flash('حدث خطأ أثناء إغلاق اليومية', 'error')
             return redirect(url_for('reception.cash_register'))

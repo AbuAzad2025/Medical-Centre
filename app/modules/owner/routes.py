@@ -9,6 +9,7 @@ from sqlalchemy import text
 from flask_login import login_required, current_user
 from app.modules.owner import owner_bp
 from app.extensions import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.core.tenant.models import (
     Tenant, SubscriptionPlan, TenantSubscriptionHistory,
     SupportTicket, PlatformAuditLog, ResourceUsage, NotificationRule,
@@ -48,9 +49,9 @@ def _log_action(action, entity_type, entity_id=None, details=None):
             user_agent=request.user_agent.string[:255] if request.user_agent else None
         )
         db.session.add(log)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     except Exception:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
 
 
 def _compute_platform_revenue():
@@ -262,11 +263,11 @@ def owner_tenant_detail(tenant_id):
                         is_active=True,
                     )
                     db.session.add(user)
-                    db.session.commit()
+                    safe_commit(db.session, error_message="database commit failed", reraise=True)
                     _log_action("CREATE_USER", "user", user.id, f"tenant={tenant.slug}")
                     flash(f"تم إنشاء المستخدم {username}", "success")
             except Exception as e:
-                db.session.rollback()
+                safe_rollback(db.session, error_message="database rollback")
                 flash(f"خطأ: {e}", "error")
         else:
             flash("اسم المستخدم وكلمة المرور مطلوبان", "error")
@@ -344,7 +345,7 @@ def owner_activate_default_modules(tenant_id):
         else:
             db.session.add(TenantModule(tenant_id=tenant_id, module_name=m, is_active=True, activated_at=datetime.now(timezone.utc)))
             activated += 1
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     _log_action("ACTIVATE_MODULES", "tenant", tenant_id, f"activated {activated} modules: {','.join(default_modules)}")
     flash(f"تم تفعيل {activated} وحدة للمستأجر {tenant.name}", "success")
     return redirect(url_for("owner.owner_tenant_detail", tenant_id=tenant_id))
@@ -421,14 +422,14 @@ def owner_edit_tenant(tenant_id):
             except Exception:
                 pass  # Non-critical; module sync already done via profile
 
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('UPDATE_TENANT', 'tenant', tenant_id, f"Updated tenant {tenant.name}")
         if profile_changed:
             flash('تم تحديث بيانات العميل وتزامن وحدات الباقة الجديدة', 'success')
         else:
             flash('تم تحديث بيانات العميل', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ في تحديث العميل: {e}', 'error')
     return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
 
@@ -454,11 +455,11 @@ def owner_toggle_tenant_feature(tenant_id, feature_key):
                 updated_at=datetime.now(timezone.utc)
             )
             db.session.add(flag)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('TOGGLE_FEATURE', 'tenant', tenant_id, f"{feature_key}={flag.is_enabled}")
         flash(f"تم تحديث الميزة {feature_key}", 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
 
@@ -518,11 +519,11 @@ def owner_edit_user(user_id):
                 flash('اسم المستخدم موجود في المنشأة المحددة', 'error')
                 return redirect(url_for('owner.owner_users'))
             user.tenant_id = new_tenant_id
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('UPDATE_USER', 'user', user.id, f"Updated user {user.username}")
         flash('تم تحديث المستخدم بنجاح', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ في تحديث المستخدم: {e}', 'error')
     return redirect(url_for('owner.owner_users'))
 
@@ -546,11 +547,11 @@ def owner_reset_user_password(user_id):
             return redirect(ref)
         user.password_hash = generate_password_hash(new_password)
         user.session_version = (user.session_version or 0) + 1
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('RESET_PASSWORD', 'user', user.id, f"Reset password for {user.username}")
         flash(f'تم إعادة تعيين كلمة المرور لـ {user.username}: <strong>{new_password}</strong>', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     ref = request.referrer or url_for('owner.owner_users')
     return redirect(ref)
@@ -568,11 +569,11 @@ def owner_delete_user(user_id):
             flash('لا يمكن حذف مستخدم مالك/سوبر أدمن', 'error')
             return redirect(url_for('owner.owner_users'))
         db.session.delete(user)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('DELETE_USER', 'user', user_id, f"Deleted user {user.username}")
         flash('تم حذف المستخدم بنجاح', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ في حذف المستخدم: {e}', 'error')
     return redirect(url_for('owner.owner_users'))
 
@@ -589,12 +590,12 @@ def owner_toggle_user_active(user_id):
             flash('لا يمكن تعطيل مستخدم مالك/سوبر أدمن', 'error')
         else:
             user.is_active = not user.is_active
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             _log_action('TOGGLE_USER_ACTIVE', 'user', user.id,
                         f"{'تفعيل' if user.is_active else 'إيقاف'} {user.username}")
             flash(f'تم {"تفعيل" if user.is_active else "إيقاف"} المستخدم {user.username}', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     # Redirect back to referring page
     ref = request.referrer or url_for('owner.owner_users')
@@ -614,11 +615,11 @@ def owner_reveal_user_password(user_id):
         temp_password = secrets.token_urlsafe(8)
         user.password_hash = generate_password_hash(temp_password)
         user.session_version = (user.session_version or 0) + 1
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('REVEAL_PASSWORD', 'user', user.id, f"Reset password for {user.username}")
         flash(f'كلمة المرور الجديدة لـ {user.username}: <strong>{temp_password}</strong>', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     ref = request.referrer or url_for('owner.owner_users')
     return redirect(ref)
@@ -676,11 +677,11 @@ def owner_toggle_module_global(module_name):
                 created_at=datetime.now(timezone.utc)
             )
             db.session.add(mod)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('TOGGLE_MODULE_GLOBAL', 'module_definition', mod.id, f"{module_name} active={mod.is_active}")
         flash(f"تم تحديث حالة الوحدة {module_name}", 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_modules'))
 
@@ -702,7 +703,7 @@ def owner_renew_tenant(tenant_id):
             tenant.subscription_end = None
 
         tenant.status = TenantStatus.ACTIVE
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         h = TenantSubscriptionHistory(
             tenant_id=tenant_id,
@@ -713,11 +714,11 @@ def owner_renew_tenant(tenant_id):
             notes='تجديد الاشتراك من لوحة المنصة'
         )
         db.session.add(h)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('RENEW_SUBSCRIPTION', 'tenant', tenant_id, f"Renewed tenant {tenant.name}")
         flash('تم تجديد الاشتراك', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_tenant_detail', tenant_id=tenant_id))
 
@@ -739,7 +740,7 @@ def owner_suspend_tenant(tenant_id):
         dispatch_webhook(EVENT_TENANT_SUSPENDED, {"tenant_id": tenant_id, "name": tenant.name})
         flash('تم إيقاف العميل', 'warning')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_dashboard'))
 
@@ -759,13 +760,13 @@ def owner_activate_tenant(tenant_id):
             )
         else:
             tenant.status = TenantStatus.ACTIVE
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             EntitlementProjectionService.calculate(tenant_id)
         _log_action('ACTIVATE_TENANT', 'tenant', tenant_id, f"Activated tenant {tenant.name}")
         dispatch_webhook(EVENT_TENANT_ACTIVATED, {"tenant_id": tenant_id, "name": tenant.name})
         flash('تم تفعيل العميل', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_dashboard'))
 
@@ -797,11 +798,11 @@ def owner_create_plan():
             modules_included=data.get('modules_included', '').strip() or None,
         )
         db.session.add(plan)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('CREATE_PLAN', 'plan', plan.id, f"Created plan {plan.name}")
         flash('تم إنشاء الخطة بنجاح', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ في إنشاء الخطة: {e}', 'error')
     return redirect(url_for('owner.owner_plans'))
 
@@ -821,11 +822,11 @@ def owner_edit_plan(plan_id):
         plan.currency = data.get('currency', plan.currency)
         plan.is_active = data.get('is_active') == '1'
         plan.modules_included = data.get('modules_included', '').strip() or None
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('UPDATE_PLAN', 'plan', plan.id, f"Updated plan {plan.name}")
         flash('تم تحديث الخطة بنجاح', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ في تحديث الخطة: {e}', 'error')
     return redirect(url_for('owner.owner_plans'))
 
@@ -841,11 +842,11 @@ def owner_delete_plan(plan_id):
             flash('لا يمكن حذف الخطة — هناك عملاء مرتبطون بها', 'error')
             return redirect(url_for('owner.owner_plans'))
         db.session.delete(plan)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('DELETE_PLAN', 'plan', plan_id, f"Deleted plan {plan.name}")
         flash('تم حذف الخطة بنجاح', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ في حذف الخطة: {e}', 'error')
     return redirect(url_for('owner.owner_plans'))
 
@@ -897,12 +898,12 @@ def owner_announcements():
                     updated_by=current_user.id
                 )
                 db.session.add(cfg)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             _log_action('CREATE_ANNOUNCEMENT', 'system', None, new_announcement['title'])
             flash('تم إرسال الإعلان', 'success')
             return redirect(url_for('owner.owner_announcements'))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash(f'خطأ: {e}', 'error')
 
     return render_template('owner/announcements.html', announcements=announcements)
@@ -928,11 +929,11 @@ def owner_delete_announcement(announcement_id):
             cfg.config_value = json.dumps(announcements)
             cfg.updated_by = current_user.id
             cfg.updated_at = datetime.now(timezone.utc)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             _log_action('DELETE_ANNOUNCEMENT', 'system', None, f"Deleted announcement id={announcement_id}")
             flash('تم حذف الإعلان', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_announcements'))
 
@@ -967,11 +968,11 @@ def owner_update_ticket(ticket_id):
         ticket.assigned_to = int(request.form.get('assigned_to')) if request.form.get('assigned_to') else ticket.assigned_to
         if ticket.status == 'resolved':
             ticket.resolved_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('UPDATE_TICKET', 'ticket', ticket_id, f"Status: {ticket.status}")
         flash('تم تحديث التذكرة', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_support_tickets'))
 
@@ -1037,11 +1038,11 @@ def owner_create_notification():
             is_active=bool(request.form.get('is_active'))
         )
         db.session.add(r)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('CREATE_NOTIFICATION', 'notification', r.id)
         flash('تم إنشاء قاعدة الإشعار', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_notifications'))
 
@@ -1054,11 +1055,11 @@ def owner_delete_notification(rule_id):
     rule = NotificationRule.query.get_or_404(rule_id)
     try:
         db.session.delete(rule)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('DELETE_NOTIFICATION', 'notification', rule_id)
         flash('تم حذف القاعدة', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_notifications'))
 
@@ -1071,11 +1072,11 @@ def owner_toggle_notification(rule_id):
     rule = NotificationRule.query.get_or_404(rule_id)
     try:
         rule.is_active = not rule.is_active
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('TOGGLE_NOTIFICATION', 'notification', rule_id, f"is_active={rule.is_active}")
         flash('تم تغيير حالة القاعدة', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_notifications'))
 
@@ -1127,12 +1128,12 @@ def owner_branding():
                     updated_by=current_user.id
                 )
                 db.session.add(cfg)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             _log_action('UPDATE_BRANDING', 'system', None, 'Updated platform branding')
             flash('تم حفظ التخصيص', 'success')
             return redirect(url_for('owner.owner_branding'))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash(f'خطأ: {e}', 'error')
 
     return render_template('owner/branding.html', branding=branding)
@@ -1178,11 +1179,11 @@ def owner_webhooks():
                 else:
                     cfg = SystemConfig(config_key='owner_webhooks', config_value=json.dumps(webhooks), config_type='json', category='owner', created_by=current_user.id, updated_by=current_user.id)
                     db.session.add(cfg)
-                db.session.commit()
+                safe_commit(db.session, error_message="database commit failed", reraise=True)
                 _log_action('CREATE_WEBHOOK', 'system', None, request.form.get('name'))
                 flash('تم إضافة الـ Webhook', 'success')
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash(f'خطأ: {e}', 'error')
         return redirect(url_for('owner.owner_webhooks'))
 
@@ -1208,11 +1209,11 @@ def owner_delete_webhook(webhook_id):
         else:
             cfg.config_value = json.dumps(webhooks)
             cfg.updated_by = current_user.id
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             _log_action('DELETE_WEBHOOK', 'system', None, f"Deleted webhook id={webhook_id}")
             flash('تم حذف الـ Webhook', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_webhooks'))
 
@@ -1273,11 +1274,11 @@ def owner_api_keys_page():
                     updated_by=current_user.id,
                 )
                 db.session.add(cfg)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             _log_action('CREATE_API_KEY', 'system', new_key['tenant_id'], new_key['name'])
             flash(f"تم إنشاء API Key: {new_key['key'][:20]}...", 'success')
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash(f'خطأ: {e}', 'error')
         return redirect(url_for('owner.owner_api_keys_page'))
 
@@ -1303,11 +1304,11 @@ def owner_delete_api_key(key_id):
         else:
             cfg.config_value = json.dumps(keys)
             cfg.updated_by = current_user.id
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             _log_action('DELETE_API_KEY', 'system', None, f"Deleted key id={key_id}")
             flash('تم حذف المفتاح', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_api_keys_page'))
 
@@ -1333,11 +1334,11 @@ def owner_themes():
                 is_active=True,
             )
             db.session.add(theme)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             _log_action('CREATE_THEME', 'theme', theme.id, theme.name_ar)
             flash('تم إنشاء الثيم', 'success')
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash(f'خطأ: {e}', 'error')
         return redirect(url_for('owner.owner_themes'))
 
@@ -1354,11 +1355,11 @@ def owner_delete_theme(theme_id):
     theme = SystemTheme.query.get_or_404(theme_id)
     try:
         db.session.delete(theme)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('DELETE_THEME', 'theme', theme_id, theme.name_ar)
         flash('تم حذف الثيم', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_themes'))
 
@@ -1373,11 +1374,11 @@ def owner_set_default_theme(theme_id):
         SystemTheme.query.filter(SystemTheme.is_default == True).update({'is_default': False})
         theme = SystemTheme.query.get_or_404(theme_id)
         theme.is_default = True
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('SET_DEFAULT_THEME', 'theme', theme_id, theme.name_ar)
         flash(f'تم تعيين {theme.name_ar} كافتراضي', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_themes'))
 
@@ -1431,7 +1432,7 @@ def api_activate_module(tenant_id, module_name):
         db.session.add(tm)
     tm.is_active = True
     tm.activated_at = datetime.now(timezone.utc)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     dispatch_webhook(EVENT_MODULE_ACTIVATED, {"tenant_id": tenant_id, "module": module_name})
     return jsonify({"status": "activated", "module": module_name})
 
@@ -1445,7 +1446,7 @@ def api_deactivate_module(tenant_id, module_name):
     if tm:
         tm.is_active = False
         tm.deactivated_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('DEACTIVATE_MODULE', 'module', tenant_id, f"Deactivated {module_name}")
         dispatch_webhook(EVENT_MODULE_DEACTIVATED, {"tenant_id": tenant_id, "module": module_name})
     return jsonify({"status": "deactivated", "module": module_name})
@@ -1465,11 +1466,11 @@ def api_update_profile(tenant_id):
         return jsonify({"error": "Invalid profile"}), 400
     try:
         tenant.product_profile_code = profile_code
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('UPDATE_PROFILE', 'tenant', tenant_id, f"Profile -> {profile_code}")
         return jsonify({"status": "updated", "profile": profile_code})
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         return jsonify({"error": str(e)}), 400
 
 
@@ -1486,11 +1487,11 @@ def api_toggle_feature(tenant_id, feature_key):
     else:
         flag.is_enabled = not flag.is_enabled
     try:
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('TOGGLE_FEATURE', 'feature', tenant_id, f"{feature_key}={flag.is_enabled}")
         return jsonify({"status": "toggled", "feature": feature_key, "is_enabled": flag.is_enabled})
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         return jsonify({"error": str(e)}), 400
 
 
@@ -1599,12 +1600,12 @@ def api_create_bundle():
             profile_code=data.get("profile_code", "").strip() or None,
         )
         db.session.add(b)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('CREATE_BUNDLE', 'bundle', b.id, f"Created bundle {b.name_ar}")
         dispatch_webhook(EVENT_BUNDLE_CHANGED, {"action": "created", "bundle_id": b.id, "slug": b.slug, "name": b.name_ar})
         return jsonify({"status": "created", "id": b.id, "slug": b.slug})
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         return jsonify({"error": str(e)}), 400
 
 
@@ -1636,12 +1637,12 @@ def api_update_bundle(bundle_id):
         b.is_public = bool(data.get("is_public", b.is_public))
         b.is_active = bool(data.get("is_active", b.is_active))
         b.profile_code = data.get("profile_code", b.profile_code) or None
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('UPDATE_BUNDLE', 'bundle', bundle_id, f"Updated bundle {b.name_ar}")
         dispatch_webhook(EVENT_BUNDLE_CHANGED, {"action": "updated", "bundle_id": bundle_id, "slug": b.slug, "name": b.name_ar})
         return jsonify({"status": "updated", "id": b.id})
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         return jsonify({"error": str(e)}), 400
 
 
@@ -1657,12 +1658,12 @@ def api_delete_bundle(bundle_id):
         return jsonify({"error": "الباقة غير موجودة"}), 404
     try:
         b.is_active = False
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('DELETE_BUNDLE', 'bundle', bundle_id, f"Deactivated bundle {b.name_ar}")
         dispatch_webhook(EVENT_BUNDLE_CHANGED, {"action": "deleted", "bundle_id": bundle_id, "slug": b.slug, "name": b.name_ar})
         return jsonify({"status": "deleted", "id": bundle_id})
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         return jsonify({"error": str(e)}), 400
 
 
@@ -1752,7 +1753,7 @@ def api_provision_tenant():
             },
         })
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         return jsonify({"error": str(e)}), 400
 
 
@@ -1788,7 +1789,7 @@ def api_record_usage(tenant_id):
         snapshot = ResourceUsage.record_snapshot(tenant_id)
         return jsonify({"status": "recorded", "snapshot": snapshot.to_dict()})
     except Exception:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         return jsonify({"error": "تعذر تسجيل الاستهلاك"}), 400
 
 
@@ -1834,7 +1835,7 @@ def owner_create_package():
         published_at=datetime.now(timezone.utc),
     )
     db.session.add(pv)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     _log_action("CREATE_PACKAGE", "package", package.id, f"slug={slug}")
     flash("تم إنشاء Package بنجاح", "success")
     return redirect(url_for("owner.owner_packages"))
@@ -1896,7 +1897,7 @@ def owner_create_package_version(package_id):
                     currency=prc.currency,
                 ))
 
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     _log_action("CREATE_PACKAGE_VERSION", "package_version", new_pv.id, f"package={package.slug}, version={version}")
     flash("تم إنشاء الإصدار بنجاح", "success")
     return redirect(url_for("owner.owner_packages"))
@@ -1909,7 +1910,7 @@ def owner_deprecate_package_version(version_id):
     """Deprecate a package version."""
     pv = PackageVersion.query.get_or_404(version_id)
     pv.is_deprecated = True
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     _log_action("DEPRECATE_PACKAGE_VERSION", "package_version", pv.id,
                 f"package={pv.package.slug}, version={pv.version}")
     flash("تم تعطيل الإصدار", "warning")
@@ -1936,11 +1937,11 @@ def owner_edit_package(package_id):
         package.name_ar = name_ar
         package.category = category
         package.is_active = is_active
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action("EDIT_PACKAGE", "package", package.id, f"name={name}")
         flash("تم تحديث الحزمة", "success")
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f"خطأ: {e}", "error")
     return redirect(url_for("owner.owner_packages"))
 
@@ -1966,11 +1967,11 @@ def owner_delete_package(package_id):
             return redirect(url_for("owner.owner_packages"))
         
         db.session.delete(package)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action("DELETE_PACKAGE", "package", package_id, f"slug={package.slug}")
         flash("تم حذف الحزمة", "success")
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f"خطأ: {e}", "error")
     return redirect(url_for("owner.owner_packages"))
 
@@ -1993,11 +1994,11 @@ def owner_edit_package_version(version_id):
         pv.version = version
         pv.changelog = changelog
         pv.is_deprecated = is_deprecated
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action("EDIT_PACKAGE_VERSION", "package_version", pv.id, f"version={version}")
         flash("تم تحديث الإصدار", "success")
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f"خطأ: {e}", "error")
     return redirect(url_for("owner.owner_packages"))
 
@@ -2021,11 +2022,11 @@ def owner_delete_package_version(version_id):
         pv.pricing.delete()
         
         db.session.delete(pv)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action("DELETE_PACKAGE_VERSION", "package_version", version_id, f"package={pv.package.slug}")
         flash("تم حذف الإصدار", "success")
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f"خطأ: {e}", "error")
     return redirect(url_for("owner.owner_packages"))
 
@@ -2180,12 +2181,12 @@ def owner_provision():
             for m in mods:
                 tm = TenantModule(tenant_id=tenant.id, module_name=m, is_active=True, activated_at=datetime.now(timezone.utc))
                 db.session.add(tm)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             _log_action("PROVISION_TENANT", "tenant", tenant.id, f"slug={slug}")
             flash(f"تم إنشاء العميل {tenant.name} بنجاح — مستخدم المدير: {admin_username}", "success")
             return redirect(url_for("owner.owner_tenant_detail", tenant_id=tenant.id))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             flash(f"فشل إنشاء العميل: {e}", "error")
             return redirect(url_for("owner.owner_provision"))
 
@@ -2381,10 +2382,10 @@ def owner_save_system_config():
                     updated_at=datetime.now(timezone.utc)
                 )
                 db.session.add(cfg)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم حفظ الإعدادات', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_system_config'))
 
@@ -2404,11 +2405,11 @@ def owner_delete_system_config(config_key):
             flash('لا يمكن حذف إعداد نظام', 'error')
             return redirect(url_for('owner.owner_system_config'))
         db.session.delete(cfg)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('DELETE_SYSTEM_CONFIG', 'system', None, f"Deleted config {config_key}")
         flash('تم حذف الإعداد', 'success')
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         flash(f'خطأ: {e}', 'error')
     return redirect(url_for('owner.owner_system_config'))
     return redirect(url_for('owner.owner_system_config', category=request.args.get('category', '')))
@@ -2449,7 +2450,7 @@ def owner_control_toggle():
         cfg = SystemConfig(config_key=key, config_type='boolean', category='platform_control', is_system=True)
         db.session.add(cfg)
     cfg.config_value = 'true' if new_value else 'false'
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     _log_action('TOGGLE_PLATFORM_SWITCH', 'system_config', cfg.id, f'{key}={new_value}')
     return jsonify({'success': True, 'key': key, 'value': new_value})
 
@@ -2488,7 +2489,7 @@ def owner_emergency_toggle():
         cfg = SystemConfig(config_key=key, config_type='boolean', category='emergency_switch', is_system=True)
         db.session.add(cfg)
     cfg.config_value = 'true' if new_value else 'false'
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     _log_action('TOGGLE_EMERGENCY_SWITCH', 'system_config', cfg.id, f'{key}={new_value}')
     return jsonify({'success': True, 'key': key, 'value': new_value})
 

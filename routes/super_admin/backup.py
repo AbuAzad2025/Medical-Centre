@@ -14,6 +14,7 @@ import logging
 from sqlalchemy import func
 from app.shared.enums import BackupStatus
 from datetime import datetime, timezone, timedelta
+from utils.db_safety import safe_commit, safe_rollback
 
 
 # =============================================
@@ -111,7 +112,7 @@ def create_backup():
             started_at=datetime.now(timezone.utc),
         )
         db.session.add(backup)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         from celery_app import celery_is_enabled, task_always_eager
         from services.backup_queue_service import BackupQueueError, queue_system_backup
@@ -134,7 +135,7 @@ def create_backup():
             backup.backup_size = size
             backup.backup_status = BackupStatus.COMPLETED
             backup.completed_at = datetime.now(timezone.utc)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             return jsonify({
                 'success': True,
                 'message': 'تم إنشاء النسخة الاحتياطية بنجاح',
@@ -148,12 +149,12 @@ def create_backup():
                     os.remove(backup_path)
                 except OSError:
                     pass
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             return jsonify({'success': False, 'message': str(exc)}), 500
 
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error creating backup: {str(e)}")
         return jsonify({
             'success': False,
@@ -180,14 +181,14 @@ def restore_backup(backup_id):
             backup.restore_count += 1
             backup.last_restore = datetime.now(timezone.utc)
             backup.last_restore_by = current_user.id
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             return jsonify({'success': True, 'message': 'تم استعادة النسخة الاحتياطية بنجاح'})
         else:
             return jsonify({'success': False, 'message': 'فشل في استعادة النسخة الاحتياطية'}), 500
             
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error restoring backup: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر استعادة النسخة الاحتياطية حالياً'}), 500
 
@@ -213,13 +214,13 @@ def delete_backup(backup_id):
                 logging.error(f"Error deleting backup file: {str(e)}")
         
         db.session.delete(backup)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({'success': True, 'message': 'تم حذف النسخة الاحتياطية بنجاح'})
             
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error deleting backup: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر حذف النسخة الاحتياطية حالياً'}), 500
 
@@ -242,13 +243,13 @@ def cancel_backup(backup_id):
 
         backup.backup_status = BackupStatus.CANCELLED
         backup.completed_at = datetime.now()
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({'success': True, 'message': 'تم إلغاء النسخة الاحتياطية بنجاح'})
             
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error cancelling backup: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إلغاء النسخة الاحتياطية حالياً'}), 500
 
@@ -278,7 +279,7 @@ def backup_schedule():
             update_config('backup_schedule_type', data.get('type', 'daily'), 'string')
             update_config('backup_schedule_time', data.get('time', '00:00'), 'string')
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             return jsonify({'success': True, 'message': 'تم حفظ إعدادات الجدولة بنجاح'})
             
         else:
@@ -296,7 +297,7 @@ def backup_schedule():
             
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error in backup schedule: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر حفظ جدولة النسخ الاحتياطي حالياً'}), 500
 

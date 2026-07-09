@@ -5,6 +5,7 @@ from functools import wraps
 from flask import flash, redirect, url_for, abort, request, jsonify
 from flask_login import current_user
 import logging
+from utils.db_safety import safe_commit, safe_rollback
 
 logger = logging.getLogger(__name__)
 
@@ -353,7 +354,7 @@ def log_action(action_type):
                 )
                 
                 db.session.add(audit)
-                db.session.commit()
+                safe_commit(db.session, error_message="database commit failed", reraise=True)
                 
                 logger.info(f"Action logged: {action_type} by user {current_user.id if current_user.is_authenticated else 'Anonymous'}")
                 
@@ -450,7 +451,7 @@ def handle_route_errors(f):
         try:
             return f(*args, **kwargs)
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Unhandled error in {f.__name__}: {str(e)}")
             if request.headers.get('Accept') and 'application/json' in request.headers.get('Accept', ''):
                 return jsonify({'success': False, 'message': 'حدث خطأ غير متوقع'}), 500

@@ -8,6 +8,7 @@ import logging
 from typing import Any
 
 from app_factory import db
+from utils.db_safety import safe_commit
 from utils.tenant_query import get_tenant_record, TenantContextError
 
 
@@ -48,10 +49,10 @@ class SSOService:
                 default_role=default_role,
             )
             db.session.add(cfg)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="Failed to create SSO config"):
+                return None
             return cfg
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating SSO config: {str(e)}")
             return None
 
@@ -63,7 +64,7 @@ class SSOService:
         except TenantContextError:
             return False
         cfg.is_active = not cfg.is_active
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to toggle SSO config", reraise=True)
         return True
 
     @staticmethod
@@ -74,7 +75,7 @@ class SSOService:
         except TenantContextError:
             return False
         db.session.delete(cfg)
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to delete SSO config", reraise=True)
         return True
 
 

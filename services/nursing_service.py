@@ -9,6 +9,7 @@ from datetime import datetime, date, timezone
 from typing import Any
 
 from app_factory import db
+from utils.db_safety import safe_commit
 from sqlalchemy import and_, or_
 from utils.tenant_query import get_tenant_record, TenantContextError
 
@@ -84,10 +85,10 @@ class NursingService:
                 recorded_at=datetime.now(timezone.utc),
             )
             db.session.add(record)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="Failed to record vitals"):
+                return None
             return record
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error recording vitals: {str(e)}")
             return None
 
@@ -115,10 +116,10 @@ class NursingService:
                 created_at=datetime.now(timezone.utc),
             )
             db.session.add(note)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="Failed to add nursing note"):
+                return None
             return note
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error adding nursing note: {str(e)}")
             return None
 
@@ -148,10 +149,8 @@ class NursingService:
             except TenantContextError:
                 return False
             record.notes = notes
-            db.session.commit()
-            return True
+            return safe_commit(db.session, error_message="Failed to record medication administration")
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error recording medication administration: {str(e)}")
             return False
 
@@ -190,10 +189,10 @@ class NursingService:
                 status="ACTIVE",
             )
             db.session.add(plan)
-            db.session.commit()
+            if not safe_commit(db.session, error_message="Failed to create care plan"):
+                return None
             return plan
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error creating care plan: {str(e)}")
             return None
 
@@ -220,10 +219,8 @@ class NursingService:
                 return False
             task.status = "completed"
             task.completed_at = datetime.now(timezone.utc)
-            db.session.commit()
-            return True
+            return safe_commit(db.session, error_message="Failed to complete task")
         except Exception as e:
-            db.session.rollback()
             logging.error(f"Error completing task: {str(e)}")
             return False
 

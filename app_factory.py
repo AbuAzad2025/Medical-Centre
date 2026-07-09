@@ -17,6 +17,7 @@ from logging import StreamHandler
 from datetime import datetime
 from pathlib import Path
 from datetime import datetime as _dt
+from utils.db_safety import safe_commit, safe_rollback
 
 # إنشاء كائنات Flask
 db = SQLAlchemy()
@@ -978,8 +979,7 @@ def create_app(config_name: str | None = None) -> Flask:
                             continue
                         if not RolePermission.query.filter_by(role_id=role_obj.id, permission_id=p.id).first():
                             db.session.add(RolePermission(role_id=role_obj.id, permission_id=p.id))
-                    db.session.commit()
-
+                    safe_commit(db.session, error_message="database commit failed", reraise=True)
                 _assign('admin', ['user_read','user_update','user_create','user_manage_roles','system_settings','system_logs','system_monitoring','reports_view','reports_create','reports_export','queue_settings_manage'])
                 _assign('manager', ['reports_view','reports_create','financial_reports','financial_view','pricing_manage','patient_read','patient_update','queue_settings_manage'])
                 _assign('reception', ['patient_create','patient_read','patient_update','medical_records_read','queue_settings_manage'])
@@ -1021,7 +1021,7 @@ def create_app(config_name: str | None = None) -> Flask:
                     tm = TenantModule(tenant_id=tenant.id, module_name=name, is_active=True,
                                       activated_at=db.func.now(), activated_by=admin.id)
                     db.session.add(tm)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         print(f"TenantModule seeded for {Tenant.query.count()} tenants")
 
     @app.cli.command("tenant-create")
@@ -1061,7 +1061,7 @@ def create_app(config_name: str | None = None) -> Flask:
         for m in modules:
             db.session.add(TenantModule(tenant_id=tenant.id, module_name=m, is_active=True,
                                         activated_at=db.func.now(), activated_by=admin.id))
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         print(f"Created tenant {tenant.id} ({slug}) with {len(modules)} modules")
 
     @app.cli.command("tenant-backfill")
@@ -1104,10 +1104,9 @@ def create_app(config_name: str | None = None) -> Flask:
                 if affected:
                     total_updated += affected
                     print(f"  {tbl}: {affected} rows updated")
-                db.session.commit()
+                safe_commit(db.session, error_message="database commit failed", reraise=True)
             except Exception:
-                db.session.rollback()
-        
+                safe_rollback(db.session, error_message="database rollback")
         print(f"\nBackfill complete: {total_updated} total rows updated")
 
     @app.cli.command("seed-default-bundles")

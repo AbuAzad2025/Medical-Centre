@@ -9,6 +9,7 @@ from datetime import datetime, date, timezone
 from typing import Any
 
 from app_factory import db
+from utils.db_safety import safe_commit
 from sqlalchemy import func, and_, or_
 
 from utils.tenant_query import get_tenant_record, TenantContextError
@@ -116,10 +117,8 @@ class ManagerService:
                 return False
             obj.status = "APPROVED"
             obj.approved_by = approved_by
-            db.session.commit()
-            return True
+            return safe_commit(db.session, error_message="Failed to approve request")
         except Exception:
-            db.session.rollback()
             return False
 
 

@@ -9,6 +9,7 @@ from app.shared.enums import AppointmentState
 def perform_kiosk_checkin(national_id: str) -> dict:
     """Find patient + today's appointment, create visit, add to queue."""
     from app_factory import db
+    from utils.db_safety import safe_commit
     from models.appointment import Appointment
     from models.patient import Patient
     from models.visit import Visit
@@ -73,7 +74,7 @@ def perform_kiosk_checkin(national_id: str) -> dict:
 
     if appointment.status == AppointmentState.SCHEDULED:
         appointment.status = AppointmentState.CONFIRMED
-    db.session.commit()
+    safe_commit(db.session, error_message="Failed to save kiosk check-in", reraise=True)
 
     queue_number = None
     q_success, q_msg = add_patient_to_queue_auto(

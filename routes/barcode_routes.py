@@ -6,6 +6,7 @@ from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors, role_required
 from models.barcode_tracking import BarcodeRegistry, BarcodeScanLog
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from datetime import datetime, timezone
 
 barcode_bp = Blueprint('barcode', __name__)
@@ -41,7 +42,7 @@ def api_scan():
             ip_address=request.remote_addr
         )
         db.session.add(log)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': False, 'message': 'Barcode not found'})
 
     # Log successful scan
@@ -54,7 +55,7 @@ def api_scan():
     )
     db.session.add(log)
     registry.print_count += 1
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
 
     return jsonify({
         'success': True,

@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors, manager_or_admin_only
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from models import WhatIfScenario, Department
 from datetime import datetime, timezone
 
@@ -42,7 +43,7 @@ def new_scenario():
         )
         scenario.calculate_projections()
         db.session.add(scenario)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم إنشاء السيناريو وحساب التوقعات', 'success')
         return redirect(url_for('what_if.index'))
     departments = Department.query.all()

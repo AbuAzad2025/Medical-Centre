@@ -17,6 +17,7 @@ from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
 from services.emergency_service import emergency_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from sqlalchemy import and_, or_, desc, case
 import logging, json
 from datetime import datetime, date, timedelta, timezone
@@ -63,7 +64,7 @@ def prescription(emergency_id):
             emergency.prescribed_by = current_user.id
             emergency.prescribed_at = datetime.now(timezone.utc)
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إنشاء الوصفة بنجاح', 'success')
             return redirect(url_for('emergency.patient_queue'))
         
@@ -104,7 +105,7 @@ def lab_request(emergency_id):
             }
             
             emergency.lab_request = lab_request_data
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إرسال طلب الفحوصات بنجاح', 'success')
             return redirect(url_for('emergency.patient_queue'))
         
@@ -149,7 +150,7 @@ def radiology_request(emergency_id):
             }
             
             emergency.radiology_request = radiology_request_data
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إرسال طلب الأشعة بنجاح', 'success')
             return redirect(url_for('emergency.patient_queue'))
         

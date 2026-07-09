@@ -16,6 +16,7 @@ from models.system_config import SystemConfig
 from app.shared.enums import LabResultStatus, OrderState
 from services.radiology_service import radiology_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json, os, base64, secrets
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
@@ -258,7 +259,7 @@ def worklist_complete(request_id):
                 req.status = OrderState.IN_PROGRESS
                 _log_radiology_workflow(req.id, 'IN_PROGRESS', 'start')
         req.updated_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         _notify_radiology_complete(req, bool(is_critical))
 
@@ -269,7 +270,7 @@ def worklist_complete(request_id):
             return redirect(url_for('radiology.worklist', status='DONE_TODAY'))
         return redirect(url_for('radiology.worklist_request', request_id=req.id))
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error completing radiology request: {str(e)}")
         if request.accept_mimetypes.best == 'application/json':
             return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

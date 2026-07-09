@@ -4,6 +4,7 @@ Advanced Permissions System
 """
 
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from datetime import datetime, timezone
 from app.shared.enums import PermissionLevel, PermissionCategory
 from app.shared.mixins import TenantMixin
@@ -220,7 +221,7 @@ def create_default_permissions():
             )
             db.session.add(permission)
     
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
 
 # دالة إنشاء الأدوار الافتراضية
 def create_default_roles():
@@ -255,7 +256,7 @@ def create_default_roles():
             )
             db.session.add(role)
     
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
 
 # دالة تعيين صلاحيات السوبر أدمن
 def assign_super_admin_permissions():
@@ -281,4 +282,4 @@ def assign_super_admin_permissions():
             )
             db.session.add(role_permission)
     
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)

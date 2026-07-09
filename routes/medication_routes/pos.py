@@ -11,6 +11,7 @@ from app.shared.print_context import generate_qr_data_uri
 from routes.medication_routes import medication_bp
 from models.medication import Medication, PharmacySale, PharmacySaleItem, PharmacyReturn
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.pos_charge import execute_pos_charge
 from app.shared.user_messages import user_message
 from services.pos_terminal_service import PosTerminalService
@@ -150,7 +151,7 @@ def pos_sell():
             total += total_price
 
         sale.total_amount = total
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         return jsonify({
             'success': True,
@@ -160,7 +161,7 @@ def pos_sell():
             'total': float(total),
         })
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"POS sell error: {str(e)}")
         return jsonify({'success': False, 'message': 'حدث خطأ أثناء عملية البيع'}), 500
 

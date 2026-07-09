@@ -17,6 +17,7 @@ from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
 from services.emergency_service import emergency_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from sqlalchemy import and_, or_, desc, case
 import logging, json
 from datetime import datetime, date, timedelta, timezone
@@ -56,9 +57,9 @@ def api_ems_intake():
             status='WAITING'
         )
         db.session.add(case)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True, 'case_id': case.id}), 201
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"EMS intake error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر تسجيل الحالة'}), 500

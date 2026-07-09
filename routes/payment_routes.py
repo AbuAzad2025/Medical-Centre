@@ -17,6 +17,7 @@ from services.payment_service import payment_service
 from services.refund_service import refund_service
 from utils.tenant_query import get_tenant_record, TenantContextError
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
@@ -238,7 +239,7 @@ def process_payment(visit_id):
                     except Exception as e:
 
                         logging.warning(f"Error in {__name__}: {e}")
-                db.session.commit()
+                safe_commit(db.session, error_message="database commit failed", reraise=True)
                 if _wants_json():
                     return jsonify({'success': True})
                 flash('تم تسجيل الدين وفق الشروط', 'info')
@@ -260,7 +261,7 @@ def process_payment(visit_id):
                     return redirect(url_for('payment.process_payment', visit_id=visit_id))
                 visit.payment_method = method_value or visit.payment_method
                 visit.payment_status = PaymentStatus.DEBT
-                db.session.commit()
+                safe_commit(db.session, error_message="database commit failed", reraise=True)
                 if _wants_json():
                     return jsonify({'success': True})
                 flash('تم تسجيل الدين بنجاح', 'info')
@@ -360,7 +361,7 @@ def process_payment(visit_id):
             except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
 
             resp = {'success': True, 'payment_id': payment.id}
             if _wants_json():
@@ -370,7 +371,7 @@ def process_payment(visit_id):
                 return redirect(url_for('reception.view_visit', visit_id=visit_id))
             return redirect(url_for('reception.print_receipt', visit_id=visit_id))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error processing payment: {str(e)}")
             err = {'success': False, 'message': 'حدث خطأ في معالجة الدفع'}
             if _wants_json():
@@ -509,11 +510,11 @@ def request_refund(payment_id):
         if not ok:
             flash(result, 'error')
             return redirect(url_for('payment.dashboard'))
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم تقديم طلب الاسترداد بنجاح', 'success')
         return redirect(url_for('payment.dashboard'))
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error requesting refund: {str(e)}")
         flash('حدث خطأ أثناء طلب الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
@@ -529,11 +530,11 @@ def approve_refund(refund_id):
         if not ok:
             flash(result, 'error')
             return redirect(url_for('payment.dashboard'))
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تمت موافقة طلب الاسترداد', 'success')
         return redirect(url_for('payment.dashboard'))
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error approving refund: {str(e)}")
         flash('حدث خطأ أثناء موافقة الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
@@ -549,11 +550,11 @@ def execute_refund(refund_id):
         if not ok:
             flash(result, 'error')
             return redirect(url_for('payment.dashboard'))
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم تنفيذ الاسترداد بنجاح', 'success')
         return redirect(url_for('payment.dashboard'))
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error executing refund: {str(e)}")
         flash('حدث خطأ أثناء تنفيذ الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))

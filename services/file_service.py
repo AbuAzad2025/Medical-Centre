@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from flask import g, current_app
 from werkzeug.utils import secure_filename
 from app.extensions import db
+from utils.db_safety import safe_commit
 from utils.tenant_query import get_tenant_record, TenantContextError
 
 
@@ -68,7 +69,7 @@ class FileService:
             description=description,
         )
         db.session.add(upload)
-        db.session.commit()
+        safe_commit(db.session, error_message="Failed to save file upload record", reraise=True)
         return {"id": upload.id, "filename": original_name, "hash": file_hash}
 
     @staticmethod
@@ -94,8 +95,6 @@ class FileService:
             if os.path.exists(upload.file_path):
                 os.remove(upload.file_path)
             db.session.delete(upload)
-            db.session.commit()
-            return True
+            return safe_commit(db.session, error_message="Failed to delete file record")
         except Exception:
-            db.session.rollback()
             return False

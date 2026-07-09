@@ -21,6 +21,7 @@ from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from services.prescription_service import prescription_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import VisitState
 from sqlalchemy import and_, or_, desc, func, case
 import logging, json, secrets
@@ -343,7 +344,7 @@ def prescription(visit_id):
                 except Exception as e:
 
                     logging.warning(f"Error in {__name__}: {e}")
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
 
             for w in warnings:
                 flash(w, 'warning')
@@ -358,7 +359,7 @@ def prescription(visit_id):
                     description='إضافة وصفة طبية',
                     new_values=json.dumps({'prescription_id': prescription.id, 'items_count': prescription.items.count()})
                 ))
-                db.session.commit()
+                safe_commit(db.session, error_message="database commit failed", reraise=True)
             except Exception as e:
 
                 logging.warning(f"Error in {__name__}: {e}")

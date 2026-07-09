@@ -4,6 +4,7 @@ Biometric Authentication (WebAuthn/FIDO2) Routes
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from models import BiometricCredential, BiometricAuthChallenge
 from datetime import datetime, timezone, timedelta
 from utils.decorators import handle_route_errors
@@ -32,7 +33,7 @@ def register_challenge():
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=5)
     )
     db.session.add(ch)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     return jsonify({
         'challenge': challenge,
         'rp_name': 'Azad Medical',
@@ -55,7 +56,7 @@ def register_complete():
         device_name=data.get('device_name', 'Unknown Device')
     )
     db.session.add(cred)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     return jsonify({'success': True})
 
 
@@ -69,7 +70,7 @@ def authenticate_challenge():
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=5)
     )
     db.session.add(ch)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     return jsonify({'challenge': challenge})
 
 
@@ -79,5 +80,5 @@ def authenticate_challenge():
 def remove_credential(cred_id):
     cred = BiometricCredential.query.filter_by(id=cred_id, user_id=current_user.id).first_or_404()
     db.session.delete(cred)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     return jsonify({'success': True})

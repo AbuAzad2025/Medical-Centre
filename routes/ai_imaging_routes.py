@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from models import AIImagingAnalysis, DICOMStudy
 from datetime import datetime, timezone
 import random
@@ -36,7 +37,7 @@ def request_analysis():
         status='pending'
     )
     db.session.add(ai)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
 
     ai.status = 'completed'
     ai.processed_at = datetime.now(timezone.utc)
@@ -44,7 +45,7 @@ def request_analysis():
     ai.severity = random.choice(['normal', 'mild', 'moderate', 'severe'])
     ai.suggested_report_text = "AI Analysis: No significant abnormalities detected. Recommend clinical correlation."
     ai.processing_time_ms = random.randint(500, 3000)
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     flash('تم إرسال الطلب للتحليل الذكي واكتماله', 'success')
     return redirect(url_for('ai_imaging.index'))
 
@@ -57,6 +58,6 @@ def review(ai_id):
     ai.status = 'reviewed'
     ai.reviewed_by = current_user.id
     ai.review_notes = request.form.get('review_notes', '')
-    db.session.commit()
+    safe_commit(db.session, error_message="database commit failed", reraise=True)
     flash('تم مراجعة التحليل', 'success')
     return redirect(url_for('ai_imaging.index'))

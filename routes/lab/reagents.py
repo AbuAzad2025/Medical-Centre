@@ -16,6 +16,7 @@ from models.lab_reagent import LabReagent
 from models.audit_trail import AuditTrail
 from services.lab_service import lab_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json, base64
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
@@ -107,11 +108,11 @@ def add_reagent():
                 notes=notes,
                 is_active=is_active
             ))
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تمت إضافة المادة', 'success')
             return redirect(url_for('lab.reagents'))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error adding reagent: {str(e)}")
             flash('حدث خطأ أثناء الإضافة', 'error')
             return redirect(url_for('lab.add_reagent'))
@@ -167,11 +168,11 @@ def edit_reagent(reagent_id: int):
             reagent.notes = notes
             reagent.is_active = is_active
             reagent.updated_at = datetime.now(timezone.utc)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث المادة', 'success')
             return redirect(url_for('lab.reagents'))
         except Exception as e:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Error editing reagent: {str(e)}")
             flash('حدث خطأ أثناء التحديث', 'error')
             return redirect(url_for('lab.edit_reagent', reagent_id=reagent_id))

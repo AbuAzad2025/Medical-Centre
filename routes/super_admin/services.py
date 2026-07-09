@@ -12,6 +12,7 @@ from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
 from sqlalchemy import func
+from utils.db_safety import safe_commit, safe_rollback
 
 
 # =============================================
@@ -134,13 +135,13 @@ def create_service():
         )
         
         db.session.add(service)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({'success': True, 'message': 'تم إنشاء الخدمة بنجاح', 'service_id': service.id}), 200
         
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Create service error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إنشاء الخدمة حالياً'}), 500
 
@@ -188,7 +189,7 @@ def edit_service(service_id):
             service.base_price = float(request.form.get('base_price', 0))
             service.is_active = bool(request.form.get('is_active'))
             
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث الخدمة بنجاح', 'success')
             return redirect(url_for('super_admin.services'))
         
@@ -197,7 +198,7 @@ def edit_service(service_id):
         return render_template('super_admin/edit_service.html', service=service, departments=departments)
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Edit service error: {str(e)}")
         flash('حدث خطأ في تعديل الخدمة', 'error')
         return redirect(url_for('super_admin.services'))
@@ -257,14 +258,14 @@ def service_pricing(service_id):
             new_pricing.discount_amount = discount_amount
 
             db.session.add(new_pricing)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إضافة التسعير بنجاح', 'success')
             return redirect(url_for('super_admin.service_pricing', service_id=service_id))
         
         return render_template('super_admin/service_pricing.html', service=service, pricing=pricing)
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Service pricing error: {str(e)}")
         flash('حدث خطأ في إدارة التسعير', 'error')
         return redirect(url_for('super_admin.services'))
@@ -282,12 +283,12 @@ def activate_service(service_id):
         if not service:
             abort(404)
         service.is_active = True
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({'success': True, 'message': 'تم تفعيل الخدمة'}), 200
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Activate service error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر تفعيل الخدمة حالياً'}), 500
 
@@ -304,12 +305,12 @@ def deactivate_service(service_id):
         if not service:
             abort(404)
         service.is_active = False
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({'success': True, 'message': 'تم إلغاء تفعيل الخدمة'}), 200
     except Exception as e:
         from app_factory import db
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Deactivate service error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إلغاء تفعيل الخدمة حالياً'}), 500
 

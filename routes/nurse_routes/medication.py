@@ -12,6 +12,7 @@ from models.visit import Visit
 from models.medication import Medication
 from services.nursing_service import nursing_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json
 from datetime import datetime, timedelta, timezone, date
 from sqlalchemy import func, and_, or_, desc
@@ -122,11 +123,11 @@ def administer_medication(prescription_item_id):
             notes=notes
         )
         db.session.add(log_row)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم توثيق تنفيذ الدواء', 'success')
         return redirect(url_for('nurse.medication_administration', visit_id=visit.id))
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error administering medication: {str(e)}")
         flash('حدث خطأ في توثيق تنفيذ الدواء', 'error')
         return redirect(url_for('nurse.medication_administration'))

@@ -20,6 +20,7 @@ from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import VisitState, OrderState
 from sqlalchemy import and_, or_, desc, func, case
 import logging, json, secrets
@@ -135,7 +136,7 @@ def call_patient(visit_id):
         ticket.status = 'called'
         from datetime import datetime, timezone
         ticket.called_at = datetime.now(timezone.utc)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
 
         flash(f'تم استدعاء المريض — التذكرة رقم {ticket.queue_number}', 'success')
     except Exception as e:

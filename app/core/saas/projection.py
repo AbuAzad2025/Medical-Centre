@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from typing import Optional, Set
 
 from app.extensions import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.core.saas.models import (
     EntitlementGrant,
     EnterpriseContract,
@@ -63,7 +64,7 @@ class EntitlementProjectionService:
             )
             db.session.add(projection)
 
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return set(capabilities.keys())
 
     @classmethod

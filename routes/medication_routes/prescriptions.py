@@ -13,6 +13,7 @@ from models.supply_request import MedicationSupplyRequest, MedicationSupplyReque
 from models.drug_interaction import DrugInteraction
 from services.prescription_service import prescription_service
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import PaymentStatus, PrescriptionState
 import logging, json
 from datetime import datetime, timezone, timedelta, date
@@ -146,9 +147,9 @@ def dispense_prescription(prescription_id):
             dispensed_at=datetime.now(timezone.utc)
         )
         db.session.add(log_row)
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True, 'message': 'تم صرف الوصفة'}), 200
     except Exception as e:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error dispensing prescription: {str(e)}")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

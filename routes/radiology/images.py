@@ -14,6 +14,7 @@ from models.radiology_result import RadiologyResult
 from models.file_management import FileUpload
 from models.system_config import SystemConfig
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging, json, os, base64, secrets
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
@@ -47,9 +48,9 @@ def download_file(file_id):
             return redirect(url_for('radiology.worklist'))
         try:
             f.last_accessed = datetime.now(timezone.utc)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
         return send_file(f.file_path, as_attachment=True, download_name=f.original_filename)
     except Exception as e:
         logging.error(f"Error downloading radiology file {file_id}: {str(e)}")

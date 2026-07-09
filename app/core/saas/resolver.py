@@ -15,6 +15,7 @@ from flask import g
 from flask_login import current_user
 
 from app.extensions import db
+from utils.db_safety import safe_commit, safe_rollback
 from app.core.saas.exceptions import EntitlementDeniedError
 from app.core.saas.legacy_adapter import LegacyEntitlementAdapter
 
@@ -271,9 +272,9 @@ class EntitlementResolver:
                 details=f"capability={capability_key}, reason={reason}",
             )
             db.session.add(log)
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
 
 
 def _has_request_context() -> bool:

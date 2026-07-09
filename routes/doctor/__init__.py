@@ -16,6 +16,7 @@ from models.follow_up import FollowUpRequest
 from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from app_factory import db
+from utils.db_safety import safe_commit, safe_rollback
 import logging
 import json
 from datetime import datetime, date, timedelta, timezone
@@ -66,9 +67,9 @@ def _get_doctor_note_templates():
         templates = _default_doctor_note_templates()
         cfg.set_value(templates)
         try:
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             raise
         return templates
 
@@ -80,9 +81,9 @@ def _get_doctor_note_templates():
         cfg.set_value(templates)
         cfg.updated_by = getattr(current_user, 'id', None)
         try:
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             raise
     return templates
 
@@ -107,9 +108,9 @@ def _save_doctor_note_templates(templates):
     cfg.set_value(templates)
     cfg.updated_by = getattr(current_user, 'id', None)
     try:
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     except Exception:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         raise
 
 def _doctor_dashboard_layout_cfg_key():
@@ -140,9 +141,9 @@ def _get_doctor_dashboard_layout():
         layout = _default_doctor_dashboard_layout()
         cfg.set_value(layout)
         try:
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             raise
         return layout
     layout = cfg.get_value() if cfg.config_type == 'json' else []
@@ -152,9 +153,9 @@ def _get_doctor_dashboard_layout():
         cfg.set_value(layout)
         cfg.updated_by = getattr(current_user, 'id', None)
         try:
-            db.session.commit()
+            safe_commit(db.session, error_message="database commit failed", reraise=True)
         except Exception:
-            db.session.rollback()
+            safe_rollback(db.session, error_message="database rollback")
             raise
     return layout
 
@@ -177,9 +178,9 @@ def _save_doctor_dashboard_layout(items):
     cfg.set_value(items)
     cfg.updated_by = getattr(current_user, 'id', None)
     try:
-        db.session.commit()
+        safe_commit(db.session, error_message="database commit failed", reraise=True)
     except Exception:
-        db.session.rollback()
+        safe_rollback(db.session, error_message="database rollback")
         raise
 
 
