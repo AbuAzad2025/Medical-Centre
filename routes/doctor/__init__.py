@@ -54,6 +54,7 @@ def _get_doctor_note_templates():
     if not cfg:
         cfg = SystemConfig(
             config_key='doctor_note_templates',
+            tenant_id=current_user.tenant_id,
             config_type='json',
             config_value='[]',
             category='general',
@@ -92,6 +93,7 @@ def _save_doctor_note_templates(templates):
     if not cfg:
         cfg = SystemConfig(
             config_key='doctor_note_templates',
+            tenant_id=current_user.tenant_id,
             config_type='json',
             config_value='[]',
             category='general',
@@ -128,6 +130,7 @@ def _get_doctor_dashboard_layout():
     if not cfg:
         cfg = SystemConfig(
             config_key=_doctor_dashboard_layout_cfg_key(),
+            tenant_id=current_user.tenant_id,
             config_type='json',
             config_value='[]',
             category='general',
@@ -164,6 +167,7 @@ def _save_doctor_dashboard_layout(items):
     if not cfg:
         cfg = SystemConfig(
             config_key=_doctor_dashboard_layout_cfg_key(),
+            tenant_id=current_user.tenant_id,
             config_type='json',
             config_value='[]',
             category='general',

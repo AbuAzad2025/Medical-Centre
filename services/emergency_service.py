@@ -12,6 +12,7 @@ from typing import Any
 from app_factory import db
 from utils.db_safety import safe_commit
 from sqlalchemy import and_, or_, case
+from services.feature_gate_service import require_module
 
 
 class EmergencyService:
@@ -20,6 +21,7 @@ class EmergencyService:
     # ==================== CASE QUERIES ====================
 
     @staticmethod
+    @require_module('emergency')
     def list_cases(
         search: str | None = None,
         priority: str | None = None,
@@ -64,11 +66,13 @@ class EmergencyService:
         return query.paginate(page=page, per_page=per_page, error_out=False)
 
     @staticmethod
+    @require_module('emergency')
     def get_case(case_id: int):
         from models.emergency import EmergencyCase
         return EmergencyCase.query.filter_by(id=case_id).first()
 
     @staticmethod
+    @require_module('emergency')
     def get_cases_by_status(status: str, limit: int = 50) -> list:
         from models.emergency import EmergencyCase
         return EmergencyCase.query.filter_by(status=status).order_by(
@@ -76,6 +80,7 @@ class EmergencyService:
         ).limit(limit).all()
 
     @staticmethod
+    @require_module('emergency')
     def get_patient_cases(patient_id: int) -> list:
         from models.emergency import EmergencyCase
         return EmergencyCase.query.filter_by(patient_id=patient_id).order_by(
@@ -83,6 +88,7 @@ class EmergencyService:
         ).all()
 
     @staticmethod
+    @require_module('emergency')
     def get_triage_stats() -> dict:
         from models.emergency import EmergencyCase
         today_start = datetime.combine(date.today(), datetime.min.time())
@@ -99,6 +105,7 @@ class EmergencyService:
     # ==================== CASE MANAGEMENT ====================
 
     @staticmethod
+    @require_module('emergency')
     def create_case(
         patient_id: int, doctor_id: int | None = None,
         chief_complaint: str = "", priority: str = "MEDIUM",
@@ -127,6 +134,7 @@ class EmergencyService:
             return None
 
     @staticmethod
+    @require_module('emergency')
     def update_case_status(case_id: int, status: str) -> bool:
         from models.emergency import EmergencyCase
         case = EmergencyCase.query.filter_by(id=case_id).first()
@@ -139,6 +147,7 @@ class EmergencyService:
         return True
 
     @staticmethod
+    @require_module('emergency')
     def assign_doctor(case_id: int, doctor_id: int) -> bool:
         # NOTE: EmergencyCase has no doctor_id column; doctor assignment is modelled
         # via the linked visit. Persisting the assignment here requires a schema/
@@ -154,6 +163,7 @@ class EmergencyService:
     # ==================== TRIAGE ====================
 
     @staticmethod
+    @require_module('emergency')
     def triage_patient(
         case_id: int, priority: str, vital_signs: dict | None = None
     ) -> bool:
@@ -172,6 +182,7 @@ class EmergencyService:
     # ==================== NOTIFICATION ====================
 
     @staticmethod
+    @require_module('emergency')
     def notify_staff(case: Any, event: str = "new_case") -> None:
         try:
             from services.notification_service import NotificationService

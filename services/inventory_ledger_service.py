@@ -5,12 +5,14 @@ from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
 from utils.db_safety import safe_commit
+from services.feature_gate_service import require_module
 
 
 class InventoryLedgerService:
     MOVEMENT_TYPES = ('purchase', 'dispense', 'sale', 'return', 'adjustment', 'transfer', 'waste')
 
     @staticmethod
+    @require_module('inventory')
     def record_movement(
         medication_id: int,
         movement_type: str,
@@ -41,6 +43,7 @@ class InventoryLedgerService:
         return {"id": movement.id, "type": movement_type, "quantity": quantity}
 
     @staticmethod
+    @require_module('inventory')
     def current_stock(medication_id: int, tenant_id: int | None = None) -> int:
         tid = tenant_id or getattr(g, 'tenant_id', None)
         from app.modules.workflows.stock_models import StockMovement
@@ -56,6 +59,7 @@ class InventoryLedgerService:
         return max(0, stock)
 
     @staticmethod
+    @require_module('inventory')
     def low_stock_alerts(threshold: int = 10, tenant_id: int | None = None) -> list:
         tid = tenant_id or getattr(g, 'tenant_id', None)
         from models.medication import Medication

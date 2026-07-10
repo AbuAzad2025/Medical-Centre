@@ -14,6 +14,7 @@ from flask import g
 from app_factory import db
 from utils.db_safety import safe_commit
 from sqlalchemy import and_, or_
+from services.feature_gate_service import require_module
 
 
 class PrescriptionService:
@@ -82,6 +83,7 @@ class PrescriptionService:
     # ==================== PRESCRIPTION CREATION ====================
 
     @staticmethod
+    @require_module('pharmacy')
     def create_prescription(
         patient_id: int, doctor_id: int, visit_id: int | None = None,
         tenant_id: int | None = None,
@@ -151,6 +153,7 @@ class PrescriptionService:
             return False, str(e)
 
     @staticmethod
+    @require_module('pharmacy')
     def get_active_prescriptions(patient_id: int) -> list:
         from models.medication import Prescription
         return Prescription.query.filter_by(
@@ -158,6 +161,7 @@ class PrescriptionService:
         ).order_by(Prescription.created_at.desc()).all()
 
     @staticmethod
+    @require_module('pharmacy')
     def get_prescriptions_by_doctor(doctor_id: int, limit: int = 50) -> list:
         from models.medication import Prescription
         return Prescription.query.filter_by(doctor_id=doctor_id).order_by(
@@ -167,6 +171,7 @@ class PrescriptionService:
     # ==================== MEDICATION INVENTORY ====================
 
     @staticmethod
+    @require_module('pharmacy')
     def get_low_stock_medications(limit: int = 10) -> list:
         from models.medication import Medication
         return Medication.query.filter(
@@ -174,6 +179,7 @@ class PrescriptionService:
         ).limit(limit).all()
 
     @staticmethod
+    @require_module('pharmacy')
     def search_medications(query: str) -> list:
         from models.medication import Medication
         return Medication.query.filter(
@@ -184,6 +190,7 @@ class PrescriptionService:
         ).order_by(Medication.trade_name).all()
 
     @staticmethod
+    @require_module('pharmacy')
     def update_stock(medication_id: int, quantity_change: float) -> bool:
         from models.medication import Medication
         try:
@@ -199,6 +206,7 @@ class PrescriptionService:
     # ==================== SUPPLY REQUESTS ====================
 
     @staticmethod
+    @require_module('pharmacy')
     def create_supply_request(
         medication_id: int, quantity: float, requested_by: int,
         notes: str | None = None
@@ -233,6 +241,7 @@ class PrescriptionService:
             return None
 
     @staticmethod
+    @require_module('pharmacy')
     def get_supply_requests(status: str | None = None) -> list:
         from models.supply_request import MedicationSupplyRequest
         q = MedicationSupplyRequest.query
@@ -243,6 +252,7 @@ class PrescriptionService:
     # ==================== NOTIFICATION ====================
 
     @staticmethod
+    @require_module('pharmacy')
     def notify_pharmacy_non_catalog(medication_name: str, doctor_name: str, visit_id: int) -> None:
         try:
             from services.notification_service import NotificationService
@@ -258,16 +268,19 @@ class PrescriptionService:
     # ==================== AUDIT ====================
 
     @staticmethod
+    @require_module('pharmacy')
     def get_medication(medication_id: int):
         from models.medication import Medication
         return Medication.query.filter(Medication.id == medication_id, Medication.tenant_id == g.tenant_id).first()
 
     @staticmethod
+    @require_module('pharmacy')
     def get_prescription(prescription_id: int):
         from models.medication import Prescription
         return Prescription.query.filter(Prescription.id == prescription_id, Prescription.tenant_id == g.tenant_id).first()
 
     @staticmethod
+    @require_module('pharmacy')
     def log_action(action: str, details: str, user_id: int | None = None) -> None:
         from models.audit_trail import AuditTrail
         _allowed = {"create", "update", "delete", "view", "export", "import", "security"}

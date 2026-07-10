@@ -15,6 +15,42 @@ import json
 
 from utils.db_safety import safe_commit
 from utils.tenant_query import get_tenant_record, TenantContextError
+from flask import current_app, g
+from services.feature_gate_service import FeatureGateService, _is_admin_user
+
+# Maps notification recipient roles to the module whose activity they represent.
+# When that module is disabled for a tenant (SaaS mode), the notification is
+# dropped to prevent side-effects originating from an inactive module.
+ROLE_TO_MODULE = {
+    "emergency": "emergency",
+    "pharmacist": "pharmacy",
+    "reception": "reception",
+    "lab": "lab",
+    "radiology": "radiology",
+    "nurse": "nursing",
+    "doctor": "doctor",
+    "accountant": "billing",
+}
+
+
+def _skip_notification_for_disabled_module(recipient_role):
+    """Return True if a module-role notification must be dropped (module off).
+
+    Fail-open: only drops when SaaS mode is on, the caller is not an admin, a
+    tenant context exists, and the recipient's module is explicitly disabled.
+    In standalone mode or without tenant context, notifications always send.
+    """
+    if not current_app.config.get('ENABLE_SAAS_MODE', False):
+        return False
+    if _is_admin_user():
+        return False
+    target_module = ROLE_TO_MODULE.get(recipient_role)
+    if not target_module:
+        return False
+    tenant = getattr(g, 'current_tenant', None)
+    if not tenant:
+        return False
+    return not FeatureGateService.module_enabled(tenant.id, target_module)
 
 class NotificationService:
     """خدمة إدارة الإشعارات"""
@@ -42,7 +78,11 @@ class NotificationService:
                     notification_type = rendered['notification_type']
                 else:
                     return {'success': False, 'message': 'قالب الإشعار غير موجود'}
-            
+
+            # Fail-closed: drop module-role notifications for inactive modules.
+            if _skip_notification_for_disabled_module(recipient_role):
+                return {'success': False, 'message': 'target module disabled'}
+
             # إنشاء الإشعار (بدون حقول غير موجودة في النموذج)
             notification = Notification(
                 title=title,
@@ -58,12 +98,18 @@ class NotificationService:
             )
             
             db.session.add(notification)
-            return safe_commit(db.session, error_message="send_notification")
-            
+            if safe_commit(db.session, error_message="send_notification"):
+                return {
+                    'success': True,
+                    'notification_id': notification.id,
+                    'message': 'Notification sent',
+                }
+            return {'success': False, 'message': 'Failed to persist notification'}
+
         except Exception as e:
             logging.error(f"Error sending notification: {str(e)}")
             return {'success': False, 'message': 'تعذر إرسال الإشعار حالياً'}
-    
+
     @staticmethod
     def send_bulk_notification(recipient_ids=None, recipient_roles=None, recipient_department_ids=None,
                              title=None, message=None, notification_type='info',
@@ -91,6 +137,8 @@ class NotificationService:
             # إرسال للأدوار المحددة
             if recipient_roles:
                 for role in recipient_roles:
+                    if _skip_notification_for_disabled_module(role):
+                        continue
                     notification = Notification(
                         title=title,
                         message=message,
@@ -121,9 +169,15 @@ class NotificationService:
             # إضافة الإشعارات إلى قاعدة البيانات
             for notification in notifications:
                 db.session.add(notification)
-            
-            return safe_commit(db.session, error_message="send_bulk_notification")
-            
+
+            if safe_commit(db.session, error_message="send_bulk_notification"):
+                return {
+                    'success': True,
+                    'message': f'{len(notifications)} notifications sent',
+                    'count': len(notifications),
+                }
+            return {'success': False, 'message': 'Failed to persist bulk notifications'}
+
         except Exception as e:
             logging.error(f"Error sending bulk notification: {str(e)}")
             return {'success': False, 'message': 'تعذر إرسال الإشعارات الجماعية حالياً'}
@@ -261,7 +315,9 @@ class NotificationService:
             )
             
             db.session.add(template)
-            return safe_commit(db.session, error_message="create_notification_template")
+            if safe_commit(db.session, error_message="create_notification_template"):
+                return {'success': True, 'template_id': template.id, 'message': 'Template created'}
+            return {'success': False, 'message': 'Failed to create template'}
             
         except Exception as e:
             logging.error(f"Error creating notification template: {str(e)}")
@@ -349,7 +405,9 @@ class NotificationService:
                     )
                     db.session.add(template)
             
-            return safe_commit(db.session, error_message="create_default_templates")
+            if safe_commit(db.session, error_message="create_default_templates"):
+                return {'success': True, 'message': 'Default templates created'}
+            return {'success': False, 'message': 'Failed to create default templates'}
             
         except Exception as e:
             logging.error(f"Error creating default templates: {str(e)}")

@@ -1099,7 +1099,7 @@ def edit_visit(visit_id):
 
 @reception_bp.route('/visits/<int:visit_id>/add-service', methods=['POST'])
 @login_required
-@role_required('reception')
+@role_required('reception', 'super_admin', use_hierarchy=False)
 def add_service_to_visit(visit_id):
     """إضافة خدمة إلى زيارة بدون إعادة فتح العلاج (Ticket 7)."""
 

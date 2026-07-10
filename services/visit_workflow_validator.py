@@ -4,7 +4,9 @@ Validates and tracks patient journey through clinical workflow stages.
 """
 from enum import Enum
 from typing import Optional, List, Dict
-from flask import flash
+from flask import flash, g
+
+from services.feature_gate_service import FeatureGateService
 
 
 class VisitStage(str, Enum):
@@ -135,6 +137,25 @@ class VisitWorkflowValidator:
     def validate_and_transition(cls, visit, new_stage: VisitStage, commit: bool = True) -> bool:
         """Validate and apply a stage transition with optional flash message"""
         from app_factory import db
+        
+        # Check if the new stage requires a specific module to be enabled
+        stage_module_map = {
+            VisitStage.LAB_ORDERED: 'lab',
+            VisitStage.LAB_COMPLETED: 'lab',
+            VisitStage.RADIOLOGY_ORDERED: 'radiology',
+            VisitStage.RADIOLOGY_COMPLETED: 'radiology',
+            VisitStage.PHARMACY: 'pharmacy',
+        }
+        
+        if new_stage in stage_module_map:
+            required_module = stage_module_map[new_stage]
+            tenant = getattr(g, 'current_tenant', None)
+            if tenant and not FeatureGateService.module_enabled(tenant.id, required_module):
+                flash(
+                    f"لا يمكن الانتقال: وحدة '{required_module}' غير مفعلة لهذا المستأجر",
+                    "error"
+                )
+                return False
         
         current = VisitStage(visit.status) if visit.status else VisitStage.REGISTERED
         

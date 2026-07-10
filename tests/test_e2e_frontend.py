@@ -88,20 +88,22 @@ def e2e_seed(app, test_tenant, db):
     """Seed core entities so parametrized detail/print pages render real data."""
     from models.patient import Patient
     from models.visit import Visit
+    from tests.tenant_context import tenant_test_context
 
-    db.session.rollback()
-    p = Patient.query.filter_by(national_id='E2ESEED01').first()
-    if not p:
-        p = Patient(tenant_id=test_tenant.id, first_name='مريض', last_name='شامل',
-                    phone='0599123456', national_id='E2ESEED01')
-        db.session.add(p)
-        db.session.flush()
-    v = Visit.query.filter_by(patient_id=p.id).first()
-    if not v:
-        v = Visit(tenant_id=test_tenant.id, patient_id=p.id, payment_status='PENDING',
-                  total_amount=100, paid_amount=0, status='OPEN')
-        db.session.add(v)
-    db.session.commit()
+    with tenant_test_context(app, test_tenant):
+        db.session.rollback()
+        p = Patient.query.filter_by(national_id='E2ESEED01').first()
+        if not p:
+            p = Patient(tenant_id=test_tenant.id, first_name='مريض', last_name='شامل',
+                        phone='0599123456', national_id='E2ESEED01')
+            db.session.add(p)
+            db.session.flush()
+        v = Visit.query.filter_by(patient_id=p.id).first()
+        if not v:
+            v = Visit(tenant_id=test_tenant.id, patient_id=p.id, payment_status='PENDING',
+                      total_amount=100, paid_amount=0, status='OPEN')
+            db.session.add(v)
+        db.session.commit()
     return {'patient_id': p.id, 'visit_id': v.id}
 
 

@@ -12,6 +12,7 @@ from flask import g
 from app_factory import db
 from sqlalchemy import func
 from utils.db_safety import safe_commit
+from services.feature_gate_service import require_module
 
 
 class LabService:
@@ -20,6 +21,7 @@ class LabService:
     # ==================== REQUEST CREATION ====================
 
     @staticmethod
+    @require_module('lab')
     def create_request(visit_id: int, test_ids: list[int], *, requested_by: int | None = None,
                        notes: str | None = None, tenant_id: int | None = None) -> tuple[bool, dict]:
         """Create a structured LabRequest with LabResult rows from catalog test IDs.
@@ -91,6 +93,7 @@ class LabService:
     # ==================== WORKLIST QUERIES ====================
 
     @staticmethod
+    @require_module('lab')
     def get_worklist(status: str = "REQUESTED", limit: int = 200) -> list:
         from models.lab_request import LabRequest
         today = date.today()
@@ -107,6 +110,7 @@ class LabService:
         return q.order_by(LabRequest.created_at.desc()).limit(limit).all()
 
     @staticmethod
+    @require_module('lab')
     def get_request_counts() -> dict:
         from models.lab_request import LabRequest
         today = date.today()
@@ -122,16 +126,19 @@ class LabService:
         }
 
     @staticmethod
+    @require_module('lab')
     def get_request_by_id(request_id: int) -> Any | None:
         from models.lab_request import LabRequest
         return LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
 
     @staticmethod
+    @require_module('lab')
     def get_results_by_request(request_id: int) -> list:
         from models.lab_request import LabResult
         return LabResult.query.filter_by(request_id=request_id).all()
 
     @staticmethod
+    @require_module('lab')
     def get_results_by_patient(patient_id: int) -> list:
         from models.lab_request import LabResult, LabRequest
         return LabResult.query.join(LabRequest).filter(
@@ -142,6 +149,7 @@ class LabService:
     # ==================== RESULT CREATION ====================
 
     @staticmethod
+    @require_module('lab')
     def create_results_from_form(lab_request: Any, form_data: dict) -> tuple[list, list]:
         """Create LabResult entries from form data. Returns (created_ids, errors)."""
         from models.lab_request import LabResult
@@ -189,6 +197,7 @@ class LabService:
         return created_ids, errors
 
     @staticmethod
+    @require_module('lab')
     def validate_lab_results(results: list) -> list[str]:
         """Basic validation of lab results. Returns list of error messages."""
         errors = []
@@ -200,6 +209,7 @@ class LabService:
         return errors
 
     @staticmethod
+    @require_module('lab')
     def finalize_results(request_id: int) -> bool:
         """Mark all results as COMPLETED and update request status to DONE."""
         from models.lab_request import LabRequest, LabResult
@@ -221,6 +231,7 @@ class LabService:
     # ==================== QUALITY CONTROL ====================
 
     @staticmethod
+    @require_module('lab')
     def get_quality_entries(limit: int = 100) -> list:
         from models.lab_quality import LabQualityControlEntry
         return LabQualityControlEntry.query.order_by(
@@ -228,6 +239,7 @@ class LabService:
         ).limit(limit).all()
 
     @staticmethod
+    @require_module('lab')
     def create_quality_entry(entry_data: dict) -> Any | None:
         from models.lab_quality import LabQualityControlEntry
         try:
@@ -243,11 +255,13 @@ class LabService:
     # ==================== REAGENT MANAGEMENT ====================
 
     @staticmethod
+    @require_module('lab')
     def get_reagents() -> list:
         from models.lab_reagent import LabReagent
         return LabReagent.query.order_by(LabReagent.name).all()
 
     @staticmethod
+    @require_module('lab')
     def get_low_stock_reagents(threshold: int | None = None) -> list:
         from models.lab_reagent import LabReagent
         q = LabReagent.query
@@ -258,6 +272,7 @@ class LabService:
         return q.order_by(LabReagent.stock_quantity.asc()).all()
 
     @staticmethod
+    @require_module('lab')
     def update_reagent_quantity(reagent_id: int, quantity: float) -> bool:
         from models.lab_reagent import LabReagent
         try:
@@ -273,6 +288,7 @@ class LabService:
     # ==================== NOTIFICATION ====================
 
     @staticmethod
+    @require_module('lab')
     def notify_results_ready(patient_id: int, request_id: int) -> None:
         """Send notification that lab results are ready."""
         try:
@@ -294,6 +310,7 @@ class LabService:
     # ==================== AUDIT ====================
 
     @staticmethod
+    @require_module('lab')
     def log_action(action: str, details: str, user_id: int | None = None) -> None:
         """Log lab workflow action to audit trail."""
         from models.audit_trail import AuditTrail
@@ -314,6 +331,7 @@ class LabService:
     # ==================== DASHBOARD ====================
 
     @staticmethod
+    @require_module('lab')
     def get_dashboard_stats() -> dict:
         """Aggregate stats for lab dashboard."""
         from models.lab_request import LabRequest
@@ -335,6 +353,7 @@ class LabService:
     # ==================== TEST CATALOG ====================
 
     @staticmethod
+    @require_module('lab')
     def lookup_catalog_by_code(code: str, tenant_id: int | None = None) -> Any | None:
         from models.lab_test_catalog import LabTestCatalog
         q = LabTestCatalog.query.filter(
@@ -346,6 +365,7 @@ class LabService:
         return q.first()
 
     @staticmethod
+    @require_module('lab')
     def get_active_catalog(tenant_id: int | None = None) -> list:
         from models.lab_test_catalog import LabTestCatalog
         q = LabTestCatalog.query.filter(LabTestCatalog.is_active == True)

@@ -14,6 +14,7 @@ from flask import g
 from app_factory import db
 from utils.db_safety import safe_commit, safe_rollback
 from werkzeug.utils import secure_filename
+from services.feature_gate_service import require_module
 
 
 class RadiologyService:
@@ -22,6 +23,7 @@ class RadiologyService:
     # ==================== REQUEST CREATION ====================
 
     @staticmethod
+    @require_module('radiology')
     def create_request(visit_id: int, *, requested_by: int | None = None,
                        modality: str | None = None, body_part: str | None = None,
                        notes: str | None = None, tenant_id: int | None = None) -> tuple[bool, dict]:
@@ -68,6 +70,7 @@ class RadiologyService:
     # ==================== WORKLIST QUERIES ====================
 
     @staticmethod
+    @require_module('radiology')
     def get_request_counts() -> dict:
         from models.radiology_request import RadiologyRequest
         today = date.today()
@@ -81,6 +84,7 @@ class RadiologyService:
         }
 
     @staticmethod
+    @require_module('radiology')
     def get_worklist(status: str = "REQUESTED") -> list:
         from models.radiology_request import RadiologyRequest
         today = date.today()
@@ -93,11 +97,13 @@ class RadiologyService:
         return q.order_by(RadiologyRequest.created_at.desc()).all()
 
     @staticmethod
+    @require_module('radiology')
     def get_request_by_id(request_id: int) -> Any | None:
         from models.radiology_request import RadiologyRequest
         return RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
 
     @staticmethod
+    @require_module('radiology')
     def get_results_for_request(request_id: int) -> Any | None:
         from models.radiology_result import RadiologyResult
         from models.radiology_request import RadiologyRequest
@@ -107,6 +113,7 @@ class RadiologyService:
         return None
 
     @staticmethod
+    @require_module('radiology')
     def get_uploads_for_result(result_id: int) -> list:
         from models.file_management import FileUpload
         return FileUpload.query.filter_by(
@@ -115,6 +122,7 @@ class RadiologyService:
         ).order_by(FileUpload.uploaded_at.desc()).all()
 
     @staticmethod
+    @require_module('radiology')
     def build_visit_map(requests_list: list) -> dict:
         """Build visit_id -> Visit mapping for a list of radiology requests."""
         from models.visit import Visit
@@ -127,8 +135,9 @@ class RadiologyService:
     # ==================== RESULT CREATION ====================
 
     @staticmethod
+    @require_module('radiology')
     def create_or_update_result(request_id: int, report_text: str,
-                                conclusion: str | None = None, is_critical: bool = False) -> Any | None:
+                                 conclusion: str | None = None, is_critical: bool = False) -> Any | None:
         from models.radiology_result import RadiologyResult
         from models.radiology_request import RadiologyRequest
         try:
@@ -154,6 +163,7 @@ class RadiologyService:
             return None
 
     @staticmethod
+    @require_module('radiology')
     def finalize_result(request_id: int) -> bool:
         from models.radiology_request import RadiologyRequest
         try:
@@ -173,6 +183,7 @@ class RadiologyService:
             return False
 
     @staticmethod
+    @require_module('radiology')
     def claim_request(request_id: int, user_id: int) -> bool:
         from models.radiology_request import RadiologyRequest
         try:
@@ -189,6 +200,7 @@ class RadiologyService:
     # ==================== FILE UPLOADS ====================
 
     @staticmethod
+    @require_module('radiology')
     def save_uploaded_files(files: list, result_id: int, payload: dict | None = None) -> list:
         from models.file_management import FileUpload
         from flask import current_app
@@ -228,6 +240,7 @@ class RadiologyService:
     # ==================== NOTIFICATION ====================
 
     @staticmethod
+    @require_module('radiology')
     def notify_complete(req: Any, is_critical: bool = False) -> None:
         try:
             from services.notification_service import NotificationService
@@ -253,6 +266,7 @@ class RadiologyService:
     # ==================== AUDIT ====================
 
     @staticmethod
+    @require_module('radiology')
     def log_action(action: str, details: str, user_id: int | None = None) -> None:
         from models.audit_trail import AuditTrail
         _allowed = {"create", "update", "delete", "view", "export", "import", "security"}
@@ -271,6 +285,7 @@ class RadiologyService:
     # ==================== DASHBOARD ====================
 
     @staticmethod
+    @require_module('radiology')
     def get_dashboard_stats() -> dict:
         from models.radiology_request import RadiologyRequest
         today = date.today()

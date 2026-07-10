@@ -12,6 +12,7 @@ from app_factory import db
 from utils.db_safety import safe_commit
 from sqlalchemy import and_, or_
 from utils.tenant_query import get_tenant_record, TenantContextError
+from services.feature_gate_service import require_module
 
 
 class NursingService:
@@ -20,6 +21,7 @@ class NursingService:
     # ==================== PATIENT CARE ====================
 
     @staticmethod
+    @require_module('nursing')
     def get_nurse_patients(nurse_id: int, search: str | None = None) -> list:
         from models.visit import Visit
         try:
@@ -41,6 +43,7 @@ class NursingService:
             return []
 
     @staticmethod
+    @require_module('nursing')
     def get_vitals(visit_id: int, limit: int = 20) -> list:
         try:
             from models.nurse import VitalSigns
@@ -51,6 +54,7 @@ class NursingService:
             return []
 
     @staticmethod
+    @require_module('nursing')
     def record_vitals(
         visit_id: int, recorded_by: int,
         temperature: float | None = None,
@@ -95,6 +99,7 @@ class NursingService:
     # ==================== NURSING NOTES ====================
 
     @staticmethod
+    @require_module('nursing')
     def get_notes(visit_id: int, limit: int = 50) -> list:
         try:
             from models.nurse import NursingNote
@@ -105,6 +110,7 @@ class NursingService:
             return []
 
     @staticmethod
+    @require_module('nursing')
     def add_note(visit_id: int, nurse_id: int, content: str, note_type: str = "general") -> Any | None:
         try:
             from models.nurse import NursingNote
@@ -126,6 +132,7 @@ class NursingService:
     # ==================== MEDICATION ADMINISTRATION ====================
 
     @staticmethod
+    @require_module('nursing')
     def get_pending_administrations(visit_id: int | None = None) -> list:
         try:
             from models.nurse import MedicationAdministrationLog
@@ -137,6 +144,7 @@ class NursingService:
             return []
 
     @staticmethod
+    @require_module('nursing')
     def record_administration(
         administration_id: int, nurse_id: int,
         status: str = "GIVEN",
@@ -157,6 +165,7 @@ class NursingService:
     # ==================== CARE PLAN ====================
 
     @staticmethod
+    @require_module('nursing')
     def get_care_plans(visit_id: int) -> list:
         try:
             from models.clinical_pathway import PatientCarePlan
@@ -167,6 +176,7 @@ class NursingService:
             return []
 
     @staticmethod
+    @require_module('nursing')
     def create_care_plan(
         visit_id: int, created_by: int,
         plan_type: str, description: str,
@@ -199,6 +209,7 @@ class NursingService:
     # ==================== TASKS ====================
 
     @staticmethod
+    @require_module('nursing')
     def get_pending_tasks(nurse_id: int | None = None) -> list:
         try:
             from models.task_management import Task
@@ -210,6 +221,7 @@ class NursingService:
             return []
 
     @staticmethod
+    @require_module('nursing')
     def complete_task(task_id: int, completed_by: int) -> bool:
         try:
             from models.task_management import Task
@@ -227,6 +239,7 @@ class NursingService:
     # ==================== DASHBOARD STATS ====================
 
     @staticmethod
+    @require_module('nursing')
     def get_dashboard_stats(nurse_id: int) -> dict:
         try:
             return {
