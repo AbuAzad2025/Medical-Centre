@@ -67,6 +67,15 @@ def app():
                 "tstzrange(effective_from, COALESCE(effective_to, 'infinity'::timestamptz), '[)') WITH &&"
                 ") WHERE (line_type = 'base' AND status IN ('scheduled', 'active'))"
             ))
+            # Ghost Mode: permit the 'IMPERSONATE' audit action on existing DBs
+            _db.session.execute(text('ALTER TABLE audit_trails DROP CONSTRAINT IF EXISTS chk_action'))
+            _db.session.execute(text(
+                "ALTER TABLE audit_trails ADD CONSTRAINT chk_action CHECK "
+                "(action IN ('create', 'update', 'delete', 'view', 'login', 'logout', "
+                "'export', 'import', 'backup', 'restore', 'security', 'login_failed', "
+                "'login_blocked', 'force_logout', 'permission_denied', 'unauthorized_access', "
+                "'APPROVE', 'REJECT', 'IMPERSONATE'))"
+            ))
             _db.session.commit()
         except Exception:
             _db.session.rollback()
@@ -226,20 +235,45 @@ def _saas_default_tenant_context(app, request, monkeypatch):
 
 @pytest.fixture(scope='function', autouse=True)
 def _clear_flask_login_state():
-    """Clear cached Flask-Login user to prevent cross-test auth leaks.
+    """Clear cached Flask auth/tenant/ghost state to prevent cross-test leaks.
 
     The session-scoped app context in the ``app`` fixture means ``g`` is
-    shared across tests. Flask-Login stores the loaded user in ``g``; if a
-    previous test logged in, the next test may see that user unless we clear it.
+    shared across tests. Flask-Login caches the loaded user (``g._login_user``
+    / ``g.current_user``); the tenant middleware caches ``g.tenant_id`` /
+    ``g.current_tenant``; and Ghost Mode caches ``g.ghost_mode`` /
+    ``g.ghost_actor_id``. If a previous test set any of these, the next
+    test would observe stale context unless we clear it.
     """
     from flask import g
+
+    _TENANT_GHOST_KEYS = (
+        '_login_user', 'current_user', 'current_tenant', 'tenant_id',
+        'tenant_slug', 'ghost_mode', 'ghost_actor_id', 'enabled_modules',
+        'product_profile', 'feature_flags', '_tenant_filter_bypass',
+    )
+    for _k in _TENANT_GHOST_KEYS:
+        try:
+            g.pop(_k, None)
+        except Exception:
+            pass
+    # ``bind_g_tenant`` also stashes the tenant on ``db.session.info['_tenant_id']``
+    # (read first by ``tenant_filter._current_tenant_id``). This dict lives on the
+    # session-scoped session and survives ``rollback_db``'s transaction rollback,
+    # so a tenant bound in one test would leak into the next. Clear it.
     try:
-        g.pop('_login_user', None)
+        from app.extensions import db
+        db.session.info.pop('_tenant_id', None)
     except Exception:
         pass
     yield
+    for _k in _TENANT_GHOST_KEYS:
+        try:
+            g.pop(_k, None)
+        except Exception:
+            pass
     try:
-        g.pop('_login_user', None)
+        from app.extensions import db
+        db.session.info.pop('_tenant_id', None)
     except Exception:
         pass
 

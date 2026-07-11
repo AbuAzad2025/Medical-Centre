@@ -819,6 +819,14 @@ def create_app(config_name: str | None = None) -> Flask:
                 abort(403, description="Tenant resolution failed")
             raise
 
+    # Ghost Mode — Master Impersonation (platform owner only).
+    # Must run AFTER tenant context so the owner's own session is resolved
+    # before we optionally rebind to an impersonated tenant + user.
+    @app.before_request
+    def _ghost_mode():
+        from app.core.tenant.ghost_mode import ghost_mode_middleware
+        ghost_mode_middleware()
+
     # WSGI middleware for /t/<slug>/ path rewriting (applied after full setup)
     from app.core.tenant.middleware import TenantPathWSGIMiddleware
     app.wsgi_app = TenantPathWSGIMiddleware(app.wsgi_app)

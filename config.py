@@ -149,6 +149,10 @@ class Config:
     SEND_FILE_MAX_AGE_DEFAULT = 31536000  # سنة واحدة للكاش
     DEFAULT_CURRENCY = os.environ.get('DEFAULT_CURRENCY') or 'ILS'
 
+    # Secret used to verify HMAC-SHA256 signatures for Ghost Mode (Master
+    # Impersonation). Must be set in production; a dev fallback is allowed.
+    PLATFORM_OWNER_SECRET = os.environ.get('PLATFORM_OWNER_SECRET') or 'dev-ghost-secret'
+
     # ========== SaaS Multi-Tenancy Configuration ==========
     # Deployment mode:
     #   single_install — one standalone customer, no tenant enforcement (default).

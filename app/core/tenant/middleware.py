@@ -322,12 +322,29 @@ def set_tenant_context():
 
     # MC-005: enforce tenant-access for authenticated users
     if not is_exempt:
-        try:
-            from app.core.tenant.assumption_service import PlatformAssumptionService
-            PlatformAssumptionService.enforce_tenant_access()
-        except Exception:
-            from flask import abort
-            abort(403, description="Cross-tenant access denied")
+        actor = getattr(g, "current_user", None)
+        if actor is None:
+            try:
+                from flask_login import current_user
+
+                if current_user.is_authenticated:
+                    actor = current_user
+            except Exception:
+                actor = None
+        actor_role = getattr(actor, "role", None) if actor else None
+        # Only the Ghost Mode master (platform_owner) is exempt from pre-enforcement;
+        # the ghost middleware re-resolves the impersonated context afterwards.
+        # super_admin/owner cross-tenant access is still gated by
+        # enforce_tenant_access() via the explicit assumption mechanism.
+        if actor_role != "platform_owner":
+            try:
+                from app.core.tenant.assumption_service import PlatformAssumptionService
+
+                PlatformAssumptionService.enforce_tenant_access()
+            except Exception:
+                from flask import abort
+
+                abort(403, description="Cross-tenant access denied")
 
     from app.shared.enums import TenantStatus
     if tenant.status == TenantStatus.PENDING:

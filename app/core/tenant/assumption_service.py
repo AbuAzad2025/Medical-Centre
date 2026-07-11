@@ -107,7 +107,6 @@ class PlatformAssumptionService:
 
         user_tenant_id = getattr(current_user, 'tenant_id', None)
         current_tenant_id = g.get('tenant_id')
-
         if current_tenant_id is None:
             return
 
