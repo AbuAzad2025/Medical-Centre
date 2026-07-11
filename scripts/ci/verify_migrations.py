@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 ADMIN_URL = os.environ['MIGRATE_ADMIN_URL']
 TARGET_URL = os.environ['MIGRATE_DATABASE_URL']
-ALEMBIC_HEAD = 's2_001_tenant_id_not_null'
+ALEMBIC_HEAD = 's2_002_ghost_impersonate_action'
 
 
 def _run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
