@@ -82,7 +82,6 @@ medical_system.db
 
 # Stale doc scratch dirs
 docs/tests/
-seeds/
 reports/
 pytest_out.txt
 agent-tools/
