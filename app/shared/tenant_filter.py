@@ -296,11 +296,21 @@ def reassert_set_local(orm_execute_state):
         return
 
     tid = _current_tenant_id(session=orm_execute_state.session)
-    if tid is None:
-        return
     # SET LOCAL is PostgreSQL-specific; skip on SQLite etc.
     dialect = getattr(db.engine, 'dialect', None)
     if dialect is None or dialect.name != 'postgresql':
+        return
+    if tid is None:
+        # No tenant context — explicitly clear any stale GUC so that
+        # RLS policies see a clean state (empty string means "no tenant"
+        # and will not match any tenant_id since they're positive ints).
+        try:
+            orm_execute_state.session.execute(db.text("SET LOCAL app.tenant_id = ''"))
+        except Exception:
+            logger.exception('RESET app.tenant_id failed in reassert_set_local')
+            raise TenantIsolationError(
+                'RESET app.tenant_id failed: tenant context cannot be cleared'
+            )
         return
     try:
         orm_execute_state.session.execute(

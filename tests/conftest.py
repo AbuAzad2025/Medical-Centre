@@ -263,6 +263,7 @@ def _clear_flask_login_state():
     try:
         from app.extensions import db
         db.session.info.pop('_tenant_id', None)
+        db.session.execute(db.text("RESET app.tenant_id"))
     except Exception:
         pass
     yield
@@ -274,6 +275,7 @@ def _clear_flask_login_state():
     try:
         from app.extensions import db
         db.session.info.pop('_tenant_id', None)
+        db.session.execute(db.text("RESET app.tenant_id"))
     except Exception:
         pass
 
