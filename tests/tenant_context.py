@@ -113,6 +113,13 @@ def bind_tenant_on_g(tenant, *, db_session=None) -> None:
         except Exception:
             pass
 
+    # Set enabled_modules for module-scoped access control (mirrors middleware)
+    try:
+        from app.core.module.validators import get_active_modules_for_tenant
+        g.enabled_modules = get_active_modules_for_tenant(tenant_id)
+    except Exception:
+        g.enabled_modules = set()
+
 
 def login_test_client(client, user, tenant, password: str = 'test123'):
     """POST /auth/login and ensure SaaS session carries tenant context."""

@@ -8,13 +8,22 @@ from datetime import datetime, timezone
 import pytest
 
 from app.shared.print_context import resolve_print_context
+from tests.tenant_context import bind_tenant_on_g, ensure_default_test_tenant
 
 
 class TestPrintContextPharmacySale:
-    def test_pharmacy_sale_doc_type_registered(self):
-        ctx = resolve_print_context('pharmacy_sale')
-        assert ctx['doc_type'] == 'pharmacy_sale'
-        assert 'primary_color' in ctx
+    def test_pharmacy_sale_doc_type_registered(self, app):
+        with app.app_context():
+            # Ensure tenant is set up for module context
+            tenant = ensure_default_test_tenant(app)
+            from tests.tenant_context import bind_tenant_on_g
+            from app.extensions import db
+            bind_tenant_on_g(tenant, db_session=db.session)
+            
+            ctx = resolve_print_context('pharmacy_sale')
+            assert ctx['doc_type'] == 'pharmacy_sale'
+            assert 'primary_color' in ctx
+            assert 'pharmacy' in ctx['active_modules']
 
 
 class TestPharmacySalePrintTemplate:
@@ -22,6 +31,11 @@ class TestPharmacySalePrintTemplate:
         with app.app_context():
             from flask import render_template
             from types import SimpleNamespace
+            from tests.tenant_context import bind_tenant_on_g
+            from app.extensions import db
+            
+            tenant = ensure_default_test_tenant(app)
+            bind_tenant_on_g(tenant, db_session=db.session)
 
             sale = SimpleNamespace(
                 id=1,
@@ -58,6 +72,10 @@ class TestPrescriptionPrintBranding:
     def test_prescription_shows_tenant_org_not_hardcoded_clinic(self, app, test_tenant):
         with app.app_context():
             from flask import render_template
+            from tests.tenant_context import bind_tenant_on_g
+            from app.extensions import db
+            
+            bind_tenant_on_g(test_tenant, db_session=db.session)
             from types import SimpleNamespace
 
             prescription = SimpleNamespace(
@@ -86,6 +104,12 @@ class TestLabResultPrintTemplate:
     def test_lab_result_uses_print_shell_and_localizes_status(self, app):
         with app.app_context():
             from flask import render_template
+            from tests.tenant_context import bind_tenant_on_g, ensure_default_test_tenant
+            from app.extensions import db
+            
+            tenant = ensure_default_test_tenant(app)
+            bind_tenant_on_g(tenant, db_session=db.session)
+            
             from types import SimpleNamespace
 
             lab_request = SimpleNamespace(
