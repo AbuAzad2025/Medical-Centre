@@ -17,6 +17,9 @@
     <button type="button" class="print-action-btn no-print" data-action="print">{% block print_button_label %}طباعة{% endblock %}</button>
 
     <div class="print-page">
+        <!-- Corporate watermark — on every page -->
+        {% include 'print/_print_watermark.html' %}
+        
         <header class="print-header">
             {% include 'print/_print_header_slot.html' %}
         </header>
@@ -42,7 +45,22 @@
 {% endblock %}</section>
 
         {% block qr_code %}
-{% if qr_data_uri %}
+{% if qr_data_uri or barcode_data_uri %}
+<div class="print-verification-block" style="display: flex; justify-content: center; gap: 2rem; margin: 1rem 0; flex-wrap: wrap;">
+  {% if qr_data_uri %}
+  <div class="print-qr-section" style="text-align: center;">
+    <img src="{{ qr_data_uri }}" alt="QR Verification" class="print-qr-img" style="width: 80px; height: 80px; image-rendering: pixelated;">
+    <div class="print-qr-label" style="font-size: 0.7rem; color: var(--print-muted); margin-top: 0.25rem;">{{ _('رمز التحقق') }}</div>
+  </div>
+  {% endif %}
+  {% if barcode_data_uri %}
+  <div class="print-barcode-section" style="text-align: center;">
+    <img src="{{ barcode_data_uri }}" alt="Barcode" class="print-barcode-img" style="max-width: 200px; height: 60px; image-rendering: pixelated;">
+    <div class="print-barcode-label" style="font-size: 0.7rem; color: var(--print-muted); margin-top: 0.25rem; font-family: 'Courier New', monospace;">{{ barcode_value }}</div>
+  </div>
+  {% endif %}
+</div>
+{% elif qr_data_uri %}
 <div class="print-qr-section">
     <img src="{{ qr_data_uri }}" alt="QR" class="print-qr-img">
     <div class="print-qr-label">{{ _('رمز التحقق') }}</div>

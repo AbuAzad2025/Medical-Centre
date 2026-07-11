@@ -1,0 +1,72 @@
+{% extends 'print/print_base.html' %}
+{% set doc_type = 'report' %}
+
+{% block doc_title %}تقرير طبي — {{ visit.patient.full_name if visit.patient else 'غير محدد' }}{% endblock %}
+{% block print_button_label %}طباعة التقرير{% endblock %}
+{% block doc_heading %}تقرير طبي{% endblock %}
+
+{% block doc_meta %}
+<span class="print-doc-meta__item"><strong>رقم الزيارة:</strong> {{ visit.id }}</span>
+<span class="print-doc-meta__item"><strong>التاريخ:</strong> {{ visit.visit_date.strftime('%Y-%m-%d %H:%M') if visit.visit_date else '—' }}</span>
+<span class="print-doc-meta__item"><strong>القسم:</strong> {{ visit.department.name_ar if visit.department else '—' }}</span>
+<span class="print-doc-meta__item"><strong>الطبيب:</strong> {{ current_user.full_name }}</span>
+{% endblock %}
+
+{% block subject_strip %}
+<div class="print-subject-strip__grid">
+    <div class="print-subject-strip__item"><span>المريض</span><span>{{ visit.patient.full_name if visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>الهوية</span><span>{{ visit.patient.national_id if visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>الهاتف</span><span>{{ visit.patient.phone if visit.patient else '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>الجنس</span><span>{{ visit.patient.gender if visit.patient else '—' }}</span></div>
+</div>
+{% endblock %}
+
+{% block body %}
+{% if visit.medical_record and visit.medical_record.diagnosis %}
+<div class="print-section">
+    <h3 class="print-section__title">التشخيص</h3>
+    <div>{{ visit.medical_record.diagnosis }}</div>
+</div>
+{% endif %}
+
+{% if visit.medical_record and visit.medical_record.notes %}
+<div class="print-section">
+    <h3 class="print-section__title">الملاحظات</h3>
+    <div>{{ visit.medical_record.notes }}</div>
+</div>
+{% endif %}
+
+{% if visit.vital_signs %}
+<div class="print-section">
+    <h3 class="print-section__title">العلامات الحيوية</h3>
+    <div>{{ visit.vital_signs }}</div>
+</div>
+{% endif %}
+
+{% if visit.treatment_plan %}
+<div class="print-section">
+    <h3 class="print-section__title">خطة العلاج</h3>
+    <div>{{ visit.treatment_plan }}</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block signatures %}
+<div class="print-signature-box">
+    <div class="print-signature-line"></div>
+    <div class="print-signature-label">توقيع الطبيب</div>
+</div>
+<div class="print-signature-box">
+    <div class="print-signature-line"></div>
+    <div class="print-signature-label">ختم المركز</div>
+</div>
+{% endblock %}
+
+{% block legal_footer %}
+<p><strong>هذا التقرير صالح للاستخدام الطبي</strong></p>
+<p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else '—' }}{% if branding and branding.organization_phone %} | {{ branding.organization_phone }}{% endif %}</p>
+{% endblock %}
+
+{% block extra_print_js %}
+<script src="{{ url_for('static', filename='js/pages/print/report.js') }}"></script>
+{% endblock %}

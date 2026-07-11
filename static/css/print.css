@@ -253,6 +253,46 @@ body.print-doc {
 
 .print-platform-stamp__name { font-weight: 600; }
 
+/* QR + Barcode blocks */
+.print-qr-barcode-section {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.print-qr-block, .print-barcode-block {
+  text-align: center;
+}
+
+.print-qr-img {
+  width: 80px;
+  height: 80px;
+  image-rendering: pixelated;
+}
+
+.print-barcode-img {
+  max-width: 200px;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.print-qr-label, .print-barcode-label {
+  font-size: 7pt;
+  color: var(--print-muted);
+  margin-top: 0.25rem;
+  font-weight: 600;
+}
+
+.print-barcode-value {
+  font-family: 'Courier New', monospace;
+  font-size: 6pt;
+  color: var(--print-muted);
+  margin-top: 0.15rem;
+  letter-spacing: 0.5px;
+}
+
 /* Doc-type accents */
 .print-doc--prescription .print-doc-title::before {
   content: '℞ ';
@@ -282,8 +322,35 @@ body.print-doc {
   break-after: page;
 }
 
+/* Minimal shell */
+.print-doc--minimal { font-size: 10pt; }
+.print-body-minimal { width: 100%; padding: 0; }
+
 @media print {
   .no-print, .print-action-btn { display: none !important; }
   body.print-doc { font-size: 10pt; }
   .print-platform-stamp { position: fixed; }
+  
+  /* Repeat table headers on each page */
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+  
+  /* Prevent row splitting across pages */
+  tbody tr { page-break-inside: avoid; break-inside: avoid; }
+  
+  /* Watermark rendering */
+  .print-watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    font-size: 120pt;
+    color: rgba(15, 76, 129, 0.05);
+    pointer-events: none;
+    z-index: 0;
+    white-space: nowrap;
+    font-weight: 700;
+    font-family: 'IBM Plex Sans Arabic', 'Cairo', 'Segoe UI', sans-serif;
+    user-select: none;
+  }
 }

@@ -93,8 +93,13 @@ def print_medical_report(visit_id):
     try:
         visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
         
-        return render_template('doctor/print_medical_report.html',
-                             visit=visit)
+        # Generate QR for verification
+        from app.shared.print_context import generate_qr_data_uri
+        qr_payload = f"MEDICAL_REPORT|{visit.id}|{visit.tenant_id}|{visit.doctor_id}"
+        qr_data_uri = generate_qr_data_uri(qr_payload)
+        
+        return render_template('print/doctor_medical_report.html',
+                             visit=visit, qr_data_uri=qr_data_uri)
     except Exception as e:
         logging.error(f"Error printing medical report: {str(e)}")
         flash('حدث خطأ في طباعة التقرير الطبي', 'error')

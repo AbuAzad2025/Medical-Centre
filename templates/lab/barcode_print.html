@@ -1,26 +1,15 @@
-{% extends 'print/print_base.html' %}
+{% extends 'print/print_base_minimal.html' %}
 {% set doc_type = 'barcode' %}
 
-{% block doc_title %}طباعة باركود — {{ lab_request.patient.full_name }}{% endblock %}
+{% block doc_title %}باركود طلب مختبر — {{ lab_request.patient.full_name }}{% endblock %}
 {% block print_button_label %}طباعة{% endblock %}
-
-{% block doc_heading %}{% endblock %}
-{% block doc_meta %}{% endblock %}
-{% block subject_strip %}{% endblock %}
-{% block totals %}{% endblock %}
-{% block signatures %}{% endblock %}
-{% block legal_footer %}{% endblock %}
-{% block qr_code %}{% endblock %}
 
 {% block extra_print_head %}
 <style>
-  .print-header { display: none; }
-  .print-footer { display: none; }
-  .print-platform-stamp { display: none; }
-  .print-page { max-width: 100mm; }
+  .print-page { max-width: 100mm; padding: 0; }
   .print-barcode-label {
     text-align: center;
-    padding: 1rem;
+    padding: 0.5rem;
   }
   .print-barcode-label__patient {
     font-size: 1rem;
@@ -30,7 +19,7 @@
   .print-barcode-label__id {
     font-size: 0.85rem;
     color: #555;
-    margin: 0 0 0.75rem;
+    margin: 0 0 0.5rem;
   }
   .print-barcode-label__image img {
     max-width: 180px;
@@ -45,6 +34,7 @@
   }
   @media print {
     .print-barcode-label { padding: 0; }
+    .print-watermark { display: none; }
   }
 </style>
 {% endblock %}
@@ -63,7 +53,7 @@
 {% block extra_print_js %}
 <script>
   window.onload = function() {
-    setTimeout(function() { window.print(); }, 500);
+    setTimeout(function() { window.print(); }, 300);
   };
 </script>
 {% endblock %}
