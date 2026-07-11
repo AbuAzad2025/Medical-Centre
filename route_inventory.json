@@ -1,5488 +1,5560 @@
 {
   "routes": [
     {
-      "classification": "public",
       "endpoint": "static",
+      "path": "/static/<path:filename>",
       "methods": [
         "GET"
       ],
-      "path": "/static/<path:filename>"
+      "classification": "public"
     },
     {
-      "classification": "authenticated",
       "endpoint": "__health",
+      "path": "/__health",
       "methods": [
         "GET"
       ],
-      "path": "/__health"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "favicon",
+      "path": "/favicon.ico",
       "methods": [
         "GET"
       ],
-      "path": "/favicon.ico"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "main.index",
+      "path": "/",
       "methods": [
         "GET"
       ],
-      "path": "/"
+      "classification": "public"
     },
     {
-      "classification": "authenticated",
       "endpoint": "main.dashboard",
+      "path": "/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "main.appointments_redirect",
+      "path": "/appointments",
       "methods": [
         "GET"
       ],
-      "path": "/appointments"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "main.settings",
+      "path": "/settings",
       "methods": [
         "GET"
       ],
-      "path": "/settings"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "main.health",
+      "path": "/health",
       "methods": [
         "GET"
       ],
-      "path": "/health"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "main.api_search",
+      "path": "/api/search",
       "methods": [
         "GET"
       ],
-      "path": "/api/search"
+      "classification": "authenticated"
     },
     {
-      "classification": "authenticated",
       "endpoint": "main.privacy_policy",
+      "path": "/privacy-policy",
       "methods": [
         "GET"
       ],
-      "path": "/privacy-policy"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "main.terms_of_use",
+      "path": "/terms-of-use",
       "methods": [
         "GET"
       ],
-      "path": "/terms-of-use"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "main.technical_support",
+      "path": "/technical-support",
       "methods": [
         "GET"
       ],
-      "path": "/technical-support"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "main.about_system",
+      "path": "/about-system",
       "methods": [
         "GET"
       ],
-      "path": "/about-system"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "api_search.search_patients",
+      "path": "/api/search/patients",
       "methods": [
         "GET"
       ],
-      "path": "/api/search/patients"
+      "classification": "authenticated"
     },
     {
-      "classification": "internal",
       "endpoint": "api_dashboard.dashboard_snapshot",
+      "path": "/api/dashboard/snapshot",
       "methods": [
         "GET"
       ],
-      "path": "/api/dashboard/snapshot"
+      "classification": "authenticated"
     },
     {
-      "classification": "internal",
       "endpoint": "api_user.user_preferences",
+      "path": "/api/user/preferences",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/api/user/preferences"
+      "classification": "authenticated"
     },
     {
-      "classification": "authenticated",
       "endpoint": "pwa.manifest",
+      "path": "/pwa/manifest.webmanifest",
       "methods": [
         "GET"
       ],
-      "path": "/pwa/manifest.webmanifest"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "pwa.offline",
+      "path": "/pwa/offline",
       "methods": [
         "GET"
       ],
-      "path": "/pwa/offline"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "kiosk.check_in",
+      "path": "/kiosk/check-in",
       "methods": [
         "GET"
       ],
-      "path": "/kiosk/check-in"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "kiosk.api_check_in",
+      "path": "/kiosk/api/check-in",
       "methods": [
         "POST"
       ],
-      "path": "/kiosk/api/check-in"
+      "classification": "internal"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_dashboard",
+      "path": "/owner/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/owner/dashboard"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_create_tenant",
+      "path": "/owner/tenants/create",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/owner/tenants/create"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_tenant_detail",
+      "path": "/owner/tenants/<int:tenant_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/owner/tenants/<int:tenant_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_activate_default_modules",
+      "path": "/owner/tenants/<int:tenant_id>/activate-modules",
       "methods": [
         "GET"
       ],
-      "path": "/owner/tenants/<int:tenant_id>/activate-modules"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_edit_tenant",
+      "path": "/owner/tenants/<int:tenant_id>/edit",
       "methods": [
         "POST"
       ],
-      "path": "/owner/tenants/<int:tenant_id>/edit"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_toggle_tenant_feature",
+      "path": "/owner/tenants/<int:tenant_id>/feature/<path:feature_key>/toggle",
       "methods": [
         "POST"
       ],
-      "path": "/owner/tenants/<int:tenant_id>/feature/<path:feature_key>/toggle"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_users",
+      "path": "/owner/users",
       "methods": [
         "GET"
       ],
-      "path": "/owner/users"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_edit_user",
+      "path": "/owner/users/<int:user_id>/edit",
       "methods": [
         "POST"
       ],
-      "path": "/owner/users/<int:user_id>/edit"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_reset_user_password",
+      "path": "/owner/users/<int:user_id>/reset-password",
       "methods": [
         "POST"
       ],
-      "path": "/owner/users/<int:user_id>/reset-password"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_delete_user",
+      "path": "/owner/users/<int:user_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/owner/users/<int:user_id>/delete"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_toggle_user_active",
+      "path": "/owner/users/<int:user_id>/toggle-active",
       "methods": [
         "POST"
       ],
-      "path": "/owner/users/<int:user_id>/toggle-active"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_reveal_user_password",
+      "path": "/owner/users/<int:user_id>/reveal-password",
       "methods": [
         "POST"
       ],
-      "path": "/owner/users/<int:user_id>/reveal-password"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_modules",
+      "path": "/owner/modules",
       "methods": [
         "GET"
       ],
-      "path": "/owner/modules"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_toggle_module_global",
+      "path": "/owner/modules/<module_name>/toggle",
       "methods": [
         "POST"
       ],
-      "path": "/owner/modules/<module_name>/toggle"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_renew_tenant",
+      "path": "/owner/tenants/<int:tenant_id>/renew",
       "methods": [
         "GET"
       ],
-      "path": "/owner/tenants/<int:tenant_id>/renew"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_suspend_tenant",
+      "path": "/owner/tenants/<int:tenant_id>/suspend",
       "methods": [
         "GET"
       ],
-      "path": "/owner/tenants/<int:tenant_id>/suspend"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_activate_tenant",
+      "path": "/owner/tenants/<int:tenant_id>/activate",
       "methods": [
         "GET"
       ],
-      "path": "/owner/tenants/<int:tenant_id>/activate"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_plans",
+      "path": "/owner/plans",
       "methods": [
         "GET"
       ],
-      "path": "/owner/plans"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_create_plan",
+      "path": "/owner/plans/create",
       "methods": [
         "POST"
       ],
-      "path": "/owner/plans/create"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_edit_plan",
+      "path": "/owner/plans/<int:plan_id>/edit",
       "methods": [
         "POST"
       ],
-      "path": "/owner/plans/<int:plan_id>/edit"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_delete_plan",
+      "path": "/owner/plans/<int:plan_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/owner/plans/<int:plan_id>/delete"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_announcements",
+      "path": "/owner/announcements",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/owner/announcements"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_delete_announcement",
+      "path": "/owner/announcements/<int:announcement_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/owner/announcements/<int:announcement_id>/delete"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_support_tickets",
+      "path": "/owner/support-tickets",
       "methods": [
         "GET"
       ],
-      "path": "/owner/support-tickets"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_update_ticket",
+      "path": "/owner/support-tickets/<int:ticket_id>/update",
       "methods": [
         "POST"
       ],
-      "path": "/owner/support-tickets/<int:ticket_id>/update"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_audit_logs",
+      "path": "/owner/audit-logs",
       "methods": [
         "GET"
       ],
-      "path": "/owner/audit-logs"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_resource_usage",
+      "path": "/owner/resource-usage",
       "methods": [
         "GET"
       ],
-      "path": "/owner/resource-usage"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_notifications",
+      "path": "/owner/notifications",
       "methods": [
         "GET"
       ],
-      "path": "/owner/notifications"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_create_notification",
+      "path": "/owner/notifications/create",
       "methods": [
         "POST"
       ],
-      "path": "/owner/notifications/create"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_delete_notification",
+      "path": "/owner/notifications/<int:rule_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/owner/notifications/<int:rule_id>/delete"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_toggle_notification",
+      "path": "/owner/notifications/<int:rule_id>/toggle",
       "methods": [
         "POST"
       ],
-      "path": "/owner/notifications/<int:rule_id>/toggle"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_branding",
+      "path": "/owner/branding",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/owner/branding"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_webhooks",
+      "path": "/owner/webhooks",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/owner/webhooks"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_delete_webhook",
+      "path": "/owner/webhooks/<int:webhook_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/owner/webhooks/<int:webhook_id>/delete"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_api_keys_page",
+      "path": "/owner/api-keys",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/owner/api-keys"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_delete_api_key",
+      "path": "/owner/api-keys/<int:key_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/owner/api-keys/<int:key_id>/delete"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_themes",
+      "path": "/owner/themes",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/owner/themes"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_delete_theme",
+      "path": "/owner/themes/<int:theme_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/owner/themes/<int:theme_id>/delete"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_set_default_theme",
+      "path": "/owner/themes/<int:theme_id>/set-default",
       "methods": [
         "POST"
       ],
-      "path": "/owner/themes/<int:theme_id>/set-default"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_billing",
+      "path": "/owner/billing",
       "methods": [
         "GET"
       ],
-      "path": "/owner/billing"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_tenants",
+      "path": "/owner/api/tenants",
       "methods": [
         "GET"
       ],
-      "path": "/owner/api/tenants"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_tenant_modules",
+      "path": "/owner/api/tenants/<int:tenant_id>/modules",
       "methods": [
         "GET"
       ],
-      "path": "/owner/api/tenants/<int:tenant_id>/modules"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_activate_module",
+      "path": "/owner/api/tenants/<int:tenant_id>/modules/<module_name>/activate",
       "methods": [
         "POST"
       ],
-      "path": "/owner/api/tenants/<int:tenant_id>/modules/<module_name>/activate"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_deactivate_module",
+      "path": "/owner/api/tenants/<int:tenant_id>/modules/<module_name>/deactivate",
       "methods": [
         "POST"
       ],
-      "path": "/owner/api/tenants/<int:tenant_id>/modules/<module_name>/deactivate"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_update_profile",
+      "path": "/owner/api/tenants/<int:tenant_id>/profile",
       "methods": [
         "POST"
       ],
-      "path": "/owner/api/tenants/<int:tenant_id>/profile"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_toggle_feature",
+      "path": "/owner/api/tenants/<int:tenant_id>/features/<feature_key>/toggle",
       "methods": [
         "POST"
       ],
-      "path": "/owner/api/tenants/<int:tenant_id>/features/<feature_key>/toggle"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_bundles",
+      "path": "/owner/bundles",
       "methods": [
         "GET"
       ],
-      "path": "/owner/bundles"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_list_bundles",
+      "path": "/owner/api/bundles",
       "methods": [
         "GET"
       ],
-      "path": "/owner/api/bundles"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_get_bundle",
+      "path": "/owner/api/bundles/<int:bundle_id>",
       "methods": [
         "GET"
       ],
-      "path": "/owner/api/bundles/<int:bundle_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_create_bundle",
+      "path": "/owner/api/bundles",
       "methods": [
         "POST"
       ],
-      "path": "/owner/api/bundles"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_update_bundle",
+      "path": "/owner/api/bundles/<int:bundle_id>",
       "methods": [
         "PUT"
       ],
-      "path": "/owner/api/bundles/<int:bundle_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_delete_bundle",
+      "path": "/owner/api/bundles/<int:bundle_id>",
       "methods": [
         "DELETE"
       ],
-      "path": "/owner/api/bundles/<int:bundle_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_provision_tenant",
+      "path": "/owner/api/tenants/provision",
       "methods": [
         "POST"
       ],
-      "path": "/owner/api/tenants/provision"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_tenant_limits",
+      "path": "/owner/api/tenants/<int:tenant_id>/limits",
       "methods": [
         "GET"
       ],
-      "path": "/owner/api/tenants/<int:tenant_id>/limits"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.api_record_usage",
+      "path": "/owner/api/tenants/<int:tenant_id>/record-usage",
       "methods": [
         "POST"
       ],
-      "path": "/owner/api/tenants/<int:tenant_id>/record-usage"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_packages",
+      "path": "/owner/packages",
       "methods": [
         "GET"
       ],
-      "path": "/owner/packages"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_create_package",
+      "path": "/owner/packages/create",
       "methods": [
         "POST"
       ],
-      "path": "/owner/packages/create"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_create_package_version",
+      "path": "/owner/packages/<int:package_id>/versions/create",
       "methods": [
         "POST"
       ],
-      "path": "/owner/packages/<int:package_id>/versions/create"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_deprecate_package_version",
+      "path": "/owner/packages/versions/<int:version_id>/deprecate",
       "methods": [
         "POST"
       ],
-      "path": "/owner/packages/versions/<int:version_id>/deprecate"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_edit_package",
+      "path": "/owner/packages/<int:package_id>/edit",
       "methods": [
         "POST"
       ],
-      "path": "/owner/packages/<int:package_id>/edit"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_delete_package",
+      "path": "/owner/packages/<int:package_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/owner/packages/<int:package_id>/delete"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_edit_package_version",
+      "path": "/owner/packages/versions/<int:version_id>/edit",
       "methods": [
         "POST"
       ],
-      "path": "/owner/packages/versions/<int:version_id>/edit"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_delete_package_version",
+      "path": "/owner/packages/versions/<int:version_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/owner/packages/versions/<int:version_id>/delete"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_subscriptions",
+      "path": "/owner/subscriptions",
       "methods": [
         "GET"
       ],
-      "path": "/owner/subscriptions"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_upgrade_subscription",
+      "path": "/owner/subscriptions/<int:tenant_id>/upgrade",
       "methods": [
         "POST"
       ],
-      "path": "/owner/subscriptions/<int:tenant_id>/upgrade"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_add_addon",
+      "path": "/owner/subscriptions/<int:tenant_id>/addon",
       "methods": [
         "POST"
       ],
-      "path": "/owner/subscriptions/<int:tenant_id>/addon"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_renew_subscription",
+      "path": "/owner/subscriptions/<int:tenant_id>/renew",
       "methods": [
         "POST"
       ],
-      "path": "/owner/subscriptions/<int:tenant_id>/renew"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_cancel_subscription",
+      "path": "/owner/subscriptions/<int:tenant_id>/cancel",
       "methods": [
         "POST"
       ],
-      "path": "/owner/subscriptions/<int:tenant_id>/cancel"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_provision",
+      "path": "/owner/provision",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/owner/provision"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_tenant_usage",
+      "path": "/owner/tenant-usage/<int:tenant_id>",
       "methods": [
         "GET"
       ],
-      "path": "/owner/tenant-usage/<int:tenant_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_tasks",
+      "path": "/owner/tasks",
       "methods": [
         "GET"
       ],
-      "path": "/owner/tasks"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_monitoring",
+      "path": "/owner/monitoring",
       "methods": [
         "GET"
       ],
-      "path": "/owner/monitoring"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_system_config",
+      "path": "/owner/system-config",
       "methods": [
         "GET"
       ],
-      "path": "/owner/system-config"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_save_system_config",
+      "path": "/owner/system-config/save",
       "methods": [
         "POST"
       ],
-      "path": "/owner/system-config/save"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_delete_system_config",
+      "path": "/owner/system-config/<config_key>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/owner/system-config/<config_key>/delete"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_control",
+      "path": "/owner/control",
       "methods": [
         "GET"
       ],
-      "path": "/owner/control"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_control_toggle",
+      "path": "/owner/control/toggle",
       "methods": [
         "POST"
       ],
-      "path": "/owner/control/toggle"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_emergency_switches",
+      "path": "/owner/emergency-switches",
       "methods": [
         "GET"
       ],
-      "path": "/owner/emergency-switches"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_emergency_toggle",
+      "path": "/owner/emergency-switches/toggle",
       "methods": [
         "POST"
       ],
-      "path": "/owner/emergency-switches/toggle"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_backups",
+      "path": "/owner/backups",
       "methods": [
         "GET"
       ],
-      "path": "/owner/backups"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_list_assumptions",
+      "path": "/owner/api/assumptions",
       "methods": [
         "GET"
       ],
-      "path": "/owner/api/assumptions"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_create_assumption",
+      "path": "/owner/api/assumptions",
       "methods": [
         "POST"
       ],
-      "path": "/owner/api/assumptions"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "owner.owner_revoke_assumption",
+      "path": "/owner/api/assumptions/<int:assumption_id>/revoke",
       "methods": [
         "POST"
       ],
-      "path": "/owner/api/assumptions/<int:assumption_id>/revoke"
+      "classification": "super-admin"
     },
     {
-      "classification": "public",
       "endpoint": "auth.api_tenants_list",
+      "path": "/auth/api/tenants-list",
       "methods": [
         "GET"
       ],
-      "path": "/auth/api/tenants-list"
+      "classification": "public"
     },
     {
-      "classification": "public",
       "endpoint": "auth.login",
+      "path": "/auth/login",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/auth/login"
+      "classification": "public"
     },
     {
-      "classification": "public",
       "endpoint": "auth.logout",
+      "path": "/auth/logout",
       "methods": [
         "GET"
       ],
-      "path": "/auth/logout"
+      "classification": "public"
     },
     {
-      "classification": "public",
       "endpoint": "auth.profile",
+      "path": "/auth/profile",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/auth/profile"
+      "classification": "public"
     },
     {
-      "classification": "public",
       "endpoint": "auth.change_password",
+      "path": "/auth/change-password",
       "methods": [
         "POST"
       ],
-      "path": "/auth/change-password"
+      "classification": "public"
     },
     {
-      "classification": "public",
       "endpoint": "auth.impersonate",
+      "path": "/auth/impersonate/<int:user_id>",
       "methods": [
         "POST"
       ],
-      "path": "/auth/impersonate/<int:user_id>"
+      "classification": "public"
     },
     {
-      "classification": "public",
       "endpoint": "auth.impersonate_exit",
+      "path": "/auth/impersonate/exit",
       "methods": [
         "POST"
       ],
-      "path": "/auth/impersonate/exit"
+      "classification": "public"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.dashboard",
+      "path": "/super-admin/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/dashboard"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.users",
+      "path": "/super-admin/users",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/users"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.create_user",
+      "path": "/super-admin/users/create",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/users/create"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.edit_user",
+      "path": "/super-admin/users/<int:user_id>/edit",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/users/<int:user_id>/edit"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.delete_user",
+      "path": "/super-admin/users/<int:user_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/users/<int:user_id>/delete"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.seed_users",
+      "path": "/super-admin/seed/users",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/seed/users"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.reset_user_password",
+      "path": "/super-admin/users/<int:user_id>/reset-password",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/users/<int:user_id>/reset-password"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.ban_user",
+      "path": "/super-admin/users/ban/<int:user_id>",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/users/ban/<int:user_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.unban_user",
+      "path": "/super-admin/users/unban/<int:user_id>",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/users/unban/<int:user_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.force_logout_user",
+      "path": "/super-admin/users/force-logout/<int:user_id>",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/users/force-logout/<int:user_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.roles",
+      "path": "/super-admin/roles",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/roles"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.create_role",
+      "path": "/super-admin/roles/create",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/roles/create"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.edit_role",
+      "path": "/super-admin/roles/<int:role_id>/edit",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/roles/<int:role_id>/edit"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.manage_role_permissions",
+      "path": "/super-admin/roles/<int:role_id>/permissions",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/roles/<int:role_id>/permissions"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.manage_role_department_permissions",
+      "path": "/super-admin/roles/<int:role_id>/department-permissions",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/roles/<int:role_id>/department-permissions"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.permissions_matrix",
+      "path": "/super-admin/permissions-matrix",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/permissions-matrix"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.delete_role",
+      "path": "/super-admin/roles/<int:role_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/roles/<int:role_id>/delete"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.permissions",
+      "path": "/super-admin/permissions",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/permissions"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.create_permission",
+      "path": "/super-admin/permissions/create",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/permissions/create"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.edit_permission",
+      "path": "/super-admin/permissions/<int:permission_id>/edit",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/permissions/<int:permission_id>/edit"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.delete_permission",
+      "path": "/super-admin/permissions/<int:permission_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/permissions/<int:permission_id>/delete"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.create_role_simple",
+      "path": "/super-admin/create-role-simple",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/create-role-simple"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.create_permission_simple",
+      "path": "/super-admin/create-permission-simple",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/create-permission-simple"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.departments",
+      "path": "/super-admin/departments",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/departments"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.create_department",
+      "path": "/super-admin/departments/create",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/departments/create"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.view_department",
+      "path": "/super-admin/department/<int:department_id>",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/department/<int:department_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.edit_department",
+      "path": "/super-admin/edit-department/<int:department_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/edit-department/<int:department_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.department_staff",
+      "path": "/super-admin/department-staff/<int:department_id>",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/department-staff/<int:department_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.add_staff_to_department",
+      "path": "/super-admin/department-staff/<int:department_id>/add",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/department-staff/<int:department_id>/add"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.remove_staff_from_department",
+      "path": "/super-admin/department-staff/<int:department_id>/remove",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/department-staff/<int:department_id>/remove"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.activate_department",
+      "path": "/super-admin/activate-department/<int:department_id>",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/activate-department/<int:department_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.deactivate_department",
+      "path": "/super-admin/deactivate-department/<int:department_id>",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/deactivate-department/<int:department_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.export_departments",
+      "path": "/super-admin/export-departments",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/export-departments"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.pricing",
+      "path": "/super-admin/pricing",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/pricing"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.services",
+      "path": "/super-admin/services",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/services"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.create_service",
+      "path": "/super-admin/services/create",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/services/create"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.view_service",
+      "path": "/super-admin/service/<int:service_id>",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/service/<int:service_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.edit_service",
+      "path": "/super-admin/edit-service/<int:service_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/edit-service/<int:service_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.service_pricing",
+      "path": "/super-admin/service-pricing/<int:service_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/service-pricing/<int:service_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.activate_service",
+      "path": "/super-admin/activate-service/<int:service_id>",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/activate-service/<int:service_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.deactivate_service",
+      "path": "/super-admin/deactivate-service/<int:service_id>",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/deactivate-service/<int:service_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.export_services",
+      "path": "/super-admin/export-services",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/export-services"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.system_config",
+      "path": "/super-admin/system-config",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/system-config"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.queue_settings",
+      "path": "/super-admin/queue-settings",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/queue-settings"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.system_backup",
+      "path": "/super-admin/system-backup",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/system-backup"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.system_maintenance",
+      "path": "/super-admin/system/maintenance",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/system/maintenance"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.system_cleanup",
+      "path": "/super-admin/system/cleanup",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/system/cleanup"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.test_sms",
+      "path": "/super-admin/system/sms/test",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/system/sms/test"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.process_notification_queue_route",
+      "path": "/super-admin/system/notifications/queue/process",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/system/notifications/queue/process"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.run_notifications",
+      "path": "/super-admin/system/notifications/run",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/system/notifications/run"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.init_notification_templates",
+      "path": "/super-admin/system/notifications/init-templates",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/system/notifications/init-templates"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.system",
+      "path": "/super-admin/system",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/system"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.save_backup_settings",
+      "path": "/super-admin/backup/settings",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/backup/settings"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.maintenance_automation",
+      "path": "/super-admin/maintenance/automation",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/maintenance/automation"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.performance",
+      "path": "/super-admin/performance",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/performance"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.reports",
+      "path": "/super-admin/reports",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/reports"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.analytics",
+      "path": "/super-admin/analytics",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/analytics"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.system_monitor",
+      "path": "/super-admin/system-monitor",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/system-monitor"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.branding",
+      "path": "/super-admin/branding",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/branding"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.branding_print_preview",
+      "path": "/super-admin/branding/preview",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/branding/preview"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.apply_branding_theme",
+      "path": "/super-admin/branding/apply-theme/<int:theme_id>",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/branding/apply-theme/<int:theme_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.update_branding",
+      "path": "/super-admin/branding/update",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/branding/update"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.security_logs",
+      "path": "/super-admin/security-logs",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/security-logs"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.audit_trail",
+      "path": "/super-admin/audit-trail",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/audit-trail"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.security_center",
+      "path": "/super-admin/security-center",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/security-center"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.backup",
+      "path": "/super-admin/backup",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/backup"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.create_backup",
+      "path": "/super-admin/backup/create",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/backup/create"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.restore_backup",
+      "path": "/super-admin/backup/restore/<int:backup_id>",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/backup/restore/<int:backup_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.delete_backup",
+      "path": "/super-admin/backup/delete/<int:backup_id>",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/backup/delete/<int:backup_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.cancel_backup",
+      "path": "/super-admin/backup/cancel/<int:backup_id>",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/backup/cancel/<int:backup_id>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.backup_schedule",
+      "path": "/super-admin/backup/schedule",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/backup/schedule"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.backup_report",
+      "path": "/super-admin/backup/report",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/backup/report"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.export_backup_logs",
+      "path": "/super-admin/backup/export-logs",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/backup/export-logs"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.backup_history",
+      "path": "/super-admin/backup/history",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/backup/history"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.branch_templates",
+      "path": "/super-admin/branch-templates",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/branch-templates"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.data_warehouse",
+      "path": "/super-admin/data-warehouse",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/data-warehouse"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.data_warehouse_export",
+      "path": "/super-admin/data-warehouse/export",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/data-warehouse/export"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.export_system_data",
+      "path": "/super-admin/export-data",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/export-data"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.download_export",
+      "path": "/super-admin/download-export/<filename>",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/download-export/<filename>"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.api_audit_log",
+      "path": "/super-admin/api/audit-log",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/api/audit-log"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.api_recent_activities",
+      "path": "/super-admin/api/recent-activities",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/api/recent-activities"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.api_ai_assistant",
+      "path": "/super-admin/api/ai-assistant",
       "methods": [
         "POST"
       ],
-      "path": "/super-admin/api/ai-assistant"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.subscription_status",
+      "path": "/super-admin/subscription-status",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/subscription-status"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.change_plan",
+      "path": "/super-admin/change-plan",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/super-admin/change-plan"
+      "classification": "super-admin"
     },
     {
-      "classification": "super-admin",
       "endpoint": "super_admin.tenant_usage",
+      "path": "/super-admin/usage",
       "methods": [
         "GET"
       ],
-      "path": "/super-admin/usage"
+      "classification": "super-admin"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.patients",
+      "path": "/reception/patients",
       "methods": [
         "GET"
       ],
-      "path": "/reception/patients"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.add_patient",
+      "path": "/reception/add_patient",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/reception/add_patient"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.view_patient",
+      "path": "/reception/view_patient/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/view_patient/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.edit_patient",
+      "path": "/reception/edit_patient/<int:patient_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/reception/edit_patient/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.delete_patient",
+      "path": "/reception/delete_patient/<int:patient_id>",
       "methods": [
         "POST"
       ],
-      "path": "/reception/delete_patient/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_smart_patient_search",
+      "path": "/reception/api/smart-patient-search",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/smart-patient-search"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.waiting_display",
+      "path": "/reception/display/waiting",
       "methods": [
         "GET"
       ],
-      "path": "/reception/display/waiting"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.calls_display",
+      "path": "/reception/display/calls",
       "methods": [
         "GET"
       ],
-      "path": "/reception/display/calls"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.queue_management",
+      "path": "/reception/queue",
       "methods": [
         "GET"
       ],
-      "path": "/reception/queue"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.add_patient_to_queue",
+      "path": "/reception/queue/add-patient",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/reception/queue/add-patient"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.call_next_patient",
+      "path": "/reception/queue/call-next/<int:department_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/queue/call-next/<int:department_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.start_treatment",
+      "path": "/reception/queue/start-treatment/<int:ticket_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/queue/start-treatment/<int:ticket_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.complete_treatment",
+      "path": "/reception/queue/complete-treatment/<int:ticket_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/queue/complete-treatment/<int:ticket_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.skip_patient",
+      "path": "/reception/queue/skip-patient/<int:ticket_id>",
       "methods": [
         "POST"
       ],
-      "path": "/reception/queue/skip-patient/<int:ticket_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.return_to_queue",
+      "path": "/reception/queue/return-to-queue/<int:ticket_id>",
       "methods": [
         "POST"
       ],
-      "path": "/reception/queue/return-to-queue/<int:ticket_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.cancel_ticket",
+      "path": "/reception/queue/cancel-ticket/<int:ticket_id>",
       "methods": [
         "POST"
       ],
-      "path": "/reception/queue/cancel-ticket/<int:ticket_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.approve_emergency_debt",
+      "path": "/reception/queue/approve-emergency-debt/<int:ticket_id>",
       "methods": [
         "POST"
       ],
-      "path": "/reception/queue/approve-emergency-debt/<int:ticket_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.approve_force_entry",
+      "path": "/reception/queue/approve-force-entry/<int:ticket_id>",
       "methods": [
         "POST"
       ],
-      "path": "/reception/queue/approve-force-entry/<int:ticket_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.get_smart_queue_management",
+      "path": "/reception/api/queue-status/<int:department_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/queue-status/<int:department_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.save_queue_settings",
+      "path": "/reception/queue/save-settings/<int:department_id>",
       "methods": [
         "POST"
       ],
-      "path": "/reception/queue/save-settings/<int:department_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.index",
+      "path": "/reception/",
       "methods": [
         "GET"
       ],
-      "path": "/reception/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.dashboard",
+      "path": "/reception/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/reception/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.reception_staff_schedule",
+      "path": "/reception/staff/schedule",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/reception/staff/schedule"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.reception_staff_absence",
+      "path": "/reception/staff/absence",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/reception/staff/absence"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.survey",
+      "path": "/reception/survey/<token>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/reception/survey/<token>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.visits",
+      "path": "/reception/visits",
       "methods": [
         "GET"
       ],
-      "path": "/reception/visits"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.archive_visit",
+      "path": "/reception/visits/<int:visit_id>/archive",
       "methods": [
         "POST"
       ],
-      "path": "/reception/visits/<int:visit_id>/archive"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.end_visit",
+      "path": "/reception/visits/<int:visit_id>/end",
       "methods": [
         "POST"
       ],
-      "path": "/reception/visits/<int:visit_id>/end"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.export_visits",
+      "path": "/reception/export/visits",
       "methods": [
         "GET"
       ],
-      "path": "/reception/export/visits"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.transfer_visit",
+      "path": "/reception/visits/<int:visit_id>/transfer",
       "methods": [
         "POST"
       ],
-      "path": "/reception/visits/<int:visit_id>/transfer"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.create_visit",
+      "path": "/reception/visits/create",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/reception/visits/create"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.view_visit",
+      "path": "/reception/view_visit/<int:visit_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/view_visit/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_visit_pricing",
+      "path": "/reception/api/visit-pricing",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/visit-pricing"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.edit_visit",
+      "path": "/reception/edit_visit/<int:visit_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/reception/edit_visit/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.add_service_to_visit",
+      "path": "/reception/visits/<int:visit_id>/add-service",
       "methods": [
         "POST"
       ],
-      "path": "/reception/visits/<int:visit_id>/add-service"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.reception_return_to_treatment",
+      "path": "/reception/visits/<int:visit_id>/return-to-treatment",
       "methods": [
         "POST"
       ],
-      "path": "/reception/visits/<int:visit_id>/return-to-treatment"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.checkin_online_booking",
+      "path": "/reception/online-bookings/checkin",
       "methods": [
         "POST"
       ],
-      "path": "/reception/online-bookings/checkin"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.checkin_appointment",
+      "path": "/reception/appointments/<int:appointment_id>/checkin",
       "methods": [
         "POST"
       ],
-      "path": "/reception/appointments/<int:appointment_id>/checkin"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.appointments",
+      "path": "/reception/appointments",
       "methods": [
         "GET"
       ],
-      "path": "/reception/appointments"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.follow_ups",
+      "path": "/reception/follow-ups",
       "methods": [
         "GET"
       ],
-      "path": "/reception/follow-ups"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.confirm_appointment",
+      "path": "/reception/appointments/<int:appointment_id>/confirm",
       "methods": [
         "POST"
       ],
-      "path": "/reception/appointments/<int:appointment_id>/confirm"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.cancel_appointment",
+      "path": "/reception/appointments/<int:appointment_id>/cancel",
       "methods": [
         "POST"
       ],
-      "path": "/reception/appointments/<int:appointment_id>/cancel"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.no_show_appointment",
+      "path": "/reception/appointments/<int:appointment_id>/no-show",
       "methods": [
         "POST"
       ],
-      "path": "/reception/appointments/<int:appointment_id>/no-show"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.create_appointment",
+      "path": "/reception/create_appointment",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/reception/create_appointment"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.view_appointment",
+      "path": "/reception/view_appointment/<int:appointment_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/view_appointment/<int:appointment_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.edit_appointment",
+      "path": "/reception/edit_appointment/<int:appointment_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/reception/edit_appointment/<int:appointment_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_available_times",
+      "path": "/reception/api/available-times",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/available-times"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.pos_charge",
+      "path": "/reception/pos/charge",
       "methods": [
         "POST"
       ],
-      "path": "/reception/pos/charge"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.process_payment",
+      "path": "/reception/visits/<int:visit_id>/send-to-accounting",
       "methods": [
         "POST"
       ],
-      "path": "/reception/visits/<int:visit_id>/send-to-accounting"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.print_receipt",
+      "path": "/reception/print_receipt/<int:visit_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/print_receipt/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.print_invoice",
+      "path": "/reception/print_invoice/<int:invoice_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/print_invoice/<int:invoice_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.print_prescription",
+      "path": "/reception/print_prescription/<int:prescription_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/print_prescription/<int:prescription_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.payments",
+      "path": "/reception/payments",
       "methods": [
         "GET"
       ],
-      "path": "/reception/payments"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.cash_register",
+      "path": "/reception/cash-register",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/reception/cash-register"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "reception.daily_close",
+      "path": "/reception/daily-close",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/reception/daily-close"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_doctors",
+      "path": "/reception/api/doctors",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/doctors"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_department_staff",
+      "path": "/reception/api/department-staff",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/department-staff"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_department_services",
+      "path": "/reception/api/department-services",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/department-services"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_queue_status",
+      "path": "/reception/api/queue-department-status/<int:department_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/queue-department-status/<int:department_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_queue_status_all",
+      "path": "/reception/api/queue-status-all",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/queue-status-all"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_queue_wait_metrics",
+      "path": "/reception/api/queue-wait-metrics",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/queue-wait-metrics"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_fhir_patient",
+      "path": "/reception/api/fhir/patient/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/fhir/patient/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_fhir_encounter",
+      "path": "/reception/api/fhir/encounter/<int:visit_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/fhir/encounter/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_fhir_appointment",
+      "path": "/reception/api/fhir/appointment/<int:appointment_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/fhir/appointment/<int:appointment_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_fhir_practitioner",
+      "path": "/reception/api/fhir/practitioner/<int:user_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/fhir/practitioner/<int:user_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_fhir_organization",
+      "path": "/reception/api/fhir/organization/<int:department_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/fhir/organization/<int:department_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_patient_queue_position",
+      "path": "/reception/api/patient-queue-position/<int:patient_id>/<int:department_id>",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/patient-queue-position/<int:patient_id>/<int:department_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_queue_snapshot",
+      "path": "/reception/api/queue-snapshot",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/queue-snapshot"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_display_waiting",
+      "path": "/reception/api/display/waiting",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/display/waiting"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception.api_display_calls",
+      "path": "/reception/api/display/calls",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/display/calls"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.index",
+      "path": "/doctor/",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.dashboard_new",
+      "path": "/doctor/dashboard-new",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/dashboard-new"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.dashboard",
+      "path": "/doctor/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.dashboard_for_doctor",
+      "path": "/doctor/dashboard/<int:doctor_id>",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/dashboard/<int:doctor_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "doctor.api_dashboard_stats",
+      "path": "/doctor/api/dashboard-stats",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/api/dashboard-stats"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "doctor.api_today_visits",
+      "path": "/doctor/api/today-visits",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/api/today-visits"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.patient_queue",
+      "path": "/doctor/patient-queue",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/patient-queue"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.call_patient",
+      "path": "/doctor/call-patient/<int:visit_id>",
       "methods": [
         "POST"
       ],
-      "path": "/doctor/call-patient/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.diagnosis",
+      "path": "/doctor/diagnosis/<int:visit_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/doctor/diagnosis/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.start_treatment",
+      "path": "/doctor/start-treatment/<int:visit_id>",
       "methods": [
         "POST"
       ],
-      "path": "/doctor/start-treatment/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.patient_details",
+      "path": "/doctor/patient-details/<int:visit_id>",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/patient-details/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.view_patient",
+      "path": "/doctor/view_patient/<int:visit_id>",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/view_patient/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.visit_summary",
+      "path": "/doctor/visit-summary/<int:visit_id>",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/visit-summary/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.save_visit_summary",
+      "path": "/doctor/save-visit-summary/<int:visit_id>",
       "methods": [
         "POST"
       ],
-      "path": "/doctor/save-visit-summary/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.end_treatment",
+      "path": "/doctor/end-treatment/<int:visit_id>",
       "methods": [
         "POST"
       ],
-      "path": "/doctor/end-treatment/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.visits",
+      "path": "/doctor/visits",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/visits"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.prescription",
+      "path": "/doctor/prescription/<int:visit_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/doctor/prescription/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.print_prescription",
+      "path": "/doctor/print-prescription/<int:prescription_id>",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/print-prescription/<int:prescription_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.prescriptions",
+      "path": "/doctor/prescriptions",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/prescriptions"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.lab_request",
+      "path": "/doctor/lab-request/<int:visit_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/doctor/lab-request/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.lab_results",
+      "path": "/doctor/lab-results/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/lab-results/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.lab_requests",
+      "path": "/doctor/lab-requests",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/lab-requests"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.radiology_request",
+      "path": "/doctor/radiology-request/<int:visit_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/doctor/radiology-request/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.radiology_results",
+      "path": "/doctor/radiology-results/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/radiology-results/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.radiology_requests",
+      "path": "/doctor/radiology-requests",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/radiology-requests"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.notes",
+      "path": "/doctor/notes/<int:visit_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/doctor/notes/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "doctor.api_note_templates",
+      "path": "/doctor/api/note-templates",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/api/note-templates"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "doctor.api_dashboard_layout",
+      "path": "/doctor/api/dashboard-layout",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/doctor/api/dashboard-layout"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "doctor.upsert_note_template",
+      "path": "/doctor/api/note-templates",
       "methods": [
         "POST"
       ],
-      "path": "/doctor/api/note-templates"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "doctor.delete_note_template",
+      "path": "/doctor/api/note-templates/<string:template_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/doctor/api/note-templates/<string:template_id>/delete"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.medical_history",
+      "path": "/doctor/medical-history/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/medical-history/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.prescriptions_history",
+      "path": "/doctor/prescriptions-history/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/prescriptions-history/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.print_medical_report",
+      "path": "/doctor/print-medical-report/<int:visit_id>",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/print-medical-report/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.patients",
+      "path": "/doctor/patients",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/patients"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.patient_timeline",
+      "path": "/doctor/patient-timeline/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/patient-timeline/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.medical_records",
+      "path": "/doctor/medical-records",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/medical-records"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "doctor.api_patient_search",
+      "path": "/doctor/api/patient-search",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/api/patient-search"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.dental_chart",
+      "path": "/doctor/dental-chart/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/dental-chart/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.save_dental_chart",
+      "path": "/doctor/dental-chart/save",
       "methods": [
         "POST"
       ],
-      "path": "/doctor/dental-chart/save"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "doctor.appointments",
+      "path": "/doctor/appointments",
       "methods": [
         "GET"
       ],
-      "path": "/doctor/appointments"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.index",
+      "path": "/emergency/",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.reports",
+      "path": "/emergency/reports",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/reports"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.dashboard",
+      "path": "/emergency/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.patient_queue",
+      "path": "/emergency/patient-queue",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/patient-queue"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.triage_list",
+      "path": "/emergency/triage",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/triage"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.triage",
+      "path": "/emergency/triage/<int:emergency_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/emergency/triage/<int:emergency_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.patients",
+      "path": "/emergency/patients",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/patients"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.queue",
+      "path": "/emergency/queue",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/queue"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.treatment",
+      "path": "/emergency/treatment/<int:emergency_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/emergency/treatment/<int:emergency_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.end_treatment",
+      "path": "/emergency/end-treatment/<int:emergency_id>",
       "methods": [
         "POST"
       ],
-      "path": "/emergency/end-treatment/<int:emergency_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.start_treatment",
+      "path": "/emergency/start-treatment/<int:emergency_id>",
       "methods": [
         "POST"
       ],
-      "path": "/emergency/start-treatment/<int:emergency_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.emergency_visits",
+      "path": "/emergency/emergency-visits",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/emergency-visits"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.emergency_treatment",
+      "path": "/emergency/emergency-treatment/<int:visit_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/emergency/emergency-treatment/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.complete_visit",
+      "path": "/emergency/emergency-visits/<int:visit_id>/complete",
       "methods": [
         "POST"
       ],
-      "path": "/emergency/emergency-visits/<int:visit_id>/complete"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.patient_details",
+      "path": "/emergency/patient-details/<int:emergency_id>",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/patient-details/<int:emergency_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.medical_history",
+      "path": "/emergency/medical-history/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/medical-history/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.prescriptions_history",
+      "path": "/emergency/prescriptions-history/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/prescriptions-history/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.lab_results",
+      "path": "/emergency/lab-results/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/lab-results/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.radiology_results",
+      "path": "/emergency/radiology-results/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/radiology-results/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.prescription",
+      "path": "/emergency/prescription/<int:emergency_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/emergency/prescription/<int:emergency_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.lab_request",
+      "path": "/emergency/lab-request/<int:emergency_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/emergency/lab-request/<int:emergency_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.radiology_request",
+      "path": "/emergency/radiology-request/<int:emergency_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/emergency/radiology-request/<int:emergency_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.print_prescription",
+      "path": "/emergency/print-prescription/<int:prescription_id>",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/print-prescription/<int:prescription_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.list_emergency_cases",
+      "path": "/emergency/cases",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/cases"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.view_emergency_case",
+      "path": "/emergency/cases/<int:id>",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/cases/<int:id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.edit_emergency_case",
+      "path": "/emergency/cases/<int:id>/edit",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/emergency/cases/<int:id>/edit"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.resolve_emergency_case",
+      "path": "/emergency/cases/<int:id>/resolve",
       "methods": [
         "POST"
       ],
-      "path": "/emergency/cases/<int:id>/resolve"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.create_emergency_case",
+      "path": "/emergency/cases/create",
       "methods": [
         "POST"
       ],
-      "path": "/emergency/cases/create"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.convert_emergency_case",
+      "path": "/emergency/cases/<int:id>/convert",
       "methods": [
         "POST"
       ],
-      "path": "/emergency/cases/<int:id>/convert"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.emergency_report",
+      "path": "/emergency/emergency-report/<int:emergency_id>",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/emergency-report/<int:emergency_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emergency.print_emergency_report",
+      "path": "/emergency/print-emergency-report/<int:emergency_id>",
       "methods": [
         "GET"
       ],
-      "path": "/emergency/print-emergency-report/<int:emergency_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "emergency.api_ems_intake",
+      "path": "/emergency/api/ems/intake",
       "methods": [
         "POST"
       ],
-      "path": "/emergency/api/ems/intake"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.index",
+      "path": "/lab/",
       "methods": [
         "GET"
       ],
-      "path": "/lab/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.dashboard",
+      "path": "/lab/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/lab/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.requests",
+      "path": "/lab/requests",
       "methods": [
         "GET"
       ],
-      "path": "/lab/requests"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.results",
+      "path": "/lab/results",
       "methods": [
         "GET"
       ],
-      "path": "/lab/results"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.tests",
+      "path": "/lab/tests",
       "methods": [
         "GET"
       ],
-      "path": "/lab/tests"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.worklist",
+      "path": "/lab/worklist",
       "methods": [
         "GET"
       ],
-      "path": "/lab/worklist"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.worklist_request",
+      "path": "/lab/worklist/request/<int:request_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/lab/worklist/request/<int:request_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.worklist_claim",
+      "path": "/lab/worklist/claim/<int:request_id>",
       "methods": [
         "POST"
       ],
-      "path": "/lab/worklist/claim/<int:request_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.worklist_complete",
+      "path": "/lab/worklist/complete/<int:request_id>",
       "methods": [
         "POST"
       ],
-      "path": "/lab/worklist/complete/<int:request_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.reagents",
+      "path": "/lab/reagents",
       "methods": [
         "GET"
       ],
-      "path": "/lab/reagents"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.add_reagent",
+      "path": "/lab/reagents/add",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/lab/reagents/add"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.edit_reagent",
+      "path": "/lab/reagents/<int:reagent_id>/edit",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/lab/reagents/<int:reagent_id>/edit"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.quality",
+      "path": "/lab/quality",
       "methods": [
         "GET"
       ],
-      "path": "/lab/quality"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.quality_control",
+      "path": "/lab/quality-control",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/lab/quality-control"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.reports",
+      "path": "/lab/reports",
       "methods": [
         "GET"
       ],
-      "path": "/lab/reports"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.print_request",
+      "path": "/lab/print_request/<int:id>",
       "methods": [
         "GET"
       ],
-      "path": "/lab/print_request/<int:id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.print_request_pdf",
+      "path": "/lab/print_request/<int:id>/pdf",
       "methods": [
         "GET"
       ],
-      "path": "/lab/print_request/<int:id>/pdf"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "lab.api_worklist",
+      "path": "/lab/api/worklist",
       "methods": [
         "GET"
       ],
-      "path": "/lab/api/worklist"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "lab.api_fhir_lab_service_request",
+      "path": "/lab/api/fhir/servicerequest",
       "methods": [
         "POST"
       ],
-      "path": "/lab/api/fhir/servicerequest"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "lab.api_fhir_lab_observation_import",
+      "path": "/lab/api/fhir/observation",
       "methods": [
         "POST"
       ],
-      "path": "/lab/api/fhir/observation"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "lab.api_hl7_import",
+      "path": "/lab/api/hl7/import",
       "methods": [
         "POST"
       ],
-      "path": "/lab/api/hl7/import"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "lab.api_fhir_lab_observation",
+      "path": "/lab/api/fhir/observation/lab/<int:result_id>",
       "methods": [
         "GET"
       ],
-      "path": "/lab/api/fhir/observation/lab/<int:result_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "lab.api_fhir_lab_diagnostic_report",
+      "path": "/lab/api/fhir/diagnosticreport/lab/<int:result_id>",
       "methods": [
         "GET"
       ],
-      "path": "/lab/api/fhir/diagnosticreport/lab/<int:result_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.test_catalog",
+      "path": "/lab/test-catalog/",
       "methods": [
         "GET"
       ],
-      "path": "/lab/test-catalog/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.test_catalog_add",
+      "path": "/lab/test-catalog/add",
       "methods": [
         "POST"
       ],
-      "path": "/lab/test-catalog/add"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.test_catalog_edit",
+      "path": "/lab/test-catalog/<int:id>/edit",
       "methods": [
         "POST"
       ],
-      "path": "/lab/test-catalog/<int:id>/edit"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.test_catalog_delete",
+      "path": "/lab/test-catalog/<int:id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/lab/test-catalog/<int:id>/delete"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.test_panels",
+      "path": "/lab/test-panels/",
       "methods": [
         "GET"
       ],
-      "path": "/lab/test-panels/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.test_panels_add",
+      "path": "/lab/test-panels/add",
       "methods": [
         "POST"
       ],
-      "path": "/lab/test-panels/add"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.test_panels_edit",
+      "path": "/lab/test-panels/<int:id>/edit",
       "methods": [
         "POST"
       ],
-      "path": "/lab/test-panels/<int:id>/edit"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.test_panels_delete",
+      "path": "/lab/test-panels/<int:id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/lab/test-panels/<int:id>/delete"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "lab.api_test_catalog",
+      "path": "/lab/api/test-catalog",
       "methods": [
         "GET"
       ],
-      "path": "/lab/api/test-catalog"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "lab.api_test_catalog_item",
+      "path": "/lab/api/test-catalog/<int:id>",
       "methods": [
         "GET"
       ],
-      "path": "/lab/api/test-catalog/<int:id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.barcode_scan",
+      "path": "/lab/barcode/scan/<barcode>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/lab/barcode/scan/<barcode>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "lab.barcode_print",
+      "path": "/lab/barcode/print/<int:request_id>",
       "methods": [
         "GET"
       ],
-      "path": "/lab/barcode/print/<int:request_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.index",
+      "path": "/radiology/",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.dashboard",
+      "path": "/radiology/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.worklist",
+      "path": "/radiology/worklist",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/worklist"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.worklist_request",
+      "path": "/radiology/worklist/request/<int:request_id>",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/worklist/request/<int:request_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.worklist_claim",
+      "path": "/radiology/worklist/claim/<int:request_id>",
       "methods": [
         "POST"
       ],
-      "path": "/radiology/worklist/claim/<int:request_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.worklist_complete",
+      "path": "/radiology/worklist/complete/<int:request_id>",
       "methods": [
         "POST"
       ],
-      "path": "/radiology/worklist/complete/<int:request_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.requests",
+      "path": "/radiology/requests",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/requests"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.tests",
+      "path": "/radiology/tests",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/tests"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.add_scan_post",
+      "path": "/radiology/tests/add",
       "methods": [
         "POST"
       ],
-      "path": "/radiology/tests/add"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.results",
+      "path": "/radiology/results",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/results"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.reports",
+      "path": "/radiology/reports",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/reports"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.print_report",
+      "path": "/radiology/print_report/<int:radiology_scan_id>",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/print_report/<int:radiology_scan_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.print_report_pdf",
+      "path": "/radiology/print_report/<int:radiology_scan_id>/pdf",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/print_report/<int:radiology_scan_id>/pdf"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.images",
+      "path": "/radiology/images",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/images"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.download_file",
+      "path": "/radiology/files/<int:file_id>",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/files/<int:file_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.quality",
+      "path": "/radiology/quality",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/quality"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "radiology.api_ai_assist",
+      "path": "/radiology/api/ai-assist",
       "methods": [
         "POST"
       ],
-      "path": "/radiology/api/ai-assist"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "radiology.second_review_result",
+      "path": "/radiology/results/<int:result_id>/second-review",
       "methods": [
         "POST"
       ],
-      "path": "/radiology/results/<int:result_id>/second-review"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "radiology.api_report_templates",
+      "path": "/radiology/api/report-templates",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/api/report-templates"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "radiology.upsert_report_template",
+      "path": "/radiology/api/report-templates",
       "methods": [
         "POST"
       ],
-      "path": "/radiology/api/report-templates"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "radiology.delete_report_template",
+      "path": "/radiology/api/report-templates/<string:template_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/radiology/api/report-templates/<string:template_id>/delete"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "radiology.api_report_macros",
+      "path": "/radiology/api/report-macros",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/api/report-macros"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "radiology.upsert_report_macro",
+      "path": "/radiology/api/report-macros",
       "methods": [
         "POST"
       ],
-      "path": "/radiology/api/report-macros"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "radiology.delete_report_macro",
+      "path": "/radiology/api/report-macros/<string:macro_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/radiology/api/report-macros/<string:macro_id>/delete"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "radiology.api_worklist",
+      "path": "/radiology/api/worklist",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/api/worklist"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "radiology.api_fhir_radiology_observation",
+      "path": "/radiology/api/fhir/observation/radiology/<int:result_id>",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/api/fhir/observation/radiology/<int:result_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "radiology.api_fhir_radiology_diagnostic_report",
+      "path": "/radiology/api/fhir/diagnosticreport/radiology/<int:result_id>",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/api/fhir/diagnosticreport/radiology/<int:result_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "radiology.api_fhir_imaging_study",
+      "path": "/radiology/api/fhir/imagingstudy/<int:result_id>",
       "methods": [
         "GET"
       ],
-      "path": "/radiology/api/fhir/imagingstudy/<int:result_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "finance.index",
+      "path": "/finance/",
       "methods": [
         "GET"
       ],
-      "path": "/finance/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "finance.dashboard",
+      "path": "/finance/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/finance/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "finance.post_gl",
+      "path": "/finance/post",
       "methods": [
         "POST"
       ],
-      "path": "/finance/post"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "finance.archive_visit",
+      "path": "/finance/visits/<int:visit_id>/archive",
       "methods": [
         "POST"
       ],
-      "path": "/finance/visits/<int:visit_id>/archive"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "finance.payments",
+      "path": "/finance/payments",
       "methods": [
         "GET"
       ],
-      "path": "/finance/payments"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "finance.invoices",
+      "path": "/finance/invoices",
       "methods": [
         "GET"
       ],
-      "path": "/finance/invoices"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "finance.audit",
+      "path": "/finance/audit",
       "methods": [
         "GET"
       ],
-      "path": "/finance/audit"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "finance.slow_queries",
+      "path": "/finance/slow-queries",
       "methods": [
         "GET"
       ],
-      "path": "/finance/slow-queries"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "finance.slow_queries_weekly",
+      "path": "/finance/slow-queries/weekly",
       "methods": [
         "GET"
       ],
-      "path": "/finance/slow-queries/weekly"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "finance.slow_queries_weekly_detail",
+      "path": "/finance/slow-queries/weekly/<int:report_id>",
       "methods": [
         "GET"
       ],
-      "path": "/finance/slow-queries/weekly/<int:report_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "finance.capture_slow_queries_weekly",
+      "path": "/finance/slow-queries/capture",
       "methods": [
         "POST"
       ],
-      "path": "/finance/slow-queries/capture"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.index",
+      "path": "/accountant/",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.dashboard",
+      "path": "/accountant/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.open_invoices",
+      "path": "/accountant/open-invoices",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/open-invoices"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.payments",
+      "path": "/accountant/payments",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/payments"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.payment_documentation",
+      "path": "/accountant/payment-documentation/<int:payment_id>",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/payment-documentation/<int:payment_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.receipt",
+      "path": "/accountant/receipt/<int:payment_id>",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/receipt/<int:payment_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.financial_report",
+      "path": "/accountant/financial-report",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/financial-report"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.daily_summary",
+      "path": "/accountant/daily-summary",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/daily-summary"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.reports",
+      "path": "/accountant/reports",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/reports"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.invoices",
+      "path": "/accountant/invoices",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/invoices"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.financial",
+      "path": "/accountant/financial",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/financial"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.daily_audit_report",
+      "path": "/accountant/audit/daily",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/audit/daily"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.monthly_audit_report",
+      "path": "/accountant/audit/monthly",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/audit/monthly"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.debt_tracking_report",
+      "path": "/accountant/audit/debts",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/audit/debts"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "accountant.export_audit_report",
+      "path": "/accountant/audit/export/<report_type>",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/audit/export/<report_type>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "accountant.api_erp_export",
+      "path": "/accountant/api/erp/export",
       "methods": [
         "GET"
       ],
-      "path": "/accountant/api/erp/export"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "backup.dashboard",
+      "path": "/backup/backup/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/backup/backup/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "backup.create_backup",
+      "path": "/backup/create",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/backup/create"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "backup.list_backups",
+      "path": "/backup/list",
       "methods": [
         "GET"
       ],
-      "path": "/backup/list"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "backup.restore_backup",
+      "path": "/backup/restore/<int:backup_id>",
       "methods": [
         "POST"
       ],
-      "path": "/backup/restore/<int:backup_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "backup.download_backup",
+      "path": "/backup/download/<int:backup_id>",
       "methods": [
         "GET"
       ],
-      "path": "/backup/download/<int:backup_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "backup.delete_backup",
+      "path": "/backup/delete/<int:backup_id>",
       "methods": [
         "POST"
       ],
-      "path": "/backup/delete/<int:backup_id>"
+      "classification": "internal"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.dashboard",
+      "path": "/manager/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/manager/dashboard"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.pricing",
+      "path": "/manager/pricing",
       "methods": [
         "GET"
       ],
-      "path": "/manager/pricing"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.get_services_api",
+      "path": "/manager/api/pricing/services",
       "methods": [
         "GET"
       ],
-      "path": "/manager/api/pricing/services"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.add_service_api",
+      "path": "/manager/api/pricing/services",
       "methods": [
         "POST"
       ],
-      "path": "/manager/api/pricing/services"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.update_service_api",
+      "path": "/manager/api/pricing/services/<int:id>",
       "methods": [
         "PUT"
       ],
-      "path": "/manager/api/pricing/services/<int:id>"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.delete_service_api",
+      "path": "/manager/api/pricing/services/<int:id>",
       "methods": [
         "DELETE"
       ],
-      "path": "/manager/api/pricing/services/<int:id>"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.seed_pricing",
+      "path": "/manager/seed-pricing",
       "methods": [
         "POST"
       ],
-      "path": "/manager/seed-pricing"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.unit_control",
+      "path": "/manager/unit-control",
       "methods": [
         "GET"
       ],
-      "path": "/manager/unit-control"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.unit_toggle",
+      "path": "/manager/api/units/toggle",
       "methods": [
         "POST"
       ],
-      "path": "/manager/api/units/toggle"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.user_management",
+      "path": "/manager/user-management",
       "methods": [
         "GET"
       ],
-      "path": "/manager/user-management"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.staff_schedule",
+      "path": "/manager/staff/schedule",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/manager/staff/schedule"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.staff_absence",
+      "path": "/manager/staff/absence",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/manager/staff/absence"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.staff_capacity",
+      "path": "/manager/staff/capacity",
       "methods": [
         "GET"
       ],
-      "path": "/manager/staff/capacity"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.staff",
+      "path": "/manager/staff",
       "methods": [
         "GET"
       ],
-      "path": "/manager/staff"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.reports",
+      "path": "/manager/reports",
       "methods": [
         "GET"
       ],
-      "path": "/manager/reports"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.reports_center",
+      "path": "/manager/reports-center",
       "methods": [
         "GET"
       ],
-      "path": "/manager/reports-center"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.analytics",
+      "path": "/manager/analytics",
       "methods": [
         "GET"
       ],
-      "path": "/manager/analytics"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.self_service",
+      "path": "/manager/self-service",
       "methods": [
         "GET"
       ],
-      "path": "/manager/self-service"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.kpi_dashboard",
+      "path": "/manager/kpi-dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/manager/kpi-dashboard"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.drill_down",
+      "path": "/manager/drill-down/<report_type>",
       "methods": [
         "GET"
       ],
-      "path": "/manager/drill-down/<report_type>"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.settlements",
+      "path": "/manager/settlements",
       "methods": [
         "GET"
       ],
-      "path": "/manager/settlements"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.settlements_export",
+      "path": "/manager/settlements/export",
       "methods": [
         "GET"
       ],
-      "path": "/manager/settlements/export"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.financial_reports",
+      "path": "/manager/financial-reports",
       "methods": [
         "GET"
       ],
-      "path": "/manager/financial-reports"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.budget_dashboard",
+      "path": "/manager/budget",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/manager/budget"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.monthly_comparison",
+      "path": "/manager/monthly-comparison",
       "methods": [
         "GET"
       ],
-      "path": "/manager/monthly-comparison"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.exchange_rates",
+      "path": "/manager/exchange-rates",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/manager/exchange-rates"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.fetch_api_exchange_rates",
+      "path": "/manager/exchange-rates/fetch-api",
       "methods": [
         "POST"
       ],
-      "path": "/manager/exchange-rates/fetch-api"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.deactivate_exchange_rate",
+      "path": "/manager/exchange-rates/deactivate/<int:rate_id>",
       "methods": [
         "POST"
       ],
-      "path": "/manager/exchange-rates/deactivate/<int:rate_id>"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.force_payment_approvals",
+      "path": "/manager/force-payment-approvals",
       "methods": [
         "GET"
       ],
-      "path": "/manager/force-payment-approvals"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.approve_force_payment",
+      "path": "/manager/approve-force-payment/<int:visit_id>",
       "methods": [
         "POST"
       ],
-      "path": "/manager/approve-force-payment/<int:visit_id>"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.reject_force_payment",
+      "path": "/manager/reject-force-payment/<int:visit_id>",
       "methods": [
         "POST"
       ],
-      "path": "/manager/reject-force-payment/<int:visit_id>"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.custom_service_approvals",
+      "path": "/manager/custom-service-approvals",
       "methods": [
         "GET"
       ],
-      "path": "/manager/custom-service-approvals"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.approve_custom_service",
+      "path": "/manager/approve-custom-service/<int:service_id>",
       "methods": [
         "POST"
       ],
-      "path": "/manager/approve-custom-service/<int:service_id>"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.reject_custom_service",
+      "path": "/manager/reject-custom-service/<int:service_id>",
       "methods": [
         "POST"
       ],
-      "path": "/manager/reject-custom-service/<int:service_id>"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.departments",
+      "path": "/manager/departments",
       "methods": [
         "GET"
       ],
-      "path": "/manager/departments"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.patient_satisfaction_dashboard",
+      "path": "/manager/patient-satisfaction",
       "methods": [
         "GET"
       ],
-      "path": "/manager/patient-satisfaction"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.api_what_if",
+      "path": "/manager/api/what-if",
       "methods": [
         "POST"
       ],
-      "path": "/manager/api/what-if"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.manager_settings",
+      "path": "/manager/settings",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/manager/settings"
+      "classification": "admin"
     },
     {
-      "classification": "admin",
       "endpoint": "manager.manager_test_sms",
+      "path": "/manager/settings/test-sms",
       "methods": [
         "POST"
       ],
-      "path": "/manager/settings/test-sms"
+      "classification": "admin"
     },
     {
-      "classification": "authenticated",
       "endpoint": "booking.register",
+      "path": "/booking/register",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/booking/register"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "booking.dashboard_portal",
+      "path": "/booking/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/booking/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "booking.cancel_booking",
+      "path": "/booking/cancel/<int:booking_id>",
       "methods": [
         "POST"
       ],
-      "path": "/booking/cancel/<int:booking_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "booking.index",
+      "path": "/booking/",
       "methods": [
         "GET"
       ],
-      "path": "/booking/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "booking.create_booking",
+      "path": "/booking/create",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/booking/create"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "booking.confirmation",
+      "path": "/booking/confirmation/<int:booking_id>",
       "methods": [
         "GET"
       ],
-      "path": "/booking/confirmation/<int:booking_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "booking.telemedicine_room",
+      "path": "/booking/telemedicine/<int:booking_id>",
       "methods": [
         "GET"
       ],
-      "path": "/booking/telemedicine/<int:booking_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "booking.payment",
+      "path": "/booking/payment/<int:booking_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/booking/payment/<int:booking_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "booking.api_available_doctors",
+      "path": "/booking/api/available-doctors",
       "methods": [
         "GET"
       ],
-      "path": "/booking/api/available-doctors"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "booking.api_available_times",
+      "path": "/booking/api/available-times",
       "methods": [
         "GET"
       ],
-      "path": "/booking/api/available-times"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "booking.api_smart_slots",
+      "path": "/booking/api/smart-slots",
       "methods": [
         "GET"
       ],
-      "path": "/booking/api/smart-slots"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.list_medications",
+      "path": "/medication/list",
       "methods": [
         "GET"
       ],
-      "path": "/medication/list"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.add_medication",
+      "path": "/medication/add",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/medication/add"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.edit_medication",
+      "path": "/medication/edit/<int:medication_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/medication/edit/<int:medication_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.stock_alerts",
+      "path": "/medication/stock-alerts",
       "methods": [
         "GET"
       ],
-      "path": "/medication/stock-alerts"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.supply_requests",
+      "path": "/medication/supply-requests",
       "methods": [
         "GET"
       ],
-      "path": "/medication/supply-requests"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.create_supply_request",
+      "path": "/medication/supply-requests/create",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/medication/supply-requests/create"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.view_supply_request",
+      "path": "/medication/supply-requests/<int:request_id>",
       "methods": [
         "GET"
       ],
-      "path": "/medication/supply-requests/<int:request_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.approve_supply_request",
+      "path": "/medication/supply-requests/<int:request_id>/approve",
       "methods": [
         "POST"
       ],
-      "path": "/medication/supply-requests/<int:request_id>/approve"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.fulfill_supply_request",
+      "path": "/medication/supply-requests/<int:request_id>/fulfill",
       "methods": [
         "POST"
       ],
-      "path": "/medication/supply-requests/<int:request_id>/fulfill"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.prescriptions",
+      "path": "/medication/prescriptions",
       "methods": [
         "GET"
       ],
-      "path": "/medication/prescriptions"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "medication.api_prescriptions",
+      "path": "/medication/api/prescriptions",
       "methods": [
         "GET"
       ],
-      "path": "/medication/api/prescriptions"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.dispense_prescription",
+      "path": "/medication/prescriptions/dispense/<int:prescription_id>",
       "methods": [
         "POST"
       ],
-      "path": "/medication/prescriptions/dispense/<int:prescription_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.interactions",
+      "path": "/medication/interactions",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/medication/interactions"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.toggle_interaction",
+      "path": "/medication/interactions/<int:interaction_id>/toggle",
       "methods": [
         "POST"
       ],
-      "path": "/medication/interactions/<int:interaction_id>/toggle"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "medication.api_external_drug_import",
+      "path": "/medication/api/external-drug-import",
       "methods": [
         "POST"
       ],
-      "path": "/medication/api/external-drug-import"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "medication.api_external_drug_search",
+      "path": "/medication/api/external-drug-search",
       "methods": [
         "GET"
       ],
-      "path": "/medication/api/external-drug-search"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.consumption_report",
+      "path": "/medication/consumption-report",
       "methods": [
         "GET"
       ],
-      "path": "/medication/consumption-report"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.pos",
+      "path": "/medication/pos",
       "methods": [
         "GET"
       ],
-      "path": "/medication/pos"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.pharmacy_pos_charge",
+      "path": "/medication/pos/charge",
       "methods": [
         "POST"
       ],
-      "path": "/medication/pos/charge"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "medication.api_medications_search",
+      "path": "/medication/api/medications/search",
       "methods": [
         "GET"
       ],
-      "path": "/medication/api/medications/search"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.pos_sell",
+      "path": "/medication/pos/sell",
       "methods": [
         "POST"
       ],
-      "path": "/medication/pos/sell"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.sales_history",
+      "path": "/medication/sales-history",
       "methods": [
         "GET"
       ],
-      "path": "/medication/sales-history"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.sale_detail",
+      "path": "/medication/sales/<int:sale_id>",
       "methods": [
         "GET"
       ],
-      "path": "/medication/sales/<int:sale_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.print_sale_receipt",
+      "path": "/medication/sales/<int:sale_id>/print",
       "methods": [
         "GET"
       ],
-      "path": "/medication/sales/<int:sale_id>/print"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "medication.api_sales_list",
+      "path": "/medication/sales/api/list",
       "methods": [
         "GET"
       ],
-      "path": "/medication/sales/api/list"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "medication.api_sales_totals",
+      "path": "/medication/sales/api/totals",
       "methods": [
         "GET"
       ],
-      "path": "/medication/sales/api/totals"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "medication.api_sales_report",
+      "path": "/medication/sales/api/report",
       "methods": [
         "GET"
       ],
-      "path": "/medication/sales/api/report"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.sale_receipt",
+      "path": "/medication/sales/<int:sale_id>/receipt",
       "methods": [
         "GET"
       ],
-      "path": "/medication/sales/<int:sale_id>/receipt"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.suppliers",
+      "path": "/medication/suppliers",
       "methods": [
         "GET"
       ],
-      "path": "/medication/suppliers"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.add_supplier",
+      "path": "/medication/suppliers/add",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/medication/suppliers/add"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.edit_supplier",
+      "path": "/medication/suppliers/<int:supplier_id>/edit",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/medication/suppliers/<int:supplier_id>/edit"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.delete_supplier",
+      "path": "/medication/suppliers/<int:supplier_id>/delete",
       "methods": [
         "POST"
       ],
-      "path": "/medication/suppliers/<int:supplier_id>/delete"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.purchases",
+      "path": "/medication/purchases",
       "methods": [
         "GET"
       ],
-      "path": "/medication/purchases"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.add_purchase",
+      "path": "/medication/purchases/add",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/medication/purchases/add"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.index",
+      "path": "/medication/",
       "methods": [
         "GET"
       ],
-      "path": "/medication/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "medication.dashboard",
+      "path": "/medication/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/medication/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "payment.index",
+      "path": "/payment/",
       "methods": [
         "GET"
       ],
-      "path": "/payment/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "payment.dashboard",
+      "path": "/payment/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/payment/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "payment.process_payment",
+      "path": "/payment/process/<int:visit_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/payment/process/<int:visit_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "payment.payment_history",
+      "path": "/payment/history",
       "methods": [
         "GET"
       ],
-      "path": "/payment/history"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "payment.payment_methods",
+      "path": "/payment/methods",
       "methods": [
         "GET"
       ],
-      "path": "/payment/methods"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "payment.payment_reports",
+      "path": "/payment/reports",
       "methods": [
         "GET"
       ],
-      "path": "/payment/reports"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "payment.request_refund",
+      "path": "/payment/payments/<int:payment_id>/refund",
       "methods": [
         "POST"
       ],
-      "path": "/payment/payments/<int:payment_id>/refund"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "payment.approve_refund",
+      "path": "/payment/refund-requests/<int:refund_id>/approve",
       "methods": [
         "POST"
       ],
-      "path": "/payment/refund-requests/<int:refund_id>/approve"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "payment.execute_refund",
+      "path": "/payment/refund-requests/<int:refund_id>/execute",
       "methods": [
         "POST"
       ],
-      "path": "/payment/refund-requests/<int:refund_id>/execute"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.index",
+      "path": "/nurse/",
       "methods": [
         "GET"
       ],
-      "path": "/nurse/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.dashboard",
+      "path": "/nurse/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/nurse/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.patient_care",
+      "path": "/nurse/patient-care",
       "methods": [
         "GET"
       ],
-      "path": "/nurse/patient-care"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.patient_monitoring",
+      "path": "/nurse/patient-monitoring",
       "methods": [
         "GET"
       ],
-      "path": "/nurse/patient-monitoring"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.vital_signs",
+      "path": "/nurse/vital-signs",
       "methods": [
         "GET"
       ],
-      "path": "/nurse/vital-signs"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.record_vital_signs",
+      "path": "/nurse/record-vital-signs/<int:patient_id>",
       "methods": [
         "POST"
       ],
-      "path": "/nurse/record-vital-signs/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.vitals",
+      "path": "/nurse/vitals",
       "methods": [
         "GET"
       ],
-      "path": "/nurse/vitals"
+      "classification": "internal"
     },
     {
-      "classification": "admin",
       "endpoint": "nurse.medication_administration",
+      "path": "/nurse/medication-administration",
       "methods": [
         "GET"
       ],
-      "path": "/nurse/medication-administration"
+      "classification": "internal"
     },
     {
-      "classification": "admin",
       "endpoint": "nurse.administer_medication",
+      "path": "/nurse/administer-medication/<int:prescription_item_id>",
       "methods": [
         "POST"
       ],
-      "path": "/nurse/administer-medication/<int:prescription_item_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.medications",
+      "path": "/nurse/medications",
       "methods": [
         "GET"
       ],
-      "path": "/nurse/medications"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.tasks",
+      "path": "/nurse/tasks",
       "methods": [
         "GET"
       ],
-      "path": "/nurse/tasks"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.create_task",
+      "path": "/nurse/tasks/create",
       "methods": [
         "POST"
       ],
-      "path": "/nurse/tasks/create"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.update_task_status",
+      "path": "/nurse/tasks/<int:task_id>/status",
       "methods": [
         "POST"
       ],
-      "path": "/nurse/tasks/<int:task_id>/status"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "nurse.api_nursing_protocols",
+      "path": "/nurse/api/protocols",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/nurse/api/protocols"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.reports",
+      "path": "/nurse/reports",
       "methods": [
         "GET"
       ],
-      "path": "/nurse/reports"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.patients",
+      "path": "/nurse/patients",
       "methods": [
         "GET"
       ],
-      "path": "/nurse/patients"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nurse.wards",
+      "path": "/nurse/wards",
       "methods": [
         "GET"
       ],
-      "path": "/nurse/wards"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "clinical_coding.icd10_list",
+      "path": "/clinical-coding/icd10",
       "methods": [
         "GET"
       ],
-      "path": "/clinical-coding/icd10"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "clinical_coding.icd10_detail",
+      "path": "/clinical-coding/icd10/<int:id>",
       "methods": [
         "GET"
       ],
-      "path": "/clinical-coding/icd10/<int:id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "clinical_coding.cpt_list",
+      "path": "/clinical-coding/cpt",
       "methods": [
         "GET"
       ],
-      "path": "/clinical-coding/cpt"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "clinical_coding.drg_list",
+      "path": "/clinical-coding/drg",
       "methods": [
         "GET"
       ],
-      "path": "/clinical-coding/drg"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "clinical_coding.patient_diagnoses",
+      "path": "/clinical-coding/patient/<int:patient_id>/diagnoses",
       "methods": [
         "GET"
       ],
-      "path": "/clinical-coding/patient/<int:patient_id>/diagnoses"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "clinical_coding.patient_procedures",
+      "path": "/clinical-coding/patient/<int:patient_id>/procedures",
       "methods": [
         "GET"
       ],
-      "path": "/clinical-coding/patient/<int:patient_id>/procedures"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "clinical_coding.api_icd10_search",
+      "path": "/clinical-coding/api/icd10/search",
       "methods": [
         "GET"
       ],
-      "path": "/clinical-coding/api/icd10/search"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "clinical_coding.api_cpt_search",
+      "path": "/clinical-coding/api/cpt/search",
       "methods": [
         "GET"
       ],
-      "path": "/clinical-coding/api/cpt/search"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "bed.dashboard",
+      "path": "/bed/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/bed/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "bed.wards",
+      "path": "/bed/wards",
       "methods": [
         "GET"
       ],
-      "path": "/bed/wards"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "bed.ward_detail",
+      "path": "/bed/ward/<int:ward_id>",
       "methods": [
         "GET"
       ],
-      "path": "/bed/ward/<int:ward_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "bed.room_detail",
+      "path": "/bed/room/<int:room_id>",
       "methods": [
         "GET"
       ],
-      "path": "/bed/room/<int:room_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "bed.admissions",
+      "path": "/bed/admissions",
       "methods": [
         "GET"
       ],
-      "path": "/bed/admissions"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "bed.admission_detail",
+      "path": "/bed/admission/<int:admission_id>",
       "methods": [
         "GET"
       ],
-      "path": "/bed/admission/<int:admission_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "bed.api_available_beds",
+      "path": "/bed/api/available-beds",
       "methods": [
         "GET"
       ],
-      "path": "/bed/api/available-beds"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "bed.api_bed_status",
+      "path": "/bed/api/bed-status",
       "methods": [
         "GET"
       ],
-      "path": "/bed/api/bed-status"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "or.schedule",
+      "path": "/or/schedule",
       "methods": [
         "GET"
       ],
-      "path": "/or/schedule"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "or.surgery_detail",
+      "path": "/or/surgery/<int:surgery_id>",
       "methods": [
         "GET"
       ],
-      "path": "/or/surgery/<int:surgery_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emar.dashboard",
+      "path": "/emar/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/emar/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "emar.patient_mar",
+      "path": "/emar/patient/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/emar/patient/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "admin",
       "endpoint": "emar.administer",
+      "path": "/emar/administer/<int:admin_id>",
       "methods": [
         "POST"
       ],
-      "path": "/emar/administer/<int:admin_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "vaccination.vaccines",
+      "path": "/vaccination/vaccines",
       "methods": [
         "GET"
       ],
-      "path": "/vaccination/vaccines"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "vaccination.patient_immunizations",
+      "path": "/vaccination/patient/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/vaccination/patient/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "referral.list_referrals",
+      "path": "/referral/list",
       "methods": [
         "GET"
       ],
-      "path": "/referral/list"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "referral.detail",
+      "path": "/referral/detail/<int:referral_id>",
       "methods": [
         "GET"
       ],
-      "path": "/referral/detail/<int:referral_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "pathway.pathways",
+      "path": "/pathway/pathways",
       "methods": [
         "GET"
       ],
-      "path": "/pathway/pathways"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "pathway.pathway_detail",
+      "path": "/pathway/pathway/<int:pathway_id>",
       "methods": [
         "GET"
       ],
-      "path": "/pathway/pathway/<int:pathway_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "pathway.patient_care_plans",
+      "path": "/pathway/patient/<int:patient_id>/care-plans",
       "methods": [
         "GET"
       ],
-      "path": "/pathway/patient/<int:patient_id>/care-plans"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "cds.rules",
+      "path": "/cds/rules",
       "methods": [
         "GET"
       ],
-      "path": "/cds/rules"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "cds.alerts",
+      "path": "/cds/alerts",
       "methods": [
         "GET"
       ],
-      "path": "/cds/alerts"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "cds.patient_alerts",
+      "path": "/cds/patient/<int:patient_id>/alerts",
       "methods": [
         "GET"
       ],
-      "path": "/cds/patient/<int:patient_id>/alerts"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "barcode.scan_page",
+      "path": "/barcode/scan",
       "methods": [
         "GET"
       ],
-      "path": "/barcode/scan"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "barcode.api_scan",
+      "path": "/barcode/api/scan",
       "methods": [
         "POST"
       ],
-      "path": "/barcode/api/scan"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "barcode.registry",
+      "path": "/barcode/registry",
       "methods": [
         "GET"
       ],
-      "path": "/barcode/registry"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "fhir.fhir_patients",
+      "path": "/api/fhir/Patient",
       "methods": [
         "GET"
       ],
-      "path": "/api/fhir/Patient"
+      "classification": "authenticated"
     },
     {
-      "classification": "internal",
       "endpoint": "fhir.fhir_patient",
+      "path": "/api/fhir/Patient/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/api/fhir/Patient/<int:patient_id>"
+      "classification": "authenticated"
     },
     {
-      "classification": "internal",
       "endpoint": "fhir.fhir_encounters",
+      "path": "/api/fhir/Encounter",
       "methods": [
         "GET"
       ],
-      "path": "/api/fhir/Encounter"
+      "classification": "authenticated"
     },
     {
-      "classification": "internal",
       "endpoint": "fhir.fhir_observations",
+      "path": "/api/fhir/Observation",
       "methods": [
         "GET"
       ],
-      "path": "/api/fhir/Observation"
+      "classification": "authenticated"
     },
     {
-      "classification": "authenticated",
       "endpoint": "dicom.studies",
+      "path": "/dicom/studies",
       "methods": [
         "GET"
       ],
-      "path": "/dicom/studies"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "dicom.study_detail",
+      "path": "/dicom/study/<int:study_id>",
       "methods": [
         "GET"
       ],
-      "path": "/dicom/study/<int:study_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "dicom.viewer",
+      "path": "/dicom/viewer/<int:study_id>",
       "methods": [
         "GET"
       ],
-      "path": "/dicom/viewer/<int:study_id>"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "dicom.api_patient_studies",
+      "path": "/dicom/api/studies/patient/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/dicom/api/studies/patient/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.index",
+      "path": "/portal/",
       "methods": [
         "GET"
       ],
-      "path": "/portal/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.link_account",
+      "path": "/portal/link-account",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/portal/link-account"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.dashboard",
+      "path": "/portal/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/portal/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.appointments",
+      "path": "/portal/appointments",
       "methods": [
         "GET"
       ],
-      "path": "/portal/appointments"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.book_appointment",
+      "path": "/portal/book-appointment",
       "methods": [
         "GET"
       ],
-      "path": "/portal/book-appointment"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.medical_records",
+      "path": "/portal/medical-records",
       "methods": [
         "GET"
       ],
-      "path": "/portal/medical-records"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.prescriptions",
+      "path": "/portal/prescriptions",
       "methods": [
         "GET"
       ],
-      "path": "/portal/prescriptions"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.lab_results",
+      "path": "/portal/lab-results",
       "methods": [
         "GET"
       ],
-      "path": "/portal/lab-results"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.radiology_results",
+      "path": "/portal/radiology-results",
       "methods": [
         "GET"
       ],
-      "path": "/portal/radiology-results"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.bills",
+      "path": "/portal/bills",
       "methods": [
         "GET"
       ],
-      "path": "/portal/bills"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.vaccinations",
+      "path": "/portal/vaccinations",
       "methods": [
         "GET"
       ],
-      "path": "/portal/vaccinations"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.documents",
+      "path": "/portal/documents",
       "methods": [
         "GET"
       ],
-      "path": "/portal/documents"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.download_document",
+      "path": "/portal/documents/<int:file_id>",
       "methods": [
         "GET"
       ],
-      "path": "/portal/documents/<int:file_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.settings",
+      "path": "/portal/settings",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/portal/settings"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "portal.feedback",
+      "path": "/portal/feedback",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/portal/feedback"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "pop_health.dashboard",
+      "path": "/population-health/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/population-health/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "pop_health.disease_registry",
+      "path": "/population-health/disease-registry",
       "methods": [
         "GET"
       ],
-      "path": "/population-health/disease-registry"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "pop_health.quality_measures",
+      "path": "/population-health/quality-measures",
       "methods": [
         "GET"
       ],
-      "path": "/population-health/quality-measures"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "report_builder.builder",
+      "path": "/report-builder/",
       "methods": [
         "GET"
       ],
-      "path": "/report-builder/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "report_builder.preview",
+      "path": "/report-builder/preview",
       "methods": [
         "POST"
       ],
-      "path": "/report-builder/preview"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "report_builder.templates_list",
+      "path": "/report-builder/templates",
       "methods": [
         "GET"
       ],
-      "path": "/report-builder/templates"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "report_builder.templates_save",
+      "path": "/report-builder/templates",
       "methods": [
         "POST"
       ],
-      "path": "/report-builder/templates"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "report_builder.templates_get",
+      "path": "/report-builder/templates/<int:template_id>",
       "methods": [
         "GET"
       ],
-      "path": "/report-builder/templates/<int:template_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "report_builder.templates_run",
+      "path": "/report-builder/templates/<int:template_id>/run",
       "methods": [
         "POST"
       ],
-      "path": "/report-builder/templates/<int:template_id>/run"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "security.signatures",
+      "path": "/security/signatures",
       "methods": [
         "GET"
       ],
-      "path": "/security/signatures"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "security.sessions",
+      "path": "/security/sessions",
       "methods": [
         "GET"
       ],
-      "path": "/security/sessions"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "security.password_policy",
+      "path": "/security/password-policy",
       "methods": [
         "GET"
       ],
-      "path": "/security/password-policy"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "mfa.setup",
+      "path": "/mfa/setup",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/mfa/setup"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "mfa.verify",
+      "path": "/mfa/verify",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/mfa/verify"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "mfa.status",
+      "path": "/mfa/status",
       "methods": [
         "GET"
       ],
-      "path": "/mfa/status"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "mfa.disable",
+      "path": "/mfa/disable",
       "methods": [
         "POST"
       ],
-      "path": "/mfa/disable"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "mfa.api_check",
+      "path": "/mfa/api/check",
       "methods": [
         "POST"
       ],
-      "path": "/mfa/api/check"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nursing_assessment.patient_assessments",
+      "path": "/nursing-assessment/patient/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/nursing-assessment/patient/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nursing_assessment.new_assessment",
+      "path": "/nursing-assessment/new/<int:patient_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/nursing-assessment/new/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nursing_assessment.view_assessment",
+      "path": "/nursing-assessment/view/<int:assessment_id>",
       "methods": [
         "GET"
       ],
-      "path": "/nursing-assessment/view/<int:assessment_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "nursing_assessment.dashboard",
+      "path": "/nursing-assessment/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/nursing-assessment/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "specialty_forms.list_forms",
+      "path": "/specialty-forms",
       "methods": [
         "GET"
       ],
-      "path": "/specialty-forms"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "specialty_forms.new_form",
+      "path": "/specialty-forms/new",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/specialty-forms/new"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "specialty_forms.view_form",
+      "path": "/specialty-forms/<int:form_id>",
       "methods": [
         "GET"
       ],
-      "path": "/specialty-forms/<int:form_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "specialty_forms.edit_version",
+      "path": "/specialty-forms/<int:form_id>/versions/<int:version_id>/edit",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/specialty-forms/<int:form_id>/versions/<int:version_id>/edit"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "specialty_forms.publish_version",
+      "path": "/specialty-forms/<int:form_id>/versions/<int:version_id>/publish",
       "methods": [
         "POST"
       ],
-      "path": "/specialty-forms/<int:form_id>/versions/<int:version_id>/publish"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "specialty_forms.fill_form",
+      "path": "/specialty-forms/<int:form_id>/fill",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/specialty-forms/<int:form_id>/fill"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "specialty_forms.view_submission",
+      "path": "/specialty-forms/submissions/<int:submission_id>",
       "methods": [
         "GET"
       ],
-      "path": "/specialty-forms/submissions/<int:submission_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "specialty_forms.list_submissions",
+      "path": "/specialty-forms/<int:form_id>/submissions",
       "methods": [
         "GET"
       ],
-      "path": "/specialty-forms/<int:form_id>/submissions"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "patient_education.index",
+      "path": "/patient-education/",
       "methods": [
         "GET"
       ],
-      "path": "/patient-education/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "patient_education.view_material",
+      "path": "/patient-education/material/<int:material_id>",
       "methods": [
         "GET"
       ],
-      "path": "/patient-education/material/<int:material_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "patient_education.new_material",
+      "path": "/patient-education/new",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/patient-education/new"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "patient_education.edit_material",
+      "path": "/patient-education/edit/<int:material_id>",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/patient-education/edit/<int:material_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "patient_education.assign_material",
+      "path": "/patient-education/assign",
       "methods": [
         "POST"
       ],
-      "path": "/patient-education/assign"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "patient_education.patient_materials",
+      "path": "/patient-education/patient/<int:patient_id>",
       "methods": [
         "GET"
       ],
-      "path": "/patient-education/patient/<int:patient_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "backup_restore.index",
+      "path": "/backup-restore/",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/backup-restore/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "telemedicine.index",
+      "path": "/telemedicine/",
       "methods": [
         "GET"
       ],
-      "path": "/telemedicine/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "telemedicine.new_appointment",
+      "path": "/telemedicine/new",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/telemedicine/new"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "telemedicine.view_appointment",
+      "path": "/telemedicine/<int:tm_id>",
       "methods": [
         "GET"
       ],
-      "path": "/telemedicine/<int:tm_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "sso.config",
+      "path": "/sso/config",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/sso/config"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "sso.toggle",
+      "path": "/sso/toggle/<int:config_id>",
       "methods": [
         "POST"
       ],
-      "path": "/sso/toggle/<int:config_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "ai_imaging.index",
+      "path": "/ai-imaging/",
       "methods": [
         "GET"
       ],
-      "path": "/ai-imaging/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "ai_imaging.request_analysis",
+      "path": "/ai-imaging/request",
       "methods": [
         "POST"
       ],
-      "path": "/ai-imaging/request"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "ai_imaging.review",
+      "path": "/ai-imaging/<int:ai_id>/review",
       "methods": [
         "POST"
       ],
-      "path": "/ai-imaging/<int:ai_id>/review"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "biometric.status",
+      "path": "/biometric/",
       "methods": [
         "GET"
       ],
-      "path": "/biometric/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "biometric.register_challenge",
+      "path": "/biometric/register-challenge",
       "methods": [
         "POST"
       ],
-      "path": "/biometric/register-challenge"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "biometric.register_complete",
+      "path": "/biometric/register-complete",
       "methods": [
         "POST"
       ],
-      "path": "/biometric/register-complete"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "biometric.authenticate_challenge",
+      "path": "/biometric/authenticate-challenge",
       "methods": [
         "POST"
       ],
-      "path": "/biometric/authenticate-challenge"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "biometric.remove_credential",
+      "path": "/biometric/remove/<int:cred_id>",
       "methods": [
         "POST"
       ],
-      "path": "/biometric/remove/<int:cred_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "data_warehouse.dashboard",
+      "path": "/data-warehouse/",
       "methods": [
         "GET"
       ],
-      "path": "/data-warehouse/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "data_warehouse.sync",
+      "path": "/data-warehouse/sync",
       "methods": [
         "POST"
       ],
-      "path": "/data-warehouse/sync"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "what_if.index",
+      "path": "/what-if/",
       "methods": [
         "GET"
       ],
-      "path": "/what-if/"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "what_if.new_scenario",
+      "path": "/what-if/new",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/what-if/new"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "what_if.view_scenario",
+      "path": "/what-if/<int:scenario_id>",
       "methods": [
         "GET"
       ],
-      "path": "/what-if/<int:scenario_id>"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "quality.dashboard",
+      "path": "/quality/dashboard",
       "methods": [
         "GET"
       ],
-      "path": "/quality/dashboard"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "quality.audits",
+      "path": "/quality/audits",
       "methods": [
         "GET"
       ],
-      "path": "/quality/audits"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "quality.incidents",
+      "path": "/quality/incidents",
       "methods": [
         "GET"
       ],
-      "path": "/quality/incidents"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "quality.api_quality_metrics",
+      "path": "/quality/api/quality-metrics",
       "methods": [
         "GET"
       ],
-      "path": "/quality/api/quality-metrics"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception_currency.save_manual_rate",
+      "path": "/reception/api/save-manual-rate",
       "methods": [
         "POST"
       ],
-      "path": "/reception/api/save-manual-rate"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "reception_currency.check_rate",
+      "path": "/reception/api/check-rate",
       "methods": [
         "GET"
       ],
-      "path": "/reception/api/check-rate"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "inbox.dashboard",
+      "path": "/inbox",
       "methods": [
         "GET"
       ],
-      "path": "/inbox"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "saas.signup_organization",
+      "path": "/saas/signup",
       "methods": [
-        "GET",
-        "POST"
+        "POST",
+        "GET"
       ],
-      "path": "/saas/signup"
+      "classification": "internal"
     },
     {
-      "classification": "internal",
       "endpoint": "saas.register_organization",
+      "path": "/api/saas/register",
       "methods": [
         "POST"
       ],
-      "path": "/api/saas/register"
+      "classification": "authenticated"
     },
     {
-      "classification": "internal",
       "endpoint": "saas_billing.stripe_webhook",
+      "path": "/api/billing/stripe/webhook",
       "methods": [
         "POST"
       ],
-      "path": "/api/billing/stripe/webhook"
+      "classification": "authenticated"
     },
     {
-      "classification": "internal",
       "endpoint": "saas_billing.create_checkout",
+      "path": "/api/billing/checkout",
       "methods": [
         "POST"
       ],
-      "path": "/api/billing/checkout"
+      "classification": "authenticated"
     },
     {
-      "classification": "internal",
       "endpoint": "saas_billing.billing_portal",
+      "path": "/api/billing/portal",
       "methods": [
         "POST"
       ],
-      "path": "/api/billing/portal"
+      "classification": "authenticated"
     },
     {
-      "classification": "internal",
       "endpoint": "saas_billing.cancel_subscription",
+      "path": "/api/billing/subscription/cancel",
       "methods": [
         "POST"
       ],
-      "path": "/api/billing/subscription/cancel"
+      "classification": "authenticated"
     },
     {
-      "classification": "internal",
       "endpoint": "saas_billing.change_plan",
+      "path": "/api/billing/subscription/change-plan",
       "methods": [
         "POST"
       ],
-      "path": "/api/billing/subscription/change-plan"
+      "classification": "authenticated"
     },
     {
-      "classification": "authenticated",
       "endpoint": "monitoring.metrics",
+      "path": "/metrics",
       "methods": [
         "GET"
       ],
-      "path": "/metrics"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "_root_patients",
+      "path": "/patients",
       "methods": [
         "GET"
       ],
-      "path": "/patients"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "_root_visits",
+      "path": "/visits",
       "methods": [
         "GET"
       ],
-      "path": "/visits"
+      "classification": "internal"
     },
     {
-      "classification": "authenticated",
       "endpoint": "_root_medications",
+      "path": "/medications",
       "methods": [
         "GET"
       ],
-      "path": "/medications"
+      "classification": "internal"
+    },
+    {
+      "endpoint": "trigger_module_error",
+      "path": "/test/module-error",
+      "methods": [
+        "GET"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "trigger_module_error_html",
+      "path": "/test/module-error-html",
+      "methods": [
+        "GET"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "trigger_tenant_iso_error",
+      "path": "/test/tenant-iso-error",
+      "methods": [
+        "GET"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "trigger_tenant_ctx_error",
+      "path": "/test/tenant-ctx-error",
+      "methods": [
+        "GET"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "trigger_perm_error",
+      "path": "/test/perm-error",
+      "methods": [
+        "GET"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "trigger_idem_error",
+      "path": "/test/idempotency-error",
+      "methods": [
+        "GET"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "trigger_idem_error_html",
+      "path": "/test/idempotency-error-html",
+      "methods": [
+        "GET"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "check_g_trace",
+      "path": "/test/g-trace",
+      "methods": [
+        "GET"
+      ],
+      "classification": "internal"
+    },
+    {
+      "endpoint": "log_something",
+      "path": "/test/log-trace",
+      "methods": [
+        "GET"
+      ],
+      "classification": "internal"
     }
   ],
-  "total_routes": 674
+  "total_routes": 683
 }

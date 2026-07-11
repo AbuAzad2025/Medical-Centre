@@ -5,6 +5,7 @@ from functools import wraps
 from flask import g, abort, current_app
 from flask_login import current_user
 from app.core.module.validators import get_active_modules_for_tenant
+from app.shared.enums import TenantStatus
 
 
 class ModuleNotEnabledError(Exception):
@@ -28,6 +29,17 @@ def _is_admin_user() -> bool:
         return current_user.is_authenticated and current_user.role in ("super_admin", "owner")
     except Exception:
         return False
+
+
+def _check_tenant_payment_status(tenant) -> bool:
+    """Check if tenant has valid payment status for module access.
+    Returns True if tenant is ACTIVE or TRIAL, False if PENDING/PAST_DUE/CANCELLED.
+    If tenant doesn't have status attribute, assume valid (backward compatibility).
+    """
+    status = getattr(tenant, 'status', None)
+    if status is None:
+        return True  # Backward compatibility for tests/mock tenants
+    return status in (TenantStatus.ACTIVE, TenantStatus.TRIAL)
 
 
 class FeatureGateService:
@@ -56,6 +68,11 @@ class FeatureGateService:
         tenant = Tenant.query.get(tenant_id)  # global reference table - no tenant scope
         return tenant.product_profile_code if tenant else None
 
+    @staticmethod
+    def tenant_has_valid_payment(tenant) -> bool:
+        """Check if tenant has valid payment status for module access."""
+        return _check_tenant_payment_status(tenant)
+
 
 def require_module(module: str):
     """
@@ -74,6 +91,8 @@ def require_module(module: str):
             tenant = getattr(g, 'current_tenant', None)
             if not tenant:
                 raise ModuleNotEnabledError(module, "Tenant context required")
+            if not FeatureGateService.tenant_has_valid_payment(tenant):
+                raise ModuleNotEnabledError(module, "Subscription payment required")
             if not FeatureGateService.module_enabled(tenant.id, module):
                 raise ModuleNotEnabledError(module)
             return f(*args, **kwargs)
@@ -97,6 +116,8 @@ def require_module_route(module: str):
             tenant = getattr(g, 'current_tenant', None)
             if not tenant:
                 abort(403, description="Tenant context required")
+            if not FeatureGateService.tenant_has_valid_payment(tenant):
+                abort(402, description="Subscription payment required")
             if not FeatureGateService.module_enabled(tenant.id, module):
                 abort(403, description=f"Module '{module}' is not enabled")
             return f(*args, **kwargs)
@@ -116,6 +137,8 @@ def guard_module(module_name: str):
     tenant = getattr(g, 'current_tenant', None)
     if not tenant:
         abort(403, description="Tenant context required for module access")
+    if not FeatureGateService.tenant_has_valid_payment(tenant):
+        abort(402, description="Subscription payment required")
     if not FeatureGateService.module_enabled(tenant.id, module_name):
         abort(403, description=f"Module '{module_name}' is not enabled")
 

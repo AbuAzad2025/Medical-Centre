@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+from datetime import timedelta
 from typing import Optional
 
 from celery import Celery
@@ -43,6 +44,32 @@ def get_celery_app() -> Celery:
             task_always_eager=task_always_eager(),
             task_eager_propagates=True,
             task_track_started=True,
+            beat_schedule={
+                # Daily at 2:00 AM UTC - purge expired tokens
+                'purge-expired-tokens-daily': {
+                    'task': 'tasks.purge_expired_tokens',
+                    'schedule': timedelta(days=1),
+                    'options': {'queue': 'maintenance'},
+                },
+                # Weekly on Sunday at 3:00 AM UTC - purge old audit logs
+                'purge-old-audit-logs-weekly': {
+                    'task': 'tasks.purge_old_audit_logs',
+                    'schedule': timedelta(weeks=1),
+                    'options': {'queue': 'maintenance'},
+                },
+                # Daily at 4:00 AM UTC - purge stale notifications
+                'purge-stale-notifications-daily': {
+                    'task': 'tasks.purge_stale_notifications',
+                    'schedule': timedelta(days=1),
+                    'options': {'queue': 'maintenance'},
+                },
+                # Daily at 5:00 AM UTC - run all maintenance
+                'run-all-maintenance-daily': {
+                    'task': 'tasks.run_all_maintenance',
+                    'schedule': timedelta(days=1),
+                    'options': {'queue': 'maintenance'},
+                },
+            },
         )
     return _celery
 

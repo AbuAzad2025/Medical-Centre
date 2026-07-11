@@ -154,6 +154,32 @@ def _is_tenant_bypass() -> bool:
         return False
 
 
+# ---------------------------------------------------------------------------
+# 1a. SOFT-DELETE FILTER — every SELECT gets WHERE deleted_at IS NULL
+# ---------------------------------------------------------------------------
+
+# Common soft-delete column names (configurable if needed)
+_SOFT_DELETE_COLUMNS = frozenset({'deleted_at', 'is_deleted', 'deleted'})
+
+def _model_has_soft_delete(model_class) -> bool:
+    """Check if model has a soft-delete column."""
+    mapper = getattr(model_class, '__mapper__', None)
+    if mapper is None:
+        return False
+    return any(col.name in _SOFT_DELETE_COLUMNS for col in mapper.columns)
+
+
+def _get_soft_delete_column(model_class):
+    """Return the soft-delete column if it exists."""
+    mapper = getattr(model_class, '__mapper__', None)
+    if mapper is None:
+        return None
+    for col in mapper.columns:
+        if col.name in _SOFT_DELETE_COLUMNS:
+            return col
+    return None
+
+
 def _model_has_tenant_column(model_class) -> bool:
     """Check if the model class has a 'tenant_id' mapped column."""
     mapper = getattr(model_class, '__mapper__', None)
@@ -224,6 +250,19 @@ def tenant_filter_query(query):
             continue
         if _model_has_tenant_column(entity):
             query = query.filter(entity.tenant_id == tid)
+        # Soft-delete filter: exclude soft-deleted records
+        if _model_has_soft_delete(entity):
+            soft_col = _get_soft_delete_column(entity)
+            if soft_col is not None:
+                # For datetime columns: deleted_at IS NULL
+                # For boolean columns: is_deleted = False
+                col_type = str(soft_col.type).lower()
+                if 'datetime' in col_type or 'timestamp' in col_type or 'date' in col_type:
+                    query = query.filter(soft_col.is_(None))
+                elif 'boolean' in col_type or 'bool' in col_type:
+                    query = query.filter(soft_col == False)
+                else:
+                    query = query.filter(soft_col.is_(None))
 
     if limit_clause is not None:
         query = query.limit(limit_clause)

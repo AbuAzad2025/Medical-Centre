@@ -147,6 +147,22 @@ class TestReportTemplateIntegration:
 class TestG134ScreenAudit:
     @pytest.mark.parametrize('path,role', SCREEN_SAMPLES)
     def test_no_technical_leaks_on_sample_screens(self, client, test_tenant, path, role, db):
+        # SaaS mode is on in tests; ensure sample-screen routes gated by
+        # @require_entitlement can be reached by their role's tenant.
+        from datetime import datetime, timezone
+        from app.core.saas.models import TenantEntitlement
+        for _cap in ('lab_order', 'radiology_order'):
+            if not TenantEntitlement.query.filter_by(
+                tenant_id=test_tenant.id, capability_key=_cap
+            ).first():
+                db.session.add(TenantEntitlement(
+                    tenant_id=test_tenant.id,
+                    capability_key=_cap,
+                    effective_from=datetime.now(timezone.utc),
+                    is_effective=True,
+                ))
+        db.session.commit()
+
         c = _login_as(client, test_tenant, role, db)
         resp = c.get(path, follow_redirects=True)
         assert resp.status_code in (200, 302), f'{path} returned {resp.status_code}'

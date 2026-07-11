@@ -1,7 +1,7 @@
 """
-مصنع التطبيق - Application Factory (منقح ومتوافق مع الموديلات الحالية)
+Medical System Flask Application Factory
 """
-from flask import Flask, jsonify, render_template_string, render_template, redirect, url_for, request, abort
+from flask import Flask, jsonify, render_template_string, render_template, redirect, url_for, request, abort, g
 from flask.json.provider import DefaultJSONProvider
 from decimal import Decimal, ROUND_HALF_UP
 from flask_sqlalchemy import SQLAlchemy
@@ -19,7 +19,37 @@ from pathlib import Path
 from datetime import datetime as _dt
 from utils.db_safety import safe_commit, safe_rollback
 
-# إنشاء كائنات Flask
+# ============================================================
+# Admin Alert Hooks (module-level for testability)
+# ============================================================
+_ALERT_SINKS = []
+
+def register_alert_sink(sink):
+    """Register a callable sink(level: str, context: dict) for critical alerts."""
+    _ALERT_SINKS.append(sink)
+
+def _alert_admin(level, message, **ctx):
+    """Fire all registered alert sinks with trace_id and tenant_id if available."""
+    try:
+        from flask import g, request
+        ctx['trace_id'] = (
+            getattr(g, 'trace_id', None)
+            or request.headers.get('X-Request-ID')
+            or request.headers.get('X-Correlation-ID')
+        )
+        ctx['tenant_id'] = getattr(g, 'tenant_id', None)
+    except RuntimeError:
+        ctx['trace_id'] = None
+        ctx['tenant_id'] = None
+    for sink in _ALERT_SINKS:
+        try:
+            sink(level, {'message': message, **ctx})
+        except Exception:
+            pass  # Never let alerting break the response
+
+# ============================================================
+# Flask extension instances
+# ============================================================
 db = SQLAlchemy()
 login_manager = LoginManager()
 migrate = Migrate()
@@ -53,31 +83,15 @@ def create_app(config_name: str | None = None) -> Flask:
         except Exception:
             pass
 
-    # تحكم بمستوى اللوجينغ عبر متغير LOG_LEVEL (DEBUG/INFO/WARNING/ERROR)
+    # تهيئة Logging مركزي مع PII Redaction + Trace ID
+    from config import get_logging_config
     log_level_name = os.environ.get("LOG_LEVEL", "DEBUG" if os.environ.get("FLASK_DEBUG") == "1" else "INFO")
-    log_level = getattr(logging, log_level_name.upper(), logging.DEBUG)
-    app.logger.setLevel(log_level)
-
-    # إعداد Handlers: كونسول + ملف دوّار logs/app.log (معطّل في الاختبار)
-    logs_dir = Path(app.root_path).joinpath("logs")
-    try:
-        logs_dir.mkdir(exist_ok=True)
-        if not app.testing:
-            file_handler = RotatingFileHandler(logs_dir / "app.log", maxBytes=2_000_000, backupCount=5, encoding="utf-8")
-            file_handler.setLevel(log_level)
-            formatter = logging.Formatter(
-                fmt="%(asctime)s | %(levelname)s | %(name)s | %(message)s [in %(pathname)s:%(lineno)d]",
-                datefmt="%Y-%m-%d %H:%M:%S",
-            )
-            file_handler.setFormatter(formatter)
-            app.logger.addHandler(file_handler)
-    except Exception:
-        pass  # لا نكسر التطبيق لو فشل إنشاء المجلد/الملف
-
-    console_handler = StreamHandler()
-    console_handler.setLevel(log_level)
-    console_handler.setFormatter(logging.Formatter("%(levelname)s - %(message)s"))
-    app.logger.addHandler(console_handler)
+    json_fmt = os.environ.get("LOG_JSON_FORMAT", "").strip().lower() in ("1", "true", "yes", "on")
+    logging.config.dictConfig(get_logging_config(
+        log_level=log_level_name,
+        json_format=json_fmt,
+    ))
+    app.logger.info("Logging initialized (PII redaction enabled, trace_id injection active)")
 
     # إظهار تتبعات أوضح في التطوير
     if os.environ.get("FLASK_DEBUG") == "1":
@@ -381,6 +395,52 @@ def create_app(config_name: str | None = None) -> Flask:
     def favicon():
         return redirect(url_for('static', filename='img/azad_logo.png'), code=302)
 
+    # Global error handlers for custom exceptions (MUST precede generic handlers)
+    from utils.exceptions import ModuleNotEnabledError, TenantContextError, IdempotencyError, InsufficientPermissionsError
+    from app.shared.tenant_filter import TenantIsolationError
+    from utils.exceptions import ModuleNotEnabledError, TenantContextError, IdempotencyError
+    from app.shared.tenant_filter import TenantIsolationError
+
+    @app.errorhandler(ModuleNotEnabledError)
+    def handle_module_not_enabled(e):
+        """SaaS module gate failure -> 403 JSON (API) or flash+redirect (HTML)."""
+        if request.is_json or request.path.startswith('/api/'):
+            return jsonify(success=False, error=e.message, module=e.module_name), 403
+        from flask import flash, redirect, url_for
+        flash(e.message, 'error')
+        return redirect(url_for('main.index')), 403
+
+    @app.errorhandler(TenantIsolationError)
+    @app.errorhandler(TenantContextError)
+    def handle_tenant_isolation(e):
+        """RLS / cross-tenant access blocked -> 403 JSON (API) or 403 page."""
+        _alert_admin('CRITICAL', 'Tenant isolation violation', error=str(e))
+        if request.is_json or request.path.startswith('/api/'):
+            return jsonify(success=False, error=str(e)), 403
+        try:
+            return render_template('errors/403.html', message=str(e)), 403
+        except Exception:
+            return jsonify(error=str(e)), 403
+
+    @app.errorhandler(PermissionError)
+    def handle_permission_error(e):
+        """Generic cross-tenant guard from tenant_filter.py loaded_as_persistent."""
+        _alert_admin('CRITICAL', 'Permission denied', error=str(e))
+        if request.is_json or request.path.startswith('/api/'):
+            return jsonify(success=False, error="Cross-tenant access denied"), 403
+        try:
+            return render_template('errors/403.html', message=str(e)), 403
+        except Exception:
+            return jsonify(error="Cross-tenant access denied"), 403
+
+    @app.errorhandler(IdempotencyError)
+    def handle_idempotency(e):
+        if request.is_json or request.path.startswith('/api/'):
+            return jsonify(success=False, error="Duplicate request", retry_after=30), 409
+        from flask import flash, redirect
+        flash("طلب مكرر — يرجى المحاولة لاحقاً", 'warning')
+        return redirect(request.referrer or url_for('main.index')), 409
+
     # معالجات الأخطاء القياسية لربط قوالب الأخطاء
     @app.errorhandler(403)
     def handle_403(error):
@@ -396,8 +456,10 @@ def create_app(config_name: str | None = None) -> Flask:
         except Exception:
             return jsonify(error="الصفحة غير متاحة حالياً"), 404
 
+    # Wire critical error alerts (uses module-level _alert_admin)
     @app.errorhandler(500)
     def handle_500(error):
+        _alert_admin('CRITICAL', 'Internal server error', error=str(error))
         try:
             return render_template('errors/500.html'), 500
         except Exception:
@@ -733,6 +795,13 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(saas_billing_bp)
     app.register_blueprint(monitoring_bp)
 
+    # Request tracing — inject X-Request-ID into g and response headers
+    @app.before_request
+    def _inject_trace_id():
+        from flask import g
+        import uuid
+        g.trace_id = request.headers.get('X-Request-ID') or request.headers.get('X-Correlation-ID') or uuid.uuid4().hex[:16]
+
     # Tenant middleware — safe fallback if tables don't exist yet
     @app.before_request
     def _set_tenant_context():
@@ -761,6 +830,11 @@ def create_app(config_name: str | None = None) -> Flask:
     # Auto-record ResourceUsage snapshot periodically (once per hour per tenant)
     @app.after_request
     def auto_record_resource_usage(response):
+        from flask import g
+        # Add trace ID to response headers (always, regardless of tenant)
+        trace_id = getattr(g, 'trace_id', None)
+        if trace_id:
+            response.headers['X-Request-ID'] = trace_id
         try:
             tid = getattr(g, 'tenant_id', None)
             if tid is None:

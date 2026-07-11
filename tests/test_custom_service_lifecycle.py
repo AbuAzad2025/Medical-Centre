@@ -178,7 +178,7 @@ class TestCustomServiceLifecycle:
             from flask import g
             g.tenant_id = tenant_id
             from models.user import User
-            user = User(username='approver', email='approver@test.local', full_name='Approver', role='manager', is_active=True, tenant_id=tenant_id)
+            user = User(username=f'approver-{uuid.uuid4().hex[:8]}', email=f'approver-{uuid.uuid4().hex[:8]}@test.local', full_name='Approver', role='manager', is_active=True, tenant_id=tenant_id)
             user.set_password('test')
             _db.session.add(user)
             _db.session.flush()

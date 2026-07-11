@@ -2,8 +2,119 @@
 إعدادات النظام - Configuration (PostgreSQL Only)
 """
 import os
+import re
+import logging
+import logging.config
 from datetime import timedelta
 
+
+# ============================================================
+# PII Redaction & Structured Logging
+# ============================================================
+PII_PATTERNS = [
+    (re.compile(r'\b\d{3}-\d{2}-\d{4}\b'), '[SSN]'),                           # US SSN
+    (re.compile(r'\b\d{14}\b'), '[NATIONAL_ID]'),                               # 14-digit national ID
+    (re.compile(r'\b[\w.+-]+@[\w-]+\.[\w.-]+\b'), '[EMAIL]'),                  # email
+    (re.compile(r'\b(?:\d{4}[-\s]?){3}\d{4}\b'), '[CARD]'),                    # credit card
+    (re.compile(r'(?:\+?96[0-9])?\s*\d{2,4}\s*\d{3,4}\s*\d{3,4}'), '[PHONE]'),  # phone
+    (re.compile(r'password["\']?\s*[:=]\s*["\']?[^"\'\s]+'), 'password=[REDACTED]'),  # password
+    (re.compile(r'api[_-]?key["\']?\s*[:=]\s*["\']?[^"\'\s]+'), 'api_key=[REDACTED]'),  # api key
+]
+
+
+class PiiRedactingFormatter(logging.Formatter):
+    """Formatter that redacts PII from log messages."""
+    def format(self, record):
+        msg = super().format(record)
+        for pattern, replacement in PII_PATTERNS:
+            msg = pattern.sub(replacement, msg)
+        return msg
+
+
+class TraceIdFilter(logging.Filter):
+    """Inject trace_id and tenant_id into log records."""
+    def filter(self, record):
+        try:
+            from flask import g
+            record.trace_id = getattr(g, 'trace_id', '-')
+            record.tenant_id = getattr(g, 'tenant_id', '-')
+        except RuntimeError:
+            record.trace_id = '-'
+            record.tenant_id = '-'
+        return True
+
+
+# Logging configuration dict for dictConfig
+def get_logging_config(log_level='INFO', json_format=False):
+    """Return logging configuration dict for dictConfig."""
+    fmt = "%(asctime)s | %(levelname)s | %(name)s | trace_id=%(trace_id)s tenant=%(tenant_id)s | %(message)s"
+    handlers = {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': log_level,
+            'formatter': 'standard',
+            'stream': 'ext://sys.stdout',
+            'filters': ['trace_id'],
+        },
+    }
+    formatters = {
+        'standard': {
+            '()': 'config.PiiRedactingFormatter' if not json_format else 'config.JsonFormatter',
+            'format': fmt,
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    }
+    filters = {
+        'trace_id': {
+            '()': 'config.TraceIdFilter',
+        },
+    }
+    if json_format:
+        # Add a JSON formatter for structured logging
+        formatters['json'] = {
+            '()': 'config.JsonFormatter',
+        }
+        handlers['console']['formatter'] = 'json'
+    return {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'filters': filters,
+        'formatters': formatters,
+        'handlers': handlers,
+        'root': {
+            'level': log_level,
+            'handlers': ['console'],
+        },
+        'loggers': {
+            'sqlalchemy.engine': {'level': 'WARNING'},
+            'werkzeug': {'level': 'WARNING'},
+        },
+    }
+
+
+class JsonFormatter(logging.Formatter):
+    """JSON formatter for structured logging."""
+    import json
+    def format(self, record):
+        log_obj = {
+            'timestamp': self.formatTime(record, self.datefmt),
+            'level': record.levelname,
+            'logger': record.name,
+            'trace_id': getattr(record, 'trace_id', '-'),
+            'tenant_id': getattr(record, 'tenant_id', '-'),
+            'message': record.getMessage(),
+            'module': record.module,
+            'function': record.funcName,
+            'line': record.lineno,
+        }
+        if record.exc_info:
+            log_obj['exception'] = self.formatException(record.exc_info)
+        return self.json.dumps(log_obj, ensure_ascii=False)
+
+
+# ============================================================
+# Configuration Classes
+# ============================================================
 
 class Config:
     """الإعدادات الأساسية — PostgreSQL فقط"""

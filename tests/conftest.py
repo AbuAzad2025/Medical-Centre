@@ -70,6 +70,49 @@ def app():
             _db.session.commit()
         except Exception:
             _db.session.rollback()
+        
+        # Register test routes that need to be available before any requests
+        from flask import jsonify, g
+        from utils.exceptions import ModuleNotEnabledError, TenantContextError, IdempotencyError
+        from app.shared.tenant_filter import TenantIsolationError
+        
+        @app.route('/test/module-error')
+        def trigger_module_error():
+            raise ModuleNotEnabledError('lab', 'Lab module is disabled')
+
+        @app.route('/test/module-error-html')
+        def trigger_module_error_html():
+            raise ModuleNotEnabledError('radiology')
+
+        @app.route('/test/tenant-iso-error')
+        def trigger_tenant_iso_error():
+            raise TenantIsolationError('Cross-tenant access blocked')
+
+        @app.route('/test/tenant-ctx-error')
+        def trigger_tenant_ctx_error():
+            raise TenantContextError('Tenant context required')
+
+        @app.route('/test/perm-error')
+        def trigger_perm_error():
+            raise PermissionError('Cross-tenant access denied')
+
+        @app.route('/test/idempotency-error')
+        def trigger_idem_error():
+            raise IdempotencyError('Duplicate request')
+
+        @app.route('/test/idempotency-error-html')
+        def trigger_idem_error_html():
+            raise IdempotencyError()
+
+        @app.route('/test/g-trace')
+        def check_g_trace():
+            return jsonify(trace_id=getattr(g, 'trace_id', None))
+
+        @app.route('/test/log-trace')
+        def log_something():
+            app.logger.info('Test log message with trace')
+            return 'ok'
+        
         yield app
         _db.session.remove()
         try:
@@ -373,3 +416,6 @@ def patch_db_session(monkeypatch):
         return session
 
     return _apply
+
+
+# ── Test app fixtures for dynamic route registration ──────────────────
