@@ -342,10 +342,19 @@ class TestFailClosedTenantBinding:
         the ``scoped_session`` wrapper.  Both ``reassert_set_local`` and
         ``auto_assign_tenant`` receive the raw Session via their event
         parameters, so the scoped_session patch misses them."""
+        from sqlalchemy.sql.elements import TextClause
         sess = db.session.registry()
         _orig = sess.execute
 
         def _mock(stmt, *a, **kw):
+            # Skip mock for RESET case (SET LOCAL app.tenant_id = '') which is
+            # a TextClause. reassert_set_local returns early for TextClause
+            # to avoid recursive dispatch. We only want to simulate failure
+            # for the actual SET LOCAL with a tenant_id value.
+            if isinstance(stmt, TextClause):
+                stmt_str = str(stmt)
+                if 'app.tenant_id' in stmt_str and "= ''" in stmt_str:
+                    return _orig(stmt, *a, **kw)
             if 'SET LOCAL' in str(stmt) and 'app.tenant_id' in str(stmt):
                 raise RuntimeError('Simulated SET LOCAL failure')
             return _orig(stmt, *a, **kw)

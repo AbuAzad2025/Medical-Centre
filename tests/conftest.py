@@ -122,6 +122,23 @@ def app():
             app.logger.info('Test log message with trace')
             return 'ok'
         
+        # Ghost Mode test route - must be registered before any requests
+        from app.core.tenant.ghost_mode import ghost_mode_middleware
+        from flask import jsonify, g
+        from flask_login import current_user
+        
+        def _ghost_whoami():
+            return jsonify(
+                {
+                    "tenant_id": getattr(g, "tenant_id", None),
+                    "user_id": getattr(current_user, "id", None),
+                    "username": getattr(current_user, "username", None),
+                    "ghost": bool(getattr(g, "ghost_mode", False)),
+                }
+            )
+        
+        app.add_url_rule("/_ghost_whoami", "_ghost_whoami", _ghost_whoami)
+        
         yield app
         _db.session.remove()
         try:

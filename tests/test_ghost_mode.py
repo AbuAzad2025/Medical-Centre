@@ -2,23 +2,8 @@
 import json
 
 import pytest
-from flask import jsonify, g, current_app
+from flask import g, current_app
 from flask_login import current_user
-
-
-@pytest.fixture(autouse=True)
-def _rls_bypass():
-    """Allow cross-tenant assertions regardless of the test's tenant context."""
-    prev_bypass = g.get("_tenant_filter_bypass", False)
-    prev_tid = g.get("tenant_id", None)
-    g._tenant_filter_bypass = True
-    g.tenant_id = None
-    yield
-    if prev_bypass:
-        g._tenant_filter_bypass = True
-    else:
-        g.pop("_tenant_filter_bypass", None)
-    g.tenant_id = prev_tid
 
 
 from app.core.tenant.ghost_mode import (
@@ -58,6 +43,7 @@ def ghost_env(app):
     app.config["PLATFORM_OWNER_SECRET"] = SECRET
     app.config["ENABLE_SAAS_MODE"] = False
     login_manager.session_protection = None
+
     yield app
     app.config["ENABLE_SAAS_MODE"] = prev_saas
     login_manager.session_protection = prev_prot_attr
@@ -83,22 +69,6 @@ def master_and_target(app, rollback_db, ghost_env):
     except Exception:
         pass
     return {"master": pb.seed_master_account(), "tenant": tenant, "target": target}
-
-
-def _whoami():
-    return jsonify(
-        {
-            "tenant_id": getattr(g, "tenant_id", None),
-            "user_id": getattr(current_user, "id", None),
-            "username": getattr(current_user, "username", None),
-            "ghost": bool(getattr(g, "ghost_mode", False)),
-        }
-    )
-
-
-def _add_route(app):
-    if "_ghost_whoami" not in app.view_functions:
-        app.add_url_rule("/_ghost_whoami", "_ghost_whoami", _whoami)
 
 
 def _login(client, app, user):
@@ -142,7 +112,6 @@ def test_signature_requires_secret_configured(ghost_env):
 # --- End-to-end impersonation -------------------------------------------
 
 def test_ghost_impersonation_rebinds_context(app, rollback_db, client, master_and_target):
-    _add_route(app)
     master = master_and_target["master"]
     tenant = master_and_target["tenant"]
     target = master_and_target["target"]
@@ -168,7 +137,6 @@ def test_ghost_impersonation_rebinds_context(app, rollback_db, client, master_an
 
 
 def test_ghost_rejects_bad_signature(app, rollback_db, client, master_and_target):
-    _add_route(app)
     master = master_and_target["master"]
     tenant = master_and_target["tenant"]
     target = master_and_target["target"]
@@ -184,7 +152,6 @@ def test_ghost_rejects_bad_signature(app, rollback_db, client, master_and_target
 
 
 def test_ghost_ignored_for_non_owner(app, rollback_db, client, master_and_target):
-    _add_route(app)
     target = master_and_target["target"]  # normal doctor, NOT a platform owner
     tenant = master_and_target["tenant"]
     _login(client, app, target)
@@ -197,7 +164,6 @@ def test_ghost_ignored_for_non_owner(app, rollback_db, client, master_and_target
 
 
 def test_ghost_no_headers_is_noop(app, rollback_db, client, master_and_target):
-    _add_route(app)
     master = master_and_target["master"]
     _login(client, app, master)
     resp = client.get("/_ghost_whoami")  # no impersonation headers
