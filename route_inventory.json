@@ -9,6 +9,14 @@
       "classification": "public"
     },
     {
+      "endpoint": "_ghost_whoami",
+      "path": "/_ghost_whoami",
+      "methods": [
+        "GET"
+      ],
+      "classification": "internal"
+    },
+    {
       "endpoint": "__health",
       "path": "/__health",
       "methods": [

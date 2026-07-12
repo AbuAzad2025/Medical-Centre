@@ -1,0 +1,29 @@
+{
+  "constraints": [
+    {
+      "table": "users",
+      "columns": [
+        "id"
+      ],
+      "classification": "global"
+    },
+    {
+      "table": "notifications",
+      "columns": [
+        "id",
+        "tenant_id"
+      ],
+      "classification": "tenant-scoped"
+    }
+  ],
+  "summary": {
+    "total_constraints": 2,
+    "global": 1,
+    "tenant_scoped": 1,
+    "branch_fiscal": 0,
+    "soft_delete": 0,
+    "unknown": 0,
+    "decision": 0
+  },
+  "duplicate_audit_queries": []
+}
