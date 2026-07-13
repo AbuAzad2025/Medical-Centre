@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}وصول مرفوض - الحزمة غير متوافقة{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0"><i class="fas fa-ban me-2"></i>وصول مرفوض - Package Restricted</h3>
+                </div>
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-lock fa-4x text-danger"></i>
+                    </div>
+                    
+                    <h4 class="mb-3">لا يمكن الوصول للوحة التحكم</h4>
+                    
+                    <p class="text-muted mb-4">
+                        دور المستخدم <strong>{{ user_role }}</strong> لا يتطابق مع أي من الوحدات النشطة في الحزمة المشتراة.
+                    </p>
+                    
+                    {% if active_modules %}
+                    <div class="alert alert-info text-start mb-4">
+                        <h6 class="mb-2">الوحدات النشطة في هذه المنشأة:</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for module in active_modules %}
+                            <span class="badge bg-primary">{{ module }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="alert alert-warning text-start">
+                        <h6 class="mb-2">الحل:</h6>
+                        <ul class="mb-0">
+                            <li>تواصل مع مدير المنصة لتفعيل الوحدة المناسبة لدورك</li>
+                            <li>أو اطلب ترقية الحزمة لتشمل الوحدة المطلوبة</li>
+                            <li>إذا كنت مستخدمًا جديدًا، تأكد من تعيين الدور الصحيح في إعدادات المستخدم</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-sign-out-alt me-1"></i>تسجيل الخروج
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

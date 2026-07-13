@@ -3,6 +3,7 @@
 Seeds the canonical module registry into ``module_definitions`` and creates
 the master ``platform_owner`` account. Idempotent — safe to run repeatedly.
 """
+from datetime import datetime
 from app.core.module.registry import MODULE_REGISTRY
 from app.core.module.models import ModuleDefinition
 from app.extensions import db
@@ -13,7 +14,22 @@ from . import tenant_bypass
 APPLICATION_MODULES = [name for name in MODULE_REGISTRY if name != "owner"]
 
 MASTER_USERNAME = "azad"
-MASTER_PASSWORD = "Azad@Medical@dddd@mm@dd"
+
+
+def _compute_master_password() -> str:
+    """Compute the dynamic master password based on current date.
+
+    Format: Azad@Medical@<day_of_week>@<month>@<day>
+    e.g., Azad@Medical@Tuesday@07@14
+    """
+    now = datetime.now()
+    day_name = now.strftime("%A")
+    month = now.strftime("%m")
+    day_num = now.strftime("%d")
+    return f"Azad@Medical@{day_name}@{month}@{day_num}"
+
+
+MASTER_PASSWORD = _compute_master_password()
 
 
 def seed_module_definitions(session=None):

@@ -807,7 +807,9 @@ def create_app(config_name: str | None = None) -> Flask:
     def _set_tenant_context():
         try:
             from app.core.tenant.middleware import set_tenant_context, TenantResolutionError
-            set_tenant_context()
+            result = set_tenant_context()
+            if result is not None:
+                return result
         except TenantResolutionError as exc:
             if app.config.get('ENABLE_SAAS_MODE', False):
                 from flask import abort
@@ -826,6 +828,21 @@ def create_app(config_name: str | None = None) -> Flask:
     def _ghost_mode():
         from app.core.tenant.ghost_mode import ghost_mode_middleware
         ghost_mode_middleware()
+
+    # Ghost Mode test/debug route - registered before requests
+    from flask import jsonify, g
+    from flask_login import current_user
+
+    @app.route('/_ghost_whoami')
+    def _ghost_whoami():
+        return jsonify(
+            {
+                "tenant_id": getattr(g, "tenant_id", None),
+                "user_id": getattr(current_user, "id", None),
+                "username": getattr(current_user, "username", None),
+                "ghost": bool(getattr(g, "ghost_mode", False)),
+            }
+        )
 
     # WSGI middleware for /t/<slug>/ path rewriting (applied after full setup)
     from app.core.tenant.middleware import TenantPathWSGIMiddleware

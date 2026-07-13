@@ -5562,7 +5562,15 @@
         "GET"
       ],
       "classification": "internal"
+    },
+    {
+      "endpoint": "main.package_restricted",
+      "path": "/package-restricted",
+      "methods": [
+        "GET"
+      ],
+      "classification": "internal"
     }
   ],
-  "total_routes": 684
+  "total_routes": 685
 }

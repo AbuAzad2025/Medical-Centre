@@ -217,11 +217,12 @@ def login() -> ResponseReturnValue:
                     elif getattr(_g, 'tenant_slug', None):
                         session['tenant_slug'] = _g.tenant_slug
                     
-                    # تحديد الصفحة المناسبة حسب الدور
-                    redirect_url = get_redirect_url_by_role(user.role)
+                    # تحديد الصفحة المناسبة حسب الدور والحزمة النشطة (Strict Role + Bundle Scoped)
+                    from services.dashboard_routing import resolve_dashboard_for_user
+                    redirect_url = url_for(resolve_dashboard_for_user(user))
 
                     # Owner mode: always redirect platform owners to owner dashboard
-                    if login_mode == 'owner' and user.role in ('super_admin', 'owner'):
+                    if login_mode == 'owner' and user.role in ('super_admin', 'owner', 'platform_owner'):
                         redirect_url = url_for('owner.owner_dashboard')
 
                     # handle tenant_slug for multi-tenant SaaS (may already be set above)
@@ -467,28 +468,18 @@ def change_password():
         }), 500
 
 def get_redirect_url_by_role(role):
-    """تحديد الصفحة المناسبة حسب الدور"""
-    from services.access_control_service import AccessControlService
-    
-    # استخدام خدمة التحكم في الوصول للحصول على المسار الصحيح
-    role_urls = {
-        'super_admin': url_for('owner.owner_dashboard'),
-        'admin': url_for('manager.dashboard'),
-        'manager': url_for('manager.dashboard'),
-        'owner': url_for('owner.owner_dashboard'),
-        'reception': url_for('reception.dashboard'),
-        'doctor': url_for('doctor.dashboard'),
-        'radiology': url_for('radiology.dashboard'),
-        'lab': url_for('lab.dashboard'),
-        'emergency': url_for('emergency.dashboard'),
-        'nurse': url_for('nurse.dashboard'),
-        'accountant': url_for('accountant.dashboard'),
-        'medication': url_for('medication.dashboard'),
-        'pharmacist': url_for('medication.dashboard'),
-        'technician': url_for('lab.dashboard'),
-        'patient': url_for('booking.dashboard_portal'),
-    }
-    return role_urls.get(role, url_for('owner.owner_dashboard'))
+    """تحديد الصفحة المناسبة حسب الدور - legacy fallback"""
+    from flask import current_app
+    with current_app.test_request_context():
+        from services.dashboard_routing import resolve_dashboard_for_user
+        from models.user import User
+        # Create a mock user object for the role
+        class MockUser:
+            def __init__(self, role):
+                self.role = role
+                self.is_authenticated = True
+                self.id = 0
+        return url_for(resolve_dashboard_for_user(MockUser(role)))
 
 
 @auth_bp.route('/impersonate/<int:user_id>', methods=['POST'])
@@ -504,10 +495,12 @@ def impersonate(user_id):
     session['impersonator_id'] = current_user.id
     session['impersonator_role'] = current_user.role
     login_user(target)
+    from services.dashboard_routing import resolve_dashboard_for_user
+    redirect_url = resolve_dashboard_for_user(target.role, target.tenant_id)
     return jsonify({
         'success': True,
         'message': f'تم التبديل إلى {target.full_name}',
-        'redirect_url': get_redirect_url_by_role(target.role)
+        'redirect_url': redirect_url
     })
 
 

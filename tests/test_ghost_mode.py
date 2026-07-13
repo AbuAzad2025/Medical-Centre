@@ -104,9 +104,16 @@ def test_signature_rejects_expired_timestamp(ghost_env):
 
 def test_signature_requires_secret_configured(ghost_env):
     ghost_env.config["PLATFORM_OWNER_SECRET"] = None
-    sig, ts = sign_impersonation(1, 5, SECRET)
-    # With no secret configured, verification must fail.
-    assert verify_ghost_signature(1, 5, ts, sig) is False
+    # Also unset the environment variable since _get_secret() falls back to it
+    import os
+    prev_env = os.environ.pop("PLATFORM_OWNER_SECRET", None)
+    try:
+        sig, ts = sign_impersonation(1, 5, SECRET)
+        # With no secret configured, verification must fail.
+        assert verify_ghost_signature(1, 5, ts, sig) is False
+    finally:
+        if prev_env is not None:
+            os.environ["PLATFORM_OWNER_SECRET"] = prev_env
 
 
 # --- End-to-end impersonation -------------------------------------------

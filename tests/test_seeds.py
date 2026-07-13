@@ -1,5 +1,6 @@
 """Tests for the modular seeding system (production baseline + local dev story)."""
 import pytest
+from datetime import datetime
 from flask import g
 
 from app.core.module.registry import MODULE_REGISTRY
@@ -14,6 +15,15 @@ from models.medication import Prescription
 from models.invoice import Invoice
 from seeds import production_baseline as pb
 from seeds import local_dev_story as dev
+
+
+def _compute_expected_master_password() -> str:
+    """Compute the expected master password based on current date."""
+    now = datetime.now()
+    day_name = now.strftime("%A")
+    month = now.strftime("%m")
+    day_num = now.strftime("%d")
+    return f"Azad@Medical@{day_name}@{month}@{day_num}"
 
 
 APPLICATION_MODULE_COUNT = len([n for n in MODULE_REGISTRY if n != "owner"])
@@ -75,7 +85,9 @@ def test_seed_master_account(app, rollback_db):
     assert master.role == "platform_owner"
     assert master.tenant_id is None
     assert master.is_active is True
-    assert master.check_password("Azad@Medical@dddd@mm@dd") is True
+    # Password is dynamically computed based on current date
+    expected_password = _compute_expected_master_password()
+    assert master.check_password(expected_password) is True
     again = pb.seed_master_account()
     assert again.id == master.id
     assert User.query.filter_by(username="azad").count() == 1

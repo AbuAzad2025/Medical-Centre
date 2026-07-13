@@ -3,8 +3,9 @@
 Medical System Main Routes
 """
 
-from flask import Blueprint, render_template, redirect, url_for, jsonify
+from flask import Blueprint, render_template, redirect, url_for, jsonify, current_app, g
 from flask_login import login_required, current_user
+from services.dashboard_routing import resolve_dashboard_for_user, get_package_restricted_context
 
 main_bp = Blueprint('main', __name__)
 
@@ -12,9 +13,7 @@ main_bp = Blueprint('main', __name__)
 def index():
     """الصفحة الرئيسية — عرض المنصة والحزم"""
     if current_user.is_authenticated:
-        if current_user.role == 'patient':
-            return redirect(url_for('portal.dashboard'))
-        return redirect(url_for('main.dashboard'))
+        return redirect(url_for(resolve_dashboard_for_user(current_user)))
     from app.core.tenant.models import ProductBundle
     bundles = ProductBundle.query.order_by(ProductBundle.id).all()
     # Group bundles by category for display
@@ -37,36 +36,17 @@ def index():
 @main_bp.route('/dashboard')
 @login_required
 def dashboard():
-    """لوحة التحكم الرئيسية - إعادة توجيه حسب الدور"""
-    # إعادة التوجيه حسب دور المستخدم
-    if current_user.role == 'super_admin':
-        return redirect(url_for('owner.owner_dashboard'))
-    elif current_user.role == 'manager':
-        return redirect(url_for('manager.dashboard'))
-    elif current_user.role == 'reception':
-        return redirect(url_for('reception.dashboard'))
-    elif current_user.role == 'doctor':
-        return redirect(url_for('doctor.dashboard'))
-    elif current_user.role == 'emergency':
-        return redirect(url_for('emergency.dashboard'))
-    elif current_user.role == 'lab':
-        return redirect(url_for('lab.dashboard'))
-    elif current_user.role == 'radiology':
-        return redirect(url_for('radiology.dashboard'))
-    elif current_user.role == 'nurse':
-        return redirect(url_for('nurse.dashboard'))
-    elif current_user.role == 'accountant':
-        return redirect(url_for('accountant.dashboard'))
-    elif current_user.role == 'owner':
-        return redirect(url_for('owner.owner_dashboard'))
-    elif current_user.role == 'pharmacist':
-        return redirect(url_for('medication.dashboard'))
-    elif current_user.role == 'patient':
-        return redirect(url_for('portal.dashboard'))
-    elif current_user.role == 'technician':
-        return redirect(url_for('lab.dashboard'))
-    else:
-        return redirect(url_for('auth.login'))
+    """لوحة التحكم الرئيسية - إعادة توجيه صارمة حسب الدور والحزمة النشطة"""
+    return redirect(url_for(resolve_dashboard_for_user(current_user)))
+
+@main_bp.route('/package-restricted')
+@login_required
+def package_restricted():
+    """صفحة رفض الوصول - الدور لا يتطابق مع الحزمة النشطة"""
+    ctx = get_package_restricted_context(current_user)
+    return render_template('main/package_restricted.html', **ctx)
+
+# تم نقل /profile إلى auth_routes.py
 
 # تم نقل /profile إلى auth_routes.py
 

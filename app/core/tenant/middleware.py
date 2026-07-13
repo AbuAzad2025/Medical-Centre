@@ -256,6 +256,9 @@ def set_tenant_context():
         '/terms-of-use',
         '/technical-support',
         '/about-system',
+        '/_ghost_whoami',
+        '/medication/sales/',
+        '/medication/print/',
     ]
 
     is_exempt = any(request.path.startswith(p) for p in exempt_paths) or request.path == '/'
@@ -302,16 +305,21 @@ def set_tenant_context():
         # If the user has tenant context but accessed the resource without
         # the /t/<slug>/ path prefix (i.e., the WSGI middleware didn't
         # extract the slug), redirect them to the canonical URL.
+        # Only redirect if user is authenticated (login_required will handle unauth).
         if (not request.environ.get('tenant.slug')
                 and not is_exempt
-                and request.method in ('GET', 'HEAD')
-                and 'text/html' in request.headers.get('Accept', '')):
-            from flask import redirect
-            query = request.query_string.decode() if request.query_string else ''
-            target = f'/t/{tenant.slug}{request.path}'
-            if query:
-                target += f'?{query}'
-            return redirect(target)
+                and request.method in ('GET', 'HEAD')):
+            try:
+                from flask_login import current_user
+                if current_user.is_authenticated:
+                    from flask import redirect
+                    query = request.query_string.decode() if request.query_string else ''
+                    target = f'/t/{tenant.slug}{request.path}'
+                    if query:
+                        target += f'?{query}'
+                    return redirect(target)
+            except Exception:
+                pass
     else:
         g.current_tenant = None
         g.tenant_id = None
@@ -319,6 +327,10 @@ def set_tenant_context():
 
     if not tenant:
         return
+
+    # DEBUG
+    import logging
+    logging.getLogger(__name__).info(f"set_tenant_context: path={request.path}, is_exempt={is_exempt}, tenant_id={getattr(tenant, 'id', None)}, enabled_modules={getattr(g, 'enabled_modules', None)}")
 
     # MC-005: enforce tenant-access for authenticated users
     if not is_exempt:
@@ -355,6 +367,7 @@ def set_tenant_context():
     # Inject module/feature/profile context
     try:
         from app.core.module.validators import get_active_modules_for_tenant
+
         g.enabled_modules = get_active_modules_for_tenant(tenant.id)
     except Exception:
         g.enabled_modules = set() if saas else g.enabled_modules
@@ -363,6 +376,7 @@ def set_tenant_context():
 
     try:
         from app.core.tenant.models import TenantFeatureFlag
+
         flags = TenantFeatureFlag.query.filter_by(
             tenant_id=tenant.id, is_enabled=True
         ).all()

@@ -10,7 +10,7 @@ from flask import jsonify, redirect, url_for, flash, current_app, request
 from flask_login import current_user
 from utils.db_safety import safe_commit, safe_rollback
 
-_PLATFORM_ROLES = frozenset({"super_admin", "owner"})
+_PLATFORM_ROLES = frozenset({"super_admin", "owner", "platform_owner"})
 _SENSITIVE_API_PREFIXES = (
     "/owner/api/tenants/provision",
     "/owner/api/tenants/",
