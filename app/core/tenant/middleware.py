@@ -278,21 +278,41 @@ def set_tenant_context():
     if tenant is None:
         tenant = _tenant_from_authenticated_user()
 
+    # Module guard paths - let module guards handle access control instead of aborting here
+    MODULE_GUARD_PREFIXES = (
+        '/lab/', '/radiology/', '/nurse/', '/reception/', '/medication/',
+        '/finance/', '/accountant/', '/booking/', '/manager/', '/barcode/',
+        '/patient-education/', '/telemedicine/', '/clinical-coding/',
+        '/specialty-forms/', '/referral/', '/vaccination/', '/pathway/',
+        '/cds/', '/emar/', '/bed/', '/or/', '/nursing-assessment/',
+        '/backup/', '/backup-restore/', '/ai-imaging/', '/dicom/', '/fhir/',
+        '/sso/', '/api/search/', '/api/user/', '/api/dashboard/',
+        '/population-health/', '/data-warehouse/', '/report-builder/',
+        '/quality/', '/what-if/', '/monitoring/', '/security/', '/mfa/',
+        '/biometric/', '/custom-report/', '/kiosk/', '/doctor/', '/emergency/',
+    )
+
     if saas and not is_exempt and tenant is None:
-        try:
-            from flask_login import current_user
-            if not current_user.is_authenticated:
-                g.current_tenant = None
-                g.tenant_id = None
-                g.tenant_slug = None
-                g.enabled_modules = set()
-                g.product_profile = None
-                g.feature_flags = {}
-                return
-        except Exception:
+        # Check if this is a module guard path - if so, let the module guard handle access control
+        is_module_guard_path = any(request.path.startswith(p) for p in MODULE_GUARD_PREFIXES)
+        if is_module_guard_path:
+            # Don't abort here - let the module guard handle access control
             pass
-        from flask import abort
-        abort(403, description='No tenant could be resolved for this request.')
+        else:
+            try:
+                from flask_login import current_user
+                if not current_user.is_authenticated:
+                    g.current_tenant = None
+                    g.tenant_id = None
+                    g.tenant_slug = None
+                    g.enabled_modules = set()
+                    g.product_profile = None
+                    g.feature_flags = {}
+                    return
+            except Exception:
+                pass
+            from flask import abort
+            abort(403, description='No tenant could be resolved for this request.')
 
     g.enabled_modules = set()
     g.product_profile = None
@@ -306,18 +326,56 @@ def set_tenant_context():
         # the /t/<slug>/ path prefix (i.e., the WSGI middleware didn't
         # extract the slug), redirect them to the canonical URL.
         # Only redirect if user is authenticated (login_required will handle unauth).
+        # IMPORTANT: Only redirect if the module is active for this tenant.
+        # If the module is disabled, let the module guard return 403 instead of redirecting.
+        # IMPORTANT: Check for cross-tenant access - if the request path has a different
+        # tenant slug than the user's tenant, skip redirect and let cross-tenant check handle it.
         if (not request.environ.get('tenant.slug')
                 and not is_exempt
                 and request.method in ('GET', 'HEAD')):
             try:
                 from flask_login import current_user
                 if current_user.is_authenticated:
-                    from flask import redirect
-                    query = request.query_string.decode() if request.query_string else ''
-                    target = f'/t/{tenant.slug}{request.path}'
-                    if query:
-                        target += f'?{query}'
-                    return redirect(target)
+                    # Check if the request path has a different tenant slug (cross-tenant access)
+                    # Skip R4 redirect for cross-tenant paths - let enforce_tenant_access handle it
+                    path_parts = request.path.strip('/').split('/')
+                    if len(path_parts) >= 2 and path_parts[0] == 't':
+                        path_tenant_slug = path_parts[1]
+                        if path_tenant_slug != (tenant.slug or ''):
+                            # Cross-tenant path - skip R4 redirect, let enforce_tenant_access handle
+                            pass
+                        else:
+                            # Same tenant - proceed with module check and redirect
+                            # Check if the module for this path is active for this tenant
+                            module_name = None
+                            for prefix in MODULE_GUARD_PREFIXES:
+                                if request.path.startswith(prefix):
+                                    module_name = prefix.strip('/').split('/')[0]
+                                    break
+                            
+                            if module_name:
+                                try:
+                                    from app.core.module.validators import get_active_modules_for_tenant
+                                    active_modules = get_active_modules_for_tenant(tenant.id)
+                                    if module_name not in active_modules:
+                                        # Module is disabled - don't redirect, let module guard return 403
+                                        pass
+                                    else:
+                                        from flask import redirect
+                                        query = request.query_string.decode() if request.query_string else ''
+                                        target = f'/t/{tenant.slug}{request.path}'
+                                        if query:
+                                            target += f'?{query}'
+                                        return redirect(target)
+                                except Exception:
+                                    pass
+                            else:
+                                from flask import redirect
+                                query = request.query_string.decode() if request.query_string else ''
+                                target = f'/t/{tenant.slug}{request.path}'
+                                if query:
+                                    target += f'?{query}'
+                                return redirect(target)
             except Exception:
                 pass
     else:
