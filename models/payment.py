@@ -13,6 +13,70 @@ from app.shared.mixins import TenantMixin
 from app.shared.enums import PaymentMethod, PaymentStatus
 
 
+class PaymentCard(TenantMixin, db.Model):
+    """نموذج البطاقات المخزنة - Payment Cards Vault"""
+    __tablename__ = 'payment_cards'
+    __tenant_migration__ = True
+
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Ownership
+    owner_name = db.Column(db.String(100), nullable=False)
+    owner_email = db.Column(db.String(255), nullable=True)
+    
+    # Card details (masked for security)
+    bank_name = db.Column(db.String(100), nullable=True)
+    card_type = db.Column(db.String(20), nullable=False)  # credit, debit, prepaid
+    last_four = db.Column(db.String(4), nullable=False)
+    expiry_month = db.Column(db.Integer, nullable=False)
+    expiry_year = db.Column(db.Integer, nullable=False)
+    cardholder_name = db.Column(db.String(100), nullable=True)
+    
+    # Status
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    
+    # Relationships
+    tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id', ondelete='CASCADE'), nullable=False, index=True)
+    tenant = db.relationship('Tenant', lazy='selectin')
+    
+    __table_args__ = (
+        Index('idx_payment_card_tenant', 'tenant_id', 'is_active'),
+        Index('idx_payment_card_last_four', 'last_four'),
+    )
+    
+    @property
+    def masked_number(self):
+        return f"**** **** **** {self.last_four}"
+    
+    @property
+    def is_expired(self):
+        from datetime import date
+        today = date.today()
+        expiry = date(self.expiry_year, self.expiry_month, 1)
+        return expiry < today
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "owner_name": self.owner_name,
+            "owner_email": self.owner_email,
+            "bank_name": self.bank_name,
+            "card_type": self.card_type,
+            "last_four": self.last_four,
+            "expiry_month": self.expiry_month,
+            "expiry_year": self.expiry_year,
+            "cardholder_name": self.cardholder_name,
+            "is_active": self.is_active,
+            "masked_number": self.masked_number,
+            "is_expired": self.is_expired,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 class Payment(TenantMixin, db.Model):
     """نموذج المدفوعات - يسجل كل عملية دفع"""
     __tablename__ = 'payments'

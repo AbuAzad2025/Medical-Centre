@@ -46,9 +46,9 @@ API_BP_ROLE = {
 #  - survey: patient satisfaction filled via tokenized link (no account)
 #  - biometric.authenticate_challenge: WebAuthn challenge issued pre-login
 _PUBLIC_RE = re.compile(
-    r'^(auth\.login|auth\.api_tenants_list|kiosk\.|booking\.|main\.(index|landing|'
+    r'^(auth\.login|auth\.api_tenants_list|auth\.register|kiosk\.|booking\.|main\.(index|landing|'
     r'privacy|terms|support|about)|pwa\.|static|reception\.survey|'
-    r'biometric\.authenticate_challenge|saas\.)',
+    r'biometric\.authenticate_challenge|saas\.|main\.api_search_tenants)',
 )
 
 # Destructive / external / heavy — excluded from active authenticated calls (4 & 5).

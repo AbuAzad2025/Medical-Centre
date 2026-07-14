@@ -522,3 +522,13 @@ def impersonate_exit():
         'message': 'تم العودة إلى حساب المالك',
         'redirect_url': url_for('owner.owner_dashboard')
     })
+
+
+@auth_bp.route('/register', methods=['GET', 'POST'])
+def register():
+    """Register - redirects to SaaS signup for public registration"""
+    mode = request.args.get('mode', '') if request.method == 'GET' else request.form.get('mode', '')
+    if mode == 'owner':
+        return redirect(url_for('owner.owner_dashboard'))
+    # Public SaaS registration goes to the SaaS signup flow
+    return redirect(url_for('saas.signup_organization'))

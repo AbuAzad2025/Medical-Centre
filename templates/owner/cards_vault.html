@@ -1,4 +1,4 @@
-{% extends "base_modern.html" %}
+{% extends "base.html" %}
 
 {% block title %}خزنة البطاقات - Cards Vault{% endblock %}
 
@@ -151,7 +151,7 @@
                             </td>
                             <td>
                                 <span class="{% if card.is_expired %}text-danger{% else %}text-success{% endif %}">
-                                    {{ card.expiry_month|string_format('%02d') }}/{{ card.expiry_year|string_format('%02d') }}
+                                    {{ '%02d' % card.expiry_month }}/{{ '%02d' % card.expiry_year }}
                                     {% if card.is_expired %}<i class="fas fa-exclamation-triangle ms-1"></i>{% endif %}
                                 </span>
                             </td>

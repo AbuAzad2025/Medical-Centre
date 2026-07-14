@@ -5722,7 +5722,16 @@
         "GET"
       ],
       "classification": "public"
+    },
+    {
+      "endpoint": "auth.register",
+      "path": "/auth/register",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "public"
     }
   ],
-  "total_routes": 703
+  "total_routes": 704
 }

@@ -1,4 +1,4 @@
-{% extends "base_modern.html" %}
+{% extends "base.html" %}
 
 {% block title %}تقارير المنصة - Platform Reports{% endblock %}
 
@@ -87,7 +87,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="text-primary mb-2"><i class="fas fa-money-bill-wave fa-2x"></i></div>
-                    <h4 class="mb-0">{{ revenue | floatformat:2 }} SAR</h4>
+                    <h4 class="mb-0">{{ '%.2f' % revenue }} SAR</h4>
                     <small class="text-muted">الإيرادات (30 يوماً)</small>
                 </div>
             </div>
@@ -120,22 +120,22 @@
                                     <th>النسبة</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td><span class="badge bg-success">نشطة</span></td>
-                                    <td>{{ tenant_stats.active }}</td>
-                                    <td>{{ '%.1f'|format(tenant_stats.active / tenant_stats.total * 100) if tenant_stats.total > 0 else 0 }}%</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge bg-warning">تجريبي</span></td>
-                                    <td>{{ tenant_stats.trial }}</td>
-                                    <td>{{ '%.1f'|format(tenant_stats.trial / tenant_stats.total * 100) if tenant_stats.total > 0 else 0 }}%</td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge bg-danger">معلقة</span></td>
-                                    <td>{{ tenant_stats.suspended }}</td>
-                                    <td>{{ '%.1f'|format(tenant_stats.suspended / tenant_stats.total * 100) if tenant_stats.total > 0 else 0 }}%</td>
-                                </tr>
+<tbody>
+                <tr>
+                    <td><span class="badge bg-success">نشطة</span></td>
+                    <td>{{ tenant_stats.active }}</td>
+                    <td>{{ '%.1f' % ((tenant_stats.active / tenant_stats.total * 100)) if tenant_stats.total > 0 else 0 }}%</td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-warning">تجريبي</span></td>
+                    <td>{{ tenant_stats.trial }}</td>
+                    <td>{{ '%.1f' % ((tenant_stats.trial / tenant_stats.total * 100)) if tenant_stats.total > 0 else 0 }}%</td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-danger">معلقة</span></td>
+                    <td>{{ tenant_stats.suspended }}</td>
+                    <td>{{ '%.1f' % ((tenant_stats.suspended / tenant_stats.total * 100)) if tenant_stats.total > 0 else 0 }}%</td>
+                </tr>
                                 <tr>
                                     <td><strong>الإجمالي</strong></td>
                                     <td><strong>{{ tenant_stats.total }}</strong></td>
@@ -163,13 +163,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for role, count in user_stats.by_role.items() %}
-                                <tr>
-                                    <td>{{ role }}</td>
-                                    <td>{{ count }}</td>
-                                    <td>{{ '%.1f'|format(count / user_stats.total * 100) if user_stats.total > 0 else 0 }}%</td>
-                                </tr>
-                                {% endfor %}
+{% for role, count in user_stats.by_role.items() %}
+                                  <tr>
+                                      <td>{{ role }}</td>
+                                      <td>{{ count }}</td>
+                                      <td>{{ ((count / user_stats.total * 100) | round(1)) if user_stats.total > 0 else 0 }}%</td>
+                                  </tr>
+                                  {% endfor %}
                                 <tr class="table-active">
                                     <td><strong>الإجمالي</strong></td>
                                     <td><strong>{{ user_stats.total }}</strong></td>
@@ -191,7 +191,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4 text-center">
-                    <h4 class="text-success">{{ revenue | floatformat:2 }} SAR</h4>
+                    <h4 class="text-success">{{ '%.2f' % revenue }} SAR</h4>
                     <small class="text-muted">إجمالي الإيرادات</small>
                 </div>
                 <div class="col-md-4 text-center">
