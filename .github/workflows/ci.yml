@@ -112,6 +112,7 @@ jobs:
       SUPPRESS_BACKGROUND_WORKER: "1"
       SUPPRESS_LOGGING: "1"
       DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_audit
+      RLS_BYPASS_ALLOWED: "1"
 
     steps:
       - uses: actions/checkout@v5
