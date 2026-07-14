@@ -187,7 +187,7 @@ def main() -> int:
         print(f"ℹ️  No action items found in {args.incident_log}")
         return 0
 
-    print(f"📋 Found {len(items)} action item(s)\n")
+    print(f"Found {len(items)} action item(s)\n")
 
     stale: list[ActionItem] = []
     resolved: list[ActionItem] = []
@@ -200,18 +200,18 @@ def main() -> int:
             stale.append(item)
             continue
         target_str = str(item.parsed_target) if item.parsed_target else "no target"
-        print(f"  ✅ #{item.num} ({item.incident_id}): {item.description[:80]} — "
+        print(f"  OK #{item.num} ({item.incident_id}): {item.description[:80]} — "
               f"OK (target: {target_str})")
 
     if resolved:
-        print(f"\n  ✅ {len(resolved)} already resolved: ", end="")
+        print(f"\n  Already resolved ({len(resolved)}): ", end="")
         print(", ".join(f"#{r.num}" for r in resolved))
 
     if not stale:
-        print("\n✅ No stale action items found.")
+        print("\nNo stale action items found.")
         return 0
 
-    print(f"\n❌ {len(stale)} STALE action item(s) older than {args.stale_days} days:\n")
+    print(f"\nSTALE action items ({len(stale)}) older than {args.stale_days} days:\n")
     for item in stale:
         print(f"  ┌─ Line {item.line_number}")
         print(f"  ├─ #:          {item.num}")
@@ -228,9 +228,9 @@ def main() -> int:
             print(f"  └─ No target date set")
         print()
 
-    print(f"ℹ️  Total: {len(items)} items — {len(resolved)} resolved, "
+    print(f"Total: {len(items)} items — {len(resolved)} resolved, "
           f"{len(stale)} stale.\n")
-    print(f"💡 Update statuses or target dates in {args.incident_log} "
+    print(f"Tip: Update statuses or target dates in {args.incident_log} "
           f"to clear stale items.")
     return 1
 
