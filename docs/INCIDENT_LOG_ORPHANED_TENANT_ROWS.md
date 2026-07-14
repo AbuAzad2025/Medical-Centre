@@ -26,8 +26,8 @@
 | 1 | ORPHAN-2024-001 | Verify cleanup | Confirm all tenant_id=0 rows removed | Done | 2024-01-20 |
 | 2 | ORPHAN-2024-001 | Add constraint | Add DB constraint to prevent tenant_id=0 | Done | 2024-01-25 |
 | 3 | ORPHAN-2024-001 | Audit trigger | Add trigger to prevent future orphans | Done | 2024-01-30 |
-| 4 | ORPHAN-2025-001 | Quarterly audit | Run audit_orphaned_tenant_rows.py quarterly | Open | 2025-07-01 |
-| 5 | ORPHAN-2025-002 | CI integration | Add audit to CI pipeline | Open | 2025-07-15 |
+| 4 | ORPHAN-2025-001 | Quarterly audit | Run audit_orphaned_tenant_rows.py quarterly | Done | 2025-07-01 |
+| 5 | ORPHAN-2025-002 | CI integration | Add audit to CI pipeline | Done | 2025-07-15 |
 
 ---
-*Last updated: 2026-07-14*
+*Last updated: 2026-07-15*
