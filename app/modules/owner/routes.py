@@ -2590,3 +2590,165 @@ def owner_revoke_assumption(assumption_id):
                  f"revoked_by={current_user.id} reason={revoke_reason}")
     return jsonify({"assumption": assumption.to_dict()})
 
+
+# ════════════════════════════════════════════════════════════════
+# Missing Owner Routes - Added for Complete Platform Management
+# ════════════════════════════════════════════════════════════════
+
+@owner_bp.route("/tenants/")
+@login_required
+@owner_required
+def owner_tenant_list():
+    """Tenant list — redirects from /owner/tenants to proper route."""
+    return redirect(url_for('owner.owner_dashboard'))
+
+
+@owner_bp.route("/users-list")
+@login_required
+@owner_required
+def owner_users_list():
+    """Users list — alias for /owner/users"""
+    return redirect(url_for('owner.owner_users'))
+
+
+@owner_bp.route("/error-audit-logs")
+@login_required
+@owner_required
+def owner_error_audit_logs():
+    """Error audit logs page."""
+    from models.audit_trail import AuditTrail
+    entity_type = request.args.get('entity_type', '')
+    q = AuditTrail.query.filter(AuditTrail.action.in_(['error', 'exception', 'failed', 'ERROR', 'FAILED']))
+    if entity_type:
+        q = q.filter_by(entity_type=entity_type)
+    logs = q.order_by(AuditTrail.created_at.desc()).limit(100).all()
+    return render_template('owner/error_audit_logs.html', logs=logs, entity_type=entity_type)
+
+
+@owner_bp.route("/company-info")
+@login_required
+@owner_required
+def owner_company_info():
+    """Platform company info page."""
+    from models.system_config import SystemConfig
+    import json
+    cfg = SystemConfig.query.filter_by(config_key='owner_platform_branding').first()
+    branding = {}
+    if cfg and cfg.config_value:
+        import json
+        branding = json.loads(cfg.config_value)
+    return render_template('owner/company_info.html', branding=branding)
+
+
+@owner_bp.route("/integrations")
+@login_required
+@owner_required
+def owner_integrations():
+    """Platform integrations management."""
+    from models.system_config import SystemConfig
+    import json
+    cfg = SystemConfig.query.filter_by(config_key='owner_integrations').first()
+    integrations = []
+    if cfg and cfg.config_value:
+        import json
+        integrations = json.loads(cfg.config_value)
+    return render_template('owner/integrations.html', integrations=integrations)
+
+
+@owner_bp.route("/cards-vault")
+@login_required
+@owner_required
+def owner_cards_vault():
+    """Payment cards vault management."""
+    from models.payment import PaymentCard
+    cards = PaymentCard.query.order_by(PaymentCard.created_at.desc()).limit(100).all()
+    return render_template('owner/cards_vault.html', cards=cards)
+
+
+@owner_bp.route("/system-stats")
+@login_required
+@owner_required
+def owner_system_stats():
+    """Platform system statistics."""
+    from models.user import User
+    from app.core.tenant.models import Tenant
+    from models.backup import Backup
+    from sqlalchemy import func
+    
+    stats = {
+        'total_tenants': Tenant.query.count(),
+        'active_tenants': Tenant.query.filter_by(status='active').count(),
+        'total_users': User.query.count(),
+        'active_users': User.query.filter_by(is_active=True).count(),
+        'total_backups': Backup.query.count(),
+        'completed_backups': Backup.query.filter_by(backup_status='COMPLETED').count(),
+        'failed_backups': Backup.query.filter_by(backup_status='FAILED').count(),
+    }
+    return render_template('owner/system_stats.html', stats=stats)
+
+
+@owner_bp.route("/reports")
+@login_required
+@owner_required
+def owner_reports():
+    """Platform-wide reports for owner."""
+    from app.core.tenant.models import Tenant
+    from models.user import User
+    from models.medication import PharmacySale
+    from models.visit import Visit
+    from models.patient import Patient
+    from sqlalchemy import func
+    from datetime import datetime, timedelta
+    
+    # Tenant stats
+    tenant_stats = {
+        'total': Tenant.query.count(),
+        'active': Tenant.query.filter_by(status='active').count(),
+        'trial': Tenant.query.filter_by(status='trial').count(),
+        'suspended': Tenant.query.filter_by(status='suspended').count(),
+    }
+    
+    # User stats
+    user_stats = {
+        'total': User.query.count(),
+        'active': User.query.filter_by(is_active=True).count(),
+        'by_role': dict(db.session.query(User.role, func.count(User.id)).group_by(User.role).all()),
+    }
+    
+    # Revenue (last 30 days)
+    thirty_days_ago = datetime.now() - timedelta(days=30)
+    revenue = db.session.query(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
+        PharmacySale.created_at >= thirty_days_ago
+    ).scalar() or 0
+    
+    # Visits (last 30 days)
+    visits = Visit.query.filter(Visit.created_at >= thirty_days_ago).count()
+    
+    # Patients
+    patients = Patient.query.count()
+    
+    return render_template('owner/reports.html', 
+                           tenant_stats=tenant_stats,
+                           user_stats=user_stats,
+                           revenue=revenue,
+                           visits=visits,
+                           patients=patients)
+
+
+# Payment Vault - Alias for cards-vault
+@owner_bp.route("/payment-vault")
+@login_required
+@owner_required
+def owner_payment_vault():
+    """Payment vault - alias for cards vault."""
+    return redirect(url_for('owner.owner_cards_vault'))
+
+
+# Error Audit Logs - Alias
+@owner_bp.route("/error-logs")
+@login_required
+@owner_required
+def owner_error_logs():
+    """Error logs - alias for error-audit-logs."""
+    return redirect(url_for('owner.owner_error_audit_logs'))
+

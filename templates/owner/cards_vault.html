@@ -1,0 +1,216 @@
+{% extends "base_modern.html" %}
+
+{% block title %}خزنة البطاقات - Cards Vault{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-0"><i class="fas fa-credit-card me-2"></i>خزنة البطاقات المصرفية</h1>
+            <p class="text-muted">إدارة البطاقات المصرفية المخزنة بأمان</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">إجمالي البطاقات</h6>
+                            <h2 class="mb-0">{{ cards|length }}</h2>
+                        </div>
+                        <i class="fas fa-credit-card fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">بطاقات نشطة</h6>
+                            <h2 class="mb-0">{{ cards|selectattr('is_active')|list|length }}</h2>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">بطاقات منتهية</h6>
+                            <h2 class="mb-0">{{ cards|selectattr('is_expired')|list|length }}</h2>
+                        </div>
+                        <i class="fas fa-calendar-times fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">إجمالي المعاملات</h6>
+                            <h2 class="mb-0">{{ total_transactions }}</h2>
+                        </div>
+                        <i class="fas fa-exchange-alt fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h6 class="mb-0"><i class="fas fa-filter me-1"></i>تصفية</h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">بحث</label>
+                    <input type="text" name="search" class="form-control" placeholder="اسم، رقم البطاقة، بريد إلكتروني..." value="{{ request.args.get('search', '') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">الحالة</label>
+                    <select name="status" class="form-select">
+                        <option value="">جميع الحالات</option>
+                        <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>نشط</option>
+                        <option value="inactive" {% if request.args.get('status') == 'inactive' %}selected{% endif %}>غير نشط</option>
+                        <option value="expired" {% if request.args.get('status') == 'expired' %}selected{% endif %}>منتهي</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">نوع البطاقة</label>
+                    <select name="card_type" class="form-select">
+                        <option value="">جميع الأنواع</option>
+                        <option value="visa" {% if request.args.get('card_type') == 'visa' %}selected{% endif %}>Visa</option>
+                        <option value="mastercard" {% if request.args.get('card_type') == 'mastercard' %}selected{% endif %}>Mastercard</option>
+                        <option value="amex" {% if request.args.get('card_type') == 'amex' %}selected{% endif %}>American Express</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i>تصفية
+                    </button>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <a href="{{ url_for('owner.owner_cards_vault') }}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cards Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>البطاقات المخزنة</h5>
+        </div>
+        <div class="card-body">
+            {% if cards %}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>المالك</th>
+                            <th>البنك</th>
+                            <th>نوع البطاقة</th>
+                            <th>الرقم المقنع</th>
+                            <th>تاريخ الانتهاء</th>
+                            <th>الحالة</th>
+                            <th>تاريخ الإضافة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for card in cards %}
+                        <tr>
+                            <td>
+                                <div>
+                                    <strong>{{ card.owner_name }}</strong>
+                                    <br><small class="text-muted">{{ card.owner_email }}</small>
+                                </div>
+                            </td>
+                            <td>{{ card.bank_name or 'غير محدد' }}</td>
+                            <td>
+                                <span class="badge {% if card.card_type == 'visa' %}bg-primary{% elif card.card_type == 'mastercard' %}bg-danger{% elif card.card_type == 'amex' %}bg-info{% else %}bg-secondary{% endif %}">
+                                    {{ card.card_type|upper }}
+                                </span>
+                            </td>
+                            <td>
+                                <code class="text-muted">{{ card.masked_number }}</code>
+                            </td>
+                            <td>
+                                <span class="{% if card.is_expired %}text-danger{% else %}text-success{% endif %}">
+                                    {{ card.expiry_month|string_format('%02d') }}/{{ card.expiry_year|string_format('%02d') }}
+                                    {% if card.is_expired %}<i class="fas fa-exclamation-triangle ms-1"></i>{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {% if card.is_active and not card.is_expired %}
+                                <span class="badge bg-success">نشط</span>
+                                {% elif card.is_expired %}
+                                <span class="badge bg-danger">منتهي</span>
+                                {% else %}
+                                <span class="badge bg-secondary">غير نشط</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ card.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-primary" onclick="viewCard({{ card.id }})" title="عرض التفاصيل">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning" onclick="editCard({{ card.id }})" title="تعديل">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" onclick="deleteCard({{ card.id }})" title="حذف">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">لا توجد بطاقات مخزنة</h5>
+                <p class="text-muted">ابدأ بإضافة بطاقة مصرفية جديدة</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function viewCard(id) {
+    console.log('View card:', id);
+    // TODO: Implement view card details modal
+}
+
+function editCard(id) {
+    console.log('Edit card:', id);
+    // TODO: Implement edit card modal
+}
+
+function deleteCard(id) {
+    if (confirm('هل أنت متأكد من حذف هذه البطاقة؟')) {
+        // TODO: Implement delete
+        console.log('Delete card:', id);
+    }
+}
+</script>
+{% endblock %}

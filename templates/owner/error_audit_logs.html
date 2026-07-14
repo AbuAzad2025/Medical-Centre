@@ -1,0 +1,89 @@
+{% extends "base_modern.html" %}
+
+{% block title %}سجلات أخطاء المنصة - Error Audit Logs{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-0"><i class="fas fa-bug me-2"></i>سجلات أخطاء المنصة</h1>
+            <p class="text-muted">مراجعة وتتبع الأخطاء والاستثناءات على مستوى المنصة</p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('owner.owner_audit_logs') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-list me-1"></i>جميع السجلات
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="fas fa-bug me-2"></i>الأخطاء والاستثناءات</h5>
+        </div>
+        <div class="card-body">
+            {% if logs %}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>الوقت</th>
+                            <th>النوع</th>
+                            <th>الكيان</th>
+                            <th>العملية</th>
+                            <th>الوصف</th>
+                            <th>المستخدم</th>
+                            <th>IP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            <td>
+                                <span class="badge bg-danger">{{ log.action }}</span>
+                            </td>
+                            <td>{{ log.entity_type }}</td>
+                            <td>{{ log.entity_id }}</td>
+                            <td>{{ log.description|truncate(80) }}</td>
+                            <td>{{ log.user_id or 'N/A' }}</td>
+                            <td>{{ log.user_ip or 'N/A' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h5 class="text-muted">لا توجد أخطاء مسجلة</h5>
+                <p class="text-muted">المنصة تعمل بشكل سليم</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h6 class="mb-0"><i class="fas fa-filter me-1"></i>تصفية</h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">نوع الكيان</label>
+                    <input type="text" name="entity_type" class="form-control" placeholder="user, tenant, visit, etc." value="{{ entity_type }}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i>تصفية
+                    </button>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <a href="{{ url_for('owner.owner_error_audit_logs') }}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-times me-1"></i>مسح التصفية
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

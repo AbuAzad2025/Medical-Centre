@@ -1,0 +1,152 @@
+{% extends "base_modern.html" %}
+
+{% block title %}تكاملات المنصة - Integrations{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-0"><i class="fas fa-plug me-2"></i>إدارة التكاملات</h1>
+            <p class="text-muted">إدارة التكاملات الخارجية والخدمات الخارجية للمنصة</p>
+        </div>
+        <div class="col-auto">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addIntegrationModal">
+                <i class="fas fa-plus me-1"></i>إضافة تكامل جديد
+            </button>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-plug me-2"></i>التكاملات المسجلة</h5>
+        </div>
+        <div class="card-body">
+            {% if integrations %}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>الاسم</th>
+                            <th>النوع</th>
+                            <th>البيئة</th>
+                            <th>الحالة</th>
+                            <th>تاريخ الإنشاء</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for integration in integrations %}
+                        <tr>
+                            <td><strong>{{ integration.name }}</strong></td>
+                            <td><span class="badge bg-info">{{ integration.type }}</span></td>
+                            <td>
+                                <span class="badge {% if integration.environment == 'production' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ integration.environment }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if integration.active %}
+                                <span class="badge bg-success">نشط</span>
+                                {% else %}
+                                <span class="badge bg-secondary">غير نشط</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ integration.created_at }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-primary" onclick="editIntegration({{ integration.id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" onclick="deleteIntegration({{ integration.id }})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-plug fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">لا توجد تكاملات مسجلة</h5>
+                <p class="text-muted">ابدأ بإضافة تكامل جديد</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Add/Edit Integration Modal -->
+    <div class="modal fade" id="addIntegrationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plug me-2"></i>إضافة تكامل جديد</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ url_for('owner.owner_integrations') }}">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">الاسم <span class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control" required placeholder="مثال: Stripe Payments">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">النوع <span class="text-danger">*</span></label>
+                                <select name="type" class="form-select" required>
+                                    <option value="payment">الدفع (Payment)</option>
+                                    <option value="shipping">الشحن (Shipping)</option>
+                                    <option value="sms">الرسائل النصية (SMS)</option>
+                                    <option value="email">البريد الإلكتروني (Email)</option>
+                                    <option value="cloud">التخزين السحابي (Cloud Storage)</option>
+                                    <option value="analytics">التحليلات (Analytics)</option>
+                                    <option value="other">أخرى</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">البيئة <span class="text-danger">*</span></label>
+                                <select name="environment" class="form-select" required>
+                                    <option value="sandbox">Sandbox / Test</option>
+                                    <option value="production">Production</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">مفتاح API (API Key)</label>
+                                <input type="text" name="api_key" class="form-control" placeholder="sk_test_...">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">مفتاح سري (Secret Key)</label>
+                                <input type="password" name="secret_key" class="form-control" placeholder="sk_...">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">الوصف</label>
+                                <textarea name="description" class="form-control" rows="3" placeholder="وصف التكامل والغرض منه"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">حفظ التكامل</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editIntegration(id) {
+    console.log('Edit integration:', id);
+    // TODO: Implement edit integration
+}
+
+function deleteIntegration(id) {
+    if (confirm('هل أنت متأكد من حذف هذا التكامل؟')) {
+        // TODO: Implement delete
+        console.log('Delete integration:', id);
+    }
+}
+</script>
+{% endblock %}

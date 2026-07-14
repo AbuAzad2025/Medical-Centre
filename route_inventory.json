@@ -5570,7 +5570,151 @@
         "GET"
       ],
       "classification": "internal"
+    },
+    {
+      "endpoint": "owner.owner_tenant_list",
+      "path": "/owner/tenants/",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_users_list",
+      "path": "/owner/users-list",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_error_audit_logs",
+      "path": "/owner/error-audit-logs",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_company_info",
+      "path": "/owner/company-info",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_integrations",
+      "path": "/owner/integrations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_cards_vault",
+      "path": "/owner/cards-vault",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_integrations",
+      "path": "/owner/integrations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_system_stats",
+      "path": "/owner/system-stats",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_reports",
+      "path": "/owner/reports",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_payment_vault",
+      "path": "/owner/payment-vault",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_error_logs",
+      "path": "/owner/error-logs",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_cards_vault",
+      "path": "/owner/cards-vault",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_system_stats",
+      "path": "/owner/system-stats",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_reports",
+      "path": "/owner/reports",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_payment_vault",
+      "path": "/owner/payment-vault",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_error_logs",
+      "path": "/owner/error-logs",
+      "methods": [
+        "GET"
+      ],
+      "classification": "super-admin"
+    },
+    {
+      "endpoint": "owner.owner_cards_vault",
+      "path": "/owner/cards-vault",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "classification": "super-admin"
     }
   ],
-  "total_routes": 685
+  "total_routes": 702
 }

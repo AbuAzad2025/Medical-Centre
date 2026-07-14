@@ -1,0 +1,194 @@
+{% extends "base_modern.html" %}
+
+{% block title %}إحصائيات النظام - System Stats{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-0"><i class="fas fa-chart-line me-2"></i>إحصائيات النظام</h1>
+            <p class="text-muted">نظرة عامة على صحة وأداء النظام</p>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">إجمالي المنشآت</h6>
+                            <h2 class="mb-0">{{ stats.total_tenants }}</h2>
+                        </div>
+                        <i class="fas fa-building fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">منشآت نشطة</h6>
+                            <h2 class="mb-0">{{ stats.active_tenants }}</h2>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">إجمالي المستخدمين</h6>
+                            <h2 class="mb-0">{{ stats.total_users }}</h2>
+                        </div>
+                        <i class="fas fa-users fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">مستخدمين نشطين</h6>
+                            <h2 class="mb-0">{{ stats.active_users }}</h2>
+                        </div>
+                        <i class="fas fa-user-check fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-secondary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">إجمالي النسخ الاحتياطية</h6>
+                            <h2 class="mb-0">{{ stats.total_backups }}</h2>
+                        </div>
+                        <i class="fas fa-database fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">نسخ مكتملة</h6>
+                            <h2 class="mb-0">{{ stats.completed_backups }}</h2>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">نسخ فاشلة</h6>
+                            <h2 class="mb-0">{{ stats.failed_backups }}</h2>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">معدل النجاح</h6>
+                            <h2 class="mb-0">
+                                {% if stats.total_backups > 0 %}
+                                    {{ '%.1f' % ((stats.completed_backups / stats.total_backups * 100)) }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                        </h2>
+                        </div>
+                        <i class="fas fa-chart-line fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Stats Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i>تفاصيل إضافية</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>معلومات النظام</h6>
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td>إصدار التطبيق</td>
+                                <td class="text-end">3.1</td>
+                            </tr>
+                            <tr>
+                                <td>قاعدة البيانات</td>
+                                <td class="text-end">PostgreSQL 16</td>
+                            </tr>
+                            <tr>
+                                <td>Redis</td>
+                                <td class="text-end">Redis 7</td>
+                            </tr>
+                            <tr>
+                                <td>Python</td>
+                                <td class="text-end">3.11+</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>إحصائيات التخزين</h6>
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td>إجمالي النسخ الاحتياطية</td>
+                                <td class="text-end">{{ stats.total_backups }}</td>
+                            </tr>
+                            <tr>
+                                <td>مكتملة بنجاح</td>
+                                <td class="text-end text-success">{{ stats.completed_backups }}</td>
+                            </tr>
+                            <tr>
+                                <td>فاشلة</td>
+                                <td class="text-end text-danger">{{ stats.failed_backups }}</td>
+                            </tr>
+                            <tr>
+                                <td>معدل النجاح</td>
+                                <td class="text-end">
+                                    {% if stats.total_backups > 0 %}
+                                        <span class="text-success">{{ '%.1f' % ((stats.completed_backups / stats.total_backups * 100)) }}%</span>
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
