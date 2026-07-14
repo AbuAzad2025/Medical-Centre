@@ -5714,7 +5714,15 @@
         "POST"
       ],
       "classification": "super-admin"
+    },
+    {
+      "endpoint": "main.api_search_tenants",
+      "path": "/api/tenants/search",
+      "methods": [
+        "GET"
+      ],
+      "classification": "public"
     }
   ],
-  "total_routes": 702
+  "total_routes": 703
 }

@@ -3,9 +3,10 @@
 Medical System Main Routes
 """
 
-from flask import Blueprint, render_template, redirect, url_for, jsonify, current_app, g
+from flask import Blueprint, render_template, redirect, url_for, jsonify, current_app, g, request
 from flask_login import login_required, current_user
 from services.dashboard_routing import resolve_dashboard_for_user, get_package_restricted_context
+from app_factory import db
 
 main_bp = Blueprint('main', __name__)
 
@@ -101,6 +102,37 @@ def health():
 def api_search():
     """البحث في النظام"""
     return {'status': 'success', 'message': 'Search API working'}
+
+@main_bp.route('/api/tenants/search')
+def api_search_tenants():
+    """البحث عن المستأجرين (Public - لا يتطلب تسجيل دخول)"""
+    from app.core.tenant.models import Tenant
+    from app.shared.enums import TenantStatus
+    
+    query = request.args.get('q', '').strip()
+    if not query or len(query) < 2:
+        return jsonify({'tenants': []})
+    
+    tenants = Tenant.query.filter(
+        Tenant.status.in_([TenantStatus.ACTIVE, TenantStatus.TRIAL]),
+        db.or_(
+            Tenant.name.ilike(f'%{query}%'),
+            Tenant.name_ar.ilike(f'%{query}%'),
+            Tenant.slug.ilike(f'%{query}%')
+        )
+    ).limit(10).all()
+    
+    return jsonify({
+        'tenants': [
+            {
+                'id': t.id,
+                'name': t.name,
+                'name_ar': t.name_ar,
+                'slug': t.slug
+            }
+            for t in tenants
+        ]
+    })
 
 @main_bp.route('/privacy-policy')
 def privacy_policy():
