@@ -90,7 +90,10 @@ class TestPublicLanding:
     def test_landing_page_public(self, client):
         resp = client.get('/')
         assert resp.status_code == 200
-        assert 'حجز موعد'.encode('utf-8') in resp.data
+        # B2B Gateway: Check for new action buttons instead of "Book Appointment"
+        assert 'تسجيل الدخول للعيادة/الصيدلية'.encode('utf-8') in resp.data
+        assert 'طلب اشتراك/حساب جديد'.encode('utf-8') in resp.data
+        assert 'لوحة المالك/المشرف'.encode('utf-8') in resp.data
 
     def test_public_booking_index(self, client):
         resp = client.get('/booking/')
