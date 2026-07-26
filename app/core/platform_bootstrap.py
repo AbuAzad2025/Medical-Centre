@@ -5,6 +5,8 @@ import logging
 import os
 from typing import Any
 
+from sqlalchemy import select
+
 from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 
@@ -12,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def _table_count(table: str) -> int:
-    from sqlalchemy import inspect, text, select
+    from sqlalchemy import inspect, text
 
     if table not in inspect(db.engine).get_table_names():
         return -1
