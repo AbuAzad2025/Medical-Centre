@@ -1,8 +1,9 @@
 from datetime import datetime, timezone, date, time
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.mixins import TenantMixin
 import logging
+from sqlalchemy import select
 
 
 class CashRegister(TenantMixin, db.Model):
@@ -52,7 +53,7 @@ class CashRegister(TenantMixin, db.Model):
     def get_or_create_today(cls, user_id=None):
         try:
             today = date.today()
-            reg = cls.query.filter_by(register_date=today, is_closed=False).first()
+            reg = db.session.execute(select(cls).filter_by(register_date=today, is_closed=False)).scalars().first()
             if not reg:
                 reg = cls(
                     register_date=today,

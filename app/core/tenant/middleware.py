@@ -5,6 +5,8 @@ Provides TenantPathWSGIMiddleware to rewrite /t/<slug>/... → /...
 and set_tenant_context() as the Flask before_request handler.
 """
 from flask import current_app, request, g
+from sqlalchemy import select, func, text
+from app.extensions import db
 from app.core.tenant.models import Tenant
 
 
@@ -38,10 +40,10 @@ def _get_tenant_by_slug(slug: str) -> Tenant | None:
     """Return login-eligible tenant by slug (active, trial, or pending payment)."""
     from app.shared.enums import TenantStatus
 
-    return Tenant.query.filter(
+    return db.session.execute(select(Tenant).filter(
         Tenant.slug == slug,
         Tenant.status.in_((TenantStatus.ACTIVE, TenantStatus.TRIAL, TenantStatus.PENDING)),
-    ).first()
+    )).scalars().first()
 
 
 _PENDING_ALLOWED_PREFIXES = (
@@ -58,9 +60,9 @@ def _auto_create_default_tenant() -> Tenant | None:
     cfg = current_app.config
     if not cfg.get('TENANT_AUTO_CREATE', False):
         return None
-    existing = Tenant.query.count()
+    existing = db.session.execute(select(func.count()).select_from(Tenant)).scalar()
     if existing > 0:
-        return Tenant.query.filter_by(status='active').first()
+        return db.session.execute(select(Tenant).filter_by(status='active')).scalars().first()
     slug = cfg.get('TENANT_DEFAULT_SLUG', 'default')
     name = slug.replace('-', ' ').title()
     contact_email = cfg.get('DEFAULT_ADMIN_EMAIL') or 'admin@localhost'
@@ -70,7 +72,6 @@ def _auto_create_default_tenant() -> Tenant | None:
         contact_email=contact_email,
         status='active',
     )
-    from app.extensions import db
     db.session.add(tenant)
     db.session.flush()
     return tenant
@@ -116,13 +117,13 @@ def resolve_tenant() -> Tenant | None:
     base_domain = cfg.get('TENANT_BASE_DOMAIN')
     if 'subdomain' in modes and base_domain and host.endswith(f'.{base_domain}'):
         slug = host.replace(f'.{base_domain}', '')
-        tenant = Tenant.query.filter_by(subdomain=slug, status='active').first()
+        tenant = db.session.execute(select(Tenant).filter_by(subdomain=slug, status='active')).scalars().first()
         if tenant:
             return tenant
 
     # 3. Dedicated domain
     if 'domain' in modes and host:
-        tenant = Tenant.query.filter_by(domain=host, status='active').first()
+        tenant = db.session.execute(select(Tenant).filter_by(domain=host, status='active')).scalars().first()
         if tenant:
             return tenant
 
@@ -142,7 +143,7 @@ def _tenant_from_authenticated_user() -> Tenant | None:
 
         tid = session.get('tenant_id')
         if tid:
-            return Tenant.query.get(int(tid))
+            return db.session.get(Tenant, int(tid))
 
         slug = session.get('tenant_slug')
         if slug:
@@ -158,7 +159,7 @@ def _tenant_from_authenticated_user() -> Tenant | None:
                     user_id = current_user.id
                     tid = getattr(current_user, 'tenant_id', None)
                     if tid:
-                        return Tenant.query.get(tid)
+                        return db.session.get(Tenant, tid)
             except Exception:
                 pass
         if not user_id:
@@ -167,7 +168,7 @@ def _tenant_from_authenticated_user() -> Tenant | None:
         prev_bypass = g.get('_tenant_filter_bypass', False)
         g._tenant_filter_bypass = True
         try:
-            user = User.query.get(int(user_id))
+            user = db.session.get(User, int(user_id))
         finally:
             if prev_bypass:
                 g._tenant_filter_bypass = True
@@ -175,7 +176,7 @@ def _tenant_from_authenticated_user() -> Tenant | None:
                 g.pop('_tenant_filter_bypass', None)
 
         if user and user.tenant_id:
-            return Tenant.query.get(user.tenant_id)
+            return db.session.get(Tenant, user.tenant_id)
     except Exception:
         return None
     return None
@@ -190,7 +191,7 @@ def bind_tenant_from_session() -> None:
 
     tid = session.get('tenant_id')
     if tid:
-        tenant = Tenant.query.get(int(tid))
+        tenant = db.session.get(Tenant, int(tid))
         if tenant:
             bind_g_tenant(tenant)
             return
@@ -210,8 +211,7 @@ def bind_g_tenant(tenant: Tenant | None) -> None:
     if not tenant:
         return
     try:
-        from app.extensions import db
-        from sqlalchemy import text
+        from sqlalchemy import text, select, func
         db.session.execute(text(f"SET LOCAL app.tenant_id = '{tenant.id}'"))
         db.session.info['_tenant_id'] = tenant.id
     except Exception:
@@ -435,9 +435,9 @@ def set_tenant_context():
     try:
         from app.core.tenant.models import TenantFeatureFlag
 
-        flags = TenantFeatureFlag.query.filter_by(
+        flags = db.session.execute(select(TenantFeatureFlag).filter_by(
             tenant_id=tenant.id, is_enabled=True
-        ).all()
+        )).scalars().all()
         g.feature_flags = {f.feature_key: True for f in flags}
     except Exception:
         g.feature_flags = {}

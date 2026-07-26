@@ -644,10 +644,13 @@ def create_app(config_name: str | None = None) -> Flask:
             bp._module_guard_added = True
 
     def _add_platform_cap_guard(bp, cap):
+        if getattr(bp, '_platform_cap_guard_added', False):
+            return
         @bp.before_request
         def _platform_cap_guard():
             from app.core.platform_capabilities import guard_platform_capability
             guard_platform_capability(cap)
+        bp._platform_cap_guard_added = True
 
     # Helper: allow routes to check module access programmatically
     @app.context_processor

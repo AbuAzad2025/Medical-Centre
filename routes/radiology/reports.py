@@ -13,11 +13,12 @@ from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
 from models.file_management import FileUpload
 from models.system_config import SystemConfig
-from app_factory import db
+from app.extensions import db
 from app.shared.print_context import generate_qr_data_uri
 import logging, json, os, secrets
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
+from sqlalchemy import select
 
 
 # =============================================
@@ -33,11 +34,11 @@ def reports():
     request_id = request.args.get('request_id', type=int)
     radiology_request = None
     if request_id:
-        radiology_request = RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
+        radiology_request = db.session.execute(select(RadiologyRequest).filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id)).scalars().first()
     if not radiology_request:
-        radiology_request = RadiologyRequest.query.order_by(RadiologyRequest.created_at.desc()).first()
+        radiology_request = db.session.execute(select(RadiologyRequest).order_by(RadiologyRequest.created_at.desc())).scalars().first()
     radiology_result = radiology_request.results[0] if radiology_request and radiology_request.results else None
-    recent_requests = RadiologyRequest.query.order_by(RadiologyRequest.created_at.desc()).limit(20).all()
+    recent_requests = db.session.execute(select(RadiologyRequest).order_by(RadiologyRequest.created_at.desc()).limit(20)).scalars().all()
     return render_template(
         'radiology/radiology_report_form.html',
         radiology_request=radiology_request,
@@ -56,9 +57,9 @@ def print_report(radiology_scan_id=None):
         if radiology_scan_id is None:
             flash('المعرف غير محدد', 'error')
             return redirect(url_for('radiology.reports'))
-        result = RadiologyResult.query.filter(RadiologyResult.id == radiology_scan_id, RadiologyResult.tenant_id == g.tenant_id).first()
+        result = db.session.execute(select(RadiologyResult).filter(RadiologyResult.id == radiology_scan_id, RadiologyResult.tenant_id == g.tenant_id)).scalars().first()
         if not result:
-            req = RadiologyRequest.query.filter(RadiologyRequest.id == radiology_scan_id, RadiologyRequest.tenant_id == g.tenant_id).first()
+            req = db.session.execute(select(RadiologyRequest).filter(RadiologyRequest.id == radiology_scan_id, RadiologyRequest.tenant_id == g.tenant_id)).scalars().first()
             if not req or not req.results:
                 flash('نتيجة الأشعة غير موجودة', 'error')
                 return redirect(url_for('radiology.reports'))
@@ -79,9 +80,9 @@ def print_report_pdf(radiology_scan_id=None):
     try:
         if radiology_scan_id is None:
             return jsonify({'success': False, 'message': 'المعرف غير محدد'}), 400
-        result = RadiologyResult.query.filter(RadiologyResult.id == radiology_scan_id, RadiologyResult.tenant_id == g.tenant_id).first()
+        result = db.session.execute(select(RadiologyResult).filter(RadiologyResult.id == radiology_scan_id, RadiologyResult.tenant_id == g.tenant_id)).scalars().first()
         if not result:
-            req = RadiologyRequest.query.filter(RadiologyRequest.id == radiology_scan_id, RadiologyRequest.tenant_id == g.tenant_id).first()
+            req = db.session.execute(select(RadiologyRequest).filter(RadiologyRequest.id == radiology_scan_id, RadiologyRequest.tenant_id == g.tenant_id)).scalars().first()
             if not req or not req.results:
                 return jsonify({'success': False, 'message': 'نتيجة الأشعة غير موجودة'}), 404
             result = req.results[0]

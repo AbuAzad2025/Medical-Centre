@@ -20,10 +20,10 @@ from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from services.prescription_service import prescription_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import VisitState
-from sqlalchemy import and_, or_, desc, func, case
+from sqlalchemy import and_, or_, desc, func, case, select
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
 from app.shared.print_context import generate_qr_data_uri
@@ -48,7 +48,7 @@ def _check_drug_interaction_warnings(used_med_ids):
         if pairs:
             from sqlalchemy import and_, or_
             conds = [and_(DrugInteraction.medication_a_id == a, DrugInteraction.medication_b_id == b) for a, b in pairs]
-            rows = DrugInteraction.query.filter(DrugInteraction.is_active == True).filter(or_(*conds)).all()
+            rows = db.session.execute(select(DrugInteraction).filter(DrugInteraction.is_active == True).filter(or_(*conds))).scalars().all()
             for row in rows:
                 a = prescription_service.get_medication(row.medication_a_id)
                 b = prescription_service.get_medication(row.medication_b_id)
@@ -65,12 +65,12 @@ def _notify_pharmacy_non_catalog(non_catalog_medications, visit, current_user):
         return
     try:
         from models.notification import Notification
-        dept = Department.query.filter(
+        dept = db.session.execute(select(Department).filter(
             db.or_(
                 Department.name.ilike('%pharmacy%'),
                 Department.name_ar.ilike('%صيدل%')
             )
-        ).first()
+        )).scalars().first()
         dept_id = dept.id if dept else None
         notif = Notification(
             title='طلب إضافة أدوية غير موجودة',
@@ -91,7 +91,7 @@ def prescription(visit_id):
     """كتابة الوصفة الطبية"""
     
     try:
-        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
+        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
         if visit.status != VisitState.IN_PROGRESS:
             flash('لا يمكن كتابة وصفة إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
@@ -99,20 +99,20 @@ def prescription(visit_id):
         from models.medication import Medication
         from models.system_config import SystemConfig
 
-        medications = Medication.query.filter_by(is_active=True).order_by(Medication.trade_name.asc()).limit(1000).all()
+        medications = db.session.execute(select(Medication).filter_by(is_active=True).order_by(Medication.trade_name.asc()).limit(1000)).scalars().all()
 
         templates_key = f'doctor_rx_templates_{current_user.id}'
         doctor_templates = []
         try:
-            cfg = SystemConfig.query.filter_by(config_key=templates_key).first()
+            cfg = db.session.execute(select(SystemConfig).filter_by(config_key=templates_key)).scalars().first()
             if cfg and cfg.config_type == 'json':
                 doctor_templates = cfg.get_value() or []
         except Exception:
             doctor_templates = []
 
-        visit_prescriptions = Prescription.query.filter(
+        visit_prescriptions = db.session.execute(select(Prescription).filter(
             Prescription.visit_id == visit_id
-        ).order_by(desc(Prescription.created_at)).limit(10).all()
+        ).order_by(desc(Prescription.created_at)).limit(10)).scalars().all()
 
         if request.method == 'POST':
             item_med_ids = request.form.getlist('item_medication_id[]')
@@ -150,13 +150,13 @@ def prescription(visit_id):
             any_item = any([(x or '').strip() for x in item_med_ids])
             if (not any_item) and legacy_medication_name:
                 try:
-                    med = Medication.query.filter(
+                    med = db.session.execute(select(Medication).filter(
                         db.or_(
                             Medication.trade_name.ilike(legacy_medication_name),
                             Medication.generic_name.ilike(legacy_medication_name),
                             Medication.scientific_name.ilike(legacy_medication_name)
                         )
-                    ).first()
+                    )).scalars().first()
                 except Exception:
                     med = None
                 if med and legacy_dosage and legacy_frequency and legacy_duration_days > 0:
@@ -252,7 +252,7 @@ def prescription(visit_id):
 
                 try:
                     from models.patient import PatientAllergy
-                    allergy_records = PatientAllergy.query.filter_by(patient_id=visit.patient_id).all()
+                    allergy_records = db.session.execute(select(PatientAllergy).filter_by(patient_id=visit.patient_id)).scalars().all()
                     med_names = [x for x in [
                         (med.trade_name or '').lower(),
                         (med.generic_name or '').lower(),
@@ -321,7 +321,7 @@ def prescription(visit_id):
                         'name': template_name,
                         'items': tpl_items
                     }
-                    cfg = SystemConfig.query.filter_by(config_key=templates_key).first()
+                    cfg = db.session.execute(select(SystemConfig).filter_by(config_key=templates_key)).scalars().first()
                     if not cfg:
                         cfg = SystemConfig(
                             config_key=templates_key,
@@ -417,24 +417,24 @@ def prescriptions():
         per_page = 20
 
         # Base query: prescriptions for this doctor's visits
-        query = Prescription.query.join(Visit).filter(
+        query = select(Prescription).join(Visit).filter(
             Visit.doctor_id == current_user.id
-        ).order_by(Prescription.created_at.desc())
+        )
 
         total = query.count()
         prescriptions = query.offset((page - 1) * per_page).limit(per_page).all()
         pages = (total + per_page - 1) // per_page if total > 0 else 1
 
         # Stats
-        today_count = Prescription.query.join(Visit).filter(
+        today_count = db.session.execute(select(func.count()).select_from(Prescription).join(Visit).filter(
             Visit.doctor_id == current_user.id,
             func.date(Prescription.created_at) == today
-        ).count()
+        )).scalar()
 
-        week_count = Prescription.query.join(Visit).filter(
+        week_count = db.session.execute(select(func.count()).select_from(Prescription).join(Visit).filter(
             Visit.doctor_id == current_user.id,
             Prescription.created_at >= today - timedelta(days=7)
-        ).count()
+        )).scalar()
 
         return render_template(
             'doctor/prescriptions.html',

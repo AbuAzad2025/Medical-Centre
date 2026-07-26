@@ -5,6 +5,7 @@ Materializes the effective tenant capability set from all active entitlement
 sources (subscription lines, enterprise contracts, tenant overrides, feature flags)
 into the read-only `tenant_entitlements` projection table.
 """
+from sqlalchemy import select
 
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -46,7 +47,7 @@ class EntitlementProjectionService:
         cls._apply_feature_flag_grants(tenant_id, as_of_naive, capabilities, sources)
 
         # Materialize projection
-        TenantEntitlement.query.filter_by(tenant_id=tenant_id).delete(
+        select(TenantEntitlement).delete(
             synchronize_session=False
         )
 
@@ -69,8 +70,7 @@ class EntitlementProjectionService:
 
     @classmethod
     def _active_lines(cls, tenant_id: int, as_of: datetime):
-        return (
-            SubscriptionLine.query.filter(
+        return db.session.execute(select(SubscriptionLine).filter(
                 SubscriptionLine.tenant_id == tenant_id,
                 SubscriptionLine.status.in_(
                     [SubscriptionLineStatus.ACTIVE, SubscriptionLineStatus.SCHEDULED]
@@ -80,9 +80,7 @@ class EntitlementProjectionService:
             .filter(
                 (SubscriptionLine.effective_to.is_(None))
                 | (SubscriptionLine.effective_to >= as_of)
-            )
-            .all()
-        )
+            )).scalars().all()
 
     @classmethod
     def _apply_subscription_lines(cls, tenant_id, as_of, as_of_naive, capabilities, sources):
@@ -101,11 +99,11 @@ class EntitlementProjectionService:
     @classmethod
     def _apply_enterprise_contracts(cls, tenant_id, as_of_naive, capabilities, sources):
         today = as_of_naive.date()
-        contracts = EnterpriseContract.query.filter(
+        contracts = db.session.execute(select(EnterpriseContract).filter(
             EnterpriseContract.tenant_id == tenant_id,
             EnterpriseContract.start_date <= today,
             EnterpriseContract.end_date >= today,
-        ).all()
+        )).scalars().all()
         for contract in contracts:
             for entitlement in contract.entitlements:
                 if entitlement.revoked_at:
@@ -124,12 +122,12 @@ class EntitlementProjectionService:
 
     @classmethod
     def _apply_tenant_overrides(cls, tenant_id, as_of_naive, capabilities, sources):
-        overrides = TenantOverride.query.filter(
+        overrides = db.session.execute(select(TenantOverride).filter(
             TenantOverride.tenant_id == tenant_id,
             TenantOverride.effective_from <= as_of_naive,
         ).filter(
             (TenantOverride.effective_to.is_(None)) | (TenantOverride.effective_to >= as_of_naive)
-        ).all()
+        )).scalars().all()
         for override in overrides:
             if override.override_type == OverrideType.GRANT:
                 capabilities[override.capability_key] = (
@@ -145,8 +143,7 @@ class EntitlementProjectionService:
 
     @classmethod
     def _apply_feature_flag_grants(cls, tenant_id, as_of_naive, capabilities, sources):
-        flag_grants = (
-            EntitlementGrant.query.filter(
+        flag_grants = db.session.execute(select(EntitlementGrant).filter(
                 EntitlementGrant.tenant_id == tenant_id,
                 EntitlementGrant.tenant_feature_flag_id.isnot(None),
                 EntitlementGrant.effective_from <= as_of_naive,
@@ -154,9 +151,7 @@ class EntitlementProjectionService:
             .filter(
                 (EntitlementGrant.effective_to.is_(None))
                 | (EntitlementGrant.effective_to >= as_of_naive)
-            )
-            .all()
-        )
+            )).scalars().all()
         for grant in flag_grants:
             flag = grant.tenant_feature_flag
             if not flag or not flag.is_enabled:

@@ -15,12 +15,13 @@ from models.file_management import FileUpload
 from models.system_config import SystemConfig
 from app.shared.enums import LabResultStatus, OrderState
 from services.radiology_service import radiology_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging, json, os, base64, secrets
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
 from werkzeug.utils import secure_filename
+from sqlalchemy import select
 
 
 # =============================================
@@ -140,7 +141,7 @@ def worklist_request(request_id):
         visit_summary = None
         if getattr(rad_request, 'visit_id', None):
             from models.visit import Visit
-            visit_summary = Visit.query.filter(Visit.id == rad_request.visit_id, Visit.tenant_id == g.tenant_id).first()
+            visit_summary = db.session.execute(select(Visit).filter(Visit.id == rad_request.visit_id, Visit.tenant_id == g.tenant_id)).scalars().first()
         return render_template('radiology/process.html', radiology_request=rad_request, radiology_result=existing_result, uploads=uploads, visit_summary=visit_summary)
     except Exception as e:
         logging.error(f"Error loading radiology request {request_id}: {str(e)}")
@@ -175,7 +176,7 @@ def worklist_claim(request_id):
 @role_required('radiology', 'technician', 'admin', 'manager', 'super_admin')
 def worklist_complete(request_id):
     try:
-        req = RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
+        req = db.session.execute(select(RadiologyRequest).filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id)).scalars().first()
         if not req:
             if request.accept_mimetypes.best == 'application/json':
                 return jsonify({'success': False, 'message': 'الطلب غير موجود'}), 404

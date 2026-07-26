@@ -11,7 +11,7 @@ from utils.decorators import super_admin_required
 from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
-from sqlalchemy import func
+from sqlalchemy import func, select
 from datetime import datetime, timedelta, timezone
 from utils.db_safety import safe_commit, safe_rollback
 
@@ -31,7 +31,7 @@ def api_audit_log():
     """API لتسجيل الأحداث"""
     try:
         from models.audit_trail import AuditTrail
-        from app_factory import db
+        from app.extensions import db
         
         data = request.get_json(silent=True) or {}
         
@@ -60,7 +60,7 @@ def api_audit_log():
         return jsonify({'success': True, 'message': 'تم تسجيل الحدث'}), 200
         
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"API audit log error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر تسجيل الحدث حالياً'}), 500
@@ -75,7 +75,7 @@ def api_recent_activities():
         from datetime import datetime, timedelta
         
         # الحصول على آخر 10 نشاطات
-        recent = AuditTrail.query.order_by(AuditTrail.created_at.desc()).limit(10).all()
+        recent = db.session.execute(select(AuditTrail).order_by(AuditTrail.created_at.desc()).limit(10)).scalars().all()
         
         activities = []
         for activity in recent:
@@ -118,7 +118,7 @@ def api_recent_activities():
 def api_ai_assistant():
     """API للمساعد الذكي المتطور - محرك واحد موحد"""
     try:
-        from app_factory import db
+        from app.extensions import db
         from services.smart_ai_engine import SmartAIEngine
         from services.ai_validator import AIValidator
         

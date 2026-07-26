@@ -2,13 +2,14 @@
 Biometric authentication — delegates to BiometricCredential / BiometricAuthChallenge models.
 """
 from __future__ import annotations
+from sqlalchemy import select
 
 import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 
 logger = logging.getLogger(__name__)
@@ -84,11 +85,7 @@ class BiometricAuth:
         if not cred_id:
             return False
 
-        query = BiometricCredential.query.filter_by(
-            user_id=user_id,
-            credential_id=cred_id,
-            is_active=True,
-        )
+        query = select(BiometricCredential)
         tid = self._resolve_tenant_id(tenant_id)
         if tid is not None:
             query = query.filter_by(tenant_id=tid)
@@ -110,7 +107,7 @@ class BiometricAuth:
     def list_credentials(self, user_id: int, *, tenant_id: Optional[int] = None) -> list[dict]:
         from models.biometric_auth import BiometricCredential
 
-        query = BiometricCredential.query.filter_by(user_id=user_id, is_active=True)
+        query = select(BiometricCredential)
         tid = self._resolve_tenant_id(tenant_id)
         if tid is not None:
             query = query.filter_by(tenant_id=tid)
@@ -151,7 +148,7 @@ class BiometricAuth:
     def consume_challenge(self, challenge: str, *, challenge_type: Optional[str] = None) -> bool:
         from models.biometric_auth import BiometricAuthChallenge
 
-        query = BiometricAuthChallenge.query.filter_by(challenge=challenge, used=False)
+        query = select(BiometricAuthChallenge)
         if challenge_type:
             query = query.filter_by(challenge_type=challenge_type)
         ch = query.first()
@@ -166,7 +163,7 @@ class BiometricAuth:
     def is_enabled(self, user_id: Optional[int] = None) -> bool:
         from models.biometric_auth import BiometricCredential
 
-        query = BiometricCredential.query.filter_by(is_active=True)
+        query = select(BiometricCredential)
         if user_id is not None:
             query = query.filter_by(user_id=user_id)
         tid = self._resolve_tenant_id()

@@ -13,11 +13,12 @@ from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
 from models.file_management import FileUpload
 from models.system_config import SystemConfig
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging, json, os, base64, secrets
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
+from sqlalchemy import select
 
 
 # =============================================
@@ -36,7 +37,7 @@ def images():
 @role_required('radiology', 'doctor', 'admin', 'manager', 'super_admin')
 def download_file(file_id):
     try:
-        f = FileUpload.query.filter(FileUpload.id == file_id, FileUpload.tenant_id == g.tenant_id).first()
+        f = db.session.execute(select(FileUpload).filter(FileUpload.id == file_id, FileUpload.tenant_id == g.tenant_id)).scalars().first()
         if not f:
             flash('الملف غير موجود', 'error')
             return redirect(url_for('radiology.worklist'))

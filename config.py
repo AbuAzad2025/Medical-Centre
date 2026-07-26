@@ -286,6 +286,13 @@ class TestingConfig(Config):
     if SQLALCHEMY_DATABASE_URI.startswith('sqlite'):
         SQLALCHEMY_ENGINE_OPTIONS = {}
         SQLALCHEMY_TRACK_MODIFICATIONS = False
+    elif SQLALCHEMY_DATABASE_URI.startswith('postgresql'):
+        try:
+            import psycopg2  # noqa: F401
+        except ImportError:
+            SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+            SQLALCHEMY_ENGINE_OPTIONS = {}
+            SQLALCHEMY_TRACK_MODIFICATIONS = False
     # Provide a default SECRET_KEY for testing so tests don't need the env var
     if not os.environ.get('SECRET_KEY'):
         SECRET_KEY = 'test-secret-key'

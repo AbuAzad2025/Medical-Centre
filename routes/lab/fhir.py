@@ -15,11 +15,12 @@ from models.lab_quality import LabQualityControlEntry
 from models.lab_reagent import LabReagent
 from models.audit_trail import AuditTrail
 from app.shared.enums import LabResultStatus
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging, json, base64
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
+from sqlalchemy import select
 
 
 # =============================================
@@ -114,12 +115,12 @@ def api_fhir_lab_observation_import():
         reference_range = data.get('reference_range')
         if not request_id or not patient_id:
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'request_id and patient_id مطلوبان'}]}), 400
-        req = LabRequest.query.filter(LabRequest.id == int(request_id), LabRequest.tenant_id == g.tenant_id).first()
+        req = db.session.execute(select(LabRequest).filter(LabRequest.id == int(request_id), LabRequest.tenant_id == g.tenant_id)).scalars().first()
         if not req:
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'طلب المختبر غير موجود'}]}), 404
         res = None
         if test_code:
-            res = LabResult.query.filter_by(request_id=req.id, test_code=test_code).first()
+            res = db.session.execute(select(LabResult).filter_by(request_id=req.id, test_code=test_code)).scalars().first()
         if not res:
             res = LabResult(
                 request_id=req.id,
@@ -195,10 +196,10 @@ def api_hl7_import():
 def api_fhir_lab_observation(result_id):
     """تصدير نتيجة مختبر بصيغة FHIR Observation وربطها بـ Encounter"""
     try:
-        res = LabResult.query.filter(LabResult.id == result_id, LabResult.tenant_id == g.tenant_id).first()
+        res = db.session.execute(select(LabResult).filter(LabResult.id == result_id, LabResult.tenant_id == g.tenant_id)).scalars().first()
         if not res:
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'LabResult not found'}]}), 404
-        req = LabRequest.query.filter(LabRequest.id == res.request_id, LabRequest.tenant_id == g.tenant_id).first()
+        req = db.session.execute(select(LabRequest).filter(LabRequest.id == res.request_id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
         visit_id = req.visit_id if req else None
 
         # تحويل الحالة إلى FHIR
@@ -246,10 +247,10 @@ def api_fhir_lab_observation(result_id):
 def api_fhir_lab_diagnostic_report(result_id):
     """تصدير تقرير مختبر بصيغة FHIR DiagnosticReport وربطه بـ Encounter"""
     try:
-        res = LabResult.query.filter(LabResult.id == result_id, LabResult.tenant_id == g.tenant_id).first()
+        res = db.session.execute(select(LabResult).filter(LabResult.id == result_id, LabResult.tenant_id == g.tenant_id)).scalars().first()
         if not res:
             return jsonify({'resourceType': 'OperationOutcome', 'issue': [{'severity': 'error', 'diagnostics': 'تعذر العثور على نتيجة المختبر المطلوبة'}]}), 404
-        req = LabRequest.query.filter(LabRequest.id == res.request_id, LabRequest.tenant_id == g.tenant_id).first()
+        req = db.session.execute(select(LabRequest).filter(LabRequest.id == res.request_id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
         visit_id = req.visit_id if req else None
 
         status_map = {

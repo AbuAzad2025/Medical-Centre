@@ -15,11 +15,12 @@ from models.file_management import FileUpload
 from models.system_config import SystemConfig
 from services.core_queries import core_queries
 from services.radiology_service import radiology_service
-from app_factory import db
+from app.extensions import db
 from app.shared.enums import OrderState
 import logging, json, os, base64, secrets
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
+from sqlalchemy import select, func
 
 
 # =============================================
@@ -44,16 +45,16 @@ def dashboard():
         today_requests = rstats["today_requests"]
         pending_requests = rstats["pending"]
         completed_today = rstats["completed_today"]
-        requested_count = RadiologyRequest.query.filter(
+        requested_count = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
             RadiologyRequest.status == OrderState.REQUESTED
-        ).count()
-        in_progress_count = RadiologyRequest.query.filter(
+        )).scalar()
+        in_progress_count = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
             RadiologyRequest.status == OrderState.IN_PROGRESS
-        ).count()
-        done_today_count = RadiologyRequest.query.filter(
+        )).scalar()
+        done_today_count = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
             RadiologyRequest.status == OrderState.DONE,
             db.func.date(RadiologyRequest.updated_at) == date.today()
-        ).count()
+        )).scalar()
         # Imported here to avoid circular import during blueprint registration.
         from routes.radiology import (
             get_radiology_smart_analytics,
@@ -71,7 +72,7 @@ def dashboard():
         report_analysis = get_radiology_report_analysis()
         workflow_automation = get_radiology_workflow_automation()
         predictive_insights = get_radiology_predictive_insights()
-        recent_requests = RadiologyRequest.query.order_by(RadiologyRequest.created_at.desc()).limit(10).all()
+        recent_requests = db.session.execute(select(RadiologyRequest).order_by(RadiologyRequest.created_at.desc()).limit(10)).scalars().all()
         stats = {
             'today_requests': today_requests,
             'pending_requests': pending_requests,

@@ -3,11 +3,12 @@ SSO Service - SSO/LDAP configuration management.
 Extracted from routes/sso_routes.py.
 """
 from __future__ import annotations
+from sqlalchemy import select
 
 import logging
 from typing import Any
 
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit
 from utils.tenant_query import get_tenant_record, TenantContextError
 
@@ -18,12 +19,12 @@ class SSOService:
     @staticmethod
     def get_configs() -> list:
         from models import SSOConfiguration
-        return SSOConfiguration.query.all()
+        return db.session.execute(select(SSOConfiguration)).scalars().all()
 
     @staticmethod
     def get_active_configs() -> list:
         from models import SSOConfiguration
-        return SSOConfiguration.query.filter_by(is_active=True).all()
+        return db.session.execute(select(SSOConfiguration).filter_by(is_active=True)).scalars().all()
 
     @staticmethod
     def get_config(config_id: int) -> Any | None:

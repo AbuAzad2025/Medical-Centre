@@ -17,8 +17,8 @@ from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from services.gatekeeper_service import GatekeeperService
 from services.manager_service import manager_service
-from app_factory import db
-from sqlalchemy import func
+from app.extensions import db
+from sqlalchemy import func, select
 from decimal import Decimal, ROUND_HALF_UP
 import logging
 from datetime import datetime, date, timedelta, timezone
@@ -34,7 +34,7 @@ from datetime import datetime, date, timedelta, timezone
 def departments():
     """إدارة الأقسام"""
     try:
-        departments = Department.query.filter(Department.tenant_id == current_user.tenant_id).all()
+        departments = db.session.execute(select(Department).filter(Department.tenant_id == current_user.tenant_id)).scalars().all()
         return render_template('manager/departments.html', departments=departments)
     except Exception as e:
         logging.error(f"Error loading departments: {str(e)}")

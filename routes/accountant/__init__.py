@@ -3,7 +3,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, abort
 from flask_login import login_required, current_user
 from utils.decorators import role_required
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, select
 from models.patient import Patient
 from models.visit import Visit
 from models.payment import Payment
@@ -12,7 +12,7 @@ from models.user import User
 from services.report_service import ReportService
 from utils.decorators import accountant_only, can_access_financial_reports
 from app.shared.enums import InsuranceClaimStatus, InvoiceStatus
-from app_factory import db
+from app.extensions import db
 import logging
 from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
@@ -37,49 +37,49 @@ def get_accounting_smart_analytics():
         month_ago = today - timedelta(days=30)
 
         # تحليل المدفوعات
-        total_payments = Payment.query.filter(
+        total_payments = db.session.execute(select(func.count()).select_from(Payment).filter(
             Payment.tenant_id == current_user.tenant_id
-        ).count()
-        today_payments = Payment.query.filter(
+        )).scalar()
+        today_payments = db.session.execute(select(func.count()).select_from(Payment).filter(
             Payment.tenant_id == current_user.tenant_id,
             func.date(Payment.created_at) == today
-        ).count()
+        )).scalar()
         
         # تحليل الفواتير
-        total_invoices = Invoice.query.filter(
+        total_invoices = db.session.execute(select(func.count()).select_from(Invoice).filter(
             Invoice.tenant_id == current_user.tenant_id
-        ).count()
-        open_invoices = Invoice.query.filter(
+        )).scalar()
+        open_invoices = db.session.execute(select(func.count()).select_from(Invoice).filter(
             Invoice.tenant_id == current_user.tenant_id,
             Invoice.status == InvoiceStatus.ISSUED
-        ).count()
-        paid_invoices = Invoice.query.filter(
+        )).scalar()
+        paid_invoices = db.session.execute(select(func.count()).select_from(Invoice).filter(
             Invoice.tenant_id == current_user.tenant_id,
             Invoice.status == InvoiceStatus.PAID
-        ).count()
+        )).scalar()
         
         # معدل التحصيل
         collection_rate = (paid_invoices / total_invoices * 100) if total_invoices > 0 else 0
         
         # تحليل طرق الدفع
-        payment_methods = db.session.query(
+        payment_methods = db.session.execute(select(
             Payment.method,
             func.count(Payment.id).label('count'),
             func.sum(Payment.amount).label('total')
         ).filter(
             Payment.tenant_id == current_user.tenant_id
-        ).group_by(Payment.method).all()
+        ).group_by(Payment.method)).scalars().all()
         
         # تحليل الاتجاهات
-        weekly_trend = Payment.query.filter(
+        weekly_trend = db.session.execute(select(func.count()).select_from(Payment).filter(
             Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(week_ago, datetime.min.time())
-        ).count()
+        )).scalar()
         
-        monthly_trend = Payment.query.filter(
+        monthly_trend = db.session.execute(select(func.count()).select_from(Payment).filter(
             Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(month_ago, datetime.min.time())
-        ).count()
+        )).scalar()
 
         return {
             'total_payments': total_payments,
@@ -109,13 +109,13 @@ def get_financial_forecasting():
             month_start = datetime.now().replace(day=1) - timedelta(days=30*i)
             month_end = month_start + timedelta(days=30)
             
-            monthly_revenue = db.session.query(func.sum(Payment.amount)).filter(
+            monthly_revenue = db.session.execute(select(func.sum(Payment.amount)).filter(
                 and_(
                     Payment.tenant_id == current_user.tenant_id,
                     Payment.created_at >= month_start,
                     Payment.created_at < month_end
                 )
-            ).scalar() or 0
+            )).scalar() or 0
             
             monthly_data.append({
                 'month': month_start.strftime('%Y-%m'),
@@ -153,31 +153,31 @@ def get_cash_flow_analysis():
         month_ago = today - timedelta(days=30)
 
         # التدفق النقدي اليومي
-        daily_cash_flow = db.session.query(
+        daily_cash_flow = db.session.execute(select(
             func.date(Payment.created_at).label('date'),
             func.sum(Payment.amount).label('amount')
         ).filter(
             Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(week_ago, datetime.min.time())
-        ).group_by(func.date(Payment.created_at)).all()
+        ).group_by(func.date(Payment.created_at))).scalars().all()
 
         # تحليل التدفق الأسبوعي
-        weekly_inflow = db.session.query(func.sum(Payment.amount)).filter(
+        weekly_inflow = db.session.execute(select(func.sum(Payment.amount)).filter(
             Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(week_ago, datetime.min.time())
-        ).scalar() or 0
+        )).scalar() or 0
 
         # تحليل التدفق الشهري
-        monthly_inflow = db.session.query(func.sum(Payment.amount)).filter(
+        monthly_inflow = db.session.execute(select(func.sum(Payment.amount)).filter(
             Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(month_ago, datetime.min.time())
-        ).scalar() or 0
+        )).scalar() or 0
 
         # تحليل المبالغ المستحقة
-        pending_amount = db.session.query(func.sum(Invoice.total_amount - Invoice.paid_amount)).filter(
+        pending_amount = db.session.execute(select(func.sum(Invoice.total_amount - Invoice.paid_amount)).filter(
             Invoice.tenant_id == current_user.tenant_id,
             Invoice.status == InvoiceStatus.ISSUED
-        ).scalar() or 0
+        )).scalar() or 0
 
         return {
             'daily_cash_flow': [{'date': str(d.date), 'amount': float(d.amount)} for d in daily_cash_flow],
@@ -197,39 +197,39 @@ def get_payment_optimization():
         from sqlalchemy import func
 
         # تحليل طرق الدفع
-        payment_method_analysis = db.session.query(
+        payment_method_analysis = db.session.execute(select(
             Payment.method,
             func.count(Payment.id).label('count'),
             func.avg(Payment.amount).label('avg_amount'),
             func.sum(Payment.amount).label('total_amount')
         ).filter(
             Payment.tenant_id == current_user.tenant_id
-        ).group_by(Payment.method).all()
+        ).group_by(Payment.method)).scalars().all()
 
         # تحليل أوقات الدفع (متوافق مع أكثر من محرك قاعدة بيانات)
         try:
-            payment_times = db.session.query(
+            payment_times = db.session.execute(select(
                 func.extract('hour', Payment.created_at).label('hour'),
                 func.count(Payment.id).label('count')
             ).filter(
                 Payment.tenant_id == current_user.tenant_id
-            ).group_by(func.extract('hour', Payment.created_at)).all()
+            ).group_by(func.extract('hour', Payment.created_at))).scalars().all()
         except Exception:
-            payment_times = db.session.query(
+            payment_times = db.session.execute(select(
                 func.extract('hour', Payment.created_at).label('hour'),
                 func.count(Payment.id).label('count')
             ).filter(
                 Payment.tenant_id == current_user.tenant_id
-            ).group_by(func.extract('hour', Payment.created_at)).all()
+            ).group_by(func.extract('hour', Payment.created_at))).scalars().all()
 
         # تحليل المدفوعات المتأخرة
-        late_payments = Invoice.query.filter(
+        late_payments = db.session.execute(select(func.count()).select_from(Invoice).filter(
             and_(
                 Invoice.tenant_id == current_user.tenant_id,
                 Invoice.status == InvoiceStatus.ISSUED,
                 Invoice.created_at < datetime.now() - timedelta(days=30)
             )
-        ).count()
+        )).scalar()
 
         # اقتراحات التحسين
         optimization_suggestions = generate_payment_optimization_suggestions(
@@ -259,27 +259,27 @@ def get_financial_health_monitoring():
         from sqlalchemy import func, and_
 
         # مؤشرات الصحة المالية
-        total_revenue = db.session.query(func.sum(Payment.amount)).filter(
+        total_revenue = db.session.execute(select(func.sum(Payment.amount)).filter(
             Payment.tenant_id == current_user.tenant_id
-        ).scalar() or 0
-        total_invoices = Invoice.query.filter(
+        )).scalar() or 0
+        total_invoices = db.session.execute(select(func.count()).select_from(Invoice).filter(
             Invoice.tenant_id == current_user.tenant_id
-        ).count()
-        paid_invoices = Invoice.query.filter(
+        )).scalar()
+        paid_invoices = db.session.execute(select(func.count()).select_from(Invoice).filter(
             Invoice.tenant_id == current_user.tenant_id,
             Invoice.status == InvoiceStatus.PAID
-        ).count()
+        )).scalar()
         
         # معدل التحصيل
         collection_rate = (paid_invoices / total_invoices * 100) if total_invoices > 0 else 0
         
         # المبالغ المستحقة
-        outstanding_amount = db.session.query(
+        outstanding_amount = db.session.execute(select(
             func.sum(Invoice.total_amount - Invoice.paid_amount)
         ).filter(
             Invoice.tenant_id == current_user.tenant_id,
             Invoice.status == InvoiceStatus.ISSUED
-        ).scalar() or 0
+        )).scalar() or 0
 
         # تحليل المخاطر
         risk_indicators = analyze_financial_risks(collection_rate, outstanding_amount, total_revenue)
@@ -361,7 +361,7 @@ def calculate_accounting_efficiency(collection_rate, open_invoices):
     try:
         efficiency = (collection_rate * 0.7) + ((100 - open_invoices) * 0.3)
         return min(100, max(0, round(efficiency, 2)))
-    except:
+    except (TypeError, ValueError):
         return 0
 
 def analyze_seasonal_patterns(monthly_data):
@@ -386,7 +386,7 @@ def analyze_seasonal_patterns(monthly_data):
             'confidence': min(100, len(monthly_data) * 20),
             'avg_revenue': round(avg_revenue, 2)
         }
-    except:
+    except (KeyError, TypeError, ValueError, ZeroDivisionError):
         return {'pattern': 'غير محدد', 'confidence': 0}
 
 def calculate_growth_rate(monthly_data):
@@ -403,7 +403,7 @@ def calculate_growth_rate(monthly_data):
         
         growth = ((recent - previous) / previous) * 100
         return round(growth, 2)
-    except:
+    except (KeyError, TypeError, ValueError, ZeroDivisionError):
         return 0
 
 def calculate_cash_flow_health(weekly_inflow, pending_amount):
@@ -421,7 +421,7 @@ def calculate_cash_flow_health(weekly_inflow, pending_amount):
             return 60
         else:
             return 40
-    except:
+    except (TypeError, ValueError, ZeroDivisionError):
         return 0
 
 def generate_payment_optimization_suggestions(payment_methods, late_payments):
@@ -462,7 +462,7 @@ def calculate_payment_efficiency(payment_methods):
         # كفاءة بناءً على تنوع طرق الدفع
         method_diversity = len(payment_methods) / 3 * 100  # 3 طرق دفع مثالية
         return min(100, round(method_diversity, 2))
-    except:
+    except (TypeError, ValueError, ZeroDivisionError, AttributeError):
         return 0
 
 def analyze_financial_risks(collection_rate, outstanding_amount, total_revenue):
@@ -479,7 +479,7 @@ def analyze_financial_risks(collection_rate, outstanding_amount, total_revenue):
         if not risks:
             risks.append({'type': 'لا توجد مخاطر', 'level': 'منخفض', 'description': 'الوضع المالي مستقر'})
             
-    except:
+    except (TypeError, ValueError):
         risks.append({'type': 'خطأ في التحليل', 'level': 'غير محدد', 'description': 'تعذر تحليل المخاطر'})
     
     return risks
@@ -510,7 +510,7 @@ def generate_financial_alerts(collection_rate, outstanding_amount):
                 'priority': 'low'
             })
             
-    except:
+    except (TypeError, ValueError):
         alerts.append({
             'type': 'خطأ',
             'message': 'تعذر تحليل التنبيهات',
@@ -538,7 +538,7 @@ def calculate_financial_health_score(collection_rate, outstanding_amount):
         # المتوسط المرجح
         health_score = (collection_score * 0.6) + (outstanding_score * 0.4)
         return round(health_score, 2)
-    except:
+    except (TypeError, ValueError):
         return 0
 
 
@@ -551,31 +551,31 @@ def calculate_financial_health_score(collection_rate, outstanding_amount):
 def get_revenue_cycle_metrics():
     try:
         from models.insurance import InsuranceClaim
-        total_claims = InsuranceClaim.query.filter(
+        total_claims = db.session.execute(select(func.count()).select_from(InsuranceClaim).filter(
             InsuranceClaim.tenant_id == current_user.tenant_id
-        ).count()
-        submitted = InsuranceClaim.query.filter(
+        )).scalar()
+        submitted = db.session.execute(select(func.count()).select_from(InsuranceClaim).filter(
             InsuranceClaim.tenant_id == current_user.tenant_id,
             InsuranceClaim.status == InsuranceClaimStatus.SUBMITTED
-        ).count()
-        approved = InsuranceClaim.query.filter(
+        )).scalar()
+        approved = db.session.execute(select(func.count()).select_from(InsuranceClaim).filter(
             InsuranceClaim.tenant_id == current_user.tenant_id,
             InsuranceClaim.status == InsuranceClaimStatus.APPROVED
-        ).count()
-        rejected = InsuranceClaim.query.filter(
+        )).scalar()
+        rejected = db.session.execute(select(func.count()).select_from(InsuranceClaim).filter(
             InsuranceClaim.tenant_id == current_user.tenant_id,
             InsuranceClaim.status == InsuranceClaimStatus.REJECTED
-        ).count()
-        paid = InsuranceClaim.query.filter(
+        )).scalar()
+        paid = db.session.execute(select(func.count()).select_from(InsuranceClaim).filter(
             InsuranceClaim.tenant_id == current_user.tenant_id,
             InsuranceClaim.status == InsuranceClaimStatus.PAID
-        ).count()
-        outstanding = db.session.query(
+        )).scalar()
+        outstanding = db.session.execute(select(
             db.func.sum(Invoice.total_amount - Invoice.paid_amount)
         ).filter(
             Invoice.tenant_id == current_user.tenant_id,
             Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
-        ).scalar() or 0
+        )).scalar() or 0
         return {
             'total_claims': int(total_claims or 0),
             'submitted': int(submitted or 0),
@@ -589,9 +589,9 @@ def get_revenue_cycle_metrics():
 
 def get_erp_integration_status():
     try:
-        last_sync = Payment.query.filter(
+        last_sync = db.session.execute(select(Payment).filter(
             Payment.tenant_id == current_user.tenant_id
-        ).order_by(Payment.created_at.desc()).first()
+        ).order_by(Payment.created_at.desc())).scalars().first()
         return {
             'status': 'active' if last_sync else 'idle',
             'last_sync': last_sync.created_at.isoformat() if last_sync and last_sync.created_at else None
@@ -601,18 +601,18 @@ def get_erp_integration_status():
 
 def get_margin_analytics():
     try:
-        total_revenue = db.session.query(db.func.sum(Payment.amount)).filter(
+        total_revenue = db.session.execute(select(db.func.sum(Payment.amount)).filter(
             Payment.tenant_id == current_user.tenant_id
-        ).scalar() or 0
-        issued_invoices = Invoice.query.filter(
+        )).scalar() or 0
+        issued_invoices = db.session.execute(select(func.count()).select_from(Invoice).filter(
             Invoice.tenant_id == current_user.tenant_id,
             Invoice.status.in_([InvoiceStatus.ISSUED, InvoiceStatus.PAID])
-        ).count()
+        )).scalar()
         collection_rate = 0
-        total_invoiced = db.session.query(db.func.sum(Invoice.total_amount)).filter(
+        total_invoiced = db.session.execute(select(db.func.sum(Invoice.total_amount)).filter(
             Invoice.tenant_id == current_user.tenant_id,
             Invoice.status.in_([InvoiceStatus.ISSUED, InvoiceStatus.PAID])
-        ).scalar() or 0
+        )).scalar() or 0
         if total_invoiced:
             collection_rate = (float(total_revenue) / float(total_invoiced)) * 100
         gross_margin = float(total_revenue) * 0.25

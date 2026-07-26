@@ -11,6 +11,7 @@ from app.shared.enums import BackupStatus
 from utils.db_safety import safe_commit
 from models.backup import Backup
 from services.pg_backup_service import PgBackupError, build_backup_path, run_pg_dump_sql_gz
+from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
@@ -30,13 +31,10 @@ class BackupAutomationService:
         if env_id.isdigit():
             return int(env_id)
         from models.user import User
-        actor = (
-            User.query.filter_by(role='super_admin', is_active=True)
-            .order_by(User.id)
-            .first()
-        )
+        actor = db.session.execute(select(User).filter_by(role='super_admin', is_active=True)
+            .order_by(User.id)).scalars().first()
         if actor is None:
-            actor = User.query.filter_by(is_active=True).order_by(User.id).first()
+            actor = db.session.execute(select(User).filter_by(is_active=True).order_by(User.id)).scalars().first()
         return actor.id if actor else None
 
     @classmethod

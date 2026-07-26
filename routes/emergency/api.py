@@ -16,9 +16,9 @@ from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
 from services.emergency_service import emergency_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
-from sqlalchemy import and_, or_, desc, case
+from sqlalchemy import and_, or_, desc, case, select
 import logging, json
 from datetime import datetime, date, timedelta, timezone
 
@@ -44,7 +44,7 @@ def api_ems_intake():
         last_name = ' '.join(parts[1:]) if len(parts) > 1 else '-'
         patient = None
         if phone:
-            patient = Patient.query.filter_by(phone=phone).first()
+            patient = db.session.execute(select(Patient).filter_by(phone=phone)).scalars().first()
         if not patient:
             patient = Patient(first_name=first_name, last_name=last_name, phone=phone or None)
             db.session.add(patient)

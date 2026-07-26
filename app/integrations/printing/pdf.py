@@ -1,6 +1,7 @@
 """
 PDF Report Printer — A4 medical reports with Arabic support
 """
+from app.extensions import db
 import logging
 import os
 from io import BytesIO
@@ -249,7 +250,7 @@ class PDFReportPrinter:
         if request_obj and hasattr(request_obj, 'tenant_id') and request_obj.tenant_id:
             try:
                 from app.core.tenant.models import Tenant
-                t = Tenant.query.get(request_obj.tenant_id)
+                t = db.session.get(Tenant, request_obj.tenant_id)
                 if t:
                     tenant_name = t.name or t.name_ar or ''
                     tenant_logo = t.logo_url or ''

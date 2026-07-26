@@ -1,6 +1,7 @@
 """
 InventoryLedgerService — mandatory stock ledger for every movement
 """
+from sqlalchemy import select
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
@@ -47,9 +48,9 @@ class InventoryLedgerService:
     def current_stock(medication_id: int, tenant_id: int | None = None) -> int:
         tid = tenant_id or getattr(g, 'tenant_id', None)
         from app.modules.workflows.stock_models import StockMovement
-        movements = StockMovement.query.filter_by(
+        movements = db.session.execute(select(StockMovement).filter_by(
             medication_id=medication_id, tenant_id=tid
-        ).all()
+        )).scalars().all()
         stock = 0
         for m in movements:
             if m.movement_type in ('purchase', 'return', 'adjustment'):
@@ -64,7 +65,7 @@ class InventoryLedgerService:
         tid = tenant_id or getattr(g, 'tenant_id', None)
         from models.medication import Medication
         alerts = []
-        medications = Medication.query.filter_by(tenant_id=tid).all()
+        medications = db.session.execute(select(Medication).filter_by(tenant_id=tid)).scalars().all()
         for med in medications:
             stock = InventoryLedgerService.current_stock(med.id, tid)
             min_stock = getattr(med, 'minimum_stock', threshold) or threshold

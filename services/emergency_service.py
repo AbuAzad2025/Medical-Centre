@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, date, timezone
 from typing import Any
 
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit
-from sqlalchemy import and_, or_, case
+from sqlalchemy import and_, or_, case, select
 from services.feature_gate_service import require_module
 
 
@@ -69,37 +69,47 @@ class EmergencyService:
     @require_module('emergency')
     def get_case(case_id: int):
         from models.emergency import EmergencyCase
-        return EmergencyCase.query.filter_by(id=case_id).first()
+        return db.session.execute(select(EmergencyCase).filter_by(id=case_id)).scalars().first()
 
     @staticmethod
     @require_module('emergency')
     def get_cases_by_status(status: str, limit: int = 50) -> list:
         from models.emergency import EmergencyCase
-        return EmergencyCase.query.filter_by(status=status).order_by(
+        return db.session.execute(select(EmergencyCase).filter_by(status=status).order_by(
             EmergencyCase.created_at.desc()
-        ).limit(limit).all()
+        ).limit(limit)).scalars().all()
 
     @staticmethod
     @require_module('emergency')
     def get_patient_cases(patient_id: int) -> list:
         from models.emergency import EmergencyCase
-        return EmergencyCase.query.filter_by(patient_id=patient_id).order_by(
+        return db.session.execute(select(EmergencyCase).filter_by(patient_id=patient_id).order_by(
             EmergencyCase.created_at.desc()
-        ).all()
+        )).scalars().all()
 
     @staticmethod
     @require_module('emergency')
     def get_triage_stats() -> dict:
         from models.emergency import EmergencyCase
+        from sqlalchemy import func
         today_start = datetime.combine(date.today(), datetime.min.time())
         active = ["WAITING", "TRIAGE", "TREATMENT", "IN_PROGRESS", "OBSERVATION", "RESUSCITATION"]
-        base = EmergencyCase.query.filter(EmergencyCase.created_at >= today_start)
+        def _count(severity):
+            return db.session.execute(
+                select(func.count()).select_from(EmergencyCase).where(
+                    EmergencyCase.severity == severity,
+                    EmergencyCase.status.in_(active),
+                )
+            ).scalar() or 0
+        total = db.session.execute(
+            select(func.count()).select_from(EmergencyCase)
+        ).scalar() or 0
         return {
-            "critical": base.filter(EmergencyCase.severity == "CRITICAL", EmergencyCase.status.in_(active)).count(),
-            "high": base.filter(EmergencyCase.severity == "HIGH", EmergencyCase.status.in_(active)).count(),
-            "medium": base.filter(EmergencyCase.severity == "MODERATE", EmergencyCase.status.in_(active)).count(),
-            "low": base.filter(EmergencyCase.severity == "LOW", EmergencyCase.status.in_(active)).count(),
-            "total_today": base.count(),
+            "critical": _count("CRITICAL"),
+            "high": _count("HIGH"),
+            "medium": _count("MODERATE"),
+            "low": _count("LOW"),
+            "total_today": total,
         }
 
     # ==================== CASE MANAGEMENT ====================
@@ -112,7 +122,10 @@ class EmergencyService:
         diagnosis: str | None = None, notes: str | None = None,
     ) -> Any | None:
         from models.emergency import EmergencyCase
+        from models.patient import Patient
         try:
+            if not db.session.execute(select(Patient).filter_by(id=patient_id)).scalars().first():
+                return None
             now = datetime.now(timezone.utc)
             case_number = f"ER-{now.strftime('%Y%m%d%H%M%S')}-{patient_id}"
             case = EmergencyCase(
@@ -137,7 +150,7 @@ class EmergencyService:
     @require_module('emergency')
     def update_case_status(case_id: int, status: str) -> bool:
         from models.emergency import EmergencyCase
-        case = EmergencyCase.query.filter_by(id=case_id).first()
+        case = db.session.execute(select(EmergencyCase).filter_by(id=case_id)).scalars().first()
         if not case:
             return False
         case.status = status
@@ -153,7 +166,7 @@ class EmergencyService:
         # via the linked visit. Persisting the assignment here requires a schema/
         # migration decision, so this method only advances the case status.
         from models.emergency import EmergencyCase
-        case = EmergencyCase.query.filter_by(id=case_id).first()
+        case = db.session.execute(select(EmergencyCase).filter_by(id=case_id)).scalars().first()
         if not case:
             return False
         case.status = "TREATMENT"
@@ -168,7 +181,7 @@ class EmergencyService:
         case_id: int, priority: str, vital_signs: dict | None = None
     ) -> bool:
         from models.emergency import EmergencyCase
-        case = EmergencyCase.query.filter_by(id=case_id).first()
+        case = db.session.execute(select(EmergencyCase).filter_by(id=case_id)).scalars().first()
         if not case:
             return False
         # priority is a property that maps onto the real `severity` column

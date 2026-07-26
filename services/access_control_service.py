@@ -12,7 +12,7 @@ from models.lab_request import LabResult
 from models.radiology_result import RadiologyResult
 from models.payment import Payment
 from app.shared.enums import VisitState, VisitArchiveStatus
-from app_factory import db
+from app.extensions import db
 from utils.tenant_query import get_tenant_record, TenantContextError
 import logging
 from datetime import datetime, timedelta, timezone
@@ -191,25 +191,25 @@ class AccessControlService:
             
             # المدير والمدير العام والاستقبال يمكنهم رؤية جميع الزيارات
             if user.is_admin_user() or user.role == 'reception' or user.role == 'manager':
-                return Visit.query.all()
+                return db.session.execute(select(Visit)).scalars().all()
             
             # الأطباء يمكنهم عرض جميع الزيارات دون تعديل
             if user.role == 'doctor':
-                return Visit.query.all()
+                return db.session.execute(select(Visit)).scalars().all()
             
             # المختبر والأشعة يرون الزيارات الموجهة لهم
             if user.role == 'lab':
-                return Visit.query.filter(Visit.lab_tests_ordered == True).all()
+                return db.session.execute(select(Visit).filter(Visit.lab_tests_ordered == True)).scalars().all()
             elif user.role == 'radiology':
-                return Visit.query.filter(Visit.radiology_ordered == True).all()
+                return db.session.execute(select(Visit).filter(Visit.radiology_ordered == True)).scalars().all()
             
             # الطوارئ يرون حالات الطوارئ
             if user.role == 'emergency':
-                return Visit.query.filter(Visit.is_emergency == True).all()
+                return db.session.execute(select(Visit).filter(Visit.is_emergency == True)).scalars().all()
 
             # المحاسب يرى الزيارات ذات الصلة المالية فقط
             if user.role == 'accountant':
-                return db.session.query(Visit).join(Payment, Payment.visit_id == Visit.id).distinct().all()
+                return db.session.execute(select(Visit).join(Payment, Payment.visit_id == Visit.id).distinct()).scalars().all()
             
             return []
             
@@ -228,26 +228,26 @@ class AccessControlService:
             
             # المدير والمدير العام والاستقبال يمكنهم رؤية جميع المرضى
             if user.is_admin_user() or user.role == 'reception' or user.role == 'manager':
-                return Patient.query.all()
+                return db.session.execute(select(Patient)).scalars().all()
             
             # الأطباء يمكنهم عرض جميع المرضى دون تعديل
             if user.role == 'doctor':
-                return Patient.query.all()
+                return db.session.execute(select(Patient)).scalars().all()
             
             # الممرضين يرون مرضى الأطباء الذين يعملون معهم
             if user.role == 'nurse':
                 # يمكن تطوير هذا لاحقاً حسب العلاقات
-                return Patient.query.all()
+                return db.session.execute(select(Patient)).scalars().all()
             
             # المختبر والأشعة يرون المرضى المرتبطين بفحوصاتهم
             if user.role == 'lab':
-                return Patient.query.join(Visit, Visit.patient_id == Patient.id).filter(Visit.lab_tests_ordered == True).distinct().all()
+                return db.session.execute(select(Patient).join(Visit, Visit.patient_id == Patient.id).filter(Visit.lab_tests_ordered == True).distinct()).scalars().all()
             if user.role == 'radiology':
-                return Patient.query.join(Visit, Visit.patient_id == Patient.id).filter(Visit.radiology_ordered == True).distinct().all()
+                return db.session.execute(select(Patient).join(Visit, Visit.patient_id == Patient.id).filter(Visit.radiology_ordered == True).distinct()).scalars().all()
 
             # المحاسب يرى المرضى الذين لديهم عمليات دفع
             if user.role == 'accountant':
-                return Patient.query.join(Payment, Payment.patient_id == Patient.id).distinct().all()
+                return db.session.execute(select(Patient).join(Payment, Payment.patient_id == Patient.id).distinct()).scalars().all()
 
             return []
             
@@ -404,18 +404,21 @@ class AccessControlService:
 
             ids = []
             try:
-                from sqlalchemy import inspect
-                insp = inspect(db.engine)
-                if insp.has_table('roles') and insp.has_table('department_permissions'):
-                    from models.permissions import Role
-                    from models.advanced_permissions import DepartmentPermission
-                    role = Role.query.filter_by(name=user.role, is_active=True).first()
-                    if role:
-                        global_row = DepartmentPermission.query.filter_by(role_id=role.id, department_id=None).first()
-                        if global_row and global_row.can_access:
-                            return None
-                        rows = DepartmentPermission.query.filter_by(role_id=role.id).filter(DepartmentPermission.department_id.isnot(None), DepartmentPermission.can_access == True).all()
-                        ids.extend([int(r.department_id) for r in rows if r.department_id])
+                from sqlalchemy import select, func
+                from models.permissions import Role
+                from models.advanced_permissions import DepartmentPermission
+                role = db.session.execute(select(Role).where(Role.name == user.role, Role.is_active == True)).scalars().first()
+                if role:
+                    global_row = db.session.execute(
+                        select(DepartmentPermission).where(
+                            DepartmentPermission.role_id == role.id,
+                            DepartmentPermission.department_id.is_(None)
+                        )
+                    ).scalars().first()
+                    if global_row and global_row.can_access:
+                        return None
+                    rows = db.session.execute(select(DepartmentPermission).where(DepartmentPermission.role_id == role.id, DepartmentPermission.department_id.isnot(None), DepartmentPermission.can_access == True)).scalars().all()
+                    ids.extend([int(r.department_id) for r in rows if r.department_id])
             except Exception:
                 pass
 
@@ -427,7 +430,7 @@ class AccessControlService:
 
             try:
                 from models.user_department_access import UserDepartmentAccess
-                extra = UserDepartmentAccess.query.filter_by(user_id=user.id, can_access=True).all()
+                extra = db.session.execute(select(UserDepartmentAccess).where(UserDepartmentAccess.user_id == user.id, UserDepartmentAccess.can_access == True)).scalars().all()
                 for r in extra:
                     try:
                         ids.append(int(r.department_id))
@@ -479,14 +482,14 @@ class AccessControlService:
                 if insp.has_table('department_permissions') and insp.has_table('roles'):
                     from models.permissions import Role
                     from models.advanced_permissions import DepartmentPermission
-                    role = Role.query.filter_by(name=user.role, is_active=True).first()
+                    role = db.session.execute(select(Role).filter_by(name=user.role, is_active=True)).scalars().first()
                     if not role:
                         return True
-                    has_any = (DepartmentPermission.query.filter_by(role_id=role.id).count() or 0) > 0
+                    has_any = (db.session.execute(select(func.count()).select_from(DepartmentPermission).filter_by(role_id=role.id)).scalar() or 0) > 0
                     if not has_any:
                         return True
-                    global_row = DepartmentPermission.query.filter_by(role_id=role.id, department_id=None).first()
-                    row = DepartmentPermission.query.filter_by(role_id=role.id, department_id=dep_id).first()
+                    global_row = db.session.execute(select(DepartmentPermission).filter_by(role_id=role.id, department_id=None)).scalars().first()
+                    row = db.session.execute(select(DepartmentPermission).filter_by(role_id=role.id, department_id=dep_id)).scalars().first()
                     if action == 'access':
                         return bool((row and row.can_access) or (global_row and global_row.can_access))
                     if action == 'patients':

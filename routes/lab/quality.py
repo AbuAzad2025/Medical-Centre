@@ -16,11 +16,12 @@ from models.lab_reagent import LabReagent
 from models.audit_trail import AuditTrail
 from app.shared.enums import OrderState, LabResultStatus
 from services.lab_service import lab_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging, json, base64
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
+from sqlalchemy import select, func
 
 
 # =============================================
@@ -45,29 +46,24 @@ def quality():
     start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
     end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
 
-    done_requests_q = LabRequest.query.filter(
-        LabRequest.status == OrderState.DONE,
-        LabRequest.completed_at.isnot(None),
-        LabRequest.completed_at >= start_dt,
-        LabRequest.completed_at <= end_dt
-    )
+    done_requests_q = select(LabRequest)
 
     total_done_requests = done_requests_q.count()
 
     try:
-        avg_tat_seconds = db.session.query(
+        avg_tat_seconds = db.session.execute(select(
             db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
         ).filter(
             LabRequest.status == OrderState.DONE,
             LabRequest.completed_at.isnot(None),
-        ).scalar()
+        )).scalar()
     except Exception:
         safe_rollback(db.session, error_message="database rollback")
         avg_tat_seconds = None
     
     avg_tat_minutes = float(avg_tat_seconds or 0) / 60.0 if avg_tat_seconds is not None else 0.0
 
-    total_validated_results = db.session.query(db.func.count(LabResult.id)).join(
+    total_validated_results = db.session.execute(select(db.func.count(LabResult.id)).join(
         LabRequest, LabRequest.id == LabResult.request_id
     ).filter(
         LabRequest.status == OrderState.DONE,
@@ -75,9 +71,9 @@ def quality():
         LabRequest.completed_at >= start_dt,
         LabRequest.completed_at <= end_dt,
         LabResult.status == LabResultStatus.VALIDATED
-    ).scalar() or 0
+    )).scalar() or 0
 
-    critical_validated_results = db.session.query(db.func.count(LabResult.id)).join(
+    critical_validated_results = db.session.execute(select(db.func.count(LabResult.id)).join(
         LabRequest, LabRequest.id == LabResult.request_id
     ).filter(
         LabRequest.status == OrderState.DONE,
@@ -86,13 +82,13 @@ def quality():
         LabRequest.completed_at <= end_dt,
         LabResult.status == LabResultStatus.VALIDATED,
         LabResult.is_critical == True
-    ).scalar() or 0
+    )).scalar() or 0
 
     critical_ratio = (float(critical_validated_results) / float(total_validated_results)) if total_validated_results else 0.0
 
     repeats = []
     try:
-        dup_groups = db.session.query(
+        dup_groups = db.session.execute(select(
             LabResult.patient_id.label('patient_id'),
             LabResult.test_code.label('test_code'),
             db.func.count(LabResult.id).label('cnt')
@@ -104,7 +100,7 @@ def quality():
             LabRequest.completed_at >= start_dt,
             LabRequest.completed_at <= end_dt,
             LabResult.status == LabResultStatus.VALIDATED
-        ).group_by(LabResult.patient_id, LabResult.test_code).having(db.func.count(LabResult.id) > 1).order_by(db.func.count(LabResult.id).desc()).limit(25).all()
+        ).group_by(LabResult.patient_id, LabResult.test_code).having(db.func.count(LabResult.id) > 1).order_by(db.func.count(LabResult.id).desc()).limit(25)).scalars().all()
         for g in dup_groups:
             repeats.append({'patient_id': g.patient_id, 'test_code': g.test_code, 'count': int(g.cnt or 0)})
     except Exception:
@@ -112,7 +108,7 @@ def quality():
 
     test_tat_rows = []
     try:
-        rows = db.session.query(
+        rows = db.session.execute(select(
             LabResult.test_code.label('test_code'),
             db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at)).label('avg_sec'),
             db.func.count(db.func.distinct(LabRequest.id)).label('requests_count'),
@@ -124,7 +120,7 @@ def quality():
             LabRequest.completed_at >= start_dt,
             LabRequest.completed_at <= end_dt,
             LabResult.status == LabResultStatus.VALIDATED
-        ).group_by(LabResult.test_code).order_by(db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at)).desc()).limit(30).all()
+        ).group_by(LabResult.test_code).order_by(db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at)).desc()).limit(30)).scalars().all()
         for r in rows:
             test_tat_rows.append({
                 'test_code': r.test_code,
@@ -134,15 +130,15 @@ def quality():
     except Exception:
         test_tat_rows = []
 
-    qc_fail_count = LabQualityControlEntry.query.filter(
+    qc_fail_count = db.session.execute(select(func.count()).select_from(LabQualityControlEntry).filter(
         LabQualityControlEntry.recorded_at >= start_dt,
         LabQualityControlEntry.recorded_at <= end_dt,
         LabQualityControlEntry.status == 'FAIL'
-    ).count()
-    qc_total_count = LabQualityControlEntry.query.filter(
+    )).scalar()
+    qc_total_count = db.session.execute(select(func.count()).select_from(LabQualityControlEntry).filter(
         LabQualityControlEntry.recorded_at >= start_dt,
         LabQualityControlEntry.recorded_at <= end_dt
-    ).count()
+    )).scalar()
 
     return render_template(
         'lab/quality.html',
@@ -204,5 +200,5 @@ def quality_control():
             flash('حدث خطأ أثناء الحفظ', 'error')
             return redirect(url_for('lab.quality_control'))
 
-    entries = LabQualityControlEntry.query.order_by(LabQualityControlEntry.recorded_at.desc()).limit(300).all()
+    entries = db.session.execute(select(LabQualityControlEntry).order_by(LabQualityControlEntry.recorded_at.desc()).limit(300)).scalars().all()
     return render_template('lab/quality_control.html', entries=entries)

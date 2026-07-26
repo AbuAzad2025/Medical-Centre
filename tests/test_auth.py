@@ -16,7 +16,7 @@ class TestAuth:
     def test_login_success(self, client, test_user, test_tenant):
         resp = client.post('/auth/login', data={
             'username': 'pharmacist_test',
-            'password': 'test123',
+            'password': 'ValidPass123!',
             'tenant_slug': test_tenant.slug,
         })
         assert resp.status_code == 302
@@ -36,7 +36,7 @@ class TestAuth:
         db.session.commit()
         resp = client.post('/auth/login', data={
             'username': 'pharmacist_test',
-            'password': 'test123',
+            'password': 'ValidPass123!',
         })
         assert resp.status_code == 200
         assert 'غير مفعل' in resp.data.decode('utf-8')

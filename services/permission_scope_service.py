@@ -1,6 +1,8 @@
 """
 Permission Scope Service - resolves what data a user can access based on module roles
 """
+from sqlalchemy import select
+from app.extensions import db
 from typing import List, Optional
 from flask import g
 from utils.tenant_query import get_tenant_record, TenantContextError
@@ -20,7 +22,7 @@ class PermissionScopeService:
         except TenantContextError:
             return []
         if hasattr(user, 'is_super_admin') and user.is_super_admin:
-            return [t.id for t in Tenant.query.all()]
+            return [t.id for t in db.session.execute(select(Tenant)).scalars().all()]
         if hasattr(user, 'tenant_id') and user.tenant_id:
             return [user.tenant_id]
         return []
@@ -45,14 +47,14 @@ class PermissionScopeService:
         if not tid:
             return []
 
-        features = TenantFeatureFlag.query.filter_by(tenant_id=tid, is_active=True).all()
+        features = db.session.execute(select(TenantFeatureFlag).filter_by(tenant_id=tid, is_active=True)).scalars().all()
         enabled_modules = [f.module for f in features if f.module]
 
         role_id = user.role_id if hasattr(user, 'role_id') else None
         if not role_id:
             return enabled_modules
 
-        perms = ModulePermission.query.filter_by(role_id=role_id).all()
+        perms = db.session.execute(select(ModulePermission).filter_by(role_id=role_id)).scalars().all()
         permitted_modules = [p.module_name for p in perms if p.can_view]
 
         return [m for m in enabled_modules if m in permitted_modules]

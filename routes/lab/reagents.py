@@ -15,11 +15,12 @@ from models.lab_quality import LabQualityControlEntry
 from models.lab_reagent import LabReagent
 from models.audit_trail import AuditTrail
 from services.lab_service import lab_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging, json, base64
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
+from sqlalchemy import select
 
 
 # =============================================
@@ -123,7 +124,7 @@ def add_reagent():
 @login_required
 @role_required('lab', 'admin', 'manager')
 def edit_reagent(reagent_id: int):
-    reagent = LabReagent.query.filter(LabReagent.id == reagent_id, LabReagent.tenant_id == g.tenant_id).first()
+    reagent = db.session.execute(select(LabReagent).filter(LabReagent.id == reagent_id, LabReagent.tenant_id == g.tenant_id)).scalars().first()
     if not reagent:
         flash('المادة غير موجودة', 'error')
         return redirect(url_for('lab.reagents'))

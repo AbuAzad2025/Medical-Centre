@@ -1,12 +1,13 @@
 """
 Referral Management Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors, role_required
 from models.referral import Referral
 from models.patient import Patient
-from app_factory import db
+from app.extensions import db
 
 referral_bp = Blueprint('referral', __name__)
 
@@ -17,9 +18,9 @@ referral_bp = Blueprint('referral', __name__)
 @handle_route_errors
 def list_referrals():
     status = request.args.get('status', 'PENDING')
-    items = Referral.query.filter_by(status=status).order_by(
+    items = db.session.execute(select(Referral).filter_by(status=status).order_by(
         Referral.created_at.desc()
-    ).limit(200).all()
+    ).limit(200)).scalars().all()
     return render_template('referral/list.html', referrals=items, status=status)
 
 @referral_bp.route('/detail/<int:referral_id>')
@@ -27,5 +28,5 @@ def list_referrals():
 @role_required('doctor', 'nurse', 'admin', 'manager')
 @handle_route_errors
 def detail(referral_id):
-    ref = Referral.query.get_or_404(referral_id)
+    ref = db.get_or_404(Referral, referral_id)
     return render_template('referral/detail.html', referral=ref)

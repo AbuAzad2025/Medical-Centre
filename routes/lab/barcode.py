@@ -4,13 +4,14 @@ from datetime import datetime, timezone
 from flask import jsonify, redirect, render_template, request, url_for, g
 from flask_login import current_user, login_required
 
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from models.barcode_tracking import BarcodeRegistry, BarcodeScanLog
 from models.lab_request import LabRequest
 from routes.lab import lab_bp
 from services.barcode_service import generate_lab_barcode, register_in_barcode_registry
 from utils.decorators import role_required
+from sqlalchemy import select
 
 
 @lab_bp.route('/barcode/scan/<barcode>', methods=['GET', 'POST'])
@@ -18,7 +19,7 @@ from utils.decorators import role_required
 @role_required('lab', 'technician', 'nurse', 'admin')
 def barcode_scan(barcode):
     """Scan a barcode — lookup LabRequest, log scan, optionally update status."""
-    lab_request = LabRequest.query.filter_by(barcode=barcode).first()
+    lab_request = db.session.execute(select(LabRequest).filter_by(barcode=barcode)).scalars().first()
 
     if request.method == 'GET':
         if lab_request:
@@ -32,9 +33,9 @@ def barcode_scan(barcode):
     if not lab_request:
         return jsonify({'success': False, 'message': 'لم يتم العثور على طلب'}), 404
 
-    registry = BarcodeRegistry.query.filter_by(
+    registry = db.session.execute(select(BarcodeRegistry).filter_by(
         barcode_value=barcode, entity_type='SPECIMEN', is_active=True
-    ).first()
+    )).scalars().first()
 
     scan_log = BarcodeScanLog(
         barcode_registry_id=registry.id if registry else None,
@@ -68,7 +69,7 @@ def barcode_scan(barcode):
 @role_required('lab', 'technician', 'nurse', 'admin')
 def barcode_print(request_id):
     """Show a print page with the barcode QR image."""
-    lab_request = LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
+    lab_request = db.session.execute(select(LabRequest).filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
     if not lab_request:
         return jsonify({'success': False, 'message': 'الطلب غير موجود'}), 404
 

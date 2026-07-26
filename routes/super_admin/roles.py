@@ -11,7 +11,7 @@ from utils.decorators import super_admin_required
 from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
-from sqlalchemy import func
+from sqlalchemy import func, select
 from utils.db_safety import safe_commit, safe_rollback
 
 
@@ -32,7 +32,7 @@ def roles():
     """عرض جميع الأدوار"""
     try:
         from models.permissions import Role
-        roles = Role.query.all()
+        roles = db.session.execute(select(Role)).scalars().all()
         return render_template('super_admin/roles.html', roles=roles, mode='list')
     except Exception as e:
         logging.error(f"Error loading roles: {str(e)}")
@@ -56,7 +56,7 @@ def create_role():
                 is_active=bool(request.form.get('is_active'))
             )
             
-            from app_factory import db
+            from app.extensions import db
             db.session.add(role)
             db.session.flush()  # للحصول على ID
             
@@ -75,14 +75,14 @@ def create_role():
             return redirect(url_for('super_admin.roles'))
             
         except Exception as e:
-            from app_factory import db
+            from app.extensions import db
             safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Create role error: {str(e)}")
             flash('تعذر إنشاء الدور، يرجى المحاولة مرة أخرى', 'error')
     
     # جلب الصلاحيات المتاحة
     from models.permissions import Permission
-    permissions = Permission.query.all()
+    permissions = db.session.execute(select(Permission)).scalars().all()
     
     return render_template('super_admin/roles.html', permissions=permissions, mode='create')
 
@@ -93,7 +93,7 @@ def edit_role(role_id):
     """تعديل دور"""
     try:
         from models.permissions import Role, Permission, RolePermission
-        from app_factory import db
+        from app.extensions import db
         
         role = db.session.get(Role, role_id)
         if not role:
@@ -107,7 +107,7 @@ def edit_role(role_id):
             role.is_active = bool(request.form.get('is_active'))
             
             # حذف الصلاحيات القديمة
-            RolePermission.query.filter_by(role_id=role.id).delete()
+            select(RolePermission).delete()
             
             # إضافة الصلاحيات الجديدة
             permissions = request.form.getlist('permissions')
@@ -124,8 +124,8 @@ def edit_role(role_id):
             return redirect(url_for('super_admin.roles'))
         
         # جلب الصلاحيات المتاحة والصلاحيات الحالية للدور
-        all_permissions = Permission.query.all()
-        role_permissions = [rp.permission_id for rp in RolePermission.query.filter_by(role_id=role.id).all()]
+        all_permissions = db.session.execute(select(Permission)).scalars().all()
+        role_permissions = [rp.permission_id for rp in db.session.execute(select(RolePermission).filter_by(role_id=role.id)).scalars().all()]
         
         return render_template('super_admin/roles.html', 
                              role=role,
@@ -134,7 +134,7 @@ def edit_role(role_id):
                              mode='edit')
         
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Edit role error: {str(e)}")
         flash('تعذر تحديث الدور، يرجى المحاولة مرة أخرى', 'error')
@@ -147,7 +147,7 @@ def manage_role_permissions(role_id):
     """إدارة صلاحيات الدور"""
     try:
         from models.permissions import Role, Permission, RolePermission
-        from app_factory import db
+        from app.extensions import db
         
         role = db.session.get(Role, role_id)
         if not role:
@@ -155,7 +155,7 @@ def manage_role_permissions(role_id):
         
         if request.method == 'POST':
             # حذف الصلاحيات الحالية
-            RolePermission.query.filter_by(role_id=role_id).delete()
+            select(RolePermission).delete()
             
             # إضافة الصلاحيات الجديدة
             selected_permissions = request.form.getlist('permissions')
@@ -171,8 +171,8 @@ def manage_role_permissions(role_id):
             flash('تم تحديث صلاحيات الدور بنجاح', 'success')
             return redirect(url_for('super_admin.roles'))
         
-        all_permissions = Permission.query.all()
-        role_permissions = [rp.permission_id for rp in RolePermission.query.filter_by(role_id=role_id).all()]
+        all_permissions = db.session.execute(select(Permission)).scalars().all()
+        role_permissions = [rp.permission_id for rp in db.session.execute(select(RolePermission).filter_by(role_id=role_id)).scalars().all()]
         
         return render_template('super_admin/role_permissions.html',
                              role=role,
@@ -180,7 +180,7 @@ def manage_role_permissions(role_id):
                              role_permissions=role_permissions)
         
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Manage role permissions error: {str(e)}")
         flash('حدث خطأ في إدارة صلاحيات الدور', 'error')
@@ -192,7 +192,7 @@ def manage_role_permissions(role_id):
 @super_admin_required
 def manage_role_department_permissions(role_id):
     try:
-        from app_factory import db
+        from app.extensions import db
         from sqlalchemy import inspect
         insp = inspect(db.engine)
         if not (insp.has_table('roles') and insp.has_table('departments') and insp.has_table('department_permissions')):
@@ -207,10 +207,10 @@ def manage_role_department_permissions(role_id):
         if not role:
             abort(404)
 
-        departments = Department.query.filter_by(is_active=True).order_by(Department.name_ar.asc()).all()
+        departments = db.session.execute(select(Department).filter_by(is_active=True).order_by(Department.name_ar.asc())).scalars().all()
 
         if request.method == 'POST':
-            DepartmentPermission.query.filter_by(role_id=role_id).delete()
+            select(DepartmentPermission).delete()
 
             def _bool(name: str) -> bool:
                 return str(request.form.get(name) or '').lower() in {'1', 'true', 'on', 'yes'}
@@ -262,7 +262,7 @@ def manage_role_department_permissions(role_id):
             flash('تم تحديث صلاحيات الأقسام للدور', 'success')
             return redirect(url_for('super_admin.manage_role_department_permissions', role_id=role_id))
 
-        existing = DepartmentPermission.query.filter_by(role_id=role_id).all()
+        existing = db.session.execute(select(DepartmentPermission).filter_by(role_id=role_id)).scalars().all()
         perm_map = {}
         for r in existing:
             perm_map[r.department_id] = r
@@ -280,7 +280,7 @@ def manage_role_department_permissions(role_id):
 @super_admin_required
 def permissions_matrix():
     try:
-        from app_factory import db
+        from app.extensions import db
         from sqlalchemy import inspect
         insp = inspect(db.engine)
         if not (insp.has_table('roles') and insp.has_table('permissions') and insp.has_table('role_permissions')):
@@ -296,12 +296,12 @@ def permissions_matrix():
         except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
-        roles = Role.query.filter_by(is_active=True).order_by(Role.id.asc()).all()
-        permissions = Permission.query.filter_by(is_active=True).order_by(Permission.category.asc(), Permission.level.asc(), Permission.name.asc()).all()
+        roles = db.session.execute(select(Role).filter_by(is_active=True).order_by(Role.id.asc())).scalars().all()
+        permissions = db.session.execute(select(Permission).filter_by(is_active=True).order_by(Permission.category.asc(), Permission.level.asc(), Permission.name.asc())).scalars().all()
 
         if request.method == 'POST':
             for role in roles:
-                RolePermission.query.filter_by(role_id=role.id).delete()
+                select(RolePermission).delete()
                 selected = request.form.getlist(f'role_{role.id}_permissions')
                 for pid in selected:
                     try:
@@ -312,7 +312,7 @@ def permissions_matrix():
             flash('تم تحديث مصفوفة الصلاحيات', 'success')
             return redirect(url_for('super_admin.permissions_matrix'))
 
-        rp = RolePermission.query.filter(RolePermission.role_id.in_([r.id for r in roles])).all() if roles else []
+        rp = db.session.execute(select(RolePermission).filter(RolePermission.role_id.in_([r.id for r in roles]))).scalars().all() if roles else []
         matrix = {}
         for row in rp:
             matrix.setdefault(row.role_id, set()).add(row.permission_id)
@@ -331,7 +331,7 @@ def delete_role(role_id):
     """حذف دور"""
     try:
         from models.permissions import Role, RolePermission
-        from app_factory import db
+        from app.extensions import db
         
         role = db.session.get(Role, role_id)
         if not role:
@@ -343,7 +343,7 @@ def delete_role(role_id):
             return redirect(url_for('super_admin.roles'))
         
         # حذف صلاحيات الدور أولاً
-        RolePermission.query.filter_by(role_id=role.id).delete()
+        select(RolePermission).delete()
         
         db.session.delete(role)
         safe_commit(db.session, error_message="database commit failed", reraise=True)
@@ -352,7 +352,7 @@ def delete_role(role_id):
         return redirect(url_for('super_admin.roles'))
         
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Delete role error: {str(e)}")
         flash('تعذر حذف الدور، يرجى المحاولة مرة أخرى', 'error')
@@ -365,7 +365,7 @@ def permissions():
     """إدارة الصلاحيات"""
     try:
         from models.permissions import Permission
-        permissions = Permission.query.all()
+        permissions = db.session.execute(select(Permission)).scalars().all()
         return render_template('super_admin/permissions.html', permissions=permissions)
     except Exception as e:
         logging.error(f"Permissions error: {str(e)}")
@@ -379,7 +379,7 @@ def create_permission():
     """إنشاء صلاحية جديدة"""
     try:
         from models.permissions import Permission
-        from app_factory import db
+        from app.extensions import db
         
         permission = Permission(
             name=request.form.get('name'),
@@ -396,7 +396,7 @@ def create_permission():
         return redirect(url_for('super_admin.permissions'))
         
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Create permission error: {str(e)}")
         flash('حدث خطأ في إنشاء الصلاحية', 'error')
@@ -409,7 +409,7 @@ def edit_permission(permission_id):
     """تعديل صلاحية"""
     try:
         from models.permissions import Permission
-        from app_factory import db
+        from app.extensions import db
         
         permission = db.session.get(Permission, permission_id)
         if not permission:
@@ -427,7 +427,7 @@ def edit_permission(permission_id):
         return redirect(url_for('super_admin.permissions'))
         
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Edit permission error: {str(e)}")
         flash('حدث خطأ في تعديل الصلاحية', 'error')
@@ -440,7 +440,7 @@ def delete_permission(permission_id):
     """حذف صلاحية"""
     try:
         from models.permissions import Permission
-        from app_factory import db
+        from app.extensions import db
         
         permission = db.session.get(Permission, permission_id)
         if not permission:
@@ -453,7 +453,7 @@ def delete_permission(permission_id):
         return redirect(url_for('super_admin.permissions'))
         
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Delete permission error: {str(e)}")
         flash('حدث خطأ في حذف الصلاحية', 'error')
@@ -464,7 +464,7 @@ def delete_permission(permission_id):
 def create_role_simple():
     """إنشاء دور جديد (مبسط)"""
     try:
-        from app_factory import db
+        from app.extensions import db
         from models.permissions import Role
         from flask_wtf.csrf import validate_csrf
         
@@ -485,7 +485,7 @@ def create_role_simple():
         return redirect(url_for('super_admin.users'))
         
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Create role error: {str(e)}")
         flash('حدث خطأ في إنشاء الدور', 'error')
@@ -497,7 +497,7 @@ def create_role_simple():
 def create_permission_simple():
     """إنشاء صلاحية جديدة (مبسط)"""
     try:
-        from app_factory import db
+        from app.extensions import db
         from models.permissions import Permission, PermissionCategory, PermissionLevel
         from flask_wtf.csrf import validate_csrf
         
@@ -517,7 +517,7 @@ def create_permission_simple():
         return redirect(url_for('super_admin.users'))
         
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Create permission error: {str(e)}")
         flash('حدث خطأ في إنشاء الصلاحية', 'error')

@@ -5,7 +5,7 @@ from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 import json
 from flask import current_app, render_template, render_template_string, jsonify, request, flash, redirect, url_for
-from sqlalchemy import text
+from sqlalchemy import text, select, func
 from flask_login import login_required, current_user
 from app.modules.owner import owner_bp
 from app.extensions import db
@@ -56,7 +56,7 @@ def _log_action(action, entity_type, entity_id=None, details=None):
 
 def _compute_platform_revenue():
     """MRR/ARR snapshot for owner billing dashboard."""
-    all_tenants = Tenant.query.all()
+    all_tenants = db.session.execute(select(Tenant)).scalars().all()
     mrr = 0.0
     for t in all_tenants:
         if t.is_active_and_paid() and t.plan:
@@ -82,8 +82,8 @@ def owner_dashboard():
     """لوحة تحكم المنصة — SaaS metrics"""
 
 
-    all_tenants = Tenant.query.order_by(Tenant.created_at.desc()).all()
-    plans = SubscriptionPlan.query.all()
+    all_tenants = db.session.execute(select(Tenant).order_by(Tenant.created_at.desc())).scalars().all()
+    plans = db.session.execute(select(SubscriptionPlan)).scalars().all()
 
     tenant_count = len(all_tenants)
     active_today = sum(1 for t in all_tenants if t.is_active_and_paid())
@@ -177,19 +177,19 @@ def owner_dashboard():
 
     # Support tickets summary for chart
     ticket_counts = {
-        'open': SupportTicket.query.filter_by(status='open').count(),
-        'in_progress': SupportTicket.query.filter_by(status='in_progress').count(),
-        'resolved': SupportTicket.query.filter_by(status='resolved').count(),
-        'closed': SupportTicket.query.filter_by(status='closed').count(),
+        'open': db.session.execute(select(func.count()).select_from(SupportTicket).filter_by(status='open')).scalar(),
+        'in_progress': db.session.execute(select(func.count()).select_from(SupportTicket).filter_by(status='in_progress')).scalar(),
+        'resolved': db.session.execute(select(func.count()).select_from(SupportTicket).filter_by(status='resolved')).scalar(),
+        'closed': db.session.execute(select(func.count()).select_from(SupportTicket).filter_by(status='closed')).scalar(),
     }
     ticket_labels = ['مفتوحة', 'قيد المعالجة', 'محلولة', 'مغلقة']
     ticket_data = [ticket_counts['open'], ticket_counts['in_progress'], ticket_counts['resolved'], ticket_counts['closed']]
 
     # Recent audit logs
-    recent_logs = PlatformAuditLog.query.order_by(PlatformAuditLog.created_at.desc()).limit(5).all()
+    recent_logs = db.session.execute(select(PlatformAuditLog).order_by(PlatformAuditLog.created_at.desc()).limit(5)).scalars().all()
 
     # Top resource consumers
-    top_resources = ResourceUsage.query.order_by(ResourceUsage.db_size_mb.desc()).limit(5).all()
+    top_resources = db.session.execute(select(ResourceUsage).order_by(ResourceUsage.db_size_mb.desc()).limit(5)).scalars().all()
 
     return render_template('owner/dashboard.html',
                            tenant_count=tenant_count,
@@ -237,7 +237,7 @@ def owner_create_tenant():
 def owner_tenant_detail(tenant_id):
 
 
-    tenant = Tenant.query.get_or_404(tenant_id)
+    tenant = db.get_or_404(Tenant, tenant_id)
 
     # Handle POST: create a user for this tenant
     if request.method == "POST" and request.form.get("action") == "create_user":
@@ -248,7 +248,7 @@ def owner_tenant_detail(tenant_id):
             try:
                 from werkzeug.security import generate_password_hash
                 from models.user import User as UserModel
-                existing = UserModel.query.filter_by(tenant_id=tenant_id, username=username).first()
+                existing = db.session.execute(select(UserModel).filter_by(tenant_id=tenant_id, username=username)).scalars().first()
                 if existing:
                     flash("اسم المستخدم موجود بالفعل", "error")
                 else:
@@ -275,13 +275,13 @@ def owner_tenant_detail(tenant_id):
 
     active_modules = get_active_modules_for_tenant(tenant_id)
     from app.core.tenant.models import TenantFeatureFlag, get_bundle_for_profile, check_tenant_limits
-    feature_flags = TenantFeatureFlag.query.filter_by(tenant_id=tenant_id).all()
+    feature_flags = db.session.execute(select(TenantFeatureFlag).filter_by(tenant_id=tenant_id)).scalars().all()
     enabled_feature_keys = {f.feature_key for f in feature_flags if f.is_enabled}
     from app.core.module.registry import MODULE_REGISTRY, get_all_module_names
     all_modules = get_all_module_names()
     bundle = get_bundle_for_profile(tenant.product_profile_code) if tenant.product_profile_code else None
-    plans = SubscriptionPlan.query.filter_by(is_active=True).order_by(SubscriptionPlan.base_price).all()
-    bundles = ProductBundle.query.filter_by(is_active=True).order_by(ProductBundle.name).all()
+    plans = db.session.execute(select(SubscriptionPlan).filter_by(is_active=True).order_by(SubscriptionPlan.base_price)).scalars().all()
+    bundles = db.session.execute(select(ProductBundle).filter_by(is_active=True).order_by(ProductBundle.name)).scalars().all()
     available_features = sorted(list(set([
         'multi_branch', 'advanced_reports', 'patient_portal', 'telemedicine',
         'insurance_integration', 'lab_integration', 'radiology_integration',
@@ -302,7 +302,7 @@ def owner_tenant_detail(tenant_id):
         bundle_name = bundle.name_ar or bundle.name
     user_count = len(tenant.users)
     from models.patient import Patient
-    patient_count = Patient.query.filter_by(tenant_id=tenant_id).count()
+    patient_count = db.session.execute(select(func.count()).select_from(Patient).filter_by(tenant_id=tenant_id)).scalar()
     return render_template('owner/tenant_detail.html',
                            tenant=tenant,
                            active_modules=list(active_modules),
@@ -323,7 +323,7 @@ def owner_tenant_detail(tenant_id):
 @owner_required
 def owner_activate_default_modules(tenant_id):
     """Activate default modules for a tenant based on their bundle/profile."""
-    tenant = Tenant.query.get_or_404(tenant_id)
+    tenant = db.get_or_404(Tenant, tenant_id)
     from app.core.tenant.models import get_default_modules_for_profile
     from app.core.module.models import TenantModule
     profile_code = tenant.product_profile_code
@@ -336,7 +336,7 @@ def owner_activate_default_modules(tenant_id):
         default_modules = get_all_module_names()
     activated = 0
     for m in default_modules:
-        tm = TenantModule.query.filter_by(tenant_id=tenant_id, module_name=m).first()
+        tm = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, module_name=m)).scalars().first()
         if tm:
             if not tm.is_active:
                 tm.is_active = True
@@ -356,7 +356,7 @@ def owner_activate_default_modules(tenant_id):
 @owner_required
 def owner_edit_tenant(tenant_id):
     """Update core tenant details + sync bundle modules if profile changed."""
-    tenant = Tenant.query.get_or_404(tenant_id)
+    tenant = db.get_or_404(Tenant, tenant_id)
     try:
         data = request.form
         tenant.name = data.get('name', tenant.name).strip()
@@ -387,13 +387,13 @@ def owner_edit_tenant(tenant_id):
                 from app.core.module.registry import get_all_module_names
                 default_modules = get_all_module_names()
             # Deactivate modules not in the new profile
-            active_tms = TenantModule.query.filter_by(tenant_id=tenant_id, is_active=True).all()
+            active_tms = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True)).scalars().all()
             for tm in active_tms:
                 if tm.module_name not in default_modules:
                     tm.is_active = False
             # Activate new profile modules
             for m in default_modules:
-                tm = TenantModule.query.filter_by(tenant_id=tenant_id, module_name=m).first()
+                tm = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, module_name=m)).scalars().first()
                 if tm:
                     if not tm.is_active:
                         tm.is_active = True
@@ -402,17 +402,17 @@ def owner_edit_tenant(tenant_id):
                     db.session.add(TenantModule(tenant_id=tenant_id, module_name=m, is_active=True, activated_at=datetime.now(timezone.utc)))
             # Sync with ProductBundle modules (more specific than profile defaults)
             try:
-                bundle = ProductBundle.query.filter_by(profile_code=tenant.product_profile_code, is_active=True).first()
+                bundle = db.session.execute(select(ProductBundle).filter_by(profile_code=tenant.product_profile_code, is_active=True)).scalars().first()
                 if bundle:
                     bundle_modules = bundle.get_modules()
                     if bundle_modules:
                         from app.core.module.models import TenantModule
-                        active_tms = TenantModule.query.filter_by(tenant_id=tenant_id, is_active=True).all()
+                        active_tms = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True)).scalars().all()
                         for tm in active_tms:
                             if tm.module_name not in bundle_modules:
                                 tm.is_active = False
                         for m in bundle_modules:
-                            tm = TenantModule.query.filter_by(tenant_id=tenant_id, module_name=m).first()
+                            tm = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, module_name=m)).scalars().first()
                             if tm:
                                 if not tm.is_active:
                                     tm.is_active = True
@@ -439,10 +439,10 @@ def owner_edit_tenant(tenant_id):
 @owner_required
 def owner_toggle_tenant_feature(tenant_id, feature_key):
     """Toggle a feature flag for a tenant."""
-    tenant = Tenant.query.get_or_404(tenant_id)
+    tenant = db.get_or_404(Tenant, tenant_id)
     try:
         from app.core.tenant.models import TenantFeatureFlag
-        flag = TenantFeatureFlag.query.filter_by(tenant_id=tenant_id, feature_key=feature_key).first()
+        flag = db.session.execute(select(TenantFeatureFlag).filter_by(tenant_id=tenant_id, feature_key=feature_key)).scalars().first()
         if flag:
             flag.is_enabled = not flag.is_enabled
             flag.updated_at = datetime.now(timezone.utc)
@@ -492,8 +492,8 @@ def owner_users():
 
     pagination = query.order_by(User.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     users = pagination.items
-    tenants = Tenant.query.order_by(Tenant.name).all()
-    roles = sorted({r[0] for r in db.session.query(User.role).distinct() if r[0]})
+    tenants = db.session.execute(select(Tenant).order_by(Tenant.name)).scalars().all()
+    roles = sorted({r[0] for r in db.session.execute(select(User.role).distinct()).scalars() if r[0]})
     return render_template('owner/users.html', users=users, pagination=pagination, tenants=tenants, roles=roles, search=search, role_filter=role_filter, tenant_filter=tenant_filter)
 
 
@@ -503,7 +503,7 @@ def owner_users():
 def owner_edit_user(user_id):
     """Edit a user across tenants."""
     from models.user import User
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
     try:
         data = request.form
         user.full_name = data.get('full_name', user.full_name).strip()
@@ -514,7 +514,7 @@ def owner_edit_user(user_id):
         new_tenant_id = data.get('tenant_id', type=int)
         if new_tenant_id and new_tenant_id != user.tenant_id:
             # Ensure username/email uniqueness in new tenant
-            existing = User.query.filter_by(tenant_id=new_tenant_id, username=user.username).first()
+            existing = db.session.execute(select(User).filter_by(tenant_id=new_tenant_id, username=user.username)).scalars().first()
             if existing and existing.id != user.id:
                 flash('اسم المستخدم موجود في المنشأة المحددة', 'error')
                 return redirect(url_for('owner.owner_users'))
@@ -536,7 +536,7 @@ def owner_reset_user_password(user_id):
     from models.user import User
     from werkzeug.security import generate_password_hash
     import secrets
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
     try:
         new_password = request.form.get('password', '').strip()
         if not new_password:
@@ -563,7 +563,7 @@ def owner_reset_user_password(user_id):
 def owner_delete_user(user_id):
     """Delete a user."""
     from models.user import User
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
     try:
         if user.role in ('super_admin', 'owner'):
             flash('لا يمكن حذف مستخدم مالك/سوبر أدمن', 'error')
@@ -584,7 +584,7 @@ def owner_delete_user(user_id):
 def owner_toggle_user_active(user_id):
     """Toggle user active/suspended status."""
     from models.user import User
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
     try:
         if user.role in ('super_admin', 'owner'):
             flash('لا يمكن تعطيل مستخدم مالك/سوبر أدمن', 'error')
@@ -610,7 +610,7 @@ def owner_reveal_user_password(user_id):
     from models.user import User
     from werkzeug.security import generate_password_hash
     import secrets
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
     try:
         temp_password = secrets.token_urlsafe(8)
         user.password_hash = generate_password_hash(temp_password)
@@ -633,11 +633,11 @@ def owner_modules():
     from app.core.module.models import ModuleDefinition, TenantModule
     from app.core.module.registry import MODULE_REGISTRY
 
-    db_modules = {m.name: m for m in ModuleDefinition.query.all()}
+    db_modules = {m.name: m for m in db.session.execute(select(ModuleDefinition)).scalars().all()}
     modules = []
     for name, meta in MODULE_REGISTRY.items():
         db_mod = db_modules.get(name)
-        tenant_count = TenantModule.query.filter_by(module_name=name, is_active=True).count()
+        tenant_count = db.session.execute(select(func.count()).select_from(TenantModule).filter_by(module_name=name, is_active=True)).scalar()
         modules.append({
             'name': name,
             'name_ar': meta.name_ar or name,
@@ -662,7 +662,7 @@ def owner_toggle_module_global(module_name):
         flash('الوحدة غير موجودة', 'error')
         return redirect(url_for('owner.owner_modules'))
     try:
-        mod = ModuleDefinition.query.filter_by(name=module_name).first()
+        mod = db.session.execute(select(ModuleDefinition).filter_by(name=module_name)).scalars().first()
         if mod:
             mod.is_active = not mod.is_active
             mod.updated_at = datetime.now(timezone.utc)
@@ -692,7 +692,7 @@ def owner_toggle_module_global(module_name):
 def owner_renew_tenant(tenant_id):
 
 
-    tenant = Tenant.query.get_or_404(tenant_id)
+    tenant = db.get_or_404(Tenant, tenant_id)
     try:
         old_plan = tenant.plan_id
         if tenant.plan and tenant.subscription_type == SubscriptionType.MONTHLY:
@@ -729,7 +729,7 @@ def owner_renew_tenant(tenant_id):
 def owner_suspend_tenant(tenant_id):
 
 
-    tenant = Tenant.query.get_or_404(tenant_id)
+    tenant = db.get_or_404(Tenant, tenant_id)
     try:
         TenantProvisioningService.suspend_tenant(
             tenant_id,
@@ -751,7 +751,7 @@ def owner_suspend_tenant(tenant_id):
 def owner_activate_tenant(tenant_id):
 
 
-    tenant = Tenant.query.get_or_404(tenant_id)
+    tenant = db.get_or_404(Tenant, tenant_id)
     try:
         if tenant.status == TenantStatus.SUSPENDED:
             TenantProvisioningService.reactivate_tenant(
@@ -777,7 +777,7 @@ def owner_activate_tenant(tenant_id):
 def owner_plans():
 
 
-    plans = SubscriptionPlan.query.order_by(SubscriptionPlan.created_at.desc()).all()
+    plans = db.session.execute(select(SubscriptionPlan).order_by(SubscriptionPlan.created_at.desc())).scalars().all()
     return render_template('owner/plans.html', plans=plans)
 
 
@@ -812,7 +812,7 @@ def owner_create_plan():
 @owner_required
 def owner_edit_plan(plan_id):
     """Edit a subscription plan."""
-    plan = SubscriptionPlan.query.get_or_404(plan_id)
+    plan = db.get_or_404(SubscriptionPlan, plan_id)
     try:
         data = request.form
         plan.name = data.get('name', plan.name).strip()
@@ -836,7 +836,7 @@ def owner_edit_plan(plan_id):
 @owner_required
 def owner_delete_plan(plan_id):
     """Delete a subscription plan if no tenants are using it."""
-    plan = SubscriptionPlan.query.get_or_404(plan_id)
+    plan = db.get_or_404(SubscriptionPlan, plan_id)
     try:
         if plan.tenants:
             flash('لا يمكن حذف الخطة — هناك عملاء مرتبطون بها', 'error')
@@ -860,7 +860,7 @@ def owner_announcements():
     announcements = []
     try:
         from models.system_config import SystemConfig
-        cfg = SystemConfig.query.filter_by(config_key='owner_announcements').first()
+        cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_announcements')).scalars().first()
         if cfg and cfg.config_value:
             import json
             announcements = json.loads(cfg.config_value)
@@ -882,7 +882,7 @@ def owner_announcements():
             announcements = announcements[:50]
 
             from models.system_config import SystemConfig
-            cfg = SystemConfig.query.filter_by(config_key='owner_announcements').first()
+            cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_announcements')).scalars().first()
             import json
             if cfg:
                 cfg.config_value = json.dumps(announcements)
@@ -916,7 +916,7 @@ def owner_delete_announcement(announcement_id):
     """Delete an announcement by id."""
     try:
         from models.system_config import SystemConfig
-        cfg = SystemConfig.query.filter_by(config_key='owner_announcements').first()
+        cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_announcements')).scalars().first()
         if not cfg or not cfg.config_value:
             flash('لا توجد إعلانات', 'error')
             return redirect(url_for('owner.owner_announcements'))
@@ -961,7 +961,7 @@ def owner_support_tickets():
 def owner_update_ticket(ticket_id):
 
 
-    ticket = SupportTicket.query.get_or_404(ticket_id)
+    ticket = db.get_or_404(SupportTicket, ticket_id)
     try:
         ticket.status = request.form.get('status', ticket.status)
         ticket.priority = request.form.get('priority', ticket.priority)
@@ -1005,7 +1005,7 @@ def owner_audit_logs():
 def owner_resource_usage():
 
 
-    usages = ResourceUsage.query.order_by(ResourceUsage.recorded_at.desc()).limit(100).all()
+    usages = db.session.execute(select(ResourceUsage).order_by(ResourceUsage.recorded_at.desc()).limit(100)).scalars().all()
     return render_template('owner/resource_usage.html', usages=usages)
 
 
@@ -1018,7 +1018,7 @@ def owner_resource_usage():
 def owner_notifications():
 
 
-    rules = NotificationRule.query.order_by(NotificationRule.created_at.desc()).all()
+    rules = db.session.execute(select(NotificationRule).order_by(NotificationRule.created_at.desc())).scalars().all()
     return render_template('owner/notifications.html', rules=rules)
 
 
@@ -1052,7 +1052,7 @@ def owner_create_notification():
 @owner_required
 def owner_delete_notification(rule_id):
     """Delete a notification rule."""
-    rule = NotificationRule.query.get_or_404(rule_id)
+    rule = db.get_or_404(NotificationRule, rule_id)
     try:
         db.session.delete(rule)
         safe_commit(db.session, error_message="database commit failed", reraise=True)
@@ -1069,7 +1069,7 @@ def owner_delete_notification(rule_id):
 @owner_required
 def owner_toggle_notification(rule_id):
     """Toggle is_active on a notification rule."""
-    rule = NotificationRule.query.get_or_404(rule_id)
+    rule = db.get_or_404(NotificationRule, rule_id)
     try:
         rule.is_active = not rule.is_active
         safe_commit(db.session, error_message="database commit failed", reraise=True)
@@ -1093,7 +1093,7 @@ def owner_branding():
     branding = {}
     try:
         from models.system_config import SystemConfig
-        cfg = SystemConfig.query.filter_by(config_key='owner_platform_branding').first()
+        cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_platform_branding')).scalars().first()
         if cfg and cfg.config_value:
             import json
             branding = json.loads(cfg.config_value)
@@ -1112,7 +1112,7 @@ def owner_branding():
                 'meta_description': request.form.get('meta_description', '').strip() or None,
             }
             from models.system_config import SystemConfig
-            cfg = SystemConfig.query.filter_by(config_key='owner_platform_branding').first()
+            cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_platform_branding')).scalars().first()
             import json
             if cfg:
                 cfg.config_value = json.dumps(branding)
@@ -1151,7 +1151,7 @@ def owner_webhooks():
     webhooks = []
     try:
         from models.system_config import SystemConfig
-        cfg_wh = SystemConfig.query.filter_by(config_key='owner_webhooks').first()
+        cfg_wh = db.session.execute(select(SystemConfig).filter_by(config_key='owner_webhooks')).scalars().first()
         if cfg_wh and cfg_wh.config_value:
             webhooks = json.loads(cfg_wh.config_value)
     except Exception:
@@ -1171,7 +1171,7 @@ def owner_webhooks():
                 })
                 webhooks = webhooks[:50]
                 from models.system_config import SystemConfig
-                cfg = SystemConfig.query.filter_by(config_key='owner_webhooks').first()
+                cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_webhooks')).scalars().first()
                 import json
                 if cfg:
                     cfg.config_value = json.dumps(webhooks)
@@ -1197,7 +1197,7 @@ def owner_delete_webhook(webhook_id):
     """Delete a webhook by id."""
     try:
         from models.system_config import SystemConfig
-        cfg = SystemConfig.query.filter_by(config_key='owner_webhooks').first()
+        cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_webhooks')).scalars().first()
         if not cfg or not cfg.config_value:
             flash('لا توجد Webhooks', 'error')
             return redirect(url_for('owner.owner_webhooks'))
@@ -1224,14 +1224,14 @@ def owner_delete_webhook(webhook_id):
 def owner_api_keys_page():
     """إدارة API Keys — صفحة مستقلة (G-141)."""
     api_keys = []
-    tenants = Tenant.query.all()
+    tenants = db.session.execute(select(Tenant)).scalars().all()
     try:
         from models.system_config import SystemConfig
-        cfg_key = SystemConfig.query.filter_by(config_key='owner_api_keys').first()
+        cfg_key = db.session.execute(select(SystemConfig).filter_by(config_key='owner_api_keys')).scalars().first()
         if cfg_key and cfg_key.config_value:
             api_keys_raw = json.loads(cfg_key.config_value)
             for k in api_keys_raw:
-                tenant = Tenant.query.get(k.get('tenant_id'))
+                tenant = db.session.get(Tenant, k.get('tenant_id'))
                 api_keys.append({
                     'name': k.get('name'),
                     'scopes': k.get('scopes'),
@@ -1255,7 +1255,7 @@ def owner_api_keys_page():
                 'created_by': current_user.id,
             }
             from models.system_config import SystemConfig
-            cfg = SystemConfig.query.filter_by(config_key='owner_api_keys').first()
+            cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_api_keys')).scalars().first()
             keys = []
             if cfg and cfg.config_value:
                 keys = json.loads(cfg.config_value)
@@ -1292,7 +1292,7 @@ def owner_delete_api_key(key_id):
     """Delete an API key by id."""
     try:
         from models.system_config import SystemConfig
-        cfg = SystemConfig.query.filter_by(config_key='owner_api_keys').first()
+        cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_api_keys')).scalars().first()
         if not cfg or not cfg.config_value:
             flash('لا توجد مفاتيح', 'error')
             return redirect(url_for('owner.owner_api_keys_page'))
@@ -1342,7 +1342,7 @@ def owner_themes():
             flash(f'خطأ: {e}', 'error')
         return redirect(url_for('owner.owner_themes'))
 
-    themes = SystemTheme.query.order_by(SystemTheme.is_default.desc(), SystemTheme.name_ar).all()
+    themes = db.session.execute(select(SystemTheme).order_by(SystemTheme.is_default.desc(), SystemTheme.name_ar)).scalars().all()
     return render_template('owner/themes.html', themes=themes)
 
 
@@ -1352,7 +1352,7 @@ def owner_themes():
 def owner_delete_theme(theme_id):
     """Delete a theme."""
     from models.branding import SystemTheme
-    theme = SystemTheme.query.get_or_404(theme_id)
+    theme = db.get_or_404(SystemTheme, theme_id)
     try:
         db.session.delete(theme)
         safe_commit(db.session, error_message="database commit failed", reraise=True)
@@ -1371,8 +1371,8 @@ def owner_set_default_theme(theme_id):
     """Set a theme as the default (unset others)."""
     from models.branding import SystemTheme
     try:
-        SystemTheme.query.filter(SystemTheme.is_default == True).update({'is_default': False})
-        theme = SystemTheme.query.get_or_404(theme_id)
+        select(SystemTheme).update({'is_default': False})
+        theme = db.get_or_404(SystemTheme, theme_id)
         theme.is_default = True
         safe_commit(db.session, error_message="database commit failed", reraise=True)
         _log_action('SET_DEFAULT_THEME', 'theme', theme_id, theme.name_ar)
@@ -1389,10 +1389,10 @@ def owner_set_default_theme(theme_id):
 def owner_billing():
     """ملخص الفوترة والإيرادات المتكررة."""
     stats = _compute_platform_revenue()
-    plans = SubscriptionPlan.query.all()
+    plans = db.session.execute(select(SubscriptionPlan)).scalars().all()
     plan_rows = []
     for plan in plans:
-        count = sum(1 for t in Tenant.query.all() if t.plan_id == plan.id and t.is_active_and_paid())
+        count = sum(1 for t in db.session.execute(select(Tenant)).scalars().all() if t.plan_id == plan.id and t.is_active_and_paid())
         plan_rows.append({'plan': plan, 'active_count': count})
     return render_template('owner/billing.html', stats=stats, plan_rows=plan_rows)
 
@@ -1405,7 +1405,7 @@ def owner_billing():
 @owner_required
 def api_tenants():
 
-    tenants = Tenant.query.all()
+    tenants = db.session.execute(select(Tenant)).scalars().all()
     return jsonify([{"id": t.id, "name": t.name, "slug": t.slug, "status": str(t.status)} for t in tenants])
 
 
@@ -1426,7 +1426,7 @@ def api_activate_module(tenant_id, module_name):
     ok, err = can_activate_module(tenant_id, module_name)
     if not ok:
         return jsonify({"error": err}), 400
-    tm = TenantModule.query.filter_by(tenant_id=tenant_id, module_name=module_name).first()
+    tm = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, module_name=module_name)).scalars().first()
     if not tm:
         tm = TenantModule(tenant_id=tenant_id, module_name=module_name)
         db.session.add(tm)
@@ -1442,7 +1442,7 @@ def api_activate_module(tenant_id, module_name):
 @owner_required
 def api_deactivate_module(tenant_id, module_name):
 
-    tm = TenantModule.query.filter_by(tenant_id=tenant_id, module_name=module_name).first()
+    tm = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, module_name=module_name)).scalars().first()
     if tm:
         tm.is_active = False
         tm.deactivated_at = datetime.now(timezone.utc)
@@ -1457,7 +1457,7 @@ def api_deactivate_module(tenant_id, module_name):
 @owner_required
 def api_update_profile(tenant_id):
 
-    tenant = Tenant.query.get(tenant_id)
+    tenant = db.session.get(Tenant, tenant_id)
     if not tenant:
         return jsonify({"error": "Tenant not found"}), 404
     profile_code = request.json.get("product_profile") or request.form.get("product_profile")
@@ -1480,7 +1480,7 @@ def api_update_profile(tenant_id):
 def api_toggle_feature(tenant_id, feature_key):
 
     from app.core.tenant.models import TenantFeatureFlag
-    flag = TenantFeatureFlag.query.filter_by(tenant_id=tenant_id, feature_key=feature_key).first()
+    flag = db.session.execute(select(TenantFeatureFlag).filter_by(tenant_id=tenant_id, feature_key=feature_key)).scalars().first()
     if not flag:
         flag = TenantFeatureFlag(tenant_id=tenant_id, feature_key=feature_key, is_enabled=True)
         db.session.add(flag)
@@ -1503,7 +1503,7 @@ def api_toggle_feature(tenant_id, feature_key):
 @owner_required
 def owner_bundles():
     """إدارة الباقات (HTML)"""
-    bundles = ProductBundle.query.order_by(ProductBundle.monthly_price).all()
+    bundles = db.session.execute(select(ProductBundle).order_by(ProductBundle.monthly_price)).scalars().all()
     return render_template('owner/bundles.html', bundles=bundles)
 
 
@@ -1517,7 +1517,7 @@ def owner_bundles():
 def api_list_bundles():
     """List all product bundles."""
 
-    bundles = ProductBundle.query.filter_by(is_active=True).order_by(ProductBundle.monthly_price).all()
+    bundles = db.session.execute(select(ProductBundle).filter_by(is_active=True).order_by(ProductBundle.monthly_price)).scalars().all()
     return jsonify([{
         "id": b.id,
         "slug": b.slug,
@@ -1546,7 +1546,7 @@ def api_list_bundles():
 def api_get_bundle(bundle_id):
     """Get a single bundle detail."""
 
-    b = ProductBundle.query.get(bundle_id)
+    b = db.session.get(ProductBundle, bundle_id)
     if not b:
         return jsonify({"error": "الباقة غير موجودة"}), 404
     return jsonify({
@@ -1616,7 +1616,7 @@ def api_create_bundle():
 def api_update_bundle(bundle_id):
     """Update a product bundle."""
 
-    b = ProductBundle.query.get(bundle_id)
+    b = db.session.get(ProductBundle, bundle_id)
     if not b:
         return jsonify({"error": "الباقة غير موجودة"}), 404
     try:
@@ -1653,7 +1653,7 @@ def api_update_bundle(bundle_id):
 def api_delete_bundle(bundle_id):
     """Delete (deactivate) a product bundle."""
 
-    b = ProductBundle.query.get(bundle_id)
+    b = db.session.get(ProductBundle, bundle_id)
     if not b:
         return jsonify({"error": "الباقة غير موجودة"}), 404
     try:
@@ -1692,10 +1692,10 @@ def api_provision_tenant():
         if not all([slug, name, email, bundle_slug]):
             return jsonify({"error": "Missing required fields: slug, name, email, bundle_slug"}), 400
 
-        if Tenant.query.filter_by(slug=slug).first():
+        if db.session.execute(select(Tenant).filter_by(slug=slug)).scalars().first():
             return jsonify({"error": "Slug already exists"}), 400
 
-        bundle = ProductBundle.query.filter_by(slug=bundle_slug, is_active=True).first()
+        bundle = db.session.execute(select(ProductBundle).filter_by(slug=bundle_slug, is_active=True)).scalars().first()
         if not bundle:
             return jsonify({"error": "Invalid or inactive bundle"}), 400
 
@@ -1703,15 +1703,12 @@ def api_provision_tenant():
 
         ensure_saas_packages()
 
-        package = Package.query.filter_by(slug=bundle_slug, is_active=True).first()
+        package = db.session.execute(select(Package).filter_by(slug=bundle_slug, is_active=True)).scalars().first()
         if not package:
             return jsonify({"error": "Package not found for bundle_slug"}), 400
 
-        package_version = (
-            PackageVersion.query.filter_by(package_id=package.id)
-            .order_by(PackageVersion.id.desc())
-            .first()
-        )
+        package_version = db.session.execute(select(PackageVersion).filter_by(package_id=package.id)
+            .order_by(PackageVersion.id.desc())).scalars().first()
         if not package_version:
             return jsonify({"error": "No package version for bundle"}), 400
 
@@ -1763,10 +1760,10 @@ def api_provision_tenant():
 def api_tenant_limits(tenant_id):
     """Get tenant's current resource usage vs bundle limits."""
 
-    tenant = Tenant.query.get_or_404(tenant_id)
+    tenant = db.get_or_404(Tenant, tenant_id)
     limits = check_tenant_limits(tenant_id)
     bundle = get_bundle_for_profile(tenant.product_profile_code or "")
-    latest_usage = ResourceUsage.query.filter_by(tenant_id=tenant_id).order_by(ResourceUsage.recorded_at.desc()).first()
+    latest_usage = db.session.execute(select(ResourceUsage).filter_by(tenant_id=tenant_id).order_by(ResourceUsage.recorded_at.desc())).scalars().first()
     
     return jsonify({
         "tenant_id": tenant_id,
@@ -1783,7 +1780,7 @@ def api_tenant_limits(tenant_id):
 def api_record_usage(tenant_id):
     """Manually trigger a resource usage snapshot for a tenant."""
 
-    if not Tenant.query.get(tenant_id):
+    if not db.session.get(Tenant, tenant_id):
         return jsonify({"error": "العميل غير موجود"}), 404
     try:
         snapshot = ResourceUsage.record_snapshot(tenant_id)
@@ -1802,7 +1799,7 @@ def api_record_usage(tenant_id):
 @owner_required
 def owner_packages():
     """Package Manager UI (UX0-001)."""
-    packages = Package.query.order_by(Package.category, Package.name).all()
+    packages = db.session.execute(select(Package).order_by(Package.category, Package.name)).scalars().all()
     return render_template("owner/packages.html", packages=packages)
 
 
@@ -1821,7 +1818,7 @@ def owner_create_package():
         flash("اسم Package وSlug مطلوبان", "error")
         return redirect(url_for("owner.owner_packages"))
 
-    if Package.query.filter_by(slug=slug).first():
+    if db.session.execute(select(Package).filter_by(slug=slug)).scalars().first():
         flash("Slug مستخدم مسبقاً", "error")
         return redirect(url_for("owner.owner_packages"))
 
@@ -1846,7 +1843,7 @@ def owner_create_package():
 @owner_required
 def owner_create_package_version(package_id):
     """Create a new version of an existing package."""
-    package = Package.query.get_or_404(package_id)
+    package = db.get_or_404(Package, package_id)
     version = request.form.get("version", "").strip()
     changelog = request.form.get("changelog", "").strip()
     copy_from_latest = request.form.get("copy_from_latest") == "on"
@@ -1855,7 +1852,7 @@ def owner_create_package_version(package_id):
         flash("رقم الإصدار مطلوب", "error")
         return redirect(url_for("owner.owner_packages"))
 
-    if PackageVersion.query.filter_by(package_id=package.id, version=version).first():
+    if db.session.execute(select(PackageVersion).filter_by(package_id=package.id, version=version)).scalars().first():
         flash("هذا الإصدار موجود مسبقاً", "error")
         return redirect(url_for("owner.owner_packages"))
 
@@ -1869,12 +1866,9 @@ def owner_create_package_version(package_id):
     db.session.flush()
 
     if copy_from_latest:
-        latest = (
-            PackageVersion.query.filter_by(package_id=package.id)
+        latest = db.session.execute(select(PackageVersion).filter_by(package_id=package.id)
             .filter(PackageVersion.id != new_pv.id)
-            .order_by(PackageVersion.published_at.desc())
-            .first()
-        )
+            .order_by(PackageVersion.published_at.desc())).scalars().first()
         if latest:
             for ent in latest.entitlements:
                 db.session.add(PackageVersionEntitlement(
@@ -1908,7 +1902,7 @@ def owner_create_package_version(package_id):
 @owner_required
 def owner_deprecate_package_version(version_id):
     """Deprecate a package version."""
-    pv = PackageVersion.query.get_or_404(version_id)
+    pv = db.get_or_404(PackageVersion, version_id)
     pv.is_deprecated = True
     safe_commit(db.session, error_message="database commit failed", reraise=True)
     _log_action("DEPRECATE_PACKAGE_VERSION", "package_version", pv.id,
@@ -1922,7 +1916,7 @@ def owner_deprecate_package_version(version_id):
 @owner_required
 def owner_edit_package(package_id):
     """Edit a package."""
-    package = Package.query.get_or_404(package_id)
+    package = db.get_or_404(Package, package_id)
     try:
         name = request.form.get('name', '').strip()
         name_ar = request.form.get('name_ar', '').strip() or None
@@ -1951,7 +1945,7 @@ def owner_edit_package(package_id):
 @owner_required
 def owner_delete_package(package_id):
     """Delete a package if no versions or tenants use it."""
-    package = Package.query.get_or_404(package_id)
+    package = db.get_or_404(Package, package_id)
     try:
         # Check if package has versions
         if package.versions.count() > 0:
@@ -1959,9 +1953,9 @@ def owner_delete_package(package_id):
             return redirect(url_for("owner.owner_packages"))
         # Check if any tenant uses this package via subscription
         from app.core.saas.models import SubscriptionLine, SubscriptionLineType
-        base_line = SubscriptionLine.query.filter_by(
+        base_line = db.session.execute(select(SubscriptionLine).filter_by(
             line_type=SubscriptionLineType.BASE
-        ).join(PackageVersion).filter(PackageVersion.package_id == package.id).first()
+        ).join(PackageVersion).filter(PackageVersion.package_id == package.id)).scalars().first()
         if base_line:
             flash("لا يمكن حذف حزمة عليها اشتراكات — أوقف الاشتراكات أولاً", "error")
             return redirect(url_for("owner.owner_packages"))
@@ -1981,7 +1975,7 @@ def owner_delete_package(package_id):
 @owner_required
 def owner_edit_package_version(version_id):
     """Edit a package version."""
-    pv = PackageVersion.query.get_or_404(version_id)
+    pv = db.get_or_404(PackageVersion, version_id)
     try:
         version = request.form.get('version', '').strip()
         changelog = request.form.get('changelog', '').strip() or None
@@ -2008,10 +2002,10 @@ def owner_edit_package_version(version_id):
 @owner_required
 def owner_delete_package_version(version_id):
     """Delete a package version if no subscriptions use it."""
-    pv = PackageVersion.query.get_or_404(version_id)
+    pv = db.get_or_404(PackageVersion, version_id)
     try:
         from app.core.saas.models import SubscriptionLine
-        subs = SubscriptionLine.query.filter_by(package_version_id=version_id).first()
+        subs = db.session.execute(select(SubscriptionLine).filter_by(package_version_id=version_id)).scalars().first()
         if subs:
             flash("لا يمكن حذف إصدار عليه اشتراكات", "error")
             return redirect(url_for("owner.owner_packages"))
@@ -2036,8 +2030,8 @@ def owner_delete_package_version(version_id):
 @owner_required
 def owner_subscriptions():
     """Subscription Manager UI (UX0-002)."""
-    tenants = Tenant.query.order_by(Tenant.created_at.desc()).all()
-    package_versions = PackageVersion.query.join(Package).order_by(Package.name, PackageVersion.version).all()
+    tenants = db.session.execute(select(Tenant).order_by(Tenant.created_at.desc())).scalars().all()
+    package_versions = db.session.execute(select(PackageVersion).join(Package).order_by(Package.name, PackageVersion.version)).scalars().all()
     return render_template(
         "owner/subscriptions.html",
         tenants=tenants,
@@ -2092,15 +2086,12 @@ def owner_add_addon(tenant_id):
 @owner_required
 def owner_renew_subscription(tenant_id):
     """Renew the active base line for a tenant."""
-    line = (
-        SubscriptionLine.query.filter_by(
+    line = db.session.execute(select(SubscriptionLine).filter_by(
             tenant_id=tenant_id,
             line_type=SubscriptionLineType.BASE,
             status=SubscriptionLineStatus.ACTIVE,
         )
-        .order_by(SubscriptionLine.effective_from.desc())
-        .first()
-    )
+        .order_by(SubscriptionLine.effective_from.desc())).scalars().first()
     if not line:
         flash("لا يوجد اشتراك أساسي نشط للتجديد", "error")
         return redirect(url_for("owner.owner_subscriptions"))
@@ -2130,7 +2121,7 @@ def owner_cancel_subscription(tenant_id):
 @owner_required
 def owner_provision():
     """Tenant Provisioning UI (UX0-003)."""
-    package_versions = PackageVersion.query.join(Package).filter(Package.is_active == True).order_by(Package.name).all()
+    package_versions = db.session.execute(select(PackageVersion).join(Package).filter(Package.is_active == True).order_by(Package.name)).scalars().all()
 
     if request.method == "POST":
         slug = request.form.get("slug", "").strip()
@@ -2202,24 +2193,18 @@ def owner_provision():
 @owner_required
 def owner_tenant_usage(tenant_id):
     """UX0-006: owner view of a tenant's resource usage dashboard."""
-    tenant = Tenant.query.get_or_404(tenant_id)
-    latest = (
-        ResourceUsage.query.filter_by(tenant_id=tenant_id)
-        .order_by(ResourceUsage.recorded_at.desc())
-        .first()
-    )
+    tenant = db.get_or_404(Tenant, tenant_id)
+    latest = db.session.execute(select(ResourceUsage).filter_by(tenant_id=tenant_id)
+        .order_by(ResourceUsage.recorded_at.desc())).scalars().first()
     if not latest:
         latest = ResourceUsage.record_snapshot(tenant_id)
 
-    base_line = (
-        SubscriptionLine.query.filter_by(
+    base_line = db.session.execute(select(SubscriptionLine).filter_by(
             tenant_id=tenant_id,
             line_type=SubscriptionLineType.BASE,
             status=SubscriptionLineStatus.ACTIVE,
         )
-        .order_by(SubscriptionLine.effective_from.desc())
-        .first()
-    )
+        .order_by(SubscriptionLine.effective_from.desc())).scalars().first()
 
     limits = {}
     if base_line:
@@ -2235,12 +2220,9 @@ def owner_tenant_usage(tenant_id):
                 "api_calls_per_month": bundle.api_calls_per_month,
             }
 
-    snapshots = (
-        ResourceUsage.query.filter_by(tenant_id=tenant_id)
+    snapshots = db.session.execute(select(ResourceUsage).filter_by(tenant_id=tenant_id)
         .order_by(ResourceUsage.recorded_at.desc())
-        .limit(30)
-        .all()
-    )
+        .limit(30)).scalars().all()
 
     return render_template(
         "owner/tenant_usage.html",
@@ -2261,13 +2243,13 @@ def owner_tenant_usage(tenant_id):
 def owner_tasks():
     """Owner task & project overview across tenants."""
     from models.task_management import Task, Project, ProjectTask
-    recent_tasks = Task.query.order_by(Task.created_at.desc()).limit(50).all()
-    projects = Project.query.order_by(Project.created_at.desc()).limit(20).all()
+    recent_tasks = db.session.execute(select(Task).order_by(Task.created_at.desc()).limit(50)).scalars().all()
+    projects = db.session.execute(select(Project).order_by(Project.created_at.desc()).limit(20)).scalars().all()
     stats = {
-        'total_tasks': Task.query.count(),
-        'open_tasks': Task.query.filter(Task.status.in_(['todo', 'in_progress'])).count(),
-        'total_projects': Project.query.count(),
-        'active_projects': Project.query.filter_by(status='active').count(),
+        'total_tasks': db.session.execute(select(func.count()).select_from(Task)).scalar(),
+        'open_tasks': db.session.execute(select(func.count()).select_from(Task).filter(Task.status.in_(['todo', 'in_progress']))).scalar(),
+        'total_projects': db.session.execute(select(func.count()).select_from(Project)).scalar(),
+        'active_projects': db.session.execute(select(func.count()).select_from(Project).filter_by(status='active')).scalar(),
     }
     return render_template(
         "owner/tasks.html",
@@ -2291,28 +2273,28 @@ def owner_monitoring():
         checks.append({'name': 'قاعدة البيانات', 'status': 'error', 'message': str(e), 'icon': 'fa-database'})
 
     try:
-        tenant_count = Tenant.query.count()
+        tenant_count = db.session.execute(select(func.count()).select_from(Tenant)).scalar()
         checks.append({'name': 'العملاء', 'status': 'ok', 'message': f'{tenant_count} عميل', 'icon': 'fa-building'})
     except Exception as e:
         checks.append({'name': 'العملاء', 'status': 'warning', 'message': str(e), 'icon': 'fa-building'})
 
     try:
         from models.user import User
-        user_count = User.query.count()
+        user_count = db.session.execute(select(func.count()).select_from(User)).scalar()
         checks.append({'name': 'المستخدمون', 'status': 'ok', 'message': f'{user_count} مستخدم', 'icon': 'fa-users'})
     except Exception as e:
         checks.append({'name': 'المستخدمون', 'status': 'warning', 'message': str(e), 'icon': 'fa-users'})
 
     try:
-        pending_backups = Backup.query.filter(Backup.backup_status.in_(['PENDING', 'IN_PROGRESS'])).count()
+        pending_backups = db.session.execute(select(func.count()).select_from(Backup).filter(Backup.backup_status.in_(['PENDING', 'IN_PROGRESS']))).scalar()
         checks.append({'name': 'النسخ الاحتياطي', 'status': 'ok', 'message': f'{pending_backups} قيد التشغيل', 'icon': 'fa-database'})
     except Exception as e:
         checks.append({'name': 'النسخ الاحتياطي', 'status': 'warning', 'message': str(e), 'icon': 'fa-database'})
 
     metrics = {
         'db_size_mb': 0,
-        'active_tenants': Tenant.query.filter(Tenant.status.in_((TenantStatus.ACTIVE, TenantStatus.TRIAL, TenantStatus.PENDING))).count(),
-        'open_tickets': SupportTicket.query.filter_by(status='open').count(),
+        'active_tenants': db.session.execute(select(func.count()).select_from(Tenant).filter(Tenant.status.in_((TenantStatus.ACTIVE, TenantStatus.TRIAL, TenantStatus.PENDING)))).scalar(),
+        'open_tickets': db.session.execute(select(func.count()).select_from(SupportTicket).filter_by(status='open')).scalar(),
     }
     try:
         size = db.session.execute(text(
@@ -2322,7 +2304,7 @@ def owner_monitoring():
     except Exception:
         pass
 
-    recent_audit = PlatformAuditLog.query.order_by(PlatformAuditLog.created_at.desc()).limit(10).all()
+    recent_audit = db.session.execute(select(PlatformAuditLog).order_by(PlatformAuditLog.created_at.desc()).limit(10)).scalars().all()
     return render_template(
         "owner/monitoring.html",
         checks=checks,
@@ -2342,7 +2324,7 @@ def owner_system_config():
     if category_filter:
         query = query.filter(SystemConfig.category == category_filter)
     configs = query.order_by(SystemConfig.category, SystemConfig.config_key).all()
-    categories = sorted({c.category for c in SystemConfig.query.distinct(SystemConfig.category).all() if c.category})
+    categories = sorted({c.category for c in db.session.execute(select(SystemConfig).distinct(SystemConfig.category)).scalars().all() if c.category})
     return render_template('owner/system_config.html', configs=configs, categories=categories, category_filter=category_filter)
 
 
@@ -2356,7 +2338,7 @@ def owner_save_system_config():
         for key, value in request.form.items():
             if key.startswith('config_'):
                 config_key = key[7:]
-                cfg = SystemConfig.query.filter_by(config_key=config_key).first()
+                cfg = db.session.execute(select(SystemConfig).filter_by(config_key=config_key)).scalars().first()
                 if cfg:
                     cfg.config_value = value
                     cfg.updated_by = current_user.id
@@ -2367,7 +2349,7 @@ def owner_save_system_config():
         new_type = request.form.get('new_config_type', 'string').strip()
         new_category = request.form.get('new_config_category', 'general').strip()
         if new_key and new_value:
-            existing = SystemConfig.query.filter_by(config_key=new_key).first()
+            existing = db.session.execute(select(SystemConfig).filter_by(config_key=new_key)).scalars().first()
             if existing:
                 flash(f'المفتاح {new_key} موجود مسبقاً', 'error')
             else:
@@ -2396,7 +2378,7 @@ def owner_save_system_config():
 def owner_delete_system_config(config_key):
     """Delete a system config key."""
     from models.system_config import SystemConfig
-    cfg = SystemConfig.query.filter_by(config_key=config_key).first()
+    cfg = db.session.execute(select(SystemConfig).filter_by(config_key=config_key)).scalars().first()
     if not cfg:
         flash('الإعداد غير موجود', 'error')
         return redirect(url_for('owner.owner_system_config'))
@@ -2430,7 +2412,7 @@ def owner_control():
     ]
     values = {}
     for sw in switches:
-        cfg = SystemConfig.query.filter_by(config_key=sw['key']).first()
+        cfg = db.session.execute(select(SystemConfig).filter_by(config_key=sw['key'])).scalars().first()
         values[sw['key']] = bool(cfg and cfg.get_value())
     return render_template("owner/control.html", switches=switches, values=values)
 
@@ -2444,7 +2426,7 @@ def owner_control_toggle():
     key = request.form.get('key', '').strip()
     if not key:
         return jsonify({'success': False, 'message': 'المفتاح مطلوب'}), 400
-    cfg = SystemConfig.query.filter_by(config_key=key).first()
+    cfg = db.session.execute(select(SystemConfig).filter_by(config_key=key)).scalars().first()
     new_value = request.form.get('value') in ('1', 'true', 'on', 'yes')
     if not cfg:
         cfg = SystemConfig(config_key=key, config_type='boolean', category='platform_control', is_system=True)
@@ -2469,7 +2451,7 @@ def owner_emergency_switches():
     ]
     values = {}
     for sw in switches:
-        cfg = SystemConfig.query.filter_by(config_key=sw['key']).first()
+        cfg = db.session.execute(select(SystemConfig).filter_by(config_key=sw['key'])).scalars().first()
         values[sw['key']] = bool(cfg and cfg.get_value())
     return render_template("owner/emergency_switches.html", switches=switches, values=values)
 
@@ -2483,7 +2465,7 @@ def owner_emergency_toggle():
     key = request.form.get('key', '').strip()
     if not key:
         return jsonify({'success': False, 'message': 'المفتاح مطلوب'}), 400
-    cfg = SystemConfig.query.filter_by(config_key=key).first()
+    cfg = db.session.execute(select(SystemConfig).filter_by(config_key=key)).scalars().first()
     new_value = request.form.get('value') in ('1', 'true', 'on', 'yes')
     if not cfg:
         cfg = SystemConfig(config_key=key, config_type='boolean', category='emergency_switch', is_system=True)
@@ -2499,7 +2481,7 @@ def owner_emergency_toggle():
 @owner_required
 def owner_backups():
     """Owner view of platform-wide backups."""
-    backups = Backup.query.order_by(Backup.created_at.desc()).limit(100).all()
+    backups = db.session.execute(select(Backup).order_by(Backup.created_at.desc()).limit(100)).scalars().all()
     stats = {
         'total': len(backups),
         'completed': sum(1 for b in backups if b.backup_status == 'COMPLETED'),
@@ -2618,7 +2600,7 @@ def owner_error_audit_logs():
     """Error audit logs page."""
     from models.audit_trail import AuditTrail
     entity_type = request.args.get('entity_type', '')
-    q = AuditTrail.query.filter(AuditTrail.action.in_(['error', 'exception', 'failed', 'ERROR', 'FAILED']))
+    q = select(AuditTrail)
     if entity_type:
         q = q.filter_by(entity_type=entity_type)
     logs = q.order_by(AuditTrail.created_at.desc()).limit(100).all()
@@ -2632,7 +2614,7 @@ def owner_company_info():
     """Platform company info page."""
     from models.system_config import SystemConfig
     import json
-    cfg = SystemConfig.query.filter_by(config_key='owner_platform_branding').first()
+    cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_platform_branding')).scalars().first()
     branding = {}
     if cfg and cfg.config_value:
         import json
@@ -2647,7 +2629,7 @@ def owner_integrations():
     """Platform integrations management."""
     from models.system_config import SystemConfig
     import json
-    cfg = SystemConfig.query.filter_by(config_key='owner_integrations').first()
+    cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_integrations')).scalars().first()
     integrations = []
     if cfg and cfg.config_value:
         import json
@@ -2661,7 +2643,7 @@ def owner_integrations():
 def owner_cards_vault():
     """Payment cards vault management."""
     from models.payment import PaymentCard
-    cards = PaymentCard.query.order_by(PaymentCard.created_at.desc()).limit(100).all()
+    cards = db.session.execute(select(PaymentCard).order_by(PaymentCard.created_at.desc()).limit(100)).scalars().all()
     return render_template('owner/cards_vault.html', cards=cards)
 
 
@@ -2676,13 +2658,13 @@ def owner_system_stats():
     from sqlalchemy import func
     
     stats = {
-        'total_tenants': Tenant.query.count(),
-        'active_tenants': Tenant.query.filter_by(status='active').count(),
-        'total_users': User.query.count(),
-        'active_users': User.query.filter_by(is_active=True).count(),
-        'total_backups': Backup.query.count(),
-        'completed_backups': Backup.query.filter_by(backup_status='COMPLETED').count(),
-        'failed_backups': Backup.query.filter_by(backup_status='FAILED').count(),
+        'total_tenants': db.session.execute(select(func.count()).select_from(Tenant)).scalar(),
+        'active_tenants': db.session.execute(select(func.count()).select_from(Tenant).filter_by(status='active')).scalar(),
+        'total_users': db.session.execute(select(func.count()).select_from(User)).scalar(),
+        'active_users': db.session.execute(select(func.count()).select_from(User).filter_by(is_active=True)).scalar(),
+        'total_backups': db.session.execute(select(func.count()).select_from(Backup)).scalar(),
+        'completed_backups': db.session.execute(select(func.count()).select_from(Backup).filter_by(backup_status='COMPLETED')).scalar(),
+        'failed_backups': db.session.execute(select(func.count()).select_from(Backup).filter_by(backup_status='FAILED')).scalar(),
     }
     return render_template('owner/system_stats.html', stats=stats)
 
@@ -2702,30 +2684,30 @@ def owner_reports():
     
     # Tenant stats
     tenant_stats = {
-        'total': Tenant.query.count(),
-        'active': Tenant.query.filter_by(status='active').count(),
-        'trial': Tenant.query.filter_by(status='trial').count(),
-        'suspended': Tenant.query.filter_by(status='suspended').count(),
+        'total': db.session.execute(select(func.count()).select_from(Tenant)).scalar(),
+        'active': db.session.execute(select(func.count()).select_from(Tenant).filter_by(status='active')).scalar(),
+        'trial': db.session.execute(select(func.count()).select_from(Tenant).filter_by(status='trial')).scalar(),
+        'suspended': db.session.execute(select(func.count()).select_from(Tenant).filter_by(status='suspended')).scalar(),
     }
     
     # User stats
     user_stats = {
-        'total': User.query.count(),
-        'active': User.query.filter_by(is_active=True).count(),
-        'by_role': dict(db.session.query(User.role, func.count(User.id)).group_by(User.role).all()),
+        'total': db.session.execute(select(func.count()).select_from(User)).scalar(),
+        'active': db.session.execute(select(func.count()).select_from(User).filter_by(is_active=True)).scalar(),
+        'by_role': dict(db.session.execute(select(User.role, func.count(User.id)).group_by(User.role)).scalars().all()),
     }
     
     # Revenue (last 30 days)
     thirty_days_ago = datetime.now() - timedelta(days=30)
-    revenue = db.session.query(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
+    revenue = db.session.execute(select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
         PharmacySale.created_at >= thirty_days_ago
-    ).scalar() or 0
+    )).scalar() or 0
     
     # Visits (last 30 days)
-    visits = Visit.query.filter(Visit.created_at >= thirty_days_ago).count()
+    visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.created_at >= thirty_days_ago)).scalar()
     
     # Patients
-    patients = Patient.query.count()
+    patients = db.session.execute(select(func.count()).select_from(Patient)).scalar()
     
     return render_template('owner/reports.html', 
                            tenant_stats=tenant_stats,

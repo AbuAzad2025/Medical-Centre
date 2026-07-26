@@ -5,6 +5,7 @@ Provides controlled migration of legacy tenants (which only have a
 product_profile_code and/or SubscriptionPlan) onto the new Package/SubscriptionLine
 model without data loss.
 """
+from sqlalchemy import select, func
 
 from typing import Optional
 
@@ -41,13 +42,13 @@ def migrate_legacy_tenant_to_package(
     """
     from app.core.tenant.models import Tenant
 
-    tenant = Tenant.query.get(tenant_id)
+    tenant = db.session.get(Tenant, tenant_id)
     if not tenant:
         raise LegacyMigrationError(f"Tenant {tenant_id} not found.")
 
-    active_lines = SubscriptionLine.query.filter_by(
+    active_lines = db.session.execute(select(func.count()).select_from(SubscriptionLine).filter_by(
         tenant_id=tenant_id, status="active"
-    ).count()
+    )).scalar()
     if active_lines > 0:
         raise LegacyMigrationError(
             f"Tenant {tenant_id} already has active subscription lines."

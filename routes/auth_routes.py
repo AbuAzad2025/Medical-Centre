@@ -2,12 +2,14 @@
 مسارات المصادقة - Authentication Routes
 Medical System Authentication Routes
 """
+from sqlalchemy import select, func
 
 from flask import Blueprint, request, jsonify, session, redirect, url_for, flash, render_template, current_app
 from flask.typing import ResponseReturnValue
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_wtf.csrf import generate_csrf, validate_csrf
 from utils.decorators import role_required_json
+from app.core.rate_limiter import rate_limit
 from models.user import User
 from models.permissions import Role
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -15,6 +17,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from utils.db_safety import safe_commit, safe_rollback
+from app.extensions import db
 
 # إنشاء Blueprint للمصادقة
 auth_bp = Blueprint('auth', __name__)
@@ -28,9 +31,9 @@ def api_tenants_list():
     try:
         from app.core.tenant.models import Tenant
         from app.shared.enums import TenantStatus
-        tenants = Tenant.query.filter(
+        tenants = db.session.execute(select(Tenant).filter(
             Tenant.status.in_((TenantStatus.ACTIVE, TenantStatus.TRIAL, TenantStatus.PENDING))
-        ).order_by(Tenant.name_ar, Tenant.name).all()
+        ).order_by(Tenant.name_ar, Tenant.name)).scalars().all()
         return jsonify({
             'tenants': [{'id': t.id, 'slug': t.slug, 'name': t.name_ar or t.name} for t in tenants]
         })
@@ -38,6 +41,7 @@ def api_tenants_list():
         return jsonify({'tenants': []})
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@rate_limit(max_requests=10, window_seconds=60, namespace='auth')
 def login() -> ResponseReturnValue:
     """تسجيل الدخول"""
     if request.method == 'GET':
@@ -101,15 +105,14 @@ def login() -> ResponseReturnValue:
                     g._tenant_filter_bypass = True
 
             # البحث عن المستخدم
-            user = User.query.filter_by(username=username).first()
+            user = db.session.execute(select(User).filter_by(username=username)).scalars().first()
 
             try:
                 from models.system_config import SystemConfig
                 from models.audit_trail import LoginAttempt, AuditTrail
-                from app_factory import db
 
                 def _get_int_setting(key, default):
-                    row = SystemConfig.query.filter_by(config_key=key).first()
+                    row = db.session.execute(select(SystemConfig).filter_by(config_key=key)).scalars().first()
                     if not row:
                         return default
                     try:
@@ -124,17 +127,17 @@ def login() -> ResponseReturnValue:
                 now = datetime.now(timezone.utc)
                 window_start = now - timedelta(minutes=window_minutes)
 
-                recent_failed_count = LoginAttempt.query.filter(
+                recent_failed_count = db.session.execute(select(func.count()).select_from(LoginAttempt).filter(
                     LoginAttempt.username == username,
                     LoginAttempt.success == False,
                     LoginAttempt.created_at >= window_start
-                ).count()
+                )).scalar()
 
                 if recent_failed_count >= max_attempts:
-                    last_failed = LoginAttempt.query.filter(
+                    last_failed = db.session.execute(select(LoginAttempt).filter(
                         LoginAttempt.username == username,
                         LoginAttempt.success == False
-                    ).order_by(LoginAttempt.created_at.desc()).first()
+                    ).order_by(LoginAttempt.created_at.desc())).scalars().first()
                     if last_failed:
                         lock_until = last_failed.created_at + timedelta(minutes=lockout_minutes)
                         if lock_until.tzinfo is None:
@@ -179,7 +182,6 @@ def login() -> ResponseReturnValue:
                         return render_template('auth/login.html'), 403
                     try:
                         from models.audit_trail import LoginAttempt, AuditTrail
-                        from app_factory import db
                         now = datetime.now(timezone.utc)
                         user.last_login = now
                         db.session.add(LoginAttempt(
@@ -202,7 +204,6 @@ def login() -> ResponseReturnValue:
                         safe_commit(db.session, error_message="database commit failed", reraise=True)
                     except Exception:
                         try:
-                            from app_factory import db
                             safe_rollback(db.session, error_message="database rollback")
                         except Exception as e:
 
@@ -229,7 +230,7 @@ def login() -> ResponseReturnValue:
                     if not tenant_slug and user.tenant_id:
                         try:
                             from app.core.tenant.models import Tenant
-                            t = Tenant.query.get(user.tenant_id)
+                            t = db.session.get(Tenant, user.tenant_id)
                             if t:
                                 tenant_slug = t.slug
                         except Exception:
@@ -237,7 +238,7 @@ def login() -> ResponseReturnValue:
                     # Do not prepend /t/{slug} for platform owners logging into owner mode
                     if tenant_slug and login_mode != 'owner':
                         from app.core.tenant.models import Tenant
-                        t = Tenant.query.filter_by(slug=tenant_slug).first()
+                        t = db.session.execute(select(Tenant).filter_by(slug=tenant_slug)).scalars().first()
                         if t and (not user.tenant_id or user.tenant_id == t.id):
                             redirect_url = f"/t/{tenant_slug}{redirect_url}"
                     
@@ -269,7 +270,6 @@ def login() -> ResponseReturnValue:
             else:
                 try:
                     from models.audit_trail import LoginAttempt, AuditTrail
-                    from app_factory import db
                     now = datetime.now(timezone.utc)
                     db.session.add(LoginAttempt(
                         username=username,
@@ -292,7 +292,6 @@ def login() -> ResponseReturnValue:
                     safe_commit(db.session, error_message="database commit failed", reraise=True)
                 except Exception:
                     try:
-                        from app_factory import db
                         safe_rollback(db.session, error_message="database rollback")
                     except Exception as e:
 
@@ -333,7 +332,6 @@ def logout():
     session.pop('tenant_slug', None)
     try:
         from models.audit_trail import AuditTrail
-        from app_factory import db
         if current_user and getattr(current_user, 'is_authenticated', False):
             db.session.add(AuditTrail(
                 entity_type='user',
@@ -347,7 +345,6 @@ def logout():
             safe_commit(db.session, error_message="database commit failed", reraise=True)
     except Exception:
         try:
-            from app_factory import db
             safe_rollback(db.session, error_message="database rollback")
         except Exception as e:
 
@@ -394,7 +391,6 @@ def profile():
             if new_password:
                 user.set_password(new_password)
                 
-            from app_factory import db
             safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث الملف الشخصي بنجاح', 'success')
             return redirect(url_for('auth.profile'))
@@ -407,21 +403,21 @@ def profile():
     failed_attempts = []
     try:
         from models.audit_trail import LoginAttempt
-        login_attempts = LoginAttempt.query.filter(
+        login_attempts = db.session.execute(select(LoginAttempt).filter(
             LoginAttempt.user_id == current_user.id,
             LoginAttempt.success == True
-        ).order_by(LoginAttempt.created_at.desc()).limit(10).all()
-        failed_attempts = LoginAttempt.query.filter(
+        ).order_by(LoginAttempt.created_at.desc()).limit(10)).scalars().all()
+        failed_attempts = db.session.execute(select(LoginAttempt).filter(
             LoginAttempt.username == current_user.username,
             LoginAttempt.success == False
-        ).order_by(LoginAttempt.created_at.desc()).limit(10).all()
+        ).order_by(LoginAttempt.created_at.desc()).limit(10)).scalars().all()
     except Exception as e:
 
         logging.warning(f"Error in {__name__}: {e}")
     departments = []
     try:
         from models.department import Department
-        departments = Department.query.filter_by(is_active=True).order_by(Department.name_ar).all()
+        departments = db.session.execute(select(Department).filter_by(is_active=True).order_by(Department.name_ar)).scalars().all()
     except Exception as e:
 
         logging.warning(f"Error in {__name__}: {e}")
@@ -452,7 +448,6 @@ def change_password():
         # تحديث كلمة المرور
         from werkzeug.security import generate_password_hash
         current_user.password_hash = generate_password_hash(new_password)
-        from app_factory import db
         safe_commit(db.session, error_message="database commit failed", reraise=True)
         
         return jsonify({
@@ -487,7 +482,7 @@ def get_redirect_url_by_role(role):
 @role_required_json('super_admin', 'owner')
 def impersonate(user_id):
     """Owner impersonates another user for visual inspection"""
-    target = User.query.get(user_id)
+    target = db.session.get(User, user_id)
     if not target or not target.is_active:
         return jsonify({'success': False, 'message': 'المستخدم غير موجود'}), 404
     if target.id == current_user.id:
@@ -512,7 +507,7 @@ def impersonate_exit():
     session.pop('impersonator_role', None)
     if not impersonator_id:
         return jsonify({'success': False, 'message': 'لا توجد جلسة انتحال'}), 400
-    owner = User.query.get(impersonator_id)
+    owner = db.session.get(User, impersonator_id)
     if not owner:
         logout_user()
         return jsonify({'success': False, 'message': 'تم تسجيل الخروج'}), 401

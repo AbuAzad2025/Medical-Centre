@@ -19,10 +19,10 @@ from models.follow_up import FollowUpRequest
 from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import VisitState, OrderState
-from sqlalchemy import and_, or_, desc, func, case
+from sqlalchemy import and_, or_, desc, func, case, select
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
 
@@ -42,10 +42,10 @@ def patient_queue():
     
     try:
         # جلب المرضى المخصصين للطبيب مع تفاصيل إضافية
-        query = Visit.query.filter(
+        query = select(Visit).filter(
             Visit.doctor_id == current_user.id,
             Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])
-        ).order_by(Visit.visit_time)
+        )
         
         total = query.count()
         pages = (total + per_page - 1) // per_page
@@ -64,31 +64,31 @@ def patient_queue():
         try:
             from models.queue_management import QueueManagement
             for v in patients:
-                can_start_map[v.id] = bool(QueueManagement.query.filter_by(
+                can_start_map[v.id] = bool(db.session.execute(select(QueueManagement).filter_by(
                     visit_id=v.id,
                     department_id=v.department_id,
                     status='called'
-                ).first())
+                )).scalars().first())
         except Exception:
             for v in patients:
                 can_start_map[v.id] = False
 
         today = date.today()
-        todays_visits = Visit.query.filter(
+        todays_visits = db.session.execute(select(Visit).filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date == today,
             Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])
-        ).all()
+        )).scalars().all()
         linked_requests = []
         for v in todays_visits:
-            lab_pending = LabRequest.query.filter(
+            lab_pending = db.session.execute(select(func.count()).select_from(LabRequest).filter(
                 LabRequest.visit_id == v.id,
                 LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
-            ).count()
-            rad_pending = RadiologyRequest.query.filter(
+            )).scalar()
+            rad_pending = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
                 RadiologyRequest.visit_id == v.id,
                 RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
-            ).count()
+            )).scalar()
             linked_requests.append({
                 'visit_id': v.id,
                 'patient_name': getattr(v.patient, 'full_name', 'غير محدد'),
@@ -123,11 +123,11 @@ def call_patient(visit_id):
             return redirect(url_for('doctor.patient_queue'))
 
         from models.queue_management import QueueManagement
-        ticket = QueueManagement.query.filter_by(
+        ticket = db.session.execute(select(QueueManagement).filter_by(
             visit_id=visit_id,
             department_id=visit.department_id,
             status='waiting'
-        ).order_by(QueueManagement.queued_at.desc()).first()
+        ).order_by(QueueManagement.queued_at.desc())).scalars().first()
 
         if not ticket:
             flash('لا يوجد تذكرة طابور نشطة لهذا المريض', 'warning')

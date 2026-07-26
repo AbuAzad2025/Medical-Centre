@@ -16,10 +16,10 @@ from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
 from app.shared.enums import EmergencyStatus
-from app_factory import db
+from app.extensions import db
 import logging
 from datetime import datetime, date, timedelta, timezone
-from sqlalchemy import and_, or_, desc, case
+from sqlalchemy import and_, or_, desc, case, select, func
 import json
 
 emergency_bp = Blueprint('emergency', __name__)
@@ -107,7 +107,7 @@ def get_emergency_time_metrics():
     try:
         now = datetime.now(timezone.utc)
         start = now - timedelta(days=7)
-        rows = EmergencyCase.query.filter(EmergencyCase.created_at >= start).all()
+        rows = db.session.execute(select(EmergencyCase).filter(EmergencyCase.created_at >= start)).scalars().all()
         if not rows:
             return {'avg_triage_time': 0, 'avg_treatment_time': 0, 'avg_disposition_time': 0, 'door_to_disposition_rate': 0, 'triage_sla_compliance': 0}
         triage_times = []
@@ -150,9 +150,9 @@ def get_emergency_protocols():
             {'id': 'mi', 'name': 'بروتوكول MI', 'title': 'بروتوكول MI', 'keywords': ['صدر', 'ألم صدري', 'mi', 'heart'], 'steps': ['ECG خلال 10 دقائق', 'مخبر قلب', 'تحضير قسطرة']},
             {'id': 'trauma', 'name': 'بروتوكول الإصابات', 'title': 'بروتوكول الإصابات', 'keywords': ['حادث', 'سقوط', 'جرح', 'trauma'], 'steps': ['ABC', 'تصوير سريع', 'تحضير غرفة العمليات']}
         ]
-        active = EmergencyCase.query.filter(
+        active = db.session.execute(select(EmergencyCase).filter(
             EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
-        ).order_by(EmergencyCase.created_at.desc()).limit(50).all()
+        ).order_by(EmergencyCase.created_at.desc()).limit(50)).scalars().all()
         matched_map = {}
         for c in active:
             complaint = (c.chief_complaint or '').lower()
@@ -182,25 +182,25 @@ def get_ems_metrics():
         today = now.replace(tzinfo=None) if now.tzinfo else now
         if isinstance(start_today, datetime) and start_today.tzinfo is None and today.tzinfo:
             start_today = start_today.replace(tzinfo=today.tzinfo)
-        ems_cases = EmergencyCase.query.filter(
+        ems_cases = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.case_number.like('EMS-%'),
             EmergencyCase.created_at >= start_7d
-        ).count()
-        today_responses = EmergencyCase.query.filter(
+        )).scalar()
+        today_responses = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.created_at >= start_today
-        ).count()
-        completed = EmergencyCase.query.filter(
+        )).scalar()
+        completed = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.status == EmergencyStatus.COMPLETED,
             EmergencyCase.created_at >= start_7d
-        ).count()
-        total_cases = EmergencyCase.query.filter(
+        )).scalar()
+        total_cases = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.created_at >= start_7d
-        ).count()
+        )).scalar()
         diagnosis_accuracy = round((completed / max(total_cases, 1)) * 100, 1)
-        active_transports = EmergencyCase.query.filter(
+        active_transports = db.session.execute(select(EmergencyCase).filter(
             EmergencyCase.case_number.like('EMS-%'),
             EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
-        ).all()
+        )).scalars().all()
         transport_list = []
         for t in active_transports:
             transport_list.append({'id': t.id, 'status': t.status or 'ACTIVE', 'patient_name': t.patient.full_name if t.patient else ''})

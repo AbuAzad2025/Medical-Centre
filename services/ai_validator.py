@@ -2,6 +2,8 @@
 خدمة التحقق الذكي من البيانات
 AI Data Validation Service
 """
+from sqlalchemy import select, func
+from app.extensions import db
 
 from datetime import datetime, timedelta, timezone
 
@@ -21,8 +23,8 @@ class AIValidator:
             from models.department import Department
             
             # 1. التحقق من المستخدمين
-            total_users = User.query.count()
-            active_users = User.query.filter_by(is_active=True).count()
+            total_users = db.session.execute(select(func.count()).select_from(User)).scalar()
+            active_users = db.session.execute(select(func.count()).select_from(User).filter_by(is_active=True)).scalar()
             
             if total_users == 0:
                 errors.append("⛔ خطأ حرج: لا يوجد مستخدمين في النظام!")
@@ -35,17 +37,17 @@ class AIValidator:
                 warnings.append(f"⚠️ تحذير: نسبة المستخدمين غير النشطين عالية جداً ({inactive_rate:.1f}%)")
             
             # 2. التحقق من الأطباء (الأطباء هم مستخدمين بدور doctor)
-            total_doctors = User.query.filter_by(role='doctor').count()
+            total_doctors = db.session.execute(select(func.count()).select_from(User).filter_by(role='doctor')).scalar()
             if total_doctors == 0:
                 warnings.append("⚠️ تحذير: لا يوجد أطباء في النظام!")
             
-            doctors_without_dept = User.query.filter_by(role='doctor', department_id=None).count()
+            doctors_without_dept = db.session.execute(select(func.count()).select_from(User).filter_by(role='doctor', department_id=None)).scalar()
             if doctors_without_dept > 0:
                 warnings.append(f"⚠️ تحذير: يوجد {doctors_without_dept} طبيب بدون قسم")
             
             # 3. التحقق من الأقسام
-            total_departments = Department.query.count()
-            active_departments = Department.query.filter_by(is_active=True).count()
+            total_departments = db.session.execute(select(func.count()).select_from(Department)).scalar()
+            active_departments = db.session.execute(select(func.count()).select_from(Department).filter_by(is_active=True)).scalar()
             
             if total_departments == 0:
                 warnings.append("⚠️ تحذير: لا يوجد أقسام في النظام")
@@ -54,27 +56,27 @@ class AIValidator:
                 errors.append("⛔ خطأ: جميع الأقسام غير نشطة!")
             
             # 4. التحقق من المرضى والزيارات
-            total_patients = Patient.query.count()
-            total_visits = Visit.query.count()
+            total_patients = db.session.execute(select(func.count()).select_from(Patient)).scalar()
+            total_visits = db.session.execute(select(func.count()).select_from(Visit)).scalar()
             
             if total_patients > 0 and total_visits == 0:
                 warnings.append("⚠️ تحذير: يوجد مرضى ولكن لا توجد زيارات")
             
             # 5. التحقق من الزيارات المعلقة
-            old_active_visits = Visit.query.filter(
+            old_active_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
                 Visit.status == 'active',
                 Visit.created_at < datetime.now(timezone.utc) - timedelta(days=1)
-            ).count()
+            )).scalar()
             
             if old_active_visits > 0:
                 warnings.append(f"⚠️ تحذير: يوجد {old_active_visits} زيارة نشطة منذ أكثر من يوم")
             
             # 6. التحقق من التناسق
-            visits_without_doctor = Visit.query.filter_by(doctor_id=None).count()
+            visits_without_doctor = db.session.execute(select(func.count()).select_from(Visit).filter_by(doctor_id=None)).scalar()
             if visits_without_doctor > 0:
                 errors.append(f"⛔ خطأ: يوجد {visits_without_doctor} زيارة بدون طبيب!")
             
-            visits_without_patient = Visit.query.filter_by(patient_id=None).count()
+            visits_without_patient = db.session.execute(select(func.count()).select_from(Visit).filter_by(patient_id=None)).scalar()
             if visits_without_patient > 0:
                 errors.append(f"⛔ خطأ: يوجد {visits_without_patient} زيارة بدون مريض!")
             
@@ -83,18 +85,18 @@ class AIValidator:
             today = date.today()
             
             # التحقق من تواريخ الميلاد غير المنطقية
-            patients_with_future_birth = Patient.query.filter(
+            patients_with_future_birth = db.session.execute(select(func.count()).select_from(Patient).filter(
                 Patient.birth_date > today
-            ).count()
+            )).scalar()
             
             if patients_with_future_birth > 0:
                 errors.append(f"⛔ خطأ: يوجد {patients_with_future_birth} مريض بتاريخ ميلاد في المستقبل!")
             
             # التحقق من تواريخ الميلاد القديمة جداً (أكثر من 150 سنة)
             very_old_date = date(today.year - 150, today.month, today.day)
-            patients_too_old = Patient.query.filter(
+            patients_too_old = db.session.execute(select(func.count()).select_from(Patient).filter(
                 Patient.birth_date < very_old_date
-            ).count()
+            )).scalar()
             
             if patients_too_old > 0:
                 warnings.append(f"⚠️ تحذير: يوجد {patients_too_old} مريض بعمر أكثر من 150 سنة!")
@@ -136,7 +138,7 @@ class AIValidator:
                             birth_date = date.fromisoformat(birth_date)
                         if birth_date > date.today():
                             issues.append("⛔ تاريخ الميلاد لا يمكن أن يكون في المستقبل")
-                    except:
+                    except (ValueError, TypeError):
                         issues.append("⛔ تاريخ ميلاد غير صحيح")
         
         elif action_type == 'create_visit':

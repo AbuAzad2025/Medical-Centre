@@ -1,6 +1,7 @@
 """
 Patient Portal — MyChart-style patient-facing portal (UX1-006)
 """
+from sqlalchemy import select, func
 import logging
 import os
 
@@ -20,7 +21,7 @@ from models.radiology_result import RadiologyResult
 from models.vaccination import Immunization
 from models.patient_satisfaction import PatientSatisfactionSurvey
 from models.file_management import FileUpload
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import InvoiceStatus, OrderState
 from datetime import datetime, timezone
@@ -47,48 +48,45 @@ def _get_patient_from_user():
 
 def _patient_visible_invoice_query(patient):
     """P0B-001B: Patient-visible invoices are DRAFT, ISSUED, or POSTED."""
-    return Invoice.query.join(Visit).filter(
-        Visit.patient_id == patient.id,
-        Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED, InvoiceStatus.POSTED])
-    )
+    return select(Invoice).join(Visit)
 
 
 def _patient_visible_lab_requests(patient):
     """P0B-001B: Lab results are visible only when APPROVED and not critical."""
-    reqs = LabRequest.query.filter(
+    reqs = db.session.execute(select(LabRequest).filter(
         LabRequest.patient_id == patient.id,
         LabRequest.status == OrderState.APPROVED.value,
-    ).order_by(LabRequest.created_at.desc()).all()
+    ).order_by(LabRequest.created_at.desc())).scalars().all()
     return [req for req in reqs if not any(r.is_critical for r in req.results)]
 
 
 def _patient_visible_radiology_requests(patient):
     """P0B-001B: Radiology results are visible only when DONE and not critical."""
-    reqs = RadiologyRequest.query.filter(
+    reqs = db.session.execute(select(RadiologyRequest).filter(
         RadiologyRequest.patient_id == patient.id,
         RadiologyRequest.status == 'DONE'
-    ).order_by(RadiologyRequest.created_at.desc()).all()
+    ).order_by(RadiologyRequest.created_at.desc())).scalars().all()
     return [req for req in reqs if not any(r.is_critical for r in req.results)]
 
 
 def _patient_has_critical_results(patient):
     """P0B-001B: Returns True if the patient has any critical lab/radiology result."""
-    critical_labs = LabResult.query.join(LabRequest).filter(
+    critical_labs = db.session.execute(select(func.count()).select_from(LabResult).join(LabRequest).filter(
         LabRequest.patient_id == patient.id,
         LabResult.is_critical.is_(True)
-    ).count()
+    )).scalar()
     if critical_labs:
         return True
-    critical_rads = RadiologyResult.query.join(RadiologyRequest).filter(
+    critical_rads = db.session.execute(select(func.count()).select_from(RadiologyResult).join(RadiologyRequest).filter(
         RadiologyRequest.patient_id == patient.id,
         RadiologyResult.is_critical.is_(True)
-    ).count()
+    )).scalar()
     return critical_rads > 0
 
 
 def _patient_documents(patient):
     """Files attached to patient or their visits — portal-visible only."""
-    visit_ids = [v.id for v in Visit.query.filter_by(patient_id=patient.id).all()]
+    visit_ids = [v.id for v in db.session.execute(select(Visit).filter_by(patient_id=patient.id)).scalars().all()]
     clauses = [
         db.and_(FileUpload.related_entity_type == 'patient', FileUpload.related_entity_id == patient.id),
     ]
@@ -96,14 +94,14 @@ def _patient_documents(patient):
         clauses.append(
             db.and_(FileUpload.related_entity_type == 'visit', FileUpload.related_entity_id.in_(visit_ids))
         )
-    return FileUpload.query.filter(db.or_(*clauses)).order_by(FileUpload.uploaded_at.desc()).limit(100).all()
+    return db.session.execute(select(FileUpload).filter(db.or_(*clauses)).order_by(FileUpload.uploaded_at.desc()).limit(100)).scalars().all()
 
 
 def _patient_owns_file(patient, file_upload):
     if file_upload.related_entity_type == 'patient' and file_upload.related_entity_id == patient.id:
         return True
     if file_upload.related_entity_type == 'visit':
-        visit = Visit.query.get(file_upload.related_entity_id)
+        visit = db.session.get(Visit, file_upload.related_entity_id)
         return visit and visit.patient_id == patient.id
     return False
 
@@ -149,14 +147,14 @@ def dashboard():
     if not patient:
         return redirect(url_for('portal.link_account'))
 
-    upcoming_appointments = Appointment.query.filter(
+    upcoming_appointments = db.session.execute(select(Appointment).filter(
         Appointment.patient_id == patient.id,
         Appointment.starts_at >= datetime.now(timezone.utc)
-    ).order_by(Appointment.starts_at).limit(5).all()
+    ).order_by(Appointment.starts_at).limit(5)).scalars().all()
 
-    recent_visits = Visit.query.filter_by(patient_id=patient.id).order_by(
+    recent_visits = db.session.execute(select(Visit).filter_by(patient_id=patient.id).order_by(
         Visit.created_at.desc()
-    ).limit(5).all()
+    ).limit(5)).scalars().all()
 
     open_invoices = _patient_visible_invoice_query(patient).all()
     total_due = sum(
@@ -169,9 +167,9 @@ def dashboard():
     unread_results = len(visible_labs) + len(visible_rads)
     critical_results = _patient_has_critical_results(patient)
 
-    immunizations = Immunization.query.filter_by(patient_id=patient.id).order_by(
+    immunizations = db.session.execute(select(Immunization).filter_by(patient_id=patient.id).order_by(
         Immunization.administration_date.desc()
-    ).limit(5).all()
+    ).limit(5)).scalars().all()
 
     return render_template('portal/dashboard.html',
                            patient=patient,
@@ -190,9 +188,9 @@ def appointments():
     patient = _get_patient_from_user()
     if not patient:
         return redirect(url_for('portal.link_account'))
-    items = Appointment.query.filter_by(patient_id=patient.id).order_by(
+    items = db.session.execute(select(Appointment).filter_by(patient_id=patient.id).order_by(
         Appointment.starts_at.desc()
-    ).limit(50).all()
+    ).limit(50)).scalars().all()
     return render_template('portal/appointments.html', patient=patient, appointments=items)
 
 
@@ -214,9 +212,9 @@ def medical_records():
     patient = _get_patient_from_user()
     if not patient:
         return redirect(url_for('portal.link_account'))
-    records = MedicalRecord.query.filter_by(patient_id=patient.id).order_by(
+    records = db.session.execute(select(MedicalRecord).filter_by(patient_id=patient.id).order_by(
         MedicalRecord.created_at.desc()
-    ).limit(50).all()
+    ).limit(50)).scalars().all()
     return render_template('portal/medical_records.html', patient=patient, records=records)
 
 
@@ -227,9 +225,9 @@ def prescriptions():
     patient = _get_patient_from_user()
     if not patient:
         return redirect(url_for('portal.link_account'))
-    items = Prescription.query.filter_by(patient_id=patient.id).order_by(
+    items = db.session.execute(select(Prescription).filter_by(patient_id=patient.id).order_by(
         Prescription.created_at.desc()
-    ).limit(50).all()
+    ).limit(50)).scalars().all()
     return render_template('portal/prescriptions.html', patient=patient, prescriptions=items)
 
 
@@ -267,9 +265,9 @@ def bills():
     invoices = _patient_visible_invoice_query(patient).order_by(
         Invoice.created_at.desc()
     ).limit(50).all()
-    payments = Payment.query.filter_by(patient_id=patient.id).order_by(
+    payments = db.session.execute(select(Payment).filter_by(patient_id=patient.id).order_by(
         Payment.payment_date.desc()
-    ).limit(50).all()
+    ).limit(50)).scalars().all()
     return render_template('portal/bills.html', patient=patient, invoices=invoices, payments=payments)
 
 
@@ -280,9 +278,9 @@ def vaccinations():
     patient = _get_patient_from_user()
     if not patient:
         return redirect(url_for('portal.link_account'))
-    items = Immunization.query.filter_by(patient_id=patient.id).order_by(
+    items = db.session.execute(select(Immunization).filter_by(patient_id=patient.id).order_by(
         Immunization.administration_date.desc()
-    ).all()
+    )).scalars().all()
     return render_template('portal/vaccinations.html', patient=patient, immunizations=items)
 
 
@@ -304,7 +302,7 @@ def download_document(file_id):
     patient = _get_patient_from_user()
     if not patient:
         return redirect(url_for('portal.link_account'))
-    upload = FileUpload.query.get_or_404(file_id)
+    upload = db.get_or_404(FileUpload, file_id)
     if not _patient_owns_file(patient, upload):
         abort(403)
     if not upload.file_path or not os.path.isfile(upload.file_path):

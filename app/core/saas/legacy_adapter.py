@@ -5,8 +5,9 @@ Used as a controlled fallback while tenants migrate from product_profile_code
 bundles to PackageVersion subscription lines. Same capability vocabulary as
 EntitlementResolver; does not check subscription payment state (caller handles).
 """
-
 from __future__ import annotations
+from sqlalchemy import select
+from app.extensions import db
 
 import json
 from typing import Optional
@@ -61,7 +62,7 @@ class LegacyEntitlementAdapter:
     def get_limits(cls, tenant_id: int) -> dict[str, Optional[int]]:
         from app.core.tenant.models import Tenant, get_bundle_for_profile
 
-        tenant = Tenant.query.get(tenant_id)
+        tenant = db.session.get(Tenant, tenant_id)
         if tenant is None or not tenant.product_profile_code:
             return {}
         bundle = get_bundle_for_profile(tenant.product_profile_code)
@@ -80,7 +81,7 @@ class LegacyEntitlementAdapter:
         try:
             from app.core.module.models import TenantModule
 
-            rows = TenantModule.query.filter_by(tenant_id=tenant_id, is_active=True).all()
+            rows = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True)).scalars().all()
             names.update(r.module_name for r in rows if r.module_name)
         except Exception:
             pass
@@ -98,7 +99,7 @@ class LegacyEntitlementAdapter:
             try:
                 from app.core.tenant.models import SubscriptionPlan
 
-                plan = SubscriptionPlan.query.get(plan_id)
+                plan = db.session.get(SubscriptionPlan, plan_id)
                 raw = getattr(plan, "modules_included", None) if plan else None
                 if raw:
                     mods = json.loads(raw) if isinstance(raw, str) else raw

@@ -1,6 +1,7 @@
 """
 OnlineBookingConversionService + AppointmentCheckinService
 """
+from sqlalchemy import select
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
@@ -51,7 +52,7 @@ class OnlineBookingConversionService:
         from models.visit import Visit
         tenant_id = getattr(g, 'tenant_id', None) or getattr(booking, 'tenant_id', None)
 
-        patient = Patient.query.filter_by(tenant_id=tenant_id, phone=booking.phone).first()
+        patient = db.session.execute(select(Patient).filter_by(tenant_id=tenant_id, phone=booking.phone)).scalars().first()
         is_new_patient = patient is None
         if not patient:
             patient = Patient(
@@ -87,7 +88,7 @@ class OnlineBookingConversionService:
         tenant_id = getattr(g, 'tenant_id', None) or getattr(booking, 'tenant_id', None)
         from models.patient import Patient
 
-        patient = Patient.query.filter_by(tenant_id=tenant_id, phone=booking.phone).first()
+        patient = db.session.execute(select(Patient).filter_by(tenant_id=tenant_id, phone=booking.phone)).scalars().first()
         if not patient:
             patient = Patient(
                 tenant_id=tenant_id,
@@ -140,7 +141,7 @@ class OnlineBookingConversionService:
         from models.lab_request import LabRequest
         tenant_id = getattr(g, 'tenant_id', None) or getattr(booking, 'tenant_id', None)
 
-        patient = Patient.query.filter_by(tenant_id=tenant_id, phone=booking.phone).first()
+        patient = db.session.execute(select(Patient).filter_by(tenant_id=tenant_id, phone=booking.phone)).scalars().first()
         if not patient:
             patient = Patient(tenant_id=tenant_id, first_name=booking.first_name, last_name=booking.last_name, phone=booking.phone)
             db.session.add(patient)
@@ -182,7 +183,7 @@ class OnlineBookingConversionService:
         from models.radiology_request import RadiologyRequest
         tenant_id = getattr(g, 'tenant_id', None) or getattr(booking, 'tenant_id', None)
 
-        patient = Patient.query.filter_by(tenant_id=tenant_id, phone=booking.phone).first()
+        patient = db.session.execute(select(Patient).filter_by(tenant_id=tenant_id, phone=booking.phone)).scalars().first()
         if not patient:
             patient = Patient(tenant_id=tenant_id, first_name=booking.first_name, last_name=booking.last_name, phone=booking.phone)
             db.session.add(patient)

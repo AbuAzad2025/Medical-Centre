@@ -4,10 +4,10 @@ Data Warehouse / Analytics Summary Routes
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required
 from utils.decorators import handle_route_errors
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from models import DataWarehouseSync, DailyVisitSummary, MonthlyFinanceSummary, Visit
-from sqlalchemy import func
+from sqlalchemy import func, select
 from datetime import datetime, timezone
 
 data_warehouse_bp = Blueprint('data_warehouse', __name__)
@@ -18,11 +18,11 @@ data_warehouse_bp = Blueprint('data_warehouse', __name__)
 @login_required
 @handle_route_errors
 def dashboard():
-    syncs = DataWarehouseSync.query.order_by(DataWarehouseSync.created_at.desc()).limit(20).all()
-    daily = DailyVisitSummary.query.order_by(DailyVisitSummary.date.desc()).limit(30).all()
-    monthly = MonthlyFinanceSummary.query.order_by(
+    syncs = db.session.execute(select(DataWarehouseSync).order_by(DataWarehouseSync.created_at.desc()).limit(20)).scalars().all()
+    daily = db.session.execute(select(DailyVisitSummary).order_by(DailyVisitSummary.date.desc()).limit(30)).scalars().all()
+    monthly = db.session.execute(select(MonthlyFinanceSummary).order_by(
         MonthlyFinanceSummary.year.desc(), MonthlyFinanceSummary.month.desc()
-    ).limit(12).all()
+    ).limit(12)).scalars().all()
     return render_template('data_warehouse/dashboard.html', syncs=syncs, daily=daily, monthly=monthly)
 
 
@@ -41,8 +41,8 @@ def sync():
 
     if sync_name == 'daily_visits_summary':
         today = datetime.now(timezone.utc).date()
-        visits_today = Visit.query.filter(func.date(Visit.created_at) == today).all()
-        summary = DailyVisitSummary.query.filter_by(date=today).first()
+        visits_today = db.session.execute(select(Visit).filter(func.date(Visit.created_at) == today)).scalars().all()
+        summary = db.session.execute(select(DailyVisitSummary).filter_by(date=today)).scalars().first()
         if not summary:
             summary = DailyVisitSummary(date=today)
             db.session.add(summary)

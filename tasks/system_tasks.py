@@ -7,6 +7,7 @@ from typing import Optional
 
 from celery_app import get_celery_app
 from services.backup_automation_service import BackupAutomationError
+from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
@@ -45,21 +46,15 @@ def _purge_expired_tokens() -> dict:
         deleted = 0
 
         # Expired OAuth tokens
-        oauth_expired = OAuthToken.query.filter(
-            OAuthToken.expires_at < datetime.utcnow()
-        ).delete(synchronize_session=False)
+        oauth_expired = select(OAuthToken).delete(synchronize_session=False)
         deleted += oauth_expired
 
         # Expired password reset tokens
-        pwd_expired = PasswordResetToken.query.filter(
-            PasswordResetToken.expires_at < datetime.utcnow()
-        ).delete(synchronize_session=False)
+        pwd_expired = select(PasswordResetToken).delete(synchronize_session=False)
         deleted += pwd_expired
 
         # Expired email verification tokens
-        email_expired = EmailVerificationToken.query.filter(
-            EmailVerificationToken.expires_at < datetime.utcnow()
-        ).delete(synchronize_session=False)
+        email_expired = select(EmailVerificationToken).delete(synchronize_session=False)
         deleted += email_expired
 
         db.session.commit()
@@ -84,9 +79,7 @@ def _purge_old_audit_logs() -> dict:
 
     g._tenant_filter_bypass = True
     try:
-        deleted = AuditTrail.query.filter(
-            AuditTrail.created_at < cutoff
-        ).delete(synchronize_session=False)
+        deleted = select(AuditTrail).delete(synchronize_session=False)
         db.session.commit()
         logger.info(f"Purged {deleted} audit logs older than {retention_days} days")
         return {'deleted': deleted, 'retention_days': retention_days}
@@ -111,16 +104,10 @@ def _purge_stale_notifications() -> dict:
         seven_days_ago = datetime.utcnow() - timedelta(days=7)
 
         # Old read notifications
-        deleted_notifs = Notification.query.filter(
-            Notification.is_read == True,
-            Notification.read_at < thirty_days_ago
-        ).delete(synchronize_session=False)
+        deleted_notifs = select(Notification).delete(synchronize_session=False)
 
         # Failed notification retries older than 7 days
-        failed_retries = NotificationQueue.query.filter(
-            NotificationQueue.status == 'failed',
-            NotificationQueue.updated_at < seven_days_ago
-        ).delete(synchronize_session=False)
+        failed_retries = select(NotificationQueue).delete(synchronize_session=False)
 
         db.session.commit()
         logger.info(f"Purged {deleted_notifs} old notifications and {failed_retries} failed retries")

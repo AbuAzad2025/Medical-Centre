@@ -1,7 +1,7 @@
 """
 نموذج الزيارة - Visit (نسخة نهائية موحّدة)
 """
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from sqlalchemy import Index
 from sqlalchemy.orm import validates
@@ -30,8 +30,8 @@ class Visit(TenantMixin, db.Model):
     
     # حقول جديدة للسيناريو المطور
     visit_type = db.Column(db.String(20), default='REGULAR')  # REGULAR|FOLLOW_UP|CONSULTATION|EMERGENCY
-    visit_date = db.Column(db.Date, default=db.func.date(db.func.now()), index=True)
-    visit_time = db.Column(db.DateTime, default=db.func.now())
+    visit_date = db.Column(db.Date, default=date.today, index=True)
+    visit_time = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     payment_method = db.Column(db.String(20), default='CASH')
     insurance_provider = db.Column(db.String(100), nullable=True)
     insurance_company_id = db.Column(db.Integer, db.ForeignKey('insurance_companies.id', ondelete='SET NULL'), nullable=True, index=True)

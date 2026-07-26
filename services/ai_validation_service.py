@@ -2,6 +2,8 @@
 خدمة التحقق الذكي للمساعد
 AI Validation Service
 """
+from sqlalchemy import select, func
+from app.extensions import db
 
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Any
@@ -78,7 +80,7 @@ class AIValidationService:
                     errors.append("⚠️ تاريخ الميلاد غير منطقي")
                 elif age_calculated < 0:
                     errors.append("⚠️ تاريخ الميلاد في المستقبل")
-            except:
+            except (ValueError, TypeError):
                 errors.append("⚠️ تاريخ الميلاد بصيغة غير صحيحة")
         
         # التحقق من الجنس
@@ -113,7 +115,7 @@ class AIValidationService:
                     errors.append("⚠️ تاريخ الزيارة بعيد جداً في المستقبل")
                 elif visit_date < today - timedelta(days=365):
                     warnings.append("⚠️ تاريخ الزيارة قديم جداً (أكثر من سنة)")
-            except:
+            except (ValueError, TypeError):
                 errors.append("⚠️ تاريخ الزيارة بصيغة غير صحيحة")
         
         # التحقق من الأعراض
@@ -148,7 +150,7 @@ class AIValidationService:
                     
                     if systolic <= diastolic:
                         errors.append("⚠️ ضغط الدم غير منطقي (الانقباضي يجب أن يكون أكبر من الانبساطي)")
-                except:
+                except (ValueError, TypeError):
                     errors.append("⚠️ صيغة ضغط الدم غير صحيحة (يجب أن تكون مثل: 120/80)")
         
         # التحقق من درجة الحرارة
@@ -161,7 +163,7 @@ class AIValidationService:
                     warnings.append(f"⚠️ درجة الحرارة خطيرة: {temp}°C - يرجى التأكد")
                 elif temp < 36 or temp > 38:
                     warnings.append(f"⚠️ درجة الحرارة غير طبيعية: {temp}°C")
-            except:
+            except (ValueError, TypeError):
                 errors.append("⚠️ درجة الحرارة يجب أن تكون رقماً")
         
         # التحقق من نبضات القلب
@@ -172,7 +174,7 @@ class AIValidationService:
                     errors.append(f"⚠️ نبضات القلب غير منطقية: {hr}")
                 elif hr < 50 or hr > 150:
                     warnings.append(f"⚠️ نبضات القلب غير طبيعية: {hr}")
-            except:
+            except (ValueError, TypeError):
                 errors.append("⚠️ نبضات القلب يجب أن تكون رقماً")
         
         # التحقق من الوزن
@@ -183,7 +185,7 @@ class AIValidationService:
                     errors.append(f"⚠️ الوزن غير منطقي: {weight} كجم")
                 elif weight < 2 or weight > 300:
                     warnings.append(f"⚠️ الوزن غير عادي: {weight} كجم - يرجى التأكد")
-            except:
+            except (ValueError, TypeError):
                 errors.append("⚠️ الوزن يجب أن يكون رقماً")
         
         is_valid = len(errors) == 0
@@ -209,7 +211,7 @@ class AIValidationService:
                     errors.append("⚠️ التكرار يجب أن يكون على الأقل مرة واحدة")
                 elif freq > 10:
                     warnings.append(f"⚠️ التكرار عالي جداً: {freq} مرات - يرجى التأكد")
-            except:
+            except (ValueError, TypeError):
                 pass  # قد يكون نص مثل "3 مرات يومياً"
         
         # التحقق من المدة
@@ -220,7 +222,7 @@ class AIValidationService:
                     errors.append("⚠️ المدة يجب أن تكون على الأقل يوم واحد")
                 elif duration > 365:
                     warnings.append(f"⚠️ المدة طويلة جداً: {duration} يوم - يرجى التأكد")
-            except:
+            except (ValueError, TypeError):
                 pass
         
         # التحقق من السعر
@@ -231,7 +233,7 @@ class AIValidationService:
                     errors.append("⚠️ السعر لا يمكن أن يكون سالباً")
                 elif price > 10000:
                     warnings.append(f"⚠️ السعر مرتفع جداً: {price} - يرجى التأكد")
-            except:
+            except (ValueError, TypeError):
                 errors.append("⚠️ السعر يجب أن يكون رقماً")
         
         is_valid = len(errors) == 0
@@ -253,7 +255,7 @@ class AIValidationService:
                     warnings.append(f"⚠️ المبلغ كبير جداً: {amount} - يرجى التأكد")
                 elif amount == 0:
                     warnings.append("⚠️ المبلغ صفر - يرجى التأكد")
-            except:
+            except (ValueError, TypeError):
                 errors.append("⚠️ المبلغ يجب أن يكون رقماً")
         
         # التحقق من الخصم
@@ -266,7 +268,7 @@ class AIValidationService:
                     errors.append("⚠️ الخصم لا يمكن أن يكون أكثر من 100%")
                 elif discount > 50:
                     warnings.append(f"⚠️ الخصم كبير جداً: {discount}% - يرجى التأكد")
-            except:
+            except (ValueError, TypeError):
                 errors.append("⚠️ الخصم يجب أن يكون رقماً")
         
         # التحقق من المبلغ المدفوع
@@ -277,7 +279,7 @@ class AIValidationService:
                 
                 if paid > total * 1.5:
                     warnings.append(f"⚠️ المبلغ المدفوع ({paid}) أكبر بكثير من المبلغ الإجمالي ({total})")
-            except:
+            except (ValueError, TypeError):
                 pass
         
         is_valid = len(errors) == 0
@@ -301,18 +303,18 @@ class AIValidationService:
                 
                 if doctor_id and appointment_time:
                     # التحقق من أن الطبيب موجود ونشط (الطبيب هو مستخدم بدور doctor)
-                    doctor = db_session.query(User).filter_by(id=doctor_id, role='doctor').first()
+                    doctor = db.session.execute(select(User).filter_by(id=doctor_id, role='doctor')).scalars().first()
                     if not doctor:
                         errors.append("⚠️ الطبيب غير موجود في النظام")
                     elif not doctor.is_active:
                         errors.append(f"⚠️ الطبيب {doctor.full_name} غير نشط حالياً")
                     
                     # التحقق من تعارض المواعيد
-                    conflicting = db_session.query(Visit).filter(
+                    conflicting = db.session.execute(select(Visit).filter(
                         Visit.doctor_id == doctor_id,
                         Visit.appointment_time == appointment_time,
                         Visit.status != 'cancelled'
-                    ).first()
+                    )).scalars().first()
                     
                     if conflicting:
                         errors.append(f"⚠️ يوجد موعد آخر لنفس الطبيب في نفس الوقت")
@@ -323,7 +325,7 @@ class AIValidationService:
                 
                 patient_id = data.get('patient_id')
                 if patient_id:
-                    patient = db_session.query(Patient).get(patient_id)
+                    patient = db.session.get(Patient, patient_id)
                     if not patient:
                         errors.append("⚠️ المريض غير موجود في النظام")
             
@@ -340,7 +342,7 @@ class AIValidationService:
                 from models.visit import Visit
                 
                 patient_id = data.get('patient_id')
-                visits_count = db_session.query(Visit).filter_by(patient_id=patient_id).count()
+                visits_count = db.session.execute(select(func.count()).select_from(Visit).filter_by(patient_id=patient_id)).scalar()
                 
                 if visits_count > 0:
                     warnings.append(f"هذا المريض لديه {visits_count} زيارة مسجلة وسيتم حذفها جميعاً")

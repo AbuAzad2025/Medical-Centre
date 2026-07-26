@@ -17,9 +17,9 @@ from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from services.gatekeeper_service import GatekeeperService
 from services.manager_service import manager_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
-from sqlalchemy import func
+from sqlalchemy import func, select
 from decimal import Decimal, ROUND_HALF_UP
 import logging
 from datetime import datetime, date, timedelta, timezone
@@ -66,7 +66,7 @@ def unit_control():
                 continue
             is_active = key in active_modules
             role = _MODULE_ROLE_MAP.get(key)
-            user_count = User.query.filter(User.tenant_id == tenant_id, User.role == role).count() if role else 0
+            user_count = db.session.execute(select(func.count()).select_from(User).filter(User.tenant_id == tenant_id, User.role == role)).scalar() if role else 0
             units.append({
                 'module_name': key,
                 'name': meta.name_ar,
@@ -102,10 +102,10 @@ def unit_toggle():
         if module_name not in MODULE_REGISTRY:
             return jsonify({'success': False, 'message': f'وحدة غير معروفة: {module_name}'}), 400
 
-        tm = TenantModule.query.filter_by(
+        tm = db.session.execute(select(TenantModule).filter_by(
             tenant_id=tenant_id,
             module_name=module_name
-        ).first()
+        )).scalars().first()
 
         # Bundle entitlement check: block activation if module not in tenant's subscription
         if tm is None or not tm.is_active:
@@ -162,10 +162,10 @@ def user_management():
     """إدارة المستخدمين"""
     
     try:
-        users = User.query.filter(
+        users = db.session.execute(select(User).filter(
             User.tenant_id == current_user.tenant_id,
             User.role != 'super_admin'
-        ).all()
+        )).scalars().all()
         return render_template('manager/user_management.html', users=users)
     except Exception as e:
         logging.error(f"Error in user management: {str(e)}")
@@ -190,7 +190,7 @@ def staff_schedule():
             from datetime import datetime as _dt
             st = _dt.strptime(start_time, '%H:%M').time()
             et = _dt.strptime(end_time, '%H:%M').time()
-            s = StaffWorkSchedule.query.filter_by(user_id=user_id, day_of_week=day_of_week).first()
+            s = db.session.execute(select(StaffWorkSchedule).filter_by(user_id=user_id, day_of_week=day_of_week)).scalars().first()
             if s:
                 s.start_time = st
                 s.end_time = et
@@ -205,15 +205,15 @@ def staff_schedule():
             safe_rollback(db.session, error_message="database rollback")
             logging.error(str(e))
             flash('حدث خطأ في حفظ الجدول', 'error')
-    users = User.query.filter(
+    users = db.session.execute(select(User).filter(
         User.tenant_id == current_user.tenant_id,
         User.role.in_(['doctor','lab','radiology']),
         User.is_active == True
-    ).all()
+    )).scalars().all()
     user_id = request.args.get('user_id', type=int)
     schedules = []
     if user_id:
-        schedules = StaffWorkSchedule.query.filter_by(user_id=user_id).filter(StaffWorkSchedule.tenant_id == current_user.tenant_id).order_by(StaffWorkSchedule.day_of_week.asc()).all()
+        schedules = db.session.execute(select(StaffWorkSchedule).filter_by(user_id=user_id).filter(StaffWorkSchedule.tenant_id == current_user.tenant_id).order_by(StaffWorkSchedule.day_of_week.asc())).scalars().all()
     return render_template('manager/staff_schedule.html', users=users, schedules=schedules, selected_user_id=user_id)
 
 @manager_bp.route('/staff/absence', methods=['GET', 'POST'])
@@ -242,15 +242,15 @@ def staff_absence():
             safe_rollback(db.session, error_message="database rollback")
             logging.error(str(e))
             flash('حدث خطأ في إضافة الغياب', 'error')
-    users = User.query.filter(
+    users = db.session.execute(select(User).filter(
         User.tenant_id == current_user.tenant_id,
         User.role.in_(['doctor','lab','radiology']),
         User.is_active == True
-    ).all()
+    )).scalars().all()
     user_id = request.args.get('user_id', type=int)
     absences = []
     if user_id:
-        absences = StaffAbsence.query.filter_by(user_id=user_id).filter(StaffAbsence.tenant_id == current_user.tenant_id).order_by(StaffAbsence.start_date.desc()).all()
+        absences = db.session.execute(select(StaffAbsence).filter_by(user_id=user_id).filter(StaffAbsence.tenant_id == current_user.tenant_id).order_by(StaffAbsence.start_date.desc())).scalars().all()
     return render_template('manager/staff_absence.html', users=users, absences=absences, selected_user_id=user_id)
 
 
@@ -285,29 +285,20 @@ def staff_capacity():
         if end_date < start_date:
             end_date = start_date
 
-        departments = Department.query.filter_by(is_active=True).filter(Department.tenant_id == current_user.tenant_id).order_by(Department.name_ar.asc()).all()
+        departments = db.session.execute(select(Department).filter_by(is_active=True).filter(Department.tenant_id == current_user.tenant_id).order_by(Department.name_ar.asc())).scalars().all()
         dept_ids = [department_id] if department_id else [d.id for d in departments]
 
-        doctors_q = User.query.filter(
-            User.tenant_id == current_user.tenant_id,
-            User.role == 'doctor',
-            User.is_active == True
-        )
+        doctors_q = select(User)
         if dept_ids:
             doctors_q = doctors_q.filter(User.department_id.in_(dept_ids))
         doctors = doctors_q.all()
 
-        schedules = StaffWorkSchedule.query.filter(StaffWorkSchedule.user_id.in_([u.id for u in doctors]), StaffWorkSchedule.tenant_id == current_user.tenant_id).all() if doctors else []
+        schedules = db.session.execute(select(StaffWorkSchedule).filter(StaffWorkSchedule.user_id.in_([u.id for u in doctors]), StaffWorkSchedule.tenant_id == current_user.tenant_id)).scalars().all() if doctors else []
         sched_map = {}
         for s in schedules:
             sched_map.setdefault(s.user_id, {})[int(s.day_of_week)] = s
 
-        abs_q = StaffAbsence.query.filter(
-            StaffAbsence.user_id.in_([u.id for u in doctors]) if doctors else False,
-            StaffAbsence.start_date <= end_date,
-            StaffAbsence.end_date >= start_date,
-            StaffAbsence.tenant_id == current_user.tenant_id
-        )
+        abs_q = select(StaffAbsence)
         absences = abs_q.all() if doctors else []
         abs_map = {}
         for a in absences:
@@ -378,10 +369,10 @@ def staff():
     """إدارة الموظفين"""
     
     try:
-        users = User.query.filter(
+        users = db.session.execute(select(User).filter(
             User.tenant_id == current_user.tenant_id,
             User.role != 'super_admin'
-        ).all()
+        )).scalars().all()
         return render_template('manager/user_management.html', users=users)
     except Exception as e:
         logging.error(f"Error in staff management: {str(e)}")

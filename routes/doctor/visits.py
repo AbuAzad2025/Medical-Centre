@@ -20,11 +20,11 @@ from models.follow_up import FollowUpRequest
 from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import VisitState, QueueState, LabResultStatus
 from services.visit_state_machine_service import VisitStateMachineService
-from sqlalchemy import and_, or_, desc, func, case
+from sqlalchemy import and_, or_, desc, func, case, select
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
 
@@ -41,7 +41,7 @@ def start_treatment(visit_id):
 
 
     try:
-        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
+        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
         if visit.status != VisitState.OPEN:
             flash('لا يمكن بدء العلاج إلا إذا كانت الزيارة في حالة انتظار', 'warning')
             return redirect(url_for('doctor.patient_queue'))
@@ -52,7 +52,7 @@ def start_treatment(visit_id):
                 dep_id = current_user.department_id or None
                 if not dep_id:
                     from models.department import Department
-                    d = Department.query.filter_by(is_active=True).order_by(Department.id.asc()).first()
+                    d = db.session.execute(select(Department).filter_by(is_active=True).order_by(Department.id.asc())).scalars().first()
                     dep_id = d.id if d else None
                 if dep_id:
                     visit.department_id = dep_id
@@ -65,10 +65,10 @@ def start_treatment(visit_id):
                 return redirect(url_for('doctor.patient_queue'))
         from models.queue_management import QueueManagement
         from services.queue_management_service import QueueManagementService
-        ticket = QueueManagement.query.filter_by(
+        ticket = db.session.execute(select(QueueManagement).filter_by(
             visit_id=visit_id,
             department_id=dep_id
-        ).order_by(desc(QueueManagement.called_at), QueueManagement.queued_at.asc()).first()
+        ).order_by(desc(QueueManagement.called_at), QueueManagement.queued_at.asc())).scalars().first()
         if not ticket:
             flash('لا يمكن بدء العلاج قبل إدراج الزيارة في طابور القسم عبر الاستقبال', 'warning')
             return redirect(url_for('doctor.patient_queue'))
@@ -120,25 +120,25 @@ def start_treatment(visit_id):
 def _get_patient_allergies(patient_id):
     try:
         from models.patient import PatientAllergy
-        return PatientAllergy.query.filter_by(patient_id=patient_id).all()
+        return db.session.execute(select(PatientAllergy).filter_by(patient_id=patient_id)).scalars().all()
     except Exception:
         return []
 
 def _get_patient_medical_records(patient_id):
     try:
-        return MedicalRecord.query.filter(MedicalRecord.patient_id == patient_id).order_by(desc(MedicalRecord.created_at)).limit(10).all()
+        return db.session.execute(select(MedicalRecord).filter(MedicalRecord.patient_id == patient_id).order_by(desc(MedicalRecord.created_at)).limit(10)).scalars().all()
     except Exception:
         return []
 
 def _get_patient_prescriptions(patient_id):
     try:
-        return Prescription.query.filter(Prescription.patient_id == patient_id).order_by(desc(Prescription.created_at)).limit(5).all()
+        return db.session.execute(select(Prescription).filter(Prescription.patient_id == patient_id).order_by(desc(Prescription.created_at)).limit(5)).scalars().all()
     except Exception:
         return []
 
 def _get_recent_other_visits(patient_id, exclude_id):
     try:
-        return Visit.query.filter(Visit.patient_id == patient_id, Visit.id != exclude_id).order_by(Visit.visit_date.desc(), Visit.created_at.desc()).limit(3).all()
+        return db.session.execute(select(Visit).filter(Visit.patient_id == patient_id, Visit.id != exclude_id).order_by(Visit.visit_date.desc(), Visit.created_at.desc()).limit(3)).scalars().all()
     except Exception:
         return []
 
@@ -159,7 +159,7 @@ def _parse_visit_vital_signs(visit):
 def _get_nurse_vital_signs(patient_id):
     try:
         from models.nurse import VitalSigns
-        latest = VitalSigns.query.filter_by(patient_id=patient_id).order_by(desc(VitalSigns.recorded_at)).first()
+        latest = db.session.execute(select(VitalSigns).filter_by(patient_id=patient_id).order_by(desc(VitalSigns.recorded_at))).scalars().first()
         if latest:
             bp = None
             if latest.blood_pressure_systolic is not None or latest.blood_pressure_diastolic is not None:
@@ -178,11 +178,11 @@ def _get_nurse_vital_signs(patient_id):
 def _get_visit_lab_data(visit_id):
     try:
         from models.lab_request import LabRequest, LabResult
-        lab_requests = LabRequest.query.filter(LabRequest.visit_id == visit_id).order_by(desc(LabRequest.created_at)).all()
+        lab_requests = db.session.execute(select(LabRequest).filter(LabRequest.visit_id == visit_id).order_by(desc(LabRequest.created_at))).scalars().all()
         req_ids = [r.id for r in (lab_requests or []) if getattr(r, 'id', None)]
         critical = 0
         if req_ids:
-            critical = LabResult.query.filter(LabResult.request_id.in_(req_ids), LabResult.is_critical == True, LabResult.status == LabResultStatus.VALIDATED).count()
+            critical = db.session.execute(select(func.count()).select_from(LabResult).filter(LabResult.request_id.in_(req_ids), LabResult.is_critical == True, LabResult.status == LabResultStatus.VALIDATED)).scalar()
         return lab_requests, critical
     except Exception:
         return [], 0
@@ -190,12 +190,12 @@ def _get_visit_lab_data(visit_id):
 def _get_visit_radiology_data(visit_id):
     try:
         from models.radiology_request import RadiologyRequest
-        radiology_requests = RadiologyRequest.query.filter(RadiologyRequest.visit_id == visit_id).order_by(desc(RadiologyRequest.created_at)).all()
+        radiology_requests = db.session.execute(select(RadiologyRequest).filter(RadiologyRequest.visit_id == visit_id).order_by(desc(RadiologyRequest.created_at))).scalars().all()
         req_ids = [r.id for r in (radiology_requests or []) if getattr(r, 'id', None)]
         critical = 0
         if req_ids:
             from models.radiology_result import RadiologyResult
-            critical = RadiologyResult.query.filter(RadiologyResult.request_id.in_(req_ids), RadiologyResult.is_critical == True, RadiologyResult.status == LabResultStatus.VALIDATED).count()
+            critical = db.session.execute(select(func.count()).select_from(RadiologyResult).filter(RadiologyResult.request_id.in_(req_ids), RadiologyResult.is_critical == True, RadiologyResult.status == LabResultStatus.VALIDATED)).scalar()
         return radiology_requests, critical
     except Exception:
         return [], 0
@@ -219,7 +219,7 @@ def _count_visit_notes(visit):
 
 def _get_current_prescriptions(visit_id):
     try:
-        return Prescription.query.filter(Prescription.visit_id == visit_id).order_by(desc(Prescription.created_at)).limit(5).all()
+        return db.session.execute(select(Prescription).filter(Prescription.visit_id == visit_id).order_by(desc(Prescription.created_at)).limit(5)).scalars().all()
     except Exception:
         return []
 
@@ -233,7 +233,7 @@ def patient_details(visit_id):
     
     try:
         from ast import literal_eval
-        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
+        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
         
         medical_records = _get_patient_medical_records(visit.patient_id)
         previous_prescriptions = _get_patient_prescriptions(visit.patient_id)
@@ -244,9 +244,9 @@ def patient_details(visit_id):
         
         try:
             from models.lab_request import LabRequest
-            lab_requests = LabRequest.query.filter(
+            lab_requests = db.session.execute(select(LabRequest).filter(
                 LabRequest.visit_id == visit_id
-            ).order_by(desc(LabRequest.created_at)).all()
+            ).order_by(desc(LabRequest.created_at))).scalars().all()
         except Exception:
             lab_requests = []
         critical_lab_results_count = 0
@@ -254,18 +254,18 @@ def patient_details(visit_id):
             from models.lab_request import LabResult
             req_ids = [r.id for r in (lab_requests or []) if getattr(r, 'id', None)]
             if req_ids:
-                critical_lab_results_count = LabResult.query.filter(
+                critical_lab_results_count = db.session.execute(select(func.count()).select_from(LabResult).filter(
                     LabResult.request_id.in_(req_ids),
                     LabResult.is_critical == True,
                     LabResult.status == LabResultStatus.VALIDATED
-                ).count()
+                )).scalar()
         except Exception:
             critical_lab_results_count = 0
         try:
             from models.radiology_request import RadiologyRequest
-            radiology_requests = RadiologyRequest.query.filter(
+            radiology_requests = db.session.execute(select(RadiologyRequest).filter(
                 RadiologyRequest.visit_id == visit_id
-            ).order_by(desc(RadiologyRequest.created_at)).all()
+            ).order_by(desc(RadiologyRequest.created_at))).scalars().all()
         except Exception:
             radiology_requests = []
         critical_radiology_results_count = 0
@@ -273,11 +273,11 @@ def patient_details(visit_id):
             from models.radiology_result import RadiologyResult
             req_ids = [r.id for r in (radiology_requests or []) if getattr(r, 'id', None)]
             if req_ids:
-                critical_radiology_results_count = RadiologyResult.query.filter(
+                critical_radiology_results_count = db.session.execute(select(func.count()).select_from(RadiologyResult).filter(
                     RadiologyResult.request_id.in_(req_ids),
                     RadiologyResult.is_critical == True,
                     RadiologyResult.status == LabResultStatus.VALIDATED
-                ).count()
+                )).scalar()
         except Exception:
             critical_radiology_results_count = 0
         note_count = 0
@@ -302,9 +302,9 @@ def patient_details(visit_id):
                 logging.warning(f"Error in {__name__}: {e}")
         current_prescriptions = []
         try:
-            current_prescriptions = Prescription.query.filter(
+            current_prescriptions = db.session.execute(select(Prescription).filter(
                 Prescription.visit_id == visit_id
-            ).order_by(desc(Prescription.created_at)).limit(5).all()
+            ).order_by(desc(Prescription.created_at)).limit(5)).scalars().all()
         except Exception:
             current_prescriptions = []
 
@@ -352,7 +352,7 @@ def visit_summary(visit_id):
     """ملخص الزيارة"""
     
     try:
-        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
+        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
         
         return render_template('doctor/visit_summary.html', visit=visit)
     except Exception as e:
@@ -366,7 +366,7 @@ def visit_summary(visit_id):
 def save_visit_summary(visit_id):
     """حفظ ملخص الزيارة (تشخيص، خطة علاج، متابعة)"""
     try:
-        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
+        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
         if visit.status not in ['IN_PROGRESS', 'COMPLETED']:
             return jsonify({'success': False, 'message': 'الحالة الحالية لا تسمح بحفظ الملخص'}), 400
 
@@ -448,16 +448,16 @@ def end_treatment(visit_id):
     """إنهاء العلاج"""
     
     try:
-        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
+        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
         if visit.status != VisitState.IN_PROGRESS:
             flash('لا يمكن إنهاء العلاج إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_queue'))
         from models.queue_management import QueueManagement
         from services.queue_management_service import QueueManagementService
-        ticket = QueueManagement.query.filter_by(
+        ticket = db.session.execute(select(QueueManagement).filter_by(
             visit_id=visit_id,
             department_id=visit.department_id
-        ).filter(QueueManagement.status == QueueState.IN_PROGRESS).order_by(desc(QueueManagement.started_at)).first()
+        ).filter(QueueManagement.status == QueueState.IN_PROGRESS).order_by(desc(QueueManagement.started_at))).scalars().first()
         if ticket:
             ok, msg = QueueManagementService().complete_treatment(ticket.id, completed_by=current_user.id)
             if not ok:

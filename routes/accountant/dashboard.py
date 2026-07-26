@@ -14,9 +14,9 @@ from models.user import User
 from services.report_service import ReportService
 from services.financial_service import financial_service
 from services.core_queries import core_queries
-from app_factory import db
+from app.extensions import db
 from app.shared.enums import InvoiceStatus
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, select
 import logging
 from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
@@ -53,21 +53,21 @@ def dashboard():
             net_profit = 0.0
 
         # الفواتير المفتوحة
-        open_invoices = Invoice.query.filter(
+        open_invoices = db.session.execute(select(func.count()).select_from(Invoice).filter(
             Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
-        ).count()
+        )).scalar()
 
         # المبالغ المستحقة
-        pending_amount = db.session.query(
+        pending_amount = db.session.execute(select(
             db.func.sum(Invoice.total_amount - Invoice.paid_amount)
         ).filter(
             Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
-        ).scalar() or 0
+        )).scalar() or 0
 
         # دفعات اليوم
-        today_payments = Payment.query.filter(
+        today_payments = db.session.execute(select(Payment).filter(
             func.date(Payment.created_at) == today
-        ).all()
+        )).scalars().all()
 
         # الميزات الذكية — imported here to avoid circular imports during blueprint registration.
         from routes.accountant import (
@@ -125,14 +125,14 @@ def dashboard():
         currency_breakdown = {}
         try:
             from services.currency_service import CurrencyConverter
-            today_currencies = db.session.query(
+            today_currencies = db.session.execute(select(
                 Payment.currency,
                 db.func.count(Payment.id).label('count'),
                 db.func.sum(Payment.amount).label('total')
             ).filter(
                 func.date(Payment.created_at) == today,
                 Payment.currency.isnot(None)
-            ).group_by(Payment.currency).all()
+            ).group_by(Payment.currency)).scalars().all()
             for cur, cnt, total in today_currencies:
                 converted = 0
                 if cur and cur != 'ILS' and total:
@@ -149,7 +149,7 @@ def dashboard():
 
         recent_transactions = []
         try:
-            recent = Payment.query.order_by(Payment.created_at.desc()).limit(10).all()
+            recent = db.session.execute(select(Payment).order_by(Payment.created_at.desc()).limit(10)).scalars().all()
             for p in recent:
                 st = (p.status or '').upper()
                 color = 'success' if st == 'CONFIRMED' else ('warning' if st == 'PENDING' else 'danger' if st == 'CANCELLED' else 'secondary')

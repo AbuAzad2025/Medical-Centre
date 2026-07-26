@@ -17,8 +17,8 @@ from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
 from app.shared.enums import EmergencyStatus
 from services.emergency_service import emergency_service
-from app_factory import db
-from sqlalchemy import and_, or_, desc, case
+from app.extensions import db
+from sqlalchemy import and_, or_, desc, case, select
 import logging, json
 from datetime import datetime, date, timedelta, timezone
 
@@ -40,23 +40,23 @@ def patient_details(emergency_id):
             return redirect(url_for('emergency.patient_queue'))
         
         # جلب السجل الطبي للمريض
-        medical_records = MedicalRecord.query.filter(
+        medical_records = db.session.execute(select(MedicalRecord).filter(
             MedicalRecord.patient_id == emergency.patient_id
-        ).order_by(desc(MedicalRecord.created_at)).limit(10).all()
+        ).order_by(desc(MedicalRecord.created_at)).limit(10)).scalars().all()
         
         # جلب الوصفات السابقة
-        previous_prescriptions = Prescription.query.filter(
+        previous_prescriptions = db.session.execute(select(Prescription).filter(
             Prescription.patient_id == emergency.patient_id
-        ).order_by(desc(Prescription.created_at)).limit(5).all()
+        ).order_by(desc(Prescription.created_at)).limit(5)).scalars().all()
         
         # جلب طلبات المختبر والأشعة
-        lab_requests = LabRequest.query.filter(
+        lab_requests = db.session.execute(select(LabRequest).filter(
             LabRequest.visit_id == emergency.visit_id
-        ).all()
+        )).scalars().all()
         
-        radiology_requests = RadiologyRequest.query.filter(
+        radiology_requests = db.session.execute(select(RadiologyRequest).filter(
             RadiologyRequest.visit_id == emergency.visit_id
-        ).all()
+        )).scalars().all()
         
         return render_template('emergency/patient_details.html',
                              emergency=emergency,
@@ -78,21 +78,21 @@ def medical_history(patient_id):
     """السجل الطبي للمريض في الطوارئ"""
     
     try:
-        patient = Patient.query.filter_by(id=patient_id).first()
+        patient = db.session.execute(select(Patient).filter_by(id=patient_id)).scalars().first()
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('emergency.patient_queue'))
         
         # جلب السجل الطبي الكامل
-        medical_records = MedicalRecord.query.filter(
+        medical_records = db.session.execute(select(MedicalRecord).filter(
             MedicalRecord.patient_id == patient_id
-        ).order_by(desc(MedicalRecord.created_at)).all()
+        ).order_by(desc(MedicalRecord.created_at))).scalars().all()
         
         # جلب حالات الطوارئ السابقة
-        previous_emergencies = EmergencyCase.query.filter(
+        previous_emergencies = db.session.execute(select(EmergencyCase).filter(
             EmergencyCase.patient_id == patient_id,
             EmergencyCase.status == EmergencyStatus.COMPLETED
-        ).order_by(desc(EmergencyCase.created_at)).limit(10).all()
+        ).order_by(desc(EmergencyCase.created_at)).limit(10)).scalars().all()
         
         return render_template('emergency/medical_history.html',
                              patient=patient,
@@ -110,15 +110,15 @@ def prescriptions_history(patient_id):
     """تاريخ الوصفات الطبية للمريض في الطوارئ"""
     
     try:
-        patient = Patient.query.filter_by(id=patient_id).first()
+        patient = db.session.execute(select(Patient).filter_by(id=patient_id)).scalars().first()
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('emergency.patient_queue'))
         
         # جلب الوصفات السابقة
-        prescriptions = Prescription.query.filter(
+        prescriptions = db.session.execute(select(Prescription).filter(
             Prescription.patient_id == patient_id
-        ).order_by(desc(Prescription.created_at)).all()
+        ).order_by(desc(Prescription.created_at))).scalars().all()
         
         return render_template('emergency/prescriptions_history.html',
                              patient=patient,
@@ -135,15 +135,15 @@ def lab_results(patient_id):
     """نتائج المختبر للمريض في الطوارئ"""
     
     try:
-        patient = Patient.query.filter_by(id=patient_id).first()
+        patient = db.session.execute(select(Patient).filter_by(id=patient_id)).scalars().first()
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('emergency.patient_queue'))
         
         # جلب نتائج المختبر
-        lab_requests = LabRequest.query.filter(
+        lab_requests = db.session.execute(select(LabRequest).filter(
             LabRequest.patient_id == patient_id
-        ).order_by(desc(LabRequest.created_at)).all()
+        ).order_by(desc(LabRequest.created_at))).scalars().all()
         
         return render_template('emergency/lab_results.html',
                              patient=patient,
@@ -160,15 +160,15 @@ def radiology_results(patient_id):
     """نتائج الأشعة للمريض في الطوارئ"""
     
     try:
-        patient = Patient.query.filter_by(id=patient_id).first()
+        patient = db.session.execute(select(Patient).filter_by(id=patient_id)).scalars().first()
         if not patient:
             flash('المريض غير موجود', 'error')
             return redirect(url_for('emergency.patient_queue'))
         
         # جلب نتائج الأشعة
-        radiology_requests = RadiologyRequest.query.filter(
+        radiology_requests = db.session.execute(select(RadiologyRequest).filter(
             RadiologyRequest.patient_id == patient_id
-        ).order_by(desc(RadiologyRequest.created_at)).all()
+        ).order_by(desc(RadiologyRequest.created_at))).scalars().all()
         
         return render_template('emergency/radiology_results.html',
                              patient=patient,

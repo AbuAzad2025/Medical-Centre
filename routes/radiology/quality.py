@@ -14,11 +14,12 @@ from models.radiology_result import RadiologyResult
 from models.file_management import FileUpload
 from models.system_config import SystemConfig
 from app.shared.enums import OrderState, RadiologyResultStatus
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging, json, os, base64, secrets
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
+from sqlalchemy import select
 
 
 # =============================================
@@ -43,36 +44,32 @@ def quality():
     start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
     end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
 
-    done_q = RadiologyRequest.query.filter(
-        RadiologyRequest.status == OrderState.DONE,
-        RadiologyRequest.updated_at >= start_dt,
-        RadiologyRequest.updated_at <= end_dt
-    )
+    done_q = select(RadiologyRequest)
     total_done = done_q.count()
 
     try:
-        avg_tat_seconds = db.session.query(
+        avg_tat_seconds = db.session.execute(select(
             db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at))
         ).filter(
             RadiologyRequest.status == OrderState.DONE,
             RadiologyRequest.updated_at >= start_dt,
             RadiologyRequest.updated_at <= end_dt
-        ).scalar()
+        )).scalar()
     except Exception:
         safe_rollback(db.session, error_message="database rollback")
         avg_tat_seconds = None
     avg_tat_minutes = float(avg_tat_seconds or 0) / 60.0 if avg_tat_seconds is not None else 0.0
 
-    total_validated_results = db.session.query(db.func.count(RadiologyResult.id)).join(
+    total_validated_results = db.session.execute(select(db.func.count(RadiologyResult.id)).join(
         RadiologyRequest, RadiologyRequest.id == RadiologyResult.request_id
     ).filter(
         RadiologyRequest.status == OrderState.DONE,
         RadiologyRequest.updated_at >= start_dt,
         RadiologyRequest.updated_at <= end_dt,
         RadiologyResult.status == RadiologyResultStatus.VALIDATED
-    ).scalar() or 0
+    )).scalar() or 0
 
-    critical_validated_results = db.session.query(db.func.count(RadiologyResult.id)).join(
+    critical_validated_results = db.session.execute(select(db.func.count(RadiologyResult.id)).join(
         RadiologyRequest, RadiologyRequest.id == RadiologyResult.request_id
     ).filter(
         RadiologyRequest.status == OrderState.DONE,
@@ -80,13 +77,13 @@ def quality():
         RadiologyRequest.updated_at <= end_dt,
         RadiologyResult.status == RadiologyResultStatus.VALIDATED,
         RadiologyResult.is_critical == True
-    ).scalar() or 0
+    )).scalar() or 0
 
     critical_ratio = (float(critical_validated_results) / float(total_validated_results)) if total_validated_results else 0.0
 
     modality_rows = []
     try:
-        rows = db.session.query(
+        rows = db.session.execute(select(
             db.func.upper(RadiologyRequest.modality).label('modality'),
             db.func.count(RadiologyRequest.id).label('cnt'),
             db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at)).label('avg_sec'),
@@ -94,7 +91,7 @@ def quality():
             RadiologyRequest.status == OrderState.DONE,
             RadiologyRequest.updated_at >= start_dt,
             RadiologyRequest.updated_at <= end_dt
-        ).group_by(db.func.upper(RadiologyRequest.modality)).order_by(db.func.count(RadiologyRequest.id).desc()).all()
+        ).group_by(db.func.upper(RadiologyRequest.modality)).order_by(db.func.count(RadiologyRequest.id).desc())).scalars().all()
         for r in rows:
             modality_rows.append({
                 'modality': (r.modality or 'N/A'),
@@ -157,7 +154,7 @@ def api_ai_assist():
 def second_review_result(result_id):
     try:
         from models.radiology_result import RadiologyResult
-        res = RadiologyResult.query.filter(RadiologyResult.id == result_id, RadiologyResult.tenant_id == g.tenant_id).first()
+        res = db.session.execute(select(RadiologyResult).filter(RadiologyResult.id == result_id, RadiologyResult.tenant_id == g.tenant_id)).scalars().first()
         if not res:
             return jsonify({'success': False, 'message': 'النتيجة غير موجودة'}), 404
         res.reviewed_by = current_user.id

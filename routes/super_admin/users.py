@@ -12,7 +12,7 @@ from app.shared.user_role_policy import actor_may_assign_role, is_assignable_rol
 from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
-from sqlalchemy import func
+from sqlalchemy import func, select
 from utils.db_safety import safe_commit, safe_rollback
 
 
@@ -29,7 +29,7 @@ def users():
         from models.user import User
         from models.department import Department
         
-        users_list = User.query.all()
+        users_list = db.session.execute(select(User)).scalars().all()
         
         roles_list = [
             ('super_admin', 'السوبر أدمن'),
@@ -44,7 +44,7 @@ def users():
             ('radiology', 'أشعة'),
             ('emergency', 'طوارئ')
         ]
-        departments = Department.query.filter_by(is_active=True).all()
+        departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
         
         return render_template('super_admin/users.html', 
                              users=users_list,
@@ -86,7 +86,7 @@ def create_user():
             )
             user.set_password(request.form.get('password'))
             
-            from app_factory import db
+            from app.extensions import db
             db.session.add(user)
             safe_commit(db.session, error_message="database commit failed", reraise=True)
 
@@ -118,14 +118,14 @@ def create_user():
             return redirect(url_for('super_admin.users'))
             
         except Exception as e:
-            from app_factory import db
+            from app.extensions import db
             safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Create user error: {str(e)}")
             flash('تعذر إنشاء المستخدم، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
     
     # جلب البيانات المطلوبة للنموذج
     from models.department import Department
-    departments = Department.query.filter_by(is_active=True).all()
+    departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
     
     # الأدوار المتاحة
     roles = [
@@ -152,7 +152,7 @@ def edit_user(user_id):
     try:
         from models.user import User
         from models.department import Department
-        from app_factory import db
+        from app.extensions import db
         
         user = db.session.get(User, user_id)
         if not user:
@@ -182,7 +182,7 @@ def edit_user(user_id):
 
             try:
                 from models.user_department_access import UserDepartmentAccess
-                UserDepartmentAccess.query.filter_by(user_id=user.id).delete()
+                select(UserDepartmentAccess).delete()
                 selected = request.form.getlist('extra_department_ids')
                 for dep_id in selected:
                     try:
@@ -198,17 +198,17 @@ def edit_user(user_id):
             if new_password:
                 user.set_password(new_password)
             
-            from app_factory import db
+            from app.extensions import db
             safe_commit(db.session, error_message="database commit failed", reraise=True)
             
             flash('تم تحديث المستخدم بنجاح', 'success')
             return redirect(url_for('super_admin.users'))
         
-        departments = Department.query.filter_by(is_active=True).all()
+        departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
         extra_department_ids = []
         try:
             from models.user_department_access import UserDepartmentAccess
-            extra_department_ids = [r.department_id for r in UserDepartmentAccess.query.filter_by(user_id=user.id, can_access=True).all()]
+            extra_department_ids = [r.department_id for r in db.session.execute(select(UserDepartmentAccess).filter_by(user_id=user.id, can_access=True)).scalars().all()]
         except Exception:
             extra_department_ids = []
         roles = [
@@ -243,7 +243,7 @@ def delete_user(user_id):
     """حذف مستخدم"""
     try:
         from models.user import User
-        from app_factory import db
+        from app.extensions import db
         user = db.session.get(User, user_id)
         if not user:
             abort(404)
@@ -260,7 +260,7 @@ def delete_user(user_id):
         return redirect(url_for('super_admin.users'))
 
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Delete user error: {str(e)}")
         flash('تعذر حذف المستخدم، يرجى المحاولة مرة أخرى', 'error')
@@ -278,7 +278,7 @@ def seed_users():
 def reset_user_password(user_id):
     try:
         from models.user import User
-        from app_factory import db
+        from app.extensions import db
         import secrets, string
         user = db.session.get(User, user_id)
         if not user:
@@ -289,7 +289,7 @@ def reset_user_password(user_id):
         safe_commit(db.session, error_message="database commit failed", reraise=True)
         return jsonify({'success': True, 'temp_password': temp_password})
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Reset password error: {str(e)}")
         return jsonify({'success': False, 'message': 'حدث خطأ في إعادة التعيين'}), 500
@@ -301,7 +301,7 @@ def reset_user_password(user_id):
 def ban_user(user_id):
     """حظر مستخدم"""
     try:
-        from app_factory import db
+        from app.extensions import db
         from models.user import User
         
         user = db.session.get(User, user_id)
@@ -330,7 +330,7 @@ def ban_user(user_id):
 def unban_user(user_id):
     """إلغاء حظر مستخدم"""
     try:
-        from app_factory import db
+        from app.extensions import db
         from models.user import User
         
         user = db.session.get(User, user_id)
@@ -355,7 +355,7 @@ def unban_user(user_id):
 def force_logout_user(user_id):
     """إجبار مستخدم على تسجيل الخروج"""
     try:
-        from app_factory import db
+        from app.extensions import db
         from models.user import User
         from models.audit_trail import AuditTrail
         

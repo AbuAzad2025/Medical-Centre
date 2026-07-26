@@ -19,10 +19,10 @@ from models.follow_up import FollowUpRequest
 from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import VisitState
-from sqlalchemy import and_, or_, desc, func, case
+from sqlalchemy import and_, or_, desc, func, case, select
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
 
@@ -39,7 +39,7 @@ def radiology_request(visit_id):
         if 'radiology' not in getattr(g, 'enabled_modules', set()):
             flash('وحدة الأشعة غير مفعلة لهذه المنشأة', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
+        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
         if visit.status != VisitState.IN_PROGRESS:
             flash('لا يمكن طلب تصوير أشعة إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
@@ -109,19 +109,19 @@ def radiology_request(visit_id):
 def radiology_results(patient_id):
     """عرض نتائج الأشعة للطبيب — للإطلاع فقط"""
     try:
-        patient = Patient.query.filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id).first_or_404()
+        patient = select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)
 
-        rad_requests = RadiologyRequest.query.filter(
+        rad_requests = db.session.execute(select(RadiologyRequest).filter(
             RadiologyRequest.patient_id == patient_id
-        ).order_by(desc(RadiologyRequest.created_at)).all()
+        ).order_by(desc(RadiologyRequest.created_at))).scalars().all()
 
         results = []
         for req in rad_requests:
             try:
                 from models.radiology_result import RadiologyResult
-                req_results = RadiologyResult.query.filter(
+                req_results = db.session.execute(select(RadiologyResult).filter(
                     RadiologyResult.request_id == req.id
-                ).order_by(desc(RadiologyResult.created_at)).all()
+                ).order_by(desc(RadiologyResult.created_at))).scalars().all()
                 for r in req_results:
                     results.append({
                         'modality': getattr(req, 'modality', 'غير محدد'),

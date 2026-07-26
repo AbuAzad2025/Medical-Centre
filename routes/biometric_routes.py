@@ -1,9 +1,10 @@
 """
 Biometric Authentication (WebAuthn/FIDO2) Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from models import BiometricCredential, BiometricAuthChallenge
 from datetime import datetime, timezone, timedelta
@@ -17,7 +18,7 @@ biometric_bp = Blueprint('biometric', __name__)
 @login_required
 @handle_route_errors
 def status():
-    credentials = BiometricCredential.query.filter_by(user_id=current_user.id).all()
+    credentials = db.session.execute(select(BiometricCredential).filter_by(user_id=current_user.id)).scalars().all()
     return render_template('biometric/status.html', credentials=credentials)
 
 
@@ -78,7 +79,7 @@ def authenticate_challenge():
 @login_required
 @handle_route_errors
 def remove_credential(cred_id):
-    cred = BiometricCredential.query.filter_by(id=cred_id, user_id=current_user.id).first_or_404()
+    cred = select(BiometricCredential).filter_by(id=cred_id, user_id=current_user.id)
     db.session.delete(cred)
     safe_commit(db.session, error_message="database commit failed", reraise=True)
     return jsonify({'success': True})

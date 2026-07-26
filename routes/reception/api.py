@@ -6,7 +6,7 @@ from routes.reception import reception_bp
  
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from sqlalchemy import func
+from sqlalchemy import func, select
 from datetime import datetime, timezone
 from models.user import User, StaffWorkSchedule, StaffAbsence
 from models.patient import Patient
@@ -28,7 +28,7 @@ from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
 from utils.tenant_query import get_tenant_record, TenantContextError
-from app_factory import db
+from app.extensions import db
 import logging
 from services.access_control_service import AccessControlService
 from services.pos_terminal_service import PosTerminalService
@@ -48,7 +48,7 @@ def api_doctors():
     department_id = request.args.get('department_id')
     appointment_type = request.args.get('appointment_type')
     
-    query = User.query.filter_by(role='doctor', is_active=True)
+    query = select(User)
     
     if department_id:
         query = query.filter_by(department_id=department_id)
@@ -88,17 +88,17 @@ def api_department_staff():
         
         # 1. موظفو القسم مباشرة بصرف النظر عن الدور
         from sqlalchemy import or_
-        direct_staff = User.query.filter(
+        direct_staff = db.session.execute(select(User).filter(
             User.department_id == department_id,
             User.is_active == True
-        ).all()
+        )).scalars().all()
         
         # 2. موظفون بدون قسم ودورهم يناسب نوع القسم
-        unassigned = User.query.filter(
+        unassigned = db.session.execute(select(User).filter(
             User.role.in_(roles),
             User.is_active == True,
             User.department_id.is_(None)
-        ).all()
+        )).scalars().all()
         
         # دمج بدون تكرار
         seen_ids = set()
@@ -139,17 +139,17 @@ def api_department_services():
     dt = dept.get_type()
     category = 'doctor' if dt == 'general' else dt
     # أولاً: خدمات هذا القسم تحديداً
-    services = ServiceMaster.query.filter(
+    services = db.session.execute(select(ServiceMaster).filter(
         ServiceMaster.category == category,
         ServiceMaster.is_active == True,
         ServiceMaster.department_id == department_id
-    ).order_by(ServiceMaster.name_ar).all()
+    ).order_by(ServiceMaster.name_ar)).scalars().all()
     # إذا لم توجد خدمات مرتبطة بالقسم، أرجع كل خدمات الفئة
     if not services:
-        services = ServiceMaster.query.filter(
+        services = db.session.execute(select(ServiceMaster).filter(
             ServiceMaster.category == category,
             ServiceMaster.is_active == True
-        ).order_by(ServiceMaster.name_ar).all()
+        ).order_by(ServiceMaster.name_ar)).scalars().all()
     resp = {
         'category': category,
         'services': [
@@ -198,7 +198,7 @@ def api_queue_status_all():
         from services.queue_management_service import QueueManagementService
         from models.department import Department
         queue_service = QueueManagementService()
-        all_departments = Department.query.filter_by(is_active=True).all()
+        all_departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
         if current_user.role in ['reception', 'super_admin', 'manager']:
             departments = all_departments
         elif current_user.role == 'lab':
@@ -251,7 +251,7 @@ def api_queue_wait_metrics():
         from models.department import Department
 
         queue_service = QueueManagementService()
-        all_departments = Department.query.filter_by(is_active=True).all()
+        all_departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
         if current_user.role in ['reception', 'super_admin', 'manager']:
             departments = all_departments
         elif current_user.role == 'lab':
@@ -474,9 +474,9 @@ def api_patient_queue_position(patient_id, department_id):
 @role_required_json('reception', 'manager')
 def api_queue_snapshot():
     try:
-        active_queue_items = QueueManagement.query.filter(
+        active_queue_items = db.session.execute(select(QueueManagement).filter(
             QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS])
-        ).order_by(QueueManagement.queued_at.asc()).limit(50).all()
+        ).order_by(QueueManagement.queued_at.asc()).limit(50)).scalars().all()
         items = []
         for item in active_queue_items:
             items.append({
@@ -506,15 +506,15 @@ def api_queue_snapshot():
 @role_required_json('reception', 'manager')
 def api_display_waiting():
     try:
-        waiting = QueueManagement.query.filter(
+        waiting = db.session.execute(select(QueueManagement).filter(
             QueueManagement.status == QueueState.WAITING
-        ).order_by(QueueManagement.queued_at.asc()).limit(60).all()
-        called = QueueManagement.query.filter(
+        ).order_by(QueueManagement.queued_at.asc()).limit(60)).scalars().all()
+        called = db.session.execute(select(QueueManagement).filter(
             QueueManagement.status == QueueState.CALLED
-        ).order_by(QueueManagement.called_at.desc()).limit(12).all()
-        current = QueueManagement.query.filter(
+        ).order_by(QueueManagement.called_at.desc()).limit(12)).scalars().all()
+        current = db.session.execute(select(QueueManagement).filter(
             QueueManagement.status == QueueState.IN_PROGRESS
-        ).order_by(QueueManagement.started_at.desc()).limit(6).all()
+        ).order_by(QueueManagement.started_at.desc()).limit(6)).scalars().all()
 
         def _pack(item):
             room_value = ''
@@ -546,9 +546,9 @@ def api_display_waiting():
 @role_required_json('reception', 'manager')
 def api_display_calls():
     try:
-        called = QueueManagement.query.filter(
+        called = db.session.execute(select(QueueManagement).filter(
             QueueManagement.status.in_([QueueState.CALLED, QueueState.IN_PROGRESS])
-        ).order_by(QueueManagement.called_at.desc()).limit(24).all()
+        ).order_by(QueueManagement.called_at.desc()).limit(24)).scalars().all()
         items = []
         for item in called:
             room_value = ''
@@ -580,7 +580,7 @@ def can_search_all_patients(user_role):
 
 def get_accessible_departments_for_user(user_role, user_id=None, user_department_id=None):
     """الحصول على الأقسام المتاحة للمستخدم"""
-    all_departments = Department.query.filter_by(is_active=True).all()
+    all_departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
     try:
         from services.access_control_service import AccessControlService
         if user_id:

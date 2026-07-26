@@ -2,8 +2,9 @@
 نظام الصلاحيات المتقدم
 Advanced Permissions System
 """
+from sqlalchemy import select
 
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from datetime import datetime, timezone
 from app.shared.enums import PermissionLevel, PermissionCategory
@@ -57,7 +58,7 @@ class Role(TenantMixin, db.Model):
             import json
             try:
                 return json.loads(self.permissions)
-            except:
+            except (ValueError, TypeError):
                 return {}
         return {}
 
@@ -211,7 +212,7 @@ def create_default_permissions():
     ]
     
     for name, description, category, level in permissions:
-        permission = Permission.query.filter_by(name=name).first()
+        permission = db.session.execute(select(Permission).filter_by(name=name)).scalars().first()
         if not permission:
             permission = Permission(
                 name=name,
@@ -245,7 +246,7 @@ def create_default_roles():
     ]
     
     for name, name_ar, description, is_system in roles:
-        role = Role.query.filter_by(name=name).first()
+        role = db.session.execute(select(Role).filter_by(name=name)).scalars().first()
         if not role:
             role = Role(
                 name=name,
@@ -261,19 +262,19 @@ def create_default_roles():
 # دالة تعيين صلاحيات السوبر أدمن
 def assign_super_admin_permissions():
     """تعيين جميع الصلاحيات للسوبر أدمن"""
-    super_admin_role = Role.query.filter_by(name='super_admin').first()
+    super_admin_role = db.session.execute(select(Role).filter_by(name='super_admin')).scalars().first()
     if not super_admin_role:
         return
     
     # الحصول على جميع الصلاحيات
-    all_permissions = Permission.query.all()
+    all_permissions = db.session.execute(select(Permission)).scalars().all()
     
     for permission in all_permissions:
         # التحقق من وجود الصلاحية للدور
-        role_permission = RolePermission.query.filter_by(
+        role_permission = db.session.execute(select(RolePermission).filter_by(
             role_id=super_admin_role.id,
             permission_id=permission.id
-        ).first()
+        )).scalars().first()
         
         if not role_permission:
             role_permission = RolePermission(

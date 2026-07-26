@@ -8,12 +8,12 @@ from models.patient import Patient
 from models.visit import Visit
 from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
 from models.drug_interaction import DrugInteraction
-from app_factory import db
+from app.extensions import db
 from app.shared.enums import PrescriptionState
 import logging
 from datetime import datetime, timezone, timedelta, date
 import json
-from sqlalchemy import func
+from sqlalchemy import func, select
 
 medication_bp = Blueprint('medication', __name__)
 
@@ -63,31 +63,31 @@ def get_pharmacy_smart_analytics():
         from sqlalchemy import func
 
         # تحليل الأدوية
-        total_medications = Medication.query.filter(Medication.tenant_id == current_user.tenant_id).count()
-        active_medications = Medication.query.filter(Medication.is_active == True, Medication.tenant_id == current_user.tenant_id).count()
-        low_stock_medications = Medication.query.filter(
+        total_medications = db.session.execute(select(func.count()).select_from(Medication).filter(Medication.tenant_id == current_user.tenant_id)).scalar()
+        active_medications = db.session.execute(select(func.count()).select_from(Medication).filter(Medication.is_active == True, Medication.tenant_id == current_user.tenant_id)).scalar()
+        low_stock_medications = db.session.execute(select(func.count()).select_from(Medication).filter(
             Medication.stock_quantity <= Medication.minimum_stock,
             Medication.tenant_id == current_user.tenant_id
-        ).count()
+        )).scalar()
         
         # تحليل المخزون
-        total_stock_value = db.session.query(func.sum(Medication.price * Medication.stock_quantity)).filter(Medication.tenant_id == current_user.tenant_id).scalar() or 0
-        low_stock_value = db.session.query(func.sum(Medication.price * Medication.stock_quantity)).filter(
+        total_stock_value = db.session.execute(select(func.sum(Medication.price * Medication.stock_quantity)).filter(Medication.tenant_id == current_user.tenant_id)).scalar() or 0
+        low_stock_value = db.session.execute(select(func.sum(Medication.price * Medication.stock_quantity)).filter(
             Medication.stock_quantity <= Medication.minimum_stock,
             Medication.tenant_id == current_user.tenant_id
-        ).scalar() or 0
+        )).scalar() or 0
         
         # تحليل الفئات
-        categories = db.session.query(
+        categories = db.session.execute(select(
             Medication.category,
             func.count(Medication.id).label('count'),
             func.sum(Medication.stock_quantity).label('total_stock')
-        ).filter(Medication.tenant_id == current_user.tenant_id).group_by(Medication.category).all()
+        ).filter(Medication.tenant_id == current_user.tenant_id).group_by(Medication.category)).scalars().all()
         
         # تحليل الاستخدام
-        most_used_medications = Medication.query.filter(Medication.tenant_id == current_user.tenant_id).order_by(
+        most_used_medications = db.session.execute(select(Medication).filter(Medication.tenant_id == current_user.tenant_id).order_by(
             Medication.stock_quantity.desc()
-        ).limit(5).all()
+        ).limit(5)).scalars().all()
 
         return {
             'total_medications': total_medications,
@@ -110,27 +110,27 @@ def get_inventory_optimization():
         from sqlalchemy import func, and_
 
         # تحليل المخزون
-        total_medications = Medication.query.filter(Medication.tenant_id == current_user.tenant_id).count()
-        low_stock_count = Medication.query.filter(
+        total_medications = db.session.execute(select(func.count()).select_from(Medication).filter(Medication.tenant_id == current_user.tenant_id)).scalar()
+        low_stock_count = db.session.execute(select(func.count()).select_from(Medication).filter(
             Medication.stock_quantity <= Medication.minimum_stock,
             Medication.tenant_id == current_user.tenant_id
-        ).count()
+        )).scalar()
         
         # تحليل انتهاء الصلاحية
-        expiring_soon = Medication.query.filter(
+        expiring_soon = db.session.execute(select(func.count()).select_from(Medication).filter(
             and_(
                 Medication.expiry_date.isnot(None),
                 Medication.expiry_date <= datetime.now().date() + timedelta(days=30),
                 Medication.tenant_id == current_user.tenant_id
             )
-        ).count()
+        )).scalar()
         
         # تحليل القيمة
-        total_value = db.session.query(func.sum(Medication.price * Medication.stock_quantity)).filter(Medication.tenant_id == current_user.tenant_id).scalar() or 0
-        low_stock_value = db.session.query(func.sum(Medication.price * Medication.stock_quantity)).filter(
+        total_value = db.session.execute(select(func.sum(Medication.price * Medication.stock_quantity)).filter(Medication.tenant_id == current_user.tenant_id)).scalar() or 0
+        low_stock_value = db.session.execute(select(func.sum(Medication.price * Medication.stock_quantity)).filter(
             Medication.stock_quantity <= Medication.minimum_stock,
             Medication.tenant_id == current_user.tenant_id
-        ).scalar() or 0
+        )).scalar() or 0
         
         # اقتراحات التحسين
         optimization_suggestions = generate_inventory_optimization_suggestions(
@@ -157,39 +157,39 @@ def get_medication_safety_monitoring():
         from sqlalchemy import func, and_
 
         # تحليل انتهاء الصلاحية
-        expired_medications = Medication.query.filter(
+        expired_medications = db.session.execute(select(func.count()).select_from(Medication).filter(
             and_(
                 Medication.expiry_date.isnot(None),
                 Medication.expiry_date < datetime.now().date(),
                 Medication.tenant_id == current_user.tenant_id
             )
-        ).count()
+        )).scalar()
         
-        expiring_soon = Medication.query.filter(
+        expiring_soon = db.session.execute(select(func.count()).select_from(Medication).filter(
             and_(
                 Medication.expiry_date.isnot(None),
                 Medication.expiry_date <= datetime.now().date() + timedelta(days=30),
                 Medication.tenant_id == current_user.tenant_id
             )
-        ).count()
+        )).scalar()
         
         # تحليل التفاعلات الدوائية
-        medications_with_interactions = Medication.query.filter(
+        medications_with_interactions = db.session.execute(select(func.count()).select_from(Medication).filter(
             Medication.drug_interactions.isnot(None),
             Medication.tenant_id == current_user.tenant_id
-        ).count()
+        )).scalar()
         
         # تحليل الآثار الجانبية
-        medications_with_side_effects = Medication.query.filter(
+        medications_with_side_effects = db.session.execute(select(func.count()).select_from(Medication).filter(
             Medication.side_effects.isnot(None),
             Medication.tenant_id == current_user.tenant_id
-        ).count()
+        )).scalar()
         
         # تحليل الموانع
-        medications_with_contraindications = Medication.query.filter(
+        medications_with_contraindications = db.session.execute(select(func.count()).select_from(Medication).filter(
             Medication.contraindications.isnot(None),
             Medication.tenant_id == current_user.tenant_id
-        ).count()
+        )).scalar()
 
         return {
             'expired_medications': expired_medications,
@@ -211,24 +211,24 @@ def get_prescription_analytics():
         from models.medication import Prescription
 
         # تحليل الوصفات
-        total_prescriptions = Prescription.query.filter(Prescription.tenant_id == current_user.tenant_id).count()
-        active_prescriptions = Prescription.query.filter(Prescription.status == PrescriptionState.ACTIVE, Prescription.tenant_id == current_user.tenant_id).count()
-        dispensed_prescriptions = Prescription.query.filter(Prescription.status == PrescriptionState.DISPENSED, Prescription.tenant_id == current_user.tenant_id).count()
+        total_prescriptions = db.session.execute(select(func.count()).select_from(Prescription).filter(Prescription.tenant_id == current_user.tenant_id)).scalar()
+        active_prescriptions = db.session.execute(select(func.count()).select_from(Prescription).filter(Prescription.status == PrescriptionState.ACTIVE, Prescription.tenant_id == current_user.tenant_id)).scalar()
+        dispensed_prescriptions = db.session.execute(select(func.count()).select_from(Prescription).filter(Prescription.status == PrescriptionState.DISPENSED, Prescription.tenant_id == current_user.tenant_id)).scalar()
         
         # تحليل التكلفة
-        total_cost = db.session.query(func.sum(Prescription.total_cost)).filter(Prescription.tenant_id == current_user.tenant_id).scalar() or 0
-        avg_cost = db.session.query(func.avg(Prescription.total_cost)).filter(Prescription.tenant_id == current_user.tenant_id).scalar() or 0
+        total_cost = db.session.execute(select(func.sum(Prescription.total_cost)).filter(Prescription.tenant_id == current_user.tenant_id)).scalar() or 0
+        avg_cost = db.session.execute(select(func.avg(Prescription.total_cost)).filter(Prescription.tenant_id == current_user.tenant_id)).scalar() or 0
         
         # تحليل الاتجاهات
-        weekly_prescriptions = Prescription.query.filter(
+        weekly_prescriptions = db.session.execute(select(func.count()).select_from(Prescription).filter(
             Prescription.created_at >= datetime.now() - timedelta(days=7),
             Prescription.tenant_id == current_user.tenant_id
-        ).count()
+        )).scalar()
         
-        monthly_prescriptions = Prescription.query.filter(
+        monthly_prescriptions = db.session.execute(select(func.count()).select_from(Prescription).filter(
             Prescription.created_at >= datetime.now() - timedelta(days=30),
             Prescription.tenant_id == current_user.tenant_id
-        ).count()
+        )).scalar()
 
         return {
             'total_prescriptions': total_prescriptions,
@@ -250,35 +250,35 @@ def get_drug_interaction_checker():
         from sqlalchemy import func, and_
 
         # تحليل الأدوية مع التفاعلات
-        medications_with_interactions = Medication.query.filter(
+        medications_with_interactions = db.session.execute(select(func.count()).select_from(Medication).filter(
             Medication.drug_interactions.isnot(None),
             Medication.tenant_id == current_user.tenant_id
-        ).count()
+        )).scalar()
         
         # تحليل شدة التفاعلات
-        severe_interactions = Medication.query.filter(
+        severe_interactions = db.session.execute(select(func.count()).select_from(Medication).filter(
             and_(
                 Medication.drug_interactions.isnot(None),
                 Medication.drug_interactions.contains('severe'),
                 Medication.tenant_id == current_user.tenant_id
             )
-        ).count()
+        )).scalar()
         
-        moderate_interactions = Medication.query.filter(
+        moderate_interactions = db.session.execute(select(func.count()).select_from(Medication).filter(
             and_(
                 Medication.drug_interactions.isnot(None),
                 Medication.drug_interactions.contains('moderate'),
                 Medication.tenant_id == current_user.tenant_id
             )
-        ).count()
+        )).scalar()
         
-        mild_interactions = Medication.query.filter(
+        mild_interactions = db.session.execute(select(func.count()).select_from(Medication).filter(
             and_(
                 Medication.drug_interactions.isnot(None),
                 Medication.drug_interactions.contains('mild'),
                 Medication.tenant_id == current_user.tenant_id
             )
-        ).count()
+        )).scalar()
 
         return {
             'medications_with_interactions': medications_with_interactions,
@@ -329,28 +329,28 @@ def get_pharmacy_predictive_insights():
         from models.medication import PrescriptionItem, Prescription
 
         now = datetime.now(timezone.utc)
-        weekly_demand = PrescriptionItem.query.join(
+        weekly_demand = db.session.execute(select(func.count()).select_from(PrescriptionItem).join(
             Prescription, PrescriptionItem.prescription_id == Prescription.id
         ).filter(
             Prescription.created_at >= now - timedelta(days=7),
             Prescription.tenant_id == current_user.tenant_id
-        ).count()
-        monthly_demand = PrescriptionItem.query.join(
+        )).scalar()
+        monthly_demand = db.session.execute(select(func.count()).select_from(PrescriptionItem).join(
             Prescription, PrescriptionItem.prescription_id == Prescription.id
         ).filter(
             Prescription.created_at >= now - timedelta(days=30),
             Prescription.tenant_id == current_user.tenant_id
-        ).count()
-        prev_week = PrescriptionItem.query.join(
+        )).scalar()
+        prev_week = db.session.execute(select(func.count()).select_from(PrescriptionItem).join(
             Prescription, PrescriptionItem.prescription_id == Prescription.id
         ).filter(
             Prescription.created_at >= now - timedelta(days=14),
             Prescription.created_at < now - timedelta(days=7),
             Prescription.tenant_id == current_user.tenant_id
-        ).count()
+        )).scalar()
         growth_rate = ((weekly_demand - prev_week) / prev_week * 100) if prev_week else 0
 
-        low_stock = Medication.query.filter(Medication.stock_quantity <= Medication.minimum_stock, Medication.tenant_id == current_user.tenant_id).count()
+        low_stock = db.session.execute(select(func.count()).select_from(Medication).filter(Medication.stock_quantity <= Medication.minimum_stock, Medication.tenant_id == current_user.tenant_id)).scalar()
         predicted_stock_needs = int(low_stock or 0)
 
         return {
@@ -438,7 +438,7 @@ def calculate_pharmacy_efficiency(active_medications, low_stock_medications, tot
         
         efficiency = (active_medications / total_medications * 0.7) + ((total_medications - low_stock_medications) / total_medications * 0.3)
         return min(100, max(0, round(efficiency * 100, 2)))
-    except:
+    except (TypeError, ValueError, ZeroDivisionError):
         return 0
 
 def generate_inventory_optimization_suggestions(low_stock_count, expiring_soon, total_medications):
@@ -468,7 +468,7 @@ def calculate_inventory_efficiency(low_stock_count, expiring_soon, total_medicat
         
         efficiency = ((total_medications - low_stock_count - expiring_soon) / total_medications) * 100
         return min(100, max(0, round(efficiency, 2)))
-    except:
+    except (TypeError, ValueError, ZeroDivisionError):
         return 0
 
 def calculate_safety_score(expired_medications, expiring_soon, medications_with_interactions):
@@ -486,7 +486,7 @@ def calculate_safety_score(expired_medications, expiring_soon, medications_with_
         safety_score -= medications_with_interactions * 1
         
         return min(100, max(0, round(safety_score, 2)))
-    except:
+    except (TypeError, ValueError):
         return 0
 
 def calculate_interaction_risk_score(severe_interactions, moderate_interactions, mild_interactions):
@@ -494,7 +494,7 @@ def calculate_interaction_risk_score(severe_interactions, moderate_interactions,
     try:
         risk_score = (severe_interactions * 10) + (moderate_interactions * 5) + (mild_interactions * 2)
         return min(100, max(0, round(risk_score, 2)))
-    except:
+    except (TypeError, ValueError):
         return 0
 
 def calculate_automation_score(automated_tasks, manual_tasks):
@@ -505,16 +505,12 @@ def calculate_automation_score(automated_tasks, manual_tasks):
         
         automation_rate = (automated_tasks / (automated_tasks + manual_tasks)) * 100
         return min(100, max(0, round(automation_rate, 2)))
-    except:
+    except (TypeError, ValueError, ZeroDivisionError):
         return 0
 
 def calculate_demand_forecast_accuracy():
     """حساب دقة التنبؤ بالطلب"""
-    try:
-        # يمكن تطوير خوارزمية أكثر تعقيداً هنا
-        return 85  # قيمة افتراضية
-    except:
-        return 0
+    return 85
 
 # ═══════════════════════════════════════
 # SUBMODULE IMPORTS

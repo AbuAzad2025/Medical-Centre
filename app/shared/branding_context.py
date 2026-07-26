@@ -5,6 +5,7 @@ from dataclasses import asdict, dataclass
 from typing import Any, Optional
 
 from flask import g, url_for
+from app.extensions import db
 
 DEFAULT_PRIMARY = '#0f4c81'
 DEFAULT_SECONDARY = '#10b981'
@@ -52,9 +53,9 @@ def get_branding_row():
 
         tenant = getattr(g, 'current_tenant', None)
         if tenant and getattr(tenant, 'id', None):
-            row = BrandingSettings.query.filter_by(
+            row = db.session.execute(select(BrandingSettings).filter_by(
                 tenant_id=tenant.id, is_active=True
-            ).first()
+            )).scalars().first()
             if row:
                 return row
         return BrandingSettings.get_active_settings()
@@ -122,7 +123,7 @@ def resolve_ui_context() -> dict[str, str]:
 
 def load_developer_defaults(db, engine) -> dict[str, Optional[str]]:
     """Platform developer footer fields from ``SystemConfig``."""
-    from sqlalchemy import inspect as sa_inspect
+    from sqlalchemy import inspect as sa_inspect, select
     from models.system_config import SystemConfig
 
     out = dict(_DEVELOPER_DEFAULTS)
@@ -136,12 +137,12 @@ def load_developer_defaults(db, engine) -> dict[str, Optional[str]]:
                 'developer_location': 'developer_location',
             }
             for out_key, cfg_key in keys.items():
-                row = SystemConfig.query.filter_by(config_key=cfg_key).first()
+                row = db.session.execute(select(SystemConfig).filter_by(config_key=cfg_key)).scalars().first()
                 if row:
                     val = row.get_value()
                     if val:
                         out[out_key] = val
-            dl = SystemConfig.query.filter_by(config_key='developer_logo_url').first()
+            dl = db.session.execute(select(SystemConfig).filter_by(config_key='developer_logo_url')).scalars().first()
             if dl:
                 dev_logo = dl.get_value()
     except Exception:

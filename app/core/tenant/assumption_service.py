@@ -3,6 +3,7 @@
 Allows platform users (super_admin, owner) to explicitly and audibly
 assume a tenant identity for cross-tenant operations.
 """
+from sqlalchemy import select
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
@@ -65,8 +66,8 @@ class PlatformAssumptionService:
     @staticmethod
     def has_valid_assumption(user_id: int, tenant_id: int) -> bool:
         now = datetime.now(timezone.utc)
-        return db.session.query(
-            PlatformTenantAssumption.query.filter(
+        return db.session.execute(select(
+            select(PlatformTenantAssumption).filter(
                 PlatformTenantAssumption.user_id == user_id,
                 PlatformTenantAssumption.assumed_tenant_id == tenant_id,
                 PlatformTenantAssumption.is_active == True,
@@ -75,12 +76,12 @@ class PlatformAssumptionService:
                     PlatformTenantAssumption.expires_at.is_(None),
                     PlatformTenantAssumption.expires_at > now,
                 )
-            ).exists()
-        ).scalar()
+            )
+        )).scalar()
 
     @staticmethod
     def get_active_assumptions(user_id: int | None = None) -> list[PlatformTenantAssumption]:
-        q = PlatformTenantAssumption.query.filter_by(is_active=True)
+        q = select(PlatformTenantAssumption)
         if user_id is not None:
             q = q.filter_by(user_id=user_id)
         now = datetime.now(timezone.utc)

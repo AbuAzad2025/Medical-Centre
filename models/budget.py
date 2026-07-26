@@ -1,8 +1,9 @@
 from datetime import datetime, timezone, date
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.mixins import TenantMixin
 import logging
+from sqlalchemy import select
 
 
 class Budget(TenantMixin, db.Model):
@@ -45,7 +46,7 @@ class Budget(TenantMixin, db.Model):
     @classmethod
     def get_or_create(cls, year, month, department_id=None, user_id=None):
         try:
-            b = cls.query.filter_by(year=year, month=month, department_id=department_id).first()
+            b = db.session.execute(select(cls).filter_by(year=year, month=month, department_id=department_id)).scalars().first()
             if not b:
                 b = cls(year=year, month=month, department_id=department_id, created_by=user_id)
                 db.session.add(b)

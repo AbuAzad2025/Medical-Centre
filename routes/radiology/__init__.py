@@ -2,6 +2,7 @@
 مسارات الأشعة - Radiology Routes
 Medical System Radiology Routes
 """
+from sqlalchemy import select, func
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, send_file, current_app
 from flask_login import login_required, current_user
@@ -14,7 +15,7 @@ from models.radiology_result import RadiologyResult
 from models.file_management import FileUpload
 from models.system_config import SystemConfig
 from app.shared.enums import LabResultStatus, OrderState
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging
 from datetime import datetime, date, timezone
@@ -53,10 +54,10 @@ def _log_radiology_workflow(request_id, status, action, notes=None):
 
         logging.warning(f"Error in {__name__}: {e}")
 def _radiology_templates_cfg():
-    return SystemConfig.query.filter_by(config_key='radiology_report_templates').first()
+    return db.session.execute(select(SystemConfig).filter_by(config_key='radiology_report_templates')).scalars().first()
 
 def _radiology_macros_cfg():
-    return SystemConfig.query.filter_by(config_key='radiology_report_macros').first()
+    return db.session.execute(select(SystemConfig).filter_by(config_key='radiology_report_macros')).scalars().first()
 
 def _default_radiology_report_templates():
     return [
@@ -217,16 +218,16 @@ def _save_radiology_report_macros(macros):
 def get_radiology_smart_analytics():
     """التحليلات الذكية للأشعة"""
     try:
-        total_requests = RadiologyRequest.query.count()
-        completed_requests = RadiologyRequest.query.filter(RadiologyRequest.status == OrderState.DONE).count()
-        pending_requests = RadiologyRequest.query.filter(
+        total_requests = db.session.execute(select(func.count()).select_from(RadiologyRequest)).scalar()
+        completed_requests = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(RadiologyRequest.status == OrderState.DONE)).scalar()
+        pending_requests = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
             RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
-        ).count()
+        )).scalar()
         completion_rate = (completed_requests / total_requests * 100) if total_requests > 0 else 0
         try:
-            avg_processing_seconds = db.session.query(
+            avg_processing_seconds = db.session.execute(select(
                 db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at))
-            ).filter(RadiologyRequest.status == OrderState.DONE).scalar()
+            ).filter(RadiologyRequest.status == OrderState.DONE)).scalar()
         except Exception:
             safe_rollback(db.session, error_message="database rollback")
             avg_processing_seconds = None
@@ -246,16 +247,16 @@ def get_radiology_smart_analytics():
 def get_radiology_imaging_optimization():
     """تحسين التصوير"""
     try:
-        total_requests = RadiologyRequest.query.count()
+        total_requests = db.session.execute(select(func.count()).select_from(RadiologyRequest)).scalar()
         try:
-            avg_processing_seconds = db.session.query(
+            avg_processing_seconds = db.session.execute(select(
                 db.func.avg(db.func.extract('epoch', RadiologyRequest.updated_at) - db.func.extract('epoch', RadiologyRequest.created_at))
-            ).filter(RadiologyRequest.status == OrderState.DONE).scalar()
+            ).filter(RadiologyRequest.status == OrderState.DONE)).scalar()
         except Exception:
             safe_rollback(db.session, error_message="database rollback")
             avg_processing_seconds = None
         avg_imaging_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
-        total_processed = RadiologyRequest.query.filter(RadiologyRequest.status == OrderState.DONE).count()
+        total_processed = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(RadiologyRequest.status == OrderState.DONE)).scalar()
         suggestions = generate_imaging_optimization_suggestions(avg_imaging_time)
         return {
             'avg_imaging_time': avg_imaging_time,
@@ -270,15 +271,15 @@ def get_radiology_imaging_optimization():
 def get_radiology_quality_assurance():
     """ضمان الجودة"""
     try:
-        total_done = RadiologyRequest.query.filter(RadiologyRequest.status == OrderState.DONE).count()
-        reviewed = RadiologyResult.query.filter(RadiologyResult.reviewed_at.isnot(None)).count()
-        critical = RadiologyResult.query.filter(RadiologyResult.is_critical == True).count()
+        total_done = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(RadiologyRequest.status == OrderState.DONE)).scalar()
+        reviewed = db.session.execute(select(func.count()).select_from(RadiologyResult).filter(RadiologyResult.reviewed_at.isnot(None))).scalar()
+        critical = db.session.execute(select(func.count()).select_from(RadiologyResult).filter(RadiologyResult.is_critical == True)).scalar()
         quality_score = (reviewed / total_done * 100) if total_done else 100
         return {
             'total_completed': total_done,
             'quality_score': round(quality_score, 2),
             'standard_deviations': round((critical / total_done) * 3, 2) if total_done else 0,
-            'recheck_requests': RadiologyResult.query.filter(RadiologyResult.revised_after_review == True).count()
+            'recheck_requests': db.session.execute(select(func.count()).select_from(RadiologyResult).filter(RadiologyResult.revised_after_review == True)).scalar()
         }
     except Exception as e:
         logging.error(f"Error getting radiology quality assurance: {str(e)}")
@@ -310,17 +311,17 @@ def get_radiology_equipment_status():
 def get_radiology_report_analysis():
     """تحليل التقارير"""
     try:
-        total_reports = RadiologyResult.query.count()
-        abnormal_findings = RadiologyResult.query.filter(
+        total_reports = db.session.execute(select(func.count()).select_from(RadiologyResult)).scalar()
+        abnormal_findings = db.session.execute(select(func.count()).select_from(RadiologyResult).filter(
             RadiologyResult.status.in_([LabResultStatus.READY, LabResultStatus.VALIDATED])
-        ).count()
-        critical_reports = RadiologyResult.query.filter(RadiologyResult.is_critical == True).count()
+        )).scalar()
+        critical_reports = db.session.execute(select(func.count()).select_from(RadiologyResult).filter(RadiologyResult.is_critical == True)).scalar()
         abnormal_rate = (abnormal_findings / total_reports * 100) if total_reports else 0
-        last_7 = RadiologyResult.query.filter(RadiologyResult.created_at >= (date.today() - timedelta(days=7))).count()
-        prev_7 = RadiologyResult.query.filter(
+        last_7 = db.session.execute(select(func.count()).select_from(RadiologyResult).filter(RadiologyResult.created_at >= (date.today() - timedelta(days=7)))).scalar()
+        prev_7 = db.session.execute(select(func.count()).select_from(RadiologyResult).filter(
             RadiologyResult.created_at >= (date.today() - timedelta(days=14)),
             RadiologyResult.created_at < (date.today() - timedelta(days=7))
-        ).count()
+        )).scalar()
         trend_analysis = 'تصاعدي' if last_7 > prev_7 else 'تنازلي' if last_7 < prev_7 else 'مستقر'
         return {
             'total_reports': total_reports,
@@ -336,8 +337,8 @@ def get_radiology_report_analysis():
 def get_radiology_workflow_automation():
     """أتمتة سير العمل"""
     try:
-        total_requests = RadiologyRequest.query.count()
-        done_requests = RadiologyRequest.query.filter(RadiologyRequest.status == OrderState.DONE).count()
+        total_requests = db.session.execute(select(func.count()).select_from(RadiologyRequest)).scalar()
+        done_requests = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(RadiologyRequest.status == OrderState.DONE)).scalar()
         automation_rate = round((done_requests / total_requests) * 100, 2) if total_requests else 0
         automated_tasks = done_requests
         time_saved = round(automation_rate * 1.1, 2)
@@ -357,12 +358,12 @@ def get_radiology_predictive_insights():
         today = date.today()
         week_start = today - timedelta(days=7)
         month_start = today - timedelta(days=30)
-        weekly_requests = RadiologyRequest.query.filter(RadiologyRequest.created_at >= week_start).count()
-        monthly_requests = RadiologyRequest.query.filter(RadiologyRequest.created_at >= month_start).count()
-        prev_week = RadiologyRequest.query.filter(
+        weekly_requests = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(RadiologyRequest.created_at >= week_start)).scalar()
+        monthly_requests = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(RadiologyRequest.created_at >= month_start)).scalar()
+        prev_week = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
             RadiologyRequest.created_at >= today - timedelta(days=14),
             RadiologyRequest.created_at < week_start
-        ).count()
+        )).scalar()
         growth_rate = ((weekly_requests - prev_week) / prev_week * 100) if prev_week else 0
         predicted_demand = int(round((weekly_requests / 7) * 7))
         return {
@@ -380,7 +381,7 @@ def calculate_radiology_efficiency(completion_rate, pending_requests):
         base_score = completion_rate
         penalty = min(pending_requests * 2.5, 25)  # خصم لكل طلب معلق
         return max(base_score - penalty, 0)
-    except:
+    except (TypeError, ValueError):
         return 0
 
 def calculate_imaging_efficiency(avg_time, total_requests):
@@ -394,7 +395,7 @@ def calculate_imaging_efficiency(avg_time, total_requests):
             return 75
         else:
             return 60
-    except:
+    except (TypeError, ValueError):
         return 0
 
 def generate_imaging_optimization_suggestions(avg_time):

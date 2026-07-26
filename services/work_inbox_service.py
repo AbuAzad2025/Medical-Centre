@@ -4,6 +4,8 @@ from __future__ import annotations
 from typing import Any
 
 from app.shared.enums import AppointmentState, InvoiceStatus, VisitState
+from app.extensions import db
+from sqlalchemy import select
 
 
 # Capability keys gating premium inbox card families (EntitlementResolver)
@@ -78,9 +80,9 @@ class WorkInboxService:
             VisitState.CHECKED_IN,
             VisitState.IN_PROGRESS,
         ]
-        visits = Visit.query.filter(
+        visits = db.session.execute(select(Visit).filter(
             Visit.status.in_(actionable),
-        ).order_by(Visit.created_at.desc()).limit(limit).all()
+        ).order_by(Visit.created_at.desc()).limit(limit)).scalars().all()
         rows = []
         for v in visits:
             patient_name = v.patient.full_name if v.patient else 'مريض'
@@ -104,13 +106,13 @@ class WorkInboxService:
     def _appointment_tickets(limit: int) -> list[dict[str, Any]]:
         from models.appointment import Appointment
 
-        pending = Appointment.query.filter(
+        pending = db.session.execute(select(Appointment).filter(
             Appointment.status.in_([
                 AppointmentState.SCHEDULED,
                 AppointmentState.CONFIRMED,
                 AppointmentState.CHECKED_IN,
             ])
-        ).order_by(Appointment.starts_at).limit(limit).all()
+        ).order_by(Appointment.starts_at).limit(limit)).scalars().all()
         rows = []
         for a in pending:
             status = a.status.value if hasattr(a.status, 'value') else str(a.status)
@@ -131,9 +133,9 @@ class WorkInboxService:
     def _lab_tickets(limit: int) -> list[dict[str, Any]]:
         from models.lab_request import LabRequest
 
-        pending_labs = LabRequest.query.filter(
+        pending_labs = db.session.execute(select(LabRequest).filter(
             LabRequest.status.in_(['REQUESTED', 'COLLECTED', 'IN_PROGRESS'])
-        ).order_by(LabRequest.created_at.desc()).limit(limit).all()
+        ).order_by(LabRequest.created_at.desc()).limit(limit)).scalars().all()
         rows = []
         for r in pending_labs:
             rows.append({
@@ -153,9 +155,9 @@ class WorkInboxService:
     def _radiology_tickets(limit: int) -> list[dict[str, Any]]:
         from models.radiology_request import RadiologyRequest
 
-        pending_radio = RadiologyRequest.query.filter(
+        pending_radio = db.session.execute(select(RadiologyRequest).filter(
             RadiologyRequest.status.in_(['REQUESTED', 'SCHEDULED', 'IN_PROGRESS'])
-        ).order_by(RadiologyRequest.created_at.desc()).limit(limit).all()
+        ).order_by(RadiologyRequest.created_at.desc()).limit(limit)).scalars().all()
         rows = []
         for r in pending_radio:
             rows.append({
@@ -175,9 +177,9 @@ class WorkInboxService:
     def _invoice_tickets(limit: int) -> list[dict[str, Any]]:
         from models.invoice import Invoice
 
-        open_invoices = Invoice.query.filter(
+        open_invoices = db.session.execute(select(Invoice).filter(
             Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
-        ).order_by(Invoice.created_at.desc()).limit(limit).all()
+        ).order_by(Invoice.created_at.desc()).limit(limit)).scalars().all()
         rows = []
         for inv in open_invoices:
             remaining = float((inv.total_amount or 0) - (inv.paid_amount or 0))

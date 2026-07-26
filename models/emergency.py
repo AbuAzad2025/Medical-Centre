@@ -3,7 +3,7 @@
 Medical System Emergency Cases
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import func, Index
 from app_factory import db
 from app.shared.mixins import TenantMixin
@@ -27,8 +27,8 @@ class EmergencyCase(TenantMixin, db.Model):
     treatment_plan = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(50), nullable=False, index=True, server_default=EmergencyStatus.IN_PROGRESS.value)
     completed_at = db.Column(db.DateTime, nullable=True, index=True)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=func.now(), index=True)
-    updated_at = db.Column(db.DateTime, nullable=False, server_default=func.now(), onupdate=func.now(), index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), index=True)
 
     __table_args__ = (
         Index('idx_emergency_patient_status', 'patient_id', 'status'),

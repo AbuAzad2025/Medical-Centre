@@ -147,8 +147,8 @@ def ghost_mode_middleware() -> None:
     from models.audit_trail import AuditTrail
     from models.user import User
 
-    target_user = User.query.get(target_user_id)
-    target_tenant = Tenant.query.get(target_tenant_id)
+    target_user = db.session.get(User, target_user_id)
+    target_tenant = db.session.get(Tenant, target_tenant_id)
     if target_user is None or target_tenant is None:
         current_app.logger.warning(
             "Ghost Mode: target not found tenant=%s user=%s",

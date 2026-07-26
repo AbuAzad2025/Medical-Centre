@@ -3,11 +3,12 @@ DICOM Service - DICOM/PACS study and series management.
 Extracted from routes/dicom_routes.py.
 """
 from __future__ import annotations
+from sqlalchemy import select
 
 import logging
 from typing import Any
 
-from app_factory import db
+from app.extensions import db
 from utils.tenant_query import get_tenant_record, TenantContextError
 
 
@@ -32,19 +33,19 @@ class DICOMService:
     @staticmethod
     def get_series(study_id: int) -> list:
         from models.dicom_pacs import DICOMSeries
-        return DICOMSeries.query.filter_by(study_id=study_id).all()
+        return db.session.execute(select(DICOMSeries).filter_by(study_id=study_id)).scalars().all()
 
     @staticmethod
     def get_instances(series_id: int) -> list:
         from models.dicom_pacs import DICOMInstance
-        return DICOMInstance.query.filter_by(series_id=series_id).all()
+        return db.session.execute(select(DICOMInstance).filter_by(series_id=series_id)).scalars().all()
 
     @staticmethod
     def get_patient_studies(patient_id: int) -> list:
         from models.dicom_pacs import DICOMStudy
-        return DICOMStudy.query.filter_by(patient_id=patient_id).order_by(
+        return db.session.execute(select(DICOMStudy).filter_by(patient_id=patient_id).order_by(
             DICOMStudy.study_date.desc()
-        ).all()
+        )).scalars().all()
 
     @staticmethod
     def serialize_study(study: Any) -> dict:
@@ -61,7 +62,7 @@ class DICOMService:
     @staticmethod
     def get_pacs_config() -> list:
         from models.dicom_pacs import PACSConfiguration
-        return PACSConfiguration.query.filter_by(is_active=True).all()
+        return db.session.execute(select(PACSConfiguration).filter_by(is_active=True)).scalars().all()
 
 
 # Singleton

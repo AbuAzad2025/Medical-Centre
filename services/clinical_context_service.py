@@ -1,6 +1,8 @@
 """
 Clinical Context Service - provides unified clinical context for a visit
 """
+from sqlalchemy import select
+from app.extensions import db
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 from utils.tenant_query import get_tenant_record, TenantContextError
@@ -27,13 +29,13 @@ class ClinicalContextService:
             return {}
 
         patient = get_tenant_record(Patient, visit.patient_id)
-        vitals = VitalSigns.query.filter_by(visit_id=visit_id).order_by(VitalSigns.recorded_at.desc()).all()
-        allergies = PatientAllergy.query.filter_by(patient_id=visit.patient_id).all()
-        lab_reqs = LabRequest.query.filter_by(visit_id=visit_id).all()
-        rad_reqs = RadiologyRequest.query.filter_by(visit_id=visit_id).all()
-        prescriptions = Prescription.query.filter_by(visit_id=visit_id).all()
+        vitals = db.session.execute(select(VitalSigns).filter_by(visit_id=visit_id).order_by(VitalSigns.recorded_at.desc())).scalars().all()
+        allergies = db.session.execute(select(PatientAllergy).filter_by(patient_id=visit.patient_id)).scalars().all()
+        lab_reqs = db.session.execute(select(LabRequest).filter_by(visit_id=visit_id)).scalars().all()
+        rad_reqs = db.session.execute(select(RadiologyRequest).filter_by(visit_id=visit_id)).scalars().all()
+        prescriptions = db.session.execute(select(Prescription).filter_by(visit_id=visit_id)).scalars().all()
         from models.icd_coding import CodedDiagnosis
-        diagnoses = CodedDiagnosis.query.filter_by(visit_id=visit_id).all()
+        diagnoses = db.session.execute(select(CodedDiagnosis).filter_by(visit_id=visit_id)).scalars().all()
 
         return {
             "visit": visit.to_dict() if hasattr(visit, 'to_dict') else {"id": visit.id, "status": visit.status},
@@ -58,7 +60,7 @@ class ClinicalContextService:
     def get_timeline(visit_id: int) -> List[Dict[str, Any]]:
         """Build chronological timeline of events for a visit."""
         from models.workflow import VisitWorkflowEvent
-        events = VisitWorkflowEvent.query.filter_by(visit_id=visit_id).order_by(VisitWorkflowEvent.created_at).all()
+        events = db.session.execute(select(VisitWorkflowEvent).filter_by(visit_id=visit_id).order_by(VisitWorkflowEvent.created_at)).scalars().all()
         return [
             {
                 "timestamp": str(e.created_at),

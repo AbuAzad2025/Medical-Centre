@@ -15,11 +15,11 @@ from models.patient import Patient
 from models.visit import Visit
 from models.medication import Medication
 from services.nursing_service import nursing_service
-from app_factory import db
+from app.extensions import db
 from app.shared.enums import TaskState
 import logging, json
 from datetime import datetime, timedelta, timezone, date
-from sqlalchemy import func, and_, or_, desc
+from sqlalchemy import func, and_, or_, desc, select
 
 
 # =============================================
@@ -80,29 +80,29 @@ def reports():
         end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
         now = datetime.now(timezone.utc)
 
-        base_q = db.session.query(Task, User).join(User, User.id == Task.assigned_to).filter(
+        base_q = select(Task, User).join(User, User.id == Task.assigned_to).filter(
             User.role == 'nurse',
             Task.created_at >= start_dt,
             Task.created_at <= end_dt
         )
 
-        total_tasks = base_q.with_entities(func.count(Task.id)).scalar() or 0
-        completed_tasks = base_q.with_entities(func.count(Task.id)).filter(Task.status == TaskState.COMPLETED).scalar() or 0
-        overdue_tasks = base_q.with_entities(func.count(Task.id)).filter(Task.due_date.isnot(None), Task.due_date < now, Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS, 'on_hold'])).scalar() or 0
-        urgent_tasks = base_q.with_entities(func.count(Task.id)).filter(Task.priority == 'urgent').scalar() or 0
+        total_tasks = db.session.execute(select(func.count()).select_from(base_q.subquery())).scalar() or 0
+        completed_tasks = db.session.execute(select(func.count()).select_from(base_q.filter(Task.status == TaskState.COMPLETED).subquery())).scalar() or 0
+        overdue_tasks = db.session.execute(select(func.count()).select_from(base_q.filter(Task.due_date.isnot(None), Task.due_date < now, Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS, 'on_hold'])).subquery())).scalar() or 0
+        urgent_tasks = db.session.execute(select(func.count()).select_from(base_q.filter(Task.priority == 'urgent').subquery())).scalar() or 0
 
-        by_status = db.session.query(Task.status, func.count(Task.id)).join(User, User.id == Task.assigned_to).filter(
+        by_status = db.session.execute(select(Task.status, func.count(Task.id)).join(User, User.id == Task.assigned_to).filter(
             User.role == 'nurse',
             Task.created_at >= start_dt,
             Task.created_at <= end_dt
-        ).group_by(Task.status).all()
-        by_priority = db.session.query(Task.priority, func.count(Task.id)).join(User, User.id == Task.assigned_to).filter(
+        ).group_by(Task.status)).scalars().all()
+        by_priority = db.session.execute(select(Task.priority, func.count(Task.id)).join(User, User.id == Task.assigned_to).filter(
             User.role == 'nurse',
             Task.created_at >= start_dt,
             Task.created_at <= end_dt
-        ).group_by(Task.priority).all()
+        ).group_by(Task.priority)).scalars().all()
 
-        by_department = db.session.query(
+        by_department = db.session.execute(select(
             Department.name_ar,
             func.count(Task.id)
         ).join(
@@ -113,13 +113,13 @@ def reports():
             User.role == 'nurse',
             Task.created_at >= start_dt,
             Task.created_at <= end_dt
-        ).group_by(Department.name_ar).all()
+        ).group_by(Department.name_ar)).scalars().all()
 
-        top_overdue = base_q.filter(
+        top_overdue = db.session.execute(base_q.filter(
             Task.due_date.isnot(None),
             Task.due_date < now,
             Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS, 'on_hold'])
-        ).order_by(Task.due_date.asc()).limit(25).all()
+        ).order_by(Task.due_date.asc()).limit(25)).all()
 
         rows = []
         for t, u in top_overdue:

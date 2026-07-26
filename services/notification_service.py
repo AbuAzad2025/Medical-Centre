@@ -4,8 +4,8 @@ Medical System Notification Management Service
 """
 
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import and_, or_, func, desc
-from app_factory import db
+from sqlalchemy import and_, or_, func, desc, select
+from app.extensions import db
 from app.shared.enums import NotificationState, PaymentStatus, AppointmentState, BookingState
 from models.notification import Notification, NotificationTemplate, NotificationQueue, WhatsAppNotificationMessage, EmailMessage
 from models.user import User
@@ -64,12 +64,12 @@ class NotificationService:
         try:
             # استخدام القالب إذا تم تحديده
             if template_name:
-                template = NotificationTemplate.query.filter(
+                template = db.session.execute(select(NotificationTemplate).filter(
                     and_(
                         NotificationTemplate.name == template_name,
                         NotificationTemplate.is_active == True
                     )
-                ).first()
+                )).scalars().first()
                 
                 if template:
                     rendered = template.render(template_variables)
@@ -186,15 +186,7 @@ class NotificationService:
     def get_user_notifications(user_id, unread_only=False, urgent_only=False, limit=None):
         """الحصول على إشعارات المستخدم"""
         try:
-            query = Notification.query.filter(
-                and_(
-                    Notification.recipient_id == user_id,
-                    or_(
-                        Notification.expires_at.is_(None),
-                        Notification.expires_at > datetime.now(timezone.utc)
-                    )
-                )
-            )
+            query = select(Notification)
             
             if unread_only:
                 query = query.filter(Notification.is_read == False)
@@ -223,12 +215,12 @@ class NotificationService:
     def mark_as_read(notification_id, user_id):
         """تحديد الإشعار كمقروء"""
         try:
-            notification = Notification.query.filter(
+            notification = db.session.execute(select(Notification).filter(
                 and_(
                     Notification.id == notification_id,
                     Notification.recipient_id == user_id
                 )
-            ).first()
+            )).scalars().first()
             
             if not notification:
                 return {'success': False, 'message': 'الإشعار غير موجود'}
@@ -245,12 +237,12 @@ class NotificationService:
     def mark_all_as_read(user_id):
         """تحديد جميع الإشعارات كمقروءة"""
         try:
-            notifications = Notification.query.filter(
+            notifications = db.session.execute(select(Notification).filter(
                 and_(
                     Notification.recipient_id == user_id,
                     Notification.is_read == False
                 )
-            ).all()
+            )).scalars().all()
             
             for notification in notifications:
                 notification.mark_as_read()
@@ -265,7 +257,7 @@ class NotificationService:
     def get_notification_count(user_id):
         """الحصول على عدد الإشعارات غير المقروءة"""
         try:
-            unread_count = Notification.query.filter(
+            unread_count = db.session.execute(select(func.count()).select_from(Notification).filter(
                 and_(
                     Notification.recipient_id == user_id,
                     Notification.is_read == False,
@@ -274,9 +266,9 @@ class NotificationService:
                         Notification.expires_at > datetime.now(timezone.utc)
                     )
                 )
-            ).count()
+            )).scalar()
             
-            urgent_count = Notification.query.filter(
+            urgent_count = db.session.execute(select(func.count()).select_from(Notification).filter(
                 and_(
                     Notification.recipient_id == user_id,
                     Notification.is_read == False,
@@ -286,7 +278,7 @@ class NotificationService:
                         Notification.expires_at > datetime.now(timezone.utc)
                     )
                 )
-            ).count()
+            )).scalar()
             
             return {
                 'success': True,
@@ -327,9 +319,9 @@ class NotificationService:
     def get_notification_templates():
         """الحصول على قوالب الإشعارات"""
         try:
-            templates = NotificationTemplate.query.filter(
+            templates = db.session.execute(select(NotificationTemplate).filter(
                 NotificationTemplate.is_active == True
-            ).all()
+            )).scalars().all()
             
             return {
                 'success': True,
@@ -391,9 +383,9 @@ class NotificationService:
             
             for template_data in default_templates:
                 # التحقق من وجود القالب
-                existing = NotificationTemplate.query.filter(
+                existing = db.session.execute(select(NotificationTemplate).filter(
                     NotificationTemplate.name == template_data['name']
-                ).first()
+                )).scalars().first()
                 
                 if not existing:
                     template = NotificationTemplate(
@@ -417,12 +409,12 @@ class NotificationService:
     def cleanup_expired_notifications():
         """تنظيف الإشعارات المنتهية الصلاحية"""
         try:
-            expired_notifications = Notification.query.filter(
+            expired_notifications = db.session.execute(select(Notification).filter(
                 and_(
                     Notification.expires_at.isnot(None),
                     Notification.expires_at < datetime.now(timezone.utc)
                 )
-            ).all()
+            )).scalars().all()
             
             for notification in expired_notifications:
                 db.session.delete(notification)
@@ -519,7 +511,7 @@ class NotificationService:
         """
         try:
             # جلب الإشعارات المعلقة
-            query = NotificationQueue.query.filter_by(status=NotificationState.PENDING)
+            query = select(NotificationQueue)
             if tenant_id is not None:
                 query = query.filter_by(tenant_id=tenant_id)
             pending_notifications = query.all()
@@ -533,7 +525,7 @@ class NotificationService:
                         from app.core.tenant.models import Tenant
                         _tenant = None
                         if notification.tenant_id:
-                            _tenant = Tenant.query.get(notification.tenant_id)  # global reference table - no tenant scope
+                            _tenant = db.session.get(Tenant, notification.tenant_id)  # global reference table - no tenant scope
                         result = SMSService.send_sms(
                             phone=notification.recipient,
                             message=notification.content,
@@ -588,9 +580,9 @@ class NotificationService:
     def get_notification_queue_status():
         """الحصول على حالة طابور الإشعارات"""
         try:
-            pending_count = NotificationQueue.query.filter_by(status=NotificationState.PENDING).count()
-            sent_count = NotificationQueue.query.filter_by(status=NotificationState.SENT).count()
-            failed_count = NotificationQueue.query.filter_by(status=NotificationState.FAILED).count()
+            pending_count = db.session.execute(select(func.count()).select_from(NotificationQueue).filter_by(status=NotificationState.PENDING)).scalar()
+            sent_count = db.session.execute(select(func.count()).select_from(NotificationQueue).filter_by(status=NotificationState.SENT)).scalar()
+            failed_count = db.session.execute(select(func.count()).select_from(NotificationQueue).filter_by(status=NotificationState.FAILED)).scalar()
             
             return {
                 'success': True,
@@ -618,16 +610,7 @@ class NotificationService:
             # الديون المتأخرة (> 7 أيام)
             seven_days_ago = datetime.now() - timedelta(days=7)
             
-            query = Visit.query.filter(
-                and_(
-                    or_(
-                        Visit.payment_status == PaymentStatus.DEBT,
-                        Visit.payment_status == PaymentStatus.PENDING
-                    ),
-                    Visit.created_at < seven_days_ago,
-                    Visit.is_force_payment == True
-                )
-            )
+            query = select(Visit)
             if tenant_id is not None:
                 query = query.filter_by(tenant_id=tenant_id)
 
@@ -702,13 +685,7 @@ class NotificationService:
             # زيارات التأمين القديمة (> 14 يوم)
             fourteen_days_ago = datetime.now() - timedelta(days=14)
             
-            query = Visit.query.filter(
-                and_(
-                    Visit.payment_method == 'insurance',
-                    Visit.payment_status == PaymentStatus.PARTIAL,  # دفع المريض حصته فقط
-                    Visit.created_at < fourteen_days_ago
-                )
-            )
+            query = select(Visit)
             if tenant_id is not None:
                 query = query.filter_by(tenant_id=tenant_id)
 
@@ -769,12 +746,7 @@ class NotificationService:
             from models.visit import Visit
             
             # دفعات قسرية بدون موافقة
-            query = Visit.query.filter(
-                and_(
-                    Visit.is_force_payment == True,
-                    Visit.force_payment_approved_by == None
-                )
-            )
+            query = select(Visit)
             if tenant_id is not None:
                 query = query.filter_by(tenant_id=tenant_id)
 
@@ -930,13 +902,7 @@ class NotificationService:
             now = datetime.now()
             soon = now + timedelta(hours=24)
 
-            query = Appointment.query.filter(
-                and_(
-                    Appointment.status == AppointmentState.SCHEDULED,
-                    Appointment.starts_at >= now,
-                    Appointment.starts_at <= soon
-                )
-            )
+            query = select(Appointment)
             if tenant_id is not None:
                 query = query.filter_by(tenant_id=tenant_id)
 
@@ -983,7 +949,7 @@ class NotificationService:
                 ).strip()
 
                 NotificationService.add_to_notification_queue(
-                    user_id=(doctor.id if doctor else (User.query.filter_by(role='reception').first().id if User.query.filter_by(role='reception').first() else User.query.first().id)),
+                    user_id=(doctor.id if doctor else (db.session.execute(select(User).filter_by(role='reception')).scalars().first().id if db.session.execute(select(User).filter_by(role='reception')).scalars().first() else db.session.execute(select(User)).scalars().first().id)),
                     notification_type='sms',
                     recipient=patient.phone,
                     subject=subject,
@@ -1014,11 +980,7 @@ class NotificationService:
             now = datetime.now(timezone.utc)
             soon = now + timedelta(hours=24)
 
-            query = OnlineBooking.query.filter(
-                OnlineBooking.status.in_([BookingState.PENDING, BookingState.CONFIRMED]),
-                OnlineBooking.appointment_date.isnot(None),
-                OnlineBooking.appointment_time.isnot(None)
-            )
+            query = select(OnlineBooking)
             if tenant_id is not None:
                 query = query.filter_by(tenant_id=tenant_id)
 
@@ -1067,7 +1029,7 @@ class NotificationService:
                 if doctor:
                     queue_user_id = doctor.id
                 if not queue_user_id:
-                    any_user = User.query.filter(User.role.in_(['reception', 'manager', 'super_admin'])).first()
+                    any_user = db.session.execute(select(User).filter(User.role.in_(['reception', 'manager', 'super_admin']))).scalars().first()
                     queue_user_id = any_user.id if any_user else 1
 
                 NotificationService.add_to_notification_queue(

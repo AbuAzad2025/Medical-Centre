@@ -2,9 +2,10 @@
 نموذج الحجز عن بعد - Online Booking Models
 Medical System Online Booking Models
 """
+from sqlalchemy import select
 
 from datetime import datetime, date, timedelta, timezone
-from app_factory import db
+from app.extensions import db
 from app.shared.mixins import TenantMixin
 import secrets
 import string
@@ -74,7 +75,7 @@ class OnlineBooking(TenantMixin, db.Model):
         while True:
             alphabet = string.ascii_uppercase + string.digits
             ref = ''.join(secrets.choice(alphabet) for _ in range(8))
-            if not OnlineBooking.query.filter_by(booking_reference=ref).first():
+            if not db.session.execute(select(OnlineBooking).filter_by(booking_reference=ref)).scalars().first():
                 return ref
     
     @staticmethod
@@ -228,7 +229,7 @@ class PaymentTransaction(TenantMixin, db.Model):
         """توليد رقم مرجع المعاملة"""
         while True:
             ref = f"TXN{datetime.now().strftime('%Y%m%d%H%M%S')}{secrets.randbelow(1000):03d}"
-            if not PaymentTransaction.query.filter_by(transaction_reference=ref).first():
+            if not db.session.execute(select(PaymentTransaction).filter_by(transaction_reference=ref)).scalars().first():
                 return ref
     
     def get_status_display(self):

@@ -3,13 +3,14 @@ FHIR Service - HL7 FHIR resource serialization and audit logging.
 Extracted from routes/fhir_api_routes.py.
 """
 from __future__ import annotations
+from sqlalchemy import select
 
 import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from app_factory import db
+from app.extensions import db
 from flask import request
 from utils.db_safety import safe_commit
 from utils.tenant_query import get_tenant_record, TenantContextError
@@ -64,7 +65,7 @@ class FHIRService:
     @staticmethod
     def get_all_patients(limit: int = 100) -> list:
         from models.patient import Patient
-        return Patient.query.filter_by(status="ACTIVE").limit(limit).all()
+        return db.session.execute(select(Patient).filter_by(status="ACTIVE").limit(limit)).scalars().all()
 
     @staticmethod
     def get_patient(patient_id: int) -> Any | None:
@@ -99,7 +100,7 @@ class FHIRService:
     @staticmethod
     def get_all_encounters(limit: int = 100) -> list:
         from models.visit import Visit
-        return Visit.query.order_by(Visit.created_at.desc()).limit(limit).all()
+        return db.session.execute(select(Visit).order_by(Visit.created_at.desc()).limit(limit)).scalars().all()
 
     # ==================== OBSERVATION RESOURCES ====================
 

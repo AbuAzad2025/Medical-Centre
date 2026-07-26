@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit
-from sqlalchemy import func
+from sqlalchemy import func, select
 from utils.tenant_query import get_tenant_record, TenantContextError
 
 
@@ -25,11 +25,11 @@ class SuperAdminService:
         from models.department import Department
         try:
             return {
-                "users": User.query.count(),
-                "patients": Patient.query.count(),
-                "visits": Visit.query.count(),
-                "departments": Department.query.count(),
-                "active_users": User.query.filter(User.is_active == True).count(),
+                "users": db.session.execute(select(func.count()).select_from(User)).scalar(),
+                "patients": db.session.execute(select(func.count()).select_from(Patient)).scalar(),
+                "visits": db.session.execute(select(func.count()).select_from(Visit)).scalar(),
+                "departments": db.session.execute(select(func.count()).select_from(Department)).scalar(),
+                "active_users": db.session.execute(select(func.count()).select_from(User).filter(User.is_active == True)).scalar(),
             }
         except Exception:
             return {}
@@ -77,19 +77,19 @@ class SuperAdminService:
     @staticmethod
     def get_security_logs(limit: int = 100) -> list:
         from models.audit_trail import AuditTrail
-        return AuditTrail.query.order_by(AuditTrail.created_at.desc()).limit(limit).all()
+        return db.session.execute(select(AuditTrail).order_by(AuditTrail.created_at.desc()).limit(limit)).scalars().all()
 
     @staticmethod
     def get_system_config() -> dict:
         from models.system_config import SystemConfig
-        configs = SystemConfig.query.all()
+        configs = db.session.execute(select(SystemConfig)).scalars().all()
         return {c.key: c.value for c in configs}
 
     @staticmethod
     def update_system_config(key: str, value: str) -> bool:
         from models.system_config import SystemConfig
         try:
-            config = SystemConfig.query.filter_by(key=key).first()
+            config = db.session.execute(select(SystemConfig).filter_by(key=key)).scalars().first()
             if config:
                 config.value = value
             else:
@@ -107,10 +107,10 @@ class SuperAdminService:
             from models.visit import Visit
             from models.invoice import Invoice
             return {
-                "patients": Patient.query.count(),
-                "users": User.query.count(),
-                "visits": Visit.query.count(),
-                "invoices": Invoice.query.count(),
+                "patients": db.session.execute(select(func.count()).select_from(Patient)).scalar(),
+                "users": db.session.execute(select(func.count()).select_from(User)).scalar(),
+                "visits": db.session.execute(select(func.count()).select_from(Visit)).scalar(),
+                "invoices": db.session.execute(select(func.count()).select_from(Invoice)).scalar(),
             }
         except Exception:
             return {}

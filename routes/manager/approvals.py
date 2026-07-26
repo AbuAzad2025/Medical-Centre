@@ -17,9 +17,9 @@ from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from services.gatekeeper_service import GatekeeperService
 from services.manager_service import manager_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
-from sqlalchemy import func
+from sqlalchemy import func, select
 from decimal import Decimal, ROUND_HALF_UP
 import logging
 from datetime import datetime, date, timedelta, timezone
@@ -42,18 +42,18 @@ def force_payment_approvals():
         tenant_filter = {'tenant_id': g.tenant_id} if hasattr(g, 'tenant_id') and g.tenant_id is not None else {}
 
         # الدفعات القسرية المعلقة
-        pending_approvals = Visit.query.filter_by(**tenant_filter).filter(
+        pending_approvals = db.session.execute(select(Visit).filter_by(**tenant_filter).filter(
             Visit.is_force_payment == True,
             Visit.force_payment_approved_by == None
-        ).order_by(Visit.created_at.desc()).all()
+        ).order_by(Visit.created_at.desc())).scalars().all()
 
         # الدفعات القسرية المعتمدة (آخر 30 يوم)
         thirty_days_ago = datetime.now() - timedelta(days=30)
-        approved_payments = Visit.query.filter_by(**tenant_filter).filter(
+        approved_payments = db.session.execute(select(Visit).filter_by(**tenant_filter).filter(
             Visit.is_force_payment == True,
             Visit.force_payment_approved_by != None,
             Visit.force_payment_approved_at >= thirty_days_ago
-        ).order_by(Visit.force_payment_approved_at.desc()).all()
+        ).order_by(Visit.force_payment_approved_at.desc())).scalars().all()
         
         # إحصائيات
         stats = GatekeeperService.get_force_payment_statistics(days=30)
@@ -211,19 +211,19 @@ def custom_service_approvals():
     """صفحة موافقات الخدمات المخصصة"""
     try:
         from models.service import ServiceMaster
-        pending = ServiceMaster.query.filter(
+        pending = db.session.execute(select(ServiceMaster).filter(
             ServiceMaster.is_custom == True,
             ServiceMaster.is_active == False,
             ServiceMaster.approved_by == None,
             ServiceMaster.tenant_id == current_user.tenant_id
-        ).order_by(ServiceMaster.created_at.desc()).all()
+        ).order_by(ServiceMaster.created_at.desc())).scalars().all()
 
-        approved = ServiceMaster.query.filter(
+        approved = db.session.execute(select(ServiceMaster).filter(
             ServiceMaster.is_custom == True,
             ServiceMaster.is_active == True,
             ServiceMaster.approved_by != None,
             ServiceMaster.tenant_id == current_user.tenant_id
-        ).order_by(ServiceMaster.approved_at.desc()).all()
+        ).order_by(ServiceMaster.approved_at.desc())).scalars().all()
 
         return render_template('manager/custom_service_approvals.html',
                              pending_services=pending,

@@ -2,9 +2,10 @@
 نموذج العلامة التجارية - Branding Model
 Medical System Branding Management
 """
+from sqlalchemy import select
 
 from datetime import datetime, timezone
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.mixins import TenantMixin
 import os
@@ -117,7 +118,7 @@ class BrandingSettings(TenantMixin, db.Model):
     def get_active_settings(cls):
         """الحصول على الإعدادات النشطة — معزولة حسب tenant عند توفره."""
         tenant_id = cls._tenant_id()
-        q = cls.query.filter_by(is_active=True)
+        q = select(cls)
         if tenant_id:
             row = q.filter_by(tenant_id=tenant_id).first()
             if row:
@@ -214,7 +215,7 @@ class SystemTheme(TenantMixin, db.Model):
             ]
             
             for theme_data in themes:
-                existing = cls.query.filter_by(name=theme_data['name']).first()
+                existing = db.session.execute(select(cls).filter_by(name=theme_data['name'])).scalars().first()
                 if not existing:
                     theme = cls(**theme_data)
                     if theme_data['name'] == 'Medical Blue':

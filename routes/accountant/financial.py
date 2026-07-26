@@ -13,8 +13,8 @@ from models.invoice import Invoice
 from models.user import User
 from services.report_service import ReportService
 from services.financial_service import financial_service
-from app_factory import db
-from sqlalchemy import func, and_
+from app.extensions import db
+from sqlalchemy import func, and_, select
 import logging
 from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
@@ -42,11 +42,11 @@ def financial_report():
         end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
         
         # جلب البيانات المالية
-        payments = Payment.query.filter(
+        payments = db.session.execute(select(Payment).filter(
             Payment.tenant_id == current_user.tenant_id,
             func.date(Payment.created_at) >= start_date,
             func.date(Payment.created_at) <= end_date
-        ).all()
+        )).scalars().all()
         
         # حساب الإحصائيات
         total_payments = sum(payment.amount for payment in payments)
@@ -80,25 +80,25 @@ def daily_summary():
         today = date.today()
         
         # المدفوعات اليوم
-        today_payments = Payment.query.filter(
+        today_payments = db.session.execute(select(Payment).filter(
             Payment.tenant_id == current_user.tenant_id,
             func.date(Payment.created_at) == today
-        ).all()
+        )).scalars().all()
         
         # الزيارات المكتملة اليوم
-        completed_visits = Visit.query.filter(
+        completed_visits = db.session.execute(select(Visit).filter(
             Visit.tenant_id == current_user.tenant_id,
             Visit.archive_status == VisitArchiveStatus.ARCHIVED,
             Visit.completed_at >= datetime.combine(today, datetime.min.time()),
             Visit.completed_at <= datetime.combine(today, datetime.max.time())
-        ).all()
+        )).scalars().all()
         
         # الفواتير الجديدة
-        new_invoices = Invoice.query.filter(
+        new_invoices = db.session.execute(select(Invoice).filter(
             Invoice.tenant_id == current_user.tenant_id,
             Invoice.created_at >= datetime.combine(today, datetime.min.time()),
             Invoice.created_at <= datetime.combine(today, datetime.max.time())
-        ).all()
+        )).scalars().all()
         
         summary = {
             'date': today,

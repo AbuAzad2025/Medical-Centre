@@ -1,9 +1,10 @@
 """
 Two-Factor Authentication Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session, jsonify
 from flask_login import login_required, current_user
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from models import UserMFASettings, MFALoginAttempt
 from utils.decorators import handle_route_errors
@@ -24,7 +25,7 @@ mfa_bp = Blueprint('mfa', __name__)
 @login_required
 @handle_route_errors
 def setup():
-    mfa = UserMFASettings.query.filter_by(user_id=current_user.id).first()
+    mfa = db.session.execute(select(UserMFASettings).filter_by(user_id=current_user.id)).scalars().first()
     if not mfa:
         mfa = UserMFASettings(user_id=current_user.id)
         db.session.add(mfa)
@@ -82,7 +83,7 @@ def verify():
     if not user_id:
         return redirect(url_for('auth.login'))
 
-    mfa = UserMFASettings.query.filter_by(user_id=user_id).first()
+    mfa = db.session.execute(select(UserMFASettings).filter_by(user_id=user_id)).scalars().first()
     if not mfa or not mfa.totp_enabled:
         return redirect(url_for('auth.login'))
 
@@ -125,7 +126,7 @@ def verify():
             session.pop('mfa_pending_user_id', None)
             from flask_login import login_user
             from models import User
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             login_user(user)
             flash('تم التحقق بنجاح', 'success')
             return redirect(url_for('main.dashboard'))
@@ -140,7 +141,7 @@ def verify():
 @login_required
 @handle_route_errors
 def status():
-    mfa = UserMFASettings.query.filter_by(user_id=current_user.id).first()
+    mfa = db.session.execute(select(UserMFASettings).filter_by(user_id=current_user.id)).scalars().first()
     return render_template('mfa/status.html', mfa=mfa)
 
 
@@ -148,7 +149,7 @@ def status():
 @login_required
 @handle_route_errors
 def disable():
-    mfa = UserMFASettings.query.filter_by(user_id=current_user.id).first()
+    mfa = db.session.execute(select(UserMFASettings).filter_by(user_id=current_user.id)).scalars().first()
     if mfa:
         mfa.totp_enabled = False
         mfa.totp_verified = False
@@ -170,7 +171,7 @@ def api_check():
     if not user_id or not code:
         return {'success': False, 'error': 'Missing parameters'}, 400
 
-    mfa = UserMFASettings.query.filter_by(user_id=user_id).first()
+    mfa = db.session.execute(select(UserMFASettings).filter_by(user_id=user_id)).scalars().first()
     if not mfa or not mfa.totp_enabled:
         return {'success': False, 'error': '2FA not enabled'}, 400
 

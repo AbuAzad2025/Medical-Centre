@@ -5,6 +5,8 @@ from datetime import datetime
 from typing import Any, Dict, Optional, Tuple, Set
 
 from app.shared.branding_context import get_branding_row, resolve_ui_context
+from app.extensions import db
+from sqlalchemy import select
 
 PLATFORM_COPYRIGHT = 'شركة ازاد للأنظمة الذكية'
 PLATFORM_WATERMARK = 'شركة أزاد للأنظمة الطبية'
@@ -302,7 +304,7 @@ def resolve_print_context(doc_type: str, branding=None) -> Dict[str, Any]:
     if branding is None:
         if is_ghost_mode and ghost_target_tenant:
             from app.core.tenant.models import TenantBranding
-            branding = TenantBranding.query.filter_by(tenant_id=ghost_target_tenant).first()
+            branding = db.session.execute(select(TenantBranding).filter_by(tenant_id=ghost_target_tenant)).scalars().first()
         if branding is None:
             branding = get_branding_row()
 
@@ -312,7 +314,7 @@ def resolve_print_context(doc_type: str, branding=None) -> Dict[str, Any]:
     # In ghost mode, override UI context with target tenant's branding
     if is_ghost_mode and ghost_target_tenant:
         from app.core.tenant.models import Tenant
-        target_tenant = Tenant.query.get(ghost_target_tenant)
+        target_tenant = db.session.get(Tenant, ghost_target_tenant)
         if target_tenant:
             ui = ui.copy()
             ui['organization_name'] = target_tenant.name

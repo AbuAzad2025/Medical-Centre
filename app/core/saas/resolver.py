@@ -7,6 +7,7 @@ Entitlement ≠ Authorization. This resolver answers only:
 It does NOT check user roles, branch scope, resource ownership, or API scopes.
 Those remain the responsibility of the existing permission/ownership layers.
 """
+from sqlalchemy import select
 
 from datetime import datetime, timezone
 from typing import Optional
@@ -41,7 +42,7 @@ class EntitlementResolver:
 
         from app.core.tenant.models import Tenant
 
-        tenant = Tenant.query.get(tenant_id)
+        tenant = db.session.get(Tenant, tenant_id)
         tenant_status = tenant.status if tenant else None
 
         # Request-local memoization: resolve once per request per (tenant, status, capability)
@@ -74,7 +75,7 @@ class EntitlementResolver:
         """Raise EntitlementDeniedError if tenant is not entitled."""
         from app.core.tenant.models import Tenant
 
-        tenant = Tenant.query.get(tenant_id)
+        tenant = db.session.get(Tenant, tenant_id)
         if not cls.is_entitled(tenant_id, capability_key, at=at, audit=True):
             _, reason = cls._evaluate(tenant, capability_key, at or datetime.now(timezone.utc))
             raise EntitlementDeniedError(tenant_id, capability_key, reason)
@@ -100,8 +101,7 @@ class EntitlementResolver:
         if not tenant.is_active_and_paid():
             return False, "subscription_expired"
 
-        projection = (
-            TenantEntitlement.query.filter_by(
+        projection = db.session.execute(select(TenantEntitlement).filter_by(
                 tenant_id=tenant.id,
                 capability_key=capability_key,
                 is_effective=True,
@@ -110,9 +110,7 @@ class EntitlementResolver:
             .filter(
                 (TenantEntitlement.effective_to.is_(None))
                 | (TenantEntitlement.effective_to >= at)
-            )
-            .first()
-        )
+            )).scalars().first()
 
         if projection is None:
             if LegacyEntitlementAdapter.is_entitled(tenant, capability_key):
@@ -139,8 +137,7 @@ class EntitlementResolver:
         from app.core.saas.models import PackageVersionLimit, SubscriptionLine, SubscriptionLineStatus
 
         limits: dict[str, Optional[int]] = {}
-        lines = (
-            SubscriptionLine.query.filter_by(tenant_id=tenant_id)
+        lines = db.session.execute(select(SubscriptionLine).filter_by(tenant_id=tenant_id)
             .filter(
                 SubscriptionLine.status.in_(
                     [SubscriptionLineStatus.ACTIVE, SubscriptionLineStatus.SCHEDULED]
@@ -150,9 +147,7 @@ class EntitlementResolver:
             .filter(
                 (SubscriptionLine.effective_to.is_(None))
                 | (SubscriptionLine.effective_to >= at)
-            )
-            .all()
-        )
+            )).scalars().all()
         for line in lines:
             version = line.package_version
             if version is None:
@@ -197,9 +192,9 @@ class EntitlementResolver:
         """Snapshot of tenant usage vs limits (storage is warn-only, never False)."""
         from app.core.tenant.models import ResourceUsage
 
-        latest = ResourceUsage.query.filter_by(tenant_id=tenant_id).order_by(
+        latest = db.session.execute(select(ResourceUsage).filter_by(tenant_id=tenant_id).order_by(
             ResourceUsage.recorded_at.desc()
-        ).first()
+        )).scalars().first()
         if not latest:
             latest = ResourceUsage.record_snapshot(tenant_id)
 

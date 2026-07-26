@@ -1,6 +1,7 @@
 """
 Tenant subscription self-service — UX0-004 / UX0-005
 """
+from sqlalchemy import select
 from datetime import date
 
 from flask import render_template, request, flash, redirect, url_for
@@ -16,19 +17,16 @@ from . import super_admin_bp
 
 
 def _current_tenant() -> Tenant:
-    return Tenant.query.get_or_404(current_user.tenant_id)
+    return db.get_or_404(Tenant, current_user.tenant_id)
 
 
 def _active_base_line(tenant: Tenant) -> SubscriptionLine | None:
-    return (
-        SubscriptionLine.query.filter_by(
+    return db.session.execute(select(SubscriptionLine).filter_by(
             tenant_id=tenant.id,
             line_type=SubscriptionLineType.BASE,
             status=SubscriptionLineStatus.ACTIVE,
         )
-        .order_by(SubscriptionLine.effective_from.desc())
-        .first()
-    )
+        .order_by(SubscriptionLine.effective_from.desc())).scalars().first()
 
 
 @super_admin_bp.route("/subscription-status")
@@ -99,13 +97,10 @@ def change_plan():
             flash(f"فشل تغيير الخطة: {e}", "error")
         return redirect(url_for("super_admin.change_plan"))
 
-    available = (
-        PackageVersion.query.join(PackageVersion.package)
+    available = db.session.execute(select(PackageVersion).join(PackageVersion.package)
         .filter(Package.is_active == True)
         .filter(PackageVersion.is_deprecated == False)
-        .order_by(Package.name, PackageVersion.version)
-        .all()
-    )
+        .order_by(Package.name, PackageVersion.version)).scalars().all()
 
     return render_template(
         "tenant/change_plan.html",

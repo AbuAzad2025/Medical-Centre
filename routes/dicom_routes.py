@@ -1,6 +1,7 @@
 """
 DICOM / PACS Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors, role_required
@@ -8,7 +9,7 @@ from models.dicom_pacs import DICOMStudy, DICOMSeries, DICOMInstance, PACSConfig
 from models.patient import Patient
 from models.radiology_request import RadiologyRequest
 from services.dicom_service import dicom_service
-from app_factory import db
+from app.extensions import db
 
 dicom_bp = Blueprint('dicom', __name__)
 
@@ -33,8 +34,8 @@ def studies():
 @role_required('radiology', 'doctor', 'admin', 'manager')
 @handle_route_errors
 def study_detail(study_id):
-    study = DICOMStudy.query.get_or_404(study_id)
-    series = DICOMSeries.query.filter_by(study_id=study_id).all()
+    study = db.get_or_404(DICOMStudy, study_id)
+    series = db.session.execute(select(DICOMSeries).filter_by(study_id=study_id)).scalars().all()
     return render_template('dicom/study_detail.html', study=study, series=series)
 
 @dicom_bp.route('/viewer/<int:study_id>')
@@ -42,17 +43,17 @@ def study_detail(study_id):
 @role_required('radiology', 'doctor', 'admin', 'manager')
 @handle_route_errors
 def viewer(study_id):
-    study = DICOMStudy.query.get_or_404(study_id)
-    series = DICOMSeries.query.filter_by(study_id=study_id).all()
+    study = db.get_or_404(DICOMStudy, study_id)
+    series = db.session.execute(select(DICOMSeries).filter_by(study_id=study_id)).scalars().all()
     return render_template('dicom/viewer.html', study=study, series=series)
 
 @dicom_bp.route('/api/studies/patient/<int:patient_id>')
 @login_required
 @handle_route_errors
 def api_patient_studies(patient_id):
-    studies = DICOMStudy.query.filter_by(patient_id=patient_id).order_by(
+    studies = db.session.execute(select(DICOMStudy).filter_by(patient_id=patient_id).order_by(
         DICOMStudy.study_date.desc()
-    ).all()
+    )).scalars().all()
     return jsonify([{
         'id': s.id,
         'study_uid': s.study_instance_uid,

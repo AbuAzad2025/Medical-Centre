@@ -4,8 +4,8 @@ Medical System Receipt Model
 """
 
 from datetime import datetime, timezone
-from sqlalchemy import Index, CheckConstraint
-from app_factory import db
+from sqlalchemy import Index, CheckConstraint, select
+from app.extensions import db
 from app.shared.mixins import TenantMixin
 import qrcode
 import io
@@ -97,9 +97,9 @@ class Receipt(TenantMixin, db.Model):
             # تنسيق: RCP-YYYYMMDD-XXXX
             date_str = datetime.now(timezone.utc).strftime('%Y%m%d')
             # البحث عن آخر رقم لهذا اليوم
-            last_receipt = Receipt.query.filter(
+            last_receipt = db.session.execute(select(Receipt).filter(
                 Receipt.receipt_number.like(f'RCP-{date_str}-%')
-            ).order_by(Receipt.id.desc()).first()
+            ).order_by(Receipt.id.desc())).scalars().first()
             
             if last_receipt:
                 last_number = int(last_receipt.receipt_number.split('-')[-1])

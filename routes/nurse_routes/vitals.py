@@ -11,11 +11,11 @@ from models.patient import Patient
 from models.visit import Visit
 from models.medication import Medication
 from services.nursing_service import nursing_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging, json
 from datetime import datetime, timedelta, timezone, date
-from sqlalchemy import func, and_, or_, desc
+from sqlalchemy import func, and_, or_, desc, select
 
 
 # =============================================
@@ -34,9 +34,9 @@ def vital_signs():
         visit_id = request.args.get('visit_id', type=int)
         patient_id = request.args.get('patient_id', type=int)
         if not patient_id and visit_id:
-            visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == current_user.tenant_id).first_or_404()
+            visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == current_user.tenant_id)
             patient_id = visit.patient_id
-        vq = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]))
+        vq = select(Visit)
         dept_ids = _accessible_department_ids()
         if dept_ids is not None and dept_ids:
             vq = vq.filter(Visit.department_id.in_(dept_ids))
@@ -44,16 +44,16 @@ def vital_signs():
         active_patient_ids = [r.patient_id for r in vq.order_by(desc(Visit.created_at)).limit(50).all() if getattr(r, 'patient_id', None)]
         patients = []
         if active_patient_ids:
-            patients = Patient.query.filter(Patient.id.in_(active_patient_ids)).order_by(desc(Patient.created_at)).all()
+            patients = db.session.execute(select(Patient).filter(Patient.id.in_(active_patient_ids)).order_by(desc(Patient.created_at))).scalars().all()
         else:
-            patients = Patient.query.order_by(desc(Patient.created_at)).limit(20).all()
+            patients = db.session.execute(select(Patient).order_by(desc(Patient.created_at)).limit(20)).scalars().all()
 
-        selected_patient = Patient.query.filter(Patient.id == patient_id, Patient.tenant_id == current_user.tenant_id).first() if patient_id else None
+        selected_patient = db.session.execute(select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == current_user.tenant_id)).scalars().first() if patient_id else None
         vital_records = []
         if selected_patient:
-            vital_records = VitalSigns.query.filter_by(patient_id=selected_patient.id).order_by(
+            vital_records = db.session.execute(select(VitalSigns).filter_by(patient_id=selected_patient.id).order_by(
                 desc(VitalSigns.recorded_at)
-            ).limit(20).all()
+            ).limit(20)).scalars().all()
         
         return render_template(
             'nurse/vital_signs.html',
@@ -75,7 +75,7 @@ def record_vital_signs(patient_id):
     try:
         from models.nurse import VitalSigns
 
-        patient = Patient.query.filter(Patient.id == patient_id, Patient.tenant_id == current_user.tenant_id).first()
+        patient = db.session.execute(select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == current_user.tenant_id)).scalars().first()
         if not patient:
             return jsonify({'success': False, 'message': 'المريض غير موجود'}), 404
 

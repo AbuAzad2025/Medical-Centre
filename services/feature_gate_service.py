@@ -1,6 +1,8 @@
 """
 FeatureGateService — Unified feature/module/action gating
 """
+from sqlalchemy import select
+from app.extensions import db
 from functools import wraps
 from flask import g, abort, current_app
 from flask_login import current_user
@@ -51,7 +53,7 @@ class FeatureGateService:
     @staticmethod
     def feature_enabled(tenant_id: int, feature: str) -> bool:
         from app.core.tenant.models import TenantFeatureFlag
-        flag = TenantFeatureFlag.query.filter_by(tenant_id=tenant_id, feature_key=feature, is_enabled=True).first()
+        flag = db.session.execute(select(TenantFeatureFlag).filter_by(tenant_id=tenant_id, feature_key=feature, is_enabled=True)).scalars().first()
         return flag is not None
 
     @staticmethod
@@ -65,7 +67,7 @@ class FeatureGateService:
     @staticmethod
     def product_profile(tenant_id: int) -> str | None:
         from app.core.tenant.models import Tenant
-        tenant = Tenant.query.get(tenant_id)  # global reference table - no tenant scope
+        tenant = db.session.get(Tenant, tenant_id)  # global reference table - no tenant scope
         return tenant.product_profile_code if tenant else None
 
     @staticmethod

@@ -1,6 +1,7 @@
 """
 Report Scope Service - scopes reports by tenant, module, and user role
 """
+from sqlalchemy import select
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
 
@@ -31,7 +32,7 @@ class ReportScopeService:
     @staticmethod
     def _visit_stats(tenant_id: Optional[int], **filters) -> Dict[str, Any]:
         from models.visit import Visit
-        from app_factory import db
+        from app.extensions import db
 
         q = Visit.query
         if tenant_id:
@@ -41,37 +42,37 @@ class ReportScopeService:
         if 'date_to' in filters:
             q = q.filter(Visit.created_at <= filters['date_to'])
         total = q.count()
-        by_status = db.session.query(Visit.status, db.func.count()).group_by(Visit.status).all()
+        by_status = db.session.execute(select(Visit.status, db.func.count()).group_by(Visit.status)).scalars().all()
         return {'total_visits': total, 'by_status': dict(by_status)}
 
     @staticmethod
     def _lab_volume(tenant_id: Optional[int], **filters) -> Dict[str, Any]:
         from models.lab_request import LabRequest
-        from app_factory import db
+        from app.extensions import db
 
         q = LabRequest.query
         if tenant_id:
             q = q.filter_by(tenant_id=tenant_id)
         total = q.count()
-        by_status = db.session.query(LabRequest.status, db.func.count()).group_by(LabRequest.status).all()
+        by_status = db.session.execute(select(LabRequest.status, db.func.count()).group_by(LabRequest.status)).scalars().all()
         return {'total_lab_requests': total, 'by_status': dict(by_status)}
 
     @staticmethod
     def _revenue(tenant_id: Optional[int], **filters) -> Dict[str, Any]:
         from models.payment import Payment
-        from app_factory import db
+        from app.extensions import db
 
         q = Payment.query
         if tenant_id:
             q = q.filter_by(tenant_id=tenant_id)
-        total = db.session.query(db.func.sum(Payment.amount_paid)).filter(
-            *([Payment.tenant_id == tenant_id] if tenant_id else [])).scalar() or 0
+        total = db.session.execute(select(db.func.sum(Payment.amount_paid)).filter(
+            *([Payment.tenant_id == tenant_id] if tenant_id else []))).scalar() or 0
         return {'total_revenue': float(total)}
 
     @staticmethod
     def _inventory(tenant_id: Optional[int], **filters) -> Dict[str, Any]:
         from models.medication import Medication
-        from app_factory import db
+        from app.extensions import db
 
         q = Medication.query
         if tenant_id:
@@ -83,7 +84,7 @@ class ReportScopeService:
     @staticmethod
     def _referral(tenant_id: Optional[int], **filters) -> Dict[str, Any]:
         from models.visit import Visit
-        from app_factory import db
+        from app.extensions import db
 
         q = Visit.query
         if tenant_id:

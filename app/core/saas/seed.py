@@ -4,6 +4,7 @@ SaaS seeding utilities — S0-006
 Provides idempotent conversion of legacy ProductBundle seed data into the new
 Package / PackageVersion / Entitlement catalog.
 """
+from sqlalchemy import select
 
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -47,10 +48,10 @@ def seed_packages_from_product_bundles(
     from app.core.tenant.models import ProductBundle
 
     created_ids: list[int] = []
-    bundles = ProductBundle.query.filter_by(is_active=True).all()
+    bundles = db.session.execute(select(ProductBundle).filter_by(is_active=True)).scalars().all()
 
     for bundle in bundles:
-        existing = Package.query.filter_by(slug=bundle.slug).first()
+        existing = db.session.execute(select(Package).filter_by(slug=bundle.slug)).scalars().first()
         if existing:
             if created_package_ids is not None:
                 created_package_ids.append(existing.id)

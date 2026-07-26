@@ -5,6 +5,7 @@ All background workers must process one tenant at a time and enforce
  tenant_id on every tenant-scoped query.
 """
 from __future__ import annotations
+from sqlalchemy import select
 
 import functools
 import logging
@@ -42,12 +43,9 @@ def for_each_tenant(app: Flask, job: Callable[[int], None]) -> None:
         from app.core.tenant.models import Tenant
 
         try:
-            active_tenants = (
-                Tenant.query.filter(Tenant.status.in_(_operational_tenant_statuses()))
+            active_tenants = db.session.execute(select(Tenant).filter(Tenant.status.in_(_operational_tenant_statuses()))
                 .order_by(Tenant.id)
-                .with_entities(Tenant.id)
-                .all()
-            )
+                .with_entities(Tenant.id)).scalars().all()
         except Exception:
             logging.exception("Failed to load active tenants for background job")
             return
@@ -71,7 +69,7 @@ def with_tenant_context(app: Flask, tenant_id: int, job: Callable[[], T]) -> Opt
         from app.core.tenant.middleware import bind_g_tenant
         from app.core.tenant.models import Tenant
 
-        tenant = Tenant.query.get(tenant_id)  # global reference table - no tenant scope
+        tenant = db.session.get(Tenant, tenant_id)  # global reference table - no tenant scope
         if tenant is None:
             return None
         bind_g_tenant(tenant)

@@ -6,13 +6,13 @@ from utils.decorators import role_required
 from models.patient import Patient
 from models.visit import Visit
 from models.medication import Medication
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import TaskState, VisitState
 import logging
 from datetime import datetime, timedelta, timezone, date
 import json
-from sqlalchemy import func, and_, or_, desc
+from sqlalchemy import func, and_, or_, desc, select
 
 nurse_bp = Blueprint('nurse', __name__)
 
@@ -43,7 +43,7 @@ def _default_nursing_protocols():
 
 def _get_nursing_protocols():
     from models.system_config import SystemConfig
-    cfg = SystemConfig.query.filter_by(config_key=_nursing_protocols_key()).first()
+    cfg = db.session.execute(select(SystemConfig).filter_by(config_key=_nursing_protocols_key())).scalars().first()
     if not cfg:
         cfg = SystemConfig(
             config_key=_nursing_protocols_key(),
@@ -72,7 +72,7 @@ def _get_nursing_protocols():
 
 def _save_nursing_protocols(items):
     from models.system_config import SystemConfig
-    cfg = SystemConfig.query.filter_by(config_key=_nursing_protocols_key()).first()
+    cfg = db.session.execute(select(SystemConfig).filter_by(config_key=_nursing_protocols_key())).scalars().first()
     if not cfg:
         cfg = SystemConfig(
             config_key=_nursing_protocols_key(),
@@ -102,23 +102,23 @@ def get_nursing_smart_analytics():
         from models.task_management import Task
 
         # تحليل الممرضات
-        total_nurses = Nurse.query.filter(Nurse.is_active == True).count()
-        total_tasks = Task.query.filter(Task.task_type == 'nursing').count()
-        completed_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status == TaskState.COMPLETED).count()
-        pending_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status == TaskState.PENDING).count()
+        total_nurses = db.session.execute(select(func.count()).select_from(Nurse).filter(Nurse.is_active == True)).scalar()
+        total_tasks = db.session.execute(select(func.count()).select_from(Task).filter(Task.task_type == 'nursing')).scalar()
+        completed_tasks = db.session.execute(select(func.count()).select_from(Task).filter(Task.task_type == 'nursing', Task.status == TaskState.COMPLETED)).scalar()
+        pending_tasks = db.session.execute(select(func.count()).select_from(Task).filter(Task.task_type == 'nursing', Task.status == TaskState.PENDING)).scalar()
         
         # تحليل المهام
-        urgent_tasks = Task.query.filter(Task.task_type == 'nursing', Task.priority == 'urgent').count()
-        high_priority_tasks = Task.query.filter(Task.task_type == 'nursing', Task.priority == 'high').count()
+        urgent_tasks = db.session.execute(select(func.count()).select_from(Task).filter(Task.task_type == 'nursing', Task.priority == 'urgent')).scalar()
+        high_priority_tasks = db.session.execute(select(func.count()).select_from(Task).filter(Task.task_type == 'nursing', Task.priority == 'high')).scalar()
         
         # تحليل الأداء
         completion_rate = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
         
         # تحليل أنواع المهام
-        task_types = db.session.query(
+        task_types = db.session.execute(select(
         Task.task_type,
         func.count(Task.id).label('count')
-    ).filter(Task.task_type == 'nursing').group_by(Task.task_type).all()
+            ).filter(Task.task_type == 'nursing').group_by(Task.task_type)).scalars().all()
 
         return {
             'total_nurses': total_nurses,
@@ -143,13 +143,13 @@ def get_patient_care_optimization():
         from models.task_management import Task
 
         # تحليل المهام
-        total_tasks = Task.query.filter(Task.task_type == 'nursing').count()
-        completed_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status == TaskState.COMPLETED).count()
-        in_progress_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status == TaskState.IN_PROGRESS).count()
+        total_tasks = db.session.execute(select(func.count()).select_from(Task).filter(Task.task_type == 'nursing')).scalar()
+        completed_tasks = db.session.execute(select(func.count()).select_from(Task).filter(Task.task_type == 'nursing', Task.status == TaskState.COMPLETED)).scalar()
+        in_progress_tasks = db.session.execute(select(func.count()).select_from(Task).filter(Task.task_type == 'nursing', Task.status == TaskState.IN_PROGRESS)).scalar()
         
         # تحليل الأولويات
-        urgent_tasks = Task.query.filter(Task.task_type == 'nursing', Task.priority == 'urgent').count()
-        high_priority_tasks = Task.query.filter(Task.task_type == 'nursing', Task.priority == 'high').count()
+        urgent_tasks = db.session.execute(select(func.count()).select_from(Task).filter(Task.task_type == 'nursing', Task.priority == 'urgent')).scalar()
+        high_priority_tasks = db.session.execute(select(func.count()).select_from(Task).filter(Task.task_type == 'nursing', Task.priority == 'high')).scalar()
         
         # تحليل أوقات الإنجاز
         avg_completion_time = 0  # يمكن حساب متوسط وقت الإنجاز
@@ -181,29 +181,29 @@ def get_vital_signs_monitoring():
         from models.nurse import VitalSigns
 
         # تحليل العلامات الحيوية
-        total_vital_signs = VitalSigns.query.count()
-        abnormal_vital_signs = VitalSigns.query.filter(
+        total_vital_signs = db.session.execute(select(func.count()).select_from(VitalSigns)).scalar()
+        abnormal_vital_signs = db.session.execute(select(func.count()).select_from(VitalSigns).filter(
             or_(
                 VitalSigns.blood_pressure_systolic > 140,
                 VitalSigns.blood_pressure_diastolic > 90,
                 VitalSigns.heart_rate > 100,
                 VitalSigns.temperature > 37.5
             )
-        ).count()
+        )).scalar()
         
         # تحليل الاتجاهات
-        recent_vital_signs = VitalSigns.query.filter(
+        recent_vital_signs = db.session.execute(select(func.count()).select_from(VitalSigns).filter(
             VitalSigns.recorded_at >= datetime.now() - timedelta(days=7)
-        ).count()
+        )).scalar()
         
         # تحليل التنبيهات
-        critical_alerts = VitalSigns.query.filter(
+        critical_alerts = db.session.execute(select(func.count()).select_from(VitalSigns).filter(
             or_(
                 VitalSigns.blood_pressure_systolic > 160,
                 VitalSigns.heart_rate > 120,
                 VitalSigns.temperature > 38.5
             )
-        ).count()
+        )).scalar()
 
         return {
             'total_vital_signs': total_vital_signs,
@@ -225,18 +225,18 @@ def get_medication_management():
         from models.medication import Medication
 
         # تحليل إعطاء الأدوية
-        medication_tasks = Task.query.filter(Task.task_type == 'nursing').count()
-        completed_medication_tasks = Task.query.filter(
+        medication_tasks = db.session.execute(select(func.count()).select_from(Task).filter(Task.task_type == 'nursing')).scalar()
+        completed_medication_tasks = db.session.execute(select(func.count()).select_from(Task).filter(
             and_(
                 Task.task_type == 'nursing',
                 Task.status == TaskState.COMPLETED
             )
-        ).count()
+        )).scalar()
         
         # تحليل الأدوية المطلوبة
-        medications_needed = Medication.query.filter(
+        medications_needed = db.session.execute(select(func.count()).select_from(Medication).filter(
             Medication.stock_quantity <= Medication.minimum_stock
-        ).count()
+        )).scalar()
         
         # تحليل الأخطاء
         medication_errors = 0  # يمكن إضافة نموذج للأخطاء
@@ -265,7 +265,7 @@ def get_nursing_workflow_automation():
 
         # تحليل المهام المؤتمتة
         automated_tasks = 0  # يمكن إضافة نموذج للمهام المؤتمتة
-        manual_tasks = Task.query.filter(Task.task_type == 'nursing').count()
+        manual_tasks = db.session.execute(select(func.count()).select_from(Task).filter(Task.task_type == 'nursing')).scalar()
         
         # تحليل أوقات المعالجة
         avg_processing_time = 0  # يمكن حساب متوسط وقت المعالجة
@@ -297,23 +297,23 @@ def get_nursing_predictive_insights():
         from models.visit import Visit
 
         now = datetime.now(timezone.utc)
-        weekly_tasks = Task.query.filter(
+        weekly_tasks = db.session.execute(select(func.count()).select_from(Task).filter(
             Task.task_type == 'nursing',
             Task.created_at >= now - timedelta(days=7)
-        ).count()
-        monthly_tasks = Task.query.filter(
+        )).scalar()
+        monthly_tasks = db.session.execute(select(func.count()).select_from(Task).filter(
             Task.task_type == 'nursing',
             Task.created_at >= now - timedelta(days=30)
-        ).count()
-        prev_week = Task.query.filter(
+        )).scalar()
+        prev_week = db.session.execute(select(func.count()).select_from(Task).filter(
             Task.task_type == 'nursing',
             Task.created_at >= now - timedelta(days=14),
             Task.created_at < now - timedelta(days=7)
-        ).count()
+        )).scalar()
         growth_rate = ((weekly_tasks - prev_week) / prev_week * 100) if prev_week else 0
 
-        active_visits = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])).count()
-        recent_vitals = VitalSigns.query.filter(VitalSigns.recorded_at >= now - timedelta(hours=6)).count()
+        active_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]))).scalar()
+        recent_vitals = db.session.execute(select(func.count()).select_from(VitalSigns).filter(VitalSigns.recorded_at >= now - timedelta(hours=6))).scalar()
         predicted_workload = int(active_visits + (recent_vitals / 10))
 
         return {
@@ -334,20 +334,20 @@ def get_nursing_quality_indicators():
         from models.task_management import Task
         now = datetime.now(timezone.utc)
         last_7 = now - timedelta(days=7)
-        vitals_critical = VitalSigns.query.filter(
+        vitals_critical = db.session.execute(select(func.count()).select_from(VitalSigns).filter(
             VitalSigns.recorded_at >= last_7,
             VitalSigns.oxygen_saturation.isnot(None),
             VitalSigns.oxygen_saturation < 90
-        ).count()
-        overdue_tasks = Task.query.filter(
+        )).scalar()
+        overdue_tasks = db.session.execute(select(func.count()).select_from(Task).filter(
             Task.task_type == 'nursing',
             Task.due_date.isnot(None),
             Task.due_date < now,
             Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS, 'on_hold'])
-        ).count()
-        med_logs = MedicationAdministrationLog.query.filter(
+        )).scalar()
+        med_logs = db.session.execute(select(func.count()).select_from(MedicationAdministrationLog).filter(
             MedicationAdministrationLog.administered_at >= last_7
-        ).count()
+        )).scalar()
         documentation_rate = 100 if med_logs else 80
         return {
             'critical_vitals_7d': int(vitals_critical or 0),
@@ -362,8 +362,8 @@ def get_nursing_workload_prediction():
     try:
         from models.visit import Visit
         from models.task_management import Task
-        active_visits = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])).count()
-        pending_tasks = Task.query.filter(Task.task_type == 'nursing', Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS])).count()
+        active_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]))).scalar()
+        pending_tasks = db.session.execute(select(func.count()).select_from(Task).filter(Task.task_type == 'nursing', Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS]))).scalar()
         predicted = int(active_visits + (pending_tasks / 2))
         return {
             'active_visits': int(active_visits or 0),
@@ -446,7 +446,7 @@ def calculate_nursing_efficiency(completion_rate, pending_tasks, total_tasks):
         
         efficiency = (completion_rate * 0.7) + ((total_tasks - pending_tasks) / total_tasks * 0.3)
         return min(100, max(0, round(efficiency, 2)))
-    except:
+    except (TypeError, ValueError, ZeroDivisionError):
         return 0
 
 def generate_patient_care_optimization_suggestions(urgent_tasks, high_priority_tasks, total_tasks):
@@ -476,7 +476,7 @@ def calculate_patient_care_efficiency(completed_tasks, total_tasks):
         
         efficiency = (completed_tasks / total_tasks) * 100
         return min(100, max(0, round(efficiency, 2)))
-    except:
+    except (TypeError, ValueError, ZeroDivisionError):
         return 0
 
 def calculate_vital_signs_monitoring_score(abnormal_vital_signs, critical_alerts, total_vital_signs):
@@ -490,7 +490,7 @@ def calculate_vital_signs_monitoring_score(abnormal_vital_signs, critical_alerts
         monitoring_score -= (critical_alerts / total_vital_signs) * 30
         
         return min(100, max(0, round(monitoring_score, 2)))
-    except:
+    except (TypeError, ValueError, ZeroDivisionError):
         return 0
 
 def calculate_medication_efficiency(completed_medication_tasks, medication_tasks):
@@ -501,7 +501,7 @@ def calculate_medication_efficiency(completed_medication_tasks, medication_tasks
         
         efficiency = (completed_medication_tasks / medication_tasks) * 100
         return min(100, max(0, round(efficiency, 2)))
-    except:
+    except (TypeError, ValueError, ZeroDivisionError):
         return 0
 
 def calculate_nursing_automation_score(automated_tasks, manual_tasks):
@@ -512,16 +512,12 @@ def calculate_nursing_automation_score(automated_tasks, manual_tasks):
         
         automation_rate = (automated_tasks / (automated_tasks + manual_tasks)) * 100
         return min(100, max(0, round(automation_rate, 2)))
-    except:
+    except (TypeError, ValueError, ZeroDivisionError):
         return 0
 
 def calculate_workload_forecast_accuracy():
     """حساب دقة التنبؤ بالحمل"""
-    try:
-        # يمكن تطوير خوارزمية أكثر تعقيداً هنا
-        return 85  # قيمة افتراضية
-    except:
-        return 0
+    return 85
 
 # ═══════════════════════════════════════
 # SUBMODULE IMPORTS

@@ -15,11 +15,12 @@ from models.lab_quality import LabQualityControlEntry
 from models.lab_reagent import LabReagent
 from models.audit_trail import AuditTrail
 from services.lab_service import lab_service
-from app_factory import db
+from app.extensions import db
 from app.shared.print_context import generate_qr_data_uri
 import logging, json
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
+from sqlalchemy import select
 
 
 # =============================================
@@ -35,10 +36,10 @@ def reports():
     request_id = request.args.get('request_id', type=int)
     lab_request = None
     if request_id:
-        lab_request = LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
+        lab_request = db.session.execute(select(LabRequest).filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
     if not lab_request:
-        lab_request = LabRequest.query.order_by(LabRequest.created_at.desc()).first()
-    recent_requests = LabRequest.query.order_by(LabRequest.created_at.desc()).limit(20).all()
+        lab_request = db.session.execute(select(LabRequest).order_by(LabRequest.created_at.desc())).scalars().first()
+    recent_requests = db.session.execute(select(LabRequest).order_by(LabRequest.created_at.desc()).limit(20)).scalars().all()
     return render_template('lab/report.html', lab_request=lab_request, recent_requests=recent_requests, today=date.today().strftime('%Y-%m-%d'))
 
 @lab_bp.route('/print_request/<int:id>')
@@ -48,7 +49,7 @@ def print_request(id: int):
     """طباعة تقرير طلب المختبر"""
     
     try:
-        lab_request = LabRequest.query.filter(LabRequest.id == id, LabRequest.tenant_id == g.tenant_id).first()
+        lab_request = db.session.execute(select(LabRequest).filter(LabRequest.id == id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
         if not lab_request:
             flash('طلب المختبر غير موجود', 'error')
             return redirect(url_for('lab.requests'))
@@ -79,7 +80,7 @@ def print_request(id: int):
 def print_request_pdf(id: int):
     """تنزيل تقرير طلب المختبر كـ PDF"""
     try:
-        lab_request = LabRequest.query.filter(LabRequest.id == id, LabRequest.tenant_id == g.tenant_id).first()
+        lab_request = db.session.execute(select(LabRequest).filter(LabRequest.id == id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
         if not lab_request:
             return jsonify({'success': False, 'message': 'طلب المختبر غير موجود'}), 404
         from app.integrations.printing.pdf import PDFReportPrinter

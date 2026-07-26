@@ -11,9 +11,9 @@ from utils.decorators import super_admin_required
 from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
-from sqlalchemy import func
+from sqlalchemy import func, select
 from datetime import datetime, date, timedelta, timezone
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 
 
@@ -82,8 +82,8 @@ def reports():
             result = {'capacity': ReportCenterService.capacity_impact(start_date, end_date)}
         elif report == 'booking':
             booking = ReportCenterService.booking_report(start_dt, end_dt)
-            dept_names = {d.id: (d.name_ar or d.name) for d in Department.query.all()}
-            doctor_names = {u.id: u.full_name for u in User.query.filter_by(role='doctor').all()}
+            dept_names = {d.id: (d.name_ar or d.name) for d in db.session.execute(select(Department)).scalars().all()}
+            doctor_names = {u.id: u.full_name for u in db.session.execute(select(User).filter_by(role='doctor')).scalars().all()}
             booking['top_departments_named'] = [{'label': dept_names.get(did) or 'غير محدد', 'count': cnt} for did, cnt in booking.get('top_departments', [])]
             booking['top_doctors_named'] = [{'label': doctor_names.get(did) or 'غير محدد', 'count': cnt} for did, cnt in booking.get('top_doctors', [])]
             result = {'booking': booking}
@@ -92,7 +92,7 @@ def reports():
         elif report == 'radiology_revision':
             result = {'radiology_revision': ReportCenterService.radiology_revision_rate(start_dt, end_dt)}
 
-        departments = Department.query.filter_by(is_active=True).all()
+        departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
         return render_template(
             'super_admin/reports.html',
             report=report,
@@ -117,9 +117,9 @@ def analytics():
         from models.visit import Visit
         
         stats = {
-            'total_users': User.query.count(),
-            'total_patients': Patient.query.count(),
-            'total_visits': Visit.query.count()
+            'total_users': db.session.execute(select(func.count()).select_from(User)).scalar(),
+            'total_patients': db.session.execute(select(func.count()).select_from(Patient)).scalar(),
+            'total_visits': db.session.execute(select(func.count()).select_from(Visit)).scalar()
         }
         return render_template('super_admin/analytics.html', stats=stats)
     except Exception as e:
@@ -131,24 +131,26 @@ def get_total_users():
     """عدد المستخدمين الإجمالي"""
     try:
         from models.user import User
-        return User.query.count()
-    except:
+        return db.session.execute(select(func.count()).select_from(User)).scalar()
+    except Exception as e:
+        logging.error(f"get_total_users failed: {e}")
         return 0
 
 def get_active_sessions():
     """عدد الجلسات النشطة"""
     try:
-        # يمكن تطوير هذا لاحقاً لتتبع الجلسات الفعلية
         return get_active_users()
-    except:
-        return 15
+    except Exception as e:
+        logging.error(f"get_active_sessions failed: {e}")
+        return 0
 
 def get_security_events():
     """عدد أحداث الأمان"""
     try:
         from models.audit_trail import AuditTrail
-        return AuditTrail.query.filter(AuditTrail.action.in_(['login', 'logout', 'security'])).count()
-    except:
+        return db.session.execute(select(func.count()).select_from(AuditTrail).filter(AuditTrail.action.in_(['login', 'logout', 'security']))).scalar()
+    except Exception as e:
+        logging.error(f"get_security_events failed: {e}")
         return 0
 
 def get_system_uptime():
@@ -159,24 +161,27 @@ def get_active_users():
     """عدد المستخدمين النشطين"""
     try:
         from models.user import User
-        return User.query.filter_by(is_active=True).count()
-    except:
+        return db.session.execute(select(func.count()).select_from(User).filter_by(is_active=True)).scalar()
+    except Exception as e:
+        logging.error(f"get_active_users failed: {e}")
         return 0
 
 def get_inactive_users():
     """عدد المستخدمين المعطلين"""
     try:
         from models.user import User
-        return User.query.filter_by(is_active=False).count()
-    except:
+        return db.session.execute(select(func.count()).select_from(User).filter_by(is_active=False)).scalar()
+    except Exception as e:
+        logging.error(f"get_inactive_users failed: {e}")
         return 0
 
 def get_admin_users():
     """عدد المستخدمين المديرين"""
     try:
         from models.user import User
-        return User.query.filter_by(is_admin=True).count()
-    except:
+        return db.session.execute(select(func.count()).select_from(User).filter_by(is_admin=True)).scalar()
+    except Exception as e:
+        logging.error(f"get_admin_users failed: {e}")
         return 0
 
 def get_daily_usage():
@@ -193,13 +198,13 @@ def get_ai_insights():
         from datetime import datetime, timedelta
         
         insights = {
-            'total_recommendations': AIRecommendation.query.count(),
-            'pending_recommendations': AIRecommendation.query.filter(AIRecommendation.is_accepted.is_(None)).count(),
-            'accepted_recommendations': AIRecommendation.query.filter(AIRecommendation.is_accepted == True).count(),
-            'high_confidence_recommendations': AIRecommendation.query.filter(AIRecommendation.confidence_score >= 0.8).count(),
-            'recent_insights': AIRecommendation.query.filter(
+            'total_recommendations': db.session.execute(select(func.count()).select_from(AIRecommendation)).scalar(),
+            'pending_recommendations': db.session.execute(select(func.count()).select_from(AIRecommendation).filter(AIRecommendation.is_accepted.is_(None))).scalar(),
+            'accepted_recommendations': db.session.execute(select(func.count()).select_from(AIRecommendation).filter(AIRecommendation.is_accepted == True)).scalar(),
+            'high_confidence_recommendations': db.session.execute(select(func.count()).select_from(AIRecommendation).filter(AIRecommendation.confidence_score >= 0.8)).scalar(),
+            'recent_insights': db.session.execute(select(func.count()).select_from(AIRecommendation).filter(
                 AIRecommendation.created_at >= datetime.now() - timedelta(days=7)
-            ).count()
+            )).scalar()
         }
         
         return insights
@@ -218,7 +223,7 @@ def get_smart_recommendations():
         recommendations = []
         
         # تحليل الأداء
-        total_visits = Visit.query.count()
+        total_visits = db.session.execute(select(func.count()).select_from(Visit)).scalar()
         if total_visits > 100:
             recommendations.append({
                 'type': 'performance',
@@ -228,9 +233,9 @@ def get_smart_recommendations():
             })
         
         # تحليل المستخدمين
-        inactive_users = User.query.filter(
+        inactive_users = db.session.execute(select(func.count()).select_from(User).filter(
             User.last_login < datetime.now() - timedelta(days=30)
-        ).count()
+        )).scalar()
         
         if inactive_users > 5:
             recommendations.append({
@@ -242,10 +247,10 @@ def get_smart_recommendations():
         
         # تحليل الأمان
         from models.audit_trail import AuditTrail
-        failed_logins = AuditTrail.query.filter(
+        failed_logins = db.session.execute(select(func.count()).select_from(AuditTrail).filter(
             AuditTrail.action == 'login_failed',
             AuditTrail.created_at >= datetime.now() - timedelta(hours=24)
-        ).count()
+        )).scalar()
         
         if failed_logins > 10:
             recommendations.append({
@@ -268,30 +273,29 @@ def get_predictive_analytics():
         from models.user import User
         from datetime import datetime, timedelta
         from sqlalchemy import func
-        from app_factory import db
         
         # تحليل النمو
         week_ago = datetime.now() - timedelta(days=7)
         month_ago = datetime.now() - timedelta(days=30)
         
-        patients_this_week = Patient.query.filter(Patient.created_at >= week_ago).count()
-        patients_last_week = Patient.query.filter(
+        patients_this_week = db.session.execute(select(func.count()).select_from(Patient).filter(Patient.created_at >= week_ago)).scalar()
+        patients_last_week = db.session.execute(select(func.count()).select_from(Patient).filter(
             Patient.created_at >= week_ago - timedelta(days=7),
             Patient.created_at < week_ago
-        ).count()
+        )).scalar()
         
         growth_rate = ((patients_this_week - patients_last_week) / patients_last_week * 100) if patients_last_week > 0 else 0
         
         # التنبؤ بالزيارات
-        visits_this_week = Visit.query.filter(Visit.created_at >= week_ago).count()
+        visits_this_week = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.created_at >= week_ago)).scalar()
         predicted_next_week = int(visits_this_week * (1 + growth_rate/100))
         
         # تحليل ساعات الذروة
         try:
-            peak_hours = db.session.query(
+            peak_hours = db.session.execute(select(
                 func.extract('hour', Visit.created_at).label('hour'),
                 func.count(Visit.id).label('count')
-            ).group_by(func.extract('hour', Visit.created_at)).all()
+            ).group_by(func.extract('hour', Visit.created_at))).scalars().all()
         except Exception:
             safe_rollback(db.session, error_message="database rollback")
             peak_hours = []
@@ -323,7 +327,7 @@ def get_system_health_score():
         # فحص قاعدة البيانات
         try:
             db.session.execute('SELECT 1')
-        except:
+        except Exception:
             score -= 20
         
         # فحص المساحة المتاحة
@@ -334,7 +338,7 @@ def get_system_health_score():
                 score -= 20
             elif free_space_percent < 20:
                 score -= 10
-        except:
+        except Exception:
             score -= 5
         
         # فحص الملفات المهمة
@@ -344,7 +348,7 @@ def get_system_health_score():
                 score -= 5
         
         # فحص المستخدمين النشطين
-        active_users = User.query.filter(User.last_login >= datetime.now() - timedelta(days=7)).count()
+        active_users = db.session.execute(select(func.count()).select_from(User).filter(User.last_login >= datetime.now() - timedelta(days=7))).scalar()
         if active_users == 0:
             score -= 15
         
@@ -366,10 +370,10 @@ def get_security_threats():
         threats = []
         
         # محاولات تسجيل الدخول الفاشلة
-        failed_logins = AuditTrail.query.filter(
+        failed_logins = db.session.execute(select(func.count()).select_from(AuditTrail).filter(
             AuditTrail.action == 'login_failed',
             AuditTrail.created_at >= datetime.now() - timedelta(hours=24)
-        ).count()
+        )).scalar()
         
         if failed_logins > 20:
             threats.append({
@@ -387,10 +391,10 @@ def get_security_threats():
             })
         
         # فحص الأنشطة المشبوهة
-        suspicious_activities = AuditTrail.query.filter(
+        suspicious_activities = db.session.execute(select(func.count()).select_from(AuditTrail).filter(
             AuditTrail.action.in_(['unauthorized_access', 'privilege_escalation']),
             AuditTrail.created_at >= datetime.now() - timedelta(hours=24)
-        ).count()
+        )).scalar()
         
         if suspicious_activities > 0:
             threats.append({
@@ -412,16 +416,15 @@ def get_performance_optimization():
         from models.user import User
         from datetime import datetime, timedelta
         from sqlalchemy import func
-        from app_factory import db
         
         optimizations = []
         
         # تحليل ساعات الذروة
         try:
-            peak_hours = db.session.query(
+            peak_hours = db.session.execute(select(
                 func.extract('hour', Visit.created_at).label('hour'),
                 func.count(Visit.id).label('count')
-            ).group_by(func.extract('hour', Visit.created_at)).all()
+            ).group_by(func.extract('hour', Visit.created_at))).scalars().all()
         except Exception:
             safe_rollback(db.session, error_message="database rollback")
             peak_hours = []
@@ -437,10 +440,10 @@ def get_performance_optimization():
                 })
         
         # تحليل الأداء حسب الأقسام
-        department_load = db.session.query(
+        department_load = db.session.execute(select(
             func.count(Visit.id).label('count'),
             User.department_id
-        ).join(User, Visit.doctor_id == User.id).group_by(User.department_id).all()
+        ).join(User, Visit.doctor_id == User.id).group_by(User.department_id)).scalars().all()
         
         if department_load:
             max_dept = max(department_load, key=lambda x: x.count)
@@ -467,24 +470,24 @@ def get_user_behavior_analysis():
         analysis = {}
         
         # المستخدمون النشطون
-        active_users = User.query.filter(
+        active_users = db.session.execute(select(func.count()).select_from(User).filter(
             User.last_login >= datetime.now() - timedelta(days=7)
-        ).count()
+        )).scalar()
         
         # المستخدمون غير النشطين
-        inactive_users = User.query.filter(
+        inactive_users = db.session.execute(select(func.count()).select_from(User).filter(
             User.last_login < datetime.now() - timedelta(days=30)
-        ).count()
+        )).scalar()
         
         # تحليل الأدوار
         role_distribution = {}
-        for user in User.query.all():
+        for user in db.session.execute(select(User)).scalars().all():
             role = user.role
             role_distribution[role] = role_distribution.get(role, 0) + 1
         
         # تحليل النشاط اليومي
         daily_activity = {}
-        for user in User.query.filter(User.last_login >= datetime.now() - timedelta(days=7)):
+        for user in select(User):
             day = user.last_login.strftime('%A')
             daily_activity[day] = daily_activity.get(day, 0) + 1
         
@@ -493,7 +496,7 @@ def get_user_behavior_analysis():
             'inactive_users': inactive_users,
             'role_distribution': role_distribution,
             'daily_activity': daily_activity,
-            'engagement_rate': (active_users / User.query.count() * 100) if User.query.count() > 0 else 0
+            'engagement_rate': (active_users / db.session.execute(select(func.count()).select_from(User)).scalar() * 100) if db.session.execute(select(func.count()).select_from(User)).scalar() > 0 else 0
         }
     except Exception as e:
         logging.error(f"Error getting user behavior analysis: {str(e)}")
@@ -541,9 +544,9 @@ def get_resource_utilization():
         from models.user import User
         
         db_stats = {
-            'total_visits': Visit.query.count(),
-            'total_patients': Patient.query.count(),
-            'total_users': User.query.count()
+            'total_visits': db.session.execute(select(func.count()).select_from(Visit)).scalar(),
+            'total_patients': db.session.execute(select(func.count()).select_from(Patient)).scalar(),
+            'total_users': db.session.execute(select(func.count()).select_from(User)).scalar()
         }
         
         return {

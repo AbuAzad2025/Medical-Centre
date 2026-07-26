@@ -3,11 +3,12 @@
 Medical System Gatekeeper Service
 نسخة محسّنة مع دعم كامل للتحقق من قواعد الدفع
 """
+from sqlalchemy import select, func
 
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from flask import current_app
-from app_factory import db
+from app.extensions import db
 from models.visit import Visit
 from models.payment import Payment, PaymentMethod, PaymentStatus
 from models.invoice import Invoice, InvoiceService
@@ -131,18 +132,18 @@ class GatekeeperService:
                     return False, "يتطلب اكتمال الدفع للطوارئ/الدفع القوي"
 
             # Ticket 8: service-line reconciliation — when itemized lines exist, aggregate total must match
-            has_lines = db.session.query(
+            has_lines = db.session.execute(select(
                 db.func.count(InvoiceService.id)
             ).filter(
                 InvoiceService.visit_id == visit.id
-            ).scalar() > 0
+            )).scalar() > 0
 
             if has_lines:
-                itemized_total = db.session.query(
+                itemized_total = db.session.execute(select(
                     db.func.coalesce(db.func.sum(InvoiceService.total_price), Decimal(0))
                 ).filter(
                     InvoiceService.visit_id == visit.id
-                ).scalar()
+                )).scalar()
 
                 if Decimal(visit.total_amount or 0) != Decimal(itemized_total or 0):
                     return False, "مبلغ الزيارة لا يتوافق مع مجموع الخدمات — يتطلب تسوية الخدمات"
@@ -363,7 +364,7 @@ class GatekeeperService:
         archive.  super_admin may also archive as platform support.
         """
         try:
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             if not user or user.role not in ('reception', 'super_admin'):
                 return False, "ليس لديك الصلاحية لأرشفة الزيارة"
 
@@ -451,14 +452,14 @@ class GatekeeperService:
             
             # 4. التحقق من نسبة الدفع القسري في النظام
             thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
-            total_visits = Visit.query.filter(
+            total_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
                 Visit.created_at >= thirty_days_ago
-            ).count()
+            )).scalar()
             
-            force_visits = Visit.query.filter(
+            force_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
                 Visit.created_at >= thirty_days_ago,
                 Visit.is_force_payment == True
-            ).count()
+            )).scalar()
             
             if total_visits > 0:
                 force_percentage = (force_visits / total_visits) * 100
@@ -573,20 +574,20 @@ class GatekeeperService:
         try:
             start_date = datetime.now(timezone.utc) - timedelta(days=days)
             
-            total_visits = Visit.query.filter(
+            total_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
                 Visit.created_at >= start_date
-            ).count()
+            )).scalar()
             
-            force_visits = Visit.query.filter(
+            force_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
                 Visit.created_at >= start_date,
                 Visit.is_force_payment == True
-            ).count()
+            )).scalar()
             
-            approved_force_visits = Visit.query.filter(
+            approved_force_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
                 Visit.created_at >= start_date,
                 Visit.is_force_payment == True,
                 Visit.force_payment_approved_by != None
-            ).count()
+            )).scalar()
             
             pending_force_visits = force_visits - approved_force_visits
             

@@ -17,9 +17,9 @@ from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
 from app.shared.enums import EmergencyStatus
 from services.emergency_service import emergency_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
-from sqlalchemy import and_, or_, desc, case
+from sqlalchemy import and_, or_, desc, case, select, func
 import logging, json
 from datetime import datetime, date, timedelta, timezone
 
@@ -57,14 +57,14 @@ def list_emergency_cases():
             except Exception:
                 emergency.vital_signs = None
 
-        total_emergencies = EmergencyCase.query.count()
-        today_emergencies = EmergencyCase.query.filter(
+        total_emergencies = db.session.execute(select(func.count()).select_from(EmergencyCase)).scalar()
+        today_emergencies = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.created_at >= datetime.combine(date.today(), datetime.min.time())
-        ).count()
-        critical_emergencies = EmergencyCase.query.filter(EmergencyCase.severity == 'CRITICAL').count()
-        active_emergencies = EmergencyCase.query.filter(EmergencyCase.status != EmergencyStatus.COMPLETED).count()
+        )).scalar()
+        critical_emergencies = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(EmergencyCase.severity == 'CRITICAL')).scalar()
+        active_emergencies = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(EmergencyCase.status != EmergencyStatus.COMPLETED)).scalar()
 
-        doctors = User.query.filter_by(role='doctor').all()
+        doctors = db.session.execute(select(User).filter_by(role='doctor')).scalars().all()
 
         return render_template(
             'emergency/list.html',
@@ -100,7 +100,7 @@ def view_emergency_case(id):
         timeline = []
         try:
             from models.emergency_status_history import EmergencyStatusHistory
-            history = EmergencyStatusHistory.query.filter_by(emergency_id=emergency.id).order_by(EmergencyStatusHistory.created_at.asc()).all()
+            history = db.session.execute(select(EmergencyStatusHistory).filter_by(emergency_id=emergency.id).order_by(EmergencyStatusHistory.created_at.asc())).scalars().all()
             for i, h in enumerate(history):
                 next_h = history[i + 1] if i + 1 < len(history) else None
                 dur_min = None
@@ -179,8 +179,8 @@ def edit_emergency_case(id):
             safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث حالة الطوارئ بنجاح', 'success')
             return redirect(url_for('emergency.view_emergency_case', id=emergency.id))
-        doctors = User.query.filter_by(role='doctor').all()
-        patients = Patient.query.all()
+        doctors = db.session.execute(select(User).filter_by(role='doctor')).scalars().all()
+        patients = db.session.execute(select(Patient)).scalars().all()
         emergency.emergency_date = emergency.created_at
         emergency.emergency_time = emergency.created_at
         emergency.doctor = emergency.visit.doctor if emergency.visit and emergency.visit.doctor else None
@@ -226,14 +226,14 @@ def create_emergency_case():
             patient_id = int(patient_id)
         except Exception:
             return jsonify({'success': False, 'message': 'رقم المريض غير صحيح'}), 400
-        patient = Patient.query.filter_by(id=patient_id).first()
+        patient = db.session.execute(select(Patient).filter_by(id=patient_id)).scalars().first()
         if not patient:
             return jsonify({'success': False, 'message': 'المريض غير موجود'}), 404
 
         emergency_department_id = None
         try:
             from models.department import Department
-            departments = Department.query.filter_by(is_active=True).all()
+            departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
             for d in departments:
                 if d.get_type() == 'emergency':
                     emergency_department_id = d.id
@@ -286,7 +286,7 @@ def create_emergency_case():
             logging.warning(f"Error in {__name__}: {e}")
         try:
             from models.patient_visit_counter import PatientVisitCounter
-            pvc = PatientVisitCounter.query.filter_by(patient_id=patient_id).first()
+            pvc = db.session.execute(select(PatientVisitCounter).filter_by(patient_id=patient_id)).scalars().first()
             if not pvc:
                 pvc = PatientVisitCounter(patient_id=patient_id, visit_count=0)
                 db.session.add(pvc)
@@ -322,7 +322,7 @@ def convert_emergency_case(id):
         target_doctor_id = visit.doctor_id
         try:
             from models.department import Department
-            departments = Department.query.filter_by(is_active=True).all()
+            departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
             if dest == 'lab':
                 for d in departments:
                     if d.get_type() == 'lab':

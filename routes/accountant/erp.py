@@ -13,8 +13,8 @@ from models.invoice import Invoice
 from models.user import User
 from services.report_service import ReportService
 from services.financial_service import financial_service
-from app_factory import db
-from sqlalchemy import func, and_
+from app.extensions import db
+from sqlalchemy import func, and_, select
 import logging
 from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
@@ -31,12 +31,12 @@ def api_erp_export():
     try:
         limit = request.args.get('limit', type=int) or 200
         limit = max(50, min(limit, 1000))
-        invoices = Invoice.query.filter(
+        invoices = db.session.execute(select(Invoice).filter(
             Invoice.tenant_id == current_user.tenant_id
-        ).order_by(Invoice.created_at.desc()).limit(limit).all()
-        payments = Payment.query.filter(
+        ).order_by(Invoice.created_at.desc()).limit(limit)).scalars().all()
+        payments = db.session.execute(select(Payment).filter(
             Payment.tenant_id == current_user.tenant_id
-        ).order_by(Payment.created_at.desc()).limit(limit).all()
+        ).order_by(Payment.created_at.desc()).limit(limit)).scalars().all()
         return jsonify({
             'success': True,
             'invoices': [i.to_dict() for i in invoices],

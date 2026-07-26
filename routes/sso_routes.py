@@ -1,9 +1,10 @@
 """
 SSO / LDAP Configuration Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from models import SSOConfiguration
 from services.sso_service import sso_service
@@ -16,7 +17,7 @@ sso_bp = Blueprint('sso', __name__)
 @login_required
 @handle_route_errors
 def config():
-    configs = SSOConfiguration.query.all()
+    configs = db.session.execute(select(SSOConfiguration)).scalars().all()
     if request.method == 'POST':
         cfg = SSOConfiguration(
             name=request.form.get('name', '').strip(),
@@ -39,7 +40,7 @@ def config():
 @login_required
 @handle_route_errors
 def toggle(config_id):
-    cfg = SSOConfiguration.query.get_or_404(config_id)
+    cfg = db.get_or_404(SSOConfiguration, config_id)
     cfg.is_active = not cfg.is_active
     safe_commit(db.session, error_message="database commit failed", reraise=True)
     flash(f"SSO {'مفعّل' if cfg.is_active else 'معطّل'}", 'success')

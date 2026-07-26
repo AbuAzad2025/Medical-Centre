@@ -2,8 +2,9 @@
 
 from models.patient import Patient
 from models.patient_account import PatientAccount
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit
+from sqlalchemy import select
 
 
 DEFAULT_PORTAL_PREFERENCES = {
@@ -18,14 +19,14 @@ def resolve_patient_for_user(user):
     """Return the Patient linked to this user via PatientAccount."""
     if not user or not getattr(user, 'is_authenticated', True) or not user.is_authenticated:
         return None
-    link = PatientAccount.query.filter_by(user_id=user.id).first()
+    link = db.session.execute(select(PatientAccount).filter_by(user_id=user.id)).scalars().first()
     return link.patient if link else None
 
 
 def get_patient_account(user):
     if not user:
         return None
-    return PatientAccount.query.filter_by(user_id=user.id).first()
+    return db.session.execute(select(PatientAccount).filter_by(user_id=user.id)).scalars().first()
 
 
 def get_portal_preferences(user):
@@ -64,13 +65,13 @@ def verify_and_link_patient(user, *, national_id=None, phone=None):
 
     patient = None
     if national_id:
-        patient = Patient.query.filter_by(national_id=national_id).first()
+        patient = db.session.execute(select(Patient).filter_by(national_id=national_id)).scalars().first()
     if not patient and phone:
-        patient = Patient.query.filter_by(phone=phone).first()
+        patient = db.session.execute(select(Patient).filter_by(phone=phone)).scalars().first()
     if not patient:
         return None, 'لم يتم العثور على ملف مريض مطابق. تواصل مع الاستقبال'
 
-    existing = PatientAccount.query.filter_by(patient_id=patient.id).first()
+    existing = db.session.execute(select(PatientAccount).filter_by(patient_id=patient.id)).scalars().first()
     if existing and existing.user_id != user.id:
         return None, 'هذا الملف مرتبط بحساب آخر'
 

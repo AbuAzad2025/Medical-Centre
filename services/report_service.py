@@ -5,8 +5,8 @@ Medical System Report Management Service
 
 from datetime import datetime, timedelta, timezone
 from app.shared.enums import VisitState, AppointmentState, PaymentStatus, VisitArchiveStatus
-from sqlalchemy import and_, or_, func, desc, asc, text
-from app_factory import db
+from sqlalchemy import and_, or_, func, desc, asc, text, select
+from app.extensions import db
 from utils.db_safety import safe_commit
 from models.patient import Patient
 from models.visit import Visit
@@ -45,12 +45,7 @@ class ReportService:
             ).count()
             
             # إحصائيات الزيارات
-            visits_query = Visit.query.filter(
-                and_(
-                    Visit.visit_date >= start_date.date(),
-                    Visit.visit_date <= end_date.date()
-                )
-            )
+            visits_query = select(Visit)
             
             if department_id:
                 visits_query = visits_query.filter(Visit.department_id == department_id)
@@ -60,12 +55,7 @@ class ReportService:
             pending_visits = visits_query.filter(Visit.status == VisitState.OPEN).count()
             
             # إحصائيات المواعيد
-            appointments_query = Appointment.query.filter(
-                and_(
-                    func.date(Appointment.starts_at) >= start_date.date(),
-                    func.date(Appointment.starts_at) <= end_date.date()
-                )
-            )
+            appointments_query = select(Appointment)
             
             if department_id:
                 appointments_query = appointments_query.filter(Appointment.department_id == department_id)
@@ -75,12 +65,7 @@ class ReportService:
             cancelled_appointments = appointments_query.filter(Appointment.status == AppointmentState.CANCELLED).count()
             
             # الإحصائيات المالية
-            payments_query = Payment.query.filter(
-                and_(
-                    Payment.payment_date >= start_date,
-                    Payment.payment_date <= end_date
-                )
-            )
+            payments_query = select(Payment)
             
             if department_id:
                 payments_query = payments_query.join(Visit).filter(Visit.department_id == department_id)
@@ -134,31 +119,31 @@ class ReportService:
                 end_date = datetime.now() + timedelta(days=1)
             
             # الزيارات
-            visits = Visit.query.filter(
+            visits = db.session.execute(select(Visit).filter(
                 and_(
                     Visit.patient_id == patient_id,
                     Visit.visit_date >= start_date.date(),
                     Visit.visit_date <= end_date.date()
                 )
-            ).order_by(Visit.visit_date.desc()).all()
+            ).order_by(Visit.visit_date.desc())).scalars().all()
             
             # المواعيد
-            appointments = Appointment.query.filter(
+            appointments = db.session.execute(select(Appointment).filter(
                 and_(
                     Appointment.patient_id == patient_id,
                     func.date(Appointment.starts_at) >= start_date.date(),
                     func.date(Appointment.starts_at) <= end_date.date()
                 )
-            ).order_by(Appointment.starts_at.desc()).all()
+            ).order_by(Appointment.starts_at.desc())).scalars().all()
             
             # المدفوعات
-            payments = Payment.query.filter(
+            payments = db.session.execute(select(Payment).filter(
                 and_(
                     Payment.visit_id.in_([v.id for v in visits]),
                     Payment.payment_date >= start_date,
                     Payment.payment_date <= end_date
                 )
-            ).order_by(Payment.payment_date.desc()).all()
+            ).order_by(Payment.payment_date.desc())).scalars().all()
             
             # التحاليل
             lab_requests = []
@@ -204,31 +189,31 @@ class ReportService:
                 end_date = datetime.now() + timedelta(days=1)
             
             # الزيارات
-            visits = Visit.query.filter(
+            visits = db.session.execute(select(Visit).filter(
                 and_(
                     Visit.department_id == department_id,
                     Visit.visit_date >= start_date.date(),
                     Visit.visit_date <= end_date.date()
                 )
-            ).order_by(Visit.visit_date.desc()).all()
+            ).order_by(Visit.visit_date.desc())).scalars().all()
             
             # المواعيد
-            appointments = Appointment.query.filter(
+            appointments = db.session.execute(select(Appointment).filter(
                 and_(
                     Appointment.department_id == department_id,
                     func.date(Appointment.starts_at) >= start_date.date(),
                     func.date(Appointment.starts_at) <= end_date.date()
                 )
-            ).order_by(Appointment.starts_at.desc()).all()
+            ).order_by(Appointment.starts_at.desc())).scalars().all()
             
             # الأطباء
-            doctors = User.query.filter(
+            doctors = db.session.execute(select(User).filter(
                 and_(
                     User.department_id == department_id,
                     User.role == 'doctor',
                     User.is_active == True
                 )
-            ).all()
+            )).scalars().all()
             
             # الإحصائيات
             total_visits = len(visits)
@@ -274,12 +259,7 @@ class ReportService:
                 end_date = datetime.now()
             
             # المدفوعات
-            payments_query = Payment.query.filter(
-                and_(
-                    Payment.payment_date >= start_date,
-                    Payment.payment_date <= end_date
-                )
-            )
+            payments_query = select(Payment)
             
             if department_id:
                 payments_query = payments_query.join(Visit).filter(Visit.department_id == department_id)
@@ -287,12 +267,7 @@ class ReportService:
             payments = payments_query.all()
             
             # الفواتير
-            invoices_query = Invoice.query.filter(
-                and_(
-                    Invoice.created_at >= start_date,
-                    Invoice.created_at <= end_date
-                )
-            )
+            invoices_query = select(Invoice)
             
             if department_id:
                 invoices_query = invoices_query.join(InvoiceService).filter(InvoiceService.department_id == department_id)
@@ -361,22 +336,22 @@ class ReportService:
                 end_date = datetime.now() + timedelta(days=1)
             
             # الزيارات
-            visits = Visit.query.filter(
+            visits = db.session.execute(select(Visit).filter(
                 and_(
                     Visit.doctor_id == doctor_id,
                     Visit.visit_date >= start_date.date(),
                     Visit.visit_date <= end_date.date()
                 )
-            ).order_by(Visit.visit_date.desc()).all()
+            ).order_by(Visit.visit_date.desc())).scalars().all()
             
             # المواعيد
-            appointments = Appointment.query.filter(
+            appointments = db.session.execute(select(Appointment).filter(
                 and_(
                     Appointment.doctor_id == doctor_id,
                     func.date(Appointment.starts_at) >= start_date.date(),
                     func.date(Appointment.starts_at) <= end_date.date()
                 )
-            ).order_by(Appointment.starts_at.desc()).all()
+            ).order_by(Appointment.starts_at.desc())).scalars().all()
             
             # الإحصائيات
             total_visits = len(visits)
@@ -460,9 +435,9 @@ class ReportService:
             end_time = datetime.combine(target_date, datetime.max.time())
             
             # ========== 1. إحصائيات الزيارات ==========
-            visits_today = Visit.query.filter(
+            visits_today = db.session.execute(select(Visit).filter(
                 func.date(Visit.created_at) == target_date
-            ).all()
+            )).scalars().all()
             
             visits_stats = {
                 'total': len(visits_today),
@@ -481,12 +456,12 @@ class ReportService:
             }
             
             # ========== 2. إحصائيات الدفع ==========
-            payments_today = Payment.query.filter(
+            payments_today = db.session.execute(select(Payment).filter(
                 and_(
                     Payment.created_at >= start_time,
                     Payment.created_at <= end_time
                 )
-            ).all()
+            )).scalars().all()
             
             # حساب المبالغ حسب طريقة الدفع
             payment_by_method = {}
@@ -520,12 +495,12 @@ class ReportService:
             }
             
             # ========== 3. إحصائيات الدفع القسري ==========
-            force_payments_today = Visit.query.filter(
+            force_payments_today = db.session.execute(select(Visit).filter(
                 and_(
                     func.date(Visit.created_at) == target_date,
                     Visit.is_force_payment == True
                 )
-            ).all()
+            )).scalars().all()
             
             force_approved = [v for v in force_payments_today if v.force_payment_approved_by]
             force_pending = [v for v in force_payments_today if not v.force_payment_approved_by]
@@ -675,12 +650,12 @@ class ReportService:
                 end_date = datetime(year, month + 1, 1) - timedelta(seconds=1)
             
             # ========== 1. إحصائيات الزيارات الشهرية ==========
-            visits_month = Visit.query.filter(
+            visits_month = db.session.execute(select(Visit).filter(
                 and_(
                     Visit.created_at >= start_date,
                     Visit.created_at <= end_date
                 )
-            ).all()
+            )).scalars().all()
             
             visits_by_day = {}
             for visit in visits_month:
@@ -708,13 +683,13 @@ class ReportService:
             }
             
             # ========== 2. إحصائيات المبالغ المالية ==========
-            payments_month = Payment.query.filter(
+            payments_month = db.session.execute(select(Payment).filter(
                 and_(
                     Payment.created_at >= start_date,
                     Payment.created_at <= end_date,
                     Payment.status == PaymentStatus.CONFIRMED
                 )
-            ).all()
+            )).scalars().all()
             
             total_revenue = sum(float(p.amount) for p in payments_month)
             cash_revenue = sum(float(p.amount) for p in payments_month if p.method == 'CASH')
@@ -802,13 +777,13 @@ class ReportService:
                 })
             
             # ========== 6. الديون المعلقة ==========
-            debts = Visit.query.filter(
+            debts = db.session.execute(select(Visit).filter(
                 and_(
                     Visit.created_at >= start_date,
                     Visit.created_at <= end_date,
                     Visit.payment_status == PaymentStatus.DEBT
                 )
-            ).all()
+            )).scalars().all()
             
             debt_analysis = {
                 'total_debts': len(debts),
@@ -860,7 +835,7 @@ class ReportService:
         """
         try:
             # الديون المعلقة
-            pending_debts = Visit.query.filter(
+            pending_debts = db.session.execute(select(Visit).filter(
                 or_(
                     Visit.payment_status == PaymentStatus.DEBT,
                     and_(
@@ -869,7 +844,7 @@ class ReportService:
                         Visit.force_payment_approved_by != None
                     )
                 )
-            ).all()
+            )).scalars().all()
             
             # تصنيف الديون حسب العمر
             debts_by_age = {

@@ -5,6 +5,7 @@ Implements the tenant subscription lifecycle:
   provision → trial/active → upgrade/downgrade/add-on/renew
   → suspend → reactivate → cancel → (deleted after retention)
 """
+from sqlalchemy import select
 
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
@@ -58,7 +59,7 @@ class TenantProvisioningService:
         **tenant_kwargs,
     ) -> Tenant:
         """Create a new tenant with an active base subscription line."""
-        if Tenant.query.filter_by(slug=slug).first():
+        if db.session.execute(select(Tenant).filter_by(slug=slug)).scalars().first():
             raise ProvisioningError(f"Tenant slug '{slug}' already exists.")
 
         package_version = cls._require_available_package_version(package_version_id)
@@ -249,7 +250,7 @@ class TenantProvisioningService:
         performed_by_user_id: Optional[int] = None,
     ) -> SubscriptionLine:
         """Extend the current period of an active base line."""
-        line = SubscriptionLine.query.get(line_id)
+        line = db.session.get(SubscriptionLine, line_id)
         if not line or line.line_type != SubscriptionLineType.BASE:
             raise ProvisioningError("Active base subscription line not found.")
 
@@ -353,7 +354,7 @@ class TenantProvisioningService:
         tenant.status = TenantStatus.CANCELLED
 
         now = datetime.now(timezone.utc)
-        lines = SubscriptionLine.query.filter_by(tenant_id=tenant_id).all()
+        lines = db.session.execute(select(SubscriptionLine).filter_by(tenant_id=tenant_id)).scalars().all()
         for line in lines:
             line.status = SubscriptionLineStatus.ENDED
             line.effective_to = now
@@ -382,23 +383,20 @@ class TenantProvisioningService:
 
     @classmethod
     def _require_tenant(cls, tenant_id: int) -> Tenant:
-        tenant = Tenant.query.get(tenant_id)
+        tenant = db.session.get(Tenant, tenant_id)
         if not tenant:
             raise ProvisioningError(f"Tenant {tenant_id} not found.")
         return tenant
 
     @classmethod
     def _require_available_package_version(cls, package_version_id: int) -> PackageVersion:
-        version = PackageVersion.query.get(package_version_id)
+        version = db.session.get(PackageVersion, package_version_id)
         if not version:
             raise ProvisioningError(f"PackageVersion {package_version_id} not found.")
         if version.is_deprecated:
             raise ProvisioningError(f"PackageVersion {package_version_id} is deprecated.")
-        latest_availability = (
-            PackageVersionAvailability.query.filter_by(package_version_id=version.id)
-            .order_by(PackageVersionAvailability.effective_from.desc())
-            .first()
-        )
+        latest_availability = db.session.execute(select(PackageVersionAvailability).filter_by(package_version_id=version.id)
+            .order_by(PackageVersionAvailability.effective_from.desc())).scalars().first()
         if latest_availability and latest_availability.availability_status == PackageVersionAvailabilityStatus.RETIRED:
             raise ProvisioningError(f"PackageVersion {package_version_id} is retired.")
         return version
@@ -436,9 +434,9 @@ class TenantProvisioningService:
         now = datetime.now(timezone.utc)
         effective_to = now + cls._billing_delta(billing_type)
 
-        pricing = PackageVersionPricing.query.filter_by(
+        pricing = db.session.execute(select(PackageVersionPricing).filter_by(
             package_version_id=package_version.id, billing_type=billing_type
-        ).first()
+        )).scalars().first()
         unit_price = pricing.price if pricing else Decimal(0)
 
         trial_end = None
@@ -464,9 +462,9 @@ class TenantProvisioningService:
     def _create_line_grants(
         cls, line: SubscriptionLine, package_version: PackageVersion
     ) -> None:
-        entitlements = PackageVersionEntitlement.query.filter_by(
+        entitlements = db.session.execute(select(PackageVersionEntitlement).filter_by(
             package_version_id=package_version.id
-        ).all()
+        )).scalars().all()
         for entitlement in entitlements:
             grant = EntitlementGrant(
                 tenant_id=line.tenant_id,
@@ -486,8 +484,7 @@ class TenantProvisioningService:
     @classmethod
     def _end_current_base_line(cls, tenant_id: int) -> None:
         now = datetime.now(timezone.utc)
-        active_base = (
-            SubscriptionLine.query.filter_by(
+        active_base = db.session.execute(select(SubscriptionLine).filter_by(
                 tenant_id=tenant_id,
                 line_type=SubscriptionLineType.BASE,
                 status=SubscriptionLineStatus.ACTIVE,
@@ -495,9 +492,7 @@ class TenantProvisioningService:
             .filter(
                 (SubscriptionLine.effective_to.is_(None))
                 | (SubscriptionLine.effective_to >= now)
-            )
-            .first()
-        )
+            )).scalars().first()
         if active_base:
             active_base.status = SubscriptionLineStatus.ENDED
             active_base.effective_to = now
@@ -509,14 +504,14 @@ class TenantProvisioningService:
     ) -> None:
         module_names = {
             ent.module_name
-            for ent in PackageVersionEntitlement.query.filter_by(
+            for ent in db.session.execute(select(PackageVersionEntitlement).filter_by(
                 package_version_id=package_version.id
-            ).all()
+            )).scalars().all()
         }
         for module_name in module_names:
-            existing = TenantModule.query.filter_by(
+            existing = db.session.execute(select(TenantModule).filter_by(
                 tenant_id=tenant_id, module_name=module_name
-            ).first()
+            )).scalars().first()
             if existing:
                 if not existing.is_active:
                     existing.is_active = True
@@ -587,14 +582,14 @@ class TenantProvisioningService:
 
         today = date.today()
         count = 0
-        lines = SubscriptionLine.query.filter(
+        lines = db.session.execute(select(SubscriptionLine).filter(
             SubscriptionLine.line_type == SubscriptionLineType.BASE,
             SubscriptionLine.status == SubscriptionLineStatus.ACTIVE,
             SubscriptionLine.trial_end.isnot(None),
             SubscriptionLine.trial_end < today,
-        ).all()
+        )).scalars().all()
         for line in lines:
-            tenant = Tenant.query.get(line.tenant_id)
+            tenant = db.session.get(Tenant, line.tenant_id)
             if tenant and tenant.status == TenantStatus.TRIAL:
                 cls.suspend_tenant(tenant.id, reason='trial_expired')
                 count += 1
@@ -616,7 +611,7 @@ class TenantProvisioningService:
 
         cutoff = datetime.now(timezone.utc) - timedelta(days=cls.RETENTION_DAYS)
         count = 0
-        tenants = Tenant.query.filter(Tenant.status == TenantStatus.CANCELLED).all()
+        tenants = db.session.execute(select(Tenant).filter(Tenant.status == TenantStatus.CANCELLED)).scalars().all()
         for tenant in tenants:
             ended = tenant.updated_at
             if ended and ended.tzinfo is None:

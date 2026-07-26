@@ -11,10 +11,10 @@ from models.patient import Patient
 from models.visit import Visit
 from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
 from models.drug_interaction import DrugInteraction
-from app_factory import db
+from app.extensions import db
 import logging, json
 from datetime import datetime, timezone, timedelta, date
-from sqlalchemy import func
+from sqlalchemy import func, select
 from routes.medication_routes.__init__ import (
     get_pharmacy_smart_analytics,
     get_inventory_optimization,
@@ -43,44 +43,44 @@ def dashboard():
     """لوحة تحكم الأدوية"""
     try:
         tid = current_user.tenant_id
-        total_medications = Medication.query.filter(Medication.tenant_id == tid).count()
-        low_stock_medications = Medication.query.filter(
+        total_medications = db.session.execute(select(func.count()).select_from(Medication).filter(Medication.tenant_id == tid)).scalar()
+        low_stock_medications = db.session.execute(select(func.count()).select_from(Medication).filter(
             Medication.stock_quantity <= Medication.minimum_stock,
             Medication.tenant_id == tid
-        ).count()
+        )).scalar()
         today = date.today()
-        today_sales = db.session.query(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
+        today_sales = db.session.execute(select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
             func.date(PharmacySale.created_at) == today,
             PharmacySale.tenant_id == tid
-        ).scalar()
-        month_sales = db.session.query(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
+        )).scalar()
+        month_sales = db.session.execute(select(func.coalesce(func.sum(PharmacySale.total_amount), 0)).filter(
             func.extract('month', PharmacySale.created_at) == today.month,
             func.extract('year', PharmacySale.created_at) == today.year,
             PharmacySale.tenant_id == tid
-        ).scalar()
-        expired = Medication.query.filter(
+        )).scalar()
+        expired = db.session.execute(select(func.count()).select_from(Medication).filter(
             Medication.expiry_date.isnot(None),
             Medication.expiry_date < today,
             Medication.tenant_id == tid
-        ).count()
-        today_prescriptions = Prescription.query.filter(
+        )).scalar()
+        today_prescriptions = db.session.execute(select(func.count()).select_from(Prescription).filter(
             func.date(Prescription.created_at) == today,
             Prescription.tenant_id == tid
-        ).count()
-        low_stock_list = Medication.query.filter(
+        )).scalar()
+        low_stock_list = db.session.execute(select(Medication).filter(
             Medication.stock_quantity <= Medication.minimum_stock,
             Medication.tenant_id == tid
-        ).limit(10).all()
+        ).limit(10)).scalars().all()
 
-        pending_prescriptions = Prescription.query.filter(
+        pending_prescriptions = db.session.execute(select(Prescription).filter(
             Prescription.status == 'active',
             Prescription.tenant_id == tid
-        ).order_by(Prescription.created_at.desc()).limit(10).all()
+        ).order_by(Prescription.created_at.desc()).limit(10)).scalars().all()
 
-        recent_sales = PharmacySale.query.filter(
+        recent_sales = db.session.execute(select(PharmacySale).filter(
             func.date(PharmacySale.created_at) == today,
             PharmacySale.tenant_id == tid
-        ).order_by(PharmacySale.created_at.desc()).limit(10).all()
+        ).order_by(PharmacySale.created_at.desc()).limit(10)).scalars().all()
 
         from app.shared.dashboard_service import render_command_center
         return render_command_center(current_user)

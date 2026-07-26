@@ -2,6 +2,8 @@
 نماذج النظام والصلاحيات - System Forms
 Medical System System Forms
 """
+from sqlalchemy import select
+from app.extensions import db
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField, DateField, DateTimeField, IntegerField, DecimalField, BooleanField, PasswordField, SubmitField
@@ -35,17 +37,17 @@ class PermissionAssignmentForm(FormBase, StatusMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل الأدوار
         from models.permissions import Role
-        roles = Role.query.filter_by(is_active=True).all()
+        roles = db.session.execute(select(Role).filter_by(is_active=True)).scalars().all()
         self.role_id.choices = [(r.id, f"{r.name_ar} ({r.name})") for r in roles]
         
         # تحميل الصلاحيات
         from models.permissions import Permission
-        permissions = Permission.query.filter_by(is_active=True).all()
+        permissions = db.session.execute(select(Permission).filter_by(is_active=True)).scalars().all()
         self.permission_id.choices = [(p.id, p.name) for p in permissions]
         
         # تحميل المستخدمين
         from models.user import User
-        users = User.query.filter_by(is_active=True).all()
+        users = db.session.execute(select(User).filter_by(is_active=True)).scalars().all()
         self.granted_by.choices = [(u.id, u.full_name) for u in users]
 
 class DepartmentWorkflowConfigForm(FormBase, StatusMixin):
@@ -75,7 +77,7 @@ class DepartmentWorkflowConfigForm(FormBase, StatusMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل الأقسام
         from models.department import Department
-        departments = Department.query.filter_by(is_active=True).all()
+        departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
         self.department_id.choices = [(d.id, d.name_ar) for d in departments]
 
 class FileUploadForm(FormBase, FileUploadMixin, StatusMixin):
@@ -101,22 +103,22 @@ class FileUploadForm(FormBase, FileUploadMixin, StatusMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل المرضى
         from models.patient import Patient
-        patients = Patient.query.filter_by(status='ACTIVE').all()
+        patients = db.session.execute(select(Patient).filter_by(status='ACTIVE')).scalars().all()
         self.patient_id.choices = [('', 'اختر المريض')] + [(p.id, f"{p.full_name} - {p.national_id}") for p in patients]
         
         # تحميل الزيارات
         from models.visit import Visit
-        visits = Visit.query.filter_by(status='ACTIVE').order_by(Visit.created_at.desc()).limit(100).all()
+        visits = db.session.execute(select(Visit).filter_by(status='ACTIVE').order_by(Visit.created_at.desc()).limit(100)).scalars().all()
         self.visit_id.choices = [('', 'اختر الزيارة')] + [(v.id, f"زيارة {v.id} - {v.patient.full_name}") for v in visits]
         
         # تحميل طلبات المختبر
         from models.lab_request import LabRequest
-        lab_requests = LabRequest.query.filter_by(status='ACTIVE').order_by(LabRequest.created_at.desc()).limit(50).all()
+        lab_requests = db.session.execute(select(LabRequest).filter_by(status='ACTIVE').order_by(LabRequest.created_at.desc()).limit(50)).scalars().all()
         self.lab_request_id.choices = [('', 'اختر طلب المختبر')] + [(lr.id, f"طلب {lr.id} - {lr.patient.full_name}") for lr in lab_requests]
         
         # تحميل طلبات الأشعة
         from models.radiology_request import RadiologyRequest
-        radiology_requests = RadiologyRequest.query.filter_by(status='ACTIVE').order_by(RadiologyRequest.created_at.desc()).limit(50).all()
+        radiology_requests = db.session.execute(select(RadiologyRequest).filter_by(status='ACTIVE').order_by(RadiologyRequest.created_at.desc()).limit(50)).scalars().all()
         self.radiology_request_id.choices = [('', 'اختر طلب الأشعة')] + [(rr.id, f"طلب {rr.id} - {rr.patient.full_name}") for rr in radiology_requests]
 
 class BackupSettingsForm(FormBase, StatusMixin):
@@ -282,12 +284,12 @@ class UserRoleAssignmentForm(FormBase, StatusMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل المستخدمين
         from models.user import User
-        users = User.query.filter_by(is_active=True).all()
+        users = db.session.execute(select(User).filter_by(is_active=True)).scalars().all()
         self.user_id.choices = [(u.id, f"{u.full_name} ({u.role})") for u in users]
         
         # تحميل الأدوار
         from models.permissions import Role
-        roles = Role.query.filter_by(is_active=True).all()
+        roles = db.session.execute(select(Role).filter_by(is_active=True)).scalars().all()
         self.role_id.choices = [(r.id, f"{r.name_ar} ({r.name})") for r in roles]
         
         # تحميل المستخدمين للمُعيّن
@@ -309,7 +311,7 @@ class NotificationForm(FormBase, NotificationMixin, StatusMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل المستخدمين
         from models.user import User
-        users = User.query.filter_by(is_active=True).all()
+        users = db.session.execute(select(User).filter_by(is_active=True)).scalars().all()
         self.user_id.choices = [(u.id, f"{u.full_name} ({u.role})") for u in users]
         self.sender_id.choices = [('', 'اختر المرسل')] + [(u.id, f"{u.full_name} ({u.role})") for u in users]
 

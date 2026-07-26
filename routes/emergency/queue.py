@@ -17,9 +17,9 @@ from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
 from services.emergency_service import emergency_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
-from sqlalchemy import and_, or_, desc, case
+from sqlalchemy import and_, or_, desc, case, select
 import logging, json
 from datetime import datetime, date, timedelta, timezone
 
@@ -46,9 +46,9 @@ def patient_queue():
             (EmergencyCase.severity == 'LOW', 1),
             else_=0
         )
-        query = EmergencyCase.query.filter(
+        query = select(EmergencyCase).filter(
             EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
-        ).order_by(severity_order.desc(), EmergencyCase.created_at)
+        )
         
         total = query.count()
         pages = (total + per_page - 1) // per_page
@@ -102,7 +102,7 @@ def triage(emergency_id):
             flash('حالة الطوارئ غير موجودة', 'error')
             return redirect(url_for('emergency.patient_queue'))
         
-        visit = emergency.visit or (Visit.query.filter_by(id=emergency.visit_id).first() if emergency.visit_id else None)
+        visit = emergency.visit or (db.session.execute(select(Visit).filter_by(id=emergency.visit_id)).scalars().first() if emergency.visit_id else None)
 
         if request.method == 'POST':
             triage_level = (request.form.get('triage_level') or '').upper().strip()

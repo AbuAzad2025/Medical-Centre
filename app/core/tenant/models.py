@@ -1,6 +1,7 @@
 """
 Tenant Models — multi-tenancy foundation
 """
+from sqlalchemy import select, func
 from datetime import datetime, timezone
 from decimal import Decimal
 from app.extensions import db
@@ -253,7 +254,6 @@ class ResourceUsage(db.Model):
           - storage_mb (from file_uploads when available, else 0)
           - api_calls_24h (incremented externally via track_api_call())
         """
-        from app.extensions import db
         from models.user import User
         from models.patient import Patient
         from models.visit import Visit
@@ -284,31 +284,31 @@ class ResourceUsage(db.Model):
         storage_mb = 0
         try:
             from models.file_management import FileUpload
-            total_bytes = db.session.query(db.func.coalesce(db.func.sum(FileUpload.file_size), 0))\
-                .filter(FileUpload.tenant_id == tenant_id).scalar()
+            total_bytes = db.session.execute(select(db.func.coalesce(db.func.sum(FileUpload.file_size), 0))\
+                .filter(FileUpload.tenant_id == tenant_id)).scalar()
             storage_mb = round(float(total_bytes) / (1024 * 1024), 2)
         except Exception:
             storage_mb = 0
         
         # Active users in last 24h
-        active_users = User.query.filter(
+        active_users = db.session.execute(select(func.count()).select_from(User).filter(
             User.tenant_id == tenant_id,
             User.updated_at >= cutoff
-        ).count()
+        )).scalar()
         
         snapshot = cls(
             tenant_id=tenant_id,
             db_size_mb=db_size_mb,
             storage_mb=storage_mb,
             active_users_24h=active_users,
-            total_users=User.query.filter_by(tenant_id=tenant_id).count(),
-            total_patients=Patient.query.filter_by(tenant_id=tenant_id).count(),
-            total_visits=Visit.query.filter_by(tenant_id=tenant_id).count(),
-            total_prescriptions=Prescription.query.filter_by(tenant_id=tenant_id).count(),
-            total_lab_requests=LabRequest.query.filter_by(tenant_id=tenant_id).count(),
-            total_radiology_requests=RadiologyRequest.query.filter_by(tenant_id=tenant_id).count(),
-            total_appointments=OnlineBooking.query.filter_by(tenant_id=tenant_id).count(),
-            total_invoices=Invoice.query.filter_by(tenant_id=tenant_id).count(),
+            total_users=db.session.execute(select(func.count()).select_from(User).filter_by(tenant_id=tenant_id)).scalar(),
+            total_patients=db.session.execute(select(func.count()).select_from(Patient).filter_by(tenant_id=tenant_id)).scalar(),
+            total_visits=db.session.execute(select(func.count()).select_from(Visit).filter_by(tenant_id=tenant_id)).scalar(),
+            total_prescriptions=db.session.execute(select(func.count()).select_from(Prescription).filter_by(tenant_id=tenant_id)).scalar(),
+            total_lab_requests=db.session.execute(select(func.count()).select_from(LabRequest).filter_by(tenant_id=tenant_id)).scalar(),
+            total_radiology_requests=db.session.execute(select(func.count()).select_from(RadiologyRequest).filter_by(tenant_id=tenant_id)).scalar(),
+            total_appointments=db.session.execute(select(func.count()).select_from(OnlineBooking).filter_by(tenant_id=tenant_id)).scalar(),
+            total_invoices=db.session.execute(select(func.count()).select_from(Invoice).filter_by(tenant_id=tenant_id)).scalar(),
         )
         db.session.add(snapshot)
         safe_commit(db.session, error_message="database commit failed", reraise=True)
@@ -638,7 +638,6 @@ class ProductBundle(db.Model):
 
 def seed_default_bundles() -> None:
     """Create default ProductBundles from seed data."""
-    from app.extensions import db
 
     bundle_defs = {
         # ── Solo / Small ──
@@ -834,7 +833,7 @@ def seed_default_bundles() -> None:
     }
     
     for slug, defn in bundle_defs.items():
-        existing = ProductBundle.query.filter_by(slug=slug).first()
+        existing = db.session.execute(select(ProductBundle).filter_by(slug=slug)).scalars().first()
         if existing:
             continue
         b = ProductBundle(
@@ -862,7 +861,7 @@ def seed_default_bundles() -> None:
 
 def get_bundle_for_profile(profile_code: str) -> ProductBundle | None:
     """Get ProductBundle linked to a profile code."""
-    return ProductBundle.query.filter_by(profile_code=profile_code, is_active=True).first()
+    return db.session.execute(select(ProductBundle).filter_by(profile_code=profile_code, is_active=True)).scalars().first()
 
 
 def check_tenant_limits(tenant_id: int) -> dict[str, bool]:

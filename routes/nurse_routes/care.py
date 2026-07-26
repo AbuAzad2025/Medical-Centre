@@ -10,10 +10,10 @@ from models.patient import Patient
 from models.visit import Visit
 from models.medication import Medication
 from services.nursing_service import nursing_service
-from app_factory import db
+from app.extensions import db
 import logging, json
 from datetime import datetime, timedelta, timezone, date
-from sqlalchemy import func, and_, or_, desc
+from sqlalchemy import func, and_, or_, desc, select
 
 
 # =============================================
@@ -27,7 +27,7 @@ def patient_care():
     """رعاية المرضى"""
     
     try:
-        patients = Patient.query.order_by(desc(Patient.created_at)).limit(20).all()
+        patients = db.session.execute(select(Patient).order_by(desc(Patient.created_at)).limit(20)).scalars().all()
         
         return render_template('nurse/patient_care.html', patients=patients)
     except Exception as e:
@@ -42,7 +42,7 @@ def patient_monitoring():
     """مراقبة المرضى"""
     
     try:
-        patients = Patient.query.order_by(desc(Patient.created_at)).limit(20).all()
+        patients = db.session.execute(select(Patient).order_by(desc(Patient.created_at)).limit(20)).scalars().all()
         
         return render_template('nurse/patient_monitoring.html', patients=patients)
     except Exception as e:

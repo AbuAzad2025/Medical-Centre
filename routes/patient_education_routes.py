@@ -1,10 +1,11 @@
 """
 Patient Education Materials Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors, role_required
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from models import PatientEducationMaterial, PatientEducationAssignment, Patient
 import os
@@ -33,7 +34,7 @@ def index():
     if category:
         query = query.filter_by(category=category)
     materials = query.filter_by(is_active=True).order_by(PatientEducationMaterial.created_at.desc()).all()
-    categories = db.session.query(PatientEducationMaterial.category).distinct().all()
+    categories = db.session.execute(select(PatientEducationMaterial.category).distinct()).scalars().all()
     return render_template('patient_education/index.html', materials=materials,
                            categories=[c[0] for c in categories], current_category=category)
 
@@ -42,15 +43,15 @@ def index():
 @login_required
 @handle_route_errors
 def view_material(material_id):
-    material = PatientEducationMaterial.query.get_or_404(material_id)
+    material = db.get_or_404(PatientEducationMaterial, material_id)
     try:
         material.view_count += 1
         safe_commit(db.session, error_message="database commit failed", reraise=True)
     except Exception as e:
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error updating view count: {e}")
-    assignments = PatientEducationAssignment.query.filter_by(material_id=material_id).order_by(
-        PatientEducationAssignment.created_at.desc()).limit(20).all()
+    assignments = db.session.execute(select(PatientEducationAssignment).filter_by(material_id=material_id).order_by(
+        PatientEducationAssignment.created_at.desc()).limit(20)).scalars().all()
     return render_template('patient_education/view.html', material=material, assignments=assignments)
 
 
@@ -96,7 +97,7 @@ def new_material():
 @role_required('manager', 'admin', 'super_admin')
 @handle_route_errors
 def edit_material(material_id):
-    material = PatientEducationMaterial.query.get_or_404(material_id)
+    material = db.get_or_404(PatientEducationMaterial, material_id)
     if request.method == 'POST':
         material.title = request.form.get('title', '').strip()
         material.category = request.form.get('category', 'general').strip()
@@ -149,9 +150,9 @@ def assign_material():
 @login_required
 @handle_route_errors
 def patient_materials(patient_id):
-    patient = Patient.query.get_or_404(patient_id)
-    assignments = PatientEducationAssignment.query.filter_by(patient_id=patient_id).order_by(
-        PatientEducationAssignment.created_at.desc()).all()
-    materials = PatientEducationMaterial.query.filter_by(is_active=True).all()
+    patient = db.get_or_404(Patient, patient_id)
+    assignments = db.session.execute(select(PatientEducationAssignment).filter_by(patient_id=patient_id).order_by(
+        PatientEducationAssignment.created_at.desc())).scalars().all()
+    materials = db.session.execute(select(PatientEducationMaterial).filter_by(is_active=True)).scalars().all()
     return render_template('patient_education/patient.html', patient=patient,
                            assignments=assignments, materials=materials)

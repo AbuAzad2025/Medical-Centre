@@ -26,10 +26,10 @@ from models.follow_up import FollowUpRequest
 from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import VisitState, VisitArchiveStatus
-from sqlalchemy import and_, or_, desc, func, case
+from sqlalchemy import and_, or_, desc, func, case, select
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
 
@@ -45,7 +45,7 @@ def notes(visit_id):
     """كتابة الملاحظات الطبية"""
     
     try:
-        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
+        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
         if visit.is_archived:
             flash('لا يمكن إضافة ملاحظات بعد أرشفة الزيارة', 'warning')
             return redirect(url_for('doctor.patient_queue'))

@@ -6,7 +6,7 @@ from routes.reception import reception_bp, _wants_json
  
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from sqlalchemy import func
+from sqlalchemy import func, select
 from datetime import datetime, timezone
 from models.user import User, StaffWorkSchedule, StaffAbsence
 from models.patient import Patient
@@ -23,7 +23,7 @@ from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
 from utils.tenant_query import get_tenant_record, TenantContextError
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging
 from services.access_control_service import AccessControlService
@@ -50,7 +50,7 @@ def checkin_online_booking():
         except TenantContextError:
             booking = None
     elif booking_reference:
-        booking = OnlineBooking.query.filter_by(booking_reference=booking_reference).first()
+        booking = db.session.execute(select(OnlineBooking).filter_by(booking_reference=booking_reference)).scalars().first()
 
     if not booking:
         flash('الحجز غير موجود', 'error')
@@ -74,9 +74,9 @@ def checkin_online_booking():
         phone = (booking.phone or '').strip() or None
 
         if national_id:
-            patient = Patient.query.filter_by(national_id=national_id).first()
+            patient = db.session.execute(select(Patient).filter_by(national_id=national_id)).scalars().first()
         if not patient and phone:
-            patient = Patient.query.filter_by(phone=phone).first()
+            patient = db.session.execute(select(Patient).filter_by(phone=phone)).scalars().first()
 
         if not patient:
             patient = Patient(
@@ -94,11 +94,11 @@ def checkin_online_booking():
         booking.is_new_patient = False
 
     marker = f"[ONLINE_BOOKING:{booking.booking_reference}]"
-    existing_visit = Visit.query.filter(
+    existing_visit = db.session.execute(select(Visit).filter(
         Visit.visit_date == booking.appointment_date,
         Visit.patient_id == patient.id,
         Visit.notes.ilike(f"%{marker}%")
-    ).order_by(Visit.created_at.desc()).first()
+    ).order_by(Visit.created_at.desc())).scalars().first()
     if existing_visit:
         flash('تم تحويل هذا الحجز مسبقاً إلى زيارة', 'info')
         return redirect(url_for('reception.visits'))
@@ -186,11 +186,11 @@ def checkin_appointment(appointment_id: int):
 
     marker = f"[APPOINTMENT:{appointment.id}]"
     appt_date = appointment.starts_at.date() if appointment.starts_at else datetime.now(timezone.utc).date()
-    existing_visit = Visit.query.filter(
+    existing_visit = db.session.execute(select(Visit).filter(
         Visit.visit_date == appt_date,
         Visit.patient_id == patient.id,
         Visit.notes.ilike(f"%{marker}%")
-    ).order_by(Visit.created_at.desc()).first()
+    ).order_by(Visit.created_at.desc())).scalars().first()
     if existing_visit:
         flash('تم تحويل هذا الموعد مسبقاً إلى زيارة', 'info')
         return redirect(url_for('reception.visits'))
@@ -296,8 +296,8 @@ def appointments():
     page = max(1, page)
     filtered_total = query.count()
     appointments = query.order_by(Appointment.starts_at.desc()).limit(per_page).offset((page - 1) * per_page).all()
-    departments = Department.query.all()
-    doctors = User.query.filter_by(role='doctor', is_active=True).order_by(User.full_name.asc()).all()
+    departments = db.session.execute(select(Department)).scalars().all()
+    doctors = db.session.execute(select(User).filter_by(role='doctor', is_active=True).order_by(User.full_name.asc())).scalars().all()
 
     def _split_appt_notes(notes_text):
         base_lines = []
@@ -334,10 +334,10 @@ def appointments():
 
     # إحصائيات ديناميكية حقيقية
     from sqlalchemy import func
-    total_count = db.session.query(func.count(Appointment.id)).scalar() or 0
-    today_count = db.session.query(func.count(Appointment.id)).filter(func.date(Appointment.starts_at) == func.current_date()).scalar() or 0
-    confirmed_count = db.session.query(func.count(Appointment.id)).filter(Appointment.status == AppointmentState.CONFIRMED).scalar() or 0
-    pending_count = db.session.query(func.count(Appointment.id)).filter(Appointment.status == AppointmentState.SCHEDULED).scalar() or 0
+    total_count = db.session.execute(select(func.count(Appointment.id))).scalar() or 0
+    today_count = db.session.execute(select(func.count(Appointment.id)).filter(func.date(Appointment.starts_at) == func.current_date())).scalar() or 0
+    confirmed_count = db.session.execute(select(func.count(Appointment.id)).filter(Appointment.status == AppointmentState.CONFIRMED)).scalar() or 0
+    pending_count = db.session.execute(select(func.count(Appointment.id)).filter(Appointment.status == AppointmentState.SCHEDULED)).scalar() or 0
 
     appointments_json = [{
         'id': a.id,
@@ -376,7 +376,7 @@ def follow_ups():
     status = (request.args.get('status') or '').strip().upper()
     date_str = (request.args.get('date') or '').strip()
 
-    query = FollowUpRequest.query.join(Patient, Patient.id == FollowUpRequest.patient_id)
+    query = select(FollowUpRequest)
 
     if search:
         query = query.filter(
@@ -524,9 +524,9 @@ def create_appointment():
             logging.error(f"Error creating appointment: {str(e)}")
     
     # جلب البيانات المطلوبة للنموذج
-    patients = Patient.query.all()
-    departments = Department.query.filter_by(is_active=True).all()
-    doctors = User.query.filter_by(role='doctor', is_active=True).all()
+    patients = db.session.execute(select(Patient)).scalars().all()
+    departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+    doctors = db.session.execute(select(User).filter_by(role='doctor', is_active=True)).scalars().all()
     from datetime import date
     preselected_patient_id = request.args.get('patient_id', type=int)
     preset_department_id = request.args.get('department_id', type=int)
@@ -643,9 +643,9 @@ def edit_appointment(appointment_id):
             flash('تعذر تحديث الموعد، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
             logging.error(f"Error updating appointment: {str(e)}")
     
-    patients = Patient.query.all()
-    departments = Department.query.filter_by(is_active=True).all()
-    doctors = User.query.filter_by(role='doctor', is_active=True).all()
+    patients = db.session.execute(select(Patient)).scalars().all()
+    departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+    doctors = db.session.execute(select(User).filter_by(role='doctor', is_active=True)).scalars().all()
 
     appt_type = None
     symptoms = None
@@ -714,12 +714,12 @@ def api_available_times():
     start_of_day = datetime.combine(target_date, datetime.min.time())
     end_of_day = datetime.combine(target_date, datetime.max.time())
 
-    existing_appointments = Appointment.query.filter(
+    existing_appointments = db.session.execute(select(Appointment).filter(
         Appointment.doctor_id == doctor_id,
         Appointment.starts_at >= start_of_day,
         Appointment.starts_at <= end_of_day,
         Appointment.status.in_([AppointmentState.SCHEDULED, AppointmentState.CONFIRMED])
-    ).all()
+    )).scalars().all()
 
     # الأوقات المتاحة (من 8 صباحاً إلى 5 مساءً)
     available_times = []

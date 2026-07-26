@@ -17,9 +17,9 @@ from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from services.gatekeeper_service import GatekeeperService
 from services.manager_service import manager_service
-from app_factory import db
+from app.extensions import db
 from app.shared.enums import VisitState
-from sqlalchemy import func
+from sqlalchemy import func, select
 from decimal import Decimal, ROUND_HALF_UP
 import logging
 from datetime import datetime, date, timedelta, timezone
@@ -37,11 +37,11 @@ def api_what_if():
         data = request.get_json(silent=True) or {}
         add_staff = int(data.get('add_staff') or 0)
         add_rooms = int(data.get('add_rooms') or 0)
-        base_visits = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]), Visit.tenant_id == current_user.tenant_id).count()
+        base_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]), Visit.tenant_id == current_user.tenant_id)).scalar()
         capacity_gain = (add_staff * 6) + (add_rooms * 8)
         predicted_throughput = int(base_visits + capacity_gain)
         predicted_wait = max(5, int(30 - (capacity_gain / 2)))
-        predicted_revenue = float(db.session.query(func.sum(Payment.amount)).filter(Payment.tenant_id == current_user.tenant_id).scalar() or 0) * (1 + (capacity_gain / 100))
+        predicted_revenue = float(db.session.execute(select(func.sum(Payment.amount)).filter(Payment.tenant_id == current_user.tenant_id)).scalar() or 0) * (1 + (capacity_gain / 100))
         return jsonify({
             'success': True,
             'predicted_throughput': predicted_throughput,

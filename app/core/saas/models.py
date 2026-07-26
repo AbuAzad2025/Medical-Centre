@@ -516,10 +516,10 @@ class EntitlementGrant(TenantMixin, db.Model):
 
     __table_args__ = (
         CheckConstraint(
-            "(subscription_line_id IS NOT NULL)::int + "
-            "(tenant_override_id IS NOT NULL)::int + "
-            "(tenant_feature_flag_id IS NOT NULL)::int + "
-            "(enterprise_contract_entitlement_id IS NOT NULL)::int = 1",
+            "(CASE WHEN subscription_line_id IS NOT NULL THEN 1 ELSE 0 END) + "
+            "(CASE WHEN tenant_override_id IS NOT NULL THEN 1 ELSE 0 END) + "
+            "(CASE WHEN tenant_feature_flag_id IS NOT NULL THEN 1 ELSE 0 END) + "
+            "(CASE WHEN enterprise_contract_entitlement_id IS NOT NULL THEN 1 ELSE 0 END) = 1",
             name="chk_entitlement_grant_single_source"
         ),
         Index("idx_entitlement_grant_tenant_capability", "tenant_id", "capability_key"),

@@ -6,7 +6,7 @@ from routes.reception import reception_bp
  
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from sqlalchemy import func
+from sqlalchemy import func, select
 from datetime import datetime, timezone, date
 from models.user import User, StaffWorkSchedule, StaffAbsence
 from app.shared.enums import VisitState, QueueState, BookingState, AppointmentState
@@ -23,7 +23,7 @@ from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from services.core_queries import core_queries
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging
 from services.access_control_service import AccessControlService
@@ -75,7 +75,7 @@ def reception_staff_schedule():
             from datetime import datetime as _dt
             st = _dt.strptime(start_time, '%H:%M').time()
             et = _dt.strptime(end_time, '%H:%M').time()
-            s = StaffWorkSchedule.query.filter_by(user_id=user_id, day_of_week=day_of_week).first()
+            s = db.session.execute(select(StaffWorkSchedule).filter_by(user_id=user_id, day_of_week=day_of_week)).scalars().first()
             if s:
                 s.start_time = st
                 s.end_time = et
@@ -90,11 +90,11 @@ def reception_staff_schedule():
             safe_rollback(db.session, error_message="database rollback")
             logging.error(str(e))
             flash('حدث خطأ في حفظ الجدول', 'danger')
-    users = User.query.filter(User.role.in_(['doctor','lab','radiology']), User.is_active == True).all()
+    users = db.session.execute(select(User).filter(User.role.in_(['doctor','lab','radiology']), User.is_active == True)).scalars().all()
     user_id = request.args.get('user_id', type=int)
     schedules = []
     if user_id:
-        schedules = StaffWorkSchedule.query.filter_by(user_id=user_id).order_by(StaffWorkSchedule.day_of_week.asc()).all()
+        schedules = db.session.execute(select(StaffWorkSchedule).filter_by(user_id=user_id).order_by(StaffWorkSchedule.day_of_week.asc())).scalars().all()
     return render_template('reception/staff_schedule.html', users=users, schedules=schedules, selected_user_id=user_id)
 
 @reception_bp.route('/staff/absence', methods=['GET', 'POST'])
@@ -119,11 +119,11 @@ def reception_staff_absence():
             safe_rollback(db.session, error_message="database rollback")
             logging.error(str(e))
             flash('حدث خطأ في إضافة الغياب', 'danger')
-    users = User.query.filter(User.role.in_(['doctor','lab','radiology']), User.is_active == True).all()
+    users = db.session.execute(select(User).filter(User.role.in_(['doctor','lab','radiology']), User.is_active == True)).scalars().all()
     user_id = request.args.get('user_id', type=int)
     absences = []
     if user_id:
-        absences = StaffAbsence.query.filter_by(user_id=user_id).order_by(StaffAbsence.start_date.desc()).all()
+        absences = db.session.execute(select(StaffAbsence).filter_by(user_id=user_id).order_by(StaffAbsence.start_date.desc())).scalars().all()
     return render_template('reception/staff_absence.html', users=users, absences=absences, selected_user_id=user_id)
 
 # مسارات إضافية للاستقبال
@@ -134,7 +134,7 @@ def reception_staff_absence():
 def survey(token):
     try:
         from models.patient_satisfaction import PatientSatisfactionSurvey
-        survey = PatientSatisfactionSurvey.query.filter_by(token=token).first()
+        survey = db.session.execute(select(PatientSatisfactionSurvey).filter_by(token=token)).scalars().first()
         if not survey:
             return render_template('reception/survey.html', invalid=True)
         if request.method == 'POST':

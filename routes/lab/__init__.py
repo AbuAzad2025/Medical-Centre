@@ -2,6 +2,7 @@
 مسارات المختبر - Laboratory Routes
 Medical System Laboratory Routes
 """
+from sqlalchemy import select, func
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, send_file, make_response
 from flask_login import login_required, current_user
@@ -15,7 +16,7 @@ from models.lab_quality import LabQualityControlEntry
 from models.lab_reagent import LabReagent
 from models.audit_trail import AuditTrail
 from app.shared.enums import LabResultStatus, OrderState
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging
 from datetime import datetime, date, timezone, timedelta
@@ -51,16 +52,16 @@ def _log_lab_workflow(request_id, status, action, notes=None):
 def get_lab_smart_analytics():
     """التحليلات الذكية للمختبر"""
     try:
-        total_requests = LabRequest.query.count()
-        completed_requests = LabRequest.query.filter(LabRequest.status == OrderState.DONE).count()
-        pending_requests = LabRequest.query.filter(
+        total_requests = db.session.execute(select(func.count()).select_from(LabRequest)).scalar()
+        completed_requests = db.session.execute(select(func.count()).select_from(LabRequest).filter(LabRequest.status == OrderState.DONE)).scalar()
+        pending_requests = db.session.execute(select(func.count()).select_from(LabRequest).filter(
             LabRequest.status.in_([OrderState.REQUESTED, OrderState.COLLECTED, OrderState.RECEIVED, OrderState.ANALYZING, OrderState.REVIEWED, OrderState.APPROVED, OrderState.IN_PROGRESS])
-        ).count()
+        )).scalar()
         completion_rate = (completed_requests / total_requests * 100) if total_requests > 0 else 0
         try:
-            avg_processing_seconds = db.session.query(
+            avg_processing_seconds = db.session.execute(select(
                 db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
-            ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None)).scalar()
+            ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None))).scalar()
         except Exception:
             safe_rollback(db.session, error_message="database rollback")
             avg_processing_seconds = None
@@ -80,16 +81,16 @@ def get_lab_smart_analytics():
 def get_lab_test_optimization():
     """تحسين الفحوصات"""
     try:
-        total_requests = LabRequest.query.count()
+        total_requests = db.session.execute(select(func.count()).select_from(LabRequest)).scalar()
         try:
-            avg_processing_seconds = db.session.query(
+            avg_processing_seconds = db.session.execute(select(
                 db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
-            ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None)).scalar()
+            ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None))).scalar()
         except Exception:
             safe_rollback(db.session, error_message="database rollback")
             avg_processing_seconds = None
         avg_processing_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
-        total_processed = LabRequest.query.filter(LabRequest.status == OrderState.DONE).count()
+        total_processed = db.session.execute(select(func.count()).select_from(LabRequest).filter(LabRequest.status == OrderState.DONE)).scalar()
         suggestions = generate_optimization_suggestions(avg_processing_time)
         return {
             'avg_processing_time': avg_processing_time,
@@ -104,12 +105,12 @@ def get_lab_test_optimization():
 def get_lab_quality_control():
     """مراقبة الجودة"""
     try:
-        total_completed = LabRequest.query.filter(LabRequest.status == OrderState.DONE).count()
-        qc_total = LabQualityControlEntry.query.count()
-        qc_fail = LabQualityControlEntry.query.filter(LabQualityControlEntry.status == 'FAIL').count()
+        total_completed = db.session.execute(select(func.count()).select_from(LabRequest).filter(LabRequest.status == OrderState.DONE)).scalar()
+        qc_total = db.session.execute(select(func.count()).select_from(LabQualityControlEntry)).scalar()
+        qc_fail = db.session.execute(select(func.count()).select_from(LabQualityControlEntry).filter(LabQualityControlEntry.status == 'FAIL')).scalar()
         quality_score = 100.0 - (float(qc_fail) / float(qc_total) * 100.0) if qc_total else 100.0
         standard_deviations = round((qc_fail / qc_total) * 3, 2) if qc_total else 0
-        recheck_requests = LabRequest.query.filter(LabRequest.status == OrderState.REVIEWED).count()
+        recheck_requests = db.session.execute(select(func.count()).select_from(LabRequest).filter(LabRequest.status == OrderState.REVIEWED)).scalar()
         return {
             'total_completed': total_completed,
             'quality_score': round(quality_score, 2),
@@ -146,18 +147,18 @@ def get_lab_equipment_monitoring():
 def get_lab_result_analysis():
     """تحليل النتائج"""
     try:
-        total_results = LabResult.query.count()
-        abnormal_results = LabResult.query.filter(
+        total_results = db.session.execute(select(func.count()).select_from(LabResult)).scalar()
+        abnormal_results = db.session.execute(select(func.count()).select_from(LabResult).filter(
             LabResult.is_critical == True,
             LabResult.status.in_([LabResultStatus.READY, LabResultStatus.VALIDATED])
-        ).count()
+        )).scalar()
         abnormal_rate = (abnormal_results / total_results * 100) if total_results else 0
         today = date.today()
-        last_7 = LabResult.query.filter(LabResult.created_at >= (today - timedelta(days=7))).count()
-        prev_7 = LabResult.query.filter(
+        last_7 = db.session.execute(select(func.count()).select_from(LabResult).filter(LabResult.created_at >= (today - timedelta(days=7)))).scalar()
+        prev_7 = db.session.execute(select(func.count()).select_from(LabResult).filter(
             LabResult.created_at >= (today - timedelta(days=14)),
             LabResult.created_at < (today - timedelta(days=7))
-        ).count()
+        )).scalar()
         trend_analysis = 'تصاعدي' if last_7 > prev_7 else 'تنازلي' if last_7 < prev_7 else 'مستقر'
         return {
             'total_results': total_results,
@@ -172,8 +173,8 @@ def get_lab_result_analysis():
 def get_lab_workflow_automation():
     """أتمتة سير العمل"""
     try:
-        total_requests = LabRequest.query.count()
-        done_requests = LabRequest.query.filter(LabRequest.status == OrderState.DONE).count()
+        total_requests = db.session.execute(select(func.count()).select_from(LabRequest)).scalar()
+        done_requests = db.session.execute(select(func.count()).select_from(LabRequest).filter(LabRequest.status == OrderState.DONE)).scalar()
         automation_rate = round((done_requests / total_requests) * 100, 2) if total_requests else 0
         automated_tasks = done_requests
         time_saved = round(automation_rate * 1.2, 2)
@@ -193,12 +194,12 @@ def get_lab_predictive_insights():
         today = date.today()
         week_start = today - timedelta(days=7)
         month_start = today - timedelta(days=30)
-        weekly_requests = LabRequest.query.filter(LabRequest.created_at >= week_start).count()
-        monthly_requests = LabRequest.query.filter(LabRequest.created_at >= month_start).count()
-        prev_week = LabRequest.query.filter(
+        weekly_requests = db.session.execute(select(func.count()).select_from(LabRequest).filter(LabRequest.created_at >= week_start)).scalar()
+        monthly_requests = db.session.execute(select(func.count()).select_from(LabRequest).filter(LabRequest.created_at >= month_start)).scalar()
+        prev_week = db.session.execute(select(func.count()).select_from(LabRequest).filter(
             LabRequest.created_at >= today - timedelta(days=14),
             LabRequest.created_at < week_start
-        ).count()
+        )).scalar()
         growth_rate = ((weekly_requests - prev_week) / prev_week * 100) if prev_week else 0
         predicted_demand = int(round((weekly_requests / 7) * 7))
         return {
@@ -216,7 +217,7 @@ def calculate_lab_efficiency(completion_rate, pending_requests):
         base_score = completion_rate
         penalty = min(pending_requests * 2, 20)  # خصم لكل طلب معلق
         return max(base_score - penalty, 0)
-    except:
+    except (TypeError, ValueError):
         return 0
 
 def calculate_test_efficiency(avg_time, total_tests):
@@ -230,7 +231,7 @@ def calculate_test_efficiency(avg_time, total_tests):
             return 75
         else:
             return 60
-    except:
+    except (TypeError, ValueError):
         return 0
 
 def generate_optimization_suggestions(avg_time):

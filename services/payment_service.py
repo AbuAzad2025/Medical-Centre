@@ -9,9 +9,9 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any
 
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_rollback
-from sqlalchemy import and_
+from sqlalchemy import and_, select
 from utils.tenant_query import get_tenant_record, TenantContextError
 
 
@@ -49,13 +49,13 @@ class PaymentService:
             return False, "operation_type is required"
 
         if idempotency_key:
-            existing = Payment.query.filter(
+            existing = db.session.execute(select(Payment).filter(
                 and_(
                     Payment.tenant_id == tenant_id,
                     Payment.operation_type == operation_type,
                     Payment.idempotency_key == idempotency_key,
                 )
-            ).first()
+            )).scalars().first()
             if existing:
                 return True, existing
 

@@ -11,8 +11,8 @@ from utils.decorators import super_admin_required
 from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
-from sqlalchemy import func
-from app_factory import db
+from sqlalchemy import func, select
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 
 
@@ -31,14 +31,14 @@ def departments():
     try:
         from models.department import Department
         from models.user import User
-        query = Department.query.order_by(Department.name)
+        query = select(Department)
         
         total = query.count()
         pages = (total + per_page - 1) // per_page
         
         departments = query.offset((page - 1) * per_page).limit(per_page).all()
-        total_doctors = User.query.filter_by(role='doctor').count()
-        total_staff = User.query.count()
+        total_doctors = db.session.execute(select(func.count()).select_from(User).filter_by(role='doctor')).scalar()
+        total_staff = db.session.execute(select(func.count()).select_from(User)).scalar()
     except Exception as e:
         logging.error(f"Departments error: {str(e)}")
         departments = []
@@ -57,7 +57,6 @@ def create_department():
     """إنشاء قسم جديد"""
     try:
         from models.department import Department
-        from app_factory import db
         
         # التحقق من الحقول المطلوبة
         name = request.form.get('name')
@@ -97,7 +96,7 @@ def view_department(department_id):
         department = db.session.get(Department, department_id)
         if not department:
             abort(404)
-        staff = User.query.filter_by(department_id=department_id).all()
+        staff = db.session.execute(select(User).filter_by(department_id=department_id)).scalars().all()
         
         return render_template('super_admin/department_detail.html', 
                              department=department, 
@@ -114,7 +113,6 @@ def edit_department(department_id):
     """تعديل قسم"""
     try:
         from models.department import Department
-        from app_factory import db
         
         department = db.session.get(Department, department_id)
         if not department:
@@ -151,8 +149,8 @@ def department_staff(department_id):
         department = db.session.get(Department, department_id)
         if not department:
             abort(404)
-        staff = User.query.filter_by(department_id=department_id).all()
-        all_users = User.query.filter_by(is_active=True).all()
+        staff = db.session.execute(select(User).filter_by(department_id=department_id)).scalars().all()
+        all_users = db.session.execute(select(User).filter_by(is_active=True)).scalars().all()
         
         return render_template('super_admin/department_staff.html', 
                              department=department, 
@@ -170,7 +168,6 @@ def add_staff_to_department(department_id):
     """إضافة موظف للقسم"""
     try:
         from models.user import User
-        from app_factory import db
         
         data = request.get_json(silent=True)
         user_id = data.get('user_id')
@@ -194,7 +191,6 @@ def remove_staff_from_department(department_id):
     """إزالة موظف من القسم"""
     try:
         from models.user import User
-        from app_factory import db
         
         data = request.get_json(silent=True)
         user_id = data.get('user_id')
@@ -218,7 +214,6 @@ def activate_department(department_id):
     """تفعيل قسم"""
     try:
         from models.department import Department
-        from app_factory import db
         
         department = db.session.get(Department, department_id)
         if not department:
@@ -239,7 +234,6 @@ def deactivate_department(department_id):
     """إلغاء تفعيل قسم"""
     try:
         from models.department import Department
-        from app_factory import db
         
         department = db.session.get(Department, department_id)
         if not department:
@@ -264,7 +258,7 @@ def export_departments():
         from io import StringIO
         from flask import make_response
         
-        departments = Department.query.all()
+        departments = db.session.execute(select(Department)).scalars().all()
         
         si = StringIO()
         writer = csv.writer(si)

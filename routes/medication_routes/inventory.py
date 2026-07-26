@@ -12,11 +12,11 @@ from models.visit import Visit
 from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
 from models.drug_interaction import DrugInteraction
 from services.prescription_service import prescription_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging, json
 from datetime import datetime, timezone, timedelta, date
-from sqlalchemy import func
+from sqlalchemy import func, select
 
 
 # =============================================
@@ -30,16 +30,16 @@ def stock_alerts():
     """تنبيهات المخزون"""
     try:
         # الأدوية منخفضة المخزون
-        low_stock = Medication.query.filter(
+        low_stock = db.session.execute(select(Medication).filter(
             Medication.stock_quantity <= Medication.minimum_stock,
             Medication.tenant_id == current_user.tenant_id
-        ).all()
+        )).scalars().all()
         
         # الأدوية المنتهية الصلاحية قريباً
-        expiring_soon = Medication.query.filter(
+        expiring_soon = db.session.execute(select(Medication).filter(
             Medication.expiry_date <= datetime.now() + timedelta(days=30),
             Medication.tenant_id == current_user.tenant_id
-        ).all()
+        )).scalars().all()
         
         return render_template('medication/stock_alerts.html', 
                              low_stock=low_stock,
@@ -54,7 +54,7 @@ def stock_alerts():
 @role_required('pharmacist', 'admin', 'manager')
 def supply_requests():
     status = (request.args.get('status') or '').strip().upper()
-    q = MedicationSupplyRequest.query.filter(MedicationSupplyRequest.tenant_id == current_user.tenant_id)
+    q = select(MedicationSupplyRequest)
     if status:
         q = q.filter(MedicationSupplyRequest.status == status)
     requests_list = q.order_by(MedicationSupplyRequest.created_at.desc()).limit(200).all()
@@ -80,7 +80,7 @@ def create_supply_request():
                 rq = int(qraw) if qraw.isdigit() else 0
                 if rq <= 0:
                     continue
-                med = Medication.query.filter(Medication.id == mid, Medication.tenant_id == current_user.tenant_id).first()
+                med = db.session.execute(select(Medication).filter(Medication.id == mid, Medication.tenant_id == current_user.tenant_id)).scalars().first()
                 if not med:
                     continue
                 items.append((med, rq))
@@ -118,7 +118,7 @@ def create_supply_request():
             flash('حدث خطأ في إنشاء طلب التوريد', 'error')
             return redirect(url_for('medication.supply_requests'))
 
-    low_stock = Medication.query.filter(Medication.stock_quantity <= Medication.minimum_stock, Medication.tenant_id == current_user.tenant_id).order_by(Medication.trade_name.asc()).all()
+    low_stock = db.session.execute(select(Medication).filter(Medication.stock_quantity <= Medication.minimum_stock, Medication.tenant_id == current_user.tenant_id).order_by(Medication.trade_name.asc())).scalars().all()
     suggested = {}
     for m in low_stock:
         cur = int(m.stock_quantity or 0)
@@ -132,7 +132,7 @@ def create_supply_request():
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def view_supply_request(request_id: int):
-    req = MedicationSupplyRequest.query.filter(MedicationSupplyRequest.id == request_id, MedicationSupplyRequest.tenant_id == current_user.tenant_id).first()
+    req = db.session.execute(select(MedicationSupplyRequest).filter(MedicationSupplyRequest.id == request_id, MedicationSupplyRequest.tenant_id == current_user.tenant_id)).scalars().first()
     if not req:
         flash('طلب التوريد غير موجود', 'error')
         return redirect(url_for('medication.supply_requests'))
@@ -143,7 +143,7 @@ def view_supply_request(request_id: int):
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def approve_supply_request(request_id: int):
-    req = MedicationSupplyRequest.query.filter(MedicationSupplyRequest.id == request_id, MedicationSupplyRequest.tenant_id == current_user.tenant_id).first()
+    req = db.session.execute(select(MedicationSupplyRequest).filter(MedicationSupplyRequest.id == request_id, MedicationSupplyRequest.tenant_id == current_user.tenant_id)).scalars().first()
     if not req:
         return jsonify({'success': False, 'message': 'غير موجود'}), 404
     if req.status not in {'DRAFT'}:
@@ -168,7 +168,7 @@ def approve_supply_request(request_id: int):
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def fulfill_supply_request(request_id: int):
-    req = MedicationSupplyRequest.query.filter(MedicationSupplyRequest.id == request_id, MedicationSupplyRequest.tenant_id == current_user.tenant_id).first()
+    req = db.session.execute(select(MedicationSupplyRequest).filter(MedicationSupplyRequest.id == request_id, MedicationSupplyRequest.tenant_id == current_user.tenant_id)).scalars().first()
     if not req:
         return jsonify({'success': False, 'message': 'غير موجود'}), 404
     if req.status not in {'APPROVED'}:
@@ -191,7 +191,7 @@ def fulfill_supply_request(request_id: int):
             if fq < 0:
                 fq = 0
             it.fulfilled_qty = fq
-            med = Medication.query.filter(Medication.id == it.medication_id, Medication.tenant_id == current_user.tenant_id).first()
+            med = db.session.execute(select(Medication).filter(Medication.id == it.medication_id, Medication.tenant_id == current_user.tenant_id)).scalars().first()
             if med and fq:
                 med.stock_quantity = int(med.stock_quantity or 0) + int(fq)
                 med.updated_at = datetime.now(timezone.utc)

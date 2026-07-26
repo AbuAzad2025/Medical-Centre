@@ -11,7 +11,7 @@ from utils.decorators import super_admin_required
 from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
-from sqlalchemy import func
+from sqlalchemy import func, select
 from app.shared.enums import BackupStatus
 from datetime import datetime, timezone, timedelta
 from utils.db_safety import safe_commit, safe_rollback
@@ -31,7 +31,7 @@ def backup():
         from datetime import datetime, timedelta
         
         # جلب جميع النسخ مرتبة بالأحدث
-        backups = Backup.query.order_by(Backup.created_at.desc()).all()
+        backups = db.session.execute(select(Backup).order_by(Backup.created_at.desc())).scalars().all()
         
         # حساب الإحصائيات
         total_backups = len(backups)
@@ -68,7 +68,7 @@ def backup():
         from models.system_config import SystemConfig
         
         def get_config_value(key, default):
-            config = SystemConfig.query.filter_by(config_key=key).first()
+            config = db.session.execute(select(SystemConfig).filter_by(config_key=key)).scalars().first()
             return config.get_value() if config else default
             
         settings = {
@@ -93,7 +93,7 @@ def create_backup():
         from datetime import datetime, timezone
         import os
         from models.backup import Backup
-        from app_factory import db
+        from app.extensions import db
         from services.pg_backup_service import PgBackupError, build_backup_path, run_pg_dump_sql_gz
         from app.shared.enums import BackupStatus
 
@@ -153,7 +153,7 @@ def create_backup():
             return jsonify({'success': False, 'message': str(exc)}), 500
 
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error creating backup: {str(e)}")
         return jsonify({
@@ -168,7 +168,7 @@ def restore_backup(backup_id):
     """استعادة نسخة احتياطية"""
     try:
         from models.backup import Backup
-        from app_factory import db
+        from app.extensions import db
         from routes.backup_routes import restore_backup_file
         
         backup = db.session.get(Backup, backup_id)
@@ -187,7 +187,7 @@ def restore_backup(backup_id):
             return jsonify({'success': False, 'message': 'فشل في استعادة النسخة الاحتياطية'}), 500
             
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error restoring backup: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر استعادة النسخة الاحتياطية حالياً'}), 500
@@ -199,7 +199,7 @@ def delete_backup(backup_id):
     """حذف نسخة احتياطية"""
     try:
         from models.backup import Backup
-        from app_factory import db
+        from app.extensions import db
         import os
         
         backup = db.session.get(Backup, backup_id)
@@ -219,7 +219,7 @@ def delete_backup(backup_id):
         return jsonify({'success': True, 'message': 'تم حذف النسخة الاحتياطية بنجاح'})
             
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error deleting backup: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر حذف النسخة الاحتياطية حالياً'}), 500
@@ -231,7 +231,7 @@ def cancel_backup(backup_id):
     """إلغاء (أو تحديث حالة) نسخة احتياطية عالقة"""
     try:
         from models.backup import Backup
-        from app_factory import db
+        from app.extensions import db
         from datetime import datetime
         
         backup = db.session.get(Backup, backup_id)
@@ -248,7 +248,7 @@ def cancel_backup(backup_id):
         return jsonify({'success': True, 'message': 'تم إلغاء النسخة الاحتياطية بنجاح'})
             
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error cancelling backup: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إلغاء النسخة الاحتياطية حالياً'}), 500
@@ -260,14 +260,14 @@ def backup_schedule():
     """إدارة جدولة النسخ الاحتياطي"""
     try:
         from models.system_config import SystemConfig
-        from app_factory import db
+        from app.extensions import db
         
         if request.method == 'POST':
             data = request.get_json(silent=True)
             
             # Helper to update or create config
             def update_config(key, value, type='string'):
-                config = SystemConfig.query.filter_by(config_key=key).first()
+                config = db.session.execute(select(SystemConfig).filter_by(config_key=key)).scalars().first()
                 if not config:
                     config = SystemConfig(config_key=key, category='backup', is_system=True)
                     db.session.add(config)
@@ -285,7 +285,7 @@ def backup_schedule():
         else:
             # Get current settings
             def get_config(key, default):
-                config = SystemConfig.query.filter_by(config_key=key).first()
+                config = db.session.execute(select(SystemConfig).filter_by(config_key=key)).scalars().first()
                 return config.get_value() if config else default
                 
             return jsonify({
@@ -296,7 +296,7 @@ def backup_schedule():
             })
             
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Error in backup schedule: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر حفظ جدولة النسخ الاحتياطي حالياً'}), 500
@@ -309,7 +309,7 @@ def backup_report():
     try:
         from models.backup import Backup
         
-        backups = Backup.query.order_by(Backup.created_at.desc()).all()
+        backups = db.session.execute(select(Backup).order_by(Backup.created_at.desc())).scalars().all()
         
         # Calculate stats
         total = len(backups)
@@ -342,7 +342,7 @@ def export_backup_logs():
         import io
         from flask import make_response
         
-        backups = Backup.query.order_by(Backup.created_at.desc()).all()
+        backups = db.session.execute(select(Backup).order_by(Backup.created_at.desc())).scalars().all()
         
         si = io.StringIO()
         cw = csv.writer(si)
@@ -377,7 +377,7 @@ def backup_history():
     try:
         from models.backup import Backup
         
-        backups = Backup.query.order_by(Backup.created_at.desc()).limit(50).all()
+        backups = db.session.execute(select(Backup).order_by(Backup.created_at.desc()).limit(50)).scalars().all()
         
         history = [{
             'id': b.id,

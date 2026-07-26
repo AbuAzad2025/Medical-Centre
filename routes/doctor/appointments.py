@@ -19,8 +19,8 @@ from models.follow_up import FollowUpRequest
 from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
-from app_factory import db
-from sqlalchemy import and_, or_, desc, func, case
+from app.extensions import db
+from sqlalchemy import and_, or_, desc, func, case, select
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
 
@@ -46,26 +46,26 @@ def appointments():
         tomorrow = today + timedelta(days=1)
 
         # Base query
-        query = Appointment.query.filter_by(doctor_id=current_user.id).order_by(Appointment.starts_at.desc())
+        query = select(Appointment).filter_by(doctor_id=current_user.id)
         total = query.count()
         appointments = query.offset((page - 1) * per_page).limit(per_page).all()
         pages = (total + per_page - 1) // per_page if total > 0 else 1
 
         # Stats
-        today_count = Appointment.query.filter(
+        today_count = db.session.execute(select(func.count()).select_from(Appointment).filter(
             Appointment.doctor_id == current_user.id,
             func.date(Appointment.starts_at) == today
-        ).count()
+        )).scalar()
 
-        upcoming_count = Appointment.query.filter(
+        upcoming_count = db.session.execute(select(func.count()).select_from(Appointment).filter(
             Appointment.doctor_id == current_user.id,
             func.date(Appointment.starts_at) >= today
-        ).count()
+        )).scalar()
 
-        confirmed_count = Appointment.query.filter(
+        confirmed_count = db.session.execute(select(func.count()).select_from(Appointment).filter(
             Appointment.doctor_id == current_user.id,
             Appointment.status == AppointmentState.CONFIRMED
-        ).count()
+        )).scalar()
 
         return render_template(
             'doctor/appointments.html',

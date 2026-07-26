@@ -17,9 +17,9 @@ from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
 from app.shared.enums import EmergencyStatus
 from services.emergency_service import emergency_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
-from sqlalchemy import and_, or_, desc, case
+from sqlalchemy import and_, or_, desc, case, select
 import logging, json
 from datetime import datetime, date, timedelta, timezone
 
@@ -141,7 +141,7 @@ def start_treatment(emergency_id):
 @role_required('emergency', 'manager')
 def emergency_visits():
     try:
-        visits = Visit.query.filter(Visit.visit_type == 'EMERGENCY').order_by(desc(Visit.created_at)).all()
+        visits = db.session.execute(select(Visit).filter(Visit.visit_type == 'EMERGENCY').order_by(desc(Visit.created_at))).scalars().all()
         return render_template('emergency/emergency_visits.html', visits=visits)
     except Exception as e:
         logging.error(f"Error loading emergency visits: {str(e)}")
@@ -153,7 +153,7 @@ def emergency_visits():
 @role_required('emergency', 'doctor', 'manager')
 def emergency_treatment(visit_id):
     try:
-        visit = Visit.query.filter_by(id=visit_id).first()
+        visit = db.session.execute(select(Visit).filter_by(id=visit_id)).scalars().first()
         if not visit:
             if request.method == 'POST':
                 return jsonify({'success': False, 'error': 'الزيارة غير موجودة'}), 404
@@ -198,10 +198,10 @@ def emergency_treatment(visit_id):
 @role_required_json('emergency', 'manager')
 def complete_visit(visit_id):
     try:
-        visit = Visit.query.filter_by(id=visit_id).first()
+        visit = db.session.execute(select(Visit).filter_by(id=visit_id)).scalars().first()
         if not visit:
             return jsonify({'success': False, 'message': 'الزيارة غير موجودة'}), 404
-        emergency_case = EmergencyCase.query.filter_by(visit_id=visit_id).first()
+        emergency_case = db.session.execute(select(EmergencyCase).filter_by(visit_id=visit_id)).scalars().first()
         if emergency_case:
             emergency_case.status = EmergencyStatus.COMPLETED
             emergency_case.completed_at = datetime.now(timezone.utc)

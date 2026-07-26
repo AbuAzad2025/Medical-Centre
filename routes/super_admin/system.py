@@ -12,9 +12,9 @@ from app.core.platform_capabilities import require_platform_capability
 from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
-from sqlalchemy import func
+from sqlalchemy import func, select
 from datetime import datetime, timezone, timedelta
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 
 
@@ -28,7 +28,6 @@ from utils.db_safety import safe_commit, safe_rollback
 def system_config():
     """إعدادات النظام"""
     try:
-        from app_factory import db
         from models.system_config import SystemConfig
         import logging as _logging
         from flask import current_app as _current_app
@@ -96,7 +95,7 @@ def system_config():
                 
                 # حفظ الإعدادات في قاعدة البيانات
                 for key, value in normalized.items():
-                    setting = SystemConfig.query.filter_by(config_key=key).first()
+                    setting = db.session.execute(select(SystemConfig).filter_by(config_key=key)).scalars().first()
                     if setting:
                         setting.config_value = str(value)
                         setting.updated_by = current_user.id
@@ -144,7 +143,7 @@ def system_config():
         # معالجة تحميل الإعدادات (GET)
         if request.args.get('action') == 'load':
             settings = {}
-            all_settings = SystemConfig.query.all()
+            all_settings = db.session.execute(select(SystemConfig)).scalars().all()
             for setting in all_settings:
                 settings[setting.config_key] = setting.config_value
             return jsonify({'success': True, 'settings': settings}), 200
@@ -173,14 +172,13 @@ def system_config():
 @super_admin_required
 def queue_settings():
     try:
-        from app_factory import db
         from models.department import Department
         from models.queue_management import QueueSettings
         if request.method == 'GET' and request.args.get('action') == 'load':
-            departments = Department.query.filter_by(is_active=True).all()
+            departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
             items = []
             for dept in departments:
-                qs = QueueSettings.query.filter_by(department_id=dept.id).first()
+                qs = db.session.execute(select(QueueSettings).filter_by(department_id=dept.id)).scalars().first()
                 items.append({
                     'department_id': dept.id,
                     'department_name': dept.name,
@@ -202,7 +200,7 @@ def queue_settings():
                 dept_id = it.get('department_id')
                 if not dept_id:
                     continue
-                qs = QueueSettings.query.filter_by(department_id=dept_id).first()
+                qs = db.session.execute(select(QueueSettings).filter_by(department_id=dept_id)).scalars().first()
                 if not qs:
                     qs = QueueSettings(department_id=dept_id)
                     db.session.add(qs)
@@ -262,15 +260,14 @@ def system_maintenance():
     """صيانة النظام"""
     try:
         from models.system_config import SystemConfig
-        from app_factory import db
         
         # إحصائيات النظام
         from models.user import User
         
         stats = {
-            'total_users': User.query.count(),
-            'active_users': User.query.filter_by(is_active=True).count(),
-            'inactive_users': User.query.filter_by(is_active=False).count(),
+            'total_users': db.session.execute(select(func.count()).select_from(User)).scalar(),
+            'active_users': db.session.execute(select(func.count()).select_from(User).filter_by(is_active=True)).scalar(),
+            'inactive_users': db.session.execute(select(func.count()).select_from(User).filter_by(is_active=False)).scalar(),
             'total_patients': 0,  # سيتم تطويرها لاحقاً
             'total_departments': 0,  # سيتم تطويرها لاحقاً
             'database_size': get_database_size(),
@@ -291,7 +288,6 @@ def system_maintenance():
 def system_cleanup():
     """تنظيف النظام"""
     try:
-        from app_factory import db
         
         cleanup_type = request.form.get('cleanup_type')
         
@@ -300,9 +296,7 @@ def system_cleanup():
             from models.audit_trail import AuditTrail
             from datetime import datetime, timedelta
             
-            old_logs = AuditTrail.query.filter(
-                AuditTrail.created_at < datetime.now(timezone.utc) - timedelta(days=90)
-            ).delete()
+            old_logs = select(AuditTrail).delete()
             
             safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash(f'تم حذف {old_logs} سجل قديم', 'success')
@@ -413,7 +407,6 @@ def get_system_uptime():
 def get_database_size():
     """حجم قاعدة البيانات — PostgreSQL pg_database_size."""
     try:
-        from app_factory import db
         from services.postgres_admin_service import get_database_size_display
         return get_database_size_display(db.engine)
     except Exception as exc:
@@ -426,11 +419,8 @@ def get_last_backup_time():
     try:
         from models.backup import Backup
         from app.shared.enums import BackupStatus
-        last = (
-            Backup.query.filter_by(backup_status=BackupStatus.COMPLETED)
-            .order_by(Backup.completed_at.desc())
-            .first()
-        )
+        last = db.session.execute(select(Backup).filter_by(backup_status=BackupStatus.COMPLETED)
+            .order_by(Backup.completed_at.desc())).scalars().first()
         if last and last.completed_at:
             return last.completed_at.strftime('%Y-%m-%d %H:%M UTC')
         return 'لم يتم إنشاء نسخة احتياطية بعد'
@@ -452,13 +442,12 @@ def save_backup_settings():
     """حفظ إعدادات النسخ الاحتياطي العامة"""
     try:
         from models.system_config import SystemConfig
-        from app_factory import db
         
         data = request.get_json(silent=True)
         
         # دالة مساعدة لتحديث الإعدادات
         def update_config(key, value):
-            config = SystemConfig.query.filter_by(config_key=key).first()
+            config = db.session.execute(select(SystemConfig).filter_by(config_key=key)).scalars().first()
             if not config:
                 config = SystemConfig(config_key=key, category='backup', is_system=True, config_type='string')
                 db.session.add(config)
@@ -486,7 +475,7 @@ def maintenance_automation():
         from models.system_config import SystemConfig
         if request.method == 'POST':
             data = request.get_json(silent=True) or {}
-            cfg = SystemConfig.query.filter_by(config_key='maintenance_automation').first()
+            cfg = db.session.execute(select(SystemConfig).filter_by(config_key='maintenance_automation')).scalars().first()
             if not cfg:
                 cfg = SystemConfig(config_key='maintenance_automation', category='system', is_system=True, config_type='json')
                 db.session.add(cfg)
@@ -498,7 +487,7 @@ def maintenance_automation():
             })
             safe_commit(db.session, error_message="database commit failed", reraise=True)
             return jsonify({'success': True, 'message': 'تم حفظ إعدادات الأتمتة'}), 200
-        cfg = SystemConfig.query.filter_by(config_key='maintenance_automation').first()
+        cfg = db.session.execute(select(SystemConfig).filter_by(config_key='maintenance_automation')).scalars().first()
         settings = cfg.get_value() if cfg else {}
         return render_template('super_admin/maintenance_automation.html', settings=settings)
     except Exception as e:

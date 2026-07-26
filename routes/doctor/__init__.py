@@ -15,12 +15,12 @@ from models.appointment import Appointment
 from models.follow_up import FollowUpRequest
 from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging
 import json
 from datetime import datetime, date, timedelta, timezone
-from sqlalchemy import and_, or_, desc, func, case
+from sqlalchemy import and_, or_, desc, func, case, select
 import secrets
 from app.shared.enums import AppointmentState
 
@@ -40,7 +40,7 @@ def index():
     return redirect(url_for('doctor.dashboard'))
 
 def _doctor_note_templates_cfg():
-    return SystemConfig.query.filter_by(config_key='doctor_note_templates').filter(SystemConfig.tenant_id == current_user.tenant_id).first()
+    return db.session.execute(select(SystemConfig).filter_by(config_key='doctor_note_templates').filter(SystemConfig.tenant_id == current_user.tenant_id)).scalars().first()
 
 def _default_doctor_note_templates():
     return [
@@ -126,7 +126,7 @@ def _default_doctor_dashboard_layout():
     ]
 
 def _get_doctor_dashboard_layout():
-    cfg = SystemConfig.query.filter_by(config_key=_doctor_dashboard_layout_cfg_key()).filter(SystemConfig.tenant_id == current_user.tenant_id).first()
+    cfg = db.session.execute(select(SystemConfig).filter_by(config_key=_doctor_dashboard_layout_cfg_key()).filter(SystemConfig.tenant_id == current_user.tenant_id)).scalars().first()
     if not cfg:
         cfg = SystemConfig(
             config_key=_doctor_dashboard_layout_cfg_key(),
@@ -163,7 +163,7 @@ def _get_doctor_dashboard_layout():
     return layout
 
 def _save_doctor_dashboard_layout(items):
-    cfg = SystemConfig.query.filter_by(config_key=_doctor_dashboard_layout_cfg_key()).filter(SystemConfig.tenant_id == current_user.tenant_id).first()
+    cfg = db.session.execute(select(SystemConfig).filter_by(config_key=_doctor_dashboard_layout_cfg_key()).filter(SystemConfig.tenant_id == current_user.tenant_id)).scalars().first()
     if not cfg:
         cfg = SystemConfig(
             config_key=_doctor_dashboard_layout_cfg_key(),
@@ -193,7 +193,7 @@ def _sync_follow_up_request_for_visit(visit: Visit, actor_user_id: int):
     required = bool(getattr(visit, 'follow_up_required', False))
     tid = visit.tenant_id
     if required and suggested:
-        existing = FollowUpRequest.query.filter(FollowUpRequest.source_visit_id == visit.id, FollowUpRequest.tenant_id == tid).order_by(FollowUpRequest.created_at.desc()).first()
+        existing = db.session.execute(select(FollowUpRequest).filter(FollowUpRequest.source_visit_id == visit.id, FollowUpRequest.tenant_id == tid).order_by(FollowUpRequest.created_at.desc())).scalars().first()
         if existing and existing.status in {'CANCELLED', 'DONE'}:
             existing = None
         if existing:
@@ -216,7 +216,7 @@ def _sync_follow_up_request_for_visit(visit: Visit, actor_user_id: int):
             ))
         return
 
-    existing = FollowUpRequest.query.filter(FollowUpRequest.source_visit_id == visit.id, FollowUpRequest.tenant_id == tid).order_by(FollowUpRequest.created_at.desc()).first()
+    existing = db.session.execute(select(FollowUpRequest).filter(FollowUpRequest.source_visit_id == visit.id, FollowUpRequest.tenant_id == tid).order_by(FollowUpRequest.created_at.desc())).scalars().first()
     if existing and existing.status in {'PENDING'}:
         existing.status = 'CANCELLED'
         existing.updated_at = datetime.now(timezone.utc)

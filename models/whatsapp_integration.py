@@ -2,9 +2,10 @@
 نموذج تكامل الواتساب - WhatsApp Integration Models
 Medical System WhatsApp Integration Models
 """
+from sqlalchemy import select
 
 from datetime import datetime, timezone
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.mixins import TenantMixin
 import secrets
@@ -57,7 +58,7 @@ class WhatsAppMessage(TenantMixin, db.Model):
         """توليد معرف الرسالة"""
         while True:
             msg_id = f"WA{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}{secrets.randbelow(1000):03d}"
-            if not WhatsAppMessage.query.filter_by(message_id=msg_id).first():
+            if not db.session.execute(select(WhatsAppMessage).filter_by(message_id=msg_id)).scalars().first():
                 return msg_id
     
     def get_status_display(self):
@@ -224,7 +225,7 @@ class WhatsAppConfig(TenantMixin, db.Model):
     @staticmethod
     def get_config(key, default=None):
         """الحصول على إعداد"""
-        config = WhatsAppConfig.query.filter_by(config_key=key).first()
+        config = db.session.execute(select(WhatsAppConfig).filter_by(config_key=key)).scalars().first()
         if config:
             return config.config_value
         return default
@@ -234,7 +235,7 @@ class WhatsAppConfig(TenantMixin, db.Model):
         """تعيين إعداد"""
         import logging
         try:
-            config = WhatsAppConfig.query.filter_by(config_key=key).first()
+            config = db.session.execute(select(WhatsAppConfig).filter_by(config_key=key)).scalars().first()
             if config:
                 config.config_value = value
                 config.description = description

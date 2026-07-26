@@ -1,6 +1,7 @@
 """
 PharmacySaleService - manages pharmacy sales and dispensing workflow
 """
+from sqlalchemy import select
 from datetime import datetime, timezone
 from uuid import uuid4
 from flask import g
@@ -16,7 +17,7 @@ class PharmacySaleService:
     def create_sale(prescription_id: int, dispensed_by: int, items: list[dict], tenant_id: int | None = None) -> dict:
         from models.medication import Prescription, PharmacySale, PharmacySaleItem, Medication
         tenant_id = tenant_id or getattr(g, 'tenant_id', None)
-        prescription = Prescription.query.filter(Prescription.id == prescription_id, Prescription.tenant_id == tenant_id).first()
+        prescription = db.session.execute(select(Prescription).filter(Prescription.id == prescription_id, Prescription.tenant_id == tenant_id)).scalars().first()
         if not prescription:
             return {"error": "Prescription not found"}
         sale = PharmacySale(
@@ -34,10 +35,10 @@ class PharmacySaleService:
             if not med_id:
                 safe_commit(db.session, error_message="medication_id required")
                 return {"error": "medication_id required"}
-            med = Medication.query.filter(
+            med = db.session.execute(select(Medication).filter(
                 Medication.id == med_id,
                 Medication.tenant_id == tenant_id,
-            ).first()
+            )).scalars().first()
             if not med:
                 safe_commit(db.session, error_message=f"Medication {med_id} not found")
                 return {"error": f"Medication {med_id} not found"}
@@ -63,7 +64,7 @@ class PharmacySaleService:
     @staticmethod
     def void_sale(sale_id: int, reason: str = "") -> dict:
         from models.medication import PharmacySale
-        sale = PharmacySale.query.filter(PharmacySale.id == sale_id, PharmacySale.tenant_id == getattr(g, 'tenant_id', None)).first()
+        sale = db.session.execute(select(PharmacySale).filter(PharmacySale.id == sale_id, PharmacySale.tenant_id == getattr(g, 'tenant_id', None))).scalars().first()
         if not sale:
             return {"error": "Sale not found"}
         sale.status = PrescriptionState.CANCELLED
@@ -73,10 +74,10 @@ class PharmacySaleService:
     @staticmethod
     def get_prescription_status(prescription_id: int) -> dict:
         from models.medication import Prescription, PharmacySale
-        prescription = Prescription.query.filter(Prescription.id == prescription_id, Prescription.tenant_id == getattr(g, 'tenant_id', None)).first()
+        prescription = db.session.execute(select(Prescription).filter(Prescription.id == prescription_id, Prescription.tenant_id == getattr(g, 'tenant_id', None))).scalars().first()
         if not prescription:
             return {"error": "Prescription not found"}
-        sales = PharmacySale.query.filter_by(prescription_id=prescription_id).all()
+        sales = db.session.execute(select(PharmacySale).filter_by(prescription_id=prescription_id)).scalars().all()
         return {
             "prescription_id": prescription_id,
             "status": prescription.status,

@@ -16,10 +16,10 @@ from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
 from services.emergency_service import emergency_service
-from app_factory import db
+from app.extensions import db
 from services.core_queries import core_queries
 from app.shared.enums import EmergencyStatus
-from sqlalchemy import and_, or_, desc, case
+from sqlalchemy import and_, or_, desc, case, select, func
 import logging, json
 from datetime import datetime, date, timedelta, timezone
 
@@ -57,7 +57,7 @@ def reports():
         start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
         end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
 
-        cases = EmergencyCase.query.filter(EmergencyCase.created_at >= start_dt, EmergencyCase.created_at <= end_dt).order_by(EmergencyCase.created_at.desc()).all()
+        cases = db.session.execute(select(EmergencyCase).filter(EmergencyCase.created_at >= start_dt, EmergencyCase.created_at <= end_dt).order_by(EmergencyCase.created_at.desc())).scalars().all()
 
         by_status = {}
         by_severity = {}
@@ -87,11 +87,11 @@ def reports():
         try:
             from models.emergency_status_history import EmergencyStatusHistory
             ids = [c.id for c in cases]
-            history = EmergencyStatusHistory.query.filter(
+            history = db.session.execute(select(EmergencyStatusHistory).filter(
                 EmergencyStatusHistory.emergency_id.in_(ids) if ids else False,
                 EmergencyStatusHistory.created_at >= start_dt,
                 EmergencyStatusHistory.created_at <= end_dt
-            ).order_by(EmergencyStatusHistory.emergency_id.asc(), EmergencyStatusHistory.created_at.asc()).all()
+            ).order_by(EmergencyStatusHistory.emergency_id.asc(), EmergencyStatusHistory.created_at.asc())).scalars().all()
             per_case = {}
             for h in history:
                 per_case.setdefault(h.emergency_id, []).append(h)
@@ -141,38 +141,38 @@ def dashboard():
         week_ago = today - timedelta(days=7)
         
         # حالات الطوارئ اليوم
-        today_emergencies = EmergencyCase.query.filter(
+        today_emergencies = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.created_at >= today
-        ).count()
+        )).scalar()
         
         # الحالات النشطة
-        active_emergencies = EmergencyCase.query.filter(
+        active_emergencies = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
-        ).count()
+        )).scalar()
         
         # الحالات المكتملة اليوم
-        completed_today = EmergencyCase.query.filter(
+        completed_today = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.status == EmergencyStatus.COMPLETED,
             EmergencyCase.completed_at >= today
-        ).count()
+        )).scalar()
         
         # الحالات الأسبوع الماضي
-        weekly_emergencies = EmergencyCase.query.filter(
+        weekly_emergencies = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.created_at >= week_ago,
             EmergencyCase.status == EmergencyStatus.COMPLETED
-        ).count()
+        )).scalar()
         
         # الحالات العاجلة
-        urgent_cases = EmergencyCase.query.filter(
+        urgent_cases = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.severity == 'HIGH',
             EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
-        ).count()
+        )).scalar()
         
         # الحالات الحرجة
-        critical_cases = EmergencyCase.query.filter(
+        critical_cases = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.severity == 'CRITICAL',
             EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
-        ).count()
+        )).scalar()
         
         # الوصفات الطبية اليوم
         prescriptions_today = 0
@@ -198,10 +198,10 @@ def dashboard():
         )
 
         # الحالات القادمة (أولوية عالية)
-        upcoming_cases = EmergencyCase.query.filter(
+        upcoming_cases = db.session.execute(select(EmergencyCase).filter(
             EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION]),
             EmergencyCase.severity.in_(['HIGH', 'CRITICAL'])
-        ).order_by(severity_order.desc(), EmergencyCase.created_at).limit(5).all()
+        ).order_by(severity_order.desc(), EmergencyCase.created_at).limit(5)).scalars().all()
         
         # الإحصائيات
         stats = {

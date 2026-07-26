@@ -24,6 +24,8 @@ from app.shared.enums import VisitState, VisitArchiveStatus
 @pytest.fixture
 def fx(rollback_db):
     db = rollback_db
+    from flask import g
+    g._tenant_filter_bypass = True
 
     def user(role='doctor', department_id=None):
         un = 'ac_' + uuid.uuid4().hex[:8]
@@ -232,7 +234,7 @@ class TestDepartmentScopingDeep:
         rolename = 'rl_' + uuid.uuid4().hex[:8]
         role = Role(name=rolename, is_active=True)
         fx.db.session.add(role)
-        fx.db.session.commit()
+        fx.db.session.flush()
         d1, d2 = self._dept(fx, '1'), self._dept(fx, '2')
         if with_global:
             fx.db.session.add(DepartmentPermission(
@@ -245,6 +247,7 @@ class TestDepartmentScopingDeep:
                 can_manage_department_settings=True))
         fx.db.session.commit()
         u = fx.user(role=rolename)
+        fx.db.session.expire_all()
         return u, d1, d2
 
     def test_global_access_returns_none(self, fx):

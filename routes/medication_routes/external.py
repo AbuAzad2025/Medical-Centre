@@ -11,11 +11,11 @@ from models.patient import Patient
 from models.visit import Visit
 from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
 from models.drug_interaction import DrugInteraction
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging, json
 from datetime import datetime, timezone, timedelta, date
-from sqlalchemy import func
+from sqlalchemy import func, select
 
 
 # =============================================
@@ -38,10 +38,10 @@ def api_external_drug_import():
             scientific_name = (item.get('scientific_name') or '').strip() or trade_name
             if not trade_name:
                 continue
-            med = Medication.query.filter(
+            med = db.session.execute(select(Medication).filter(
                 Medication.trade_name == trade_name,
                 Medication.tenant_id == current_user.tenant_id
-            ).first()
+            )).scalars().first()
             if not med:
                 med = Medication(
                     trade_name=trade_name,
@@ -96,12 +96,12 @@ def api_external_drug_search():
         q = (request.args.get('q') or '').strip()
         if not q:
             return jsonify({'success': True, 'items': []}), 200
-        meds = Medication.query.filter(
+        meds = db.session.execute(select(Medication).filter(
             Medication.trade_name.contains(q) |
             Medication.scientific_name.contains(q) |
             Medication.generic_name.contains(q),
             Medication.tenant_id == current_user.tenant_id
-        ).order_by(Medication.trade_name.asc()).limit(20).all()
+        ).order_by(Medication.trade_name.asc()).limit(20)).scalars().all()
         return jsonify({'success': True, 'items': [m.to_dict() for m in meds]}), 200
     except Exception as e:
         logging.error(f"Error searching external drug catalog: {str(e)}")
@@ -130,7 +130,7 @@ def consumption_report():
     start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
     end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
 
-    q = db.session.query(
+    q = select(
         func.sum(PrescriptionItem.quantity).label('total_qty'),
         func.sum(PrescriptionItem.total_price).label('total_value'),
         func.count(func.distinct(Prescription.id)).label('rx_count')

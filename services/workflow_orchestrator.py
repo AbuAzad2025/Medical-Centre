@@ -4,6 +4,7 @@ WorkflowOrchestrator — unified workflow facade over VisitStateMachineService.
 Clinical visit.status transitions are validated by VisitStateMachineService.
 Administrative archival is owned exclusively by GatekeeperService (P1-002).
 """
+from sqlalchemy import select
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
@@ -122,9 +123,9 @@ class QueueService:
     @staticmethod
     def call_next(station: str, tenant_id: int):
         from models.queue_management import QueueManagement
-        entry = QueueManagement.query.filter_by(
+        entry = db.session.execute(select(QueueManagement).filter_by(
             tenant_id=tenant_id, station=station, status=QueueState.WAITING
-        ).order_by(QueueManagement.id.asc()).first()
+        ).order_by(QueueManagement.id.asc())).scalars().first()
         if entry:
             entry.status = QueueState.CALLED
             safe_commit(db.session, error_message="Failed to call next queue entry", reraise=True)
@@ -133,9 +134,9 @@ class QueueService:
     @staticmethod
     def complete(visit, station: str, tenant_id: int):
         from models.queue_management import QueueManagement
-        entry = QueueManagement.query.filter_by(
+        entry = db.session.execute(select(QueueManagement).filter_by(
             tenant_id=tenant_id, visit_id=visit.id, station=station
-        ).order_by(QueueManagement.id.desc()).first()
+        ).order_by(QueueManagement.id.desc())).scalars().first()
         if entry:
             entry.status = QueueState.COMPLETED
             safe_commit(db.session, error_message="Failed to complete queue entry", reraise=True)

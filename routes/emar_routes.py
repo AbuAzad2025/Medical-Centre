@@ -1,6 +1,7 @@
 """
 eMAR — Electronic Medication Administration Record Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from app.shared.enums import eMARAdministrationStatus
@@ -8,7 +9,7 @@ from utils.decorators import handle_route_errors, role_required
 from models.emar import eMARAdministration, MedicationSchedule
 from models.patient import Patient
 from models.medication import Prescription, PrescriptionItem
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from datetime import datetime, date, timezone
 
@@ -21,9 +22,9 @@ emar_bp = Blueprint('emar', __name__)
 @handle_route_errors
 def dashboard():
     today = date.today()
-    administrations = eMARAdministration.query.filter(
+    administrations = db.session.execute(select(eMARAdministration).filter(
         db.func.date(eMARAdministration.scheduled_time) == today
-    ).order_by(eMARAdministration.scheduled_time).all()
+    ).order_by(eMARAdministration.scheduled_time)).scalars().all()
     pending = [a for a in administrations if a.status == eMARAdministrationStatus.SCHEDULED]
     given = [a for a in administrations if a.status == 'GIVEN']
     return render_template('emar/dashboard.html',
@@ -35,10 +36,10 @@ def dashboard():
 @role_required('nurse', 'doctor', 'admin')
 @handle_route_errors
 def patient_mar(patient_id):
-    patient = Patient.query.get_or_404(patient_id)
-    administrations = eMARAdministration.query.filter_by(patient_id=patient_id).order_by(
+    patient = db.get_or_404(Patient, patient_id)
+    administrations = db.session.execute(select(eMARAdministration).filter_by(patient_id=patient_id).order_by(
         eMARAdministration.scheduled_time.desc()
-    ).limit(200).all()
+    ).limit(200)).scalars().all()
     return render_template('emar/patient_mar.html',
                            patient=patient, administrations=administrations)
 
@@ -47,7 +48,7 @@ def patient_mar(patient_id):
 @role_required('nurse', 'admin')
 @handle_route_errors
 def administer(admin_id):
-    admin = eMARAdministration.query.get_or_404(admin_id)
+    admin = db.get_or_404(eMARAdministration, admin_id)
     admin.status = 'GIVEN'
     admin.administered_time = datetime.now(timezone.utc)
     admin.nurse_id = current_user.id

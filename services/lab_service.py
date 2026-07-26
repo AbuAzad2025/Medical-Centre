@@ -9,8 +9,8 @@ from datetime import date, datetime, timezone
 from typing import Any
 
 from flask import g
-from app_factory import db
-from sqlalchemy import func
+from app.extensions import db
+from sqlalchemy import func, select
 from utils.db_safety import safe_commit
 from services.feature_gate_service import require_module
 
@@ -37,14 +37,14 @@ class LabService:
         if not test_ids:
             return False, {"error": "No test IDs provided"}
 
-        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id).first()
+        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id)).scalars().first()
         if not visit:
             return False, {"error": "Visit not found"}
 
         tenant_id = tenant_id or visit.tenant_id
 
         from app.core.module.models import TenantModule
-        if not TenantModule.query.filter_by(tenant_id=tenant_id, module_name='lab', is_active=True).first():
+        if not db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, module_name='lab', is_active=True)).scalars().first():
             raise PermissionError("Lab module is not enabled for this tenant")
         now = datetime.now(timezone.utc)
         request_number = f"LR-{visit_id}-{int(now.timestamp())}"
@@ -63,10 +63,10 @@ class LabService:
         db.session.add(lab_request)
         db.session.flush()
 
-        catalog_items = LabTestCatalog.query.filter(
+        catalog_items = db.session.execute(select(LabTestCatalog).filter(
             LabTestCatalog.id.in_(test_ids),
             LabTestCatalog.is_active == True
-        ).all()
+        )).scalars().all()
         found_ids = {c.id for c in catalog_items}
         missing = set(test_ids) - found_ids
         if missing:
@@ -115,36 +115,36 @@ class LabService:
         from models.lab_request import LabRequest
         today = date.today()
         return {
-            "requested": LabRequest.query.filter(LabRequest.status == "REQUESTED").count(),
-            "in_progress": LabRequest.query.filter(
+            "requested": db.session.execute(select(func.count()).select_from(LabRequest).filter(LabRequest.status == "REQUESTED")).scalar(),
+            "in_progress": db.session.execute(select(func.count()).select_from(LabRequest).filter(
                 LabRequest.status.in_(["COLLECTED", "RECEIVED", "ANALYZING", "REVIEWED", "APPROVED", "IN_PROGRESS"])
-            ).count(),
-            "done_today": LabRequest.query.filter(
+            )).scalar(),
+            "done_today": db.session.execute(select(func.count()).select_from(LabRequest).filter(
                 LabRequest.status == "DONE",
                 db.func.date(LabRequest.completed_at) == today
-            ).count(),
+            )).scalar(),
         }
 
     @staticmethod
     @require_module('lab')
     def get_request_by_id(request_id: int) -> Any | None:
         from models.lab_request import LabRequest
-        return LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
+        return db.session.execute(select(LabRequest).filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
 
     @staticmethod
     @require_module('lab')
     def get_results_by_request(request_id: int) -> list:
         from models.lab_request import LabResult
-        return LabResult.query.filter_by(request_id=request_id).all()
+        return db.session.execute(select(LabResult).filter_by(request_id=request_id)).scalars().all()
 
     @staticmethod
     @require_module('lab')
     def get_results_by_patient(patient_id: int) -> list:
         from models.lab_request import LabResult, LabRequest
-        return LabResult.query.join(LabRequest).filter(
+        return db.session.execute(select(LabResult).join(LabRequest).filter(
             LabRequest.patient_id == patient_id,
             LabResult.status == "COMPLETED"
-        ).order_by(LabResult.updated_at.desc()).all()
+        ).order_by(LabResult.updated_at.desc())).scalars().all()
 
     # ==================== RESULT CREATION ====================
 
@@ -168,7 +168,7 @@ class LabService:
             try:
                 result_id = int(result_ids[i]) if i < len(result_ids) and result_ids[i] else None
                 if result_id:
-                    result = LabResult.query.filter(LabResult.id == result_id, LabResult.tenant_id == g.tenant_id).first()
+                    result = db.session.execute(select(LabResult).filter(LabResult.id == result_id, LabResult.tenant_id == g.tenant_id)).scalars().first()
                     if result:
                         result.value = values[i] if i < len(values) else ""
                         result.unit = units[i] if i < len(units) else ""
@@ -214,12 +214,12 @@ class LabService:
         """Mark all results as COMPLETED and update request status to DONE."""
         from models.lab_request import LabRequest, LabResult
         try:
-            results = LabResult.query.filter_by(request_id=request_id).all()
+            results = db.session.execute(select(LabResult).filter_by(request_id=request_id)).scalars().all()
             now = datetime.now(timezone.utc)
             for r in results:
                 r.status = "COMPLETED"
                 r.updated_at = now
-            req = LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
+            req = db.session.execute(select(LabRequest).filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
             if req:
                 req.status = "DONE"
                 req.completed_at = now
@@ -234,9 +234,9 @@ class LabService:
     @require_module('lab')
     def get_quality_entries(limit: int = 100) -> list:
         from models.lab_quality import LabQualityControlEntry
-        return LabQualityControlEntry.query.order_by(
+        return db.session.execute(select(LabQualityControlEntry).order_by(
             LabQualityControlEntry.recorded_at.desc()
-        ).limit(limit).all()
+        ).limit(limit)).scalars().all()
 
     @staticmethod
     @require_module('lab')
@@ -258,7 +258,7 @@ class LabService:
     @require_module('lab')
     def get_reagents() -> list:
         from models.lab_reagent import LabReagent
-        return LabReagent.query.order_by(LabReagent.name).all()
+        return db.session.execute(select(LabReagent).order_by(LabReagent.name)).scalars().all()
 
     @staticmethod
     @require_module('lab')
@@ -276,7 +276,7 @@ class LabService:
     def update_reagent_quantity(reagent_id: int, quantity: float) -> bool:
         from models.lab_reagent import LabReagent
         try:
-            reagent = LabReagent.query.filter(LabReagent.id == reagent_id, LabReagent.tenant_id == g.tenant_id).first()
+            reagent = db.session.execute(select(LabReagent).filter(LabReagent.id == reagent_id, LabReagent.tenant_id == g.tenant_id)).scalars().first()
             if not reagent:
                 return False
             reagent.stock_quantity = quantity
@@ -295,8 +295,8 @@ class LabService:
             from services.notification_service import NotificationService
             from models.patient import Patient
             from models.lab_request import LabRequest
-            patient = Patient.query.filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id).first()
-            req = LabRequest.query.filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id).first()
+            patient = db.session.execute(select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)).scalars().first()
+            req = db.session.execute(select(LabRequest).filter(LabRequest.id == request_id, LabRequest.tenant_id == g.tenant_id)).scalars().first()
             if patient and req:
                 NotificationService.send_notification(
                     user_id=patient.user_id if hasattr(patient, "user_id") else None,
@@ -337,16 +337,16 @@ class LabService:
         from models.lab_request import LabRequest
         today = date.today()
         return {
-            "today_requests": LabRequest.query.filter(
+            "today_requests": db.session.execute(select(func.count()).select_from(LabRequest).filter(
                 db.func.date(LabRequest.created_at) == today
-            ).count(),
-            "pending_requests": LabRequest.query.filter(
+            )).scalar(),
+            "pending_requests": db.session.execute(select(func.count()).select_from(LabRequest).filter(
                 LabRequest.status == "REQUESTED"
-            ).count(),
-            "completed_today": LabRequest.query.filter(
+            )).scalar(),
+            "completed_today": db.session.execute(select(func.count()).select_from(LabRequest).filter(
                 LabRequest.status == "DONE",
                 db.func.date(LabRequest.completed_at) == today
-            ).count(),
+            )).scalar(),
         }
 
 
@@ -356,10 +356,7 @@ class LabService:
     @require_module('lab')
     def lookup_catalog_by_code(code: str, tenant_id: int | None = None) -> Any | None:
         from models.lab_test_catalog import LabTestCatalog
-        q = LabTestCatalog.query.filter(
-            LabTestCatalog.code == code,
-            LabTestCatalog.is_active == True
-        )
+        q = select(LabTestCatalog)
         if tenant_id:
             q = q.filter(LabTestCatalog.tenant_id == tenant_id)
         return q.first()
@@ -368,7 +365,7 @@ class LabService:
     @require_module('lab')
     def get_active_catalog(tenant_id: int | None = None) -> list:
         from models.lab_test_catalog import LabTestCatalog
-        q = LabTestCatalog.query.filter(LabTestCatalog.is_active == True)
+        q = select(LabTestCatalog)
         if tenant_id:
             q = q.filter(LabTestCatalog.tenant_id == tenant_id)
         return q.order_by(LabTestCatalog.sort_order, LabTestCatalog.code).all()

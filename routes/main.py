@@ -6,7 +6,8 @@ Medical System Main Routes
 from flask import Blueprint, render_template, redirect, url_for, jsonify, current_app, g, request
 from flask_login import login_required, current_user
 from services.dashboard_routing import resolve_dashboard_for_user, get_package_restricted_context
-from app_factory import db
+from sqlalchemy import select
+from app.extensions import db
 
 main_bp = Blueprint('main', __name__)
 
@@ -16,7 +17,7 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for(resolve_dashboard_for_user(current_user)))
     from app.core.tenant.models import ProductBundle
-    bundles = ProductBundle.query.order_by(ProductBundle.id).all()
+    bundles = db.session.execute(select(ProductBundle).order_by(ProductBundle.id)).scalars().all()
     # Group bundles by category for display
     cats = {
         'عيادات': ['private_doctor_clinic', 'doctor_clinic_reception', 'doctor_clinic_full', 'small_clinic', 'clinic_with_lab', 'clinic_with_radiology', 'clinic_with_lab_radiology', 'walkin_clinic'],
@@ -74,8 +75,7 @@ def settings():
 @main_bp.route('/health')
 def health():
     """نقطة فحص الصحة"""
-    from sqlalchemy import text as sa_text
-    from app_factory import db
+    from sqlalchemy import text as sa_text, select
     from datetime import datetime, timezone
     
     try:
@@ -113,14 +113,14 @@ def api_search_tenants():
     if not query or len(query) < 2:
         return jsonify({'tenants': []})
     
-    tenants = Tenant.query.filter(
+    tenants = db.session.execute(select(Tenant).filter(
         Tenant.status.in_([TenantStatus.ACTIVE, TenantStatus.TRIAL]),
         db.or_(
             Tenant.name.ilike(f'%{query}%'),
             Tenant.name_ar.ilike(f'%{query}%'),
             Tenant.slug.ilike(f'%{query}%')
         )
-    ).limit(10).all()
+    ).limit(10)).scalars().all()
     
     return jsonify({
         'tenants': [

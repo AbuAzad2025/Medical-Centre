@@ -2,6 +2,8 @@
 نماذج الطلبات - Request Forms
 Medical System Request Forms
 """
+from sqlalchemy import select
+from app.extensions import db
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField, DateField, DateTimeField, IntegerField, FloatField, BooleanField, HiddenField, SubmitField
@@ -34,12 +36,12 @@ class LabRequestForm(FormBase, MedicalEntityMixin, StatusMixin, PriorityMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل فحوص المختبر
         from models.lab_request import LabRequest
-        tests = LabRequest.query.filter_by(status='ACTIVE').all()
+        tests = db.session.execute(select(LabRequest).filter_by(status='ACTIVE')).scalars().all()
         self.lab_test_id.choices = [(t.id, f"{t.name_ar} - {t.name}") for t in tests]
         
         # تحميل فنيي المختبر
         from models.user import User
-        technicians = User.query.filter(User.role.in_(['lab', 'admin', 'manager'])).all()
+        technicians = db.session.execute(select(User).filter(User.role.in_(['lab', 'admin', 'manager']))).scalars().all()
         self.assigned_to.choices = [('', 'اختر الفني')] + [(t.id, t.full_name) for t in technicians]
 
 class LabRequestSearchForm(SearchFormBase, DateRangeMixin):
@@ -67,7 +69,7 @@ class LabRequestSearchForm(SearchFormBase, DateRangeMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل فنيي المختبر
         from models.user import User
-        technicians = User.query.filter(User.role.in_(['lab', 'admin', 'manager'])).all()
+        technicians = db.session.execute(select(User).filter(User.role.in_(['lab', 'admin', 'manager']))).scalars().all()
         self.assigned_to.choices = [('', 'جميع الفنيين')] + [(t.id, t.full_name) for t in technicians]
 
 class RadiologyRequestForm(FormBase, MedicalEntityMixin, StatusMixin, PriorityMixin):
@@ -98,12 +100,12 @@ class RadiologyRequestForm(FormBase, MedicalEntityMixin, StatusMixin, PriorityMi
         """تحميل الخيارات الديناميكية"""
         # تحميل فحوص الأشعة
         from models.radiology_result import RadiologyResult
-        tests = RadiologyResult.query.filter_by(status='ACTIVE').all()
+        tests = db.session.execute(select(RadiologyResult).filter_by(status='ACTIVE')).scalars().all()
         self.radiology_test_id.choices = [(t.id, f"{t.name_ar} - {t.name}") for t in tests]
         
         # تحميل فنيي الأشعة
         from models.user import User
-        technicians = User.query.filter(User.role.in_(['radiology', 'admin', 'manager'])).all()
+        technicians = db.session.execute(select(User).filter(User.role.in_(['radiology', 'admin', 'manager']))).scalars().all()
         self.assigned_to.choices = [('', 'اختر الفني')] + [(t.id, t.full_name) for t in technicians]
 
 class RadiologyRequestSearchForm(SearchFormBase, DateRangeMixin):
@@ -131,7 +133,7 @@ class RadiologyRequestSearchForm(SearchFormBase, DateRangeMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل فنيي الأشعة
         from models.user import User
-        technicians = User.query.filter(User.role.in_(['radiology', 'admin', 'manager'])).all()
+        technicians = db.session.execute(select(User).filter(User.role.in_(['radiology', 'admin', 'manager']))).scalars().all()
         self.assigned_to.choices = [('', 'جميع الفنيين')] + [(t.id, t.full_name) for t in technicians]
 
 class TriageForm(FormBase, MedicalEntityMixin):
@@ -225,7 +227,7 @@ class QueueItemForm(FormBase, MedicalEntityMixin, StatusMixin, PriorityMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل المستخدمين حسب الدور
         from models.user import User
-        users = User.query.filter(User.role.in_(['doctor', 'nurse', 'reception', 'lab', 'radiology', 'pharmacy', 'emergency', 'accountant', 'admin', 'manager'])).all()
+        users = db.session.execute(select(User).filter(User.role.in_(['doctor', 'nurse', 'reception', 'lab', 'radiology', 'pharmacy', 'emergency', 'accountant', 'admin', 'manager']))).scalars().all()
         self.assigned_to.choices = [('', 'اختر المستخدم')] + [(u.id, f"{u.full_name} ({u.role})") for u in users]
 
 class WorkflowStepForm(FormBase, StatusMixin):

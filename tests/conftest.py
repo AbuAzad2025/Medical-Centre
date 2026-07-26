@@ -170,9 +170,14 @@ def rollback_db(app):
         yield _db
     finally:
         _FSASession.get_bind = _original_get_bind
-        _db.session.remove()
+        try:
+            _db.session.remove()
+        except Exception:
+            pass
         try:
             transaction.rollback()
+        except Exception:
+            pass
         finally:
             connection.close()
             _db.session.configure(join_transaction_mode='conditional_savepoint')
@@ -325,20 +330,29 @@ def test_tenant(app):
 @pytest.fixture(scope='function')
 def test_user(app, test_tenant):
     """Create a pharmacist test user."""
-    u = User.query.filter_by(username='pharmacist_test').first()
-    if not u:
-        u = User(
-            username='pharmacist_test',
-            email='pharmacist@test.local',
-            full_name='صيدلي اختبار',
-            role='pharmacist',
-            is_active=True,
-            tenant_id=test_tenant.id,
-        )
-        u.set_password('test123')
-        _db.session.add(u)
-        _db.session.commit()
-    return u
+    from flask import g
+    prev_bypass = g.get('_tenant_filter_bypass', False)
+    g._tenant_filter_bypass = True
+    try:
+        u = User.query.filter_by(username='pharmacist_test').first()
+        if not u:
+            u = User(
+                username='pharmacist_test',
+                email='pharmacist@test.local',
+                full_name='صيدلي اختبار',
+                role='pharmacist',
+                is_active=True,
+                tenant_id=test_tenant.id,
+            )
+            u.set_password('ValidPass123!')
+            _db.session.add(u)
+            _db.session.commit()
+        return u
+    finally:
+        if prev_bypass:
+            g._tenant_filter_bypass = True
+        else:
+            g.pop('_tenant_filter_bypass', None)
 
 
 @pytest.fixture(scope='function')
@@ -380,20 +394,29 @@ def auth_client(app, client, test_user, test_tenant):
 @pytest.fixture(scope='function')
 def manager_user(app, test_tenant):
     """Create a manager test user."""
-    u = User.query.filter_by(username='manager_test').first()
-    if not u:
-        u = User(
-            username='manager_test',
-            email='manager@test.local',
-            full_name='مدير اختبار',
-            role='manager',
-            is_active=True,
-            tenant_id=test_tenant.id,
-        )
-        u.set_password('test123')
-        _db.session.add(u)
-        _db.session.commit()
-    return u
+    from flask import g
+    prev_bypass = g.get('_tenant_filter_bypass', False)
+    g._tenant_filter_bypass = True
+    try:
+        u = User.query.filter_by(username='manager_test').first()
+        if not u:
+            u = User(
+                username='manager_test',
+                email='manager@test.local',
+                full_name='مدير اختبار',
+                role='manager',
+                is_active=True,
+                tenant_id=test_tenant.id,
+            )
+            u.set_password('ValidPass123!')
+            _db.session.add(u)
+            _db.session.commit()
+        return u
+    finally:
+        if prev_bypass:
+            g._tenant_filter_bypass = True
+        else:
+            g.pop('_tenant_filter_bypass', None)
 
 
 @pytest.fixture(scope='function')

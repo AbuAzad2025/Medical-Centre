@@ -20,9 +20,9 @@ from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
 from services.core_queries import core_queries
-from app_factory import db
+from app.extensions import db
 from app.shared.enums import VisitState, OrderState, AppointmentState
-from sqlalchemy import and_, or_, desc, func, case
+from sqlalchemy import and_, or_, desc, func, case, select
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
 
@@ -37,7 +37,6 @@ from datetime import datetime, date, timedelta, timezone
 def dashboard_new():
     """لوحة تحكم الطبيب البسيطة — الإصدار المُحسّن"""
     try:
-        from app_factory import db
         from sqlalchemy import func
         from app.shared.enums import VisitState, OrderState, AppointmentState
         from models.visit import Visit
@@ -49,63 +48,63 @@ def dashboard_new():
         today = date.today()
 
         # Stats cards
-        my_visits_count = Visit.query.filter(
+        my_visits_count = db.session.execute(select(func.count()).select_from(Visit).filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date == today
-        ).count()
+        )).scalar()
 
-        waiting_patients = Visit.query.filter(
+        waiting_patients = db.session.execute(select(func.count()).select_from(Visit).filter(
             Visit.doctor_id == current_user.id,
             Visit.status == VisitState.OPEN
-        ).count()
+        )).scalar()
 
-        prescriptions_count = Prescription.query.join(Visit).filter(
+        prescriptions_count = db.session.execute(select(func.count()).select_from(Prescription).join(Visit).filter(
             Visit.doctor_id == current_user.id,
             func.date(Prescription.created_at) == today
-        ).count()
+        )).scalar()
 
-        appointments_count = Appointment.query.filter(
+        appointments_count = db.session.execute(select(func.count()).select_from(Appointment).filter(
             Appointment.doctor_id == current_user.id,
             func.date(Appointment.starts_at) == today
-        ).count()
+        )).scalar()
 
         # Waiting list (today's visits)
-        waiting_list = Visit.query.filter(
+        waiting_list = db.session.execute(select(Visit).filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date == today,
             Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])
-        ).order_by(Visit.visit_time).limit(10).all()
+        ).order_by(Visit.visit_time).limit(10)).scalars().all()
 
         # Today's appointments
-        today_appointments = Appointment.query.filter(
+        today_appointments = db.session.execute(select(Appointment).filter(
             Appointment.doctor_id == current_user.id,
             func.date(Appointment.starts_at) == today
-        ).order_by(Appointment.starts_at).limit(10).all()
+        ).order_by(Appointment.starts_at).limit(10)).scalars().all()
 
         # Pending lab requests
-        pending_lab_list = LabRequest.query.join(Visit).filter(
+        pending_lab_list = db.session.execute(select(LabRequest).join(Visit).filter(
             Visit.doctor_id == current_user.id,
             LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
-        ).order_by(LabRequest.created_at.desc()).limit(10).all()
+        ).order_by(LabRequest.created_at.desc()).limit(10)).scalars().all()
 
         # Pending radiology requests
-        pending_radiology_list = RadiologyRequest.query.join(Visit).filter(
+        pending_radiology_list = db.session.execute(select(RadiologyRequest).join(Visit).filter(
             Visit.doctor_id == current_user.id,
             RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
-        ).order_by(RadiologyRequest.created_at.desc()).limit(10).all()
+        ).order_by(RadiologyRequest.created_at.desc()).limit(10)).scalars().all()
 
         # Extra stats for enhanced dashboard
-        completed_today = Visit.query.filter(
+        completed_today = db.session.execute(select(func.count()).select_from(Visit).filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date == today,
             Visit.status == VisitState.COMPLETED
-        ).count()
+        )).scalar()
 
         week_start = today - timedelta(days=today.weekday())
-        week_visits = Visit.query.filter(
+        week_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date >= week_start
-        ).count()
+        )).scalar()
 
         return render_template(
             'doctor/dashboard_new.html',
@@ -150,14 +149,14 @@ def dashboard_for_doctor(doctor_id):
             return redirect(url_for('main.dashboard'))
         today = date.today()
         week_ago = today - timedelta(days=7)
-        today_visits = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])).count()
-        pending_visits = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.status == VisitState.OPEN).count()
-        completed_today = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status == VisitState.COMPLETED).count()
-        weekly_visits = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date >= week_ago, Visit.status == VisitState.COMPLETED).count()
-        prescriptions_today = Prescription.query.join(Visit).filter(Visit.doctor_id == doctor_id, Visit.visit_date == today).count()
-        pending_lab_requests = LabRequest.query.join(Visit).filter(Visit.doctor_id == doctor_id, LabRequest.status == OrderState.REQUESTED).count()
-        pending_radiology_requests = RadiologyRequest.query.join(Visit).filter(Visit.doctor_id == doctor_id, RadiologyRequest.status == OrderState.REQUESTED).count()
-        upcoming_patients = Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status.in_([VisitState.OPEN, VisitState.CHECKED_IN])).order_by(Visit.visit_time).limit(5).all()
+        today_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]))).scalar()
+        pending_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.doctor_id == doctor_id, Visit.status == VisitState.OPEN)).scalar()
+        completed_today = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status == VisitState.COMPLETED)).scalar()
+        weekly_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.doctor_id == doctor_id, Visit.visit_date >= week_ago, Visit.status == VisitState.COMPLETED)).scalar()
+        prescriptions_today = db.session.execute(select(func.count()).select_from(Prescription).join(Visit).filter(Visit.doctor_id == doctor_id, Visit.visit_date == today)).scalar()
+        pending_lab_requests = db.session.execute(select(func.count()).select_from(LabRequest).join(Visit).filter(Visit.doctor_id == doctor_id, LabRequest.status == OrderState.REQUESTED)).scalar()
+        pending_radiology_requests = db.session.execute(select(func.count()).select_from(RadiologyRequest).join(Visit).filter(Visit.doctor_id == doctor_id, RadiologyRequest.status == OrderState.REQUESTED)).scalar()
+        upcoming_patients = db.session.execute(select(Visit).filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status.in_([VisitState.OPEN, VisitState.CHECKED_IN])).order_by(Visit.visit_time).limit(5)).scalars().all()
         stats = {
             'today_visits': today_visits,
             'pending_visits': pending_visits,
@@ -173,7 +172,7 @@ def dashboard_for_doctor(doctor_id):
             def compute_fee(v):
                 total = Decimal(str(v.total_amount or 0))
                 fee = None
-                pricing = DoctorPricing.query.filter(DoctorPricing.doctor_id == v.doctor_id, DoctorPricing.department_id == v.department_id, DoctorPricing.is_active == True).order_by(DoctorPricing.effective_from.desc()).first()
+                pricing = db.session.execute(select(DoctorPricing).filter(DoctorPricing.doctor_id == v.doctor_id, DoctorPricing.department_id == v.department_id, DoctorPricing.is_active == True).order_by(DoctorPricing.effective_from.desc())).scalars().first()
                 vt = (v.visit_type or '').upper()
                 if pricing:
                     if vt in ['FIRST','CONSULTATION'] and pricing.consultation_price:
@@ -188,9 +187,9 @@ def dashboard_for_doctor(doctor_id):
                     fee = total
                 return fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             month_start = date(today.year, today.month, 1)
-            earnings_today = sum(compute_fee(v) for v in Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status == VisitState.COMPLETED).all())
-            earnings_week = sum(compute_fee(v) for v in Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date >= week_ago, Visit.status == VisitState.COMPLETED).all())
-            earnings_month = sum(compute_fee(v) for v in Visit.query.filter(Visit.doctor_id == doctor_id, Visit.visit_date >= month_start, Visit.status == VisitState.COMPLETED).all())
+            earnings_today = sum(compute_fee(v) for v in db.session.execute(select(Visit).filter(Visit.doctor_id == doctor_id, Visit.visit_date == today, Visit.status == VisitState.COMPLETED)).scalars().all())
+            earnings_week = sum(compute_fee(v) for v in db.session.execute(select(Visit).filter(Visit.doctor_id == doctor_id, Visit.visit_date >= week_ago, Visit.status == VisitState.COMPLETED)).scalars().all())
+            earnings_month = sum(compute_fee(v) for v in db.session.execute(select(Visit).filter(Visit.doctor_id == doctor_id, Visit.visit_date >= month_start, Visit.status == VisitState.COMPLETED)).scalars().all())
             stats['doctor_earnings_today'] = float(earnings_today)
             stats['doctor_earnings_week'] = float(earnings_week)
             stats['doctor_earnings_month'] = float(earnings_month)
@@ -219,39 +218,39 @@ def api_dashboard_stats():
         from app.shared.enums import VisitState, OrderState, AppointmentState
 
         stats = {
-            'today_visits': Visit.query.filter(
+            'today_visits': db.session.execute(select(func.count()).select_from(Visit).filter(
                 Visit.doctor_id == current_user.id,
                 Visit.visit_date == today
-            ).count(),
-            'waiting_patients': Visit.query.filter(
+            )).scalar(),
+            'waiting_patients': db.session.execute(select(func.count()).select_from(Visit).filter(
                 Visit.doctor_id == current_user.id,
                 Visit.status == VisitState.OPEN
-            ).count(),
-            'in_progress': Visit.query.filter(
+            )).scalar(),
+            'in_progress': db.session.execute(select(func.count()).select_from(Visit).filter(
                 Visit.doctor_id == current_user.id,
                 Visit.status == VisitState.IN_PROGRESS
-            ).count(),
-            'completed_today': Visit.query.filter(
+            )).scalar(),
+            'completed_today': db.session.execute(select(func.count()).select_from(Visit).filter(
                 Visit.doctor_id == current_user.id,
                 Visit.visit_date == today,
                 Visit.status == VisitState.COMPLETED
-            ).count(),
-            'prescriptions_today': Prescription.query.join(Visit).filter(
+            )).scalar(),
+            'prescriptions_today': db.session.execute(select(func.count()).select_from(Prescription).join(Visit).filter(
                 Visit.doctor_id == current_user.id,
                 func.date(Prescription.created_at) == today
-            ).count(),
-            'appointments_today': Appointment.query.filter(
+            )).scalar(),
+            'appointments_today': db.session.execute(select(func.count()).select_from(Appointment).filter(
                 Appointment.doctor_id == current_user.id,
                 func.date(Appointment.starts_at) == today
-            ).count(),
-            'pending_lab': LabRequest.query.join(Visit).filter(
+            )).scalar(),
+            'pending_lab': db.session.execute(select(func.count()).select_from(LabRequest).join(Visit).filter(
                 Visit.doctor_id == current_user.id,
                 LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
-            ).count(),
-            'pending_radiology': RadiologyRequest.query.join(Visit).filter(
+            )).scalar(),
+            'pending_radiology': db.session.execute(select(func.count()).select_from(RadiologyRequest).join(Visit).filter(
                 Visit.doctor_id == current_user.id,
                 RadiologyRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
-            ).count(),
+            )).scalar(),
             'timestamp': datetime.now(timezone.utc).isoformat(),
         }
         return jsonify({'success': True, 'stats': stats})
@@ -269,11 +268,11 @@ def api_today_visits():
         today = date.today()
         from app.shared.enums import VisitState
 
-        visits = Visit.query.filter(
+        visits = db.session.execute(select(Visit).filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date == today,
             Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])
-        ).order_by(Visit.visit_time).all()
+        ).order_by(Visit.visit_time)).scalars().all()
 
         results = []
         for v in visits:

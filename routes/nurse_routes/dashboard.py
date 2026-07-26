@@ -11,11 +11,11 @@ from models.patient import Patient
 from models.visit import Visit
 from models.medication import Medication
 from services.nursing_service import nursing_service
-from app_factory import db
+from app.extensions import db
 from services.core_queries import core_queries
 import logging, json
 from datetime import datetime, timedelta, timezone, date
-from sqlalchemy import func, and_, or_, desc
+from sqlalchemy import func, and_, or_, desc, select
 
 
 # =============================================
@@ -44,11 +44,9 @@ def dashboard():
         end_of_today = datetime.combine(today, datetime.max.time(), tzinfo=timezone.utc)
 
         total_patients = base["total_patients"]
-        patients_today = Patient.query.filter(Patient.created_at >= start_of_today).count()
+        patients_today = db.session.execute(select(func.count()).select_from(Patient).filter(Patient.created_at >= start_of_today)).scalar()
 
-        active_visits_query = Visit.query.filter(
-            Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])
-        )
+        active_visits_query = select(Visit)
         dept_ids = _accessible_department_ids()
         if dept_ids is not None and dept_ids:
             active_visits_query = active_visits_query.filter(Visit.department_id.in_(dept_ids))
@@ -56,18 +54,18 @@ def dashboard():
         active_visits = active_visits_query.count()
         active_visits_list = active_visits_query.order_by(desc(Visit.created_at)).limit(20).all()
 
-        today_visits = Visit.query.filter(Visit.visit_date == today).count()
-        recent_visits = Visit.query.order_by(desc(Visit.created_at)).limit(20).all()
+        today_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.visit_date == today)).scalar()
+        recent_visits = db.session.execute(select(Visit).order_by(desc(Visit.created_at)).limit(20)).scalars().all()
         
         # الأدوية المطلوبة
-        medications_needed = Medication.query.filter(
+        medications_needed = db.session.execute(select(func.count()).select_from(Medication).filter(
             Medication.stock_quantity <= Medication.minimum_stock
-        ).count()
+        )).scalar()
 
-        open_tasks = Task.query.filter(
+        open_tasks = db.session.execute(select(Task).filter(
             Task.assigned_to == current_user.id,
             Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS])
-        ).order_by(desc(Task.created_at)).limit(10).all()
+        ).order_by(desc(Task.created_at)).limit(10)).scalars().all()
 
         vital_due_count = 0
         meds_due_count = 0
@@ -78,30 +76,30 @@ def dashboard():
 
         latest_vitals_by_patient = {}
         if active_patient_ids:
-            rows = VitalSigns.query.filter(
+            rows = db.session.execute(select(VitalSigns).filter(
                 VitalSigns.patient_id.in_(active_patient_ids)
-            ).order_by(desc(VitalSigns.recorded_at)).all()
+            ).order_by(desc(VitalSigns.recorded_at))).scalars().all()
             for r in rows:
                 if r.patient_id not in latest_vitals_by_patient:
                     latest_vitals_by_patient[r.patient_id] = r
 
         last_admin_by_item = {}
         if active_visit_ids:
-            logs = MedicationAdministrationLog.query.filter(
+            logs = db.session.execute(select(MedicationAdministrationLog).filter(
                 MedicationAdministrationLog.visit_id.in_(active_visit_ids)
-            ).order_by(desc(MedicationAdministrationLog.administered_at)).limit(300).all()
+            ).order_by(desc(MedicationAdministrationLog.administered_at)).limit(300)).scalars().all()
             for row in logs:
                 if row.prescription_item_id and row.prescription_item_id not in last_admin_by_item:
                     last_admin_by_item[row.prescription_item_id] = row
 
         prescribed_items_by_visit = {}
         if active_visit_ids:
-            prescribed = PrescriptionItem.query.join(
+            prescribed = db.session.execute(select(PrescriptionItem).join(
                 Prescription, PrescriptionItem.prescription_id == Prescription.id
             ).filter(
                 Prescription.visit_id.in_(active_visit_ids),
                 Prescription.status == PrescriptionState.ACTIVE
-            ).all()
+            )).scalars().all()
             for it in prescribed:
                 visit_id = getattr(getattr(it, 'prescription', None), 'visit_id', None)
                 if not visit_id:
@@ -212,12 +210,7 @@ def dashboard():
                     'url': url_for('nurse.vital_signs', patient_id=pid)
                 })
 
-        overdue_tasks_q = Task.query.filter(
-            Task.assigned_to == current_user.id,
-            Task.due_date.isnot(None),
-            Task.due_date < now,
-            Task.status.in_([TaskState.PENDING, TaskState.IN_PROGRESS, 'on_hold'])
-        )
+        overdue_tasks_q = select(Task)
         overdue_tasks_count = overdue_tasks_q.count()
         overdue_important = overdue_tasks_q.filter(Task.priority.in_(['high', 'urgent'])).order_by(Task.due_date.asc()).limit(10).all()
         overdue_any = overdue_tasks_q.order_by(Task.due_date.asc()).limit(10).all()

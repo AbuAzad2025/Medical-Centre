@@ -17,11 +17,12 @@ from models.lab_reagent import LabReagent
 from models.audit_trail import AuditTrail
 from services.core_queries import core_queries
 from services.lab_service import lab_service
-from app_factory import db
+from app.extensions import db
 from app.shared.enums import OrderState
 import logging, json, base64
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
+from sqlalchemy import select, func
 
 
 # =============================================
@@ -47,19 +48,19 @@ def dashboard():
         today_requests = lab_stats["today_requests"]
         pending_requests = lab_stats["pending_requests"]
         completed_today = lab_stats["completed_today"]
-        total_tests = LabRequest.query.count()
-        pending_tests = LabRequest.query.filter(
+        total_tests = db.session.execute(select(func.count()).select_from(LabRequest)).scalar()
+        pending_tests = db.session.execute(select(func.count()).select_from(LabRequest).filter(
             LabRequest.status.in_([OrderState.REQUESTED, OrderState.RECEIVED, OrderState.ANALYZING, OrderState.REVIEWED, OrderState.APPROVED, OrderState.IN_PROGRESS])
-        ).count()
-        completed_tests = LabRequest.query.filter(
+        )).scalar()
+        completed_tests = db.session.execute(select(func.count()).select_from(LabRequest).filter(
             LabRequest.status == OrderState.DONE
-        ).count()
-        requested_count = LabRequest.query.filter(
+        )).scalar()
+        requested_count = db.session.execute(select(func.count()).select_from(LabRequest).filter(
             LabRequest.status == OrderState.REQUESTED
-        ).count()
-        in_progress_count = LabRequest.query.filter(
+        )).scalar()
+        in_progress_count = db.session.execute(select(func.count()).select_from(LabRequest).filter(
             LabRequest.status.in_([OrderState.RECEIVED, OrderState.ANALYZING, OrderState.REVIEWED, OrderState.APPROVED, OrderState.IN_PROGRESS])
-        ).count()
+        )).scalar()
         # Imported here to avoid circular import during blueprint registration.
         from routes.lab import (
             get_lab_smart_analytics,

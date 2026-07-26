@@ -121,7 +121,7 @@ def bind_tenant_on_g(tenant, *, db_session=None) -> None:
         g.enabled_modules = set()
 
 
-def login_test_client(client, user, tenant, password: str = 'test123'):
+def login_test_client(client, user, tenant, password: str = 'ValidPass123!'):
     """POST /auth/login and ensure SaaS session carries tenant context."""
     from app.core.rate_limiter import _shared_store
 
@@ -145,7 +145,7 @@ def login_test_client(client, user, tenant, password: str = 'test123'):
     return resp
 
 
-def ensure_test_user(db, tenant, *, username: str, role: str, password: str = 'test123', **extra):
+def ensure_test_user(db, tenant, *, username: str, role: str, password: str = 'ValidPass123!', **extra):
     """Create or fetch a tenant-scoped user for SaaS-mode integration tests."""
     from flask import g
     from models.user import User

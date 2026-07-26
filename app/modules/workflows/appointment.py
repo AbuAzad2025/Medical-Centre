@@ -1,6 +1,7 @@
 """
 AppointmentService — booking, reschedule, no-show, convert-to-visit
 """
+from sqlalchemy import select
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 from app.extensions import db
@@ -35,12 +36,7 @@ class AppointmentService:
     def check_double_booking(doctor_id: int, start_time: datetime, end_time: datetime,
                               exclude_id: Optional[int] = None) -> bool:
         from models.appointment import Appointment
-        q = Appointment.query.filter(
-            Appointment.doctor_id == doctor_id,
-            Appointment.status.notin_([AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW]),
-            Appointment.starts_at < end_time,
-            Appointment.ends_at > start_time,
-        )
+        q = select(Appointment)
         if exclude_id:
             q = q.filter(Appointment.id != exclude_id)
         return q.first() is not None

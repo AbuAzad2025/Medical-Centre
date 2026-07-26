@@ -1,13 +1,13 @@
-﻿"""
+"""
 خدمة إدارة الطابور - Queue Management Service
 Medical System Queue Management Service
 """
 
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import and_, or_, desc, asc, case
+from sqlalchemy import and_, or_, desc, asc, case, select, func
 from app.shared.enums import QueueState, VisitState, PaymentStatus
 from services.visit_state_machine_service import VisitStateMachineService
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit
 from utils.tenant_query import get_tenant_record, TenantContextError
 import logging
@@ -67,7 +67,7 @@ class QueueManagementService:
             if user.role in ['super_admin', 'admin', 'manager']:
                 return True
             if user.department_id != dept.id:
-                extra = UserDepartmentAccess.query.filter_by(user_id=user.id, department_id=dept.id, can_access=True).first()
+                extra = db.session.execute(select(UserDepartmentAccess).filter_by(user_id=user.id, department_id=dept.id, can_access=True)).scalars().first()
                 if not extra:
                     return False
             dept_type = getattr(dept, 'get_type', lambda: 'general')()
@@ -206,7 +206,7 @@ class QueueManagementService:
             if getattr(dept, "get_type", lambda: "general")() == "general" and not new_doctor_id_int:
                 return False, "doctor_required"
 
-            qm = QueueManagement.query.filter_by(visit_id=visit.id).order_by(QueueManagement.created_at.desc()).first()
+            qm = db.session.execute(select(QueueManagement).filter_by(visit_id=visit.id).order_by(QueueManagement.created_at.desc())).scalars().first()
             if qm and qm.status in ["called", "in_progress"]:
                 return False, "cannot_transfer_active_treatment"
 
@@ -271,7 +271,7 @@ class QueueManagementService:
             from models.user import User
             from models.department import Department
             
-            query = QueueManagement.query.filter_by(department_id=department_id).outerjoin(Visit, Visit.id == QueueManagement.visit_id)
+            query = select(QueueManagement).filter_by(department_id=department_id)
             if doctor_id:
                 # فلترة حسب الطبيب عبر الربط على الزيارة
                 query = query.filter(Visit.doctor_id == doctor_id)
@@ -349,7 +349,7 @@ class QueueManagementService:
             from models.department import Department
             from models.patient import Patient
 
-            q = QueueManagement.query.filter(QueueManagement.department_id.in_(department_ids)).outerjoin(Visit, Visit.id == QueueManagement.visit_id)
+            q = select(QueueManagement).filter(QueueManagement.department_id.in_(department_ids))
             if doctor_id:
                 q = q.filter(Visit.doctor_id == doctor_id)
 
@@ -423,10 +423,7 @@ class QueueManagementService:
             from models.visit import Visit
             
             # البحث عن المريض التالي
-            query = QueueManagement.query.filter_by(
-                department_id=department_id,
-                status=QueueState.WAITING
-            )
+            query = select(QueueManagement)
             query = query.outerjoin(Visit, Visit.id == QueueManagement.visit_id)
             if doctor_id:
                 query = query.filter(Visit.doctor_id == doctor_id)
@@ -465,11 +462,11 @@ class QueueManagementService:
             now = datetime.now(timezone.utc)
             start = datetime.combine(now.date(), datetime.min.time(), tzinfo=timezone.utc)
 
-            rows = QueueManagement.query.filter(
+            rows = db.session.execute(select(QueueManagement).filter(
                 QueueManagement.department_id.in_(department_ids),
                 QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS, QueueState.COMPLETED]),
                 QueueManagement.queued_at >= start
-            ).all()
+            )).scalars().all()
 
             dept_minutes = {}
             dept_counts = {}
@@ -488,7 +485,7 @@ class QueueManagementService:
                 dept_minutes[t.department_id] = dept_minutes.get(t.department_id, 0) + mins
                 dept_counts[t.department_id] = dept_counts.get(t.department_id, 0) + 1
 
-            departments = Department.query.filter(Department.id.in_(department_ids)).all() if department_ids else []
+            departments = db.session.execute(select(Department).filter(Department.id.in_(department_ids))).scalars().all() if department_ids else []
             dept_names = {d.id: (d.name_ar or d.name) for d in departments}
 
             per_dept = {}
@@ -724,15 +721,15 @@ class QueueManagementService:
             from models.queue_management import QueueManagement
             
             # عدد المرضى في الطابور
-            waiting_count = QueueManagement.query.filter_by(
+            waiting_count = db.session.execute(select(func.count()).select_from(QueueManagement).filter_by(
                 department_id=department_id,
                 status=QueueState.WAITING
-            ).count()
+            )).scalar()
             
             # متوسط وقت الخدمة من إعدادات القسم إن وُجد
             try:
                 from models.queue_management import QueueSettings
-                qs = QueueSettings.query.filter_by(department_id=department_id).first()
+                qs = db.session.execute(select(QueueSettings).filter_by(department_id=department_id)).scalars().first()
                 avg_service_time = int(qs.average_wait_time) if qs and qs.average_wait_time else 30
             except Exception:
                 avg_service_time = 30
@@ -748,9 +745,9 @@ class QueueManagementService:
 
     def _build_queue_snapshot(self):
         from models.queue_management import QueueManagement
-        items = QueueManagement.query.filter(
+        items = db.session.execute(select(QueueManagement).filter(
             QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS])
-        ).order_by(QueueManagement.queued_at.asc()).limit(80).all()
+        ).order_by(QueueManagement.queued_at.asc()).limit(80)).scalars().all()
         result = []
         for item in items:
             result.append({
@@ -765,15 +762,15 @@ class QueueManagementService:
 
     def _build_display_waiting(self):
         from models.queue_management import QueueManagement
-        waiting = QueueManagement.query.filter(
+        waiting = db.session.execute(select(QueueManagement).filter(
             QueueManagement.status == QueueState.WAITING
-        ).order_by(QueueManagement.queued_at.asc()).limit(60).all()
-        called = QueueManagement.query.filter(
+        ).order_by(QueueManagement.queued_at.asc()).limit(60)).scalars().all()
+        called = db.session.execute(select(QueueManagement).filter(
             QueueManagement.status == QueueState.CALLED
-        ).order_by(QueueManagement.called_at.desc()).limit(12).all()
-        current = QueueManagement.query.filter(
+        ).order_by(QueueManagement.called_at.desc()).limit(12)).scalars().all()
+        current = db.session.execute(select(QueueManagement).filter(
             QueueManagement.status == QueueState.IN_PROGRESS
-        ).order_by(QueueManagement.started_at.desc()).limit(6).all()
+        ).order_by(QueueManagement.started_at.desc()).limit(6)).scalars().all()
 
         def _pack(item):
             room_value = ''
@@ -798,9 +795,9 @@ class QueueManagementService:
 
     def _build_display_calls(self):
         from models.queue_management import QueueManagement
-        called = QueueManagement.query.filter(
+        called = db.session.execute(select(QueueManagement).filter(
             QueueManagement.status.in_([QueueState.CALLED, QueueState.IN_PROGRESS])
-        ).order_by(QueueManagement.called_at.desc()).limit(24).all()
+        ).order_by(QueueManagement.called_at.desc()).limit(24)).scalars().all()
         items = []
         for item in called:
             room_value = ''
@@ -831,7 +828,7 @@ class QueueManagementService:
         try:
             from models.patient_satisfaction import PatientSatisfactionSurvey
             import secrets
-            existing = PatientSatisfactionSurvey.query.filter_by(visit_id=visit.id).first()
+            existing = db.session.execute(select(PatientSatisfactionSurvey).filter_by(visit_id=visit.id)).scalars().first()
             if existing:
                 return existing
             token = secrets.token_urlsafe(24)
@@ -851,11 +848,11 @@ class QueueManagementService:
             from models.queue_management import QueueManagement
             
             # البحث عن تذكرة المريض
-            ticket = QueueManagement.query.filter_by(
+            ticket = db.session.execute(select(QueueManagement).filter_by(
                 patient_id=patient_id,
                 department_id=department_id,
                 status=QueueState.WAITING
-            ).first()
+            )).scalars().first()
             
             if not ticket:
                 return None, "المريض غير موجود في الطابور"
@@ -864,14 +861,14 @@ class QueueManagementService:
             rank_map = {'urgent': 0, 'high': 1, 'normal': 2, 'low': 3}
             ticket_rank = rank_map.get((ticket.priority_level or '').lower(), 4)
             priority_rank = self._priority_rank_expr(QueueManagement)
-            position = QueueManagement.query.filter(
+            position = db.session.execute(select(func.count()).select_from(QueueManagement).filter(
                 QueueManagement.department_id == department_id,
                 QueueManagement.status == QueueState.WAITING,
                 db.or_(
                     priority_rank < ticket_rank,
                     db.and_(priority_rank == ticket_rank, QueueManagement.queued_at < ticket.queued_at)
                 )
-            ).count() + 1
+            )).scalar() + 1
             
             return position, f"موقع المريض في الطابور: {position}"
             

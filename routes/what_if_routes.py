@@ -1,10 +1,11 @@
 """
 What-If Scenario Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors, manager_or_admin_only
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from models import WhatIfScenario, Department
 from datetime import datetime, timezone
@@ -17,7 +18,7 @@ what_if_bp = Blueprint('what_if', __name__)
 @login_required
 @handle_route_errors
 def index():
-    scenarios = WhatIfScenario.query.order_by(WhatIfScenario.created_at.desc()).all()
+    scenarios = db.session.execute(select(WhatIfScenario).order_by(WhatIfScenario.created_at.desc())).scalars().all()
     return render_template('what_if/index.html', scenarios=scenarios)
 
 
@@ -46,7 +47,7 @@ def new_scenario():
         safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم إنشاء السيناريو وحساب التوقعات', 'success')
         return redirect(url_for('what_if.index'))
-    departments = Department.query.all()
+    departments = db.session.execute(select(Department)).scalars().all()
     return render_template('what_if/new.html', departments=departments)
 
 
@@ -54,5 +55,5 @@ def new_scenario():
 @login_required
 @handle_route_errors
 def view_scenario(scenario_id):
-    scenario = WhatIfScenario.query.get_or_404(scenario_id)
+    scenario = db.get_or_404(WhatIfScenario, scenario_id)
     return render_template('what_if/view.html', scenario=scenario)

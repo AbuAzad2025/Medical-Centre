@@ -14,10 +14,11 @@ from models.radiology_result import RadiologyResult
 from models.file_management import FileUpload
 from models.system_config import SystemConfig
 from services.radiology_service import radiology_service
-from app_factory import db
+from app.extensions import db
 import logging, json, os, base64, secrets
 from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
+from sqlalchemy import select, func
 
 
 # =============================================
@@ -31,17 +32,14 @@ def requests():
     """طلبات الأشعة"""
     try:
         stats = {
-            'pending': RadiologyRequest.query.filter_by(status='REQUESTED').count(),
-            'in_progress': RadiologyRequest.query.filter_by(status='IN_PROGRESS').count(),
-            'completed': RadiologyRequest.query.filter_by(status='DONE').count(),
+            'pending': db.session.execute(select(func.count()).select_from(RadiologyRequest).filter_by(status='REQUESTED')).scalar(),
+            'in_progress': db.session.execute(select(func.count()).select_from(RadiologyRequest).filter_by(status='IN_PROGRESS')).scalar(),
+            'completed': db.session.execute(select(func.count()).select_from(RadiologyRequest).filter_by(status='DONE')).scalar(),
             'urgent': 0,
         }
-        requests_list = (
-            RadiologyRequest.query
+        requests_list = db.session.execute(select(RadiologyRequest)
             .order_by(RadiologyRequest.created_at.desc())
-            .limit(100)
-            .all()
-        )
+            .limit(100)).scalars().all()
         return render_template(
             'radiology/radiology_requests.html',
             stats=stats,
@@ -87,7 +85,7 @@ def results():
         
         from services.access_control_service import AccessControlService
         dept_ids = AccessControlService.get_accessible_department_ids(current_user)
-        query = RadiologyRequest.query.filter_by(status='DONE')
+        query = select(RadiologyRequest)
         if dept_ids is not None and dept_ids:
             query = query.join(Visit, Visit.id == RadiologyRequest.visit_id).filter(Visit.department_id.in_(dept_ids))
         results = query.order_by(RadiologyRequest.created_at.desc()).all()

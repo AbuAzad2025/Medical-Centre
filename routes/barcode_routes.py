@@ -1,11 +1,12 @@
 """
 Barcode / QR Code Tracking Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors, role_required
 from models.barcode_tracking import BarcodeRegistry, BarcodeScanLog
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from datetime import datetime, timezone
 
@@ -30,7 +31,7 @@ def api_scan():
     if not barcode_value:
         return jsonify({'success': False, 'message': 'Barcode required'})
 
-    registry = BarcodeRegistry.query.filter_by(barcode_value=barcode_value, is_active=True).first()
+    registry = db.session.execute(select(BarcodeRegistry).filter_by(barcode_value=barcode_value, is_active=True)).scalars().first()
     if not registry:
         # Log failed scan
         log = BarcodeScanLog(

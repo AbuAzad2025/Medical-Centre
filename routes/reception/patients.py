@@ -7,7 +7,7 @@ from routes.reception import reception_bp, _wants_json
  
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from sqlalchemy import func
+from sqlalchemy import func, select
 from datetime import datetime, timezone
 from models.user import User, StaffWorkSchedule, StaffAbsence
 from models.patient import Patient
@@ -22,7 +22,7 @@ from models.patient_satisfaction import PatientSatisfactionSurvey
 from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging
 from services.access_control_service import AccessControlService
@@ -93,9 +93,9 @@ def patients():
     pages = (total + per_page - 1) // per_page
     
     patients = query.offset((page - 1) * per_page).limit(per_page).all()
-    departments = Department.query.all()
+    departments = db.session.execute(select(Department)).scalars().all()
     from models.insurance import InsuranceCompany
-    insurance_companies = InsuranceCompany.query.filter_by(is_active=True).order_by(InsuranceCompany.name.asc()).all()
+    insurance_companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True).order_by(InsuranceCompany.name.asc())).scalars().all()
     
     return render_template('reception/patients.html', 
                          patients=patients, 
@@ -196,7 +196,7 @@ def add_patient():
 
             # منع التكرار: رقم الهوية
             if national_id:
-                existing_by_id = Patient.query.filter_by(national_id=national_id).first()
+                existing_by_id = db.session.execute(select(Patient).filter_by(national_id=national_id)).scalars().first()
                 if existing_by_id:
                     message = f"المريض موجود مسبقاً برقم الهوية {national_id}"
                     if _wants_json():
@@ -206,7 +206,7 @@ def add_patient():
 
             # منع التكرار: رقم الهاتف (تحذير قوي)
             if phone:
-                existing_by_phone = Patient.query.filter(Patient.phone == phone).first()
+                existing_by_phone = db.session.execute(select(Patient).filter(Patient.phone == phone)).scalars().first()
                 if existing_by_phone:
                     message = f"يوجد مريض بنفس رقم الهاتف ({phone})"
                     if _wants_json():
@@ -274,15 +274,15 @@ def view_patient(patient_id):
         flash('المريض غير موجود', 'error')
         return redirect(url_for('reception.queue_management'))
     
-    visits = Visit.query.filter_by(patient_id=patient_id).order_by(Visit.created_at.desc()).limit(10).all()
-    appointments = Appointment.query.filter_by(patient_id=patient_id).order_by(Appointment.starts_at.desc()).limit(10).all()
+    visits = db.session.execute(select(Visit).filter_by(patient_id=patient_id).order_by(Visit.created_at.desc()).limit(10)).scalars().all()
+    appointments = db.session.execute(select(Appointment).filter_by(patient_id=patient_id).order_by(Appointment.starts_at.desc()).limit(10)).scalars().all()
     
     # جلب طلبات المختبر والأشعة
     from models.lab_request import LabRequest
     from models.radiology_request import RadiologyRequest
     
-    lab_requests = LabRequest.query.filter_by(patient_id=patient_id).order_by(LabRequest.created_at.desc()).limit(10).all()
-    radiology_requests = RadiologyRequest.query.filter_by(patient_id=patient_id).order_by(RadiologyRequest.created_at.desc()).limit(10).all()
+    lab_requests = db.session.execute(select(LabRequest).filter_by(patient_id=patient_id).order_by(LabRequest.created_at.desc()).limit(10)).scalars().all()
+    radiology_requests = db.session.execute(select(RadiologyRequest).filter_by(patient_id=patient_id).order_by(RadiologyRequest.created_at.desc()).limit(10)).scalars().all()
     
     template = 'reception/view_patient.html'
     
@@ -384,7 +384,7 @@ def edit_patient(patient_id):
                 raise ValueError(message)
 
             if national_id and national_id != (patient.national_id or None):
-                existing_by_id = Patient.query.filter_by(national_id=national_id).first()
+                existing_by_id = db.session.execute(select(Patient).filter_by(national_id=national_id)).scalars().first()
                 if existing_by_id and existing_by_id.id != patient.id:
                     message = f"المريض موجود مسبقاً برقم الهوية {national_id}"
                     if _wants_json():
@@ -393,7 +393,7 @@ def edit_patient(patient_id):
                     raise ValueError(message)
 
             if phone and phone != (patient.phone or None):
-                existing_by_phone = Patient.query.filter(Patient.phone == phone, Patient.id != patient.id).first()
+                existing_by_phone = db.session.execute(select(Patient).filter(Patient.phone == phone, Patient.id != patient.id)).scalars().first()
                 if existing_by_phone:
                     message = f"يوجد مريض بنفس رقم الهاتف ({phone})"
                     if _wants_json():
@@ -442,10 +442,10 @@ def edit_patient(patient_id):
             flash('تعذر تحديث بيانات المريض، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
             logging.error(f"Error updating patient: {str(e)}")
     
-    patients = Patient.query.order_by(Patient.created_at.desc()).limit(200).all()
-    departments = Department.query.all()
+    patients = db.session.execute(select(Patient).order_by(Patient.created_at.desc()).limit(200)).scalars().all()
+    departments = db.session.execute(select(Department)).scalars().all()
     from models.insurance import InsuranceCompany
-    insurance_companies = InsuranceCompany.query.filter_by(is_active=True).order_by(InsuranceCompany.name.asc()).all()
+    insurance_companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True).order_by(InsuranceCompany.name.asc())).scalars().all()
     return render_template('reception/patients.html', 
                          patients=patients,
                          patient=patient,
@@ -467,8 +467,8 @@ def delete_patient(patient_id):
     try:
         from models.receipt import Receipt
         from models.medication import Prescription
-        has_receipts = db.session.query(Receipt.id).filter_by(patient_id=patient_id).first() is not None
-        has_prescriptions = db.session.query(Prescription.id).filter_by(patient_id=patient_id).first() is not None
+        has_receipts = db.session.execute(select(Receipt.id).filter_by(patient_id=patient_id)).scalars().first() is not None
+        has_prescriptions = db.session.execute(select(Prescription.id).filter_by(patient_id=patient_id)).scalars().first() is not None
         if has_receipts or has_prescriptions:
             parts = []
             if has_receipts:

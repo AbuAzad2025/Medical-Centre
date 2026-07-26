@@ -5,6 +5,8 @@ from datetime import datetime
 from typing import Any, Optional
 
 from flask import url_for
+from app.extensions import db
+from sqlalchemy import select
 
 
 class PatientTimelineService:
@@ -20,9 +22,9 @@ class PatientTimelineService:
 
         events: list[dict[str, Any]] = []
 
-        visits = Visit.query.filter(Visit.patient_id == patient_id).order_by(
+        visits = db.session.execute(select(Visit).filter(Visit.patient_id == patient_id).order_by(
             Visit.visit_date.desc(), Visit.created_at.desc()
-        ).limit(200).all()
+        ).limit(200)).scalars().all()
         for v in visits:
             dt = PatientTimelineService._visit_datetime(v)
             events.append({
@@ -34,9 +36,9 @@ class PatientTimelineService:
                 'link': url_for('doctor.patient_details', visit_id=v.id) if doctor_id and v.doctor_id == doctor_id else None,
             })
 
-        prescriptions = Prescription.query.filter(Prescription.patient_id == patient_id).order_by(
+        prescriptions = db.session.execute(select(Prescription).filter(Prescription.patient_id == patient_id).order_by(
             Prescription.created_at.desc()
-        ).limit(200).all()
+        ).limit(200)).scalars().all()
         for rx in prescriptions:
             events.append({
                 'type': 'prescription',
@@ -47,9 +49,9 @@ class PatientTimelineService:
                 'link': url_for('doctor.prescriptions_history', patient_id=patient_id),
             })
 
-        lab_reqs = LabRequest.query.filter(LabRequest.patient_id == patient_id).order_by(
+        lab_reqs = db.session.execute(select(LabRequest).filter(LabRequest.patient_id == patient_id).order_by(
             LabRequest.created_at.desc()
-        ).limit(200).all()
+        ).limit(200)).scalars().all()
         for lr in lab_reqs:
             events.append({
                 'type': 'lab',
@@ -60,9 +62,9 @@ class PatientTimelineService:
                 'link': None,
             })
 
-        rad_reqs = RadiologyRequest.query.filter(RadiologyRequest.patient_id == patient_id).order_by(
+        rad_reqs = db.session.execute(select(RadiologyRequest).filter(RadiologyRequest.patient_id == patient_id).order_by(
             RadiologyRequest.created_at.desc()
-        ).limit(200).all()
+        ).limit(200)).scalars().all()
         for rr in rad_reqs:
             events.append({
                 'type': 'radiology',
@@ -73,9 +75,9 @@ class PatientTimelineService:
                 'link': None,
             })
 
-        records = MedicalRecord.query.filter(MedicalRecord.patient_id == patient_id).order_by(
+        records = db.session.execute(select(MedicalRecord).filter(MedicalRecord.patient_id == patient_id).order_by(
             MedicalRecord.created_at.desc()
-        ).limit(200).all()
+        ).limit(200)).scalars().all()
         for mr in records:
             events.append({
                 'type': 'record',
@@ -86,9 +88,9 @@ class PatientTimelineService:
                 'link': url_for('doctor.medical_history', patient_id=patient_id),
             })
 
-        follow_ups = FollowUpRequest.query.filter(FollowUpRequest.patient_id == patient_id).order_by(
+        follow_ups = db.session.execute(select(FollowUpRequest).filter(FollowUpRequest.patient_id == patient_id).order_by(
             FollowUpRequest.created_at.desc()
-        ).limit(200).all()
+        ).limit(200)).scalars().all()
         for fu in follow_ups:
             events.append({
                 'type': 'follow_up',
@@ -99,9 +101,9 @@ class PatientTimelineService:
                 'link': None,
             })
 
-        appointments = Appointment.query.filter(Appointment.patient_id == patient_id).order_by(
+        appointments = db.session.execute(select(Appointment).filter(Appointment.patient_id == patient_id).order_by(
             Appointment.starts_at.desc()
-        ).limit(200).all()
+        ).limit(200)).scalars().all()
         for ap in appointments:
             events.append({
                 'type': 'appointment',

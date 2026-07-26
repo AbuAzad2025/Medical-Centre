@@ -12,10 +12,15 @@ class TestCustomServiceLifecycle:
     def test_custom_service_created_inactive(self, app, test_tenant, client, login_as):
         tenant_id = test_tenant.id
         from models.department import Department
+        from flask import g
         import uuid
-        d = Department(name=f'Lab-{uuid.uuid4().hex[:6]}', name_ar='المختبر', is_active=True)
-        _db.session.add(d)
-        _db.session.commit()
+        g._tenant_filter_bypass = True
+        try:
+            d = Department(name=f'Lab-{uuid.uuid4().hex[:6]}', name_ar='المختبر', is_active=True)
+            _db.session.add(d)
+            _db.session.commit()
+        finally:
+            g.pop('_tenant_filter_bypass', None)
 
         login_as(client, 'recv_custom_t6', 'reception')
 

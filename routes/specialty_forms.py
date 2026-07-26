@@ -2,8 +2,8 @@
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
-from sqlalchemy import func
-from app_factory import db
+from sqlalchemy import func, select
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
 
@@ -16,7 +16,7 @@ ALLOWED_TYPES = {'text', 'number', 'date', 'select', 'checkbox', 'textarea'}
 @login_required
 def list_forms():
     from models.specialty_form import SpecialtyForm
-    forms = SpecialtyForm.query.filter_by(is_active=True).order_by(SpecialtyForm.name).all()
+    forms = db.session.execute(select(SpecialtyForm).filter_by(is_active=True).order_by(SpecialtyForm.name)).scalars().all()
     return render_template('specialty_forms/list.html', forms=forms)
 
 
@@ -34,7 +34,7 @@ def new_form():
             if not name or not slug:
                 flash('الاسم والمعرّف مطلوبان', 'error')
                 return redirect(url_for('specialty_forms.new_form'))
-            existing = SpecialtyForm.query.filter_by(slug=slug).first()
+            existing = db.session.execute(select(SpecialtyForm).filter_by(slug=slug)).scalars().first()
             if existing:
                 flash('المعرّف مستخدم مسبقاً', 'error')
                 return redirect(url_for('specialty_forms.new_form'))
@@ -63,7 +63,7 @@ def new_form():
 @login_required
 def view_form(form_id):
     from models.specialty_form import SpecialtyForm
-    form = SpecialtyForm.query.get_or_404(form_id)
+    form = db.get_or_404(SpecialtyForm, form_id)
     version = form.latest_published_version
     return render_template('specialty_forms/view.html', form=form, version=version)
 
@@ -73,8 +73,8 @@ def view_form(form_id):
 @role_required('manager', 'admin', 'super_admin')
 def edit_version(form_id, version_id):
     from models.specialty_form import SpecialtyForm, SpecialtyFormVersion
-    form = SpecialtyForm.query.get_or_404(form_id)
-    version = SpecialtyFormVersion.query.get_or_404(version_id)
+    form = db.get_or_404(SpecialtyForm, form_id)
+    version = db.get_or_404(SpecialtyFormVersion, version_id)
     if version.status != 'draft':
         flash('لا يمكن تعديل نسخ منشورة أو مؤرشفة', 'error')
         return redirect(url_for('specialty_forms.view_form', form_id=form.id))
@@ -104,8 +104,8 @@ def edit_version(form_id, version_id):
 def publish_version(form_id, version_id):
     from models.specialty_form import SpecialtyForm, SpecialtyFormVersion
     from datetime import datetime, timezone
-    form = SpecialtyForm.query.get_or_404(form_id)
-    version = SpecialtyFormVersion.query.get_or_404(version_id)
+    form = db.get_or_404(SpecialtyForm, form_id)
+    version = db.get_or_404(SpecialtyFormVersion, version_id)
     if not version.fields:
         flash('لا يمكن نشر نموذج بدون حقول', 'error')
         return redirect(url_for('specialty_forms.edit_version', form_id=form.id, version_id=version.id))
@@ -130,7 +130,7 @@ def publish_version(form_id, version_id):
 def fill_form(form_id):
     from models.specialty_form import SpecialtyForm, SpecialtyFormSubmission
     from models.patient import Patient
-    form = SpecialtyForm.query.get_or_404(form_id)
+    form = db.get_or_404(SpecialtyForm, form_id)
     version = form.latest_published_version
     if not version:
         flash('لا توجد نسخة منشورة لهذا النموذج', 'error')
@@ -139,7 +139,7 @@ def fill_form(form_id):
         try:
             patient_id = request.form.get('patient_id', type=int)
             visit_id = request.form.get('visit_id', type=int) or None
-            patient = Patient.query.get_or_404(patient_id)
+            patient = db.get_or_404(Patient, patient_id)
             answers = {}
             for field in version.fields:
                 key = f'field_{field.name}'
@@ -163,7 +163,7 @@ def fill_form(form_id):
             flash('حدث خطأ أثناء حفظ الإجابات', 'error')
             import logging
             logging.error(f"Error saving specialty form submission: {e}")
-    patients = Patient.query.order_by(Patient.first_name, Patient.last_name).limit(200).all()
+    patients = db.session.execute(select(Patient).order_by(Patient.first_name, Patient.last_name).limit(200)).scalars().all()
     return render_template('specialty_forms/fill.html', form=form, version=version, patients=patients)
 
 
@@ -171,7 +171,7 @@ def fill_form(form_id):
 @login_required
 def view_submission(submission_id):
     from models.specialty_form import SpecialtyFormSubmission
-    submission = SpecialtyFormSubmission.query.get_or_404(submission_id)
+    submission = db.get_or_404(SpecialtyFormSubmission, submission_id)
     return render_template('specialty_forms/submission.html', submission=submission)
 
 
@@ -179,10 +179,10 @@ def view_submission(submission_id):
 @login_required
 def list_submissions(form_id):
     from models.specialty_form import SpecialtyForm, SpecialtyFormSubmission
-    form = SpecialtyForm.query.get_or_404(form_id)
-    submissions = SpecialtyFormSubmission.query.filter(
+    form = db.get_or_404(SpecialtyForm, form_id)
+    submissions = db.session.execute(select(SpecialtyFormSubmission).filter(
         SpecialtyFormSubmission.version_id.in_([v.id for v in form.versions])
-    ).order_by(SpecialtyFormSubmission.submitted_at.desc()).all()
+    ).order_by(SpecialtyFormSubmission.submitted_at.desc())).scalars().all()
     return render_template('specialty_forms/submissions.html', form=form, submissions=submissions)
 
 

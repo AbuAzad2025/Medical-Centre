@@ -11,7 +11,7 @@ from utils.decorators import super_admin_required
 from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
-from sqlalchemy import func
+from sqlalchemy import func, select
 from utils.db_safety import safe_commit, safe_rollback
 
 
@@ -28,8 +28,8 @@ def pricing():
         from models.service import ServiceMaster
         from models.department import Department
         
-        services = ServiceMaster.query.order_by(ServiceMaster.updated_at.desc()).all()
-        departments = Department.query.filter_by(is_active=True).all()
+        services = db.session.execute(select(ServiceMaster).order_by(ServiceMaster.updated_at.desc())).scalars().all()
+        departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
         
         return render_template('manager/pricing.html', services=services, departments=departments)
     except Exception as e:
@@ -45,8 +45,8 @@ def services():
     try:
         from models.service import ServiceMaster
         from models.department import Department
-        services = ServiceMaster.query.all()
-        departments = Department.query.filter_by(is_active=True).all()
+        services = db.session.execute(select(ServiceMaster)).scalars().all()
+        departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
         return render_template('super_admin/services.html', services=services, departments=departments)
     except Exception as e:
         logging.error(f"Services error: {str(e)}")
@@ -59,7 +59,7 @@ def create_service():
     """إنشاء خدمة جديدة"""
     try:
         from models.service import ServiceMaster
-        from app_factory import db
+        from app.extensions import db
         import re, time
         
         # التوافق والتحقق من حقول النموذج
@@ -140,7 +140,7 @@ def create_service():
         return jsonify({'success': True, 'message': 'تم إنشاء الخدمة بنجاح', 'service_id': service.id}), 200
         
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Create service error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إنشاء الخدمة حالياً'}), 500
@@ -152,7 +152,7 @@ def view_service(service_id):
     """عرض تفاصيل خدمة"""
     try:
         from models.service import ServiceMaster
-        from app_factory import db
+        from app.extensions import db
         service = db.session.get(ServiceMaster, service_id)
         if not service:
             abort(404)
@@ -169,7 +169,7 @@ def edit_service(service_id):
     """تعديل خدمة"""
     try:
         from models.service import ServiceMaster
-        from app_factory import db
+        from app.extensions import db
         
         service = db.session.get(ServiceMaster, service_id)
         if not service:
@@ -194,10 +194,10 @@ def edit_service(service_id):
             return redirect(url_for('super_admin.services'))
         
         from models.department import Department
-        departments = Department.query.filter_by(is_active=True).all()
+        departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
         return render_template('super_admin/edit_service.html', service=service, departments=departments)
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Edit service error: {str(e)}")
         flash('حدث خطأ في تعديل الخدمة', 'error')
@@ -211,12 +211,12 @@ def service_pricing(service_id):
     try:
         from models.service import ServiceMaster
         from models.pricing_management import PricingManagement
-        from app_factory import db
+        from app.extensions import db
         
         service = db.session.get(ServiceMaster, service_id)
         if not service:
             abort(404)
-        pricing_records = PricingManagement.query.filter_by(service_id=service_id).all()
+        pricing_records = db.session.execute(select(PricingManagement).filter_by(service_id=service_id)).scalars().all()
         pricing = []
         for rec in pricing_records:
             if rec.base_price:
@@ -264,7 +264,7 @@ def service_pricing(service_id):
         
         return render_template('super_admin/service_pricing.html', service=service, pricing=pricing)
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Service pricing error: {str(e)}")
         flash('حدث خطأ في إدارة التسعير', 'error')
@@ -277,7 +277,7 @@ def activate_service(service_id):
     """تفعيل خدمة"""
     try:
         from models.service import ServiceMaster
-        from app_factory import db
+        from app.extensions import db
         
         service = db.session.get(ServiceMaster, service_id)
         if not service:
@@ -287,7 +287,7 @@ def activate_service(service_id):
         
         return jsonify({'success': True, 'message': 'تم تفعيل الخدمة'}), 200
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Activate service error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر تفعيل الخدمة حالياً'}), 500
@@ -299,7 +299,7 @@ def deactivate_service(service_id):
     """إلغاء تفعيل خدمة"""
     try:
         from models.service import ServiceMaster
-        from app_factory import db
+        from app.extensions import db
         
         service = db.session.get(ServiceMaster, service_id)
         if not service:
@@ -309,7 +309,7 @@ def deactivate_service(service_id):
         
         return jsonify({'success': True, 'message': 'تم إلغاء تفعيل الخدمة'}), 200
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Deactivate service error: {str(e)}")
         return jsonify({'success': False, 'message': 'تعذر إلغاء تفعيل الخدمة حالياً'}), 500
@@ -325,7 +325,7 @@ def export_services():
         from io import StringIO
         from flask import make_response
         
-        services = ServiceMaster.query.all()
+        services = db.session.execute(select(ServiceMaster)).scalars().all()
         
         si = StringIO()
         writer = csv.writer(si)

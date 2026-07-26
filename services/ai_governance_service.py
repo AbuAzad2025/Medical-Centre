@@ -1,6 +1,7 @@
 """
 AIRecommendationGovernanceService - governance and audit for AI recommendations
 """
+from sqlalchemy import select
 from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
@@ -34,9 +35,9 @@ class AIRecommendationGovernanceService:
     @staticmethod
     def get_recommendation_history(patient_id: int, limit: int = 20) -> list[dict]:
         from models.ai_analytics import ModelPrediction
-        predictions = ModelPrediction.query.filter_by(
+        predictions = db.session.execute(select(ModelPrediction).filter_by(
             patient_id=patient_id
-        ).order_by(ModelPrediction.created_at.desc()).limit(limit).all()
+        ).order_by(ModelPrediction.created_at.desc()).limit(limit)).scalars().all()
         return [{
             "id": p.id,
             "model": p.model_name,

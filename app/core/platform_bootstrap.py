@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def _table_count(table: str) -> int:
-    from sqlalchemy import inspect, text
+    from sqlalchemy import inspect, text, select
 
     if table not in inspect(db.engine).get_table_names():
         return -1
@@ -26,7 +26,7 @@ def ensure_module_definitions() -> int:
 
     added = 0
     for name, meta in MODULE_REGISTRY.items():
-        if ModuleDefinition.query.filter_by(name=name).first():
+        if db.session.execute(select(ModuleDefinition).filter_by(name=name)).scalars().first():
             continue
         db.session.add(
             ModuleDefinition(
@@ -80,7 +80,7 @@ def ensure_developer_config() -> int:
 
     added = 0
     for d in _DEVELOPER_DEFAULTS:
-        if not SystemConfig.query.filter_by(config_key=d["key"]).first():
+        if not db.session.execute(select(SystemConfig).filter_by(config_key=d["key"])).scalars().first():
             db.session.add(
                 SystemConfig(
                     config_key=d["key"],

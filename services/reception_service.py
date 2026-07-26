@@ -8,10 +8,10 @@ import logging
 from datetime import datetime, date, timezone
 from typing import Any
 
-from app_factory import db
+from app.extensions import db
 from app.shared.enums import VisitState
 from utils.db_safety import safe_commit
-from sqlalchemy import and_, or_, func
+from sqlalchemy import and_, or_, func, select
 from utils.tenant_query import get_tenant_record, TenantContextError
 
 
@@ -25,13 +25,13 @@ class ReceptionService:
         try:
             today = date.today()
             return {
-                "today_visits": Visit.query.filter(func.date(Visit.created_at) == today).count(),
-                "today_appointments": Appointment.query.filter(func.date(Appointment.starts_at) == today).count(),
-                "checked_in": Appointment.query.filter(
+                "today_visits": db.session.execute(select(func.count()).select_from(Visit).filter(func.date(Visit.created_at) == today)).scalar(),
+                "today_appointments": db.session.execute(select(func.count()).select_from(Appointment).filter(func.date(Appointment.starts_at) == today)).scalar(),
+                "checked_in": db.session.execute(select(func.count()).select_from(Appointment).filter(
                     func.date(Appointment.starts_at) == today,
                     Appointment.status == "CHECKED_IN",
-                ).count(),
-                "waiting": Visit.query.filter(Visit.status.in_([VisitState.OPEN.value, VisitState.CHECKED_IN.value])).count(),
+                )).scalar(),
+                "waiting": db.session.execute(select(func.count()).select_from(Visit).filter(Visit.status.in_([VisitState.OPEN.value, VisitState.CHECKED_IN.value]))).scalar(),
             }
         except Exception:
             return {"today_visits": 0, "today_appointments": 0, "checked_in": 0, "waiting": 0}
@@ -62,14 +62,14 @@ class ReceptionService:
     @staticmethod
     def search_patients(query: str) -> list:
         from models.patient import Patient
-        return Patient.query.filter(
+        return db.session.execute(select(Patient).filter(
             or_(
                 Patient.first_name.ilike(f"%{query}%"),
                 Patient.last_name.ilike(f"%{query}%"),
                 Patient.phone.ilike(f"%{query}%"),
                 Patient.national_id.ilike(f"%{query}%"),
             )
-        ).order_by(Patient.first_name).limit(20).all()
+        ).order_by(Patient.first_name).limit(20)).scalars().all()
 
     @staticmethod
     def create_visit(patient_id: int, department_id: int, doctor_id: int | None = None, visit_type: str = "OUTPATIENT") -> Any | None:
@@ -97,7 +97,7 @@ class ReceptionService:
     def get_queue(department_id: int | None = None) -> list:
         from models.visit import Visit
         from models.patient import Patient
-        query = Visit.query.filter(Visit.status.in_([VisitState.OPEN.value, VisitState.CHECKED_IN.value]))
+        query = select(Visit)
         if department_id:
             query = query.filter_by(department_id=department_id)
         return query.order_by(Visit.created_at.asc()).all()
@@ -128,10 +128,7 @@ class ReceptionService:
     @staticmethod
     def get_upcoming_appointments(department_id: int | None = None, limit: int = 20) -> list:
         from models.appointment import Appointment
-        query = Appointment.query.filter(
-            func.date(Appointment.starts_at) >= date.today(),
-            Appointment.status.in_(["SCHEDULED", "CONFIRMED"]),
-        )
+        query = select(Appointment)
         if department_id:
             query = query.filter_by(department_id=department_id)
         return query.order_by(Appointment.starts_at.asc()).limit(limit).all()

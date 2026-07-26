@@ -17,9 +17,9 @@ from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from services.gatekeeper_service import GatekeeperService
 from services.manager_service import manager_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
-from sqlalchemy import func
+from sqlalchemy import func, select
 from decimal import Decimal, ROUND_HALF_UP
 import logging
 from datetime import datetime, date, timedelta, timezone
@@ -41,8 +41,8 @@ def pricing():
         from models.service import ServiceMaster
         from models.department import Department
         
-        services = ServiceMaster.query.filter(ServiceMaster.tenant_id == current_user.tenant_id).order_by(ServiceMaster.updated_at.desc()).all()
-        departments = Department.query.filter_by(is_active=True).filter(Department.tenant_id == current_user.tenant_id).all()
+        services = db.session.execute(select(ServiceMaster).filter(ServiceMaster.tenant_id == current_user.tenant_id).order_by(ServiceMaster.updated_at.desc())).scalars().all()
+        departments = db.session.execute(select(Department).filter_by(is_active=True).filter(Department.tenant_id == current_user.tenant_id)).scalars().all()
         
         return render_template('manager/pricing.html', services=services, departments=departments)
     except Exception as e:
@@ -59,7 +59,7 @@ def get_services_api():
     """API لجلب كافة الخدمات"""
     try:
         from models.service import ServiceMaster
-        services = ServiceMaster.query.filter(ServiceMaster.tenant_id == current_user.tenant_id).order_by(ServiceMaster.updated_at.desc()).all()
+        services = db.session.execute(select(ServiceMaster).filter(ServiceMaster.tenant_id == current_user.tenant_id).order_by(ServiceMaster.updated_at.desc())).scalars().all()
         return jsonify({
             'success': True,
             'data': [{
@@ -97,7 +97,7 @@ def add_service_api():
         if not data.get('name') or not data.get('code'):
             return jsonify({'success': False, 'message': 'الاسم وكود الخدمة مطلوبان'}), 400
             
-        existing = ServiceMaster.query.filter_by(code=data['code']).filter(ServiceMaster.tenant_id == current_user.tenant_id).first()
+        existing = db.session.execute(select(ServiceMaster).filter_by(code=data['code']).filter(ServiceMaster.tenant_id == current_user.tenant_id)).scalars().first()
         if existing:
             return jsonify({'success': False, 'message': 'كود الخدمة موجود مسبقاً'}), 400
 

@@ -2,6 +2,7 @@
 مسارات الدفع - Payment Routes
 Medical System Payment Routes
 """
+from sqlalchemy import select, func
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, abort, g
 from flask_login import login_required, current_user
@@ -16,7 +17,7 @@ from services.gatekeeper_service import GatekeeperService
 from services.payment_service import payment_service
 from services.refund_service import refund_service
 from utils.tenant_query import get_tenant_record, TenantContextError
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging
 from datetime import datetime, timedelta, timezone
@@ -44,26 +45,26 @@ def dashboard():
         today = datetime.now().date()
         
         # المدفوعات اليوم
-        payments_today = Payment.query.filter(
+        payments_today = db.session.execute(select(func.count()).select_from(Payment).filter(
             db.func.date(Payment.created_at) == today
-        ).count()
+        )).scalar()
         
         # إجمال المدفوعات اليوم
-        total_today = db.session.query(db.func.sum(Payment.amount)).filter(
+        total_today = db.session.execute(select(db.func.sum(Payment.amount)).filter(
             db.func.date(Payment.created_at) == today
-        ).scalar() or 0
+        )).scalar() or 0
         
         # المدفوعات المعلقة
-        pending_payments = Payment.query.filter(Payment.status == PaymentStatus.PENDING).count()
+        pending_payments = db.session.execute(select(func.count()).select_from(Payment).filter(Payment.status == PaymentStatus.PENDING)).scalar()
         
         # المدفوعات المرفوضة
-        cancelled_payments = Payment.query.filter(Payment.status == PaymentStatus.CANCELLED).count()
+        cancelled_payments = db.session.execute(select(func.count()).select_from(Payment).filter(Payment.status == PaymentStatus.CANCELLED)).scalar()
         
         # طرق الدفع الأكثر استخداماً
-        payment_methods = db.session.query(
+        payment_methods = db.session.execute(select(
             Payment.method,
             db.func.count(Payment.id).label('count')
-        ).group_by(Payment.method).all()
+        ).group_by(Payment.method)).scalars().all()
         
         stats = {
             'payments_today': payments_today,
@@ -86,7 +87,7 @@ def process_payment(visit_id):
     """معالجة دفع"""
     
     
-    visit = db.session.query(Visit).filter_by(id=visit_id, tenant_id=g.tenant_id).with_for_update().first()
+    visit = db.session.execute(select(Visit).filter_by(id=visit_id, tenant_id=g.tenant_id).with_for_update()).scalars().first()
     if not visit:
         abort(404)
 
@@ -198,14 +199,14 @@ def process_payment(visit_id):
                     flash(force_message, 'error')
                     return redirect(url_for('payment.process_payment', visit_id=visit_id))
 
-            sc_partial = SystemConfig.query.filter_by(config_key='allow_partial_payment_global').first()
-            sc_debt = SystemConfig.query.filter_by(config_key='allow_debt_global').first()
+            sc_partial = db.session.execute(select(SystemConfig).filter_by(config_key='allow_partial_payment_global')).scalars().first()
+            sc_debt = db.session.execute(select(SystemConfig).filter_by(config_key='allow_debt_global')).scalars().first()
             allow_partial_global = sc_partial.get_value() if sc_partial else True
             allow_debt_global = sc_debt.get_value() if sc_debt else False
 
             qs = None
             if visit.department_id:
-                qs = QueueSettings.query.filter_by(department_id=visit.department_id).first()
+                qs = db.session.execute(select(QueueSettings).filter_by(department_id=visit.department_id)).scalars().first()
             allow_partial_dept = (qs.allow_partial_payment if qs is not None else True)
             allow_debt_dept = (qs.allow_debt if qs is not None else False)
 
@@ -280,7 +281,7 @@ def process_payment(visit_id):
             ])
             idempotency_key = hashlib.sha256(idempotency_seed.encode()).hexdigest()[:32]
 
-            existing_invoice = Invoice.query.filter_by(visit_id=visit.id).order_by(Invoice.created_at.desc()).first()
+            existing_invoice = db.session.execute(select(Invoice).filter_by(visit_id=visit.id).order_by(Invoice.created_at.desc())).scalars().first()
             ok, payment_or_error = payment_service.create_payment(
                 tenant_id=getattr(current_user, 'tenant_id', None),
                 operation_type='payment',
@@ -382,7 +383,7 @@ def process_payment(visit_id):
     insurance_companies = []
     try:
         from models.insurance import InsuranceCompany
-        insurance_companies = InsuranceCompany.query.filter_by(is_active=True).order_by(InsuranceCompany.name.asc()).all()
+        insurance_companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True).order_by(InsuranceCompany.name.asc())).scalars().all()
     except Exception:
         insurance_companies = []
     from models.exchange_rate import CurrencySettings
@@ -406,7 +407,7 @@ def payment_history():
         date_from = request.args.get('date_from', '')
         date_to = request.args.get('date_to', '')
         
-        query = Payment.query.filter(Payment.tenant_id == current_user.tenant_id)
+        query = select(Payment)
         
         if status:
             query = query.filter(Payment.status == status.upper())
@@ -463,24 +464,24 @@ def payment_reports():
         today = datetime.now().date()
         week_ago = today - timedelta(days=7)
         
-        daily_payments = db.session.query(
+        daily_payments = db.session.execute(select(
             db.func.date(Payment.created_at).label('date'),
             db.func.count(Payment.id).label('count'),
             db.func.sum(Payment.amount).label('total')
         ).filter(
             Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(week_ago, datetime.min.time())
-        ).group_by(db.func.date(Payment.created_at)).all()
+        ).group_by(db.func.date(Payment.created_at))).scalars().all()
         
         # تقرير طرق الدفع
-        method_stats = db.session.query(
+        method_stats = db.session.execute(select(
             Payment.method,
             db.func.count(Payment.id).label('count'),
             db.func.sum(Payment.amount).label('total')
         ).filter(
             Payment.tenant_id == current_user.tenant_id,
             Payment.created_at >= datetime.combine(week_ago, datetime.min.time())
-        ).group_by(Payment.method).all()
+        ).group_by(Payment.method)).scalars().all()
         
         return render_template('accountant/financial_reports.html', 
                              daily_payments=daily_payments,

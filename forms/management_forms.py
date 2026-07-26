@@ -2,6 +2,8 @@
 نماذج الإدارة والجدولة - Management Forms
 Medical System Management Forms
 """
+from sqlalchemy import select
+from app.extensions import db
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField, DateField, DateTimeField, IntegerField, FloatField, BooleanField, TimeField, SubmitField
@@ -28,7 +30,7 @@ class DoctorScheduleForm(FormBase, StatusMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل الأطباء
         from models.user import User
-        doctors = User.query.filter(User.role.in_(['doctor', 'admin', 'manager'])).all()
+        doctors = db.session.execute(select(User).filter(User.role.in_(['doctor', 'admin', 'manager']))).scalars().all()
         self.doctor_id.choices = [(d.id, d.full_name) for d in doctors]
     
     def validate_end_time(self, field):
@@ -59,7 +61,7 @@ class AvailabilityExceptionForm(FormBase, StatusMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل الأطباء
         from models.user import User
-        doctors = User.query.filter(User.role.in_(['doctor', 'admin', 'manager'])).all()
+        doctors = db.session.execute(select(User).filter(User.role.in_(['doctor', 'admin', 'manager']))).scalars().all()
         self.doctor_id.choices = [(d.id, d.full_name) for d in doctors]
     
     def validate_end_datetime(self, field):
@@ -94,12 +96,12 @@ class OnlineBookingForm(FormBase, MedicalEntityMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل الأطباء
         from models.user import User
-        doctors = User.query.filter(User.role.in_(['doctor', 'admin', 'manager'])).all()
+        doctors = db.session.execute(select(User).filter(User.role.in_(['doctor', 'admin', 'manager']))).scalars().all()
         self.preferred_doctor.choices = [('', 'اختر الطبيب')] + [(d.id, d.full_name) for d in doctors]
         
         # تحميل شركات التأمين
         from models.insurance import InsuranceCompany
-        companies = InsuranceCompany.query.filter_by(is_active=True).all()
+        companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True)).scalars().all()
         self.insurance_company_id.choices = [('', 'اختر شركة التأمين')] + [(c.id, c.name) for c in companies]
 
 class MedicalRecordForm(FormBase, MedicalEntityMixin, StatusMixin):
@@ -166,7 +168,7 @@ class PrescriptionItemForm(FormBase):
         """تحميل الخيارات الديناميكية"""
         # تحميل الوصفات الطبية
         from models.medication import Prescription
-        prescriptions = Prescription.query.filter_by(status='ACTIVE').all()
+        prescriptions = db.session.execute(select(Prescription).filter_by(status='ACTIVE')).scalars().all()
         self.prescription_id.choices = [(p.id, f"وصفة {p.prescription_number} - {p.patient.full_name}") for p in prescriptions]
 
 class FollowUpPlanForm(FormBase, MedicalEntityMixin, StatusMixin):

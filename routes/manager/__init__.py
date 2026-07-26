@@ -14,10 +14,10 @@ from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from services.gatekeeper_service import GatekeeperService
 from utils.decorators import manager_or_admin_only, can_approve_force_payment, prevent_self_approval, role_required, role_required_json
-from app_factory import db
+from app.extensions import db
 import logging
 from datetime import datetime, date, timedelta, timezone
-from sqlalchemy import func
+from sqlalchemy import func, select
 from decimal import Decimal, ROUND_HALF_UP
 
 manager_bp = Blueprint('manager', __name__)
@@ -55,49 +55,49 @@ def get_smart_analytics():
         month_ago = today - timedelta(days=30)
         
         # تحليل النمو
-        patients_this_week = Patient.query.filter(Patient.created_at >= week_ago, Patient.tenant_id == current_user.tenant_id).count()
-        patients_last_week = Patient.query.filter(
+        patients_this_week = db.session.execute(select(func.count()).select_from(Patient).filter(Patient.created_at >= week_ago, Patient.tenant_id == current_user.tenant_id)).scalar()
+        patients_last_week = db.session.execute(select(func.count()).select_from(Patient).filter(
             Patient.created_at >= week_ago - timedelta(days=7),
             Patient.created_at < week_ago,
             Patient.tenant_id == current_user.tenant_id
-        ).count()
+        )).scalar()
         
         growth_rate = ((patients_this_week - patients_last_week) / patients_last_week * 100) if patients_last_week > 0 else 0
         
         # تحليل الإيرادات
-        revenue_this_week = db.session.query(func.sum(Payment.amount)).filter(
+        revenue_this_week = db.session.execute(select(func.sum(Payment.amount)).filter(
             func.date(Payment.payment_date) >= week_ago,
             Payment.tenant_id == current_user.tenant_id
-        ).scalar() or 0
+        )).scalar() or 0
         
-        revenue_last_week = db.session.query(func.sum(Payment.amount)).filter(
+        revenue_last_week = db.session.execute(select(func.sum(Payment.amount)).filter(
             func.date(Payment.payment_date) >= (week_ago - timedelta(days=7)),
             func.date(Payment.payment_date) < week_ago,
             Payment.tenant_id == current_user.tenant_id
-        ).scalar() or 0
+        )).scalar() or 0
         
         revenue_growth = ((revenue_this_week - revenue_last_week) / revenue_last_week * 100) if revenue_last_week > 0 else 0
         
-        completion_rate = (Visit.query.filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED, Visit.tenant_id == current_user.tenant_id).count() / Visit.query.filter(Visit.tenant_id == current_user.tenant_id).count() * 100) if Visit.query.filter(Visit.tenant_id == current_user.tenant_id).count() > 0 else 0
+        completion_rate = (db.session.execute(select(func.count()).select_from(Visit).filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED, Visit.tenant_id == current_user.tenant_id)).scalar() / db.session.execute(select(func.count()).select_from(Visit).filter(Visit.tenant_id == current_user.tenant_id)).scalar() * 100) if db.session.execute(select(func.count()).select_from(Visit).filter(Visit.tenant_id == current_user.tenant_id)).scalar() > 0 else 0
         avg_visit_minutes = 0.0
         try:
-            avg_seconds = db.session.query(
+            avg_seconds = db.session.execute(select(
                 func.avg(func.extract('epoch', func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at) - Visit.created_at))
             ).filter(
                 Visit.created_at.isnot(None),
                 func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at).isnot(None),
                 Visit.tenant_id == current_user.tenant_id
-            ).scalar()
+            )).scalar()
             avg_visit_minutes = float(avg_seconds or 0) / 60.0
         except Exception:
             try:
-                avg_days = db.session.query(
+                avg_days = db.session.execute(select(
                     func.avg(func.julianday(func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at)) - func.julianday(Visit.created_at))
                 ).filter(
                     Visit.created_at.isnot(None),
                     func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at).isnot(None),
                     Visit.tenant_id == current_user.tenant_id
-                ).scalar()
+                )).scalar()
                 avg_visit_minutes = float((avg_days or 0) * 1440)
             except Exception:
                 avg_visit_minutes = 0.0
@@ -127,15 +127,15 @@ def get_business_insights():
         
         # تحليل ساعات الذروة
         try:
-            peak_hours = db.session.query(
+            peak_hours = db.session.execute(select(
                 func.extract('hour', Visit.visit_time).label('hour'),
                 func.count(Visit.id).label('count')
-            ).filter(Visit.tenant_id == current_user.tenant_id).group_by(func.extract('hour', Visit.visit_time)).all()
+            ).filter(Visit.tenant_id == current_user.tenant_id).group_by(func.extract('hour', Visit.visit_time))).scalars().all()
         except Exception:
-            peak_hours = db.session.query(
+            peak_hours = db.session.execute(select(
                 func.extract('hour', Visit.visit_time).label('hour'),
                 func.count(Visit.id).label('count')
-            ).filter(Visit.tenant_id == current_user.tenant_id).group_by(func.extract('hour', Visit.visit_time)).all()
+            ).filter(Visit.tenant_id == current_user.tenant_id).group_by(func.extract('hour', Visit.visit_time))).scalars().all()
         
         if peak_hours:
             max_hour = max(peak_hours, key=lambda x: x.count)
@@ -148,8 +148,8 @@ def get_business_insights():
                 })
         
         # تحليل الأداء المالي
-        total_revenue = db.session.query(func.sum(Payment.amount)).filter(Payment.tenant_id == current_user.tenant_id).scalar() or 0
-        avg_revenue_per_visit = total_revenue / Visit.query.filter(Visit.tenant_id == current_user.tenant_id).count() if Visit.query.filter(Visit.tenant_id == current_user.tenant_id).count() > 0 else 0
+        total_revenue = db.session.execute(select(func.sum(Payment.amount)).filter(Payment.tenant_id == current_user.tenant_id)).scalar() or 0
+        avg_revenue_per_visit = total_revenue / db.session.execute(select(func.count()).select_from(Visit).filter(Visit.tenant_id == current_user.tenant_id)).scalar() if db.session.execute(select(func.count()).select_from(Visit).filter(Visit.tenant_id == current_user.tenant_id)).scalar() > 0 else 0
         
         if avg_revenue_per_visit > 100:
             insights.append({
@@ -160,8 +160,8 @@ def get_business_insights():
             })
         
         # تحليل الموظفين
-        active_staff = User.query.filter(User.last_login >= datetime.now() - timedelta(days=7), User.tenant_id == current_user.tenant_id).count()
-        total_staff = User.query.filter(User.tenant_id == current_user.tenant_id).count()
+        active_staff = db.session.execute(select(func.count()).select_from(User).filter(User.last_login >= datetime.now() - timedelta(days=7), User.tenant_id == current_user.tenant_id)).scalar()
+        total_staff = db.session.execute(select(func.count()).select_from(User).filter(User.tenant_id == current_user.tenant_id)).scalar()
         staff_engagement = (active_staff / total_staff * 100) if total_staff > 0 else 0
         
         if staff_engagement < 70:
@@ -187,25 +187,25 @@ def get_performance_metrics():
         from sqlalchemy import func
         
         # معدل الإنجاز
-        total_visits = Visit.query.filter(Visit.tenant_id == current_user.tenant_id).count()
-        completed_visits = Visit.query.filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED, Visit.tenant_id == current_user.tenant_id).count()
+        total_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.tenant_id == current_user.tenant_id)).scalar()
+        completed_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED, Visit.tenant_id == current_user.tenant_id)).scalar()
         completion_rate = (completed_visits / total_visits * 100) if total_visits > 0 else 0
         
         # معدل المواعيد
-        total_appointments = Appointment.query.filter(Appointment.tenant_id == current_user.tenant_id).count()
-        completed_appointments = Appointment.query.filter(Appointment.status == AppointmentState.DONE, Appointment.tenant_id == current_user.tenant_id).count()
+        total_appointments = db.session.execute(select(func.count()).select_from(Appointment).filter(Appointment.tenant_id == current_user.tenant_id)).scalar()
+        completed_appointments = db.session.execute(select(func.count()).select_from(Appointment).filter(Appointment.status == AppointmentState.DONE, Appointment.tenant_id == current_user.tenant_id)).scalar()
         appointment_rate = (completed_appointments / total_appointments * 100) if total_appointments > 0 else 0
         
         avg_wait_minutes = 0.0
         try:
-            avg_seconds = db.session.query(
+            avg_seconds = db.session.execute(select(
                 func.avg(func.extract('epoch', Visit.completed_at - Visit.created_at))
-            ).filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id).scalar()
+            ).filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id)).scalar()
             avg_wait_minutes = float(avg_seconds or 0) / 60.0
         except Exception:
-            avg_days = db.session.query(
+            avg_days = db.session.execute(select(
                 func.avg(func.julianday(Visit.completed_at) - func.julianday(Visit.created_at))
-            ).filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id).scalar()
+            ).filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id)).scalar()
             avg_wait_minutes = float((avg_days or 0) * 1440)
         
         # معدل الرضا (محاكاة)
@@ -234,16 +234,16 @@ def get_financial_forecasting():
         week_ago = datetime.now().date() - timedelta(days=7)
         month_ago = datetime.now().date() - timedelta(days=30)
         
-        revenue_this_week = db.session.query(func.sum(Payment.amount)).filter(
+        revenue_this_week = db.session.execute(select(func.sum(Payment.amount)).filter(
             Payment.payment_date >= week_ago,
             Payment.tenant_id == current_user.tenant_id
-        ).scalar() or 0
+        )).scalar() or 0
         
-        revenue_last_week = db.session.query(func.sum(Payment.amount)).filter(
+        revenue_last_week = db.session.execute(select(func.sum(Payment.amount)).filter(
             Payment.payment_date >= week_ago - timedelta(days=7),
             Payment.payment_date < week_ago,
             Payment.tenant_id == current_user.tenant_id
-        ).scalar() or 0
+        )).scalar() or 0
         
         # حساب معدل النمو
         growth_rate = ((revenue_this_week - revenue_last_week) / revenue_last_week * 100) if revenue_last_week > 0 else 0
@@ -252,10 +252,10 @@ def get_financial_forecasting():
         predicted_next_week = revenue_this_week * (1 + growth_rate/100)
         
         # التنبؤ الشهري
-        monthly_revenue = db.session.query(func.sum(Payment.amount)).filter(
+        monthly_revenue = db.session.execute(select(func.sum(Payment.amount)).filter(
             func.date(Payment.payment_date) >= month_ago,
             Payment.tenant_id == current_user.tenant_id
-        ).scalar() or 0
+        )).scalar() or 0
         
         predicted_monthly = monthly_revenue * (1 + growth_rate/100)
         
@@ -282,21 +282,21 @@ def get_operational_efficiency():
         
         # تحليل الكفاءة حسب الأقسام
         try:
-            department_efficiency = db.session.query(
+            department_efficiency = db.session.execute(select(
                 func.count(Visit.id).label('visits'),
                 func.avg(func.extract('epoch', Visit.completed_at - Visit.created_at)).label('avg_seconds'),
                 User.department_id
-            ).join(User, Visit.doctor_id == User.id).filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id).group_by(User.department_id).all()
+            ).join(User, Visit.doctor_id == User.id).filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id).group_by(User.department_id)).scalars().all()
             department_efficiency = [
                 type('Row', (), {'visits': d.visits, 'avg_duration': float(d.avg_seconds or 0), 'department_id': d.department_id})
                 for d in department_efficiency
             ]
         except Exception:
-            dept_eff = db.session.query(
+            dept_eff = db.session.execute(select(
                 func.count(Visit.id).label('visits'),
                 func.avg(func.julianday(Visit.completed_at) - func.julianday(Visit.created_at)).label('avg_days'),
                 User.department_id
-            ).join(User, Visit.doctor_id == User.id).filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id).group_by(User.department_id).all()
+            ).join(User, Visit.doctor_id == User.id).filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id).group_by(User.department_id)).scalars().all()
             department_efficiency = [
                 type('Row', (), {'visits': d.visits, 'avg_duration': float((d.avg_days or 0) * 86400), 'department_id': d.department_id})
                 for d in dept_eff
@@ -304,16 +304,16 @@ def get_operational_efficiency():
         
         # تحليل استخدام الموارد
         resource_utilization = {
-            'total_doctors': User.query.filter(User.role == 'doctor', User.tenant_id == current_user.tenant_id).count(),
-            'active_doctors': User.query.filter(
+            'total_doctors': db.session.execute(select(func.count()).select_from(User).filter(User.role == 'doctor', User.tenant_id == current_user.tenant_id)).scalar(),
+            'active_doctors': db.session.execute(select(func.count()).select_from(User).filter(
                 User.role == 'doctor',
                 User.last_login >= datetime.now() - timedelta(days=7),
                 User.tenant_id == current_user.tenant_id
-            ).count(),
-            'total_visits_today': Visit.query.filter(
+            )).scalar(),
+            'total_visits_today': db.session.execute(select(func.count()).select_from(Visit).filter(
                 func.date(Visit.created_at) == datetime.now().date(),
                 Visit.tenant_id == current_user.tenant_id
-            ).count()
+            )).scalar()
         }
         
         # حساب معدل الكفاءة
@@ -347,7 +347,7 @@ def get_staff_productivity():
         from sqlalchemy import func
         
         # تحليل إنتاجية الأطباء
-        doctor_productivity = db.session.query(
+        doctor_productivity = db.session.execute(select(
             User.id,
             User.full_name,
             func.count(Visit.id).label('total_visits'),
@@ -355,15 +355,15 @@ def get_staff_productivity():
         ).join(Visit, User.id == Visit.doctor_id).filter(
             Visit.created_at >= datetime.now().date() - timedelta(days=30),
             Visit.tenant_id == current_user.tenant_id
-        ).group_by(User.id, User.full_name).all()
+        ).group_by(User.id, User.full_name)).scalars().all()
         
         # تحليل النشاط
-        active_staff = User.query.filter(
+        active_staff = db.session.execute(select(func.count()).select_from(User).filter(
             User.last_login >= datetime.now() - timedelta(days=7),
             User.tenant_id == current_user.tenant_id
-        ).count()
+        )).scalar()
         
-        total_staff = User.query.filter(User.tenant_id == current_user.tenant_id).count()
+        total_staff = db.session.execute(select(func.count()).select_from(User).filter(User.tenant_id == current_user.tenant_id)).scalar()
         engagement_rate = (active_staff / total_staff * 100) if total_staff > 0 else 0
         
         return {
@@ -392,14 +392,14 @@ def get_patient_satisfaction():
         from datetime import datetime, timedelta
         
         # محاكاة معدل الرضا بناءً على البيانات المتاحة
-        total_visits = Visit.query.filter(Visit.tenant_id == current_user.tenant_id).count()
-        completed_visits = Visit.query.filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED, Visit.tenant_id == current_user.tenant_id).count()
+        total_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.tenant_id == current_user.tenant_id)).scalar()
+        completed_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED, Visit.tenant_id == current_user.tenant_id)).scalar()
         
         # حساب معدل الرضا بناءً على معدل الإنجاز
         base_satisfaction = (completed_visits / total_visits * 100) if total_visits > 0 else 0
         
         # إضافة عوامل أخرى
-        avg_duration = db.session.query(func.avg(Visit.duration)).filter(Visit.tenant_id == current_user.tenant_id).scalar() or 0
+        avg_duration = db.session.execute(select(func.avg(Visit.duration)).filter(Visit.tenant_id == current_user.tenant_id)).scalar() or 0
         duration_factor = max(0, 100 - (avg_duration / 60 * 10))  # تقليل الرضا مع زيادة الوقت
         
         # حساب الرضا النهائي
@@ -432,15 +432,15 @@ def get_resource_optimization():
         
         # تحليل ساعات الذروة
         try:
-            peak_hours = db.session.query(
+            peak_hours = db.session.execute(select(
                 func.extract('hour', Visit.visit_time).label('hour'),
                 func.count(Visit.id).label('count')
-            ).filter(Visit.tenant_id == current_user.tenant_id).group_by(func.extract('hour', Visit.visit_time)).all()
+            ).filter(Visit.tenant_id == current_user.tenant_id).group_by(func.extract('hour', Visit.visit_time))).scalars().all()
         except Exception:
-            peak_hours = db.session.query(
+            peak_hours = db.session.execute(select(
                 func.extract('hour', Visit.visit_time).label('hour'),
                 func.count(Visit.id).label('count')
-            ).filter(Visit.tenant_id == current_user.tenant_id).group_by(func.extract('hour', Visit.visit_time)).all()
+            ).filter(Visit.tenant_id == current_user.tenant_id).group_by(func.extract('hour', Visit.visit_time))).scalars().all()
         
         if peak_hours:
             max_hour = max(peak_hours, key=lambda x: x.count)
@@ -453,10 +453,10 @@ def get_resource_optimization():
                 })
         
         # تحليل الأقسام
-        department_load = db.session.query(
+        department_load = db.session.execute(select(
             func.count(Visit.id).label('count'),
             User.department_id
-        ).join(User, Visit.doctor_id == User.id).filter(Visit.tenant_id == current_user.tenant_id).group_by(User.department_id).all()
+        ).join(User, Visit.doctor_id == User.id).filter(Visit.tenant_id == current_user.tenant_id).group_by(User.department_id)).scalars().all()
         
         if department_load:
             max_dept = max(department_load, key=lambda x: x.count)
@@ -469,13 +469,13 @@ def get_resource_optimization():
                 })
         
         # تحليل الموظفين
-        active_doctors = User.query.filter(
+        active_doctors = db.session.execute(select(func.count()).select_from(User).filter(
             User.role == 'doctor',
             User.last_login >= datetime.now() - timedelta(days=7),
             User.tenant_id == current_user.tenant_id
-        ).count()
+        )).scalar()
         
-        total_doctors = User.query.filter(User.role == 'doctor', User.tenant_id == current_user.tenant_id).count()
+        total_doctors = db.session.execute(select(func.count()).select_from(User).filter(User.role == 'doctor', User.tenant_id == current_user.tenant_id)).scalar()
         
         if active_doctors < total_doctors * 0.8:
             optimizations.append({
@@ -501,11 +501,11 @@ def get_resource_optimization():
 def get_bi_insights():
     try:
         start_30d = datetime.now(timezone.utc) - timedelta(days=30)
-        visits_30d = Visit.query.filter(Visit.created_at >= start_30d, Visit.tenant_id == current_user.tenant_id).count()
-        completed_30d = Visit.query.filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED, Visit.created_at >= start_30d, Visit.tenant_id == current_user.tenant_id).count()
-        appointments_30d = Appointment.query.filter(Appointment.starts_at >= start_30d, Appointment.tenant_id == current_user.tenant_id).count()
-        no_show = Appointment.query.filter(Appointment.status == AppointmentWorkflowStatus.NO_SHOW, Appointment.starts_at >= start_30d, Appointment.tenant_id == current_user.tenant_id).count()
-        cancel = Appointment.query.filter(Appointment.status == AppointmentWorkflowStatus.CANCELLED, Appointment.starts_at >= start_30d, Appointment.tenant_id == current_user.tenant_id).count()
+        visits_30d = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.created_at >= start_30d, Visit.tenant_id == current_user.tenant_id)).scalar()
+        completed_30d = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED, Visit.created_at >= start_30d, Visit.tenant_id == current_user.tenant_id)).scalar()
+        appointments_30d = db.session.execute(select(func.count()).select_from(Appointment).filter(Appointment.starts_at >= start_30d, Appointment.tenant_id == current_user.tenant_id)).scalar()
+        no_show = db.session.execute(select(func.count()).select_from(Appointment).filter(Appointment.status == AppointmentWorkflowStatus.NO_SHOW, Appointment.starts_at >= start_30d, Appointment.tenant_id == current_user.tenant_id)).scalar()
+        cancel = db.session.execute(select(func.count()).select_from(Appointment).filter(Appointment.status == AppointmentWorkflowStatus.CANCELLED, Appointment.starts_at >= start_30d, Appointment.tenant_id == current_user.tenant_id)).scalar()
         conversion_rate = (completed_30d / visits_30d * 100) if visits_30d else 0
         no_show_rate = (no_show / appointments_30d * 100) if appointments_30d else 0
         cancel_rate = (cancel / appointments_30d * 100) if appointments_30d else 0

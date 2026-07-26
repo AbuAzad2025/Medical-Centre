@@ -3,6 +3,7 @@ Radiology Service - Business logic for radiology operations.
 Extracted from routes/radiology/ to centralize validation, creation, and workflow.
 """
 from __future__ import annotations
+from sqlalchemy import select, func
 
 import logging
 import os
@@ -11,7 +12,7 @@ from datetime import date, datetime, timezone
 from typing import Any
 
 from flask import g
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from werkzeug.utils import secure_filename
 from services.feature_gate_service import require_module
@@ -35,14 +36,14 @@ class RadiologyService:
         from models.radiology_request import RadiologyRequest
         from models.visit import Visit
 
-        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id).first()
+        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id)).scalars().first()
         if not visit:
             return False, {"error": "Visit not found"}
 
         tenant_id = tenant_id or visit.tenant_id
 
         from app.core.module.models import TenantModule
-        if not TenantModule.query.filter_by(tenant_id=tenant_id, module_name='radiology', is_active=True).first():
+        if not db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, module_name='radiology', is_active=True)).scalars().first():
             raise PermissionError("Radiology module is not enabled for this tenant")
         now = datetime.now(timezone.utc)
         request_number = f"RAD-{visit_id}-{int(now.timestamp())}"
@@ -75,12 +76,12 @@ class RadiologyService:
         from models.radiology_request import RadiologyRequest
         today = date.today()
         return {
-            "requested": RadiologyRequest.query.filter(RadiologyRequest.status == "REQUESTED").count(),
-            "in_progress": RadiologyRequest.query.filter(RadiologyRequest.status == "IN_PROGRESS").count(),
-            "done_today": RadiologyRequest.query.filter(
+            "requested": db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(RadiologyRequest.status == "REQUESTED")).scalar(),
+            "in_progress": db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(RadiologyRequest.status == "IN_PROGRESS")).scalar(),
+            "done_today": db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
                 RadiologyRequest.status == "DONE",
                 db.func.date(RadiologyRequest.updated_at) == today
-            ).count(),
+            )).scalar(),
         }
 
     @staticmethod
@@ -100,14 +101,14 @@ class RadiologyService:
     @require_module('radiology')
     def get_request_by_id(request_id: int) -> Any | None:
         from models.radiology_request import RadiologyRequest
-        return RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
+        return db.session.execute(select(RadiologyRequest).filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id)).scalars().first()
 
     @staticmethod
     @require_module('radiology')
     def get_results_for_request(request_id: int) -> Any | None:
         from models.radiology_result import RadiologyResult
         from models.radiology_request import RadiologyRequest
-        req = RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
+        req = db.session.execute(select(RadiologyRequest).filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id)).scalars().first()
         if req and req.results:
             return req.results[0]
         return None
@@ -116,10 +117,10 @@ class RadiologyService:
     @require_module('radiology')
     def get_uploads_for_result(result_id: int) -> list:
         from models.file_management import FileUpload
-        return FileUpload.query.filter_by(
+        return db.session.execute(select(FileUpload).filter_by(
             related_entity_type="radiology_result",
             related_entity_id=result_id
-        ).order_by(FileUpload.uploaded_at.desc()).all()
+        ).order_by(FileUpload.uploaded_at.desc())).scalars().all()
 
     @staticmethod
     @require_module('radiology')
@@ -129,7 +130,7 @@ class RadiologyService:
         visit_ids = [r.visit_id for r in requests_list if getattr(r, "visit_id", None)]
         if not visit_ids:
             return {}
-        visits = Visit.query.filter(Visit.id.in_(visit_ids)).all()
+        visits = db.session.execute(select(Visit).filter(Visit.id.in_(visit_ids))).scalars().all()
         return {v.id: v for v in visits}
 
     # ==================== RESULT CREATION ====================
@@ -141,7 +142,7 @@ class RadiologyService:
         from models.radiology_result import RadiologyResult
         from models.radiology_request import RadiologyRequest
         try:
-            req = RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
+            req = db.session.execute(select(RadiologyRequest).filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id)).scalars().first()
             if not req:
                 return None
             result = req.results[0] if req.results else RadiologyResult(
@@ -167,7 +168,7 @@ class RadiologyService:
     def finalize_result(request_id: int) -> bool:
         from models.radiology_request import RadiologyRequest
         try:
-            req = RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
+            req = db.session.execute(select(RadiologyRequest).filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id)).scalars().first()
             if not req:
                 return False
             result = req.results[0] if req.results else None
@@ -187,7 +188,7 @@ class RadiologyService:
     def claim_request(request_id: int, user_id: int) -> bool:
         from models.radiology_request import RadiologyRequest
         try:
-            req = RadiologyRequest.query.filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id).first()
+            req = db.session.execute(select(RadiologyRequest).filter(RadiologyRequest.id == request_id, RadiologyRequest.tenant_id == g.tenant_id)).scalars().first()
             if not req or req.status != "REQUESTED":
                 return False
             req.status = "IN_PROGRESS"
@@ -290,16 +291,16 @@ class RadiologyService:
         from models.radiology_request import RadiologyRequest
         today = date.today()
         return {
-            "today_requests": RadiologyRequest.query.filter(
+            "today_requests": db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
                 db.func.date(RadiologyRequest.created_at) == today
-            ).count(),
-            "pending": RadiologyRequest.query.filter(
+            )).scalar(),
+            "pending": db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
                 RadiologyRequest.status.in_(["REQUESTED", "IN_PROGRESS"])
-            ).count(),
-            "completed_today": RadiologyRequest.query.filter(
+            )).scalar(),
+            "completed_today": db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
                 RadiologyRequest.status == "DONE",
                 db.func.date(RadiologyRequest.updated_at) == today
-            ).count(),
+            )).scalar(),
         }
 
 

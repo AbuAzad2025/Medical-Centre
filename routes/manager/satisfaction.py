@@ -17,8 +17,8 @@ from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from services.gatekeeper_service import GatekeeperService
 from services.manager_service import manager_service
-from app_factory import db
-from sqlalchemy import func
+from app.extensions import db
+from sqlalchemy import func, select
 from decimal import Decimal, ROUND_HALF_UP
 import logging
 from datetime import datetime, date, timedelta, timezone
@@ -35,7 +35,7 @@ def patient_satisfaction_dashboard():
     """لوحة رضا المرضى"""
     try:
         from models.patient_satisfaction import PatientSatisfactionSurvey
-        surveys = PatientSatisfactionSurvey.query.filter(PatientSatisfactionSurvey.tenant_id == current_user.tenant_id).order_by(PatientSatisfactionSurvey.created_at.desc()).limit(100).all()
+        surveys = db.session.execute(select(PatientSatisfactionSurvey).filter(PatientSatisfactionSurvey.tenant_id == current_user.tenant_id).order_by(PatientSatisfactionSurvey.created_at.desc()).limit(100)).scalars().all()
         total = len(surveys) if surveys else 0
         if total > 0:
             avg_score = sum(float(s.overall_satisfaction or 0) for s in surveys) / total

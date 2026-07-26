@@ -4,7 +4,7 @@ from flask import render_template, request, jsonify
 from flask_login import login_required, current_user
 from utils.decorators import role_required
 from app.core.platform_capabilities import require_platform_capability
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.core.tenant.models import Tenant
 import logging
@@ -28,7 +28,7 @@ def manager_settings():
         if not tenant_id:
             return jsonify({'success': False, 'message': 'لا يوجد تينانت'}), 400
 
-        tenant = Tenant.query.get(tenant_id)
+        tenant = db.session.get(Tenant, tenant_id)
         if not tenant:
             return jsonify({'success': False, 'message': 'التينانت غير موجود'}), 404
 
@@ -62,7 +62,7 @@ def manager_settings():
 
     # GET: load current settings
     tenant_id = getattr(current_user, 'tenant_id', None)
-    tenant = Tenant.query.get(tenant_id) if tenant_id else None
+    tenant = db.session.get(Tenant, tenant_id) if tenant_id else None
     settings = tenant.settings if tenant and tenant.settings else {}
 
     return render_template('manager/settings.html', settings=settings, tenant=tenant)
@@ -80,7 +80,7 @@ def manager_test_sms():
             return jsonify({'success': False, 'message': 'يرجى إدخال رقم الهاتف'}), 400
 
         tenant_id = getattr(current_user, 'tenant_id', None)
-        tenant = Tenant.query.get(tenant_id) if tenant_id else None
+        tenant = db.session.get(Tenant, tenant_id) if tenant_id else None
 
         from services.sms_service import SMSService
         result = SMSService.send_sms(

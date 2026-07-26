@@ -6,7 +6,7 @@ from routes.reception import reception_bp
  
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, g
 from flask_login import login_required, current_user
-from sqlalchemy import func
+from sqlalchemy import func, select
 from datetime import datetime, timezone
 from models.user import User, StaffWorkSchedule, StaffAbsence
 from models.patient import Patient
@@ -21,7 +21,7 @@ from models.patient_satisfaction import PatientSatisfactionSurvey
 from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging
 from app.shared.enums import VisitState
@@ -72,7 +72,7 @@ def visits():
     page = max(1, page)
     total = query.count()
     visits = query.order_by(Visit.created_at.desc()).limit(per_page).offset((page - 1) * per_page).all()
-    departments = Department.query.all()
+    departments = db.session.execute(select(Department)).scalars().all()
     
     billing_active = 'billing' in getattr(g, 'enabled_modules', set())
     return render_template('reception/visits.html', 
@@ -235,12 +235,12 @@ def _process_custom_services(custom_names, custom_prices, department_id, current
         except ValueError:
             price = 0.0
         # Ticket 6: custom services must NOT match an existing approved catalog service
-        existing = ServiceMaster.query.filter(
+        existing = db.session.execute(select(ServiceMaster).filter(
             db.func.lower(ServiceMaster.name) == db.func.lower(name),
             ServiceMaster.department_id == int(department_id),
             ServiceMaster.is_active == True,
             ServiceMaster.is_custom == False
-        ).first()
+        )).scalars().first()
         if existing:
             ids.append(str(existing.id))
         else:
@@ -361,7 +361,7 @@ def create_visit():
                     patient_id = str(patient.id)
 
                 try:
-                    departments_all = Department.query.filter_by(is_active=True).all()
+                    departments_all = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
                     emergency_dept = next((d for d in departments_all if d.get_type() == 'emergency'), None)
                     if emergency_dept:
                         department_id = str(emergency_dept.id)
@@ -514,7 +514,7 @@ def create_visit():
                 from models.radiology_request import RadiologyRequest
                 
                 ids = [int(x) for x in selected_tests if str(x).isdigit()]
-                services = ServiceMaster.query.filter(ServiceMaster.id.in_(ids), ServiceMaster.is_active == True).all()
+                services = db.session.execute(select(ServiceMaster).filter(ServiceMaster.id.in_(ids), ServiceMaster.is_active == True)).scalars().all()
                 
                 total_cost = 0.0
                 lab_services = []
@@ -648,7 +648,7 @@ def create_visit():
                 setup_barcode_for_lab_request(lab_req, current_user=current_user, tenant_id=getattr(current_user, 'tenant_id', None))
                 from models.service import ServiceMaster
                 ids = [int(x) for x in selected_tests if str(x).isdigit()]
-                services = ServiceMaster.query.filter(ServiceMaster.id.in_(ids), ServiceMaster.is_active == True).all()
+                services = db.session.execute(select(ServiceMaster).filter(ServiceMaster.id.in_(ids), ServiceMaster.is_active == True)).scalars().all()
                 for s in services:
                     lr = LabResult(request_id=lab_req.id, patient_id=patient_id, test_code=s.code, test_name=s.name_ar or s.name, status='PENDING')
                     db.session.add(lr)
@@ -657,7 +657,7 @@ def create_visit():
                 from models.radiology_request import RadiologyRequest
                 from models.service import ServiceMaster
                 ids = [int(x) for x in selected_tests if str(x).isdigit()]
-                services = ServiceMaster.query.filter(ServiceMaster.id.in_(ids), ServiceMaster.is_active == True).all()
+                services = db.session.execute(select(ServiceMaster).filter(ServiceMaster.id.in_(ids), ServiceMaster.is_active == True)).scalars().all()
                 for s in services:
                     modality = 'XRay' if (s.code or '').upper().find('XRAY') != -1 else None
                     body_part = s.name_ar or s.name
@@ -668,7 +668,7 @@ def create_visit():
             # تحديث عداد زيارات المريض
             try:
                 from models.patient_visit_counter import PatientVisitCounter
-                pvc = PatientVisitCounter.query.filter_by(patient_id=patient_id).first()
+                pvc = db.session.execute(select(PatientVisitCounter).filter_by(patient_id=patient_id)).scalars().first()
                 if not pvc:
                     pvc = PatientVisitCounter(patient_id=patient_id, visit_count=0)
                     db.session.add(pvc)
@@ -730,11 +730,11 @@ def create_visit():
             logging.error(f"Error creating visit: {str(e)}", exc_info=True)
     
     # ========== GET Request: عرض النموذج ==========
-    patients = Patient.query.all()
-    departments = Department.query.filter_by(is_active=True).all()
-    doctors = User.query.filter_by(role='doctor', is_active=True).all()
+    patients = db.session.execute(select(Patient)).scalars().all()
+    departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+    doctors = db.session.execute(select(User).filter_by(role='doctor', is_active=True)).scalars().all()
     from models.insurance import InsuranceCompany
-    insurance_companies = InsuranceCompany.query.filter_by(is_active=True).order_by(InsuranceCompany.name.asc()).all()
+    insurance_companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True).order_by(InsuranceCompany.name.asc())).scalars().all()
     preselected_patient_id = request.args.get('patient_id', type=int)
     preselected_department_id = request.args.get('department_id', type=int)
     preselected_doctor_id = request.args.get('doctor_id', type=int)
@@ -801,7 +801,7 @@ def api_visit_pricing():
         if dept and test_ids_param and dept.get_type() in ['lab', 'radiology']:
             from models.service import ServiceMaster
             ids = [int(x) for x in test_ids_param.split(',') if x.isdigit()]
-            services = ServiceMaster.query.filter(ServiceMaster.id.in_(ids), ServiceMaster.is_active == True).all()
+            services = db.session.execute(select(ServiceMaster).filter(ServiceMaster.id.in_(ids), ServiceMaster.is_active == True)).scalars().all()
             breakdown = []
             total = 0.0
             for s in services:
@@ -937,10 +937,10 @@ def calculate_visit_cost(department_id, doctor_id, visit_type, is_emergency, pay
         if not department:
             return 0
         service_type = get_service_type_by_department(department)
-        pricing_entry = PricingCatalog.query.filter(
+        pricing_entry = db.session.execute(select(PricingCatalog).filter(
             PricingCatalog.service_type == service_type,
             PricingCatalog.is_active == True
-        ).first()
+        )).scalars().first()
         if pricing_entry:
             if payment_method == 'insurance':
                 total_cost = pricing_entry.get_final_price('insurance')
@@ -966,7 +966,7 @@ def calculate_visit_cost(department_id, doctor_id, visit_type, is_emergency, pay
                 total_cost += float(doctor_cost)
         
         # تطبيق قواعد التسعير (الخصومات والزيادات)
-        rules = PricingRule.query.filter(PricingRule.is_active == True).order_by(PricingRule.priority.asc()).all()
+        rules = db.session.execute(select(PricingRule).filter(PricingRule.is_active == True).order_by(PricingRule.priority.asc())).scalars().all()
         for r in rules:
             matched = False
             if r.condition_type == 'visit_type':
@@ -1015,10 +1015,10 @@ def get_service_by_department(department):
         category = 'radiology'
     elif dt == 'emergency':
         category = 'emergency'
-    return ServiceMaster.query.filter(
+    return db.session.execute(select(ServiceMaster).filter(
         ServiceMaster.category == category,
         ServiceMaster.is_active == True
-    ).first()
+    )).scalars().first()
 
 def calculate_doctor_cost(doctor_id, department_id, visit_type, is_emergency, payment_method):
     """حساب تكلفة الطبيب"""
@@ -1026,21 +1026,21 @@ def calculate_doctor_cost(doctor_id, department_id, visit_type, is_emergency, pa
         from models.pricing import DoctorPricing
         
         # البحث عن تسعير الطبيب
-        doctor_pricing = DoctorPricing.query.filter(
+        doctor_pricing = db.session.execute(select(DoctorPricing).filter(
             DoctorPricing.doctor_id == doctor_id,
             DoctorPricing.department_id == department_id,
             DoctorPricing.is_active == True
-        ).first()
+        )).scalars().first()
         
         if doctor_pricing:
             return doctor_pricing.get_price(visit_type, payment_method)
         
         # إذا لم يوجد تسعير محدد، البحث عن تسعير عام للطبيب
-        general_pricing = DoctorPricing.query.filter(
+        general_pricing = db.session.execute(select(DoctorPricing).filter(
             DoctorPricing.doctor_id == doctor_id,
             DoctorPricing.department_id.is_(None),
             DoctorPricing.is_active == True
-        ).first()
+        )).scalars().first()
         
         if general_pricing:
             return general_pricing.get_price(visit_type, payment_method)
@@ -1090,8 +1090,8 @@ def edit_visit(visit_id):
             flash('حدث خطأ أثناء تعديل الزيارة', 'error')
             return redirect(url_for('reception.edit_visit', visit_id=visit_id))
 
-    departments = Department.query.filter_by(is_active=True).order_by(Department.name).all()
-    doctors = User.query.filter(User.role.in_(['doctor', 'emergency']), User.is_active == True).order_by(User.full_name).all()
+    departments = db.session.execute(select(Department).filter_by(is_active=True).order_by(Department.name)).scalars().all()
+    doctors = db.session.execute(select(User).filter(User.role.in_(['doctor', 'emergency']), User.is_active == True).order_by(User.full_name)).scalars().all()
     return render_template('reception/edit_visit.html', visit=visit, departments=departments, doctors=doctors)
 
 
@@ -1139,7 +1139,7 @@ def add_service_to_visit(visit_id):
 
         # Ensure an invoice exists for the visit
         from models.invoice import Invoice
-        invoice = Invoice.query.filter_by(visit_id=visit.id).order_by(Invoice.created_at.desc()).first()
+        invoice = db.session.execute(select(Invoice).filter_by(visit_id=visit.id).order_by(Invoice.created_at.desc())).scalars().first()
         if not invoice:
             invoice = Invoice(
                 invoice_number=f"INV-{visit.id}-{int(__import__('datetime').datetime.now(__import__('datetime').timezone.utc).timestamp())}",

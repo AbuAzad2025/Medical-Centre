@@ -9,10 +9,12 @@ import stripe
 
 from app.extensions import db
 from utils.db_safety import safe_commit
+from utils.circuit_breaker import circuit_breaker_call
 from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.models import PackageVersion, PackageVersionPricing
 from app.core.saas.projection import EntitlementProjectionService
 from app.core.tenant.models import Tenant
+from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,11 @@ class StripeBillingError(ValueError):
 
 class StripeBillingService:
     """Create and manage Stripe subscriptions; sync entitlements locally."""
+
+    @staticmethod
+    def _cb_call(func, *args, **kwargs):
+        """Route external calls through circuit breaker."""
+        return circuit_breaker_call('stripe_billing', func, *args, **kwargs)
 
     @classmethod
     def _version_display_name(cls, version: PackageVersion) -> str:
@@ -41,17 +48,17 @@ class StripeBillingService:
 
     @classmethod
     def _require_tenant(cls, tenant_id: int) -> Tenant:
-        tenant = Tenant.query.get(tenant_id)  # global reference table - no tenant scope
+        tenant = db.session.get(Tenant, tenant_id)  # global reference table - no tenant scope
         if tenant is None:
             raise StripeBillingError('tenant_not_found')
         return tenant
 
     @classmethod
     def _pricing_for(cls, package_version_id: int, billing_type: str) -> PackageVersionPricing:
-        pricing = PackageVersionPricing.query.filter_by(
+        pricing = db.session.execute(select(PackageVersionPricing).filter_by(
             package_version_id=package_version_id,
             billing_type=billing_type,
-        ).first()
+        )).scalars().first()
         if pricing is None:
             raise StripeBillingError('package_pricing_not_found')
         return pricing
@@ -101,7 +108,7 @@ class StripeBillingService:
     ) -> dict[str, Any]:
         cls._api_key()
         tenant = cls._require_tenant(tenant_id)
-        version = PackageVersion.query.get(package_version_id)  # global reference table - no tenant scope
+        version = db.session.get(PackageVersion, package_version_id)  # global reference table - no tenant scope
         if version is None:
             raise StripeBillingError('package_version_not_found')
 
@@ -196,7 +203,7 @@ class StripeBillingService:
         subscription_id = (tenant.settings or {}).get('stripe_subscription_id')
 
         new_pricing = cls._pricing_for(new_package_version_id, billing_type)
-        new_version = PackageVersion.query.get(new_package_version_id)  # global reference table - no tenant scope
+        new_version = db.session.get(PackageVersion, new_package_version_id)  # global reference table - no tenant scope
         if new_version is None:
             raise StripeBillingError('package_version_not_found')
 
@@ -224,11 +231,11 @@ class StripeBillingService:
             )
 
         from app.core.saas.models import SubscriptionLine, SubscriptionLineStatus, SubscriptionLineType
-        current_line = SubscriptionLine.query.filter_by(
+        current_line = db.session.execute(select(SubscriptionLine).filter_by(
             tenant_id=tenant_id,
             line_type=SubscriptionLineType.BASE,
             status=SubscriptionLineStatus.ACTIVE,
-        ).first()
+        )).scalars().first()
         current_price = 0.0
         if current_line:
             current_pricing = cls._pricing_for(current_line.package_version_id, current_line.billing_type)

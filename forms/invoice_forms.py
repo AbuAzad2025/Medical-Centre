@@ -2,6 +2,8 @@
 نماذج الفواتير - Invoice Forms
 Medical System Invoice Forms
 """
+from sqlalchemy import select
+from app.extensions import db
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField, DateField, DecimalField, BooleanField, HiddenField, SubmitField
@@ -35,7 +37,7 @@ class InvoiceForm(FormBase, MedicalEntityMixin, StatusMixin, PaymentMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل شركات التأمين
         from models.insurance import InsuranceCompany
-        companies = InsuranceCompany.query.filter_by(is_active=True).all()
+        companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True)).scalars().all()
         self.insurance_company_id.choices = [('', 'اختر شركة التأمين')] + [(c.id, c.name) for c in companies]
     
     def validate_paid_amount(self, field):
@@ -53,7 +55,7 @@ class InvoiceForm(FormBase, MedicalEntityMixin, StatusMixin, PaymentMixin):
     def validate_invoice_number(self, field):
         """التحقق من عدم تكرار رقم الفاتورة"""
         from models.invoice import Invoice
-        existing = Invoice.query.filter(Invoice.invoice_number == field.data).first()
+        existing = db.session.execute(select(Invoice).filter(Invoice.invoice_number == field.data)).scalars().first()
         if existing:
             raise ValidationError('رقم الفاتورة مستخدم مسبقاً')
 
@@ -90,7 +92,7 @@ class InvoiceSearchForm(SearchFormBase, DateRangeMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل شركات التأمين
         from models.insurance import InsuranceCompany
-        companies = InsuranceCompany.query.filter_by(is_active=True).all()
+        companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True)).scalars().all()
         self.insurance_company_id.choices = [('', 'جميع الشركات')] + [(c.id, c.name) for c in companies]
 
 class ReceiptForm(FormBase, PaymentMixin):
@@ -109,7 +111,7 @@ class ReceiptForm(FormBase, PaymentMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل الفواتير غير المدفوعة بالكامل
         from models.invoice import Invoice
-        invoices = Invoice.query.filter(Invoice.status != 'PAID').all()
+        invoices = db.session.execute(select(Invoice).filter(Invoice.status != 'PAID')).scalars().all()
         def display_for(i):
             patient_name = i.visit.patient.full_name if (i.visit and i.visit.patient) else 'غير محدد'
             return f"فاتورة {i.invoice_number} - {patient_name} - {i.total_amount}"
@@ -118,7 +120,7 @@ class ReceiptForm(FormBase, PaymentMixin):
     def validate_receipt_number(self, field):
         """التحقق من عدم تكرار رقم السند"""
         from models.receipt import Receipt
-        existing = Receipt.query.filter(Receipt.receipt_number == field.data).first()
+        existing = db.session.execute(select(Receipt).filter(Receipt.receipt_number == field.data)).scalars().first()
         if existing:
             raise ValidationError('رقم السند مستخدم مسبقاً')
 
@@ -146,7 +148,7 @@ class RefundForm(FormBase, PaymentMixin):
         # تحميل المدفوعات المكتملة
         from models.payment import Payment
         from models.payment import PaymentStatus
-        payments = Payment.query.filter(Payment.status == PaymentStatus.CONFIRMED).all()
+        payments = db.session.execute(select(Payment).filter(Payment.status == PaymentStatus.CONFIRMED)).scalars().all()
         self.original_payment_id.choices = [(p.id, f"دفع {p.id} - {p.patient.full_name} - {p.amount}") for p in payments]
 
 class InsuranceClaimForm(FormBase, MedicalEntityMixin):
@@ -176,13 +178,13 @@ class InsuranceClaimForm(FormBase, MedicalEntityMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل شركات التأمين
         from models.insurance import InsuranceCompany
-        companies = InsuranceCompany.query.filter_by(is_active=True).all()
+        companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True)).scalars().all()
         self.insurance_company_id.choices = [(c.id, c.name) for c in companies]
     
     def validate_claim_number(self, field):
         """التحقق من عدم تكرار رقم المطالبة"""
         from models.insurance import InsuranceClaim
-        existing = InsuranceClaim.query.filter(InsuranceClaim.claim_number == field.data).first()
+        existing = db.session.execute(select(InsuranceClaim).filter(InsuranceClaim.claim_number == field.data)).scalars().first()
         if existing:
             raise ValidationError('رقم المطالبة مستخدم مسبقاً')
 
@@ -203,7 +205,7 @@ class InsuranceClaimSearchForm(SearchFormBase, DateRangeMixin):
         """تحميل الخيارات الديناميكية"""
         # تحميل شركات التأمين
         from models.insurance import InsuranceCompany
-        companies = InsuranceCompany.query.filter_by(is_active=True).all()
+        companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True)).scalars().all()
         self.insurance_company_id.choices = [('', 'جميع الشركات')] + [(c.id, c.name) for c in companies]
 
 class InsurancePolicyForm(FormBase):
@@ -227,12 +229,12 @@ class InsurancePolicyForm(FormBase):
         """تحميل الخيارات الديناميكية"""
         # تحميل شركات التأمين
         from models.insurance import InsuranceCompany
-        companies = InsuranceCompany.query.filter_by(is_active=True).all()
+        companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True)).scalars().all()
         self.insurance_company_id.choices = [(c.id, c.name) for c in companies]
         
         # تحميل المرضى
         from models.patient import Patient
-        patients = Patient.query.all()
+        patients = db.session.execute(select(Patient)).scalars().all()
         self.patient_id.choices = [(p.id, f"{p.full_name} - {p.national_id}") for p in patients]
 
 class InsuranceProviderForm(FormBase):

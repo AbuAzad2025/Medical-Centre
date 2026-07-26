@@ -1,6 +1,7 @@
 """
 Clinical Coding Routes — ICD-10, CPT, DRG management
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors, role_required
@@ -9,7 +10,7 @@ from models.patient import Patient
 from models.visit import Visit
 from models.medical_record import MedicalRecord
 from models.user import User
-from app_factory import db
+from app.extensions import db
 import logging
 
 clinical_coding_bp = Blueprint('clinical_coding', __name__)
@@ -21,7 +22,7 @@ clinical_coding_bp = Blueprint('clinical_coding', __name__)
 @handle_route_errors
 def icd10_list():
     q = request.args.get('q', '').strip()
-    query = ICD10Code.query.filter_by(is_active=True)
+    query = select(ICD10Code)
     if q:
         query = query.filter(
             db.or_(
@@ -38,7 +39,7 @@ def icd10_list():
 @role_required('doctor', 'admin', 'manager')
 @handle_route_errors
 def icd10_detail(id):
-    code = ICD10Code.query.get_or_404(id)
+    code = db.get_or_404(ICD10Code, id)
     return render_template('clinical_coding/icd10_detail.html', code=code)
 
 @clinical_coding_bp.route('/cpt')
@@ -47,7 +48,7 @@ def icd10_detail(id):
 @handle_route_errors
 def cpt_list():
     q = request.args.get('q', '').strip()
-    query = CPTCode.query.filter_by(is_active=True)
+    query = select(CPTCode)
     if q:
         query = query.filter(
             db.or_(
@@ -64,7 +65,7 @@ def cpt_list():
 @handle_route_errors
 def drg_list():
     q = request.args.get('q', '').strip()
-    query = DRGCode.query.filter_by(is_active=True)
+    query = select(DRGCode)
     if q:
         query = query.filter(
             db.or_(
@@ -80,10 +81,10 @@ def drg_list():
 @role_required('doctor', 'nurse', 'admin', 'manager')
 @handle_route_errors
 def patient_diagnoses(patient_id):
-    patient = Patient.query.get_or_404(patient_id)
-    diagnoses = CodedDiagnosis.query.filter_by(patient_id=patient_id).order_by(
+    patient = db.get_or_404(Patient, patient_id)
+    diagnoses = db.session.execute(select(CodedDiagnosis).filter_by(patient_id=patient_id).order_by(
         CodedDiagnosis.created_at.desc()
-    ).all()
+    )).scalars().all()
     return render_template('clinical_coding/patient_diagnoses.html',
                            patient=patient, diagnoses=diagnoses)
 
@@ -92,10 +93,10 @@ def patient_diagnoses(patient_id):
 @role_required('doctor', 'nurse', 'admin', 'manager')
 @handle_route_errors
 def patient_procedures(patient_id):
-    patient = Patient.query.get_or_404(patient_id)
-    procedures = CodedProcedure.query.filter_by(patient_id=patient_id).order_by(
+    patient = db.get_or_404(Patient, patient_id)
+    procedures = db.session.execute(select(CodedProcedure).filter_by(patient_id=patient_id).order_by(
         CodedProcedure.created_at.desc()
-    ).all()
+    )).scalars().all()
     return render_template('clinical_coding/patient_procedures.html',
                            patient=patient, procedures=procedures)
 
@@ -106,13 +107,13 @@ def api_icd10_search():
     q = request.args.get('q', '').strip()
     if len(q) < 2:
         return jsonify([])
-    codes = ICD10Code.query.filter(
+    codes = db.session.execute(select(ICD10Code).filter(
         db.or_(
             ICD10Code.code.ilike(f'%{q}%'),
             ICD10Code.description.ilike(f'%{q}%')
         ),
         ICD10Code.is_active == True
-    ).limit(20).all()
+    ).limit(20)).scalars().all()
     return jsonify([{'id': c.id, 'code': c.code, 'text': f"{c.code} - {c.description}"} for c in codes])
 
 @clinical_coding_bp.route('/api/cpt/search')
@@ -122,11 +123,11 @@ def api_cpt_search():
     q = request.args.get('q', '').strip()
     if len(q) < 2:
         return jsonify([])
-    codes = CPTCode.query.filter(
+    codes = db.session.execute(select(CPTCode).filter(
         db.or_(
             CPTCode.code.ilike(f'%{q}%'),
             CPTCode.description.ilike(f'%{q}%')
         ),
         CPTCode.is_active == True
-    ).limit(20).all()
+    ).limit(20)).scalars().all()
     return jsonify([{'id': c.id, 'code': c.code, 'text': f"{c.code} - {c.description}"} for c in codes])

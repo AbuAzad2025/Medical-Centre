@@ -3,13 +3,14 @@ Refund Service - P3-006
 Request → Approval → Execution workflow for payment refunds.
 """
 from __future__ import annotations
+from sqlalchemy import select
 
 import logging
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any
 
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_rollback
 from utils.tenant_query import get_tenant_record, TenantContextError
 
@@ -45,9 +46,9 @@ class RefundService:
             return False, "Refund amount exceeds payment amount"
 
         # Prevent duplicate pending requests for the same payment.
-        existing = RefundRequest.query.filter_by(
+        existing = db.session.execute(select(RefundRequest).filter_by(
             payment_id=payment.id, status=RefundStatus.PENDING
-        ).first()
+        )).scalars().first()
         if existing:
             return False, "A pending refund request already exists for this payment"
 
@@ -141,9 +142,9 @@ class RefundService:
         try:
             refund_amount = Decimal(str(request.amount))
             if payment.visit_id:
-                invoices = Invoice.query.filter_by(visit_id=payment.visit_id).order_by(
+                invoices = db.session.execute(select(Invoice).filter_by(visit_id=payment.visit_id).order_by(
                     Invoice.created_at.desc()
-                ).all()
+                )).scalars().all()
                 remaining = refund_amount
                 for inv in invoices:
                     if remaining <= 0:
@@ -166,7 +167,7 @@ class RefundService:
             payment.cancelled_at = datetime.now(timezone.utc)
             payment.cancellation_reason = f"Refund executed: {request.reason}"
 
-            receipt = Receipt.query.filter_by(payment_id=payment.id).first()
+            receipt = db.session.execute(select(Receipt).filter_by(payment_id=payment.id)).scalars().first()
             if receipt:
                 receipt.status = "voided"
                 receipt.void_reason = request.reason

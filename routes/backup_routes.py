@@ -2,12 +2,13 @@
 مسارات النسخ الاحتياطي - Backup Routes
 Medical System Backup Routes
 """
+from sqlalchemy import select, func
 
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_file, abort
 from flask_login import login_required, current_user
 from utils.decorators import super_admin_required
 from models.backup import Backup
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging
 import os
@@ -30,11 +31,11 @@ logger = logging.getLogger(__name__)
 def dashboard():
     """لوحة تحكم النسخ الاحتياطي"""
     try:
-        total_backups = Backup.query.count()
-        completed_backups = Backup.query.filter_by(backup_status=BackupStatus.COMPLETED).count()
-        failed_backups = Backup.query.filter_by(backup_status=BackupStatus.FAILED).count()
-        scheduled_backups = Backup.query.filter_by(is_scheduled=True).count()
-        recent_backups = Backup.query.order_by(Backup.created_at.desc()).limit(5).all()
+        total_backups = db.session.execute(select(func.count()).select_from(Backup)).scalar()
+        completed_backups = db.session.execute(select(func.count()).select_from(Backup).filter_by(backup_status=BackupStatus.COMPLETED)).scalar()
+        failed_backups = db.session.execute(select(func.count()).select_from(Backup).filter_by(backup_status=BackupStatus.FAILED)).scalar()
+        scheduled_backups = db.session.execute(select(func.count()).select_from(Backup).filter_by(is_scheduled=True)).scalar()
+        recent_backups = db.session.execute(select(Backup).order_by(Backup.created_at.desc()).limit(5)).scalars().all()
         stats = {
             'total_backups': total_backups,
             'completed_backups': completed_backups,
@@ -118,7 +119,7 @@ def create_backup():
 @super_admin_required
 def list_backups():
     try:
-        backups = Backup.query.order_by(Backup.created_at.desc()).all()
+        backups = db.session.execute(select(Backup).order_by(Backup.created_at.desc())).scalars().all()
         return render_template('backup/list_backups.html', backups=backups)
     except Exception as e:
         logger.error('Error listing backups: %s', e)

@@ -6,11 +6,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import func, and_, or_, desc
+from sqlalchemy import func, and_, or_, desc, select
 from sqlalchemy.orm import Query
 
 from app.shared.enums import VisitState
-from app_factory import db
+from app.extensions import db
 from utils.tenant_query import get_tenant_record
 
 if TYPE_CHECKING:
@@ -40,7 +40,7 @@ class CoreQueryService:
     @staticmethod
     def get_patient_by_code(code: str) -> Patient | None:
         from models.patient import Patient
-        return Patient.query.filter_by(code=code).first()
+        return db.session.execute(select(Patient).filter_by(code=code)).scalars().first()
 
     @staticmethod
     def search_patients(
@@ -88,17 +88,14 @@ class CoreQueryService:
     @staticmethod
     def get_visits_by_patient(patient_id: int, limit: int = 50) -> list[Visit]:
         from models.visit import Visit
-        return (
-            Visit.query.filter_by(patient_id=patient_id)
+        return db.session.execute(select(Visit).filter_by(patient_id=patient_id)
             .order_by(desc(Visit.created_at))
-            .limit(limit)
-            .all()
-        )
+            .limit(limit)).scalars().all()
 
     @staticmethod
     def get_open_visits(department_id: int | None = None) -> list[Visit]:
         from models.visit import Visit
-        q = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]))
+        q = select(Visit)
         if department_id:
             q = q.filter_by(department_id=department_id)
         return q.order_by(Visit.created_at).all()
@@ -124,9 +121,9 @@ class CoreQueryService:
         from models.visit import Visit
         from datetime import date, datetime
         today = date.today()
-        return Visit.query.filter(
+        return db.session.execute(select(func.count()).select_from(Visit).filter(
             func.date(Visit.created_at) == today
-        ).count()
+        )).scalar()
 
     # ==================== USER/STAFF QUERIES ====================
     @staticmethod
@@ -137,7 +134,7 @@ class CoreQueryService:
     @staticmethod
     def get_doctors(department_id: int | None = None) -> list[User]:
         from models.user import User
-        q = User.query.filter_by(role="doctor", is_active=True)
+        q = select(User)
         if department_id:
             q = q.filter_by(department_id=department_id)
         return q.order_by(User.full_name).all()
@@ -145,7 +142,7 @@ class CoreQueryService:
     @staticmethod
     def get_nurses(department_id: int | None = None) -> list[User]:
         from models.user import User
-        q = User.query.filter_by(role="nurse", is_active=True)
+        q = select(User)
         if department_id:
             q = q.filter_by(department_id=department_id)
         return q.order_by(User.full_name).all()
@@ -153,7 +150,7 @@ class CoreQueryService:
     @staticmethod
     def get_staff_by_role(role: str, department_id: int | None = None) -> list[User]:
         from models.user import User
-        q = User.query.filter_by(role=role, is_active=True)
+        q = select(User)
         if department_id:
             q = q.filter_by(department_id=department_id)
         return q.order_by(User.full_name).all()
@@ -176,21 +173,21 @@ class CoreQueryService:
     @staticmethod
     def get_payments_by_patient(patient_id: int) -> list[Payment]:
         from models.payment import Payment
-        return Payment.query.filter_by(patient_id=patient_id).order_by(desc(Payment.payment_date)).all()
+        return db.session.execute(select(Payment).filter_by(patient_id=patient_id).order_by(desc(Payment.payment_date))).scalars().all()
 
     @staticmethod
     def get_invoices_by_patient(patient_id: int) -> list[Invoice]:
         from models.invoice import Invoice
-        return Invoice.query.filter_by(patient_id=patient_id).order_by(desc(Invoice.created_at)).all()
+        return db.session.execute(select(Invoice).filter_by(patient_id=patient_id).order_by(desc(Invoice.created_at))).scalars().all()
 
     @staticmethod
     def get_revenue_today() -> float:
         from models.payment import Payment
         from datetime import date
         today = date.today()
-        total = db.session.query(func.sum(Payment.amount)).filter(
+        total = db.session.execute(select(func.sum(Payment.amount)).filter(
             func.date(Payment.payment_date) == today
-        ).scalar()
+        )).scalar()
         return float(total or 0)
 
     @staticmethod
@@ -198,16 +195,16 @@ class CoreQueryService:
         from models.payment import Payment
         from datetime import date
         first_day = date.today().replace(day=1)
-        total = db.session.query(func.sum(Payment.amount)).filter(
+        total = db.session.execute(select(func.sum(Payment.amount)).filter(
             Payment.payment_date >= first_day
-        ).scalar()
+        )).scalar()
         return float(total or 0)
 
     # ==================== APPOINTMENT QUERIES ====================
     @staticmethod
     def get_appointments_for_doctor(doctor_id: int, date_from=None, date_to=None) -> list[Appointment]:
         from models.appointment import Appointment
-        q = Appointment.query.filter_by(doctor_id=doctor_id)
+        q = select(Appointment)
         if date_from:
             q = q.filter(Appointment.appointment_date >= date_from)
         if date_to:
@@ -219,9 +216,9 @@ class CoreQueryService:
         from models.appointment import Appointment
         from datetime import date
         today = date.today()
-        return Appointment.query.filter(
+        return db.session.execute(select(Appointment).filter(
             func.date(Appointment.appointment_date) == today
-        ).order_by(Appointment.appointment_time).all()
+        ).order_by(Appointment.appointment_time)).scalars().all()
 
     # ==================== LAB QUERIES ====================
     @staticmethod
@@ -235,7 +232,7 @@ class CoreQueryService:
     @staticmethod
     def get_lab_results_ready(patient_id: int | None = None) -> list[LabResult]:
         from models.lab_request import LabResult
-        q = LabResult.query.filter_by(status="COMPLETED")
+        q = select(LabResult)
         if patient_id:
             q = q.join(LabRequest).filter(LabRequest.patient_id == patient_id)
         return q.order_by(desc(LabResult.completed_at)).all()
@@ -252,7 +249,7 @@ class CoreQueryService:
     @staticmethod
     def get_radiology_results_ready(patient_id: int | None = None) -> list[RadiologyResult]:
         from models.radiology_result import RadiologyResult
-        q = RadiologyResult.query.filter_by(status="COMPLETED")
+        q = select(RadiologyResult)
         if patient_id:
             q = q.join(RadiologyRequest).filter(RadiologyRequest.patient_id == patient_id)
         return q.order_by(desc(RadiologyResult.completed_at)).all()
@@ -261,20 +258,20 @@ class CoreQueryService:
     @staticmethod
     def get_active_medications() -> list[Medication]:
         from models.medication import Medication
-        return Medication.query.filter_by(is_active=True).order_by(Medication.name).all()
+        return db.session.execute(select(Medication).filter_by(is_active=True).order_by(Medication.name)).scalars().all()
 
     @staticmethod
     def get_prescriptions_by_patient(patient_id: int) -> list[Prescription]:
         from models.medication import Prescription
-        return Prescription.query.filter_by(patient_id=patient_id).order_by(desc(Prescription.created_at)).all()
+        return db.session.execute(select(Prescription).filter_by(patient_id=patient_id).order_by(desc(Prescription.created_at))).scalars().all()
 
     # ==================== EMERGENCY QUERIES ====================
     @staticmethod
     def get_active_emergency_cases() -> list[EmergencyCase]:
         from models.emergency import EmergencyCase
-        return EmergencyCase.query.filter(
+        return db.session.execute(select(EmergencyCase).filter(
             EmergencyCase.status.in_(["TRIAGE", "IN_PROGRESS", "OBSERVATION"])
-        ).order_by(EmergencyCase.created_at).all()
+        ).order_by(EmergencyCase.created_at)).scalars().all()
 
     @staticmethod
     def get_emergency_case_by_id(case_id: int) -> EmergencyCase | None:
@@ -292,12 +289,12 @@ class CoreQueryService:
         from datetime import date
         today = date.today()
         return {
-            "total_patients": Patient.query.count(),
-            "new_patients_today": Patient.query.filter(func.date(Patient.created_at) == today).count(),
-            "total_visits": Visit.query.count(),
-            "visits_today": Visit.query.filter(func.date(Visit.created_at) == today).count(),
-            "total_users": User.query.count(),
-            "active_users": User.query.filter_by(is_active=True).count(),
+            "total_patients": db.session.execute(select(func.count()).select_from(Patient)).scalar(),
+            "new_patients_today": db.session.execute(select(func.count()).select_from(Patient).filter(func.date(Patient.created_at) == today)).scalar(),
+            "total_visits": db.session.execute(select(func.count()).select_from(Visit)).scalar(),
+            "visits_today": db.session.execute(select(func.count()).select_from(Visit).filter(func.date(Visit.created_at) == today)).scalar(),
+            "total_users": db.session.execute(select(func.count()).select_from(User)).scalar(),
+            "active_users": db.session.execute(select(func.count()).select_from(User).filter_by(is_active=True)).scalar(),
             "revenue_today": CoreQueryService.get_revenue_today(),
             "revenue_month": CoreQueryService.get_revenue_this_month(),
         }

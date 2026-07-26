@@ -1,10 +1,11 @@
 """
 AI Imaging Analysis Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from models import AIImagingAnalysis, DICOMStudy
 from datetime import datetime, timezone
@@ -17,7 +18,7 @@ ai_imaging_bp = Blueprint('ai_imaging', __name__)
 @login_required
 @handle_route_errors
 def index():
-    analyses = AIImagingAnalysis.query.order_by(AIImagingAnalysis.created_at.desc()).limit(50).all()
+    analyses = db.session.execute(select(AIImagingAnalysis).order_by(AIImagingAnalysis.created_at.desc()).limit(50)).scalars().all()
     return render_template('ai_imaging/index.html', analyses=analyses)
 
 
@@ -28,7 +29,7 @@ def request_analysis():
     study_id = request.form.get('study_id', type=int)
     analysis_type = request.form.get('analysis_type', 'detection')
     provider = request.form.get('provider', 'internal')
-    study = DICOMStudy.query.get_or_404(study_id)
+    study = db.get_or_404(DICOMStudy, study_id)
     ai = AIImagingAnalysis(
         study_id=study_id,
         patient_id=study.patient_id if study.patient_id else 0,
@@ -54,7 +55,7 @@ def request_analysis():
 @login_required
 @handle_route_errors
 def review(ai_id):
-    ai = AIImagingAnalysis.query.get_or_404(ai_id)
+    ai = db.get_or_404(AIImagingAnalysis, ai_id)
     ai.status = 'reviewed'
     ai.reviewed_by = current_user.id
     ai.review_notes = request.form.get('review_notes', '')

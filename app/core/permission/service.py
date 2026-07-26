@@ -85,16 +85,16 @@ class PermissionService:
 
         # 1. Try DB-driven permissions
         try:
-            from sqlalchemy import inspect
+            from sqlalchemy import inspect, select
             from models.permissions import Role, Permission as Perm, RolePermission
 
             insp = inspect(db.engine)
             if insp.has_table("roles") and insp.has_table("permissions"):
-                role = Role.query.filter_by(name=user.role, is_active=True).first()
+                role = db.session.execute(select(Role).filter_by(name=user.role, is_active=True)).scalars().first()
                 if role:
-                    perm = Perm.query.filter_by(name=permission, is_active=True).first()
+                    perm = db.session.execute(select(Perm).filter_by(name=permission, is_active=True)).scalars().first()
                     if perm:
-                        ok = RolePermission.query.filter_by(role_id=role.id, permission_id=perm.id).first()
+                        ok = db.session.execute(select(RolePermission).filter_by(role_id=role.id, permission_id=perm.id)).scalars().first()
                         if ok:
                             return True
         except Exception:

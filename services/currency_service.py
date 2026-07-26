@@ -2,10 +2,11 @@
 خدمة تحويل العملات — Currency Conversion Service
 Priority: Manual Rate → External API → Modal Prompt (fallback)
 """
+from sqlalchemy import select
 import logging
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import datetime, timezone, timedelta
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit
 
 logger = logging.getLogger(__name__)
@@ -28,36 +29,36 @@ class CurrencyConverter:
         from models.exchange_rate import ExchangeRate
 
         # 1. السعر اليدوي الأحدث النشط
-        rate = ExchangeRate.query.filter(
+        rate = db.session.execute(select(ExchangeRate).filter(
             ExchangeRate.from_currency == from_currency,
             ExchangeRate.to_currency == to_currency,
             ExchangeRate.is_active == True,
             ExchangeRate.source == 'MANUAL'
-        ).order_by(ExchangeRate.effective_date.desc()).first()
+        ).order_by(ExchangeRate.effective_date.desc())).scalars().first()
 
         if rate:
             logger.info(f"Using MANUAL rate {from_currency}->{to_currency}: {rate.sell_rate}")
             return Decimal(str(rate.sell_rate))
 
         # 2. سعر API الأحدث (أقل من 24 ساعة)
-        api_rate = ExchangeRate.query.filter(
+        api_rate = db.session.execute(select(ExchangeRate).filter(
             ExchangeRate.from_currency == from_currency,
             ExchangeRate.to_currency == to_currency,
             ExchangeRate.is_active == True,
             ExchangeRate.source == 'API',
             ExchangeRate.effective_date >= (datetime.now(timezone.utc) - timedelta(hours=24))
-        ).order_by(ExchangeRate.effective_date.desc()).first()
+        ).order_by(ExchangeRate.effective_date.desc())).scalars().first()
 
         if api_rate:
             logger.info(f"Using API rate {from_currency}->{to_currency}: {api_rate.sell_rate}")
             return Decimal(str(api_rate.sell_rate))
 
         # 3. السعر العكسي (inverse) إن وجد
-        inverse = ExchangeRate.query.filter(
+        inverse = db.session.execute(select(ExchangeRate).filter(
             ExchangeRate.from_currency == to_currency,
             ExchangeRate.to_currency == from_currency,
             ExchangeRate.is_active == True
-        ).order_by(ExchangeRate.effective_date.desc()).first()
+        ).order_by(ExchangeRate.effective_date.desc())).scalars().first()
 
         if inverse:
             inv = Decimal('1.0') / Decimal(str(inverse.buy_rate))
@@ -98,11 +99,10 @@ class CurrencyConverter:
             effective_date=datetime.now(timezone.utc),
         )
         # ألغِ السعر اليدوي القديم
-        ExchangeRate.query.filter(
-            ExchangeRate.from_currency == from_currency,
-            ExchangeRate.to_currency == to_currency,
-            ExchangeRate.source == 'MANUAL'
-        ).update({'is_active': False}, synchronize_session=False)
+        from sqlalchemy import update
+        db.session.execute(
+            update(ExchangeRate).where(ExchangeRate.is_active == True).values(is_active=False)
+        )
         db.session.add(rate)
         safe_commit(db.session, error_message="Failed to save manual rate", reraise=True)
         return rate
@@ -141,9 +141,9 @@ class CurrencyConverter:
     def get_all_active_rates(cls):
         """جلب كل الأسعار النشطة"""
         from models.exchange_rate import ExchangeRate
-        rates = ExchangeRate.query.filter(
+        rates = db.session.execute(select(ExchangeRate).filter(
             ExchangeRate.is_active == True
-        ).order_by(ExchangeRate.from_currency, ExchangeRate.to_currency, ExchangeRate.effective_date.desc()).all()
+        ).order_by(ExchangeRate.from_currency, ExchangeRate.to_currency, ExchangeRate.effective_date.desc())).scalars().all()
         # أزل التكرارات (احتفظ بالأحدث لكل pair)
         seen = set()
         unique = []

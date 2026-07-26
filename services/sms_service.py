@@ -1,5 +1,6 @@
 import logging
 from app.integrations.sms import get_sms_provider
+from utils.circuit_breaker import circuit_breaker_call
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +11,7 @@ class SMSService:
         if not phone or not message:
             return {'success': False, 'message': 'رقم الهاتف أو النص فارغ'}
         provider = get_sms_provider(tenant=tenant)
-        result = provider.send(phone, message)
+        result = circuit_breaker_call('sms_service', provider.send, phone, message)
         return result
 
     @staticmethod

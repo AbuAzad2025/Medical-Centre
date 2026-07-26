@@ -4,9 +4,9 @@ Quality & Compliance Routes — مركزية إدارة الجودة والام�
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from utils.decorators import role_required, role_required_json
-from app_factory import db
+from app.extensions import db
 from datetime import datetime, date, timedelta
-from sqlalchemy import func
+from sqlalchemy import func, select
 import logging
 from app.shared.enums import EmergencyStatus, OrderState, VisitState, VisitArchiveStatus
 
@@ -32,56 +32,56 @@ def dashboard():
         from models.emergency import EmergencyCase
         from models.user import User
 
-        total_audits = AuditTrail.query.count()
-        audits_today = AuditTrail.query.filter(
+        total_audits = db.session.execute(select(func.count()).select_from(AuditTrail)).scalar()
+        audits_today = db.session.execute(select(func.count()).select_from(AuditTrail).filter(
             func.date(AuditTrail.created_at) == today
-        ).count()
-        audits_week = AuditTrail.query.filter(
+        )).scalar()
+        audits_week = db.session.execute(select(func.count()).select_from(AuditTrail).filter(
             AuditTrail.created_at >= week_ago
-        ).count()
-        security_events = AuditTrail.query.filter(
+        )).scalar()
+        security_events = db.session.execute(select(func.count()).select_from(AuditTrail).filter(
             AuditTrail.action.in_(['login_failed', 'unauthorized_access', 'permission_denied'])
-        ).count()
+        )).scalar()
 
-        lab_requests_today = LabRequest.query.filter(
+        lab_requests_today = db.session.execute(select(func.count()).select_from(LabRequest).filter(
             func.date(LabRequest.created_at) == today
-        ).count()
-        lab_done_today = LabRequest.query.filter(
+        )).scalar()
+        lab_done_today = db.session.execute(select(func.count()).select_from(LabRequest).filter(
             LabRequest.status == OrderState.DONE,
             func.date(LabRequest.completed_at) == today
-        ).count()
+        )).scalar()
         lab_quality = round((lab_done_today / max(lab_requests_today, 1)) * 100, 1)
 
-        rad_requests_today = RadiologyRequest.query.filter(
+        rad_requests_today = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
             func.date(RadiologyRequest.created_at) == today
-        ).count()
-        rad_done_today = RadiologyRequest.query.filter(
+        )).scalar()
+        rad_done_today = db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
             RadiologyRequest.status == OrderState.DONE,
             func.date(RadiologyRequest.updated_at) == today
-        ).count()
+        )).scalar()
         rad_quality = round((rad_done_today / max(rad_requests_today, 1)) * 100, 1)
 
-        visits_today = Visit.query.filter(
+        visits_today = db.session.execute(select(func.count()).select_from(Visit).filter(
             func.date(Visit.created_at) == today
-        ).count()
-        completed_visits_today = Visit.query.filter(
+        )).scalar()
+        completed_visits_today = db.session.execute(select(func.count()).select_from(Visit).filter(
             Visit.archive_status == VisitArchiveStatus.ARCHIVED,
             Visit.completed_at >= datetime.combine(today, datetime.min.time())
-        ).count()
+        )).scalar()
         visit_quality = round((completed_visits_today / max(visits_today, 1)) * 100, 1)
 
-        emergency_today = EmergencyCase.query.filter(
+        emergency_today = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.created_at >= today
-        ).count()
-        emergency_completed_today = EmergencyCase.query.filter(
+        )).scalar()
+        emergency_completed_today = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.status == EmergencyStatus.COMPLETED,
             EmergencyCase.completed_at >= today
-        ).count()
+        )).scalar()
         emergency_quality = round((emergency_completed_today / max(emergency_today, 1)) * 100, 1)
 
-        recent_audits = AuditTrail.query.order_by(
+        recent_audits = db.session.execute(select(AuditTrail).order_by(
             AuditTrail.created_at.desc()
-        ).limit(10).all()
+        ).limit(10)).scalars().all()
 
         stats = {
             'total_audits': total_audits,
@@ -137,15 +137,8 @@ def incidents():
     try:
         from models.audit_trail import AuditTrail
         page = request.args.get('page', 1, type=int)
-        q = AuditTrail.query.filter(
-            AuditTrail.action.in_([
-                'login_failed', 'unauthorized_access',
-                'permission_denied', 'force_logout'
-            ])
-        )
-        pagination = q.order_by(AuditTrail.created_at.desc()).paginate(
-            page=page, per_page=25, error_out=False
-        )
+        stmt = select(AuditTrail).order_by(AuditTrail.created_at.desc())
+        pagination = db.paginate(stmt, page=page, per_page=25, error_out=False)
         return render_template('quality_compliance/incidents.html',
                                pagination=pagination)
     except Exception as e:
@@ -174,15 +167,15 @@ def api_quality_metrics():
         for i in range(7):
             d = week_ago + timedelta(days=i)
             labels.append(d.strftime('%a'))
-            lab_data.append(LabRequest.query.filter(
+            lab_data.append(db.session.execute(select(func.count()).select_from(LabRequest).filter(
                 func.date(LabRequest.created_at) == d
-            ).count())
-            rad_data.append(RadiologyRequest.query.filter(
+            )).scalar())
+            rad_data.append(db.session.execute(select(func.count()).select_from(RadiologyRequest).filter(
                 func.date(RadiologyRequest.created_at) == d
-            ).count())
-            visit_data.append(Visit.query.filter(
+            )).scalar())
+            visit_data.append(db.session.execute(select(func.count()).select_from(Visit).filter(
                 func.date(Visit.created_at) == d
-            ).count())
+            )).scalar())
 
         return jsonify({
             'labels': labels,

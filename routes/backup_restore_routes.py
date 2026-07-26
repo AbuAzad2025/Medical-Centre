@@ -1,10 +1,11 @@
 """
 Backup Restore Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from models import BackupRestoreLog, Backup
 import json
@@ -20,7 +21,7 @@ def index():
     if request.method == 'POST':
         backup_id = request.form.get('backup_id', type=int)
         operation = request.form.get('operation', 'restore')
-        backup = Backup.query.get(backup_id) if backup_id else None
+        backup = db.session.get(Backup, backup_id) if backup_id else None
         log = BackupRestoreLog(
             backup_id=backup_id,
             operation=operation,
@@ -39,6 +40,6 @@ def index():
         flash('تمت عملية الاستعادة بنجاح (محاكاة)', 'success')
         return redirect(url_for('backup_restore.index'))
 
-    backups = Backup.query.order_by(Backup.created_at.desc()).all()
-    restore_logs = BackupRestoreLog.query.order_by(BackupRestoreLog.started_at.desc()).limit(20).all()
+    backups = db.session.execute(select(Backup).order_by(Backup.created_at.desc())).scalars().all()
+    restore_logs = db.session.execute(select(BackupRestoreLog).order_by(BackupRestoreLog.started_at.desc()).limit(20)).scalars().all()
     return render_template('backup_restore/index.html', backups=backups, restore_logs=restore_logs)

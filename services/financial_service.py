@@ -10,9 +10,9 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Any
 
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit
-from sqlalchemy import func
+from sqlalchemy import func, select
 from utils.tenant_query import get_tenant_record, TenantContextError
 
 
@@ -75,13 +75,13 @@ class FinancialService:
             except TenantContextError:
                 return {"ok": False, "error": "Visit not found"}
 
-            invoices = Invoice.query.filter_by(visit_id=visit.id).order_by(Invoice.created_at.asc()).all()
+            invoices = db.session.execute(select(Invoice).filter_by(visit_id=visit.id).order_by(Invoice.created_at.asc())).scalars().all()
             for inv in invoices:
                 inv.paid_amount = Decimal(0)
 
-            payments = Payment.query.filter_by(visit_id=visit.id, status="CONFIRMED").order_by(
+            payments = db.session.execute(select(Payment).filter_by(visit_id=visit.id, status="CONFIRMED").order_by(
                 Payment.created_at.asc()
-            ).all()
+            )).scalars().all()
             for payment in payments:
                 PaymentAllocationService.allocate(payment, visit)
 
@@ -109,11 +109,11 @@ class FinancialService:
                 group_expr = func.year(Invoice.created_at)
             else:
                 group_expr = func.date_format(Invoice.created_at, "%Y-%m")
-            results = db.session.query(
+            results = db.session.execute(select(
                 group_expr.label("period"),
                 func.coalesce(func.sum(Invoice.total_amount), 0).label("amount"),
                 func.count(Invoice.id).label("count"),
-            ).group_by(group_expr).order_by(group_expr.desc()).limit(limit).all()
+            ).group_by(group_expr).order_by(group_expr.desc()).limit(limit)).scalars().all()
             return [{"period": str(r.period), "amount": float(r.amount), "count": r.count} for r in results]
         except Exception:
             return []
@@ -123,7 +123,7 @@ class FinancialService:
         from models.invoice import Invoice, InvoiceService
         from models.visit import Visit
         try:
-            visit = Visit.query.filter_by(patient_id=patient_id).order_by(Visit.created_at.desc()).first()
+            visit = db.session.execute(select(Visit).filter_by(patient_id=patient_id).order_by(Visit.created_at.desc())).scalars().first()
             invoice_number = f"INV-{uuid.uuid4().hex[:8].upper()}"
             total = sum(item.get("price", 0) * item.get("quantity", 1) for item in items)
             invoice = Invoice(
@@ -187,18 +187,19 @@ class FinancialService:
     @staticmethod
     def get_pending_invoices(limit: int = 50) -> list:
         from models.invoice import Invoice
-        return Invoice.query.filter(Invoice.status.in_(["PENDING", "PARTIAL"])).order_by(
+        return db.session.execute(select(Invoice).filter(Invoice.status.in_(["PENDING", "PARTIAL"])).order_by(
             Invoice.created_at.asc()
-        ).limit(limit).all()
+        ).limit(limit)).scalars().all()
 
     @staticmethod
     def get_expenses(category: str | None = None, limit: int = 100) -> dict:
         from models.expense import Expense
         try:
-            query = Expense.query.order_by(Expense.expense_date.desc(), Expense.id.desc())
+            query = select(Expense)
             if category:
                 query = query.filter(Expense.category == category)
-            rows = query.limit(max(1, min(limit, 500))).all()
+            query = query.limit(max(1, min(limit, 500)))
+            rows = db.session.execute(query).scalars().all()
             return {
                 "success": True,
                 "available": True,

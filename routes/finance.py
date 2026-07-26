@@ -10,10 +10,11 @@ from services.gatekeeper_service import GatekeeperService
 from models.audit_trail import AuditTrail
 from services.report_service import ReportService
 from utils.tenant_query import get_tenant_record, TenantContextError
-from app_factory import db
+from app.extensions import db
 from app.shared.enums import PaymentStatus, InvoiceStatus
 import logging
 from datetime import datetime, date
+from sqlalchemy import select, func
 
 finance_bp = Blueprint('finance', __name__)
 
@@ -32,40 +33,40 @@ def dashboard():
         today = date.today()
 
         # إحصائيات مالية
-        total_revenue = db.session.query(db.func.sum(Payment.amount)).filter(
+        total_revenue = db.session.execute(select(db.func.sum(Payment.amount)).filter(
             Payment.is_provisional == False
-        ).scalar() or 0
+        )).scalar() or 0
 
-        pending_payments = Payment.query.filter(
+        pending_payments = db.session.execute(select(func.count()).select_from(Payment).filter(
             Payment.is_provisional == True
-        ).count()
+        )).scalar()
 
-        locked_visits = Visit.query.filter(
+        locked_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
             Visit.receipt_printed == False,
             Visit.payment_status != PaymentStatus.PAID
-        ).count()
+        )).scalar()
 
-        today_invoices = Invoice.query.filter(
+        today_invoices = db.session.execute(select(func.count()).select_from(Invoice).filter(
             db.func.date(Invoice.created_at) == today
-        ).count()
+        )).scalar()
 
-        today_payments = Payment.query.filter(
+        today_payments = db.session.execute(select(func.count()).select_from(Payment).filter(
             Payment.is_provisional == False,
             db.func.date(Payment.created_at) == today
-        ).count()
+        )).scalar()
 
-        pending_invoices = Invoice.query.filter(
+        pending_invoices = db.session.execute(select(func.count()).select_from(Invoice).filter(
             Invoice.status.in_([InvoiceStatus.ISSUED, InvoiceStatus.POSTED]),
             Invoice.paid_amount < Invoice.total_amount
-        ).count()
+        )).scalar()
 
-        refunded_count = Payment.query.filter(
+        refunded_count = db.session.execute(select(func.count()).select_from(Payment).filter(
             Payment.status == PaymentStatus.REFUNDED
-        ).count()
+        )).scalar()
 
-        recent_invoices = Invoice.query.order_by(
+        recent_invoices = db.session.execute(select(Invoice).order_by(
             Invoice.created_at.desc()
-        ).limit(10).all()
+        ).limit(10)).scalars().all()
 
         stats = {
             'total_revenue': total_revenue,
@@ -150,7 +151,7 @@ def payments():
         per_page = max(10, min(per_page, 200))
         page = request.args.get('page', type=int) or 1
         page = max(1, page)
-        payments = Payment.query.filter_by(tenant_id=g.tenant_id).order_by(Payment.created_at.desc()).limit(per_page).offset((page - 1) * per_page).all()
+        payments = db.session.execute(select(Payment).filter_by(tenant_id=g.tenant_id).order_by(Payment.created_at.desc()).limit(per_page).offset((page - 1) * per_page)).scalars().all()
         return render_template('finance/payments.html', payments=payments)
         
     except Exception as e:
@@ -170,7 +171,7 @@ def invoices():
         per_page = max(10, min(per_page, 200))
         page = request.args.get('page', type=int) or 1
         page = max(1, page)
-        invoices = Invoice.query.filter_by(tenant_id=g.tenant_id).order_by(Invoice.created_at.desc()).limit(per_page).offset((page - 1) * per_page).all()
+        invoices = db.session.execute(select(Invoice).filter_by(tenant_id=g.tenant_id).order_by(Invoice.created_at.desc()).limit(per_page).offset((page - 1) * per_page)).scalars().all()
         return render_template('finance/invoices.html', invoices=invoices)
         
     except Exception as e:
@@ -190,10 +191,10 @@ def audit():
         per_page = max(20, min(per_page, 500))
         page = request.args.get('page', type=int) or 1
         page = max(1, page)
-        audit_entries = AuditTrail.query.filter(
+        audit_entries = db.session.execute(select(AuditTrail).filter(
             AuditTrail.entity_type.in_(['visit', 'payment', 'invoice']),
             AuditTrail.tenant_id == g.tenant_id
-        ).order_by(AuditTrail.created_at.desc()).limit(per_page).offset((page - 1) * per_page).all()
+        ).order_by(AuditTrail.created_at.desc()).limit(per_page).offset((page - 1) * per_page)).scalars().all()
         
         return render_template('finance/audit.html', audit_entries=audit_entries)
         
@@ -222,7 +223,7 @@ def slow_queries():
 def slow_queries_weekly():
     try:
         from models.audit_trail import SlowQueryReport
-        reports = SlowQueryReport.query.order_by(SlowQueryReport.created_at.desc()).limit(50).all()
+        reports = db.session.execute(select(SlowQueryReport).order_by(SlowQueryReport.created_at.desc()).limit(50)).scalars().all()
         return render_template('finance/slow_queries_weekly.html', reports=reports)
     except Exception as e:
         logging.error(f"Error loading weekly slow queries: {str(e)}")

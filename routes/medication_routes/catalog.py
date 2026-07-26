@@ -11,11 +11,11 @@ from models.patient import Patient
 from models.visit import Visit
 from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
 from models.drug_interaction import DrugInteraction
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging, json
 from datetime import datetime, timezone, timedelta, date
-from sqlalchemy import func
+from sqlalchemy import func, select
 
 
 # =============================================
@@ -39,7 +39,7 @@ def list_medications():
         page = request.args.get('page', type=int) or 1
         page = max(1, page)
         
-        query = Medication.query.filter(Medication.tenant_id == current_user.tenant_id)
+        query = select(Medication)
 
         if search:
             query = query.filter(
@@ -126,10 +126,10 @@ def add_medication():
 def edit_medication(medication_id):
     """تعديل دواء"""
     
-    medication = Medication.query.filter(
+    medication = db.session.execute(select(Medication).filter(
         Medication.tenant_id == current_user.tenant_id,
         Medication.id == medication_id
-    ).first()
+    )).scalars().first()
     if not medication:
         flash('الدواء غير موجود', 'error')
         return redirect(url_for('medication.list_medications'))

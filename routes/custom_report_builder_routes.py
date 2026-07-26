@@ -2,6 +2,7 @@
 Custom Report Builder
 Drag-drop field selection for ad-hoc reports
 """
+from app.extensions import db
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from utils.decorators import role_required
@@ -26,7 +27,7 @@ def builder():
     template_id = request.args.get('template', type=int)
     active_tpl = None
     if template_id:
-        active_tpl = ReportTemplate.query.get(template_id)
+        active_tpl = db.session.get(ReportTemplate, template_id)
     return render_template(
         'report_builder/builder.html',
         entities=REPORT_ENTITIES,
@@ -97,7 +98,7 @@ def templates_save():
 @login_required
 @role_required('admin', 'manager', 'accountant', 'doctor')
 def templates_get(template_id: int):
-    tpl = ReportTemplate.query.get_or_404(template_id)
+    tpl = db.get_or_404(ReportTemplate, template_id)
     return jsonify({'success': True, 'template': tpl.to_dict(), 'config': template_config(tpl)})
 
 
@@ -105,5 +106,5 @@ def templates_get(template_id: int):
 @login_required
 @role_required('admin', 'manager', 'accountant', 'doctor')
 def templates_run(template_id: int):
-    tpl = ReportTemplate.query.get_or_404(template_id)
+    tpl = db.get_or_404(ReportTemplate, template_id)
     return jsonify(render_template_preview(tpl))

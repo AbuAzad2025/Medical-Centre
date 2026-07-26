@@ -1,10 +1,11 @@
 """
 Telemedicine Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from utils.decorators import role_required
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from models import TelemedicineAppointment, Patient, User
 from datetime import datetime, timezone
@@ -67,8 +68,8 @@ def new_appointment():
             safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إنشاء الموعد عن بعد بنجاح', 'success')
             return redirect(url_for('telemedicine.index'))
-        patients = Patient.query.limit(100).all()
-        doctors = User.query.filter_by(is_active=True).all()
+        patients = db.session.execute(select(Patient).limit(100)).scalars().all()
+        doctors = db.session.execute(select(User).filter_by(is_active=True)).scalars().all()
         return render_template('telemedicine/new.html', patients=patients, doctors=doctors)
     except Exception as e:
         safe_rollback(db.session, error_message="database rollback")
@@ -81,7 +82,7 @@ def new_appointment():
 @login_required
 def view_appointment(tm_id):
     try:
-        tm = TelemedicineAppointment.query.get_or_404(tm_id)
+        tm = db.get_or_404(TelemedicineAppointment, tm_id)
         if current_user.role == 'doctor' and tm.doctor_id != current_user.id:
             flash('ليس لديك صلاحية لعرض هذا الموعد', 'error')
             return redirect(url_for('telemedicine.index'))

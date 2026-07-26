@@ -1,6 +1,8 @@
 """
 Tenant resource usage dashboard — UX0-006 (tenant view)
 """
+from sqlalchemy import select
+from app.extensions import db
 from flask import render_template
 from flask_login import login_required, current_user
 
@@ -12,24 +14,18 @@ from . import super_admin_bp
 
 
 def _tenant_usage_context(tenant_id: int):
-    tenant = Tenant.query.get_or_404(tenant_id)
-    latest = (
-        ResourceUsage.query.filter_by(tenant_id=tenant_id)
-        .order_by(ResourceUsage.recorded_at.desc())
-        .first()
-    )
+    tenant = db.get_or_404(Tenant, tenant_id)
+    latest = db.session.execute(select(ResourceUsage).filter_by(tenant_id=tenant_id)
+        .order_by(ResourceUsage.recorded_at.desc())).scalars().first()
     if not latest:
         latest = ResourceUsage.record_snapshot(tenant_id)
 
-    base_line = (
-        SubscriptionLine.query.filter_by(
+    base_line = db.session.execute(select(SubscriptionLine).filter_by(
             tenant_id=tenant_id,
             line_type=SubscriptionLineType.BASE,
             status=SubscriptionLineStatus.ACTIVE,
         )
-        .order_by(SubscriptionLine.effective_from.desc())
-        .first()
-    )
+        .order_by(SubscriptionLine.effective_from.desc())).scalars().first()
 
     # Resolve limits from active subscription line first, then legacy bundle.
     limits = {}
@@ -47,12 +43,9 @@ def _tenant_usage_context(tenant_id: int):
                 "api_calls_per_month": bundle.api_calls_per_month,
             }
 
-    snapshots = (
-        ResourceUsage.query.filter_by(tenant_id=tenant_id)
+    snapshots = db.session.execute(select(ResourceUsage).filter_by(tenant_id=tenant_id)
         .order_by(ResourceUsage.recorded_at.desc())
-        .limit(30)
-        .all()
-    )
+        .limit(30)).scalars().all()
 
     return {
         "tenant": tenant,

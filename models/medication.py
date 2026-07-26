@@ -34,6 +34,7 @@ class Medication(TenantMixin, db.Model):
     minimum_stock = db.Column(db.Integer, default=10)
     expiry_date = db.Column(db.Date, nullable=True)
     batch_number = db.Column(db.String(50), nullable=True)
+    pregnancy_category = db.Column(db.String(10), nullable=True)  # A, B, C, D, X
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
@@ -54,6 +55,11 @@ class Medication(TenantMixin, db.Model):
     
     def __repr__(self):
         return f'<Medication {self.trade_name}>'
+    
+    @property
+    def name(self):
+        """اسم الدواء — يُستخدم في خدمات السلامة السريرية"""
+        return self.trade_name or self.scientific_name or ''
     
     def get_full_name(self):
         """الاسم الكامل للدواء"""

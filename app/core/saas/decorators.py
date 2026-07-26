@@ -7,6 +7,7 @@ Composes with existing role/permission decorators:
     def create_lab_order(...):
         ...
 """
+from app.extensions import db
 
 from functools import wraps
 
@@ -43,7 +44,7 @@ def require_entitlement(capability_key: str):
 
             tenant = getattr(g, "current_tenant", None) or TenantContextService.get_current_tenant()
             if tenant is None and getattr(g, "tenant_id", None):
-                tenant = Tenant.query.get(g.tenant_id)
+                tenant = db.session.get(Tenant, g.tenant_id)
             if tenant is None:
                 abort(403, description="Tenant context required.")
 

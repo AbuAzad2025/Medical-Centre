@@ -1,11 +1,11 @@
-﻿"""
+"""
 خدمة إدارة الأسعار - Pricing Management Service
 Medical System Pricing Management Service
 """
 
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import and_, or_, func
-from app_factory import db
+from sqlalchemy import and_, or_, func, select
+from app.extensions import db
 from utils.db_safety import safe_commit
 from models.pricing import ServicePrice, DoctorPricing, InsuranceProvider, PricingCatalog
 from models.user import User
@@ -30,7 +30,7 @@ class PricingService:
         """
         try:
             # البحث عن السعر
-            service_price = ServicePrice.query.filter(
+            service_price = db.session.execute(select(ServicePrice).filter(
                 and_(
                     ServicePrice.service_name == service_name,
                     ServicePrice.service_type == service_type,
@@ -40,20 +40,20 @@ class PricingService:
                         ServicePrice.effective_to > datetime.now(timezone.utc)
                     )
                 )
-            ).first()
+            )).scalars().first()
             
             if service_price:
                 return service_price.get_price(payment_method)
             else:
                 # محاولة مطابقة أسماء شائعة (aliases)
                 for alt in PricingService._normalize_service_aliases(service_name, service_type):
-                    alt_q = ServicePrice.query.filter(
+                    alt_q = db.session.execute(select(ServicePrice).filter(
                         and_(
                             ServicePrice.service_name == alt,
                             ServicePrice.service_type == service_type,
                             ServicePrice.is_active == True
                         )
-                    ).first()
+                    )).scalars().first()
                     if alt_q:
                         return alt_q.get_price(payment_method)
                 
@@ -129,7 +129,7 @@ class PricingService:
     def get_doctor_price(doctor_id, visit_type='consultation', payment_method='cash'):
         """الحصول على سعر الطبيب"""
         try:
-            doctor_pricing = DoctorPricing.query.filter(
+            doctor_pricing = db.session.execute(select(DoctorPricing).filter(
                 and_(
                     DoctorPricing.doctor_id == doctor_id,
                     DoctorPricing.is_active == True,
@@ -138,7 +138,7 @@ class PricingService:
                         DoctorPricing.effective_to > datetime.now(timezone.utc)
                     )
                 )
-            ).first()
+            )).scalars().first()
             
             if doctor_pricing:
                 return doctor_pricing.get_price(visit_type, payment_method)
@@ -149,13 +149,13 @@ class PricingService:
                 except TenantContextError:
                     doctor = None
                 if doctor and doctor.department_id:
-                    department_pricing = DoctorPricing.query.filter(
+                    department_pricing = db.session.execute(select(DoctorPricing).filter(
                         and_(
                             DoctorPricing.department_id == doctor.department_id,
                             DoctorPricing.doctor_id.is_(None),
                             DoctorPricing.is_active == True
                         )
-                    ).first()
+                    )).scalars().first()
                     
                     if department_pricing:
                         return department_pricing.get_price(visit_type, payment_method)
@@ -260,14 +260,14 @@ class PricingService:
         """
         try:
             # أسعار الخدمات
-            service_prices = ServicePrice.query.filter(ServicePrice.is_active == True).all()
+            service_prices = db.session.execute(select(ServicePrice).filter(ServicePrice.is_active == True)).scalars().all()
             
             # أسعار الأطباء
-            doctor_pricing_query = DoctorPricing.query.filter(DoctorPricing.is_active == True)
+            doctor_pricing_query = select(DoctorPricing)
             if department_id:
                 doctor_pricing_query = doctor_pricing_query.filter(DoctorPricing.department_id == department_id)
             
-            doctor_pricing = doctor_pricing_query.all()
+            doctor_pricing = db.session.execute(doctor_pricing_query).scalars().all()
             
             # إحصائيات
             total_services = len(service_prices)
@@ -423,12 +423,12 @@ class PricingService:
             
             for service_data in default_services:
                 # التحقق من وجود السعر
-                existing = ServicePrice.query.filter(
+                existing = db.session.execute(select(ServicePrice).filter(
                     and_(
                         ServicePrice.service_name == service_data['service_name'],
                         ServicePrice.service_type == service_data['service_type']
                     )
-                ).first()
+                )).scalars().first()
                 
                 if not existing:
                     service_price = ServicePrice(**service_data)
@@ -481,7 +481,7 @@ class PricingService:
                         if service_name:
                             lab_price = float(PricingService.get_service_price(service_name, 'lab_test', payment_method) or 0.0)
                         else:
-                            sp = ServicePrice.query.filter(ServicePrice.service_type == 'lab_test', ServicePrice.is_active == True).first()
+                            sp = db.session.execute(select(ServicePrice).filter(ServicePrice.service_type == 'lab_test', ServicePrice.is_active == True)).scalars().first()
                             if sp:
                                 lab_price = float(sp.get_price(payment_method) or 0.0)
                         if lab_price > 0:
@@ -506,7 +506,7 @@ class PricingService:
                         if service_name:
                             radiology_price = float(PricingService.get_service_price(service_name, 'radiology_scan', payment_method) or 0.0)
                         else:
-                            sp = ServicePrice.query.filter(ServicePrice.service_type == 'radiology_scan', ServicePrice.is_active == True).first()
+                            sp = db.session.execute(select(ServicePrice).filter(ServicePrice.service_type == 'radiology_scan', ServicePrice.is_active == True)).scalars().first()
                             if sp:
                                 radiology_price = float(sp.get_price(payment_method) or 0.0)
                         if radiology_price > 0:
@@ -551,7 +551,7 @@ class PricingService:
             ]
             result = {}
             for item in items:
-                dept = Department.query.filter_by(name=item['name']).first()
+                dept = db.session.execute(select(Department).filter_by(name=item['name'])).scalars().first()
                 if not dept:
                     dept = Department(name=item['name'], name_ar=item['name_ar'], is_active=True)
                     db.session.add(dept)
@@ -568,12 +568,12 @@ class PricingService:
     def seed_doctors(departments):
         try:
             created = 0
-            all_depts = Department.query.all()
+            all_depts = db.session.execute(select(Department)).scalars().all()
             result = []
             for dept in all_depts:
                 if dept.name in ('Lab', 'Radiology'):
                     continue
-                existing = User.query.filter_by(role='doctor', department_id=dept.id, is_active=True).order_by(User.id.asc()).first()
+                existing = db.session.execute(select(User).filter_by(role='doctor', department_id=dept.id, is_active=True).order_by(User.id.asc())).scalars().first()
                 if existing:
                     result.append(existing)
                     continue
@@ -582,11 +582,11 @@ class PricingService:
                     base = base.replace('__', '_')
                 username = base
                 i = 1
-                while User.query.filter_by(username=username).first():
+                while db.session.execute(select(User).filter_by(username=username)).scalars().first():
                     i += 1
                     username = f"{base}{i}"
                 email = f"{username}@example.com"
-                if User.query.filter_by(email=email).first():
+                if db.session.execute(select(User).filter_by(email=email)).scalars().first():
                     email = f"{username}+{dept.id}@example.com"
                 full_name = dept.name_ar or dept.name
                 user = User(username=username, email=email, full_name=full_name, role='doctor', department_id=dept.id, is_active=True)
@@ -605,9 +605,9 @@ class PricingService:
     def seed_technicians():
         try:
             created = 0
-            lab_dept = Department.query.filter_by(name='Lab').first()
-            rad_dept = Department.query.filter_by(name='Radiology').first()
-            lab_user = User.query.filter_by(username='lab_tech').first()
+            lab_dept = db.session.execute(select(Department).filter_by(name='Lab')).scalars().first()
+            rad_dept = db.session.execute(select(Department).filter_by(name='Radiology')).scalars().first()
+            lab_user = db.session.execute(select(User).filter_by(username='lab_tech')).scalars().first()
             if not lab_user:
                 lab_user = User(username='lab_tech', email='lab_tech@example.com', full_name='فني مختبر', role='lab', department_id=lab_dept.id if lab_dept else None, is_active=True)
                 lab_user.set_password('p')
@@ -616,7 +616,7 @@ class PricingService:
             else:
                 if lab_dept and lab_user.department_id != lab_dept.id:
                     lab_user.department_id = lab_dept.id
-            rad_user = User.query.filter_by(username='radiology_tech').first()
+            rad_user = db.session.execute(select(User).filter_by(username='radiology_tech')).scalars().first()
             if not rad_user:
                 rad_user = User(username='radiology_tech', email='radiology_tech@example.com', full_name='فني أشعة', role='radiology', department_id=rad_dept.id if rad_dept else None, is_active=True)
                 rad_user.set_password('p')
@@ -643,7 +643,7 @@ class PricingService:
                 {'code': 'EMERGENCY_VISIT', 'name': 'زيارة طوارئ', 'name_ar': 'زيارة طوارئ', 'category': 'general', 'base_price': 100, 'insurance_price': 80, 'emergency_price': 100}
             ]
             for d in defs:
-                svc = ServiceMaster.query.filter_by(code=d['code']).first()
+                svc = db.session.execute(select(ServiceMaster).filter_by(code=d['code'])).scalars().first()
                 if not svc:
                     svc = ServiceMaster(code=d['code'], name=d['name'], name_ar=d['name_ar'], category=d['category'], base_price=d.get('base_price', 0), insurance_price=d.get('insurance_price'), emergency_price=d.get('emergency_price'), is_active=True)
                     db.session.add(svc)
@@ -726,7 +726,7 @@ class PricingService:
                 {'service_name': 'استشارة طبية', 'service_type': 'consultation', 'base_price': 50.0, 'insurance_price': 40.0, 'cash_price': 50.0, 'vip_price': 100.0}
             ]
             for i in items:
-                existing = ServicePrice.query.filter(and_(ServicePrice.service_name == i['service_name'], ServicePrice.service_type == i['service_type'])).first()
+                existing = db.session.execute(select(ServicePrice).filter(and_(ServicePrice.service_name == i['service_name'], ServicePrice.service_type == i['service_type']))).scalars().first()
                 if not existing:
                     sp = ServicePrice(**i)
                     db.session.add(sp)
@@ -742,9 +742,9 @@ class PricingService:
     def seed_doctor_pricing():
         try:
             created = 0
-            docs = User.query.filter_by(role='doctor', is_active=True).all()
+            docs = db.session.execute(select(User).filter_by(role='doctor', is_active=True)).scalars().all()
             for doc in docs:
-                exists = DoctorPricing.query.filter(DoctorPricing.doctor_id == doc.id, DoctorPricing.is_active == True).first()
+                exists = db.session.execute(select(DoctorPricing).filter(DoctorPricing.doctor_id == doc.id, DoctorPricing.is_active == True)).scalars().first()
                 if not exists:
                     dp = DoctorPricing(doctor_id=doc.id, department_id=doc.department_id, consultation_price=50.0, follow_up_price=35.0, emergency_price=100.0, vip_price=120.0, is_active=True, effective_from=datetime.now(timezone.utc))
                     db.session.add(dp)
@@ -759,7 +759,7 @@ class PricingService:
     @staticmethod
     def seed_pricing_catalog():
         try:
-            creator = User.query.filter(User.role.in_(['admin', 'manager', 'super_admin']), User.is_active == True).first()
+            creator = db.session.execute(select(User).filter(User.role.in_(['admin', 'manager', 'super_admin']), User.is_active == True)).scalars().first()
             if not creator:
                 return {'success': False, 'message': 'تعذر العثور على مستخدم مسؤول'}
             created = 0
@@ -830,7 +830,7 @@ class PricingService:
                 {'service_type': 'radiology', 'service_name': 'Fluoroscopy', 'service_name_ar': 'فلوروسكوبي', 'base_price': 220.0, 'insurance_coverage': 25.0, 'patient_share': 165.0}
             ]
             for i in items:
-                existing = PricingCatalog.query.filter(PricingCatalog.service_type == i['service_type'], PricingCatalog.service_name == i['service_name']).first()
+                existing = db.session.execute(select(PricingCatalog).filter(PricingCatalog.service_type == i['service_type'], PricingCatalog.service_name == i['service_name'])).scalars().first()
                 if not existing:
                     pc = PricingCatalog(**i, is_active=True, is_temporary=False, created_by=creator.id)
                     db.session.add(pc)
@@ -861,7 +861,7 @@ class PricingService:
     @staticmethod
     def cleanup_service_prices():
         try:
-            all_prices = ServicePrice.query.order_by(ServicePrice.service_name, ServicePrice.service_type, ServicePrice.created_at.asc()).all()
+            all_prices = db.session.execute(select(ServicePrice).order_by(ServicePrice.service_name, ServicePrice.service_type, ServicePrice.created_at.asc())).scalars().all()
             groups = {}
             for sp in all_prices:
                 key = (sp.service_name.strip(), sp.service_type.strip())
@@ -883,7 +883,7 @@ class PricingService:
     @staticmethod
     def cleanup_pricing_catalog():
         try:
-            all_items = PricingCatalog.query.order_by(PricingCatalog.service_type, PricingCatalog.service_name, PricingCatalog.created_at.asc()).all()
+            all_items = db.session.execute(select(PricingCatalog).order_by(PricingCatalog.service_type, PricingCatalog.service_name, PricingCatalog.created_at.asc())).scalars().all()
             groups = {}
             for pc in all_items:
                 key = (pc.service_type.strip(), pc.service_name.strip())
@@ -905,7 +905,7 @@ class PricingService:
     @staticmethod
     def cleanup_doctor_pricing():
         try:
-            all_dp = DoctorPricing.query.order_by(DoctorPricing.doctor_id, DoctorPricing.effective_from.asc(), DoctorPricing.created_at.asc()).all()
+            all_dp = db.session.execute(select(DoctorPricing).order_by(DoctorPricing.doctor_id, DoctorPricing.effective_from.asc(), DoctorPricing.created_at.asc())).scalars().all()
             groups = {}
             for dp in all_dp:
                 key = dp.doctor_id
@@ -930,13 +930,13 @@ class PricingService:
             roles = ['super_admin','admin','manager','reception','doctor','lab','radiology','nurse','emergency','accountant','pharmacist']
             deactivated = 0
             for role in roles:
-                users = User.query.filter_by(role=role).order_by(User.id.asc()).all()
+                users = db.session.execute(select(User).filter_by(role=role).order_by(User.id.asc())).scalars().all()
                 if len(users) > max_keep_per_role:
                     to_deactivate = users[max_keep_per_role:]
                     for u in to_deactivate:
                         u.is_active = False
                         if role == 'doctor':
-                            dps = DoctorPricing.query.filter_by(doctor_id=u.id).all()
+                            dps = db.session.execute(select(DoctorPricing).filter_by(doctor_id=u.id)).scalars().all()
                             for dp in dps:
                                 db.session.delete(dp)
                         deactivated += 1
@@ -963,17 +963,17 @@ class PricingService:
     def purge_users_keep_policy():
         try:
             kept_ids = set()
-            dept_map = {d.name: d.id for d in Department.query.all()}
+            dept_map = {d.name: d.id for d in db.session.execute(select(Department)).scalars().all()}
 
             def _keep_first(role):
-                u = User.query.filter_by(role=role, is_active=True).order_by(User.id.asc()).first()
+                u = db.session.execute(select(User).filter_by(role=role, is_active=True).order_by(User.id.asc())).scalars().first()
                 if u:
                     kept_ids.add(u.id)
                 return u
 
             def _ensure_doctor_in(dept_name, username, email, full_name):
                 dept_id = dept_map.get(dept_name)
-                u = User.query.filter_by(role='doctor', department_id=dept_id).order_by(User.id.asc()).first()
+                u = db.session.execute(select(User).filter_by(role='doctor', department_id=dept_id).order_by(User.id.asc())).scalars().first()
                 if not u:
                     u = User(username=username, email=email, full_name=full_name, role='doctor', department_id=dept_id, is_active=True)
                     u.set_password('p')
@@ -983,7 +983,7 @@ class PricingService:
 
             def _ensure_staff(role, dept_name, username, email, full_name):
                 dept_id = dept_map.get(dept_name)
-                u = User.query.filter_by(role=role, department_id=dept_id).order_by(User.id.asc()).first()
+                u = db.session.execute(select(User).filter_by(role=role, department_id=dept_id).order_by(User.id.asc())).scalars().first()
                 if not u:
                     u = User(username=username, email=email, full_name=full_name, role=role, department_id=dept_id, is_active=True)
                     u.set_password('p')
@@ -1015,17 +1015,17 @@ class PricingService:
             _ensure_staff('radiology', 'Radiology', 'radiology_tech', 'radiology_tech@example.com', 'فني أشعة')
             _ensure_doctor_in('Emergency', 'dr_emergency', 'dr_emergency@example.com', 'طبيب الطوارئ')
 
-            gc_doc = User.query.filter_by(role='doctor').join(Department, User.department_id == Department.id).filter(Department.name == 'General Clinic').order_by(User.id.asc()).first()
+            gc_doc = db.session.execute(select(User).filter_by(role='doctor').join(Department, User.department_id == Department.id).filter(Department.name == 'General Clinic').order_by(User.id.asc())).scalars().first()
             if gc_doc:
                 kept_ids.add(gc_doc.id)
 
-            to_delete = User.query.filter(User.id.notin_(kept_ids)).all()
+            to_delete = db.session.execute(select(User).filter(User.id.notin_(kept_ids))).scalars().all()
             deleted = 0
             for u in to_delete:
                 if su and u.id == su.id:
                     continue
                 if u.role == 'doctor':
-                    for dp in DoctorPricing.query.filter_by(doctor_id=u.id).all():
+                    for dp in db.session.execute(select(DoctorPricing).filter_by(doctor_id=u.id)).scalars().all():
                         db.session.delete(dp)
                 db.session.delete(u)
                 deleted += 1

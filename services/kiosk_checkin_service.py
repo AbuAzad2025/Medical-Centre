@@ -4,11 +4,12 @@ from __future__ import annotations
 from datetime import date, datetime, timezone
 
 from app.shared.enums import AppointmentState
+from sqlalchemy import select
 
 
 def perform_kiosk_checkin(national_id: str) -> dict:
     """Find patient + today's appointment, create visit, add to queue."""
-    from app_factory import db
+    from app.extensions import db
     from utils.db_safety import safe_commit
     from models.appointment import Appointment
     from models.patient import Patient
@@ -19,19 +20,19 @@ def perform_kiosk_checkin(national_id: str) -> dict:
     if len(nid) < 5:
         return {'success': False, 'message': 'أدخل رقم هوية صالحاً'}
 
-    patient = Patient.query.filter_by(national_id=nid).first()
+    patient = db.session.execute(select(Patient).filter_by(national_id=nid)).scalars().first()
     if not patient:
         return {'success': False, 'message': 'لم يتم العثور على المريض'}
 
     today = date.today()
-    appointment = Appointment.query.filter(
+    appointment = db.session.execute(select(Appointment).filter(
         Appointment.patient_id == patient.id,
         db.func.date(Appointment.starts_at) == today,
         Appointment.status.in_([
             AppointmentState.SCHEDULED,
             AppointmentState.CONFIRMED,
         ]),
-    ).order_by(Appointment.starts_at.asc()).first()
+    ).order_by(Appointment.starts_at.asc())).scalars().first()
 
     if not appointment:
         return {'success': False, 'message': 'لا يوجد موعد اليوم لهذا المريض'}
@@ -40,11 +41,11 @@ def perform_kiosk_checkin(national_id: str) -> dict:
         return {'success': False, 'message': 'الموعد بدون قسم — راجع الاستقبال'}
 
     marker = f'[APPOINTMENT:{appointment.id}]'
-    existing = Visit.query.filter(
+    existing = db.session.execute(select(Visit).filter(
         Visit.visit_date == today,
         Visit.patient_id == patient.id,
         Visit.notes.ilike(f'%{marker}%'),
-    ).first()
+    )).scalars().first()
     if existing:
         return {
             'success': True,

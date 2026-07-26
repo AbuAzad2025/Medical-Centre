@@ -6,6 +6,8 @@ from flask import Blueprint, flash, jsonify, redirect, render_template, request,
 
 from app.core.rate_limiter import RateLimiter, rate_limit
 from services.saas_registration_service import SaasRegistrationError, SaasRegistrationService
+from app.extensions import db
+from sqlalchemy import select
 
 saas_bp = Blueprint('saas', __name__)
 
@@ -15,16 +17,13 @@ _signup_post_limiter = RateLimiter(max_requests=5, window_seconds=300, namespace
 def _available_package_versions():
     from app.core.saas.models import Package, PackageVersion, PackageVersionAvailability, PackageVersionAvailabilityStatus
 
-    return (
-        PackageVersion.query.join(Package)
+    return db.session.execute(select(PackageVersion).join(Package)
         .join(PackageVersionAvailability)
         .filter(
             Package.is_active == True,
             PackageVersionAvailability.availability_status == PackageVersionAvailabilityStatus.AVAILABLE,
         )
-        .order_by(Package.name, PackageVersion.version)
-        .all()
-    )
+        .order_by(Package.name, PackageVersion.version)).scalars().all()
 
 
 def _signup_template_context(packages):

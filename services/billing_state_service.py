@@ -1,6 +1,7 @@
 """
 BillingStateService — unified billing state management
 """
+from sqlalchemy import select
 from decimal import Decimal
 from datetime import datetime, timezone
 from flask import g
@@ -15,8 +16,8 @@ class BillingStateService:
     def get_billing_state(visit) -> str:
         from models.payment import Payment
         from models.invoice import Invoice
-        payments = Payment.query.filter_by(visit_id=visit.id).all()
-        invoices = Invoice.query.filter_by(visit_id=visit.id).all()
+        payments = db.session.execute(select(Payment).filter_by(visit_id=visit.id)).scalars().all()
+        invoices = db.session.execute(select(Invoice).filter_by(visit_id=visit.id)).scalars().all()
         total_paid = sum(float(p.amount or 0) for p in payments if p.status == PaymentStatus.CONFIRMED)
         total_invoiced = sum(float(i.total_amount or 0) for i in invoices)
         if total_paid <= 0 and total_invoiced <= 0:
@@ -111,7 +112,7 @@ class PaymentAllocationService:
         payment creation.
         """
         from models.invoice import Invoice
-        invoices = Invoice.query.filter_by(visit_id=visit.id).order_by(Invoice.created_at.asc()).all()
+        invoices = db.session.execute(select(Invoice).filter_by(visit_id=visit.id).order_by(Invoice.created_at.asc())).scalars().all()
         remaining = Decimal(str(payment.amount))
         for inv in invoices:
             due = Decimal(str(inv.total_amount or 0)) - Decimal(str(inv.paid_amount or 0))

@@ -20,6 +20,7 @@ from app.core.saas.models import PackageVersion, PackageVersionAvailability, Pac
 from app.core.tenant.models import Tenant, PlatformAuditLog
 from app.shared.enums import TenantStatus
 from models.user import User
+from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
@@ -100,10 +101,10 @@ class SaasRegistrationService:
         email_norm = (email or '').strip().lower()
 
         pending_recent = cls._with_tenant_bypass(
-            lambda: Tenant.query.filter(
+            lambda: db.session.execute(select(Tenant).filter(
                 Tenant.status == TenantStatus.PENDING,
                 Tenant.created_at >= hour_ago,
-            ).all()
+            )).scalars().all()
         )
         email_count = sum(1 for t in pending_recent if (t.contact_email or '').lower() == email_norm)
         if email_count >= _SIGNUP_FLOOD_EMAIL_LIMIT:
@@ -122,7 +123,7 @@ class SaasRegistrationService:
         value = (slug or '').strip().lower()
         if not value or not _SLUG_RE.match(value):
             raise SaasRegistrationError('invalid_slug')
-        if Tenant.query.filter_by(slug=value).first():
+        if db.session.execute(select(Tenant).filter_by(slug=value)).scalars().first():
             raise SaasRegistrationError('slug_taken')
         return value
 
@@ -132,12 +133,9 @@ class SaasRegistrationService:
         if env_val:
             return int(env_val)
 
-        row = (
-            PackageVersion.query.join(PackageVersionAvailability)
+        row = db.session.execute(select(PackageVersion).join(PackageVersionAvailability)
             .filter(PackageVersionAvailability.availability_status == PackageVersionAvailabilityStatus.AVAILABLE)
-            .order_by(PackageVersion.id.asc())
-            .first()
-        )
+            .order_by(PackageVersion.id.asc())).scalars().first()
         if not row:
             raise SaasRegistrationError('no_default_package')
         return row.id
@@ -146,7 +144,7 @@ class SaasRegistrationService:
     def _payment_required_at_signup(cls, package_version_id: int) -> bool:
         if os.environ.get('SAAS_REQUIRE_PAYMENT_AT_SIGNUP', '').strip().lower() in ('1', 'true', 'yes'):
             return True
-        version = PackageVersion.query.get(package_version_id)  # global reference table - no tenant scope
+        version = db.session.get(PackageVersion, package_version_id)  # global reference table - no tenant scope
         if version is None:
             return False
         return not (version.trial_days and version.trial_days > 0)
@@ -237,9 +235,9 @@ class SaasRegistrationService:
             checkout_url = cls._maybe_create_checkout(tenant, pkg_id, billing_type)
 
         def _check_user_uniqueness_within_tenant():
-            if User.query.filter_by(username=username, tenant_id=tenant.id).first():
+            if db.session.execute(select(User).filter_by(username=username, tenant_id=tenant.id)).scalars().first():
                 raise SaasRegistrationError('username_taken')
-            if User.query.filter_by(email=email, tenant_id=tenant.id).first():
+            if db.session.execute(select(User).filter_by(email=email, tenant_id=tenant.id)).scalars().first():
                 raise SaasRegistrationError('email_taken')
 
         cls._with_tenant_bypass(_check_user_uniqueness_within_tenant)

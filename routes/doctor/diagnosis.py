@@ -19,11 +19,11 @@ from models.follow_up import FollowUpRequest
 from models.drug_interaction import DrugInteraction
 from models.audit_trail import AuditTrail
 from models.system_config import SystemConfig
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import VisitState, VisitArchiveStatus
 from services.visit_state_machine_service import VisitStateMachineService
-from sqlalchemy import and_, or_, desc, func, case
+from sqlalchemy import and_, or_, desc, func, case, select
 import logging, json, secrets
 from datetime import datetime, date, timedelta, timezone
 
@@ -41,7 +41,7 @@ def diagnosis(visit_id):
 
     try:
         from ast import literal_eval
-        visit = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id).first_or_404()
+        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
         if visit.status == 'COMPLETED' or visit.is_archived:
             flash('لا يمكن تعديل التشخيص بعد اكتمال أو أرشفة الزيارة', 'warning')
             return redirect(url_for('doctor.patient_queue'))
@@ -150,16 +150,16 @@ def get_ai_diagnostic_assistant():
         from datetime import datetime, timedelta
         
         # تحليل التشخيصات الشائعة
-        common_diagnoses = db.session.query(
+        common_diagnoses = db.session.execute(select(
             MedicalRecord.diagnosis,
             func.count(MedicalRecord.id).label('count')
         ).join(Visit, MedicalRecord.visit_id == Visit.id).filter(
             Visit.doctor_id == current_user.id,
             MedicalRecord.created_at >= datetime.now() - timedelta(days=30)
-        ).group_by(MedicalRecord.diagnosis).order_by(func.count(MedicalRecord.id).desc()).limit(5).all()
+        ).group_by(MedicalRecord.diagnosis).order_by(func.count(MedicalRecord.id).desc()).limit(5)).scalars().all()
         
         # تحليل الأدوية الموصوفة
-        common_medications = db.session.query(
+        common_medications = db.session.execute(select(
             Medication.trade_name.label('medication_name'),
             func.count(func.distinct(Prescription.id)).label('count')
         ).join(PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
@@ -168,7 +168,7 @@ def get_ai_diagnostic_assistant():
         ).filter(
             Visit.doctor_id == current_user.id,
             Prescription.created_at >= datetime.now() - timedelta(days=30)
-        ).group_by(Medication.trade_name).order_by(func.count(func.distinct(Prescription.id)).desc()).limit(5).all()
+        ).group_by(Medication.trade_name).order_by(func.count(func.distinct(Prescription.id)).desc()).limit(5)).scalars().all()
         
         # اقتراحات التشخيص
         diagnostic_suggestions = []
@@ -248,14 +248,14 @@ def get_data_based_recommendations(diagnosis_text: str):
         from models.medication import PrescriptionItem, Medication, Prescription
         from datetime import datetime, timedelta
         since = datetime.now() - timedelta(days=120)
-        rows = db.session.query(
+        rows = db.session.execute(select(
             Medication.trade_name,
             func.count(PrescriptionItem.id).label('cnt')
         ).join(PrescriptionItem.prescription).join(PrescriptionItem.medication).filter(
             Prescription.diagnosis.ilike(f'%{diagnosis_text}%'),
             Prescription.created_at >= since,
             Prescription.doctor_id == current_user.id
-        ).group_by(Medication.trade_name).order_by(func.count(PrescriptionItem.id).desc()).limit(5).all()
+        ).group_by(Medication.trade_name).order_by(func.count(PrescriptionItem.id).desc()).limit(5)).scalars().all()
         out = []
         for r in rows:
             out.append({'medication': r.trade_name, 'count': int(r.cnt)})
@@ -267,7 +267,7 @@ def evaluate_clinical_rules(visit, prescriptions, structured_vital_signs=None):
     warnings = []
     try:
         from models.patient import PatientAllergy
-        allergies = PatientAllergy.query.filter_by(patient_id=visit.patient_id).all()
+        allergies = db.session.execute(select(PatientAllergy).filter_by(patient_id=visit.patient_id)).scalars().all()
         allergens = [a.allergen.lower() for a in allergies if a.allergen]
     except Exception:
         allergens = []
@@ -327,26 +327,26 @@ def get_patient_medical_history_ai():
         from datetime import datetime, timedelta
         
         # تحليل المرضى المتكررين
-        frequent_patients = db.session.query(
+        frequent_patients = db.session.execute(select(
             Visit.patient_id,
             func.count(Visit.id).label('visit_count'),
             func.max(Visit.visit_date).label('last_visit')
         ).filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date >= datetime.now().date() - timedelta(days=90)
-        ).group_by(Visit.patient_id).having(func.count(Visit.id) > 2).all()
+        ).group_by(Visit.patient_id).having(func.count(Visit.id) > 2)).scalars().all()
         
         # تحليل الحالات المزمنة
-        chronic_conditions = db.session.query(
+        chronic_conditions = db.session.execute(select(
             MedicalRecord.diagnosis,
             func.count(MedicalRecord.id).label('frequency')
         ).join(Visit, MedicalRecord.visit_id == Visit.id).filter(
             Visit.doctor_id == current_user.id,
             MedicalRecord.diagnosis.in_(['السكري', 'الضغط', 'القلب', 'الربو', 'السرطان'])
-        ).group_by(MedicalRecord.diagnosis).all()
+        ).group_by(MedicalRecord.diagnosis)).scalars().all()
         
         # تحليل الأدوية طويلة المدى
-        long_term_medications = db.session.query(
+        long_term_medications = db.session.execute(select(
             Medication.trade_name.label('medication_name'),
             func.count(func.distinct(Prescription.id)).label('frequency')
         ).join(PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
@@ -355,7 +355,7 @@ def get_patient_medical_history_ai():
         ).filter(
             Visit.doctor_id == current_user.id,
             Prescription.created_at >= datetime.now() - timedelta(days=90)
-        ).group_by(Medication.trade_name).having(func.count(func.distinct(Prescription.id)) > 3).all()
+        ).group_by(Medication.trade_name).having(func.count(func.distinct(Prescription.id)) > 3)).scalars().all()
         
         return {
             'frequent_patients': [
@@ -383,7 +383,7 @@ def get_treatment_recommendations():
         recommendations = []
         
         # تحليل نجاح العلاجات
-        successful_treatments = db.session.query(
+        successful_treatments = db.session.execute(select(
             MedicalRecord.diagnosis,
             Medication.trade_name.label('medication_name'),
             func.count(func.distinct(MedicalRecord.id)).label('success_count')
@@ -395,7 +395,7 @@ def get_treatment_recommendations():
             Visit.doctor_id == current_user.id,
             Visit.archive_status == VisitArchiveStatus.ARCHIVED,
             MedicalRecord.created_at >= datetime.now() - timedelta(days=60)
-        ).group_by(MedicalRecord.diagnosis, Medication.trade_name).all()
+        ).group_by(MedicalRecord.diagnosis, Medication.trade_name)).scalars().all()
         
         # تحليل العلاجات الفعالة
         if successful_treatments:
@@ -439,29 +439,29 @@ def get_drug_interaction_checker():
         }
         
         # فحص الوصفات الحديثة
-        recent_prescriptions = Prescription.query.join(Visit).filter(
+        recent_prescriptions = db.session.execute(select(Prescription).join(Visit).filter(
             Visit.doctor_id == current_user.id,
             Prescription.created_at >= datetime.now() - timedelta(days=7)
-        ).all()
+        )).scalars().all()
         
         interactions_found = []
         
         for prescription in recent_prescriptions:
-            medications = Medication.query.join(PrescriptionItem).filter(
+            medications = db.session.execute(select(Medication).join(PrescriptionItem).filter(
                 PrescriptionItem.prescription_id == prescription.id
-            ).all()
+            )).scalars().all()
             for medication in medications:
                 med_name = medication.trade_name
                 if med_name in known_interactions:
                     for other_med in known_interactions[med_name]:
                         # فحص إذا كان المريض يتناول الدواء الآخر
-                        other_prescription = Prescription.query.join(Visit).join(
+                        other_prescription = db.session.execute(select(Prescription).join(Visit).join(
                             PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
                         ).join(Medication, Medication.id == PrescriptionItem.medication_id).filter(
                             Visit.patient_id == prescription.visit.patient_id,
                             Medication.trade_name == other_med,
                             Prescription.created_at >= datetime.now() - timedelta(days=30)
-                        ).first()
+                        )).scalars().first()
                         
                         if other_prescription:
                             interactions_found.append({
@@ -491,14 +491,14 @@ def get_clinical_decision_support():
         support_recommendations = []
         
         # تحليل معدل نجاح التشخيصات
-        diagnosis_success = db.session.query(
+        diagnosis_success = db.session.execute(select(
             MedicalRecord.diagnosis,
             func.count(MedicalRecord.id).label('total_cases'),
             func.sum(case((Visit.archive_status == VisitArchiveStatus.ARCHIVED, 1), else_=0)).label('successful_cases')
         ).join(Visit, MedicalRecord.visit_id == Visit.id).filter(
             Visit.doctor_id == current_user.id,
             MedicalRecord.created_at >= datetime.now() - timedelta(days=30)
-        ).group_by(MedicalRecord.diagnosis).all()
+        ).group_by(MedicalRecord.diagnosis)).scalars().all()
         
         for diagnosis in diagnosis_success:
             success_rate = (diagnosis.successful_cases / diagnosis.total_cases * 100) if diagnosis.total_cases > 0 else 0
@@ -512,7 +512,7 @@ def get_clinical_decision_support():
                 })
         
         # تحليل فعالية الأدوية
-        medication_effectiveness = db.session.query(
+        medication_effectiveness = db.session.execute(select(
             Medication.trade_name.label('medication_name'),
             func.count(func.distinct(Prescription.id)).label('total_prescriptions'),
             func.sum(case((Visit.archive_status == VisitArchiveStatus.ARCHIVED, 1), else_=0)).label('successful_treatments')
@@ -522,7 +522,7 @@ def get_clinical_decision_support():
         ).filter(
             Visit.doctor_id == current_user.id,
             Prescription.created_at >= datetime.now() - timedelta(days=30)
-        ).group_by(Medication.trade_name).all()
+        ).group_by(Medication.trade_name)).scalars().all()
         
         for medication in medication_effectiveness:
             effectiveness_rate = (medication.successful_treatments / medication.total_prescriptions * 100) if medication.total_prescriptions > 0 else 0
@@ -549,30 +549,30 @@ def get_medical_analytics():
         from datetime import datetime, timedelta
         
         # تحليل الأداء الطبي
-        total_visits = Visit.query.filter(Visit.doctor_id == current_user.id).count()
-        completed_visits = Visit.query.filter(
+        total_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.doctor_id == current_user.id)).scalar()
+        completed_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
             Visit.doctor_id == current_user.id,
             Visit.archive_status == VisitArchiveStatus.ARCHIVED
-        ).count()
+        )).scalar()
         
         completion_rate = (completed_visits / total_visits * 100) if total_visits > 0 else 0
         
         # تحليل متوسط مدة الزيارة
-        avg_visit_duration = db.session.query(func.avg(Visit.duration)).filter(
+        avg_visit_duration = db.session.execute(select(func.avg(Visit.duration)).filter(
             Visit.doctor_id == current_user.id
-        ).scalar() or 0
+        )).scalar() or 0
         
         # تحليل التشخيصات
-        diagnosis_distribution = db.session.query(
+        diagnosis_distribution = db.session.execute(select(
             MedicalRecord.diagnosis,
             func.count(MedicalRecord.id).label('count')
         ).join(Visit, MedicalRecord.visit_id == Visit.id).filter(
             Visit.doctor_id == current_user.id,
             MedicalRecord.created_at >= datetime.now() - timedelta(days=30)
-        ).group_by(MedicalRecord.diagnosis).all()
+        ).group_by(MedicalRecord.diagnosis)).scalars().all()
         
         # تحليل الأدوية
-        medication_distribution = db.session.query(
+        medication_distribution = db.session.execute(select(
             Medication.trade_name.label('medication_name'),
             func.count(func.distinct(Prescription.id)).label('count')
         ).join(PrescriptionItem, PrescriptionItem.prescription_id == Prescription.id
@@ -581,7 +581,7 @@ def get_medical_analytics():
         ).filter(
             Visit.doctor_id == current_user.id,
             Prescription.created_at >= datetime.now() - timedelta(days=30)
-        ).group_by(Medication.trade_name).all()
+        ).group_by(Medication.trade_name)).scalars().all()
         
         return {
             'completion_rate': round(completion_rate, 2),
@@ -604,13 +604,13 @@ def get_workflow_optimization():
         optimizations = []
         
         # تحليل أوقات الذروة
-        peak_hours = db.session.query(
+        peak_hours = db.session.execute(select(
             func.extract('hour', Visit.visit_time).label('hour'),
             func.count(Visit.id).label('count')
         ).filter(
             Visit.doctor_id == current_user.id,
             Visit.visit_date >= datetime.now().date() - timedelta(days=30)
-        ).group_by(func.extract('hour', Visit.visit_time)).all()
+        ).group_by(func.extract('hour', Visit.visit_time))).scalars().all()
         
         if peak_hours:
             max_hour = max(peak_hours, key=lambda x: x.count)
@@ -624,10 +624,10 @@ def get_workflow_optimization():
         
         # تحليل المواعيد
         today = datetime.now().date()
-        tomorrow_appointments = Appointment.query.filter(
+        tomorrow_appointments = db.session.execute(select(func.count()).select_from(Appointment).filter(
             Appointment.doctor_id == current_user.id,
             db.func.date(Appointment.starts_at) == today + timedelta(days=1)
-        ).count()
+        )).scalar()
         
         if tomorrow_appointments > 15:
             optimizations.append({
@@ -638,9 +638,9 @@ def get_workflow_optimization():
             })
         
         # تحليل الكفاءة
-        avg_duration = db.session.query(func.avg(Visit.duration)).filter(
+        avg_duration = db.session.execute(select(func.avg(Visit.duration)).filter(
             Visit.doctor_id == current_user.id
-        ).scalar() or 0
+        )).scalar() or 0
         
         if avg_duration > 45:
             optimizations.append({
@@ -667,10 +667,10 @@ def get_smart_reminders():
         
         # تذكيرات المواعيد
         today = datetime.now().date()
-        tomorrow_appointments = Appointment.query.filter(
+        tomorrow_appointments = db.session.execute(select(func.count()).select_from(Appointment).filter(
             Appointment.doctor_id == current_user.id,
             db.func.date(Appointment.starts_at) == today + timedelta(days=1)
-        ).count()
+        )).scalar()
         
         if tomorrow_appointments > 0:
             reminders.append({
@@ -681,11 +681,11 @@ def get_smart_reminders():
             })
         
         # تذكيرات المتابعة
-        follow_up_visits = Visit.query.filter(
+        follow_up_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
             Visit.doctor_id == current_user.id,
             Visit.archive_status == VisitArchiveStatus.ARCHIVED,
             Visit.completed_at >= datetime.now() - timedelta(days=7)
-        ).count()
+        )).scalar()
         
         if follow_up_visits > 5:
             reminders.append({
@@ -696,10 +696,10 @@ def get_smart_reminders():
             })
         
         # تذكيرات الأدوية
-        recent_prescriptions = Prescription.query.join(Visit).filter(
+        recent_prescriptions = db.session.execute(select(func.count()).select_from(Prescription).join(Visit).filter(
             Visit.doctor_id == current_user.id,
             Prescription.created_at >= datetime.now() - timedelta(days=3)
-        ).count()
+        )).scalar()
         
         if recent_prescriptions > 10:
             reminders.append({

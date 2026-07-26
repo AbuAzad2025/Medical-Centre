@@ -16,9 +16,9 @@ from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
 from services.emergency_service import emergency_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
-from sqlalchemy import and_, or_, desc, case
+from sqlalchemy import and_, or_, desc, case, select
 import logging, json
 from datetime import datetime, date, timedelta, timezone
 from app.shared.print_context import generate_qr_data_uri
@@ -167,7 +167,7 @@ def print_prescription(prescription_id):
     """طباعة الوصفة الطبية للطوارئ"""
     
     try:
-        prescription = Prescription.query.filter_by(id=prescription_id).first()
+        prescription = db.session.execute(select(Prescription).filter_by(id=prescription_id)).scalars().first()
         if not prescription:
             flash('الوصفة غير موجودة', 'error')
             return redirect(url_for('emergency.patient_queue'))

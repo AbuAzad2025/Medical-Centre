@@ -1,6 +1,7 @@
 """
 FileService — secure file management with tenant isolation
 """
+from sqlalchemy import select
 import os
 import hashlib
 from datetime import datetime, timezone
@@ -76,10 +77,7 @@ class FileService:
     def get_by_entity(related_entity_type: str, related_entity_id: int, tenant_id: int | None = None) -> list:
         from models.file_management import FileUpload
         tid = tenant_id or getattr(g, 'tenant_id', None)
-        query = FileUpload.query.filter_by(
-            related_entity_type=related_entity_type,
-            related_entity_id=related_entity_id,
-        )
+        query = select(FileUpload)
         if tid:
             query = query.filter_by(tenant_id=tid)
         return query.order_by(FileUpload.uploaded_at.desc()).all()

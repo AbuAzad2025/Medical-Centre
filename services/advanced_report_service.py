@@ -5,8 +5,8 @@ Medical System Advanced Report Service
 
 from datetime import datetime, timedelta, timezone
 from app.shared.enums import VisitState, AppointmentState, InvoiceStatus, VisitArchiveStatus
-from sqlalchemy import and_, or_, func, desc, asc, text
-from app_factory import db
+from sqlalchemy import and_, or_, func, desc, asc, text, select
+from app.extensions import db
 from models.patient import Patient
 from models.visit import Visit
 from models.appointment import Appointment
@@ -34,12 +34,7 @@ class AdvancedReportService:
                 end_date = datetime.now()
             
             # إحصائيات المرضى
-            patients_query = Patient.query.filter(
-                and_(
-                    Patient.created_at >= start_date,
-                    Patient.created_at <= end_date
-                )
-            )
+            patients_query = select(Patient)
             
             if department_id:
                 patients_query = patients_query.join(Visit).filter(Visit.department_id == department_id)
@@ -73,13 +68,13 @@ class AdvancedReportService:
             
             active_count = 0
             for p in patients:
-                vcnt = Visit.query.filter(
+                vcnt = db.session.execute(select(func.count()).select_from(Visit).filter(
                     and_(
                         Visit.patient_id == p.id,
                         Visit.visit_date >= start_date.date(),
                         Visit.visit_date <= end_date.date()
                     )
-                ).count()
+                )).scalar()
                 if vcnt > 0:
                     active_count += 1
             status_stats = {
@@ -116,12 +111,7 @@ class AdvancedReportService:
                 end_date = datetime.now()
             
             # إحصائيات الزيارات
-            visits_query = Visit.query.filter(
-                and_(
-                    Visit.visit_date >= start_date.date(),
-                    Visit.visit_date <= end_date.date()
-                )
-            )
+            visits_query = select(Visit)
             
             if department_id:
                 visits_query = visits_query.filter(Visit.department_id == department_id)
@@ -183,12 +173,7 @@ class AdvancedReportService:
                 end_date = datetime.now()
             
             # إحصائيات المدفوعات
-            payments_query = Payment.query.filter(
-                and_(
-                    Payment.payment_date >= start_date,
-                    Payment.payment_date <= end_date
-                )
-            )
+            payments_query = select(Payment)
             
             if department_id:
                 payments_query = payments_query.join(Visit).filter(Visit.department_id == department_id)
@@ -216,12 +201,7 @@ class AdvancedReportService:
                 daily_revenue[date.strftime('%Y-%m-%d')] = amount
             
             # إحصائيات الفواتير
-            invoices_query = Invoice.query.filter(
-                and_(
-                    Invoice.created_at >= start_date,
-                    Invoice.created_at <= end_date
-                )
-            )
+            invoices_query = select(Invoice)
             
             if department_id:
                 invoices_query = invoices_query.join(InvoiceService).filter(InvoiceService.department_id == department_id)
@@ -267,7 +247,7 @@ class AdvancedReportService:
                 end_date = datetime.now()
             
             # إحصائيات الأطباء
-            doctors_query = User.query.filter(User.role == 'doctor')
+            doctors_query = select(User)
             
             if doctor_id:
                 doctors_query = doctors_query.filter(User.id == doctor_id)
@@ -277,22 +257,22 @@ class AdvancedReportService:
             
             for doctor in doctors:
                 # زيارات الطبيب
-                visits = Visit.query.filter(
+                visits = db.session.execute(select(Visit).filter(
                     and_(
                         Visit.doctor_id == doctor.id,
                         Visit.visit_date >= start_date.date(),
                         Visit.visit_date <= end_date.date()
                     )
-                ).all()
+                )).scalars().all()
                 
                 # مواعيد الطبيب
-                appointments = Appointment.query.filter(
+                appointments = db.session.execute(select(Appointment).filter(
                     and_(
                         Appointment.doctor_id == doctor.id,
                         func.date(Appointment.starts_at) >= start_date.date(),
                         func.date(Appointment.starts_at) <= end_date.date()
                     )
-                ).all()
+                )).scalars().all()
                 
                 # الإحصائيات
                 total_visits = len(visits)
@@ -360,22 +340,22 @@ class AdvancedReportService:
             
             for department in departments:
                 # زيارات القسم
-                visits = Visit.query.filter(
+                visits = db.session.execute(select(Visit).filter(
                     and_(
                         Visit.department_id == department.id,
                         Visit.visit_date >= start_date.date(),
                         Visit.visit_date <= end_date.date()
                     )
-                ).all()
+                )).scalars().all()
                 
                 # مواعيد القسم
-                appointments = Appointment.query.filter(
+                appointments = db.session.execute(select(Appointment).filter(
                     and_(
                         Appointment.department_id == department.id,
                         func.date(Appointment.starts_at) >= start_date.date(),
                         func.date(Appointment.starts_at) <= end_date.date()
                     )
-                ).all()
+                )).scalars().all()
                 
                 # الإحصائيات
                 total_visits = len(visits)
@@ -430,12 +410,7 @@ class AdvancedReportService:
                 end_date = datetime.now()
             
             # إحصائيات المستخدمين
-            users_query = User.query.filter(
-                and_(
-                    User.created_at >= start_date,
-                    User.created_at <= end_date
-                )
-            )
+            users_query = select(User)
             
             total_users = users_query.count()
             active_users = users_query.filter(User.is_active == True).count()
@@ -447,44 +422,44 @@ class AdvancedReportService:
                 role_stats[role] = count
             
             # إحصائيات السجلات
-            audit_trails = AuditTrail.query.filter(
+            audit_trails = db.session.execute(select(func.count()).select_from(AuditTrail).filter(
                 and_(
                     AuditTrail.created_at >= start_date,
                     AuditTrail.created_at <= end_date
                 )
-            ).count()
+            )).scalar()
             
-            system_logs = SystemLog.query.filter(
+            system_logs = db.session.execute(select(func.count()).select_from(SystemLog).filter(
                 and_(
                     SystemLog.created_at >= start_date,
                     SystemLog.created_at <= end_date
                 )
-            ).count()
+            )).scalar()
             
-            security_events = SecurityEvent.query.filter(
+            security_events = db.session.execute(select(func.count()).select_from(SecurityEvent).filter(
                 and_(
                     SecurityEvent.created_at >= start_date,
                     SecurityEvent.created_at <= end_date
                 )
-            ).count()
+            )).scalar()
             
             # إحصائيات الإشعارات
             # لا يوجد نموذج Notification؛ نستخدم SystemLog كبديل للإشعارات
-            notifications = SystemLog.query.filter(
+            notifications = db.session.execute(select(func.count()).select_from(SystemLog).filter(
                 and_(
                     SystemLog.created_at >= start_date,
                     SystemLog.created_at <= end_date
                 )
-            ).count()
+            )).scalar()
             
             # نفترض أن unread = الأحداث من المستوى 'info' خلال الفترة
-            unread_notifications = SystemLog.query.filter(
+            unread_notifications = db.session.execute(select(func.count()).select_from(SystemLog).filter(
                 and_(
                     SystemLog.created_at >= start_date,
                     SystemLog.created_at <= end_date,
                     SystemLog.log_level.in_(['INFO','WARNING'])
                 )
-            ).count()
+            )).scalar()
             
             return {
                 'success': True,

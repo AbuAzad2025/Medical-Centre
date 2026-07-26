@@ -1,6 +1,7 @@
 """
 HL7 FHIR API Routes — Basic REST API for interoperability
 """
+from sqlalchemy import select
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors, role_required
@@ -11,7 +12,7 @@ from models.lab_request import LabRequest, LabResult
 from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
 from services.fhir_service import fhir_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import json, uuid
 from datetime import datetime, timezone
@@ -42,7 +43,7 @@ def _log_fhir_access(action, resource_type, resource_id=None, request_body=None,
 @role_required('admin', 'manager', 'doctor')
 @handle_route_errors
 def fhir_patients():
-    patients = Patient.query.filter_by(status='ACTIVE').limit(100).all()
+    patients = db.session.execute(select(Patient).filter_by(status='ACTIVE').limit(100)).scalars().all()
     _log_fhir_access('SEARCH', 'Patient')
     return jsonify({
         "resourceType": "Bundle",
@@ -62,7 +63,7 @@ def fhir_patients():
 @role_required('admin', 'manager', 'doctor')
 @handle_route_errors
 def fhir_patient(patient_id):
-    patient = Patient.query.get_or_404(patient_id)
+    patient = db.get_or_404(Patient, patient_id)
     _log_fhir_access('READ', 'Patient', str(patient_id))
     return jsonify({
         "resourceType": "Patient",
@@ -80,7 +81,7 @@ def fhir_patient(patient_id):
 @role_required('admin', 'manager', 'doctor')
 @handle_route_errors
 def fhir_encounters():
-    visits = Visit.query.order_by(Visit.created_at.desc()).limit(100).all()
+    visits = db.session.execute(select(Visit).order_by(Visit.created_at.desc()).limit(100)).scalars().all()
     _log_fhir_access('SEARCH', 'Encounter')
     return jsonify({
         "resourceType": "Bundle",
@@ -104,7 +105,7 @@ def fhir_observations():
     patient_id = request.args.get('patient', type=int)
     results = []
     if patient_id:
-        lab_results = LabResult.query.filter_by(patient_id=patient_id).limit(50).all()
+        lab_results = db.session.execute(select(LabResult).filter_by(patient_id=patient_id).limit(50)).scalars().all()
         for lr in lab_results:
             results.append({
                 "resourceType": "Observation",

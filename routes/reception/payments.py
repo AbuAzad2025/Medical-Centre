@@ -6,7 +6,7 @@ from routes.reception import reception_bp
  
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, g
 from flask_login import login_required, current_user
-from sqlalchemy import func
+from sqlalchemy import func, select
 from datetime import datetime, timezone
 from app.shared.print_context import generate_qr_data_uri
 from models.user import User, StaffWorkSchedule, StaffAbsence
@@ -22,7 +22,7 @@ from models.patient_satisfaction import PatientSatisfactionSurvey
 from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging
 from services.access_control_service import AccessControlService
@@ -69,7 +69,7 @@ def process_payment(visit_id):
     try:
         from models.invoice import Invoice, InvoiceService as InvoiceLine
 
-        existing_invoice = Invoice.query.filter(Invoice.visit_id == visit.id).order_by(Invoice.created_at.desc()).first()
+        existing_invoice = db.session.execute(select(Invoice).filter(Invoice.visit_id == visit.id).order_by(Invoice.created_at.desc())).scalars().first()
         if not existing_invoice:
             invoice = Invoice(
                 invoice_number=f"INV-{visit.id}-{int(datetime.now(timezone.utc).timestamp())}",
@@ -132,7 +132,7 @@ def print_receipt(visit_id):
     try:
         from models.queue_management import QueueManagement
         from models.patient_satisfaction import PatientSatisfactionSurvey
-        queue_ticket = QueueManagement.query.filter_by(visit_id=visit_id).order_by(QueueManagement.created_at.desc()).first()
+        queue_ticket = db.session.execute(select(QueueManagement).filter_by(visit_id=visit_id).order_by(QueueManagement.created_at.desc())).scalars().first()
     except Exception:
         queue_ticket = None
     try:
@@ -143,11 +143,11 @@ def print_receipt(visit_id):
         # محاولة استخدام تسعير الطبيب إن وجد
         pricing = None
         try:
-            pricing = DoctorPricing.query.filter(
+            pricing = db.session.execute(select(DoctorPricing).filter(
                 DoctorPricing.doctor_id == visit.doctor_id,
                 DoctorPricing.department_id == visit.department_id,
                 DoctorPricing.is_active == True
-            ).order_by(DoctorPricing.effective_from.desc()).first()
+            ).order_by(DoctorPricing.effective_from.desc())).scalars().first()
         except Exception:
             pricing = None
         if pricing:
@@ -176,13 +176,13 @@ def print_receipt(visit_id):
         service_cost = None
         follow_up_discount = None
     try:
-        last_payment = Payment.query.filter_by(visit_id=visit_id).order_by(Payment.created_at.desc()).first()
+        last_payment = db.session.execute(select(Payment).filter_by(visit_id=visit_id).order_by(Payment.created_at.desc())).scalars().first()
     except Exception:
         last_payment = None
     survey_url = None
     try:
         from models.patient_satisfaction import PatientSatisfactionSurvey
-        survey = PatientSatisfactionSurvey.query.filter_by(visit_id=visit_id).first()
+        survey = db.session.execute(select(PatientSatisfactionSurvey).filter_by(visit_id=visit_id)).scalars().first()
         if survey:
             survey_url = url_for('reception.survey', token=survey.token, _external=True)
     except Exception:
@@ -284,11 +284,11 @@ def cash_register():
     reg = CashRegister.get_or_create_today(current_user.id)
     today = db.func.current_date()
     # Calculate expected from payments
-    payments = Payment.query.filter(
+    payments = db.session.execute(select(Payment).filter(
         Payment.tenant_id == current_user.tenant_id,
         db.func.date(Payment.created_at) == today,
         Payment.status.in_([PaymentStatus.CONFIRMED, PaymentStatus.PAID])
-    ).all()
+    )).scalars().all()
     exp_cash = sum(float(p.amount or 0) for p in payments if p.method == 'cash')
     exp_card = sum(float(p.amount or 0) for p in payments if p.method == 'card')
     exp_ins = sum(float(p.amount or 0) for p in payments if p.method == 'insurance')

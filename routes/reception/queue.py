@@ -6,7 +6,7 @@ from routes.reception import reception_bp
  
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, g
 from flask_login import login_required, current_user
-from sqlalchemy import func
+from sqlalchemy import func, select
 from datetime import datetime, timezone
 from models.user import User, StaffWorkSchedule, StaffAbsence
 from models.patient import Patient
@@ -22,7 +22,7 @@ from app.shared.enums import QueueState, VisitState, VisitArchiveStatus, Appoint
 from services.gatekeeper_service import GatekeeperService
 from services.reception_service import reception_service
 from utils.decorators import can_create_visits, reception_only, role_required, role_required_json, can_modify_patient_data, can_delete_patient
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging
 from services.access_control_service import AccessControlService
@@ -57,7 +57,7 @@ def queue_management():
         from models.queue_management import QueueSettings
         
         queue_service = QueueManagementService()
-        all_departments = Department.query.filter_by(is_active=True).all()
+        all_departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
         
         dept_ids = AccessControlService.get_accessible_department_ids(current_user)
         if dept_ids is None:
@@ -69,7 +69,7 @@ def queue_management():
         
         settings_map = {}
         for dept in departments:
-            s = QueueSettings.query.filter_by(department_id=dept.id).first()
+            s = db.session.execute(select(QueueSettings).filter_by(department_id=dept.id)).scalars().first()
             settings_map[dept.id] = s.to_dict() if s else None
         can_manage_queue_settings = AccessControlService.has_permission(current_user, 'queue_settings_manage')
         billing_active = 'billing' in getattr(g, 'enabled_modules', set())
@@ -152,11 +152,11 @@ def add_patient_to_queue():
     from models.visit import Visit
     from models.appointment import Appointment
     
-    patients = Patient.query.all()
-    departments = Department.query.filter_by(is_active=True).all()
-    doctors = User.query.filter_by(role='doctor', is_active=True).all()
-    visits = Visit.query.filter_by(status='OPEN').all()
-    appointments = Appointment.query.filter_by(status='SCHEDULED').all()
+    patients = db.session.execute(select(Patient)).scalars().all()
+    departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+    doctors = db.session.execute(select(User).filter_by(role='doctor', is_active=True)).scalars().all()
+    visits = db.session.execute(select(Visit).filter_by(status='OPEN')).scalars().all()
+    appointments = db.session.execute(select(Appointment).filter_by(status='SCHEDULED')).scalars().all()
     
     return render_template('reception/add_patient_to_queue.html',
                          patients=patients,
@@ -407,26 +407,26 @@ def get_smart_queue_management(department_id=None):
         from datetime import datetime, timedelta
         
         # تحليل الطابور الحالي
-        current_queue = QueueManagement.query.filter(
+        current_queue = db.session.execute(select(QueueManagement).filter(
             QueueManagement.status.in_([QueueState.WAITING, QueueState.CALLED, QueueState.IN_PROGRESS])
-        ).order_by(QueueManagement.created_at).all()
+        ).order_by(QueueManagement.created_at)).scalars().all()
         
         # تحليل أوقات الانتظار
-        avg_wait_time = db.session.query(func.avg(QueueManagement.estimated_wait_time)).scalar() or 0
+        avg_wait_time = db.session.execute(select(func.avg(QueueManagement.estimated_wait_time))).scalar() or 0
         
         # تحليل الأولويات
         priority_analysis = {
-            'urgent': QueueManagement.query.filter(QueueManagement.priority_level == 'urgent').count(),
-            'normal': QueueManagement.query.filter(QueueManagement.priority_level == 'normal').count(),
-            'low': QueueManagement.query.filter(QueueManagement.priority_level == 'low').count()
+            'urgent': db.session.execute(select(func.count()).select_from(QueueManagement).filter(QueueManagement.priority_level == 'urgent')).scalar(),
+            'normal': db.session.execute(select(func.count()).select_from(QueueManagement).filter(QueueManagement.priority_level == 'normal')).scalar(),
+            'low': db.session.execute(select(func.count()).select_from(QueueManagement).filter(QueueManagement.priority_level == 'low')).scalar()
         }
         
         # تحليل ساعات الذروة
         try:
-            peak_hours = db.session.query(
+            peak_hours = db.session.execute(select(
                 func.extract('hour', QueueManagement.created_at).label('hour'),
                 func.count(QueueManagement.id).label('count')
-            ).group_by(func.extract('hour', QueueManagement.created_at)).all()
+            ).group_by(func.extract('hour', QueueManagement.created_at))).scalars().all()
         except Exception:
             safe_rollback(db.session, error_message="database rollback")
             peak_hours = []
@@ -460,8 +460,8 @@ def get_patient_flow_analysis():
         daily_flow = []
         for i in range(7):
             date = today - timedelta(days=i)
-            visits_count = Visit.query.filter(Visit.created_at == date).count()
-            patients_count = Patient.query.filter(Patient.created_at >= date, Patient.created_at < date + timedelta(days=1)).count()
+            visits_count = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.created_at == date)).scalar()
+            patients_count = db.session.execute(select(func.count()).select_from(Patient).filter(Patient.created_at >= date, Patient.created_at < date + timedelta(days=1))).scalar()
             daily_flow.append({
                 'date': date.strftime('%Y-%m-%d'),
                 'visits': visits_count,
@@ -470,19 +470,19 @@ def get_patient_flow_analysis():
         
         # تحليل ساعات الذروة
         try:
-            hourly_flow = db.session.query(
+            hourly_flow = db.session.execute(select(
                 func.extract('hour', Visit.created_at).label('hour'),
                 func.count(Visit.id).label('count')
-            ).filter(Visit.created_at >= week_ago).group_by(func.extract('hour', Visit.created_at)).all()
+            ).filter(Visit.created_at >= week_ago).group_by(func.extract('hour', Visit.created_at))).scalars().all()
         except Exception:
             safe_rollback(db.session, error_message="database rollback")
             hourly_flow = []
         
         # تحليل الأقسام
-        department_flow = db.session.query(
+        department_flow = db.session.execute(select(
             func.count(Visit.id).label('count'),
             Visit.department_id
-        ).filter(Visit.created_at >= week_ago).group_by(Visit.department_id).all()
+        ).filter(Visit.created_at >= week_ago).group_by(Visit.department_id)).scalars().all()
         
         return {
             'daily_flow': daily_flow,
@@ -507,23 +507,23 @@ def get_appointment_optimization():
         week_ahead = today + timedelta(days=7)
         
         # تحليل كثافة المواعيد
-        appointment_density = db.session.query(
+        appointment_density = db.session.execute(select(
             func.date(Appointment.starts_at).label('appointment_date'),
             func.count(Appointment.id).label('count')
         ).filter(
             Appointment.starts_at >= today,
             Appointment.starts_at <= week_ahead
-        ).group_by(func.date(Appointment.starts_at)).all()
+        ).group_by(func.date(Appointment.starts_at))).scalars().all()
         
         # تحليل الأطباء
-        doctor_workload = db.session.query(
+        doctor_workload = db.session.execute(select(
             User.id,
             User.full_name,
             func.count(Appointment.id).label('appointments')
         ).join(Appointment, User.id == Appointment.doctor_id).filter(
             Appointment.starts_at >= today,
             Appointment.starts_at <= week_ahead
-        ).group_by(User.id, User.full_name).all()
+        ).group_by(User.id, User.full_name)).scalars().all()
         
         # اقتراحات التحسين
         optimizations = []
@@ -571,10 +571,10 @@ def get_real_time_alerts():
         
         # تنبيهات المواعيد
         today = datetime.now().date()
-        overdue_appointments = Appointment.query.filter(
+        overdue_appointments = db.session.execute(select(func.count()).select_from(Appointment).filter(
             Appointment.starts_at < today,
             Appointment.status == AppointmentState.SCHEDULED
-        ).count()
+        )).scalar()
         
         if overdue_appointments > 0:
             alerts.append({
@@ -586,10 +586,10 @@ def get_real_time_alerts():
             })
         
         # تنبيهات الطابور
-        long_waiting = Visit.query.filter(
+        long_waiting = db.session.execute(select(func.count()).select_from(Visit).filter(
             Visit.status == VisitState.PENDING,
             Visit.created_at < datetime.now() - timedelta(hours=2)
-        ).count()
+        )).scalar()
         
         if long_waiting > 0:
             alerts.append({
@@ -601,7 +601,7 @@ def get_real_time_alerts():
             })
         
         # تنبيهات السعة
-        today_visits = Visit.query.filter(Visit.created_at >= today).count()
+        today_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.created_at >= today)).scalar()
         if today_visits > 50:
             alerts.append({
                 'type': 'capacity',
@@ -627,12 +627,12 @@ def get_workflow_automation():
         automation_suggestions = []
         
         # أتمتة المواعيد المتكررة
-        recurring_patients = db.session.query(
+        recurring_patients = db.session.execute(select(
             Patient.id,
             func.count(Visit.id).label('visit_count')
         ).join(Visit, Patient.id == Visit.patient_id).filter(
             Visit.created_at >= datetime.now().date() - timedelta(days=30)
-        ).group_by(Patient.id).having(func.count(Visit.id) > 3).all()
+        ).group_by(Patient.id).having(func.count(Visit.id) > 3)).scalars().all()
         
         if recurring_patients:
             automation_suggestions.append({
@@ -643,10 +643,10 @@ def get_workflow_automation():
             })
         
         # أتمتة التذكيرات
-        tomorrow_appointments = Appointment.query.filter(
+        tomorrow_appointments = db.session.execute(select(func.count()).select_from(Appointment).filter(
             Appointment.starts_at >= datetime.now().date() + timedelta(days=1),
             Appointment.starts_at < datetime.now().date() + timedelta(days=2)
-        ).count()
+        )).scalar()
         
         if tomorrow_appointments > 0:
             automation_suggestions.append({
@@ -657,10 +657,10 @@ def get_workflow_automation():
             })
         
         # أتمتة المتابعة
-        completed_visits = Visit.query.filter(
+        completed_visits = db.session.execute(select(func.count()).select_from(Visit).filter(
             Visit.archive_status == VisitArchiveStatus.ARCHIVED,
             Visit.completed_at >= datetime.now() - timedelta(days=7)
-        ).count()
+        )).scalar()
         
         if completed_visits > 10:
             automation_suggestions.append({
@@ -685,29 +685,29 @@ def get_patient_satisfaction_ai():
         from sqlalchemy import func
         
         # تحليل عوامل الرضا
-        total_visits = Visit.query.count()
-        completed_visits = Visit.query.filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED).count()
+        total_visits = db.session.execute(select(func.count()).select_from(Visit)).scalar()
+        completed_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.archive_status == VisitArchiveStatus.ARCHIVED)).scalar()
         
         # معدل الإنجاز
         completion_rate = (completed_visits / total_visits * 100) if total_visits > 0 else 0
         
         # متوسط وقت الانتظار
-        avg_wait_time = db.session.query(func.avg(QueueManagement.estimated_wait_time)).scalar() or 0
+        avg_wait_time = db.session.execute(select(func.avg(QueueManagement.estimated_wait_time))).scalar() or 0
         
         # تحليل التكرار
-        repeat_visits = db.session.query(
+        repeat_visits = db.session.execute(select(
             Visit.patient_id,
             func.count(Visit.id).label('visit_count')
-        ).group_by(Visit.patient_id).having(func.count(Visit.id) > 1).count()
+        ).group_by(Visit.patient_id).having(func.count(Visit.id) > 1)).scalar()
         
         satisfaction_score = calculate_satisfaction_score(completion_rate, avg_wait_time, repeat_visits)
 
-        avg_rating = db.session.query(func.avg(PatientSatisfactionSurvey.rating)).filter(
+        avg_rating = db.session.execute(select(func.avg(PatientSatisfactionSurvey.rating)).filter(
             PatientSatisfactionSurvey.rating.isnot(None)
-        ).scalar()
-        rating_count = db.session.query(func.count(PatientSatisfactionSurvey.id)).filter(
+        )).scalar()
+        rating_count = db.session.execute(select(func.count(PatientSatisfactionSurvey.id)).filter(
             PatientSatisfactionSurvey.rating.isnot(None)
-        ).scalar() or 0
+        )).scalar() or 0
         rating_score = (float(avg_rating or 0) / 5 * 100) if avg_rating else None
         if rating_score is not None:
             satisfaction_score = (satisfaction_score * 0.6) + (rating_score * 0.4)
@@ -764,15 +764,15 @@ def get_patient_demand_forecast(hours_ahead=4, days_window=14):
 
         hourly = []
         try:
-            hourly = db.session.query(
+            hourly = db.session.execute(select(
                 func.extract('hour', Visit.created_at).label('hour'),
                 func.count(Visit.id).label('count')
-            ).filter(Visit.created_at >= start_date).group_by(func.extract('hour', Visit.created_at)).all()
+            ).filter(Visit.created_at >= start_date).group_by(func.extract('hour', Visit.created_at))).scalars().all()
         except Exception:
-            hourly = db.session.query(
+            hourly = db.session.execute(select(
                 func.extract('hour', Visit.created_at).label('hour'),
                 func.count(Visit.id).label('count')
-            ).filter(Visit.created_at >= start_date).group_by(func.extract('hour', Visit.created_at)).all()
+            ).filter(Visit.created_at >= start_date).group_by(func.extract('hour', Visit.created_at))).scalars().all()
 
         avg_by_hour = {}
         for h in hourly:
@@ -808,25 +808,25 @@ def get_resource_planning():
         from sqlalchemy import func
         
         # تحليل الموظفين
-        total_staff = User.query.count()
-        active_staff = User.query.filter(
+        total_staff = db.session.execute(select(func.count()).select_from(User)).scalar()
+        active_staff = db.session.execute(select(func.count()).select_from(User).filter(
             User.last_login >= datetime.now() - timedelta(days=7)
-        ).count()
+        )).scalar()
         
         # تحليل الأطباء
-        total_doctors = User.query.filter(User.role == 'doctor').count()
-        active_doctors = User.query.filter(
+        total_doctors = db.session.execute(select(func.count()).select_from(User).filter(User.role == 'doctor')).scalar()
+        active_doctors = db.session.execute(select(func.count()).select_from(User).filter(
             User.role == 'doctor',
             User.last_login >= datetime.now() - timedelta(days=7)
-        ).count()
+        )).scalar()
         
         # تحليل الأحمال
         today = datetime.now().date()
-        today_visits = Visit.query.filter(Visit.created_at >= today).count()
-        tomorrow_appointments = Appointment.query.filter(
+        today_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.created_at >= today)).scalar()
+        tomorrow_appointments = db.session.execute(select(func.count()).select_from(Appointment).filter(
             Appointment.starts_at >= today + timedelta(days=1),
             Appointment.starts_at < today + timedelta(days=2)
-        ).count()
+        )).scalar()
         
         # حساب الكفاءة
         efficiency_score = (active_staff / total_staff * 100) if total_staff > 0 else 0
@@ -876,7 +876,7 @@ def get_smart_recommendations():
         
         # تحليل النمو
         week_ago = datetime.now().date() - timedelta(days=7)
-        new_patients_week = Patient.query.filter(Patient.created_at >= week_ago).count()
+        new_patients_week = db.session.execute(select(func.count()).select_from(Patient).filter(Patient.created_at >= week_ago)).scalar()
         
         if new_patients_week > 20:
             recommendations.append({
@@ -898,9 +898,9 @@ def get_smart_recommendations():
         
         # تحليل الكفاءة
         try:
-            avg_visit_duration = db.session.query(
+            avg_visit_duration = db.session.execute(select(
                 func.avg((func.extract('epoch', Visit.completed_at) - func.extract('epoch', Visit.created_at)) / 60.0)
-            ).filter(Visit.completed_at.isnot(None)).scalar() or 0
+            ).filter(Visit.completed_at.isnot(None))).scalar() or 0
         except Exception:
             safe_rollback(db.session, error_message="database rollback")
             avg_visit_duration = 0
@@ -959,10 +959,11 @@ def calculate_no_show_rate():
     """حساب معدل عدم الحضور"""
     try:
         from models.appointment import Appointment
-        total_appointments = Appointment.query.count()
-        no_show_appointments = Appointment.query.filter(Appointment.status == 'no_show').count()
+        total_appointments = db.session.execute(select(func.count()).select_from(Appointment)).scalar()
+        no_show_appointments = db.session.execute(select(func.count()).select_from(Appointment).filter(Appointment.status == 'no_show')).scalar()
         return (no_show_appointments / total_appointments * 100) if total_appointments > 0 else 0
-    except:
+    except (TypeError, ValueError, ZeroDivisionError) as e:
+        logging.error(f"calculate_no_show_rate failed: {e}")
         return 0
 
 
@@ -1023,7 +1024,7 @@ def save_queue_settings(department_id):
         if not dept:
             flash('القسم غير موجود', 'error')
             return redirect(url_for('reception.queue_management'))
-        settings = QueueSettings.query.filter_by(department_id=department_id).first()
+        settings = db.session.execute(select(QueueSettings).filter_by(department_id=department_id)).scalars().first()
         if not settings:
             settings = QueueSettings(department_id=department_id)
             db.session.add(settings)

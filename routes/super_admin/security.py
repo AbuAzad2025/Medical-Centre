@@ -11,8 +11,9 @@ from utils.decorators import super_admin_required
 from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
-from sqlalchemy import func
+from sqlalchemy import func, select
 from datetime import datetime, timedelta, timezone
+from app.extensions import db
 
 
 # =============================================
@@ -41,7 +42,7 @@ def audit_trail():
     
     try:
         from models.audit_trail import AuditTrail
-        query = AuditTrail.query.order_by(AuditTrail.created_at.desc())
+        query = select(AuditTrail)
         
         total = query.count()
         pages = (total + per_page - 1) // per_page
@@ -77,10 +78,10 @@ def security_center():
     try:
         from models.audit_trail import LoginAttempt, SystemLog, SecurityEvent
         start_24h = datetime.now(timezone.utc) - timedelta(hours=24)
-        failed_logins = LoginAttempt.query.filter(LoginAttempt.success == False, LoginAttempt.created_at >= start_24h).count()
-        critical_logs = SystemLog.query.filter(SystemLog.log_level.in_(['ERROR', 'CRITICAL']), SystemLog.created_at >= start_24h).count()
-        unresolved = SecurityEvent.query.filter(SecurityEvent.is_resolved == False).count()
-        latest_events = SecurityEvent.query.order_by(SecurityEvent.created_at.desc()).limit(20).all()
+        failed_logins = db.session.execute(select(func.count()).select_from(LoginAttempt).filter(LoginAttempt.success == False, LoginAttempt.created_at >= start_24h)).scalar()
+        critical_logs = db.session.execute(select(func.count()).select_from(SystemLog).filter(SystemLog.log_level.in_(['ERROR', 'CRITICAL']), SystemLog.created_at >= start_24h)).scalar()
+        unresolved = db.session.execute(select(func.count()).select_from(SecurityEvent).filter(SecurityEvent.is_resolved == False)).scalar()
+        latest_events = db.session.execute(select(SecurityEvent).order_by(SecurityEvent.created_at.desc()).limit(20)).scalars().all()
         stats = {
             'failed_logins_24h': int(failed_logins or 0),
             'critical_logs_24h': int(critical_logs or 0),

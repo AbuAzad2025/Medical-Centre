@@ -7,17 +7,18 @@ import logging
 
 from routes.medication_routes import medication_bp
 from models.medication import Supplier, MedicationPurchase, Medication
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
+from sqlalchemy import select
 
 
 @medication_bp.route('/suppliers')
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def suppliers():
-    suppliers = Supplier.query.filter(
+    suppliers = db.session.execute(select(Supplier).filter(
         Supplier.tenant_id == current_user.tenant_id
-    ).order_by(Supplier.name).all()
+    ).order_by(Supplier.name)).scalars().all()
     return render_template('pharmacy/suppliers.html', suppliers=suppliers)
 
 
@@ -55,10 +56,10 @@ def add_supplier():
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def edit_supplier(supplier_id):
-    supplier = Supplier.query.filter(
+    supplier = db.session.execute(select(Supplier).filter(
         Supplier.tenant_id == current_user.tenant_id,
         Supplier.id == supplier_id
-    ).first()
+    )).scalars().first()
     if not supplier:
         flash('المورد غير موجود', 'error')
         return redirect(url_for('medication.suppliers'))
@@ -85,10 +86,10 @@ def edit_supplier(supplier_id):
 @login_required
 @role_required('admin', 'manager')
 def delete_supplier(supplier_id):
-    supplier = Supplier.query.filter(
+    supplier = db.session.execute(select(Supplier).filter(
         Supplier.tenant_id == current_user.tenant_id,
         Supplier.id == supplier_id
-    ).first()
+    )).scalars().first()
     if not supplier:
         flash('المورد غير موجود', 'error')
         return redirect(url_for('medication.suppliers'))
@@ -107,9 +108,9 @@ def delete_supplier(supplier_id):
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def purchases():
-    purchases = MedicationPurchase.query.filter(
+    purchases = db.session.execute(select(MedicationPurchase).filter(
         MedicationPurchase.tenant_id == current_user.tenant_id
-    ).order_by(MedicationPurchase.created_at.desc()).all()
+    ).order_by(MedicationPurchase.created_at.desc())).scalars().all()
     return render_template('pharmacy/purchases.html', purchases=purchases)
 
 
@@ -133,19 +134,19 @@ def add_purchase():
             return redirect(url_for('medication.add_purchase'))
 
         tenant_id = current_user.tenant_id
-        medication = Medication.query.filter(
+        medication = db.session.execute(select(Medication).filter(
             Medication.tenant_id == tenant_id,
             Medication.id == medication_id
-        ).first()
+        )).scalars().first()
         if not medication:
             flash('الدواء غير موجود', 'error')
             return redirect(url_for('medication.add_purchase'))
 
         if supplier_id:
-            supplier = Supplier.query.filter(
+            supplier = db.session.execute(select(Supplier).filter(
                 Supplier.tenant_id == tenant_id,
                 Supplier.id == supplier_id
-            ).first()
+            )).scalars().first()
             if not supplier:
                 flash('المورد غير موجود', 'error')
                 return redirect(url_for('medication.add_purchase'))
@@ -155,8 +156,8 @@ def add_purchase():
             try:
                 from datetime import date
                 expiry_date = date.fromisoformat(expiry_date_str)
-            except:
-                pass
+            except (ValueError, TypeError):
+                logging.warning(f"Invalid expiry date format: {expiry_date_str}")
 
         purchase = MedicationPurchase(
             tenant_id=current_user.tenant_id,
@@ -187,12 +188,12 @@ def add_purchase():
             safe_rollback(db.session, error_message="database rollback")
             flash('حدث خطأ في إضافة المشتريات', 'error')
 
-    medications = Medication.query.filter(
+    medications = db.session.execute(select(Medication).filter(
         Medication.tenant_id == current_user.tenant_id,
         Medication.is_active == True
-    ).order_by(Medication.trade_name).all()
-    suppliers = Supplier.query.filter(
+    ).order_by(Medication.trade_name)).scalars().all()
+    suppliers = db.session.execute(select(Supplier).filter(
         Supplier.tenant_id == current_user.tenant_id,
         Supplier.is_active == True
-    ).order_by(Supplier.name).all()
+    ).order_by(Supplier.name)).scalars().all()
     return render_template('pharmacy/add_purchase.html', medications=medications, suppliers=suppliers)

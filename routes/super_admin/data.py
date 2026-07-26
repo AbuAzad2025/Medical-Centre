@@ -11,8 +11,8 @@ from utils.decorators import super_admin_required
 from services.access_control_service import AccessControlService
 from services.super_admin_service import super_admin_service
 import logging
-from sqlalchemy import func
-from app_factory import db
+from sqlalchemy import func, select
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 
 
@@ -29,14 +29,14 @@ def branch_templates():
         if request.method == 'POST':
             data = request.get_json(silent=True) or {}
             items = data.get('items') or []
-            cfg = SystemConfig.query.filter_by(config_key='branch_templates').first()
+            cfg = db.session.execute(select(SystemConfig).filter_by(config_key='branch_templates')).scalars().first()
             if not cfg:
                 cfg = SystemConfig(config_key='branch_templates', category='system', is_system=True, config_type='json')
                 db.session.add(cfg)
             cfg.set_value(items)
             safe_commit(db.session, error_message="database commit failed", reraise=True)
             return jsonify({'success': True, 'message': 'تم حفظ القوالب'}), 200
-        cfg = SystemConfig.query.filter_by(config_key='branch_templates').first()
+        cfg = db.session.execute(select(SystemConfig).filter_by(config_key='branch_templates')).scalars().first()
         items = cfg.get_value() if cfg else []
         return render_template('super_admin/branch_templates.html', items=items if isinstance(items, list) else [])
     except Exception as e:
@@ -91,7 +91,7 @@ def export_system_data():
         
         # تصدير المستخدمين
         from models.user import User
-        users = User.query.all()
+        users = db.session.execute(select(User)).scalars().all()
         export_data['data']['users'] = [
             {
                 'id': user.id,
@@ -108,7 +108,7 @@ def export_system_data():
         
         # تصدير المرضى
         from models.patient import Patient
-        patients = Patient.query.all()
+        patients = db.session.execute(select(Patient)).scalars().all()
         export_data['data']['patients'] = [
             {
                 'id': patient.id,
@@ -123,7 +123,7 @@ def export_system_data():
         
         # تصدير الزيارات
         from models.visit import Visit
-        visits = Visit.query.all()
+        visits = db.session.execute(select(Visit)).scalars().all()
         export_data['data']['visits'] = [
             {
                 'id': visit.id,

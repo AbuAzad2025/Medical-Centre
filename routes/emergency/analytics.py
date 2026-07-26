@@ -17,8 +17,8 @@ from models.radiology_request import RadiologyRequest
 from models.medical_record import MedicalRecord
 from app.shared.enums import EmergencyStatus
 from services.emergency_service import emergency_service
-from app_factory import db
-from sqlalchemy import and_, or_, desc, case, func
+from app.extensions import db
+from sqlalchemy import and_, or_, desc, case, func, select
 import logging, json
 from datetime import datetime, date, timedelta, timezone
 
@@ -37,17 +37,17 @@ def get_emergency_ai_triage():
         
         # تحليل أولويات الحالات
         priority_analysis = {
-            'critical': EmergencyCase.query.filter(EmergencyCase.severity == 'CRITICAL').count(),
-            'urgent': EmergencyCase.query.filter(EmergencyCase.severity == 'HIGH').count(),
-            'normal': EmergencyCase.query.filter(EmergencyCase.severity == 'MODERATE').count(),
-            'low': EmergencyCase.query.filter(EmergencyCase.severity == 'LOW').count()
+            'critical': db.session.execute(select(func.count()).select_from(EmergencyCase).filter(EmergencyCase.severity == 'CRITICAL')).scalar(),
+            'urgent': db.session.execute(select(func.count()).select_from(EmergencyCase).filter(EmergencyCase.severity == 'HIGH')).scalar(),
+            'normal': db.session.execute(select(func.count()).select_from(EmergencyCase).filter(EmergencyCase.severity == 'MODERATE')).scalar(),
+            'low': db.session.execute(select(func.count()).select_from(EmergencyCase).filter(EmergencyCase.severity == 'LOW')).scalar()
         }
         
         # تحليل أوقات الاستجابة
         response_times = []
-        recent_cases = EmergencyCase.query.filter(
+        recent_cases = db.session.execute(select(EmergencyCase).filter(
             EmergencyCase.created_at >= datetime.now() - timedelta(days=7)
-        ).all()
+        )).scalars().all()
         
         for case in recent_cases:
             end_time = getattr(case, 'treated_at', None) or getattr(case, 'completed_at', None)
@@ -95,10 +95,10 @@ def get_critical_alert_system():
         alerts = []
         
         # تنبيهات الحالات الحرجة
-        critical_cases = EmergencyCase.query.filter(
+        critical_cases = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.severity == 'CRITICAL',
             EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT])
-        ).count()
+        )).scalar()
         
         if critical_cases > 0:
             alerts.append({
@@ -110,10 +110,10 @@ def get_critical_alert_system():
             })
         
         # تنبيهات أوقات الانتظار الطويلة
-        long_waiting = EmergencyCase.query.filter(
+        long_waiting = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.status == EmergencyStatus.WAITING,
             EmergencyCase.created_at < datetime.now() - timedelta(minutes=30)
-        ).count()
+        )).scalar()
         
         if long_waiting > 0:
             alerts.append({
@@ -125,9 +125,9 @@ def get_critical_alert_system():
             })
         
         # تنبيهات الموارد
-        active_cases = EmergencyCase.query.filter(
+        active_cases = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
-        ).count()
+        )).scalar()
         
         if active_cases > 20:
             alerts.append({
@@ -152,20 +152,20 @@ def get_emergency_workflow_ai():
         
         # تحليل مراحل العلاج
         workflow_analysis = {
-            'waiting': EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.WAITING).count(),
-            'triage': EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.TRIAGE).count(),
-            'resuscitation': EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.RESUSCITATION).count(),
-            'treatment': EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.TREATMENT).count(),
-            'observation': EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.OBSERVATION).count(),
-            'completed': EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.COMPLETED).count()
+            'waiting': db.session.execute(select(func.count()).select_from(EmergencyCase).filter(EmergencyCase.status == EmergencyStatus.WAITING)).scalar(),
+            'triage': db.session.execute(select(func.count()).select_from(EmergencyCase).filter(EmergencyCase.status == EmergencyStatus.TRIAGE)).scalar(),
+            'resuscitation': db.session.execute(select(func.count()).select_from(EmergencyCase).filter(EmergencyCase.status == EmergencyStatus.RESUSCITATION)).scalar(),
+            'treatment': db.session.execute(select(func.count()).select_from(EmergencyCase).filter(EmergencyCase.status == EmergencyStatus.TREATMENT)).scalar(),
+            'observation': db.session.execute(select(func.count()).select_from(EmergencyCase).filter(EmergencyCase.status == EmergencyStatus.OBSERVATION)).scalar(),
+            'completed': db.session.execute(select(func.count()).select_from(EmergencyCase).filter(EmergencyCase.status == EmergencyStatus.COMPLETED)).scalar()
         }
         
         # تحليل أوقات المراحل
         stage_times = []
-        completed_cases = EmergencyCase.query.filter(
+        completed_cases = db.session.execute(select(EmergencyCase).filter(
             EmergencyCase.status == EmergencyStatus.COMPLETED,
             EmergencyCase.completed_at >= datetime.now() - timedelta(days=7)
-        ).all()
+        )).scalars().all()
         
         for case in completed_cases:
             end_time = getattr(case, 'treated_at', None) or getattr(case, 'completed_at', None)
@@ -219,9 +219,9 @@ def get_patient_vital_monitoring():
         }
         
         # تحليل الحالات حسب العلامات الحيوية
-        recent_cases = EmergencyCase.query.filter(
+        recent_cases = db.session.execute(select(EmergencyCase).filter(
             EmergencyCase.created_at >= datetime.now() - timedelta(days=7)
-        ).all()
+        )).scalars().all()
         
         for case in recent_cases:
             if case.vital_signs:
@@ -270,17 +270,17 @@ def get_emergency_resource_management():
         from datetime import datetime, timedelta
         
         # تحليل الموارد المتاحة
-        total_staff = User.query.filter(User.role == 'emergency').count()
-        active_staff = User.query.filter(
+        total_staff = db.session.execute(select(func.count()).select_from(User).filter(User.role == 'emergency')).scalar()
+        active_staff = db.session.execute(select(func.count()).select_from(User).filter(
             User.role == 'emergency',
             User.last_login >= datetime.now() - timedelta(hours=24)
-        ).count()
+        )).scalar()
         
         # تحليل الأحمال
         today = datetime.now().date()
-        today_cases = EmergencyCase.query.filter(
+        today_cases = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.created_at >= today
-        ).count()
+        )).scalar()
         
         # تحليل الكفاءة
         efficiency_score = (active_staff / total_staff * 100) if total_staff > 0 else 0
@@ -330,9 +330,9 @@ def get_trauma_protocols():
         }
         
         # تحليل الحالات الحديثة
-        recent_cases = EmergencyCase.query.filter(
+        recent_cases = db.session.execute(select(EmergencyCase).filter(
             EmergencyCase.created_at >= datetime.now() - timedelta(days=30)
-        ).all()
+        )).scalars().all()
         
         for case in recent_cases:
             if case.chief_complaint:
@@ -384,22 +384,22 @@ def get_emergency_analytics():
         from datetime import datetime, timedelta
         
         # تحليل الأداء
-        total_cases = EmergencyCase.query.count()
-        completed_cases = EmergencyCase.query.filter(EmergencyCase.status == EmergencyStatus.COMPLETED).count()
+        total_cases = db.session.execute(select(func.count()).select_from(EmergencyCase)).scalar()
+        completed_cases = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(EmergencyCase.status == EmergencyStatus.COMPLETED)).scalar()
         completion_rate = (completed_cases / total_cases * 100) if total_cases > 0 else 0
         
         # تحليل الأوقات
-        avg_treatment_time = db.session.query(func.avg(
+        avg_treatment_time = db.session.execute(select(func.avg(
             func.extract('epoch', EmergencyCase.completed_at - EmergencyCase.created_at) / 60
         )).filter(
             EmergencyCase.status == EmergencyStatus.COMPLETED,
             EmergencyCase.completed_at.isnot(None)
-        ).scalar() or 0
+        )).scalar() or 0
         
         # تحليل الموارد
-        prescriptions_count = Prescription.query.join(EmergencyCase).count()
-        lab_requests_count = LabRequest.query.join(EmergencyCase).count()
-        radiology_requests_count = RadiologyRequest.query.join(EmergencyCase).count()
+        prescriptions_count = db.session.execute(select(func.count()).select_from(Prescription).join(EmergencyCase)).scalar()
+        lab_requests_count = db.session.execute(select(func.count()).select_from(LabRequest).join(EmergencyCase)).scalar()
+        radiology_requests_count = db.session.execute(select(func.count()).select_from(RadiologyRequest).join(EmergencyCase)).scalar()
         
         return {
             'completion_rate': round(completion_rate, 2),
@@ -424,14 +424,14 @@ def get_smart_emergency_recommendations():
         
         # تحليل النمو
         week_ago = datetime.now().date() - timedelta(days=7)
-        cases_this_week = EmergencyCase.query.filter(
+        cases_this_week = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.created_at >= week_ago
-        ).count()
+        )).scalar()
         
-        cases_last_week = EmergencyCase.query.filter(
+        cases_last_week = db.session.execute(select(func.count()).select_from(EmergencyCase).filter(
             EmergencyCase.created_at >= week_ago - timedelta(days=7),
             EmergencyCase.created_at < week_ago
-        ).count()
+        )).scalar()
         
         growth_rate = ((cases_this_week - cases_last_week) / cases_last_week * 100) if cases_last_week > 0 else 0
         
@@ -444,12 +444,12 @@ def get_smart_emergency_recommendations():
             })
         
         # تحليل الكفاءة
-        avg_response_time = db.session.query(func.avg(
+        avg_response_time = db.session.execute(select(func.avg(
             func.extract('epoch', EmergencyCase.completed_at - EmergencyCase.created_at) / 60
         )).filter(
             EmergencyCase.status == EmergencyStatus.COMPLETED,
             EmergencyCase.completed_at.isnot(None)
-        ).scalar() or 0
+        )).scalar() or 0
         
         if avg_response_time > 45:
             recommendations.append({
@@ -460,12 +460,12 @@ def get_smart_emergency_recommendations():
             })
         
         # تحليل الموظفين
-        active_emergency_staff = User.query.filter(
+        active_emergency_staff = db.session.execute(select(func.count()).select_from(User).filter(
             User.role == 'emergency',
             User.last_login >= datetime.now() - timedelta(days=7)
-        ).count()
+        )).scalar()
         
-        total_emergency_staff = User.query.filter(User.role == 'emergency').count()
+        total_emergency_staff = db.session.execute(select(func.count()).select_from(User).filter(User.role == 'emergency')).scalar()
         
         if active_emergency_staff < total_emergency_staff * 0.8:
             recommendations.append({

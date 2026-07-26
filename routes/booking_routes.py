@@ -12,7 +12,7 @@ from models.appointment import Appointment
 from models.user import User, StaffWorkSchedule, StaffAbsence
 from models.department import Department
 from utils.tenant_query import get_tenant_record, TenantContextError
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging
 from datetime import datetime, timedelta, timezone
@@ -51,13 +51,13 @@ def register():
                 import uuid
                 email = f"patient_{phone}_{uuid.uuid4().hex[:6]}@booking.local"
 
-            if User.query.filter_by(email=email).first():
+            if db.session.execute(select(User).filter_by(email=email)).scalars().first():
                 raise ValueError('البريد الإلكتروني مستخدم مسبقاً')
 
             base_username = f"patient_{phone}".replace('+', '').replace(' ', '')
             username = base_username
             i = 0
-            while User.query.filter_by(username=username).first():
+            while db.session.execute(select(User).filter_by(username=username)).scalars().first():
                 i += 1
                 username = f"{base_username}_{i}"
 
@@ -67,9 +67,9 @@ def register():
 
             patient = None
             if national_id:
-                patient = Patient.query.filter_by(national_id=national_id).first()
+                patient = db.session.execute(select(Patient).filter_by(national_id=national_id)).scalars().first()
             if not patient and phone:
-                patient = Patient.query.filter_by(phone=phone).first()
+                patient = db.session.execute(select(Patient).filter_by(phone=phone)).scalars().first()
             if not patient:
                 patient = Patient(first_name=first_name, last_name=last_name, national_id=national_id, phone=phone)
                 db.session.add(patient)
@@ -80,7 +80,7 @@ def register():
             db.session.add(user)
             db.session.flush()
 
-            existing_link = PatientAccount.query.filter_by(patient_id=patient.id).first()
+            existing_link = db.session.execute(select(PatientAccount).filter_by(patient_id=patient.id)).scalars().first()
             if existing_link:
                 raise ValueError('هذا المريض مرتبط بحساب آخر')
             db.session.add(PatientAccount(
@@ -107,14 +107,14 @@ def dashboard_portal():
         flash('ليس لديك صلاحية للوصول إلى هذه الصفحة', 'error')
         return redirect(url_for('main.dashboard'))
 
-    link = PatientAccount.query.filter_by(user_id=current_user.id).first() if current_user.role == 'patient' else None
+    link = db.session.execute(select(PatientAccount).filter_by(user_id=current_user.id)).scalars().first() if current_user.role == 'patient' else None
     patient = db.session.get(Patient, link.patient_id) if link else None
 
     bookings = []
     if patient:
-        bookings = OnlineBooking.query.filter(
+        bookings = db.session.execute(select(OnlineBooking).filter(
             OnlineBooking.patient_id == patient.id
-        ).order_by(OnlineBooking.created_at.desc()).limit(50).all()
+        ).order_by(OnlineBooking.created_at.desc()).limit(50)).scalars().all()
 
     return render_template('booking/dashboard.html', patient=patient, bookings=bookings)
 
@@ -128,7 +128,7 @@ def cancel_booking(booking_id):
         flash('ليس لديك صلاحية', 'error')
         return redirect(url_for('booking.dashboard_portal'))
     try:
-        link = PatientAccount.query.filter_by(user_id=current_user.id).first()
+        link = db.session.execute(select(PatientAccount).filter_by(user_id=current_user.id)).scalars().first()
         if not link:
             if request.accept_mimetypes.best == 'application/json':
                 return jsonify({'success': False, 'message': 'لا يوجد حساب مريض مرتبط'}), 403
@@ -194,10 +194,10 @@ def index():
     """صفحة الحجز الرئيسية"""
     try:
         # جلب الأقسام المتاحة للحجز
-        departments = Department.query.filter_by(is_active=True).all()
+        departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
         
         # جلب الأطباء المتاحين
-        doctors = User.query.filter_by(role='doctor', is_active=True).all()
+        doctors = db.session.execute(select(User).filter_by(role='doctor', is_active=True)).scalars().all()
         
         return render_template('booking/index.html', 
                              departments=departments, 
@@ -275,7 +275,7 @@ def create_booking():
 
             try:
                 if current_user.is_authenticated and current_user.role == 'patient':
-                    link = PatientAccount.query.filter_by(user_id=current_user.id).first()
+                    link = db.session.execute(select(PatientAccount).filter_by(user_id=current_user.id)).scalars().first()
                     if link:
                         booking.patient_id = link.patient_id
                         booking.is_new_patient = False
@@ -314,7 +314,7 @@ def create_booking():
                     if not queue_user_id:
                         queue_user_id = doctor.id if doctor else None
                     if not queue_user_id:
-                        any_user = User.query.first()
+                        any_user = db.session.execute(select(User)).scalars().first()
                         queue_user_id = any_user.id if any_user else 1
                     NotificationService.add_to_notification_queue(
                         user_id=queue_user_id,
@@ -351,13 +351,13 @@ def create_booking():
 
     patient_prefill = None
     if current_user.is_authenticated and current_user.role == 'patient':
-        link = PatientAccount.query.filter_by(user_id=current_user.id).first()
+        link = db.session.execute(select(PatientAccount).filter_by(user_id=current_user.id)).scalars().first()
         if link:
             patient_prefill = db.session.get(Patient, link.patient_id)
 
     # جلب البيانات المطلوبة للنموذج
-    departments = Department.query.filter_by(is_active=True).all()
-    doctors = User.query.filter_by(role='doctor', is_active=True).all()
+    departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
+    doctors = db.session.execute(select(User).filter_by(role='doctor', is_active=True)).scalars().all()
     
     return render_template('booking/create.html', 
                          departments=departments, 
@@ -440,7 +440,7 @@ def api_available_doctors():
         department_id = request.args.get('department_id', type=int)
         appointment_type = request.args.get('appointment_type', type=str)
 
-        query = User.query.filter_by(role='doctor', is_active=True)
+        query = select(User)
         if department_id:
             query = query.filter(User.department_id == department_id)
 
@@ -468,14 +468,14 @@ def api_available_times():
         
         date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
 
-        from sqlalchemy import func, inspect
+        from sqlalchemy import func, inspect, select
 
         insp = inspect(db.engine)
 
-        existing_appointments = Appointment.query.filter(
+        existing_appointments = db.session.execute(select(Appointment).filter(
             Appointment.doctor_id == doctor_id,
             func.date(Appointment.starts_at) == date_obj
-        ).all()
+        )).scalars().all()
 
         taken_times = set()
         for apt in existing_appointments:
@@ -490,21 +490,21 @@ def api_available_times():
         has_absence = insp.has_table('staff_absences')
 
         if has_absence:
-            absent = StaffAbsence.query.filter(
+            absent = db.session.execute(select(StaffAbsence).filter(
                 StaffAbsence.user_id == doctor_id,
                 StaffAbsence.start_date <= date_obj,
                 StaffAbsence.end_date >= date_obj
-            ).first()
+            )).scalars().first()
             if absent:
                 return jsonify({'success': True, 'available_times': []})
 
         if has_schedule:
             dow = date_obj.weekday()
-            sched = StaffWorkSchedule.query.filter(
+            sched = db.session.execute(select(StaffWorkSchedule).filter(
                 StaffWorkSchedule.user_id == doctor_id,
                 StaffWorkSchedule.day_of_week == dow,
                 StaffWorkSchedule.is_active == True
-            ).first()
+            )).scalars().first()
             if sched:
                 start_hour = sched.start_time.hour
                 end_hour = sched.end_time.hour
@@ -542,10 +542,10 @@ def api_smart_slots():
         date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
         from sqlalchemy import func, inspect
         insp = inspect(db.engine)
-        existing_appointments = Appointment.query.filter(
+        existing_appointments = db.session.execute(select(Appointment).filter(
             Appointment.doctor_id == doctor_id,
             func.date(Appointment.starts_at) == date_obj
-        ).all()
+        )).scalars().all()
         taken_times = set()
         for apt in existing_appointments:
             try:
@@ -556,11 +556,11 @@ def api_smart_slots():
         has_schedule = insp.has_table('staff_work_schedules')
         if has_schedule:
             dow = date_obj.weekday()
-            sched = StaffWorkSchedule.query.filter(
+            sched = db.session.execute(select(StaffWorkSchedule).filter(
                 StaffWorkSchedule.user_id == doctor_id,
                 StaffWorkSchedule.day_of_week == dow,
                 StaffWorkSchedule.is_active == True
-            ).first()
+            )).scalars().first()
             if sched:
                 start_hour = sched.start_time.hour
                 end_hour = sched.end_time.hour

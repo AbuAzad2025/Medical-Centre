@@ -13,8 +13,8 @@ from models.invoice import Invoice
 from models.user import User
 from services.report_service import ReportService
 from services.financial_service import financial_service
-from app_factory import db
-from sqlalchemy import func, and_
+from app.extensions import db
+from sqlalchemy import func, and_, select
 import logging
 from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
@@ -35,10 +35,10 @@ def open_invoices():
     
     try:
         # جلب الفواتير المفتوحة
-        invoices = Invoice.query.filter(
+        invoices = db.session.execute(select(Invoice).filter(
             Invoice.tenant_id == current_user.tenant_id,
             Invoice.status.in_([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED])
-        ).order_by(Invoice.created_at.desc()).all()
+        ).order_by(Invoice.created_at.desc())).scalars().all()
         
         return render_template('accountant/open_invoices.html', invoices=invoices)
     except Exception as e:
@@ -55,9 +55,9 @@ def payments():
     
     try:
         # جلب المدفوعات
-        payments = Payment.query.filter(
+        payments = db.session.execute(select(Payment).filter(
             Payment.tenant_id == current_user.tenant_id
-        ).order_by(Payment.created_at.desc()).all()
+        ).order_by(Payment.created_at.desc())).scalars().all()
         
         return render_template('accountant/payments.html', payments=payments)
     except Exception as e:
@@ -101,7 +101,7 @@ def receipt(payment_id):
         survey_url = None
         try:
             from models.patient_satisfaction import PatientSatisfactionSurvey
-            survey = PatientSatisfactionSurvey.query.filter_by(visit_id=visit.id).first()
+            survey = db.session.execute(select(PatientSatisfactionSurvey).filter_by(visit_id=visit.id)).scalars().first()
             if survey:
                 survey_url = url_for('reception.survey', token=survey.token, _external=True)
         except Exception:

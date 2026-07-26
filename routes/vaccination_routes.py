@@ -1,12 +1,13 @@
 """
 Vaccination / Immunization Registry Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors, role_required
 from models.vaccination import Vaccine, Immunization, VaccinationSchedule
 from models.patient import Patient
-from app_factory import db
+from app.extensions import db
 from datetime import date
 
 vaccination_bp = Blueprint('vaccination', __name__)
@@ -17,7 +18,7 @@ vaccination_bp = Blueprint('vaccination', __name__)
 @role_required('nurse', 'doctor', 'admin', 'manager')
 @handle_route_errors
 def vaccines():
-    items = Vaccine.query.filter_by(is_active=True).order_by(Vaccine.name).all()
+    items = db.session.execute(select(Vaccine).filter_by(is_active=True).order_by(Vaccine.name)).scalars().all()
     return render_template('vaccination/vaccines.html', vaccines=items)
 
 @vaccination_bp.route('/patient/<int:patient_id>')
@@ -25,10 +26,10 @@ def vaccines():
 @role_required('nurse', 'doctor', 'admin', 'receptionist')
 @handle_route_errors
 def patient_immunizations(patient_id):
-    patient = Patient.query.get_or_404(patient_id)
-    immunizations = Immunization.query.filter_by(patient_id=patient_id).order_by(
+    patient = db.get_or_404(Patient, patient_id)
+    immunizations = db.session.execute(select(Immunization).filter_by(patient_id=patient_id).order_by(
         Immunization.administration_date.desc()
-    ).all()
+    )).scalars().all()
     # Calculate upcoming vaccinations
     upcoming = []
     for imm in immunizations:

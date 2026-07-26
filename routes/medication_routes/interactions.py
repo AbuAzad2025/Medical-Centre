@@ -11,11 +11,11 @@ from models.patient import Patient
 from models.visit import Visit
 from models.supply_request import MedicationSupplyRequest, MedicationSupplyRequestItem
 from models.drug_interaction import DrugInteraction
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging, json
 from datetime import datetime, timezone, timedelta, date
-from sqlalchemy import func
+from sqlalchemy import func, select
 
 
 # =============================================
@@ -40,7 +40,7 @@ def interactions():
             b = max(a_id, b_id)
             if severity not in {'LOW', 'MODERATE', 'HIGH'}:
                 severity = 'MODERATE'
-            exists = DrugInteraction.query.filter_by(medication_a_id=a, medication_b_id=b).first()
+            exists = db.session.execute(select(DrugInteraction).filter_by(medication_a_id=a, medication_b_id=b)).scalars().first()
             if exists:
                 exists.severity = severity
                 exists.description = description
@@ -66,8 +66,8 @@ def interactions():
             flash('حدث خطأ في حفظ التداخل', 'error')
             return redirect(url_for('medication.interactions'))
 
-    meds = Medication.query.filter_by(is_active=True).filter(Medication.tenant_id == current_user.tenant_id).order_by(Medication.trade_name.asc()).limit(2000).all()
-    rows = DrugInteraction.query.order_by(DrugInteraction.created_at.desc()).limit(500).all()
+    meds = db.session.execute(select(Medication).filter_by(is_active=True).filter(Medication.tenant_id == current_user.tenant_id).order_by(Medication.trade_name.asc()).limit(2000)).scalars().all()
+    rows = db.session.execute(select(DrugInteraction).order_by(DrugInteraction.created_at.desc()).limit(500)).scalars().all()
     return render_template('medication/interactions.html', medications=meds, interactions=rows)
 
 
@@ -75,7 +75,7 @@ def interactions():
 @login_required
 @role_required('pharmacist', 'admin', 'manager')
 def toggle_interaction(interaction_id: int):
-    row = DrugInteraction.query.filter(DrugInteraction.id == interaction_id).first_or_404()
+    row = select(DrugInteraction).filter(DrugInteraction.id == interaction_id)
     try:
         row.is_active = not bool(row.is_active)
         row.updated_at = datetime.now(timezone.utc)

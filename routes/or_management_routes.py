@@ -1,6 +1,7 @@
 """
 Operating Room Management Routes
 """
+from sqlalchemy import select
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors, role_required
@@ -8,7 +9,7 @@ from models.or_management import SurgerySchedule, SurgeryChecklist
 from models.patient import Patient
 from models.user import User
 from models.icd_coding import CPTCode, ICD10Code
-from app_factory import db
+from app.extensions import db
 
 or_bp = Blueprint('or', __name__)
 
@@ -38,6 +39,6 @@ def schedule():
 @role_required('doctor', 'nurse', 'admin', 'manager')
 @handle_route_errors
 def surgery_detail(surgery_id):
-    surgery = SurgerySchedule.query.get_or_404(surgery_id)
-    checklist = SurgeryChecklist.query.filter_by(surgery_schedule_id=surgery_id).first()
+    surgery = db.get_or_404(SurgerySchedule, surgery_id)
+    checklist = db.session.execute(select(SurgeryChecklist).filter_by(surgery_schedule_id=surgery_id)).scalars().first()
     return render_template('or/surgery_detail.html', surgery=surgery, checklist=checklist)

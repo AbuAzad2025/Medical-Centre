@@ -13,8 +13,8 @@ from models.invoice import Invoice
 from models.user import User
 from services.report_service import ReportService
 from services.financial_service import financial_service
-from app_factory import db
-from sqlalchemy import func, and_
+from app.extensions import db
+from sqlalchemy import func, and_, select
 import logging
 from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
@@ -34,10 +34,10 @@ def invoices():
     per_page = 25
     
     try:
-        query = Visit.query.filter(
+        query = select(Visit).filter(
             Visit.tenant_id == current_user.tenant_id,
             Visit.payment_status.in_(['PENDING', 'PARTIAL', 'DEBT'])
-        ).order_by(Visit.created_at.desc())
+        )
         
         total = query.count()
         pages = (total + per_page - 1) // per_page
@@ -67,7 +67,7 @@ def financial():
 
         patients = []
         if q:
-            pq = Patient.query.filter(Patient.tenant_id == current_user.tenant_id)
+            pq = select(Patient)
             if q.isdigit():
                 pq = pq.filter(Patient.id == int(q))
             else:
@@ -86,22 +86,22 @@ def financial():
         if patient_id:
             selected_patient = db.session.get(Patient, patient_id)
             if selected_patient:
-                visits = Visit.query.filter(
+                visits = db.session.execute(select(Visit).filter(
                     Visit.tenant_id == current_user.tenant_id,
                     Visit.patient_id == patient_id
-                ).order_by(Visit.created_at.desc()).limit(200).all()
+                ).order_by(Visit.created_at.desc()).limit(200)).scalars().all()
                 visit_ids = [v.id for v in visits]
                 invoices = []
                 if visit_ids:
-                    invoices = Invoice.query.filter(
+                    invoices = db.session.execute(select(Invoice).filter(
                         Invoice.tenant_id == current_user.tenant_id,
                         Invoice.visit_id.in_(visit_ids)
-                    ).order_by(Invoice.created_at.desc()).all()
-                payments = Payment.query.filter(
+                    ).order_by(Invoice.created_at.desc())).scalars().all()
+                payments = db.session.execute(select(Payment).filter(
                     Payment.tenant_id == current_user.tenant_id,
                     Payment.patient_id == patient_id,
                     Payment.status == PaymentStatus.CONFIRMED
-                ).order_by(Payment.payment_date.desc()).limit(500).all()
+                ).order_by(Payment.payment_date.desc()).limit(500)).scalars().all()
 
                 totals = {
                     'visits_count': len(visits),

@@ -2,10 +2,11 @@
 نموذج المريض - Patient (نسخة نهائية)
 """
 from datetime import datetime, date, timezone
-from sqlalchemy import Index
+from sqlalchemy import Index, select, func
 from sqlalchemy.orm import validates
-from app_factory import db
+from app.extensions import db
 from app.shared.mixins import TenantMixin
+from app.shared.encrypted_type import EncryptedString
 
 
 class Patient(TenantMixin, db.Model):
@@ -13,11 +14,11 @@ class Patient(TenantMixin, db.Model):
     __tenant_migration__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    national_id = db.Column(db.String(32), unique=True, nullable=True, index=True)
-    first_name = db.Column(db.String(80), nullable=False, index=True)
-    last_name = db.Column(db.String(80), nullable=False, index=True)
-    first_name_ar = db.Column(db.String(80), nullable=True)
-    last_name_ar = db.Column(db.String(80), nullable=True)
+    national_id = db.Column(EncryptedString(32), unique=True, nullable=True, index=True)
+    first_name = db.Column(EncryptedString(80), nullable=False, index=True)
+    last_name = db.Column(EncryptedString(80), nullable=False, index=True)
+    first_name_ar = db.Column(EncryptedString(80), nullable=True)
+    last_name_ar = db.Column(EncryptedString(80), nullable=True)
     
     @property
     def full_name(self):
@@ -35,14 +36,14 @@ class Patient(TenantMixin, db.Model):
         if g in {'F', 'FEMALE', 'انثى', 'أنثى'}:
             return 'أنثى'
         return 'آخر'
-    phone = db.Column(db.String(20), nullable=True, index=True)
+    phone = db.Column(EncryptedString(20), nullable=True, index=True)
     birth_date = db.Column(db.Date, nullable=True, index=True)
     gender = db.Column(db.String(10), nullable=True)  # M/F/Other
-    address = db.Column(db.String(200), nullable=True)
+    address = db.Column(EncryptedString(200), nullable=True)
     notes = db.Column(db.Text, nullable=True)
     admin_notes = db.Column(db.Text, nullable=True)
     insurance_company_id = db.Column(db.Integer, db.ForeignKey('insurance_companies.id', ondelete='SET NULL'), nullable=True, index=True)
-    insurance_member_number = db.Column(db.String(60), nullable=True)
+    insurance_member_number = db.Column(EncryptedString(60), nullable=True)
     marital_status = db.Column(db.String(20), nullable=True)
     is_pregnant = db.Column(db.Boolean, default=False)
     pregnancy_weeks = db.Column(db.Integer, nullable=True)
@@ -127,14 +128,14 @@ class Patient(TenantMixin, db.Model):
     def visit_count(self):
         try:
             from models.patient_visit_counter import PatientVisitCounter
-            pvc = PatientVisitCounter.query.filter_by(patient_id=self.id).first()
+            pvc = db.session.execute(select(PatientVisitCounter).filter_by(patient_id=self.id)).scalars().first()
             if pvc:
                 return int(pvc.visit_count or 0)
             from models.visit import Visit
-            return Visit.query.filter_by(patient_id=self.id).count()
+            return db.session.execute(select(func.count()).select_from(Visit).filter_by(patient_id=self.id)).scalar()
         except Exception:
             from models.visit import Visit
-            return Visit.query.filter_by(patient_id=self.id).count()
+            return db.session.execute(select(func.count()).select_from(Visit).filter_by(patient_id=self.id)).scalar()
 
 
 

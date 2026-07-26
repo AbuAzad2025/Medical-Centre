@@ -4,10 +4,10 @@ Nursing Assessment Routes (Braden, Glasgow, Fall Risk, Pain, Norton)
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from utils.decorators import handle_route_errors
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from models import NursingAssessment, Patient, Visit
-from sqlalchemy import func
+from sqlalchemy import func, select
 from datetime import datetime, timezone
 
 nursing_assessment_bp = Blueprint('nursing_assessment', __name__)
@@ -17,8 +17,8 @@ nursing_assessment_bp = Blueprint('nursing_assessment', __name__)
 @login_required
 @handle_route_errors
 def patient_assessments(patient_id):
-    patient = Patient.query.get_or_404(patient_id)
-    assessments = NursingAssessment.query.filter_by(patient_id=patient_id).order_by(NursingAssessment.created_at.desc()).all()
+    patient = db.get_or_404(Patient, patient_id)
+    assessments = db.session.execute(select(NursingAssessment).filter_by(patient_id=patient_id).order_by(NursingAssessment.created_at.desc())).scalars().all()
     return render_template('nursing_assessment/patient_list.html', patient=patient, assessments=assessments)
 
 
@@ -26,7 +26,7 @@ def patient_assessments(patient_id):
 @login_required
 @handle_route_errors
 def new_assessment(patient_id):
-    patient = Patient.query.get_or_404(patient_id)
+    patient = db.get_or_404(Patient, patient_id)
     assessment_type = request.args.get('type', 'braden')
     visit_id = request.args.get('visit_id', type=int)
 
@@ -131,7 +131,7 @@ def new_assessment(patient_id):
 @login_required
 @handle_route_errors
 def view_assessment(assessment_id):
-    assessment = NursingAssessment.query.get_or_404(assessment_id)
+    assessment = db.get_or_404(NursingAssessment, assessment_id)
     return render_template('nursing_assessment/view.html', assessment=assessment)
 
 
@@ -140,10 +140,10 @@ def view_assessment(assessment_id):
 @handle_route_errors
 def dashboard():
     """Dashboard showing recent assessments across all patients"""
-    recent = NursingAssessment.query.order_by(NursingAssessment.created_at.desc()).limit(50).all()
-    stats = db.session.query(
+    recent = db.session.execute(select(NursingAssessment).order_by(NursingAssessment.created_at.desc()).limit(50)).scalars().all()
+    stats = db.session.execute(select(
         NursingAssessment.assessment_type,
         func.count(NursingAssessment.id).label('count'),
         func.avg(NursingAssessment.total_score).label('avg_score')
-    ).group_by(NursingAssessment.assessment_type).all()
+    ).group_by(NursingAssessment.assessment_type)).scalars().all()
     return render_template('nursing_assessment/dashboard.html', recent=recent, stats=stats)

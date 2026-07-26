@@ -1,6 +1,7 @@
 """
 Module activation validators — business rules
 """
+from sqlalchemy import select
 from app.extensions import db
 from app.core.module.models import TenantModule
 from app.core.module.registry import get_clinical_modules, MODULE_REGISTRY
@@ -11,7 +12,7 @@ class ModuleValidationError(Exception):
 
 def get_active_modules_for_tenant(tenant_id: int) -> set:
     """Return set of active module names for a tenant."""
-    rows = TenantModule.query.filter_by(tenant_id=tenant_id, is_active=True).all()
+    rows = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True)).scalars().all()
     return {r.module_name for r in rows}
 
 

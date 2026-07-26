@@ -7,6 +7,7 @@ Features:
 - Background processing for non-blocking dispatch
 - HMAC-SHA256 signature verification
 """
+from sqlalchemy import select
 import hashlib
 import hmac
 import json
@@ -18,6 +19,7 @@ from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 from queue import Queue, Empty
 from threading import Lock
+from utils.circuit_breaker import circuit_breaker_call
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +63,7 @@ _thread_running = False
 def _load_webhooks():
     from models.system_config import SystemConfig
     from app.extensions import db
-    cfg = db.session.query(SystemConfig).filter_by(config_key='owner_webhooks').first()
+    cfg = db.session.execute(select(SystemConfig).filter_by(config_key='owner_webhooks')).scalars().first()
     if cfg and cfg.config_value:
         try:
             return json.loads(cfg.config_value)
@@ -87,12 +89,16 @@ def _dispatch_single(webhook: dict, event: str, payload: dict, retry_count: int 
         'X-Webhook-Signature': signature,
         'User-Agent': 'MedicalSystem-Webhook/1.0',
     }
-    req = Request(url, data=body, headers=headers, method='POST')
-    try:
+
+    def _do_request():
+        req = Request(url, data=body, headers=headers, method='POST')
         with urlopen(req, timeout=10) as resp:
-            status = resp.status
-            logger.info("Webhook %s event=%s status=%s", url, event, status)
-            return 200 <= status < 300
+            return resp.status
+
+    try:
+        status = circuit_breaker_call('webhook_dispatch', _do_request)
+        logger.info("Webhook %s event=%s status=%s", url, event, status)
+        return 200 <= status < 300
     except HTTPError as e:
         logger.warning("Webhook HTTP error %s event=%s status=%s", url, event, e.code)
         return False

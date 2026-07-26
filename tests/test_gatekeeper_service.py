@@ -393,32 +393,25 @@ class TestValidateForcePayment:
     def test_percentage_exceeded(self, rollback_db, monkeypatch):
         u = self._manager(rollback_db, username='zz_gk_mgr4')
 
-        class _Col:
-            def __ge__(self, o):
-                return True
+        fake_visit = types.SimpleNamespace(created_by=12345)
 
-            def __eq__(self, o):
-                return True
+        real_execute = gk_mod.db.session.execute
 
-        class _Q:
-            def filter(self, *a, **k):
-                return self
-
-            def count(self):
+        class _FakeResult:
+            def scalar(self_inner):
                 return 10
 
-        fake_visit = types.SimpleNamespace(created_by=12345)
-        fake_visit_cls = types.SimpleNamespace(created_at=_Col(), is_force_payment=_Col(), query=_Q())
-        monkeypatch.setattr(gk_mod, 'Visit', fake_visit_cls)
+        def fake_execute(stmt, *a, **k):
+            return _FakeResult()
 
-        real_get = gk_mod.db.session.get
+        monkeypatch.setattr(gk_mod.db.session, 'execute', fake_execute)
 
-        def fake_get(model, ident):
+        def fake_get_tenant_record(model, record_id, **kwargs):
             if model is gk_mod.User:
                 return u
             return fake_visit
 
-        monkeypatch.setattr(gk_mod.db.session, 'get', fake_get)
+        monkeypatch.setattr(gk_mod, 'get_tenant_record', fake_get_tenant_record)
         ok, msg = GK.validate_force_payment(1, u.id, 'a valid long reason here')
         assert ok is False and 'نسبة الدفع القسري' in msg
 

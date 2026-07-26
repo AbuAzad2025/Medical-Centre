@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, date, timezone
 from typing import Any
 
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, select
 from utils.tenant_query import get_tenant_record, TenantContextError
 from services.feature_gate_service import require_module
 
@@ -25,10 +25,7 @@ class NursingService:
     def get_nurse_patients(nurse_id: int, search: str | None = None) -> list:
         from models.visit import Visit
         try:
-            query = Visit.query.filter(
-                Visit.assigned_nurse_id == nurse_id,
-                Visit.status.in_(["INPATIENT", "OBSERVATION", "WAITING"]),
-            )
+            query = select(Visit)
             if search:
                 from models.patient import Patient
                 query = query.join(Patient).filter(
@@ -47,9 +44,9 @@ class NursingService:
     def get_vitals(visit_id: int, limit: int = 20) -> list:
         try:
             from models.nurse import VitalSigns
-            return VitalSigns.query.filter_by(visit_id=visit_id).order_by(
+            return db.session.execute(select(VitalSigns).filter_by(visit_id=visit_id).order_by(
                 VitalSigns.recorded_at.desc()
-            ).limit(limit).all()
+            ).limit(limit)).scalars().all()
         except Exception:
             return []
 
@@ -103,9 +100,9 @@ class NursingService:
     def get_notes(visit_id: int, limit: int = 50) -> list:
         try:
             from models.nurse import NursingNote
-            return NursingNote.query.filter_by(visit_id=visit_id).order_by(
+            return db.session.execute(select(NursingNote).filter_by(visit_id=visit_id).order_by(
                 NursingNote.created_at.desc()
-            ).limit(limit).all()
+            ).limit(limit)).scalars().all()
         except Exception:
             return []
 
@@ -169,9 +166,9 @@ class NursingService:
     def get_care_plans(visit_id: int) -> list:
         try:
             from models.clinical_pathway import PatientCarePlan
-            return PatientCarePlan.query.filter_by(visit_id=visit_id).order_by(
+            return db.session.execute(select(PatientCarePlan).filter_by(visit_id=visit_id).order_by(
                 PatientCarePlan.created_at.desc()
-            ).all()
+            )).scalars().all()
         except Exception:
             return []
 
@@ -213,7 +210,7 @@ class NursingService:
     def get_pending_tasks(nurse_id: int | None = None) -> list:
         try:
             from models.task_management import Task
-            query = Task.query.filter(Task.status != "completed")
+            query = select(Task)
             if nurse_id:
                 query = query.filter_by(assigned_to=nurse_id)
             return query.order_by(Task.created_at.desc()).all()

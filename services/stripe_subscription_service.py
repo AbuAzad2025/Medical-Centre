@@ -16,6 +16,7 @@ from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.models import StripeWebhookEvent, StripeWebhookEventStatus
 from app.core.saas.projection import EntitlementProjectionService
 from app.core.tenant.models import Tenant, TenantStatus
+from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +52,10 @@ class StripeSubscriptionService:
         metadata = obj.get('metadata') or {}
         tenant_id = metadata.get('tenant_id')
         if tenant_id:
-            return Tenant.query.get(int(tenant_id))  # global reference table - no tenant scope
+            return db.session.get(Tenant, int(tenant_id))  # global reference table - no tenant scope
         customer_id = obj.get('customer')
         if customer_id:
-            for candidate in Tenant.query.filter(Tenant.settings.isnot(None)).all():
+            for candidate in db.session.execute(select(Tenant).filter(Tenant.settings.isnot(None))).scalars().all():
                 if (candidate.settings or {}).get('stripe_customer_id') == customer_id:
                     return candidate
         return None

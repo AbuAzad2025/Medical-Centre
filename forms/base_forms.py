@@ -2,13 +2,14 @@
 النماذج الأساسية الموحدة - Base Forms
 Medical System Base Forms
 """
+from sqlalchemy import select
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField, DateField, DateTimeField, IntegerField, DecimalField, BooleanField, HiddenField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length, Email, NumberRange, Optional, ValidationError
 from wtforms.widgets import TextArea
 from datetime import datetime, date
-from app_factory import db
+from app.extensions import db
 
 class FormBase(FlaskForm):
     """النموذج الأساسي لجميع النماذج"""
@@ -94,17 +95,17 @@ class MedicalEntityMixin:
         """تحميل الخيارات الديناميكية - يجب تخصيصها في كل نموذج"""
         # تحميل المرضى
         from models.patient import Patient
-        patients = Patient.query.filter_by(status='ACTIVE').all()
+        patients = db.session.execute(select(Patient).filter_by(status='ACTIVE')).scalars().all()
         self.patient_id.choices = [(p.id, f"{p.full_name} - {p.national_id}") for p in patients]
         
         # تحميل الأطباء
         from models.user import User
-        doctors = User.query.filter(User.role.in_(['doctor', 'admin', 'manager'])).all()
+        doctors = db.session.execute(select(User).filter(User.role.in_(['doctor', 'admin', 'manager']))).scalars().all()
         self.doctor_id.choices = [('', 'اختر الطبيب')] + [(d.id, d.full_name) for d in doctors]
         
         # تحميل الزيارات
         from models.visit import Visit
-        visits = Visit.query.filter(Visit.status.in_(['OPEN', 'IN_PROGRESS', 'COMPLETED'])).order_by(Visit.created_at.desc()).limit(100).all()
+        visits = db.session.execute(select(Visit).filter(Visit.status.in_(['OPEN', 'IN_PROGRESS', 'COMPLETED'])).order_by(Visit.created_at.desc()).limit(100)).scalars().all()
         self.visit_id.choices = [('', 'اختر الزيارة')] + [(v.id, f"زيارة {v.id} - {v.patient.full_name}") for v in visits]
 
 class StatusMixin:
@@ -154,7 +155,7 @@ class FileUploadMixin:
         super().__init__(*args, **kwargs)
         # تحميل فئات الملفات
         from models.file_management import FileCategory
-        categories = FileCategory.query.filter_by(status='ACTIVE').all()
+        categories = db.session.execute(select(FileCategory).filter_by(status='ACTIVE')).scalars().all()
         self.file_category.choices = [('', 'اختر فئة الملف')] + [(c.id, c.name_ar) for c in categories]
 
 class NotificationMixin:

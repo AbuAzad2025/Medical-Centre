@@ -5,6 +5,7 @@ from routes.super_admin import super_admin_bp
 import logging
 import os
 import secrets
+from sqlalchemy import select
 
 from flask import (
     current_app,
@@ -63,7 +64,7 @@ def _save_logo_file(branding):
     tenant = getattr(g, 'current_tenant', None)
     if tenant and hasattr(tenant, 'logo_url'):
         try:
-            from app_factory import db
+            from app.extensions import db
             rel = f'/static/uploads/branding/{filename}'
             if hasattr(tenant, 'settings') and isinstance(tenant.settings, dict):
                 tenant.settings = {**(tenant.settings or {}), 'logo_path': rel}
@@ -77,7 +78,7 @@ def _sync_tenant_colors(branding):
     if not tenant:
         return
     try:
-        from app_factory import db
+        from app.extensions import db
         if branding.primary_color:
             tenant.primary_color = branding.primary_color
         if branding.organization_name:
@@ -107,7 +108,7 @@ def branding():
         from models.branding import BrandingSettings, SystemTheme
 
         branding_settings = _get_or_create_branding()
-        themes = SystemTheme.query.filter_by(is_active=True).all()
+        themes = db.session.execute(select(SystemTheme).filter_by(is_active=True)).scalars().all()
 
         return render_template(
             'super_admin/branding.html',
@@ -155,11 +156,11 @@ def apply_branding_theme(theme_id):
     """تطبيق ألوان ثيم على إعدادات العلامة التجارية."""
     try:
         from models.branding import BrandingSettings, SystemTheme
-        from app_factory import db
+        from app.extensions import db
 
         validate_csrf(request.form.get('csrf_token') or request.headers.get('X-CSRFToken'))
 
-        theme = SystemTheme.query.filter_by(id=theme_id, is_active=True).first()
+        theme = db.session.execute(select(SystemTheme).filter_by(id=theme_id, is_active=True)).scalars().first()
         if not theme:
             return jsonify({'success': False, 'error': 'الثيم غير موجود'}), 404
 
@@ -181,7 +182,7 @@ def apply_branding_theme(theme_id):
             },
         })
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Apply theme error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 400
@@ -193,7 +194,7 @@ def apply_branding_theme(theme_id):
 def update_branding():
     """تحديث إعدادات العلامة التجارية"""
     try:
-        from app_factory import db
+        from app.extensions import db
 
         validate_csrf(request.form.get('csrf_token'))
 
@@ -259,7 +260,7 @@ def update_branding():
         return redirect(url_for('super_admin.branding'))
 
     except Exception as e:
-        from app_factory import db
+        from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")
         logging.error(f"Update branding error: {str(e)}")
         if _wants_json():

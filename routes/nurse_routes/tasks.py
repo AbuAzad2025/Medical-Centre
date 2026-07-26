@@ -11,11 +11,11 @@ from models.patient import Patient
 from models.visit import Visit
 from models.medication import Medication
 from services.nursing_service import nursing_service
-from app_factory import db
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging, json
 from datetime import datetime, timedelta, timezone, date
-from sqlalchemy import func, and_, or_, desc
+from sqlalchemy import func, and_, or_, desc, select
 
 
 # =============================================
@@ -32,13 +32,13 @@ def tasks():
     
     try:
         from models.task_management import Task
-        vq = Visit.query.filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])).order_by(desc(Visit.created_at))
+        vq = select(Visit).filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]))
         if getattr(current_user, 'department_id', None):
             vq = vq.filter(Visit.department_id == current_user.department_id)
         active_visits = vq.limit(50).all()
         
         # جلب مهام الممرضة مع pagination
-        task_query = Task.query.filter_by(assigned_to=current_user.id).order_by(Task.created_at.desc())
+        task_query = select(Task).filter_by(assigned_to=current_user.id)
         
         total = task_query.count()
         pages = (total + per_page - 1) // per_page
@@ -86,7 +86,7 @@ def create_task():
         related_entity_type = None
         related_entity_id = None
         if visit_id:
-            v = Visit.query.filter(Visit.id == visit_id, Visit.tenant_id == current_user.tenant_id).first()
+            v = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == current_user.tenant_id)).scalars().first()
             if v:
                 related_entity_type = 'visit'
                 related_entity_id = v.id
@@ -120,7 +120,7 @@ def update_task_status(task_id: int):
     try:
         from models.task_management import Task
 
-        t = Task.query.filter(Task.id == task_id, Task.tenant_id == current_user.tenant_id).first()
+        t = db.session.execute(select(Task).filter(Task.id == task_id, Task.tenant_id == current_user.tenant_id)).scalars().first()
         if not t:
             flash('المهمة غير موجودة', 'error')
             return redirect(url_for('nurse.tasks'))

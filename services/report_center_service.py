@@ -1,6 +1,6 @@
 from datetime import datetime, date, timedelta, timezone
-from sqlalchemy import func, and_, desc
-from app_factory import db
+from sqlalchemy import func, and_, desc, select
+from app.extensions import db
 
 
 class ReportCenterService:
@@ -24,8 +24,8 @@ class ReportCenterService:
         from models.payment import Payment
 
         def _range_metrics(start_dt, end_dt):
-            vq = Visit.query.filter(Visit.created_at >= start_dt, Visit.created_at <= end_dt)
-            pq = Payment.query.filter(Payment.created_at >= start_dt, Payment.created_at <= end_dt)
+            vq = select(Visit)
+            pq = select(Payment)
             if department_id:
                 try:
                     dep_id = int(department_id)
@@ -54,7 +54,7 @@ class ReportCenterService:
         from models.visit_transfer import VisitTransferLog
         from models.department import Department
 
-        rows = db.session.query(
+        rows = db.session.execute(select(
             VisitTransferLog.from_department_id.label('from_department_id'),
             VisitTransferLog.to_department_id.label('to_department_id'),
             func.count(VisitTransferLog.id).label('cnt')
@@ -64,7 +64,7 @@ class ReportCenterService:
         ).group_by(
             VisitTransferLog.from_department_id,
             VisitTransferLog.to_department_id
-        ).order_by(desc(func.count(VisitTransferLog.id))).all()
+        ).order_by(desc(func.count(VisitTransferLog.id)))).scalars().all()
 
         dep_ids = set()
         for r in rows:
@@ -74,7 +74,7 @@ class ReportCenterService:
                 dep_ids.add(r.to_department_id)
         deps = {}
         if dep_ids:
-            for d in Department.query.filter(Department.id.in_(list(dep_ids))).all():
+            for d in db.session.execute(select(Department).filter(Department.id.in_(list(dep_ids)))).scalars().all():
                 deps[d.id] = d.name_ar or d.name
 
         out = []
@@ -90,7 +90,7 @@ class ReportCenterService:
     def booking_report(start_dt, end_dt):
         from models.online_booking import OnlineBooking
 
-        q = OnlineBooking.query.filter(OnlineBooking.created_at >= start_dt, OnlineBooking.created_at <= end_dt)
+        q = select(OnlineBooking)
         total = q.count()
         by_status = {}
         for st in ['pending', 'confirmed', 'cancelled', 'completed', 'no_show']:
@@ -100,22 +100,22 @@ class ReportCenterService:
         booked = total - by_status.get('cancelled', 0)
         attendance_rate = round((attended / booked * 100), 2) if booked else 0
         no_show_rate = round((no_show / booked * 100), 2) if booked else 0
-        top_departments = db.session.query(
+        top_departments = db.session.execute(select(
             OnlineBooking.department_id,
             func.count(OnlineBooking.id).label('cnt')
         ).filter(
             OnlineBooking.created_at >= start_dt,
             OnlineBooking.created_at <= end_dt
-        ).group_by(OnlineBooking.department_id).order_by(desc(func.count(OnlineBooking.id))).limit(10).all()
+        ).group_by(OnlineBooking.department_id).order_by(desc(func.count(OnlineBooking.id))).limit(10)).scalars().all()
 
-        top_doctors = db.session.query(
+        top_doctors = db.session.execute(select(
             OnlineBooking.doctor_id,
             func.count(OnlineBooking.id).label('cnt')
         ).filter(
             OnlineBooking.created_at >= start_dt,
             OnlineBooking.created_at <= end_dt,
             OnlineBooking.doctor_id.isnot(None)
-        ).group_by(OnlineBooking.doctor_id).order_by(desc(func.count(OnlineBooking.id))).limit(10).all()
+        ).group_by(OnlineBooking.doctor_id).order_by(desc(func.count(OnlineBooking.id))).limit(10)).scalars().all()
 
         return {
             'total': int(total),
@@ -131,17 +131,17 @@ class ReportCenterService:
         from models.emergency_status_history import EmergencyStatusHistory
         from models.emergency import EmergencyCase
 
-        case_ids = [r[0] for r in db.session.query(EmergencyCase.id).filter(
+        case_ids = [r[0] for r in db.session.execute(select(EmergencyCase.id).filter(
             EmergencyCase.created_at >= start_dt,
             EmergencyCase.created_at <= end_dt
-        ).all()]
+        )).scalars().all()]
         if not case_ids:
             return {'avg_minutes': {}, 'cases': 0}
 
-        history = EmergencyStatusHistory.query.filter(EmergencyStatusHistory.emergency_id.in_(case_ids)).order_by(
+        history = db.session.execute(select(EmergencyStatusHistory).filter(EmergencyStatusHistory.emergency_id.in_(case_ids)).order_by(
             EmergencyStatusHistory.emergency_id.asc(),
             EmergencyStatusHistory.created_at.asc()
-        ).all()
+        )).scalars().all()
 
         per_stage = {}
         counts = {}
@@ -163,7 +163,7 @@ class ReportCenterService:
     def radiology_revision_rate(start_dt, end_dt):
         from models.radiology_result import RadiologyResult
 
-        q = RadiologyResult.query.filter(RadiologyResult.created_at >= start_dt, RadiologyResult.created_at <= end_dt)
+        q = select(RadiologyResult)
         reviewed = q.filter(RadiologyResult.reviewed_at.isnot(None)).count()
         revised = q.filter(RadiologyResult.reviewed_at.isnot(None), RadiologyResult.revised_after_review == True).count()
         rate = round((revised / reviewed * 100), 2) if reviewed else 0
@@ -182,8 +182,8 @@ class ReportCenterService:
             days.append(cur)
             cur = cur + timedelta(days=1)
 
-        users = User.query.filter(User.role.in_(['doctor', 'lab', 'radiology'])).all()
-        dept_names = {d.id: (d.name_ar or d.name) for d in Department.query.all()}
+        users = db.session.execute(select(User).filter(User.role.in_(['doctor', 'lab', 'radiology']))).scalars().all()
+        dept_names = {d.id: (d.name_ar or d.name) for d in db.session.execute(select(Department)).scalars().all()}
 
         by_dept = {}
         for u in users:
@@ -192,14 +192,14 @@ class ReportCenterService:
             if key not in by_dept:
                 by_dept[key] = {'department': dept_names.get(dept_id) or 'غير محدد', 'scheduled_hours': 0.0, 'absence_hours': 0.0}
 
-            schedules = StaffWorkSchedule.query.filter_by(user_id=u.id, is_active=True).all()
+            schedules = db.session.execute(select(StaffWorkSchedule).filter_by(user_id=u.id, is_active=True)).scalars().all()
             sched_by_dow = {s.day_of_week: s for s in schedules}
 
-            absences = StaffAbsence.query.filter(
+            absences = db.session.execute(select(StaffAbsence).filter(
                 StaffAbsence.user_id == u.id,
                 StaffAbsence.end_date >= start,
                 StaffAbsence.start_date <= end
-            ).all()
+            )).scalars().all()
             absence_days = set()
             for a in absences:
                 a_start = max(start, a.start_date)
