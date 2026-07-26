@@ -14,6 +14,7 @@ import logging
 from sqlalchemy import func, select
 from app.shared.enums import BackupStatus
 from datetime import datetime, timezone, timedelta
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 
 

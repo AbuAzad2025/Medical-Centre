@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from flask import g, render_template, url_for
+from sqlalchemy import func, select
 
 from app.shared.dashboard_registry import (
     ROLE_DASHBOARD_TITLES,

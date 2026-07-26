@@ -12,6 +12,7 @@ from models.appointment import Appointment
 from models.user import User, StaffWorkSchedule, StaffAbsence
 from models.department import Department
 from utils.tenant_query import get_tenant_record, TenantContextError
+from sqlalchemy import select
 from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 import logging

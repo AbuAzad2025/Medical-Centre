@@ -12,6 +12,7 @@ import logging
 from typing import Callable, Optional, TypeVar
 
 from flask import Flask
+from app.extensions import db
 
 T = TypeVar('T')
 

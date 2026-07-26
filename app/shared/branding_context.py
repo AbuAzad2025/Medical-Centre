@@ -5,6 +5,7 @@ from dataclasses import asdict, dataclass
 from typing import Any, Optional
 
 from flask import g, url_for
+from sqlalchemy import select
 from app.extensions import db
 
 DEFAULT_PRIMARY = '#0f4c81'

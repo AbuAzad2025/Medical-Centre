@@ -103,7 +103,7 @@ def refactor_file(filepath: Path) -> Tuple[int, str]:
 
     # Pattern helpers
     def replacer(pattern: re.Pattern, repl_func):
-        nonlocal content, replacements, needs_select, needs_func
+        nonlocal content, replacements, needs_select
         for m in pattern.finditer(content):
             try:
                 new_text = repl_func(m)

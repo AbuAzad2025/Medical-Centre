@@ -12,6 +12,7 @@ from models.lab_request import LabResult
 from models.radiology_result import RadiologyResult
 from models.payment import Payment
 from app.shared.enums import VisitState, VisitArchiveStatus
+from sqlalchemy import func, select
 from app.extensions import db
 from utils.tenant_query import get_tenant_record, TenantContextError
 import logging

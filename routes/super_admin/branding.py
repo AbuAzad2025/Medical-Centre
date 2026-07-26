@@ -22,6 +22,7 @@ from flask_wtf.csrf import validate_csrf
 from werkzeug.utils import secure_filename
 
 from utils.decorators import super_admin_required
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 
 _DOC_LABELS = {

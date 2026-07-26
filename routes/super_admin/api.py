@@ -13,6 +13,7 @@ from services.super_admin_service import super_admin_service
 import logging
 from sqlalchemy import func, select
 from datetime import datetime, timedelta, timezone
+from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 
 
