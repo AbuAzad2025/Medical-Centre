@@ -66,7 +66,7 @@ def _handle_radiology_file_uploads(files, result, payload):
         size = 0
         try:
             size = os.path.getsize(file_path)
-        except Exception:
+        except Exception as e:
             size = 0
         fu = FileUpload(
             filename=stored_name, original_filename=original_name,

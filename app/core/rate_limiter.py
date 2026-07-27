@@ -66,7 +66,7 @@ def _get_redis() -> Optional[object]:
     try:
         import redis
         return redis.Redis(connection_pool=pool)
-    except Exception:
+    except Exception as e:
         return None
 
 
@@ -146,7 +146,7 @@ class RateLimiter:
                 pattern = f"{self.namespace}:*"
                 for key in self._redis.scan_iter(match=pattern):
                     self._redis.delete(key)
-            except Exception:
+            except Exception as e:
                 pass
         with _store_lock:
             keys_to_delete = [k for k in _shared_store if k.startswith(self.namespace)]

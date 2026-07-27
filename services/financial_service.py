@@ -52,7 +52,7 @@ class FinancialService:
                 "total_expenses": float(total_expenses),
                 "pending": float(total_billed) - float(total_collected),
             }
-        except Exception:
+        except Exception as e:
             return {"total_billed": 0, "total_collected": 0, "total_expenses": 0, "pending": 0}
 
     @staticmethod
@@ -115,7 +115,7 @@ class FinancialService:
                 func.count(Invoice.id).label("count"),
             ).group_by(group_expr).order_by(group_expr.desc()).limit(limit)).scalars().all()
             return [{"period": str(r.period), "amount": float(r.amount), "count": r.count} for r in results]
-        except Exception:
+        except Exception as e:
             return []
 
     @staticmethod

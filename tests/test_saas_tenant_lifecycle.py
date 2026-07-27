@@ -20,6 +20,7 @@ from app.core.saas.models import (
 )
 from app.core.module.models import TenantModule
 from app.core.tenant.models import Tenant, TenantStatus, TenantSubscriptionHistory
+from sqlalchemy import select
 
 
 def _make_package_version(capabilities, billing_type="monthly", price=500, trial_days=0, grace_days=0):
@@ -79,15 +80,15 @@ class TestProvisionTenant:
         assert tenant.id is not None
         assert tenant.status == TenantStatus.ACTIVE
 
-        lines = SubscriptionLine.query.filter_by(tenant_id=tenant.id).all()
+        lines = db.session.execute(select(SubscriptionLine).filter_by(tenant_id=tenant.id)).scalars().all()
         assert len(lines) == 1
         assert lines[0].status == SubscriptionLineStatus.ACTIVE
         assert lines[0].line_type == "base"
 
-        projection = TenantEntitlement.query.filter_by(tenant_id=tenant.id).all()
+        projection = db.session.execute(select(TenantEntitlement).filter_by(tenant_id=tenant.id)).scalars().all()
         assert {p.capability_key for p in projection} == {"lab.order", "lab.result_entry"}
 
-        modules = TenantModule.query.filter_by(tenant_id=tenant.id).all()
+        modules = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant.id)).scalars().all()
         assert any(m.module_name == "lab" and m.is_active for m in modules)
 
         assert EntitlementResolver.is_entitled(tenant.id, "lab.order") is True
@@ -106,7 +107,7 @@ class TestProvisionTenant:
         )
 
         assert tenant.status == TenantStatus.TRIAL
-        line = SubscriptionLine.query.filter_by(tenant_id=tenant.id).first()
+        line = db.session.execute(select(SubscriptionLine).filter_by(tenant_id=tenant.id)).scalars().first()
         assert line.trial_end is not None
         assert line.trial_end <= (date.today() + timedelta(days=14))
 
@@ -151,16 +152,16 @@ class TestUpgradeAndAddons:
             billing_type="yearly",
         )
 
-        lines = SubscriptionLine.query.filter_by(tenant_id=tenant.id).order_by(SubscriptionLine.created_at).all()
+        lines = db.session.execute(select(SubscriptionLine).filter_by(tenant_id=tenant.id).order_by(SubscriptionLine.created_at)).scalars().all()
         assert len(lines) == 2
         assert lines[0].status == SubscriptionLineStatus.ENDED
         assert lines[1].status == SubscriptionLineStatus.ACTIVE
         assert lines[1].billing_type == "yearly"
 
-        projection = TenantEntitlement.query.filter_by(tenant_id=tenant.id).all()
+        projection = db.session.execute(select(TenantEntitlement).filter_by(tenant_id=tenant.id)).scalars().all()
         assert {p.capability_key for p in projection} == {"lab.order", "radiology.order"}
 
-        history = TenantSubscriptionHistory.query.filter_by(tenant_id=tenant.id, action="UPGRADE").first()
+        history = db.session.execute(select(TenantSubscriptionHistory).filter_by(tenant_id=tenant.id, action="UPGRADE")).scalars().first()
         assert history is not None
 
     def test_addon_adds_capability_without_ending_base(self):
@@ -185,7 +186,7 @@ class TestUpgradeAndAddons:
         ).all()
         assert len(active_lines) == 2
 
-        projection = TenantEntitlement.query.filter_by(tenant_id=tenant.id).all()
+        projection = db.session.execute(select(TenantEntitlement).filter_by(tenant_id=tenant.id)).scalars().all()
         assert {p.capability_key for p in projection} == {"clinical_encounter", "ai_analysis"}
 
 
@@ -199,12 +200,12 @@ class TestRenewSuspendReactivateCancel:
             package_version_id=version.id,
             billing_type="monthly",
         )
-        line = SubscriptionLine.query.filter_by(tenant_id=tenant.id).first()
+        line = db.session.execute(select(SubscriptionLine).filter_by(tenant_id=tenant.id)).scalars().first()
         original_effective_to = line.effective_to
 
         TenantProvisioningService.renew_base_line(line.id, periods=1)
 
-        line = SubscriptionLine.query.get(line.id)
+        line = db.session.get(SubscriptionLine, line.id)
         assert line.effective_to > original_effective_to
         assert EntitlementResolver.is_entitled(tenant.id, "lab.order") is True
 
@@ -237,9 +238,9 @@ class TestRenewSuspendReactivateCancel:
         TenantProvisioningService.cancel_tenant(tenant.id)
 
         assert tenant.status == TenantStatus.CANCELLED
-        lines = SubscriptionLine.query.filter_by(tenant_id=tenant.id).all()
+        lines = db.session.execute(select(SubscriptionLine).filter_by(tenant_id=tenant.id)).scalars().all()
         assert all(line.status == SubscriptionLineStatus.ENDED for line in lines)
 
-        projection = TenantEntitlement.query.filter_by(tenant_id=tenant.id).all()
+        projection = db.session.execute(select(TenantEntitlement).filter_by(tenant_id=tenant.id)).scalars().all()
         assert len(projection) == 0
         assert EntitlementResolver.is_entitled(tenant.id, "lab.order") is False

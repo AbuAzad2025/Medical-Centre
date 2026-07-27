@@ -384,7 +384,7 @@ def process_payment(visit_id):
     try:
         from models.insurance import InsuranceCompany
         insurance_companies = db.session.execute(select(InsuranceCompany).filter_by(is_active=True).order_by(InsuranceCompany.name.asc())).scalars().all()
-    except Exception:
+    except Exception as e:
         insurance_companies = []
     from models.exchange_rate import CurrencySettings
     return render_template('accountant/process_payment.html',

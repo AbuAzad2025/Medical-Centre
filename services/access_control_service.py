@@ -420,13 +420,13 @@ class AccessControlService:
                         return None
                     rows = db.session.execute(select(DepartmentPermission).where(DepartmentPermission.role_id == role.id, DepartmentPermission.department_id.isnot(None), DepartmentPermission.can_access == True)).scalars().all()
                     ids.extend([int(r.department_id) for r in rows if r.department_id])
-            except Exception:
+            except Exception as e:
                 pass
 
             try:
                 if getattr(user, 'department_id', None):
                     ids.append(int(user.department_id))
-            except Exception:
+            except Exception as e:
                 pass
 
             try:
@@ -435,9 +435,9 @@ class AccessControlService:
                 for r in extra:
                     try:
                         ids.append(int(r.department_id))
-                    except Exception:
+                    except Exception as e:
                         continue
-            except Exception:
+            except Exception as e:
                 pass
 
             out = []
@@ -447,7 +447,7 @@ class AccessControlService:
                     seen.add(x)
                     out.append(x)
             return out
-        except Exception:
+        except Exception as e:
             return []
 
     @staticmethod
@@ -470,7 +470,7 @@ class AccessControlService:
                 return True
             try:
                 dep_id = int(department_id) if department_id is not None else None
-            except Exception:
+            except Exception as e:
                 dep_id = None
             if dep_id is None:
                 return False
@@ -503,10 +503,10 @@ class AccessControlService:
                         return bool((row and row.can_manage_staff) or (global_row and global_row.can_manage_staff))
                     if action == 'settings':
                         return bool((row and row.can_manage_department_settings) or (global_row and global_row.can_manage_department_settings))
-            except Exception:
+            except Exception as e:
                 pass
 
             return True
-        except Exception:
+        except Exception as e:
             return False
 

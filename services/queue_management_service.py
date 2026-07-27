@@ -79,7 +79,7 @@ class QueueManagementService:
             }
             roles = allowed_roles.get(dept_type, {'doctor'})
             return user.role in roles
-        except Exception:
+        except Exception as e:
             return False
     
     def add_patient_to_queue(self, patient_id, department_id, doctor_id=None,
@@ -188,14 +188,14 @@ class QueueManagementService:
 
             try:
                 new_department_id = int(new_department_id)
-            except Exception:
+            except Exception as e:
                 return False, "invalid_department"
 
             new_doctor_id_int = None
             if new_doctor_id:
                 try:
                     new_doctor_id_int = int(new_doctor_id)
-                except Exception:
+                except Exception as e:
                     new_doctor_id_int = None
 
             try:
@@ -327,7 +327,7 @@ class QueueManagementService:
                             doc = get_tenant_record(User, v.doctor_id)
                             d['doctor_name'] = doc.full_name if doc else None
                     return d
-                except Exception:
+                except Exception as e:
                     return d
             
             return {
@@ -399,7 +399,7 @@ class QueueManagementService:
                             doc = get_tenant_record(User, v.doctor_id)
                             d['doctor_name'] = doc.full_name if doc else None
                     return d
-                except Exception:
+                except Exception as e:
                     return d
 
             enriched = [enrich(t) for t in tickets]
@@ -529,7 +529,7 @@ class QueueManagementService:
                     if ticket.visit_id:
                         try:
                             v = get_tenant_record(Visit, ticket.visit_id)
-                        except Exception:
+                        except Exception as e:
                             v = None
                     if not (v and v.doctor_id == started_by):
                         return False, "ليس لديك صلاحية لبدء علاج هذه التذكرة"
@@ -544,7 +544,7 @@ class QueueManagementService:
                     visit = get_tenant_record(Visit, ticket.visit_id)
                     if visit:
                         VisitStateMachineService.ensure_in_progress(visit, actor=started_by)
-                except Exception:
+                except Exception as e:
                     pass
             
             # حساب وقت الانتظار الفعلي
@@ -556,7 +556,7 @@ class QueueManagementService:
             
             try:
                 self.logger.info(f"Treatment started for ticket {ticket.queue_number}")
-            except Exception:
+            except Exception as e:
                 self.logger.info("Treatment started for ticket")
             return True, "تم بدء العلاج"
             
@@ -585,7 +585,7 @@ class QueueManagementService:
                     if ticket.visit_id:
                         try:
                             v = get_tenant_record(Visit, ticket.visit_id)
-                        except Exception:
+                        except Exception as e:
                             v = None
                         if not (v and v.doctor_id == completed_by):
                             return False, "ليس لديك صلاحية لإنهاء علاج هذه التذكرة"
@@ -603,7 +603,7 @@ class QueueManagementService:
                         visit.completed_at = datetime.now(timezone.utc)
                         visit.completed_by = completed_by
                         self._ensure_survey_for_visit(visit)
-                except Exception:
+                except Exception as e:
                     pass
             
             if not safe_commit(db.session, error_message="فشل عملية الطابور"):
@@ -612,7 +612,7 @@ class QueueManagementService:
             
             try:
                 self.logger.info(f"Treatment completed for ticket {ticket.queue_number}")
-            except Exception:
+            except Exception as e:
                 self.logger.info("Treatment completed for ticket")
             return True, "تم إكمال العلاج"
             
@@ -675,7 +675,7 @@ class QueueManagementService:
                     v = get_tenant_record(Visit, ticket.visit_id)
                     if v and VisitStateMachineService.get_status(v) == VisitState.IN_PROGRESS:
                         VisitStateMachineService.transition(v, VisitState.CHECKED_IN, actor=returned_by)
-                except Exception:
+                except Exception as e:
                     pass
 
             if not safe_commit(db.session, error_message="فشل عملية الطابور"):
@@ -731,7 +731,7 @@ class QueueManagementService:
                 from models.queue_management import QueueSettings
                 qs = db.session.execute(select(QueueSettings).filter_by(department_id=department_id)).scalars().first()
                 avg_service_time = int(qs.average_wait_time) if qs and qs.average_wait_time else 30
-            except Exception:
+            except Exception as e:
                 avg_service_time = 30
             
             # حساب الوقت المتوقع
@@ -839,7 +839,7 @@ class QueueManagementService:
             )
             db.session.add(survey)
             return survey
-        except Exception:
+        except Exception as e:
             return None
     
     def get_patient_queue_position(self, patient_id, department_id):

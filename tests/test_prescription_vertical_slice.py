@@ -3,11 +3,13 @@
 import pytest
 
 from app_factory import db as _db
+from app.extensions import db
 from models.medication import Medication, Prescription, PrescriptionItem
 from models.patient import Patient
 from models.user import User
 from models.visit import Visit
 from services.prescription_service import PrescriptionService
+from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
@@ -25,7 +27,7 @@ def rx_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def rx_doctor(app, test_tenant):
-    u = User.query.filter_by(username='rx_doctor', tenant_id=test_tenant.id).first()
+    u = db.session.execute(select(User).filter_by(username='rx_doctor', tenant_id=test_tenant.id)).scalars().first()
     if not u:
         u = User(
             username='rx_doctor',
@@ -58,7 +60,7 @@ def rx_visit(app, test_tenant, rx_patient, rx_doctor):
 def rx_medications(app, test_tenant):
     meds = []
     for trade, price in [('RxAmoxicillin', 15), ('RxParacetamol', 5)]:
-        m = Medication.query.filter_by(tenant_id=test_tenant.id, trade_name=trade).first()
+        m = db.session.execute(select(Medication).filter_by(tenant_id=test_tenant.id, trade_name=trade)).scalars().first()
         if not m:
             m = Medication(
                 tenant_id=test_tenant.id,
@@ -104,7 +106,7 @@ class TestPrescriptionServiceCreatePrescription:
         assert prescription.tenant_id == test_tenant.id
         assert prescription.status == 'active'
 
-        item = PrescriptionItem.query.filter_by(prescription_id=prescription.id).first()
+        item = db.session.execute(select(PrescriptionItem).filter_by(prescription_id=prescription.id)).scalars().first()
         assert item is not None
         assert item.medication_id == rx_medications[0].id
         assert item.quantity == 2
@@ -157,10 +159,10 @@ class TestDoctorPrescriptionRoute:
         })
         assert resp.status_code in (200, 302)
 
-        prescription = Prescription.query.filter_by(visit_id=rx_visit.id).first()
+        prescription = db.session.execute(select(Prescription).filter_by(visit_id=rx_visit.id)).scalars().first()
         assert prescription is not None
         assert prescription.tenant_id == test_tenant.id
-        items = PrescriptionItem.query.filter_by(prescription_id=prescription.id).all()
+        items = db.session.execute(select(PrescriptionItem).filter_by(prescription_id=prescription.id)).scalars().all()
         assert len(items) == 1
         assert items[0].total_price == 30
 
@@ -176,8 +178,8 @@ class TestDoctorPrescriptionRoute:
             'instructions': 'With water',
         })
         assert resp.status_code in (200, 302)
-        prescription = Prescription.query.filter_by(visit_id=rx_visit.id).first()
+        prescription = db.session.execute(select(Prescription).filter_by(visit_id=rx_visit.id)).scalars().first()
         assert prescription is not None
-        items = PrescriptionItem.query.filter_by(prescription_id=prescription.id).all()
+        items = db.session.execute(select(PrescriptionItem).filter_by(prescription_id=prescription.id)).scalars().all()
         assert len(items) == 1
         assert items[0].medication_id in {m.id for m in rx_medications}

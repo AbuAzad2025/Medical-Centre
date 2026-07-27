@@ -110,7 +110,7 @@ def prescription(visit_id):
             cfg = db.session.execute(select(SystemConfig).filter_by(config_key=templates_key)).scalars().first()
             if cfg and cfg.config_type == 'json':
                 doctor_templates = cfg.get_value() or []
-        except Exception:
+        except Exception as e:
             doctor_templates = []
 
         visit_prescriptions = db.session.execute(select(Prescription).filter(
@@ -160,7 +160,7 @@ def prescription(visit_id):
                             Medication.scientific_name.ilike(legacy_medication_name)
                         )
                     )).scalars().first()
-                except Exception:
+                except Exception as e:
                     med = None
                 if med and legacy_dosage and legacy_frequency and legacy_duration_days > 0:
                     item_med_ids = [str(med.id)]
@@ -211,7 +211,7 @@ def prescription(visit_id):
                     continue
                 try:
                     med_id = int(str(med_id_raw).strip())
-                except Exception:
+                except Exception as e:
                     continue
 
                 med = prescription_service.get_medication(med_id)
@@ -232,14 +232,14 @@ def prescription(visit_id):
 
                 try:
                     duration_days = int(duration_days_raw)
-                except Exception:
+                except Exception as e:
                     duration_days = 0
                 if duration_days <= 0:
                     continue
 
                 try:
                     quantity = int(quantity_raw) if quantity_raw else 1
-                except Exception:
+                except Exception as e:
                     quantity = 1
                 if quantity <= 0:
                     quantity = 1
@@ -304,7 +304,7 @@ def prescription(visit_id):
                             m = it.medication
                             if m:
                                 label = f"{m.trade_name}{f' ({m.generic_name})' if m.generic_name else ''} — {m.scientific_name} — {m.strength} {m.dosage_form}"
-                        except Exception:
+                        except Exception as e:
                             label = ''
                         dosage_part = it.dosage or ''
                         freq_part = ''

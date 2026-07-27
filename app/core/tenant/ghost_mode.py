@@ -107,7 +107,7 @@ def _current_actor():
             # re-resolves to ``g._login_user`` and would pick up the
             # impersonated target after we rebind context below.
             return current_user._get_current_object()
-    except Exception:
+    except Exception as e:
         pass
     return None
 
@@ -172,7 +172,7 @@ def ghost_mode_middleware() -> None:
         from app.core.module.validators import get_active_modules_for_tenant
 
         g.enabled_modules = get_active_modules_for_tenant(target_tenant.id)
-    except Exception:
+    except Exception as e:
         g.enabled_modules = getattr(g, "enabled_modules", set())
 
     _write_audit_trail(actor, target_tenant, target_user)

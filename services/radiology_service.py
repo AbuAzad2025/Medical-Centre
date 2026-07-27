@@ -222,7 +222,7 @@ class RadiologyService:
             size = 0
             try:
                 size = os.path.getsize(file_path)
-            except Exception:
+            except Exception as e:
                 size = 0
             fu = FileUpload(
                 filename=stored_name, original_filename=original_name,
@@ -261,7 +261,7 @@ class RadiologyService:
                         message=f"يوجد تقرير أشعة حرج لطلب #{req.id} للمريض #{req.patient_id}",
                         notification_type="warning", is_urgent=True,
                     )
-        except Exception:
+        except Exception as e:
             pass
 
     # ==================== AUDIT ====================

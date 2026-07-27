@@ -80,7 +80,7 @@ def create_task():
             try:
                 due_date = datetime.strptime(due_raw, '%Y-%m-%dT%H:%M')
                 due_date = due_date.replace(tzinfo=timezone.utc)
-            except Exception:
+            except Exception as e:
                 due_date = None
 
         related_entity_type = None

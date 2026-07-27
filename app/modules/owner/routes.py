@@ -50,7 +50,7 @@ def _log_action(action, entity_type, entity_id=None, details=None):
         )
         db.session.add(log)
         safe_commit(db.session, error_message="database commit failed", reraise=True)
-    except Exception:
+    except Exception as e:
         safe_rollback(db.session, error_message="database rollback")
 
 
@@ -419,7 +419,7 @@ def owner_edit_tenant(tenant_id):
                                     tm.activated_at = datetime.now(timezone.utc)
                             else:
                                 db.session.add(TenantModule(tenant_id=tenant_id, module_name=m, is_active=True, activated_at=datetime.now(timezone.utc)))
-            except Exception:
+            except Exception as e:
                 pass  # Non-critical; module sync already done via profile
 
         safe_commit(db.session, error_message="database commit failed", reraise=True)
@@ -864,7 +864,7 @@ def owner_announcements():
         if cfg and cfg.config_value:
             import json
             announcements = json.loads(cfg.config_value)
-    except Exception:
+    except Exception as e:
         announcements = []
 
     if request.method == 'POST':
@@ -1097,7 +1097,7 @@ def owner_branding():
         if cfg and cfg.config_value:
             import json
             branding = json.loads(cfg.config_value)
-    except Exception:
+    except Exception as e:
         branding = {}
 
     if request.method == 'POST':
@@ -1154,7 +1154,7 @@ def owner_webhooks():
         cfg_wh = db.session.execute(select(SystemConfig).filter_by(config_key='owner_webhooks')).scalars().first()
         if cfg_wh and cfg_wh.config_value:
             webhooks = json.loads(cfg_wh.config_value)
-    except Exception:
+    except Exception as e:
         pass
 
     if request.method == 'POST':
@@ -1239,7 +1239,7 @@ def owner_api_keys_page():
                     'created_at': k.get('created_at'),
                     'tenant': tenant,
                 })
-    except Exception:
+    except Exception as e:
         pass
 
     if request.method == 'POST':
@@ -1785,7 +1785,7 @@ def api_record_usage(tenant_id):
     try:
         snapshot = ResourceUsage.record_snapshot(tenant_id)
         return jsonify({"status": "recorded", "snapshot": snapshot.to_dict()})
-    except Exception:
+    except Exception as e:
         safe_rollback(db.session, error_message="database rollback")
         return jsonify({"error": "تعذر تسجيل الاستهلاك"}), 400
 
@@ -2301,7 +2301,7 @@ def owner_monitoring():
             "SELECT pg_database_size(current_database()) / 1024 / 1024 AS size_mb"
         )).scalar()
         metrics['db_size_mb'] = size or 0
-    except Exception:
+    except Exception as e:
         pass
 
     recent_audit = db.session.execute(select(PlatformAuditLog).order_by(PlatformAuditLog.created_at.desc()).limit(10)).scalars().all()

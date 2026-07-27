@@ -65,7 +65,7 @@ def _enabled_modules_for_nav() -> Set[str]:
         try:
             from app.core.module.validators import get_active_modules_for_tenant
             return set(get_active_modules_for_tenant(tenant.id))
-        except Exception:
+        except Exception as e:
             pass
     return set(MODULE_REGISTRY.keys())
 
@@ -84,7 +84,7 @@ def _user_allowed_modules(user, enabled: Set[str]) -> Set[str]:
         if scoped:
             normalized = {_normalize_module(m) for m in scoped}
             return {m for m in normalized if m in enabled and m != 'owner'}
-    except Exception:
+    except Exception as e:
         pass
 
     fallback = _ROLE_MODULE_FALLBACK.get(role)

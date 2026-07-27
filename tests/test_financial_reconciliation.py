@@ -9,6 +9,8 @@ from models.payment import Payment
 from models.user import User
 from models.visit import Visit
 from services.financial_service import FinancialService
+from sqlalchemy import select
+from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -26,7 +28,7 @@ def recon_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def recon_accountant(app, test_tenant):
-    u = User.query.filter_by(username='recon_accountant').first()
+    u = db.session.execute(select(User).filter_by(username='recon_accountant')).scalars().first()
     if not u:
         u = User(
             username='recon_accountant',

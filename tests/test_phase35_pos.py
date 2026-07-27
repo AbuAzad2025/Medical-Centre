@@ -9,6 +9,9 @@ import pytest
 
 from app.shared.user_messages import localize_pos_message, user_message
 from models.medication import PharmacySale
+from sqlalchemy import select
+
+from app.extensions import db
 
 
 class TestUserMessages:
@@ -31,7 +34,7 @@ def reception_user(app, test_tenant):
     from models.user import User
     from app_factory import db as _db
 
-    u = User.query.filter_by(username='reception_pos_test', tenant_id=test_tenant.id).first()
+    u = db.session.execute(select(User).filter_by(username='reception_pos_test', tenant_id=test_tenant.id)).scalars().first()
     if not u:
         u = User(
             username='reception_pos_test',
@@ -104,7 +107,7 @@ class TestPharmacyPosSell:
         assert resp.status_code == 200
         data = resp.get_json()
         assert data['success'] is True
-        sale = PharmacySale.query.get(data['sale_id'])
+        sale = db.session.get(PharmacySale, data['sale_id'])
         assert sale.payment_method == 'cash'
 
     def test_card_sale_requires_transaction(self, auth_client, test_medications):
@@ -133,7 +136,7 @@ class TestPharmacyPosSell:
             content_type='application/json',
         )
         assert resp.status_code == 200
-        sale = PharmacySale.query.get(resp.get_json()['sale_id'])
+        sale = db.session.get(PharmacySale, resp.get_json()['sale_id'])
         assert sale.payment_method == 'card'
         assert sale.transaction_id == 'TXN-99'
 

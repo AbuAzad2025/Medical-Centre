@@ -69,7 +69,7 @@ def patient_queue():
                     department_id=v.department_id,
                     status='called'
                 )).scalars().first())
-        except Exception:
+        except Exception as e:
             for v in patients:
                 can_start_map[v.id] = False
 

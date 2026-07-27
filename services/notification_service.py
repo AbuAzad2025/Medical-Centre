@@ -1020,7 +1020,7 @@ class NotificationService:
             for b in q:
                 try:
                     dt = datetime.combine(b.appointment_date, b.appointment_time, tzinfo=timezone.utc)
-                except Exception:
+                except Exception as e:
                     continue
                 if not (dt >= now and dt <= soon):
                     continue

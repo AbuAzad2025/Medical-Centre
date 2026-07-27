@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from services.smart_ai_engine import SmartAIEngine
+from app.extensions import db
 
 
 @pytest.fixture

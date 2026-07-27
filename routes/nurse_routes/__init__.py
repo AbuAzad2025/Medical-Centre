@@ -28,7 +28,7 @@ def _accessible_department_ids():
     try:
         from services.access_control_service import AccessControlService
         return AccessControlService.get_accessible_department_ids(current_user)
-    except Exception:
+    except Exception as e:
         return []
 
 def _nursing_protocols_key():
@@ -355,7 +355,7 @@ def get_nursing_quality_indicators():
             'documentation_rate': int(documentation_rate),
             'safety_score': max(0, 100 - (int(vitals_critical or 0) * 2) - (int(overdue_tasks or 0)))
         }
-    except Exception:
+    except Exception as e:
         return {}
 
 def get_nursing_workload_prediction():
@@ -370,7 +370,7 @@ def get_nursing_workload_prediction():
             'pending_tasks': int(pending_tasks or 0),
             'predicted_load': predicted
         }
-    except Exception:
+    except Exception as e:
         return {}
 
 def get_nursing_smart_recommendations():

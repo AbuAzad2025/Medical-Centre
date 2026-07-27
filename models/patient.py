@@ -133,7 +133,7 @@ class Patient(TenantMixin, db.Model):
                 return int(pvc.visit_count or 0)
             from models.visit import Visit
             return db.session.execute(select(func.count()).select_from(Visit).filter_by(patient_id=self.id)).scalar()
-        except Exception:
+        except Exception as e:
             from models.visit import Visit
             return db.session.execute(select(func.count()).select_from(Visit).filter_by(patient_id=self.id)).scalar()
 
@@ -178,7 +178,7 @@ class Patient(TenantMixin, db.Model):
             if (today.month, today.day) < (self.birth_date.month, self.birth_date.day):
                 years -= 1
             return years
-        except Exception:
+        except Exception as e:
             return None
 
     def to_dict(self) -> dict:

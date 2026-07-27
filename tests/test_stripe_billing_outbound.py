@@ -10,6 +10,7 @@ from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.tenant.models import TenantStatus
 from services.stripe_billing_service import StripeBillingError, StripeBillingService
 from tests.test_saas_tenant_lifecycle import _make_package_version
+from app.extensions import db
 
 
 @pytest.fixture

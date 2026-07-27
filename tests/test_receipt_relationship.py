@@ -9,6 +9,8 @@ from models.receipt import Receipt
 from models.user import User
 from models.visit import Visit
 from services.billing_state_service import ReceiptService
+from sqlalchemy import select
+from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -38,7 +40,7 @@ def receipt_visit(app, test_tenant, receipt_patient):
 
 @pytest.fixture(scope='function')
 def receipt_accountant(app, test_tenant):
-    u = User.query.filter_by(username='receipt_accountant').first()
+    u = db.session.execute(select(User).filter_by(username='receipt_accountant')).scalars().first()
     if not u:
         u = User(
             username='receipt_accountant',

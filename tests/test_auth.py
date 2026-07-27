@@ -3,6 +3,7 @@ Authentication and authorization tests.
 """
 import pytest
 from flask import url_for, session
+from app.extensions import db
 
 
 class TestAuth:

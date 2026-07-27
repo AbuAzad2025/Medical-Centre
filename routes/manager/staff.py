@@ -269,7 +269,7 @@ def staff_capacity():
         if start_raw:
             try:
                 start_date = _dt.strptime(start_raw, '%Y-%m-%d').date()
-            except Exception:
+            except Exception as e:
                 start_date = date.today()
         else:
             start_date = date.today()
@@ -277,7 +277,7 @@ def staff_capacity():
         if end_raw:
             try:
                 end_date = _dt.strptime(end_raw, '%Y-%m-%d').date()
-            except Exception:
+            except Exception as e:
                 end_date = start_date + timedelta(days=days - 1)
         else:
             end_date = start_date + timedelta(days=days - 1)

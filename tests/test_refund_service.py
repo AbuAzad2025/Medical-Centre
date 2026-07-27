@@ -11,6 +11,8 @@ from models.refund_request import RefundRequest, RefundStatus
 from models.user import User
 from models.visit import Visit
 from services.refund_service import RefundService
+from sqlalchemy import select
+from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -28,7 +30,7 @@ def refund_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def refund_accountant(app, test_tenant):
-    u = User.query.filter_by(username='refund_accountant').first()
+    u = db.session.execute(select(User).filter_by(username='refund_accountant')).scalars().first()
     if not u:
         u = User(
             username='refund_accountant',
@@ -46,7 +48,7 @@ def refund_accountant(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def refund_manager(app, test_tenant):
-    u = User.query.filter_by(username='refund_manager').first()
+    u = db.session.execute(select(User).filter_by(username='refund_manager')).scalars().first()
     if not u:
         u = User(
             username='refund_manager',
@@ -199,5 +201,5 @@ class TestRefundService:
         assert float(refund_invoice.paid_amount) == 70
         assert refund_invoice.status == 'PARTIAL'
 
-        receipt = _db.session.query(Receipt).filter_by(payment_id=refund_payment.id).first()
+        receipt = _select(Receipt).filter_by(payment_id=refund_payment.id).first()
         assert receipt.status == 'voided'

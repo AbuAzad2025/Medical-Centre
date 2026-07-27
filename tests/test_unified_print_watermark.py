@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 import pytest
 
 from app.shared.print_context import generate_barcode_code128, generate_qr_data_uri, resolve_print_context
+from sqlalchemy import select
+from app.extensions import db
 
 
 class TestPrintWatermark:
@@ -69,7 +71,7 @@ class TestPrintTemplateWatermark:
         with tenant_bypass():
             TenantModule.query.filter_by(tenant_id=test_tenant.id).update({'is_active': False})
             for m in module_names:
-                row = TenantModule.query.filter_by(tenant_id=test_tenant.id, module_name=m).first()
+                row = db.session.execute(select(TenantModule).filter_by(tenant_id=test_tenant.id, module_name=m)).scalars().first()
                 if row:
                     row.is_active = True
             db.session.commit()
@@ -329,7 +331,7 @@ class TestModuleScoping:
         with tenant_bypass():
             TenantModule.query.filter_by(tenant_id=test_tenant.id).update({'is_active': False})
             for m in module_names:
-                row = TenantModule.query.filter_by(tenant_id=test_tenant.id, module_name=m).first()
+                row = db.session.execute(select(TenantModule).filter_by(tenant_id=test_tenant.id, module_name=m)).scalars().first()
                 if row:
                     row.is_active = True
             db.session.commit()

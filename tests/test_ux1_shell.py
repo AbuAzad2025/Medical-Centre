@@ -6,6 +6,7 @@ import pytest
 
 from app.extensions import db
 from models.user import User
+from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
@@ -25,8 +26,8 @@ def owner_user_for_shell(app, test_tenant):
     yield u
     try:
         from models.audit_trail import LoginAttempt
-        db.session.query(LoginAttempt).filter_by(user_id=u.id).delete()
-    except Exception:
+        select(LoginAttempt).filter_by(user_id=u.id).delete()
+    except Exception as e:
         db.session.rollback()
     db.session.delete(u)
     db.session.commit()

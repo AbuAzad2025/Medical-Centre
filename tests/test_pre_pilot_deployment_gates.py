@@ -26,6 +26,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import pytest
 from werkzeug.security import generate_password_hash
+from app_factory import db
+from app.extensions import db
 
 
 # ============================================================

@@ -20,6 +20,8 @@ from models.lab_request import LabRequest, LabResult
 from models.lab_reagent import LabReagent
 from models.radiology_request import RadiologyRequest
 from models.audit_trail import AuditTrail
+from sqlalchemy import select
+from app.extensions import db
 
 
 @pytest.fixture
@@ -80,7 +82,7 @@ class TestLabCreateRequest:
         ok, res = LAB.create_request(v.id, [c1.id, c2.id], notes='n')
         assert ok is True
         assert res['request_number'].startswith('LR-')
-        results = LabResult.query.filter_by(request_id=res['lab_request_id']).all()
+        results = db.session.execute(select(LabResult).filter_by(request_id=res['lab_request_id'])).scalars().all()
         assert len(results) == 2
         assert all(r.status == 'PENDING' for r in results)
 
@@ -119,8 +121,8 @@ class TestLabResultForm:
         v = fx.visit()
         c = fx.catalog()
         ok, res = LAB.create_request(v.id, [c.id])
-        existing = LabResult.query.filter_by(request_id=res['lab_request_id']).first()
-        req = LabRequest.query.get(res['lab_request_id'])
+        existing = db.session.execute(select(LabResult).filter_by(request_id=res['lab_request_id'])).scalars().first()
+        req = db.session.get(LabRequest, res['lab_request_id'])
         created, errors = LAB.create_results_from_form(req, {
             'result_ids': [str(existing.id)],
             'test_names': ['T'], 'values': ['12'], 'units': ['mg'],
@@ -128,7 +130,7 @@ class TestLabResultForm:
         })
         assert errors == []
         assert created == [existing.id]
-        assert LabResult.query.get(existing.id).value == '12'
+        assert db.session.get(LabResult, existing.id).value == '12'
 
     def test_create_new_result_sets_required_fields(self, fx):
         v = fx.visit()
@@ -141,7 +143,7 @@ class TestLabResultForm:
             'units': ['mg'], 'ranges': [''], 'statuses': ['PENDING'], 'notes_list': [''],
         })
         assert errors == []
-        new = LabResult.query.get(created[0])
+        new = db.session.get(LabResult, created[0])
         assert new.patient_id == v.patient_id
         assert new.test_code == 'Glucose'
 
@@ -158,10 +160,10 @@ class TestLabResultForm:
         c = fx.catalog()
         ok, res = LAB.create_request(v.id, [c.id])
         assert LAB.finalize_results(res['lab_request_id']) is True
-        req = LabRequest.query.get(res['lab_request_id'])
+        req = db.session.get(LabRequest, res['lab_request_id'])
         assert req.status == 'DONE'
         assert all(r.status == 'COMPLETED' for r in
-                   LabResult.query.filter_by(request_id=req.id).all())
+                   db.session.execute(select(LabResult).filter_by(request_id=req.id)).scalars().all())
 
 
 class TestLabQualityAndReagents:
@@ -186,7 +188,7 @@ class TestLabQualityAndReagents:
     def test_update_reagent_quantity(self, fx):
         r = fx.reagent(qty=2)
         assert LAB.update_reagent_quantity(r.id, 50) is True
-        assert float(LabReagent.query.get(r.id).stock_quantity) == 50.0
+        assert float(db.session.get(LabReagent, r.id).stock_quantity) == 50.0
         assert LAB.update_reagent_quantity(99999999, 1) is False
 
 
@@ -237,7 +239,7 @@ class TestRadCreateRequest:
         ok, res = RAD.create_request(v.id, modality='ct', body_part=' chest ', notes='n')
         assert ok is True
         assert res['request_number'].startswith('RAD-')
-        req = RadiologyRequest.query.get(res['radiology_request_id'])
+        req = db.session.get(RadiologyRequest, res['radiology_request_id'])
         assert req.modality == 'CT'
         assert req.body_part == 'chest'
 
@@ -246,7 +248,7 @@ class TestRadWorklist:
     def _make(self, fx, status='REQUESTED'):
         v = fx.visit()
         ok, res = RAD.create_request(v.id)
-        req = RadiologyRequest.query.get(res['radiology_request_id'])
+        req = db.session.get(RadiologyRequest, res['radiology_request_id'])
         req.status = status
         fx.db.session.commit()
         return req
@@ -309,7 +311,7 @@ class TestRadResults:
         rid = res['radiology_request_id']
         RAD.create_or_update_result(rid, 'report')
         assert RAD.finalize_result(rid) is True
-        assert RadiologyRequest.query.get(rid).status == 'DONE'
+        assert db.session.get(RadiologyRequest, rid).status == 'DONE'
 
     def test_finalize_result_not_found(self, fx):
         assert RAD.finalize_result(99999999) is False
@@ -320,7 +322,7 @@ class TestRadResults:
         ok, res = RAD.create_request(v.id)
         rid = res['radiology_request_id']
         assert RAD.claim_request(rid, u.id) is True
-        req = RadiologyRequest.query.get(rid)
+        req = db.session.get(RadiologyRequest, rid)
         assert req.status == 'IN_PROGRESS'
 
     def test_claim_request_wrong_status(self, fx):

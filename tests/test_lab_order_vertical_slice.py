@@ -3,6 +3,7 @@
 import pytest
 
 from app_factory import db as _db
+from app.extensions import db
 from app.shared.enums import OrderState
 from models.lab_request import LabRequest, LabResult
 from models.lab_test_catalog import LabTestCatalog
@@ -10,6 +11,7 @@ from models.patient import Patient
 from models.user import User
 from models.visit import Visit
 from services.lab_service import LabService
+from sqlalchemy import select, func
 
 
 @pytest.fixture(scope='function')
@@ -27,7 +29,7 @@ def lab_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def lab_doctor(app, test_tenant):
-    u = User.query.filter_by(username='lab_doctor', tenant_id=test_tenant.id).first()
+    u = db.session.execute(select(User).filter_by(username='lab_doctor', tenant_id=test_tenant.id)).scalars().first()
     if not u:
         u = User(
             username='lab_doctor',
@@ -91,7 +93,7 @@ class TestLabServiceCreateRequest:
         assert ok is True
         _db.session.commit()
 
-        req = LabRequest.query.get(result['lab_request_id'])
+        req = db.session.get(LabRequest, result['lab_request_id'])
         assert req is not None
         assert req.visit_id == lab_visit.id
         assert req.patient_id == lab_visit.patient_id
@@ -101,7 +103,7 @@ class TestLabServiceCreateRequest:
         assert req.request_number.startswith('LR-')
         assert req.tenant_id == lab_visit.tenant_id
 
-        results = LabResult.query.filter_by(request_id=req.id).all()
+        results = db.session.execute(select(LabResult).filter_by(request_id=req.id)).scalars().all()
         assert len(results) == 2
         codes = {r.test_code for r in results}
         assert codes == {'CBC', 'GLU'}
@@ -139,10 +141,10 @@ class TestDoctorLabRequestRoute:
         })
         assert resp.status_code in (200, 302)
 
-        req = LabRequest.query.filter_by(visit_id=lab_visit.id).first()
+        req = db.session.execute(select(LabRequest).filter_by(visit_id=lab_visit.id)).scalars().first()
         assert req is not None
         assert req.status == 'REQUESTED'
-        results = LabResult.query.filter_by(request_id=req.id).count()
+        results = db.session.execute(select(func.count()).select_from(LabResult).filter_by(request_id=req.id)).scalar()
         assert results == 2
 
     def test_free_text_mode_without_test_ids(self, app, client, lab_visit, lab_doctor, test_tenant):
@@ -154,7 +156,7 @@ class TestDoctorLabRequestRoute:
             'notes': 'Please check manually',
         })
         assert resp.status_code in (200, 302)
-        assert LabRequest.query.filter_by(visit_id=lab_visit.id).count() == 0
+        assert db.session.execute(select(func.count()).select_from(LabRequest).filter_by(visit_id=lab_visit.id)).scalar() == 0
         _db.session.refresh(lab_visit)
         assert lab_visit.lab_tests_ordered is True
         assert 'مذكرة تحاليل' in (lab_visit.notes or '')

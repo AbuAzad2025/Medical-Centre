@@ -128,7 +128,7 @@ class PasswordPolicyService:
                 parts = line.split(':')
                 if len(parts) == 2 and parts[0].upper() == suffix:
                     return int(parts[1])
-        except Exception:
+        except Exception as e:
             # Fail-open on API unavailability — log but don't block registration
             pass
         return 0

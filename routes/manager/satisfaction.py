@@ -47,6 +47,6 @@ def patient_satisfaction_dashboard():
             avg_score = avg_recommend = nps = 0
         return render_template('manager/patient_satisfaction.html', surveys=surveys, total=total,
                                avg_score=round(avg_score, 1), avg_recommend=round(avg_recommend, 1), nps=nps)
-    except Exception:
+    except Exception as e:
         return render_template('manager/patient_satisfaction.html', surveys=[], total=0,
                                avg_score=0, avg_recommend=0, nps=0)

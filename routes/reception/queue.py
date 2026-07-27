@@ -111,7 +111,7 @@ def add_patient_to_queue():
             # إلزام اختيار طبيب للأقسام التخصصية
             try:
                 dept_obj = db.session.get(Department, int(department_id))
-            except Exception:
+            except Exception as e:
                 dept_obj = None
             if not dept_obj:
                 flash('القسم غير موجود', 'error')
@@ -427,7 +427,7 @@ def get_smart_queue_management(department_id=None):
                 func.extract('hour', QueueManagement.created_at).label('hour'),
                 func.count(QueueManagement.id).label('count')
             ).group_by(func.extract('hour', QueueManagement.created_at))).scalars().all()
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             peak_hours = []
         
@@ -474,7 +474,7 @@ def get_patient_flow_analysis():
                 func.extract('hour', Visit.created_at).label('hour'),
                 func.count(Visit.id).label('count')
             ).filter(Visit.created_at >= week_ago).group_by(func.extract('hour', Visit.created_at))).scalars().all()
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             hourly_flow = []
         
@@ -768,7 +768,7 @@ def get_patient_demand_forecast(hours_ahead=4, days_window=14):
                 func.extract('hour', Visit.created_at).label('hour'),
                 func.count(Visit.id).label('count')
             ).filter(Visit.created_at >= start_date).group_by(func.extract('hour', Visit.created_at))).scalars().all()
-        except Exception:
+        except Exception as e:
             hourly = db.session.execute(select(
                 func.extract('hour', Visit.created_at).label('hour'),
                 func.count(Visit.id).label('count')
@@ -901,7 +901,7 @@ def get_smart_recommendations():
             avg_visit_duration = db.session.execute(select(
                 func.avg((func.extract('epoch', Visit.completed_at) - func.extract('epoch', Visit.created_at)) / 60.0)
             ).filter(Visit.completed_at.isnot(None))).scalar() or 0
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             avg_visit_duration = 0
         if avg_visit_duration > 45:

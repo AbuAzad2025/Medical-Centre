@@ -8,6 +8,8 @@ from models.patient import Patient
 from models.user import User
 from models.visit import Visit
 from services.visit_state_machine_service import VisitStateMachineService, set_vsm_authorized
+from sqlalchemy import select
+from app.extensions import db
 
 
 def _set_visit_status(visit, status):
@@ -42,7 +44,7 @@ def sm_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def sm_doctor(app, test_tenant):
-    u = User.query.filter_by(username='sm_doctor').first()
+    u = db.session.execute(select(User).filter_by(username='sm_doctor')).scalars().first()
     if not u:
         u = User(
             username='sm_doctor',

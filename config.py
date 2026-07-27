@@ -277,7 +277,7 @@ class TestingConfig(Config):
     try:
         from dotenv import load_dotenv
         load_dotenv()
-    except Exception:
+    except Exception as e:
         pass
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
         os.environ.get('DATABASE_URL') or \

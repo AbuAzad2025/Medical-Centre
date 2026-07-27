@@ -39,7 +39,7 @@ class PDFReportPrinter:
             from bidi.algorithm import get_display
             reshaped = arabic_reshaper.reshape(text)
             return get_display(reshaped)
-        except Exception:
+        except Exception as e:
             return text
 
     def _draw_header(self, c, width, title: str, subtitle: str = '', logo_path: str = ''):
@@ -48,7 +48,7 @@ class PDFReportPrinter:
         if logo_path and os.path.exists(logo_path):
             try:
                 c.drawImage(logo_path, 15 * mm, y_top - 15 * mm, width=20 * mm, height=20 * mm, preserveAspectRatio=True)
-            except Exception:
+            except Exception as e:
                 pass
         c.setFont(_FONT_NAME if self._font_registered else 'Helvetica-Bold', 16)
         c.drawString(40 * mm if not logo_path else 42 * mm, y_top, self._arabic(title))
@@ -174,7 +174,7 @@ class PDFReportPrinter:
             img.save(buf, format='PNG')
             buf.seek(0)
             c.drawImage(buf, x, y - size * mm, width=size * mm, height=size * mm)
-        except Exception:
+        except Exception as e:
             pass
 
     def _draw_footer(self, c, width, y_pos=None):
@@ -254,7 +254,7 @@ class PDFReportPrinter:
                 if t:
                     tenant_name = t.name or t.name_ar or ''
                     tenant_logo = t.logo_url or ''
-            except Exception:
+            except Exception as e:
                 pass
         self._draw_header(c, width, title, tenant_name, tenant_logo)
         return 297 * mm - 32 * mm

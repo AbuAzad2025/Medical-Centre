@@ -258,7 +258,7 @@ class SaasRegistrationService:
         try:
             ip = client_ip or (request.remote_addr if has_request_context() else None)
             ua = request.headers.get('User-Agent') if has_request_context() else None
-        except Exception:
+        except Exception as e:
             ip = None
             ua = None
         db.session.add(PlatformAuditLog(

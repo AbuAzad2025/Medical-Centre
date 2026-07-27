@@ -138,7 +138,7 @@ def add_patient():
                 try:
                     from datetime import datetime
                     last_menstruation_date = datetime.strptime(last_menstruation_date_raw, '%Y-%m-%d').date()
-                except Exception:
+                except Exception as e:
                     last_menstruation_date = None
             pregnancy_notes = (request.form.get('pregnancy_notes') or '').strip() or None
 
@@ -221,7 +221,7 @@ def add_patient():
                 try:
                     from datetime import datetime
                     birth_date = datetime.strptime(birth_date_raw, '%Y-%m-%d').date()
-                except Exception:
+                except Exception as e:
                     birth_date = None
 
             patient = Patient(
@@ -328,7 +328,7 @@ def edit_patient(patient_id):
                 try:
                     from datetime import datetime
                     last_menstruation_date = datetime.strptime(last_menstruation_date_raw, '%Y-%m-%d').date()
-                except Exception:
+                except Exception as e:
                     last_menstruation_date = None
             pregnancy_notes = (request.form.get('pregnancy_notes') or '').strip() or None
 
@@ -407,7 +407,7 @@ def edit_patient(patient_id):
                 try:
                     from datetime import datetime
                     birth_date = datetime.strptime(birth_date_raw, '%Y-%m-%d').date()
-                except Exception:
+                except Exception as e:
                     birth_date = None
 
             patient.national_id = national_id

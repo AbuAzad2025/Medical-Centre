@@ -16,6 +16,8 @@ from models.visit import Visit
 from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
+from sqlalchemy import select, func
+from app.extensions import db
 
 
 class _Boom:
@@ -168,7 +170,7 @@ class TestCreateUpdate:
         })
         assert res['success'] is True
         assert res['service_price_id']
-        assert ServicePrice.query.get(res['service_price_id']) is not None
+        assert db.session.get(ServicePrice, res['service_price_id']) is not None
 
     def test_create_service_price_failure_rolls_back(self, rollback_db, monkeypatch):
         monkeypatch.setattr(ps_mod, 'ServicePrice', _Boom)
@@ -196,7 +198,7 @@ class TestCreateUpdate:
         rollback_db.session.commit()
         res = PricingService.update_service_price(sp.id, {'cash_price': 55, 'bogus_attr': 'ignored'})
         assert res['success'] is True
-        assert float(ServicePrice.query.get(sp.id).cash_price) == 55.0
+        assert float(db.session.get(ServicePrice, sp.id).cash_price) == 55.0
 
     def test_update_service_price_not_found(self, rollback_db):
         res = PricingService.update_service_price(99999999, {'cash_price': 1})
@@ -387,7 +389,7 @@ class TestCleanup:
         res = PricingService.cleanup_service_prices()
         assert res['success'] is True
         assert res['removed'] >= 2
-        assert ServicePrice.query.filter_by(service_name='ZZ_DUP', service_type='lab_test').count() == 1
+        assert db.session.execute(select(func.count()).select_from(ServicePrice).filter_by(service_name='ZZ_DUP', service_type='lab_test')).scalar() == 1
 
     def test_cleanup_pricing_catalog_removes_duplicates(self, rollback_db):
         u = User.query.filter(User.role.in_(['admin', 'manager', 'super_admin'])).first()

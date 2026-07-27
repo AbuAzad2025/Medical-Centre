@@ -19,6 +19,7 @@ import pytest
 from services.emergency_service import EmergencyService as ES
 from models.emergency import EmergencyCase
 from models.patient import Patient
+from app.extensions import db
 
 
 @pytest.fixture
@@ -139,7 +140,7 @@ class TestCaseManagement:
     def test_update_case_status(self, fx):
         c = fx.case()
         assert ES.update_case_status(c.id, 'COMPLETED') is True
-        reloaded = EmergencyCase.query.get(c.id)
+        reloaded = db.session.get(EmergencyCase, c.id)
         assert reloaded.status == 'COMPLETED'
         assert reloaded.completed_at is not None
 
@@ -149,7 +150,7 @@ class TestCaseManagement:
     def test_assign_doctor_advances_status(self, fx):
         c = fx.case(status='WAITING')
         assert ES.assign_doctor(c.id, doctor_id=5) is True
-        assert EmergencyCase.query.get(c.id).status == 'TREATMENT'
+        assert db.session.get(EmergencyCase, c.id).status == 'TREATMENT'
 
     def test_assign_doctor_not_found(self, fx):
         assert ES.assign_doctor(99999999, doctor_id=1) is False
@@ -163,14 +164,14 @@ class TestTriage:
         c = fx.case(severity='LOW')
         ok = ES.triage_patient(c.id, 'CRITICAL', vital_signs={'hr': 110, 'bp': '120/80'})
         assert ok is True
-        reloaded = EmergencyCase.query.get(c.id)
+        reloaded = db.session.get(EmergencyCase, c.id)
         assert reloaded.severity == 'CRITICAL'
         assert json.loads(reloaded.vital_signs)['hr'] == 110
 
     def test_triage_with_string_vitals(self, fx):
         c = fx.case()
         assert ES.triage_patient(c.id, 'HIGH', vital_signs='raw text') is True
-        assert EmergencyCase.query.get(c.id).vital_signs == 'raw text'
+        assert db.session.get(EmergencyCase, c.id).vital_signs == 'raw text'
 
 
 class TestNotification:

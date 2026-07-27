@@ -33,7 +33,7 @@ class ManagerService:
                 "today_visits": db.session.execute(select(func.count()).select_from(Visit).filter(func.date(Visit.created_at) == date.today())).scalar(),
                 "active_visits": db.session.execute(select(func.count()).select_from(Visit).filter(Visit.status.in_(["WAITING", "INPATIENT", "OBSERVATION"]))).scalar(),
             }
-        except Exception:
+        except Exception as e:
             return {}
 
     @staticmethod
@@ -50,7 +50,7 @@ class ManagerService:
                 "total_expenses": float(total_expenses),
                 "net_revenue": float(total_collected) - float(total_expenses),
             }
-        except Exception:
+        except Exception as e:
             return {}
 
     @staticmethod
@@ -60,7 +60,7 @@ class ManagerService:
             total = db.session.execute(select(func.count()).select_from(User).filter(User.role != "patient")).scalar()
             active = db.session.execute(select(func.count()).select_from(User).filter(User.role != "patient", User.is_active == True)).scalar()
             return {"total": total, "active": active}
-        except Exception:
+        except Exception as e:
             return {"total": 0, "active": 0}
 
     @staticmethod
@@ -68,7 +68,7 @@ class ManagerService:
         try:
             from models.audit_trail import AuditTrail
             return db.session.execute(select(AuditTrail).order_by(AuditTrail.created_at.desc()).limit(limit)).scalars().all()
-        except Exception:
+        except Exception as e:
             return []
 
     @staticmethod
@@ -85,7 +85,7 @@ class ManagerService:
                 query = query.filter(Department.id == department_id)
             results = db.session.execute(query.group_by(Department.name).order_by(func.count(Visit.id).desc())).scalars().all()
             return [{"department": r.name, "visits": r.visit_count} for r in results]
-        except Exception:
+        except Exception as e:
             return []
 
     @staticmethod
@@ -95,7 +95,7 @@ class ManagerService:
             avg = db.session.execute(select(func.avg(PatientFeedback.rating))).scalar()
             count = db.session.execute(select(func.count()).select_from(PatientFeedback)).scalar()
             return {"average_rating": float(avg) if avg else 0, "total_responses": count}
-        except Exception:
+        except Exception as e:
             return {"average_rating": 0, "total_responses": 0}
 
     @staticmethod
@@ -118,7 +118,7 @@ class ManagerService:
             obj.status = "APPROVED"
             obj.approved_by = approved_by
             return safe_commit(db.session, error_message="Failed to approve request")
-        except Exception:
+        except Exception as e:
             return False
 
 

@@ -20,7 +20,7 @@ def _format_message(key):
     role = None
     try:
         role = current_user.role if current_user.is_authenticated else None
-    except Exception:
+    except Exception as e:
         role = None
     ar = {
         'not_authenticated': 'يرجى تسجيل الدخول للمتابعة',
@@ -472,7 +472,7 @@ def super_admin_only(f):
         try:
             is_sa = getattr(current_user, 'is_super_admin', None)
             is_sa_val = is_sa() if callable(is_sa) else False
-        except Exception:
+        except Exception as e:
             is_sa_val = False
         if not is_sa_val:
             flash(_format_message('no_permission'), 'error')

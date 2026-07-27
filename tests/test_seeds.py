@@ -15,6 +15,7 @@ from models.medication import Prescription
 from models.invoice import Invoice
 from seeds import production_baseline as pb
 from seeds import local_dev_story as dev
+from sqlalchemy import select, func
 
 
 def _compute_expected_master_password() -> str:
@@ -47,7 +48,7 @@ def _rls_bypass():
 def _clean_seed_data():
     """Remove any seed-polluted rows so each test is deterministic."""
     User.query.filter_by(username="azad").delete(synchronize_session=False)
-    for t in Tenant.query.filter_by(slug=dev.DEV_TENANT_SLUG).all():
+    for t in db.session.execute(select(Tenant).filter_by(slug=dev.DEV_TENANT_SLUG)).scalars().all():
         TenantModule.query.filter_by(tenant_id=t.id).delete(synchronize_session=False)
         Invoice.query.filter_by(tenant_id=t.id).delete(synchronize_session=False)
         LabRequest.query.filter_by(tenant_id=t.id).delete(synchronize_session=False)
@@ -71,7 +72,7 @@ def _seed_dev(with_clinical=True):
 def test_seed_module_definitions_idempotent(app, rollback_db):
     _clean_seed_data()
     pb.seed_module_definitions()
-    names = {m.name for m in ModuleDefinition.query.all()}
+    names = {m.name for m in db.session.execute(select(ModuleDefinition)).scalars().all()}
     app_names = {n for n in MODULE_REGISTRY if n != "owner"}
     assert app_names.issubset(names)
     assert len(names & app_names) == APPLICATION_MODULE_COUNT
@@ -90,7 +91,7 @@ def test_seed_master_account(app, rollback_db):
     assert master.check_password(expected_password) is True
     again = pb.seed_master_account()
     assert again.id == master.id
-    assert User.query.filter_by(username="azad").count() == 1
+    assert db.session.execute(select(func.count()).select_from(User).filter_by(username="azad")).scalar() == 1
 
 
 def test_production_baseline_run(app, rollback_db):
@@ -99,7 +100,7 @@ def test_production_baseline_run(app, rollback_db):
     master = pb.seed_master_account()
     assert master.username == "azad"
     app_names = {n for n in MODULE_REGISTRY if n != "owner"}
-    assert app_names.issubset({m.name for m in ModuleDefinition.query.all()})
+    assert app_names.issubset({m.name for m in db.session.execute(select(ModuleDefinition)).scalars().all()})
 
 
 def test_local_dev_story_seeds_tenant_and_staff(app, rollback_db):
@@ -120,11 +121,11 @@ def test_local_dev_story_seeds_tenant_and_staff(app, rollback_db):
 def test_local_dev_story_clinical_flow_linked(app, rollback_db):
     _clean_seed_data()
     tenant, _staff, _flow = _seed_dev(True)
-    patient = Patient.query.filter_by(tenant_id=tenant.id).first()
-    visit = Visit.query.filter_by(tenant_id=tenant.id).first()
-    lab = LabRequest.query.filter_by(tenant_id=tenant.id).first()
-    rx = Prescription.query.filter_by(tenant_id=tenant.id).first()
-    inv = Invoice.query.filter_by(tenant_id=tenant.id).first()
+    patient = db.session.execute(select(Patient).filter_by(tenant_id=tenant.id)).scalars().first()
+    visit = db.session.execute(select(Visit).filter_by(tenant_id=tenant.id)).scalars().first()
+    lab = db.session.execute(select(LabRequest).filter_by(tenant_id=tenant.id)).scalars().first()
+    rx = db.session.execute(select(Prescription).filter_by(tenant_id=tenant.id)).scalars().first()
+    inv = db.session.execute(select(Invoice).filter_by(tenant_id=tenant.id)).scalars().first()
 
     assert patient is not None
     assert visit is not None and visit.patient_id == patient.id
@@ -138,5 +139,5 @@ def test_local_dev_story_idempotent(app, rollback_db):
     t1, _s1, _f1 = _seed_dev(True)
     t2, _s2, _f2 = _seed_dev(True)
     assert t1.id == t2.id
-    assert Patient.query.filter_by(tenant_id=t1.id).count() == 1
-    assert User.query.filter_by(username="dev_doctor").count() == 1
+    assert db.session.execute(select(func.count()).select_from(Patient).filter_by(tenant_id=t1.id)).scalar() == 1
+    assert db.session.execute(select(func.count()).select_from(User).filter_by(username="dev_doctor")).scalar() == 1

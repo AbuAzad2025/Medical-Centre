@@ -6,6 +6,7 @@ import pytest
 
 from app.extensions import db
 from models.user import User
+from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
@@ -25,8 +26,8 @@ def tenant_admin(app, test_tenant):
     yield u
     try:
         from models.audit_trail import LoginAttempt
-        db.session.query(LoginAttempt).filter_by(user_id=u.id).delete()
-    except Exception:
+        select(LoginAttempt).filter_by(user_id=u.id).delete()
+    except Exception as e:
         db.session.rollback()
     db.session.delete(u)
     db.session.commit()
@@ -46,7 +47,7 @@ class TestOwnerConsoleSecurity:
 
     def test_platform_owner_allowed(self, app, client, test_tenant):
         from app.core.rate_limiter import _shared_store
-        u = User.query.filter_by(username='owner_sec_test').first()
+        u = db.session.execute(select(User).filter_by(username='owner_sec_test')).scalars().first()
         if not u:
             u = User(
                 username='owner_sec_test',

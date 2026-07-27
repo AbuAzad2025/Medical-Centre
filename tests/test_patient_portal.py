@@ -4,6 +4,7 @@ import pytest
 import uuid
 
 from app_factory import db as _db
+from app.extensions import db
 from app.shared.enums import InvoiceStatus, OrderState
 from models.invoice import Invoice
 from models.lab_request import LabRequest, LabResult
@@ -12,6 +13,7 @@ from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
 from models.user import User
 from models.visit import Visit
+from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
@@ -41,7 +43,7 @@ def portal_visit(app, test_tenant, portal_patient):
 
 @pytest.fixture(scope='function')
 def portal_user(app, test_tenant):
-    u = User.query.filter_by(username='portal_user', tenant_id=test_tenant.id).first()
+    u = db.session.execute(select(User).filter_by(username='portal_user', tenant_id=test_tenant.id)).scalars().first()
     if not u:
         u = User(
             username='portal_user',

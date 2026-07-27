@@ -12,6 +12,10 @@ from app.shared.enum_labels import (
     resolve_visit_payment_status_badge,
 )
 
+from sqlalchemy import select
+
+from app.extensions import db
+
 
 class TestPaymentStatusEnumLabels:
     """Unit coverage for PaymentStatus Arabic labels — not duplicated in test_payment_enum_unification."""
@@ -87,7 +91,7 @@ class TestReceptionVisitsPageLabels:
         from models.visit import Visit
 
         _shared_store.clear()
-        u = User.query.filter_by(username='reception_g120').first()
+        u = db.session.execute(select(User).filter_by(username='reception_g120')).scalars().first()
         if not u:
             u = User(
                 username='reception_g120',
@@ -101,7 +105,7 @@ class TestReceptionVisitsPageLabels:
             _db.session.add(u)
             _db.session.commit()
 
-        p = Patient.query.filter_by(national_id='G120TEST01').first()
+        p = db.session.execute(select(Patient).filter_by(national_id='G120TEST01')).scalars().first()
         if not p:
             p = Patient(
                 tenant_id=test_tenant.id,
@@ -133,7 +137,7 @@ class TestReceptionVisitsPageLabels:
             _db.session.delete(v)
             _db.session.delete(p)
             _db.session.commit()
-        except Exception:
+        except Exception as e:
             _db.session.rollback()
 
     def test_visits_list_shows_arabic_payment_status(self, reception_client):

@@ -29,7 +29,7 @@ class FeatureNotEnabledError(Exception):
 def _is_admin_user() -> bool:
     try:
         return current_user.is_authenticated and current_user.role in ("super_admin", "owner")
-    except Exception:
+    except Exception as e:
         return False
 
 
@@ -61,7 +61,7 @@ class FeatureGateService:
         try:
             from services.access_control_service import AccessControlService
             return AccessControlService.user_has_permission(user, action)
-        except Exception:
+        except Exception as e:
             return True
 
     @staticmethod

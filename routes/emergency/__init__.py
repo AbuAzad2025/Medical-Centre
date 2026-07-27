@@ -140,7 +140,7 @@ def get_emergency_time_metrics():
             'door_to_disposition_rate': round((len(los_times) / max(len(rows), 1)) * 100, 1),
             'triage_sla_compliance': round((triage_within_sla / max(total_triaged, 1)) * 100, 1)
         }
-    except Exception:
+    except Exception as e:
         return {}
 
 def get_emergency_protocols():
@@ -171,7 +171,7 @@ def get_emergency_protocols():
             'active_protocols_count': len(active_protocols),
             'total_usage': total_usage
         }
-    except Exception:
+    except Exception as e:
         return {'active_protocols': [], 'active_protocols_count': 0, 'total_usage': 0}
 
 def get_ems_metrics():
@@ -212,7 +212,7 @@ def get_ems_metrics():
             'today_responses': int(today_responses or 0),
             'avg_response_time': 0
         }
-    except Exception:
+    except Exception as e:
         return {}
 
 # دوال مساعدة

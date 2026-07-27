@@ -37,7 +37,7 @@ def _entitled_for_type(item_type: str, is_entitled) -> bool:
         return True
     try:
         return bool(is_entitled(cap))
-    except Exception:
+    except Exception as e:
         return True
 
 

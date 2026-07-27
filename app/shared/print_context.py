@@ -120,7 +120,7 @@ def _get_active_modules() -> Set[str]:
             modules = get_active_modules_for_tenant(tenant.id)
             g.enabled_modules = modules  # Cache for subsequent calls
             return modules
-        except Exception:
+        except Exception as e:
             pass
 
     return set()

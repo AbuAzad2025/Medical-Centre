@@ -69,7 +69,7 @@ class FileUpload(TenantMixin, db.Model):
         try:
             with open(self.file_path, 'rb') as f:
                 return hashlib.md5(f.read()).hexdigest()
-        except Exception:
+        except Exception as e:
             return None
     
     def is_expired(self):

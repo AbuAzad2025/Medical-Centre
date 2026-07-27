@@ -253,7 +253,7 @@ class WhatsAppConfig(TenantMixin, db.Model):
             
             safe_commit(db.session, error_message="database commit failed", reraise=True)
             return config
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             raise
     

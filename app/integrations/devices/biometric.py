@@ -30,7 +30,7 @@ class BiometricAuth:
         try:
             from flask import g
             return getattr(g, 'tenant_id', None)
-        except Exception:
+        except Exception as e:
             return None
 
     def enroll(

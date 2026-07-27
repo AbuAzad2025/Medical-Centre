@@ -277,7 +277,7 @@ class ResourceUsage(db.Model):
                 """)
             ).scalar()
             db_size_mb = round(float(result) / (1024 * 1024), 2) if result else 0
-        except Exception:
+        except Exception as e:
             db_size_mb = 0
         
         # Storage from file_uploads
@@ -287,7 +287,7 @@ class ResourceUsage(db.Model):
             total_bytes = db.session.execute(select(db.func.coalesce(db.func.sum(FileUpload.file_size), 0))\
                 .filter(FileUpload.tenant_id == tenant_id)).scalar()
             storage_mb = round(float(total_bytes) / (1024 * 1024), 2)
-        except Exception:
+        except Exception as e:
             storage_mb = 0
         
         # Active users in last 24h
@@ -555,7 +555,7 @@ def get_default_modules_for_profile(profile_code: str) -> list[str]:
         bundle = get_bundle_for_profile(profile_code)
         if bundle:
             return bundle.get_modules()
-    except Exception:
+    except Exception as e:
         pass
     profile = _PRODUCT_PROFILE_SEED.get(profile_code)
     return list(profile["modules"]) if profile else []
@@ -570,7 +570,7 @@ def get_dashboard_for_profile(profile_code: str) -> str:
             meta = get_module_metadata(bundle.get_modules()[0])
             if meta and meta.default_route:
                 return meta.default_route
-    except Exception:
+    except Exception as e:
         pass
     profile = _PRODUCT_PROFILE_SEED.get(profile_code)
     return profile["dashboard_route"] if profile else "/"
@@ -615,7 +615,7 @@ class ProductBundle(db.Model):
         """Return list of module names from JSON."""
         try:
             return json.loads(self.modules) if self.modules else []
-        except Exception:
+        except Exception as e:
             return []
 
     def set_modules(self, modules: list[str]):

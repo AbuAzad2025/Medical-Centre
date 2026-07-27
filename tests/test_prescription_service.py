@@ -16,6 +16,8 @@ from models.medication import Medication, PrescriptionItem
 from models.drug_interaction import DrugInteraction
 from models.patient import Patient, PatientAllergy
 from models.user import User
+from sqlalchemy import select
+from app.extensions import db
 
 
 @pytest.fixture
@@ -117,7 +119,7 @@ class TestCreatePrescription:
             p.id, doc.id, items=[{'medication_id': m.id, 'dosage': '1x2', 'quantity': 3,
                                   'duration_days': 5}])
         assert ok is True
-        items = PrescriptionItem.query.filter_by(prescription_id=pres.id).all()
+        items = db.session.execute(select(PrescriptionItem).filter_by(prescription_id=pres.id)).scalars().all()
         assert len(items) == 1
         assert float(items[0].total_price) == 30.0
 
@@ -183,7 +185,7 @@ class TestInventory:
     def test_update_stock_success(self, rxfx):
         m = rxfx.med(stock=50)
         assert RX.update_stock(m.id, -5) is True
-        assert float(Medication.query.get(m.id).stock_quantity) == 45.0
+        assert float(db.session.get(Medication, m.id).stock_quantity) == 45.0
 
     def test_update_stock_not_found(self, rxfx):
         assert RX.update_stock(99999999, 5) is False

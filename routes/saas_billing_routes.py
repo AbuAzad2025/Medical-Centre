@@ -27,7 +27,7 @@ def stripe_webhook():
         return jsonify({'received': True, **result}), 200
     except StripeWebhookError as exc:
         return jsonify({'error': str(exc)}), 400
-    except Exception:
+    except Exception as e:
         return jsonify({'error': 'webhook_processing_failed'}), 500
 
 
@@ -48,7 +48,7 @@ def create_checkout():
         return jsonify(result), 201
     except (StripeBillingError, ValueError, TypeError) as exc:
         return jsonify({'error': str(exc)}), 400
-    except Exception:
+    except Exception as e:
         return jsonify({'error': 'checkout_failed'}), 500
 
 
@@ -66,7 +66,7 @@ def billing_portal():
         return jsonify(result), 200
     except StripeBillingError as exc:
         return jsonify({'error': str(exc)}), 400
-    except Exception:
+    except Exception as e:
         return jsonify({'error': 'portal_failed'}), 500
 
 
@@ -84,7 +84,7 @@ def cancel_subscription():
         return jsonify(result), 200
     except StripeBillingError as exc:
         return jsonify({'error': str(exc)}), 400
-    except Exception:
+    except Exception as e:
         return jsonify({'error': 'cancel_failed'}), 500
 
 
@@ -104,5 +104,5 @@ def change_plan():
         return jsonify(result), 200
     except (StripeBillingError, ValueError, TypeError) as exc:
         return jsonify({'error': str(exc)}), 400
-    except Exception:
+    except Exception as e:
         return jsonify({'error': 'change_plan_failed'}), 500

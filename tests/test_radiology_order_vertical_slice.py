@@ -8,6 +8,8 @@ from models.radiology_request import RadiologyRequest
 from models.user import User
 from models.visit import Visit
 from services.radiology_service import RadiologyService
+from sqlalchemy import select, func
+from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -25,7 +27,7 @@ def rad_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def rad_doctor(app, test_tenant):
-    u = User.query.filter_by(username='rad_doctor').first()
+    u = db.session.execute(select(User).filter_by(username='rad_doctor')).scalars().first()
     if not u:
         u = User(
             username='rad_doctor',
@@ -67,7 +69,7 @@ class TestRadiologyServiceCreateRequest:
         assert ok is True
         _db.session.commit()
 
-        req = RadiologyRequest.query.get(result['radiology_request_id'])
+        req = db.session.get(RadiologyRequest, result['radiology_request_id'])
         assert req is not None
         assert req.visit_id == rad_visit.id
         assert req.patient_id == rad_visit.patient_id
@@ -101,7 +103,7 @@ class TestDoctorRadiologyRequestRoute:
         })
         assert resp.status_code in (200, 302)
 
-        req = RadiologyRequest.query.filter_by(visit_id=rad_visit.id).first()
+        req = db.session.execute(select(RadiologyRequest).filter_by(visit_id=rad_visit.id)).scalars().first()
         assert req is not None
         assert req.modality == 'XRAY'
         assert req.body_part == 'Chest'
@@ -115,7 +117,7 @@ class TestDoctorRadiologyRequestRoute:
             'notes': 'Please schedule',
         })
         assert resp.status_code in (200, 302)
-        assert RadiologyRequest.query.filter_by(visit_id=rad_visit.id).count() == 0
+        assert db.session.execute(select(func.count()).select_from(RadiologyRequest).filter_by(visit_id=rad_visit.id)).scalar() == 0
         _db.session.refresh(rad_visit)
         assert rad_visit.radiology_ordered is True
         assert 'مذكرة تصوير' in (rad_visit.notes or '')

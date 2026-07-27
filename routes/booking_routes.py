@@ -310,7 +310,7 @@ def create_booking():
                     queue_user_id = None
                     try:
                         queue_user_id = current_user.id if current_user.is_authenticated else None
-                    except Exception:
+                    except Exception as e:
                         queue_user_id = None
                     if not queue_user_id:
                         queue_user_id = doctor.id if doctor else None
@@ -408,7 +408,7 @@ def payment(booking_id):
             amount_raw = request.form.get('amount', 50.0)
             try:
                 amount_val = float(amount_raw)
-            except Exception:
+            except Exception as e:
                 amount_val = 50.0
             payment_method = (request.form.get('payment_method') or 'CASH').strip().upper()
 
@@ -482,7 +482,7 @@ def api_available_times():
         for apt in existing_appointments:
             try:
                 taken_times.add(apt.starts_at.strftime('%H:%M'))
-            except Exception:
+            except Exception as e:
                 continue
 
         available_times = []
@@ -551,7 +551,7 @@ def api_smart_slots():
         for apt in existing_appointments:
             try:
                 taken_times.add(apt.starts_at.strftime('%H:%M'))
-            except Exception:
+            except Exception as e:
                 continue
         available_times = []
         has_schedule = insp.has_table('staff_work_schedules')

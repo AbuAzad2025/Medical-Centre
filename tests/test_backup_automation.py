@@ -8,6 +8,7 @@ import pytest
 from app.shared.enums import BackupStatus
 from models.backup import Backup
 from services.backup_automation_service import BackupAutomationError, BackupAutomationService
+from app.extensions import db
 
 
 class TestBackupAutomationService:
@@ -18,7 +19,7 @@ class TestBackupAutomationService:
             record = BackupAutomationService.run_scheduled_backup(created_by=test_user.id)
         assert record.backup_status == BackupStatus.COMPLETED
         assert record.backup_size == 128
-        saved = Backup.query.get(record.id)
+        saved = db.session.get(Backup, record.id)
         assert saved is not None
 
     def test_upload_to_cloud_requires_bucket(self, app, tmp_path, monkeypatch):

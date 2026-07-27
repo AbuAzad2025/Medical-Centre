@@ -28,6 +28,8 @@ from tests.test_phase14_launch import (
     _login_as,
 )
 
+from app.extensions import db
+
 ROOT = Path(__file__).parent.parent
 _STATIC_JS = ROOT / 'static' / 'js'
 _ROUTE_INVENTORY = ROOT / 'route_inventory.json'
@@ -204,7 +206,7 @@ def _path_matches_url_map(app, path: str) -> bool:
             return True
         except RequestRedirect:
             return True
-        except Exception:
+        except Exception as e:
             continue
     return False
 

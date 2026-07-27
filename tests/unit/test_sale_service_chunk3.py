@@ -8,6 +8,7 @@ from unittest.mock import patch
 from services.pharmacy_sale_service import PharmacySaleService
 from app.shared.enums import PrescriptionState
 from tests.tenant_context import bind_tenant_on_g
+from app.extensions import db
 
 
 # ---------------------------------------------------------------------------
@@ -117,7 +118,7 @@ class TestCreateSaleCommissionAndOptions:
             tenant_id=test_tenant.id,
         )
 
-        rx = Prescription.query.get(rx_id)
+        rx = db.session.get(Prescription, rx_id)
         assert rx.status == PrescriptionState.DISPENSED
 
     def test_create_sale_commission_fields(self, app, test_tenant, test_medications):
@@ -136,7 +137,7 @@ class TestCreateSaleCommissionAndOptions:
             tenant_id=test_tenant.id,
         )
 
-        sale = PharmacySale.query.get(result['sale_id'])
+        sale = db.session.get(PharmacySale, result['sale_id'])
         assert sale.tenant_id == test_tenant.id
         assert sale.sale_number.startswith('SALE-')
 

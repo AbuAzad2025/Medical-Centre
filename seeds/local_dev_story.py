@@ -21,6 +21,7 @@ from models.lab_request import LabRequest
 from models.medication import Prescription
 from models.invoice import Invoice
 from . import tenant_bypass
+from sqlalchemy import select
 
 DEV_TENANT_ID = 1
 DEV_TENANT_SLUG = "azad-dev"
@@ -46,7 +47,7 @@ def _sync_tenant_sequence(tenant_id: int) -> None:
                 "GREATEST(:tid, (SELECT MAX(id) FROM tenants)), true)"
             ).bindparams(tid=tenant_id)
         )
-    except Exception:
+    except Exception as e:
         pass
 
 
@@ -56,7 +57,7 @@ def seed_dev_tenant(session=None):
         # Keyed by slug (not a hard-coded id) so it never clobbers an
         # existing tenant — in a fresh production DB it simply gets the next
         # available id; in tests it coexists with the default tenant.
-        tenant = Tenant.query.filter_by(slug=DEV_TENANT_SLUG).first()
+        tenant = db.session.execute(select(Tenant).filter_by(slug=DEV_TENANT_SLUG)).scalars().first()
         if tenant is None:
             tenant = Tenant(
                 slug=DEV_TENANT_SLUG,

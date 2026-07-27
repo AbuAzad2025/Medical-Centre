@@ -60,14 +60,14 @@ def settlements():
             try:
                 y, m = map(int, month.split('-'))
                 period_start = date(y, m, 1)
-            except Exception:
+            except Exception as e:
                 period_start = date(today.year, today.month, 1)
         else:
             period_start = date(today.year, today.month, 1)
         if end_date:
             try:
                 period_end = datetime.strptime(end_date, '%Y-%m-%d').date()
-            except Exception:
+            except Exception as e:
                 period_end = date(period_start.year, period_start.month, 28)
         else:
             # نهاية الشهر
@@ -100,7 +100,7 @@ def settlements():
                     DoctorPricing.is_active == True,
                     DoctorPricing.tenant_id == current_user.tenant_id
                 ).order_by(DoctorPricing.effective_from.desc())).scalars().first()
-            except Exception:
+            except Exception as e:
                 pricing = None
             vt = (v.visit_type or '').upper()
             if pricing:
@@ -183,14 +183,14 @@ def settlements_export():
             try:
                 y, m = map(int, month.split('-'))
                 period_start = date(y, m, 1)
-            except Exception:
+            except Exception as e:
                 period_start = date(today.year, today.month, 1)
         else:
             period_start = date(today.year, today.month, 1)
         if end_date:
             try:
                 period_end = datetime.strptime(end_date, '%Y-%m-%d').date()
-            except Exception:
+            except Exception as e:
                 period_end = date(period_start.year, period_start.month, 28)
         else:
             next_month = (period_start.replace(day=28) + timedelta(days=4)).replace(day=1)
@@ -209,7 +209,7 @@ def settlements_export():
             try:
                 from models.pricing import DoctorPricing
                 pricing = db.session.execute(select(DoctorPricing).filter(DoctorPricing.doctor_id == v.doctor_id, DoctorPricing.department_id == v.department_id, DoctorPricing.is_active == True).order_by(DoctorPricing.effective_from.desc())).scalars().first()
-            except Exception:
+            except Exception as e:
                 pricing = None
             vt = (v.visit_type or '').upper()
             if pricing:
@@ -428,7 +428,7 @@ def fetch_api_exchange_rates():
                 imported += 1
             else:
                 failed += 1
-        except Exception:
+        except Exception as e:
             failed += 1
     flash(f'تم جلب {imported} سعر صرف | فشل {failed}', 'info' if failed == 0 else 'warning')
     return redirect(url_for('manager.exchange_rates'))

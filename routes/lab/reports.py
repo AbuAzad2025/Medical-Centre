@@ -59,7 +59,7 @@ def print_request(id: int):
                 b = lab_request.patient.birth_date
                 today = date.today()
                 age_years = today.year - b.year - ((today.month, today.day) < (b.month, b.day))
-        except Exception:
+        except Exception as e:
             age_years = None
         qr_data_uri = generate_qr_data_uri(f"LAB|{lab_request.id}|{lab_request.patient_id}|{lab_request.created_at.isoformat()}")
         printed_at = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')

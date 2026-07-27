@@ -76,7 +76,7 @@ def system_config():
                                 errors.append(f"القيمة خارج النطاق لـ {key}")
                                 continue
                             normalized[key] = ival
-                        except Exception:
+                        except Exception as e:
                             errors.append(f"قيمة غير صالحة لـ {key}")
                             continue
                     elif rule['type'] == 'boolean':

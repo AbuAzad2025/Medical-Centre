@@ -18,6 +18,7 @@ from app.core.tenant.models import Tenant
 from app.shared.enums import TenantStatus
 from models.user import User
 from tests.tenant_context import tenant_test_context
+from sqlalchemy import select, func
 
 
 def _seed_trial_package():
@@ -142,6 +143,6 @@ class TestPerTenantUsername:
         with app.app_context(), app.test_request_context():
             from flask import g
             g._tenant_filter_bypass = True
-            count = User.query.filter_by(username=shared).count()
+            count = db.session.execute(select(func.count()).select_from(User).filter_by(username=shared)).scalar()
             assert count == 2
             assert tenant_b.id is not None

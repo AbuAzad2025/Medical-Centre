@@ -125,7 +125,7 @@ class PatientTimelineService:
         if getattr(visit, 'visit_date', None) and getattr(visit, 'visit_time', None):
             try:
                 return datetime.combine(visit.visit_date, visit.visit_time)
-            except Exception:
+            except Exception as e:
                 pass
         return visit.created_at or datetime.now()
 

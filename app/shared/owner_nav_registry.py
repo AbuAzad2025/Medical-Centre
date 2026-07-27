@@ -90,5 +90,5 @@ def resolve_owner_nav() -> List[OwnerNavSection]:
 def owner_nav_href(item: OwnerNavItem) -> str:
     try:
         return url_for(item.endpoint)
-    except Exception:
+    except Exception as e:
         return item.active_prefix or '#'

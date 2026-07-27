@@ -54,7 +54,7 @@ def list_emergency_cases():
             emergency.doctor = emergency.visit.doctor if emergency.visit and emergency.visit.doctor else None
             try:
                 emergency.vital_signs = json.loads(emergency.vital_signs) if emergency.vital_signs else None
-            except Exception:
+            except Exception as e:
                 emergency.vital_signs = None
 
         total_emergencies = db.session.execute(select(func.count()).select_from(EmergencyCase)).scalar()
@@ -94,7 +94,7 @@ def view_emergency_case(id):
         emergency.doctor = emergency.visit.doctor if emergency.visit and emergency.visit.doctor else None
         try:
             emergency.vital_signs = json.loads(emergency.vital_signs) if emergency.vital_signs else None
-        except Exception:
+        except Exception as e:
             emergency.vital_signs = None
         history = []
         timeline = []
@@ -107,7 +107,7 @@ def view_emergency_case(id):
                 if next_h and h.created_at and next_h.created_at:
                     dur_min = int((next_h.created_at - h.created_at).total_seconds() // 60)
                 timeline.append({'item': h, 'duration_minutes': dur_min})
-        except Exception:
+        except Exception as e:
             timeline = []
 
         return render_template('emergency/view.html', emergency=emergency, status_timeline=timeline)
@@ -186,7 +186,7 @@ def edit_emergency_case(id):
         emergency.doctor = emergency.visit.doctor if emergency.visit and emergency.visit.doctor else None
         try:
             emergency.vital_signs = json.loads(emergency.vital_signs) if emergency.vital_signs else None
-        except Exception:
+        except Exception as e:
             emergency.vital_signs = None
         return render_template('emergency/edit.html', emergency=emergency, doctors=doctors, patients=patients)
     except Exception as e:
@@ -224,7 +224,7 @@ def create_emergency_case():
             return jsonify({'success': False, 'message': 'رقم المريض مطلوب'}), 400
         try:
             patient_id = int(patient_id)
-        except Exception:
+        except Exception as e:
             return jsonify({'success': False, 'message': 'رقم المريض غير صحيح'}), 400
         patient = db.session.execute(select(Patient).filter_by(id=patient_id)).scalars().first()
         if not patient:
@@ -238,7 +238,7 @@ def create_emergency_case():
                 if d.get_type() == 'emergency':
                     emergency_department_id = d.id
                     break
-        except Exception:
+        except Exception as e:
             emergency_department_id = None
 
         visit = Visit(
@@ -340,7 +340,7 @@ def convert_emergency_case(id):
                         break
             else:
                 return jsonify({'success': False, 'message': 'الوجهة غير صحيحة'}), 400
-        except Exception:
+        except Exception as e:
             target_department_id = None
         if not target_department_id:
             return jsonify({'success': False, 'message': 'القسم غير موجود'}), 404

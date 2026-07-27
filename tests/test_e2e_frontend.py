@@ -92,13 +92,13 @@ def e2e_seed(app, test_tenant, db):
 
     with tenant_test_context(app, test_tenant):
         db.session.rollback()
-        p = Patient.query.filter_by(national_id='E2ESEED01').first()
+        p = db.session.execute(select(Patient).filter_by(national_id='E2ESEED01')).scalars().first()
         if not p:
             p = Patient(tenant_id=test_tenant.id, first_name='مريض', last_name='شامل',
                         phone='0599123456', national_id='E2ESEED01')
             db.session.add(p)
             db.session.flush()
-        v = Visit.query.filter_by(patient_id=p.id).first()
+        v = db.session.execute(select(Visit).filter_by(patient_id=p.id)).scalars().first()
         if not v:
             v = Visit(tenant_id=test_tenant.id, patient_id=p.id, payment_status='PENDING',
                       total_amount=100, paid_amount=0, status='OPEN')
@@ -170,6 +170,8 @@ class TestFrontendE2E:
 
 # ── Static integrity: every template, button, link, and asset reference ──
 from pathlib import Path  # noqa: E402
+from sqlalchemy import select
+from app.extensions import db
 
 _TEMPLATES_ROOT = Path(__file__).parent.parent / 'templates'
 _STATIC_ROOT = Path(__file__).parent.parent / 'static'

@@ -20,6 +20,7 @@ from models.nurse import Nurse, VitalSigns, MedicationAdministrationLog
 from models.clinical_pathway import PatientCarePlan
 from models.task_management import Task
 from models.user import User
+from app.extensions import db
 
 
 @pytest.fixture
@@ -115,7 +116,7 @@ class TestAdministrations:
         v = fx.visit()
         log = fx.admin_log(v)
         assert NS.record_administration(log.id, nurse_id=1, notes='given') is True
-        assert MedicationAdministrationLog.query.get(log.id).notes == 'given'
+        assert db.session.get(MedicationAdministrationLog, log.id).notes == 'given'
 
 
 class TestCarePlans:
@@ -159,7 +160,7 @@ class TestTasks:
     def test_complete_task_success(self, fx):
         t = fx.task(status='pending')
         assert NS.complete_task(t.id, completed_by=1) is True
-        reloaded = Task.query.get(t.id)
+        reloaded = db.session.get(Task, t.id)
         assert reloaded.status == 'completed'
         assert reloaded.completed_at is not None
 

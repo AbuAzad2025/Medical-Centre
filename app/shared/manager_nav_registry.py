@@ -86,7 +86,7 @@ def resolve_manager_nav_sections() -> List[NavSection]:
             href = _tenant_path(spec.path_prefix)
             try:
                 href = _tenant_path(url_for(spec.endpoint, **kwargs))
-            except Exception:
+            except Exception as e:
                 pass
             section.items.append(NavItem(
                 id=spec.id,

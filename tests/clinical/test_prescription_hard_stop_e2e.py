@@ -32,6 +32,7 @@ from models.problem_list import PatientProblem
 from models.user import User
 from services.prescription_service import PrescriptionService
 from services.clinical_safety_service import ClinicalSafetyService, SafetyCheckSeverity
+from app.extensions import db
 
 
 @pytest.fixture(scope='module')
@@ -43,7 +44,7 @@ def app():
         db.session.remove()
         try:
             db.drop_all()
-        except Exception:
+        except Exception as e:
             pass
 
 

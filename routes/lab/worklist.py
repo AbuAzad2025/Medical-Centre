@@ -156,7 +156,7 @@ def _notify_lab_results_ready(lab_request):
                 if res.is_critical and (res.value or '').strip():
                     has_critical = True
                     break
-        except Exception:
+        except Exception as e:
             has_critical = False
         if doctor_id:
             NotificationService.send_notification(
@@ -231,7 +231,7 @@ def worklist_request(request_id):
                         user_agent=request.headers.get('User-Agent'),
                         description='تحديث نتائج المختبر'
                     ))
-                except Exception:
+                except Exception as e:
 
                     logging.warning(f"Error in {__name__}: no audit trail")
             safe_commit(db.session, error_message="database commit failed", reraise=True)
@@ -305,7 +305,7 @@ def worklist_complete(request_id):
                     message=f'تم اعتماد نتيجة فحص المختبر لطلب #{req.id}',
                     notification_type='info'
                 )
-        except Exception:
+        except Exception as e:
             logging.warning(f"Error in {__name__}: notification skipped")
         return jsonify({'success': True, 'message': 'تم إكمال الطلب'}), 200
     except Exception as e:

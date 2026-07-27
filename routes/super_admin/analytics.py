@@ -296,7 +296,7 @@ def get_predictive_analytics():
                 func.extract('hour', Visit.created_at).label('hour'),
                 func.count(Visit.id).label('count')
             ).group_by(func.extract('hour', Visit.created_at))).scalars().all()
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             peak_hours = []
         
@@ -327,7 +327,7 @@ def get_system_health_score():
         # فحص قاعدة البيانات
         try:
             db.session.execute('SELECT 1')
-        except Exception:
+        except Exception as e:
             score -= 20
         
         # فحص المساحة المتاحة
@@ -338,7 +338,7 @@ def get_system_health_score():
                 score -= 20
             elif free_space_percent < 20:
                 score -= 10
-        except Exception:
+        except Exception as e:
             score -= 5
         
         # فحص الملفات المهمة
@@ -425,7 +425,7 @@ def get_performance_optimization():
                 func.extract('hour', Visit.created_at).label('hour'),
                 func.count(Visit.id).label('count')
             ).group_by(func.extract('hour', Visit.created_at))).scalars().all()
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             peak_hours = []
         
@@ -523,7 +523,7 @@ def get_resource_utilization():
                 'free': disk.free,
                 'percentage': (disk.used / disk.total) * 100
             }
-        except Exception:
+        except Exception as e:
             memory_usage = {
                 'total': 0,
                 'used': 0,
@@ -578,7 +578,7 @@ def system_monitor():
                 'process_count': len(psutil.pids()),
                 'boot_time': psutil.boot_time()
             }
-        except Exception:
+        except Exception as e:
             system_info = {
                 'cpu_percent': 0,
                 'memory_percent': 0,

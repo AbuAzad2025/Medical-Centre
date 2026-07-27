@@ -5,11 +5,12 @@ import pytest
 from app.extensions import db
 from models.user import User
 from models.patient import Patient
+from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
 def doctor_user(app, test_tenant):
-    u = User.query.filter_by(username='doctor_timeline_test').first()
+    u = db.session.execute(select(User).filter_by(username='doctor_timeline_test')).scalars().first()
     if not u:
         u = User(
             username='doctor_timeline_test',
@@ -25,8 +26,8 @@ def doctor_user(app, test_tenant):
     yield u
     try:
         from models.audit_trail import LoginAttempt
-        db.session.query(LoginAttempt).filter_by(user_id=u.id).delete()
-    except Exception:
+        select(LoginAttempt).filter_by(user_id=u.id).delete()
+    except Exception as e:
         db.session.rollback()
 
 
@@ -37,7 +38,7 @@ def sample_patient(app, test_tenant, monkeypatch):
         'app.shared.tenant_filter._check_bundle_limits_on_create',
         lambda instance, tenant_id: None,
     )
-    p = Patient.query.filter_by(national_id='TIMELINE-001').first()
+    p = db.session.execute(select(Patient).filter_by(national_id='TIMELINE-001')).scalars().first()
     if not p:
         p = Patient(
             first_name='Timeline',

@@ -41,6 +41,7 @@ from models.visit import Visit
 from services.stripe_subscription_service import StripeSubscriptionService
 from services.visit_state_machine_service import VisitStateMachineService
 from tests.tenant_context import tenant_test_context
+from sqlalchemy import select, func
 
 pytestmark = [
     pytest.mark.e2e,
@@ -136,12 +137,12 @@ class TestE2EProductionFlow:
         reg_body = reg.get_json()
         tenant_id = reg_body['tenant']['id']
 
-        tenant = Tenant.query.get(tenant_id)
+        tenant = db.session.get(Tenant, tenant_id)
         assert tenant is not None
         assert tenant.slug == slug
 
         with tenant_test_context(app, tenant):
-            assert User.query.filter_by(tenant_id=tenant_id, username=admin_user).count() == 1
+            assert db.session.execute(select(func.count()).select_from(User).filter_by(tenant_id=tenant_id, username=admin_user)).scalar() == 1
             assert EntitlementResolver.is_entitled(tenant_id, 'lab.order') is True
 
         # ── 2. Clinical workflow (real VSM + medical record) ─────────────
@@ -195,7 +196,7 @@ class TestE2EProductionFlow:
 
         db.session.refresh(visit)
         assert visit.status == VisitState.COMPLETED.value
-        assert MedicalRecord.query.filter_by(visit_id=visit.id).count() == 1
+        assert db.session.execute(select(func.count()).select_from(MedicalRecord).filter_by(visit_id=visit.id)).scalar() == 1
 
         # ── 3. Billing → entitlements (live services, SDK boundary stub) ───
         monkeypatch.setattr(
@@ -236,7 +237,7 @@ class TestE2EProductionFlow:
         assert EntitlementResolver.is_entitled(tenant_id, 'lab.order') is True
 
         # ── 4. Async backup (202 + Celery eager + real pg_dump when available) ─
-        super_admin = User.query.filter_by(role='super_admin').first()
+        super_admin = db.session.execute(select(User).filter_by(role='super_admin')).scalars().first()
         if super_admin is None:
             super_admin = User(
                 username=f'sa_{slug}',

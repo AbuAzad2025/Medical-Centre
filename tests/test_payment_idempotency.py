@@ -9,6 +9,8 @@ from models.payment import Payment
 from models.user import User
 from models.visit import Visit
 from services.payment_service import PaymentService
+from sqlalchemy import select, func
+from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -26,7 +28,7 @@ def pay_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def pay_accountant(app, test_tenant):
-    u = User.query.filter_by(username='pay_accountant').first()
+    u = db.session.execute(select(User).filter_by(username='pay_accountant')).scalars().first()
     if not u:
         u = User(
             username='pay_accountant',
@@ -45,7 +47,7 @@ def pay_accountant(app, test_tenant):
 @pytest.fixture(scope='function')
 def pay_visit(app, test_tenant, pay_patient, pay_accountant):
     from models.system_config import SystemConfig
-    cfg = SystemConfig.query.filter_by(config_key='allow_partial_payment_global').first()
+    cfg = db.session.execute(select(SystemConfig).filter_by(config_key='allow_partial_payment_global')).scalars().first()
     if not cfg:
         cfg = SystemConfig(
             config_key='allow_partial_payment_global',
@@ -130,7 +132,7 @@ class TestPaymentServiceIdempotency:
             )
             assert ok is True
             _db.session.commit()
-        count = Payment.query.filter_by(visit_id=pay_visit.id).count()
+        count = db.session.execute(select(func.count()).select_from(Payment).filter_by(visit_id=pay_visit.id)).scalar()
         assert count == 2
 
 
@@ -154,6 +156,6 @@ class TestPaymentRouteIdempotency:
         resp2 = client.post(f'/payment/process/{pay_visit.id}', data=data)
         assert resp2.status_code in (200, 302)
 
-        payments = Payment.query.filter_by(visit_id=pay_visit.id).all()
+        payments = db.session.execute(select(Payment).filter_by(visit_id=pay_visit.id)).scalars().all()
         assert len(payments) == 1
         assert float(payments[0].amount) == 50

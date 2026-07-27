@@ -64,7 +64,7 @@ class CashRegister(TenantMixin, db.Model):
                 db.session.add(reg)
                 safe_commit(db.session, error_message="database commit failed", reraise=True)
             return reg
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             logging.error("CashRegister.get_or_create_today failed")
             raise

@@ -7,12 +7,13 @@ from app.extensions import db
 from app.core.tenant.models import Tenant
 from app.shared.tenant_filter import TenantIsolationError
 from models.patient import Patient
+from sqlalchemy import select
 
 
 @pytest.fixture
 def tenant_a(app):
     from tests.tenant_context import DEFAULT_TEST_TENANT_SLUG
-    t = Tenant.query.filter_by(slug=DEFAULT_TEST_TENANT_SLUG).first()
+    t = db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG)).scalars().first()
     if t is None:
         raise RuntimeError(
             f'Default tenant "{DEFAULT_TEST_TENANT_SLUG}" not found — bootstrap first'
@@ -56,14 +57,14 @@ class TestFailClosedTenantIsolation:
             g.tenant_id = None
             g._tenant_filter_bypass = False
             with pytest.raises(TenantIsolationError):
-                Patient.query.all()
+                db.session.execute(select(Patient)).scalars().all()
 
     def test_saas_mode_with_tenant_succeeds(self, app, tenant_a):
         """In SaaS mode with tenant context, queries execute normally."""
         with app.test_request_context():
             app.config['ENABLE_SAAS_MODE'] = True
             g.tenant_id = tenant_a.id
-            result = Patient.query.all()
+            result = db.session.execute(select(Patient)).scalars().all()
             assert isinstance(result, list)
 
     def test_cross_tenant_data_invisible(self, app, tenant_a, tenant_b):
@@ -87,7 +88,7 @@ class TestFailClosedTenantIsolation:
         with app.test_request_context():
             app.config['ENABLE_SAAS_MODE'] = True
             bind_tenant_on_g(tenant_a, db_session=db.session)
-            found = Patient.query.filter_by(id=patient_id).first()
+            found = db.session.execute(select(Patient).filter_by(id=patient_id)).scalars().first()
             assert found is None
 
     def test_bypass_flag_allows_global_query(self, app, tenant_a):
@@ -96,7 +97,7 @@ class TestFailClosedTenantIsolation:
             app.config['ENABLE_SAAS_MODE'] = True
             g.tenant_id = None
             g._tenant_filter_bypass = True
-            result = Patient.query.all()
+            result = db.session.execute(select(Patient)).scalars().all()
             assert isinstance(result, list)
 
     def test_non_saas_mode_allows_global_query(self, app, tenant_a):
@@ -104,5 +105,5 @@ class TestFailClosedTenantIsolation:
         with app.test_request_context():
             app.config['ENABLE_SAAS_MODE'] = False
             g.tenant_id = None
-            result = Patient.query.all()
+            result = db.session.execute(select(Patient)).scalars().all()
             assert isinstance(result, list)

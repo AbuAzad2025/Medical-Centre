@@ -104,7 +104,7 @@ def receipt(payment_id):
             survey = db.session.execute(select(PatientSatisfactionSurvey).filter_by(visit_id=visit.id)).scalars().first()
             if survey:
                 survey_url = url_for('reception.survey', token=survey.token, _external=True)
-        except Exception:
+        except Exception as e:
             survey_url = None
         qr_data_uri = generate_qr_data_uri(f"RCPT|{visit.id}|{visit.patient_id}|{visit.total_amount}")
         return render_template('print/receipt.html', visit=visit, printed_at=datetime.now(timezone.utc), survey_url=survey_url, qr_data_uri=qr_data_uri)

@@ -7,6 +7,8 @@ import re
 from pathlib import Path
 
 import pytest
+from sqlalchemy import select
+from app.extensions import db
 
 ROOT = Path(__file__).parent.parent
 
@@ -60,7 +62,7 @@ def _ensure_role_user(db, tenant, role: str):
     prev_bypass = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
-        user = User.query.filter_by(username=username, tenant_id=tenant.id).first()
+        user = db.session.execute(select(User).filter_by(username=username, tenant_id=tenant.id)).scalars().first()
         if not user:
             user = User(
                 username=username,

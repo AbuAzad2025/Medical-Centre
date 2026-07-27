@@ -27,7 +27,7 @@ def scan_templates():
                 continue
             try:
                 text = fpath.read_text(encoding='utf-8', errors='replace')
-            except Exception:
+            except Exception as e:
                 continue
             for regex, label in _FORBIDDEN_BS4:
                 for m in regex.finditer(text):

@@ -215,7 +215,7 @@ def api_fhir_lab_observation(result_id):
         value_num = None
         try:
             value_num = float(value_str)
-        except Exception:
+        except Exception as e:
             value_num = None
 
         resource = {

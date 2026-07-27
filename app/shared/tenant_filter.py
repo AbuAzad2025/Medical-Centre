@@ -370,7 +370,7 @@ def reassert_set_local(orm_execute_state):
         # and will not match any tenant_id since they're positive ints).
         try:
             orm_execute_state.session.execute(db.text("SET LOCAL app.tenant_id = ''"))
-        except Exception:
+        except Exception as e:
             logger.exception('RESET app.tenant_id failed in reassert_set_local')
             raise TenantIsolationError(
                 'RESET app.tenant_id failed: tenant context cannot be cleared'
@@ -380,7 +380,7 @@ def reassert_set_local(orm_execute_state):
         orm_execute_state.session.execute(
             db.text(f"SET LOCAL app.tenant_id = '{tid}'"),
         )
-    except Exception:
+    except Exception as e:
         logger.exception(
             'SET LOCAL app.tenant_id = %s failed in reassert_set_local', tid,
         )
@@ -430,7 +430,7 @@ def auto_assign_tenant(session, flush_context, instances):
     if dialect is not None and dialect.name == 'postgresql':
         try:
             session.execute(db.text(f"SET LOCAL app.tenant_id = '{tid}'"))
-        except Exception:
+        except Exception as e:
             logger.exception(
                 'SET LOCAL app.tenant_id = %s failed in auto_assign_tenant', tid,
             )

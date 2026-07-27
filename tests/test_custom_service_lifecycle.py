@@ -6,6 +6,8 @@ from models.visit import Visit
 from models.patient import Patient
 from models.invoice import InvoiceService
 from app_factory import db as _db
+from sqlalchemy import select
+from app.extensions import db
 
 
 class TestCustomServiceLifecycle:
@@ -150,7 +152,7 @@ class TestCustomServiceLifecycle:
             _db.session.add(line)
             _db.session.commit()
 
-        line_after = InvoiceService.query.filter_by(invoice_id=inv.id).first()
+        line_after = db.session.execute(select(InvoiceService).filter_by(invoice_id=inv.id)).scalars().first()
         assert line_after.created_by is not None
 
     def test_custom_service_not_in_catalog_before_approval(self, app, test_tenant, client, login_as):
@@ -165,7 +167,7 @@ class TestCustomServiceLifecycle:
         _db.session.commit()
 
         # Verify the service is not returned by active catalog queries
-        active = ServiceMaster.query.filter_by(is_active=True, tenant_id=tenant_id).all()
+        active = db.session.execute(select(ServiceMaster).filter_by(is_active=True, tenant_id=tenant_id)).scalars().all()
         assert svc not in active
 
     def test_custom_service_in_catalog_after_approval(self, app, test_tenant, client, login_as):
@@ -192,7 +194,7 @@ class TestCustomServiceLifecycle:
             svc.approved_at = __import__('datetime').datetime.now(__import__('datetime').timezone.utc)
             _db.session.commit()
 
-        active = ServiceMaster.query.filter_by(is_active=True, tenant_id=tenant_id).all()
+        active = db.session.execute(select(ServiceMaster).filter_by(is_active=True, tenant_id=tenant_id)).scalars().all()
         assert svc in active
 
 

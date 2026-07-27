@@ -58,7 +58,7 @@ def safe_background_loop(
                         'traceback': tb,
                         'consecutive_errors': consecutive_errors,
                     })
-                except Exception:
+                except Exception as e:
                     pass
 
         # Implement progressive backoff
@@ -117,9 +117,9 @@ def background_worker_wrapper(
                                     'error': str(exc),
                                     'traceback': tb if log_traceback else None,
                                 })
-                            except Exception:
+                            except Exception as e:
                                 pass
-                    except Exception:
+                    except Exception as e:
                         pass
 
                     # Back off to prevent tight error loops

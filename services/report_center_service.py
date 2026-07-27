@@ -8,11 +8,11 @@ class ReportCenterService:
     def _parse_dates(start_raw, end_raw):
         try:
             start_date = datetime.strptime((start_raw or '').strip(), '%Y-%m-%d').date() if start_raw else (date.today() - timedelta(days=30))
-        except Exception:
+        except Exception as e:
             start_date = date.today() - timedelta(days=30)
         try:
             end_date = datetime.strptime((end_raw or '').strip(), '%Y-%m-%d').date() if end_raw else date.today()
-        except Exception:
+        except Exception as e:
             end_date = date.today()
         start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
         end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
@@ -31,7 +31,7 @@ class ReportCenterService:
                     dep_id = int(department_id)
                     vq = vq.filter(Visit.department_id == dep_id)
                     pq = pq.join(Visit, Visit.id == Payment.visit_id).filter(Visit.department_id == dep_id)
-                except Exception:
+                except Exception as e:
                     pass
             visits = db.session.execute(select(func.count()).select_from(vq.subquery())).scalar() or 0
             revenue = db.session.execute(select(func.coalesce(func.sum(Payment.amount), 0)).select_from(pq.subquery())).scalar() or 0

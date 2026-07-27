@@ -80,7 +80,7 @@ def signup_organization():
     except SaasRegistrationError as exc:
         flash(f'تعذر إكمال التسجيل: {exc}', 'error')
         return render_template('saas/signup.html', **_signup_template_context(packages)), 400
-    except Exception:
+    except Exception as e:
         flash('تعذر إكمال التسجيل حالياً. حاول لاحقاً.', 'error')
         return render_template('saas/signup.html', **_signup_template_context(packages)), 500
 
@@ -117,5 +117,5 @@ def register_organization():
         return jsonify(body), 201
     except SaasRegistrationError as exc:
         return jsonify({'error': str(exc)}), 400
-    except Exception:
+    except Exception as e:
         return jsonify({'error': 'registration_failed'}), 500

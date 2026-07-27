@@ -36,7 +36,7 @@ class NursingService:
                     )
                 )
             return db.session.execute(query.order_by(Visit.created_at.desc())).scalars().all()
-        except Exception:
+        except Exception as e:
             return []
 
     @staticmethod
@@ -47,7 +47,7 @@ class NursingService:
             return db.session.execute(select(VitalSigns).filter_by(visit_id=visit_id).order_by(
                 VitalSigns.recorded_at.desc()
             ).limit(limit)).scalars().all()
-        except Exception:
+        except Exception as e:
             return []
 
     @staticmethod
@@ -103,7 +103,7 @@ class NursingService:
             return db.session.execute(select(NursingNote).filter_by(visit_id=visit_id).order_by(
                 NursingNote.created_at.desc()
             ).limit(limit)).scalars().all()
-        except Exception:
+        except Exception as e:
             return []
 
     @staticmethod
@@ -137,7 +137,7 @@ class NursingService:
             if visit_id:
                 query = query.filter_by(visit_id=visit_id)
             return query.order_by(MedicationAdministrationLog.administered_at.asc()).all()
-        except Exception:
+        except Exception as e:
             return []
 
     @staticmethod
@@ -169,7 +169,7 @@ class NursingService:
             return db.session.execute(select(PatientCarePlan).filter_by(visit_id=visit_id).order_by(
                 PatientCarePlan.created_at.desc()
             )).scalars().all()
-        except Exception:
+        except Exception as e:
             return []
 
     @staticmethod
@@ -214,7 +214,7 @@ class NursingService:
             if nurse_id:
                 query = query.filter_by(assigned_to=nurse_id)
             return db.session.execute(query.order_by(Task.created_at.desc())).scalars().all()
-        except Exception:
+        except Exception as e:
             return []
 
     @staticmethod
@@ -244,7 +244,7 @@ class NursingService:
                 "pending_tasks": len(NursingService.get_pending_tasks(nurse_id)),
                 "pending_administrations": len(NursingService.get_pending_administrations()),
             }
-        except Exception:
+        except Exception as e:
             return {"assigned_patients": 0, "pending_tasks": 0, "pending_administrations": 0}
 
 

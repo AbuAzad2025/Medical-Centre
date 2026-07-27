@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
+from app.extensions import db
 
 
 class TestTenantSettingsModel:
@@ -18,7 +19,7 @@ class TestTenantSettingsModel:
         # Re-fetch from DB
         from app.core.tenant.models import Tenant
         db.session.expire_all()
-        tenant2 = Tenant.query.get(test_tenant.id)
+        tenant2 = db.session.get(Tenant, test_tenant.id)
         assert tenant2.settings['general']['language'] == 'en'
         assert tenant2.settings['sms']['enabled'] is True
 
@@ -102,7 +103,7 @@ class TestManagerSettingsRoute:
 
         db.session.expire_all()
         from app.core.tenant.models import Tenant
-        tenant = Tenant.query.get(test_tenant.id)
+        tenant = db.session.get(Tenant, test_tenant.id)
         assert tenant.settings['general']['language'] == 'en'
         assert tenant.settings['sms']['enabled'] is True
 
@@ -124,7 +125,7 @@ class TestManagerSettingsRoute:
 
         db.session.expire_all()
         from app.core.tenant.models import Tenant
-        tenant = Tenant.query.get(test_tenant.id)
+        tenant = db.session.get(Tenant, test_tenant.id)
         assert tenant.settings['lab']['auto_generate_request_number'] is True
         assert tenant.settings['lab']['request_number_prefix'] == 'CBC-'
         assert tenant.settings['lab']['result_decimal_places'] == 3
@@ -147,7 +148,7 @@ class TestManagerSettingsRoute:
 
         db.session.expire_all()
         from app.core.tenant.models import Tenant
-        tenant = Tenant.query.get(test_tenant.id)
+        tenant = db.session.get(Tenant, test_tenant.id)
         assert tenant.settings['radiology']['pacs_enabled'] is True
         assert tenant.settings['radiology']['pacs_server_url'] == 'http://pacs.local:8042'
         assert tenant.settings['radiology']['dicom_aetitle'] == 'TEST_AE'
@@ -166,7 +167,7 @@ class TestManagerSettingsRoute:
 
         db.session.expire_all()
         from app.core.tenant.models import Tenant
-        tenant = Tenant.query.get(test_tenant.id)
+        tenant = db.session.get(Tenant, test_tenant.id)
         assert tenant.settings['general']['language'] == 'ar'
         assert tenant.settings['sms']['enabled'] is False
         assert tenant.settings['lab']['auto_generate_request_number'] is True

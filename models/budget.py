@@ -52,7 +52,7 @@ class Budget(TenantMixin, db.Model):
                 db.session.add(b)
                 safe_commit(db.session, error_message="database commit failed", reraise=True)
             return b
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             logging.error(f"Budget.get_or_create failed for year={year} month={month}")
             raise

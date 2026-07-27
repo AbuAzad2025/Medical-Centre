@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
+from sqlalchemy import select
+from app.extensions import db
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -28,7 +30,7 @@ def clear_tenant_g() -> None:
     for key in _TENANT_G_KEYS:
         try:
             g.pop(key, None)
-        except Exception:
+        except Exception as e:
             pass
 
 
@@ -42,7 +44,7 @@ def ensure_default_test_tenant(app: Flask):
     from app.extensions import db
 
     with app.app_context(), app.test_request_context():
-        tenant = Tenant.query.filter_by(slug=DEFAULT_TEST_TENANT_SLUG).first()
+        tenant = db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG)).scalars().first()
         if not tenant:
             tenant = Tenant(
                 slug=DEFAULT_TEST_TENANT_SLUG,
@@ -59,9 +61,9 @@ def ensure_default_test_tenant(app: Flask):
         now = datetime.now(timezone.utc)
         changed = False
         for module_name in get_all_module_names():
-            row = TenantModule.query.filter_by(
+            row = db.session.execute(select(TenantModule).filter_by(
                 tenant_id=tenant.id, module_name=module_name
-            ).first()
+            )).scalars().first()
             if row:
                 if not row.is_active:
                     row.is_active = True
@@ -100,7 +102,7 @@ def bind_tenant_on_g(tenant, *, db_session=None) -> None:
 
     bound = db_session.get(Tenant, tenant_id) if db_session is not None else None
     if bound is None:
-        bound = Tenant.query.get(tenant_id)
+        bound = db.session.get(Tenant, tenant_id)
     if bound is None:
         return
 
@@ -110,14 +112,14 @@ def bind_tenant_on_g(tenant, *, db_session=None) -> None:
     if db_session is not None:
         try:
             db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_id}'"))
-        except Exception:
+        except Exception as e:
             pass
 
     # Set enabled_modules for module-scoped access control (mirrors middleware)
     try:
         from app.core.module.validators import get_active_modules_for_tenant
         g.enabled_modules = get_active_modules_for_tenant(tenant_id)
-    except Exception:
+    except Exception as e:
         g.enabled_modules = set()
 
 
@@ -153,7 +155,7 @@ def ensure_test_user(db, tenant, *, username: str, role: str, password: str = 'V
     prev_bypass = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
-        user = User.query.filter_by(username=username, tenant_id=tenant.id).first()
+        user = db.session.execute(select(User).filter_by(username=username, tenant_id=tenant.id)).scalars().first()
         if not user:
             user = User(
                 username=username,

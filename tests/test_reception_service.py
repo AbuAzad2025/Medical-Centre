@@ -10,6 +10,7 @@ from models.appointment import Appointment
 from models.patient import Patient
 from models.visit import Visit
 from services.reception_service import ReceptionService
+from app.extensions import db
 
 
 @pytest.fixture(autouse=True)

@@ -31,7 +31,7 @@ class SuperAdminService:
                 "departments": db.session.execute(select(func.count()).select_from(Department)).scalar(),
                 "active_users": db.session.execute(select(func.count()).select_from(User).filter(User.is_active == True)).scalar(),
             }
-        except Exception:
+        except Exception as e:
             return {}
 
     @staticmethod
@@ -96,7 +96,7 @@ class SuperAdminService:
                 config = SystemConfig(key=key, value=value)
                 db.session.add(config)
             return safe_commit(db.session, error_message="Failed to update config")
-        except Exception:
+        except Exception as e:
             return False
 
     @staticmethod
@@ -112,7 +112,7 @@ class SuperAdminService:
                 "visits": db.session.execute(select(func.count()).select_from(Visit)).scalar(),
                 "invoices": db.session.execute(select(func.count()).select_from(Invoice)).scalar(),
             }
-        except Exception:
+        except Exception as e:
             return {}
 
     @staticmethod

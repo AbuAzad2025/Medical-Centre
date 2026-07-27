@@ -49,7 +49,7 @@ def dashboard():
 
         try:
             net_profit = float(month_total) * 0.22
-        except Exception:
+        except Exception as e:
             net_profit = 0.0
 
         # الفواتير المفتوحة
@@ -144,7 +144,7 @@ def dashboard():
                     'original': float(total or 0),
                     'converted': converted if cur != 'ILS' else float(total or 0)
                 }
-        except Exception:
+        except Exception as e:
             currency_breakdown = {}
 
         recent_transactions = []
@@ -161,7 +161,7 @@ def dashboard():
                     'status': st or '-',
                     'status_color': color
                 })
-        except Exception:
+        except Exception as e:
             recent_transactions = []
 
         debt_alerts = {

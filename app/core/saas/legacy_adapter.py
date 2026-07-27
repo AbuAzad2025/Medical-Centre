@@ -83,7 +83,7 @@ class LegacyEntitlementAdapter:
 
             rows = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant_id, is_active=True)).scalars().all()
             names.update(r.module_name for r in rows if r.module_name)
-        except Exception:
+        except Exception as e:
             pass
 
         profile = getattr(tenant, "product_profile_code", None)
@@ -105,7 +105,7 @@ class LegacyEntitlementAdapter:
                     mods = json.loads(raw) if isinstance(raw, str) else raw
                     if isinstance(mods, list):
                         names.update(mods)
-            except Exception:
+            except Exception as e:
                 pass
 
         return names

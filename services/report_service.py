@@ -917,7 +917,7 @@ class ReportService:
             reset_time = None
             try:
                 reset_time = db.session.execute(text("select reset_time from pg_stat_statements_info")).scalar()
-            except Exception:
+            except Exception as e:
                 reset_time = None
 
             rows = db.session.execute(text("""

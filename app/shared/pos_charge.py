@@ -21,6 +21,6 @@ def execute_pos_charge(amount_raw) -> tuple[dict, int]:
         return result, 200
     except (TypeError, ValueError):
         return {'success': False, 'message': user_message('pos_amount_invalid')}, 400
-    except Exception:
+    except Exception as e:
         logging.exception('POS charge error')
         return {'success': False, 'message': user_message('pos_generic_error')}, 500

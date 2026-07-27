@@ -5,6 +5,7 @@ import uuid
 import pytest
 
 from app_factory import db as _db
+from app.extensions import db
 from models.patient import Patient
 from models.specialty_form import (
     SpecialtyForm,
@@ -12,6 +13,8 @@ from models.specialty_form import (
     SpecialtyFormSubmission,
     SpecialtyFormVersion,
 )
+
+from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
@@ -95,7 +98,7 @@ class TestSpecialtyFormsLifecycle:
             'field_order[]': ['0'],
         }, follow_redirects=False)
         assert resp.status_code == 302
-        form = SpecialtyForm.query.filter_by(slug=slug).first()
+        form = db.session.execute(select(SpecialtyForm).filter_by(slug=slug)).scalars().first()
         assert form is not None
         assert form.tenant_id == test_tenant.id or form.tenant_id is None
         assert len(form.versions) == 1
@@ -117,7 +120,7 @@ class TestSpecialtyFormsLifecycle:
             'field_chief_complaint': 'ألم صدر',
         }, follow_redirects=True)
         assert fill.status_code == 200
-        submission = SpecialtyFormSubmission.query.filter_by(patient_id=specialty_patient.id).first()
+        submission = db.session.execute(select(SpecialtyFormSubmission).filter_by(patient_id=specialty_patient.id)).scalars().first()
         assert submission is not None
         assert submission.answers['chief_complaint'] == 'ألم صدر'
 

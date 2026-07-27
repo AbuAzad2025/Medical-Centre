@@ -50,7 +50,7 @@ class PrescriptionService:
                         "severity": getattr(row, "severity", "unknown"),
                         "description": row.description or getattr(row, "interaction_type", f"تفاعل بين {a_name} و {b_name}"),
                     })
-        except Exception:
+        except Exception as e:
             pass
         return warnings
 
@@ -76,7 +76,7 @@ class PrescriptionService:
                             "allergen": allergen,
                             "severity": getattr(allergy, "severity", "warning"),
                         })
-        except Exception:
+        except Exception as e:
             pass
         return conflicts
 
@@ -283,7 +283,7 @@ class PrescriptionService:
                 message=f"الطبيب {doctor_name} وصف دواء {medication_name} (خارج التصنيف) للزيارة #{visit_id}",
                 notification_type="warning",
             )
-        except Exception:
+        except Exception as e:
             pass
 
     # ==================== AUDIT ====================
@@ -314,7 +314,7 @@ class PrescriptionService:
             )
             db.session.add(log)
             safe_commit(db.session, error_message="Failed to log action")
-        except Exception:
+        except Exception as e:
             pass
 
 

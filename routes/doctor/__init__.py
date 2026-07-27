@@ -69,7 +69,7 @@ def _get_doctor_note_templates():
         cfg.set_value(templates)
         try:
             safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             raise
         return templates
@@ -83,7 +83,7 @@ def _get_doctor_note_templates():
         cfg.updated_by = getattr(current_user, 'id', None)
         try:
             safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             raise
     return templates
@@ -111,7 +111,7 @@ def _save_doctor_note_templates(templates):
     cfg.updated_by = getattr(current_user, 'id', None)
     try:
         safe_commit(db.session, error_message="database commit failed", reraise=True)
-    except Exception:
+    except Exception as e:
         safe_rollback(db.session, error_message="database rollback")
         raise
 
@@ -145,7 +145,7 @@ def _get_doctor_dashboard_layout():
         cfg.set_value(layout)
         try:
             safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             raise
         return layout
@@ -157,7 +157,7 @@ def _get_doctor_dashboard_layout():
         cfg.updated_by = getattr(current_user, 'id', None)
         try:
             safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             raise
     return layout
@@ -183,7 +183,7 @@ def _save_doctor_dashboard_layout(items):
     cfg.updated_by = getattr(current_user, 'id', None)
     try:
         safe_commit(db.session, error_message="database commit failed", reraise=True)
-    except Exception:
+    except Exception as e:
         safe_rollback(db.session, error_message="database rollback")
         raise
 

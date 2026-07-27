@@ -96,7 +96,7 @@ def validate_profile_modules(profile_code: str, modules: list[str]) -> list[str]
             bundle_data = {"standalone": profile_code.startswith("standalone_")}
         else:
             bundle_data = _PRODUCT_PROFILE_SEED.get(profile_code)
-    except Exception:
+    except Exception as e:
         bundle_data = _PRODUCT_PROFILE_SEED.get(profile_code)
     if not bundle_data:
         return ["Invalid profile code"]

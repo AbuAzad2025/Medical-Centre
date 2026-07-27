@@ -9,6 +9,7 @@ from app.core.module.models import ModuleDefinition
 from app.extensions import db
 from models.user import User
 from . import tenant_bypass
+from sqlalchemy import select
 
 # 14 application modules (everything except the internal 'owner' entry).
 APPLICATION_MODULES = [name for name in MODULE_REGISTRY if name != "owner"]
@@ -40,7 +41,7 @@ def seed_module_definitions(session=None):
         for name, meta in MODULE_REGISTRY.items():
             if name == "owner":
                 continue
-            if ModuleDefinition.query.filter_by(name=name).first():
+            if db.session.execute(select(ModuleDefinition).filter_by(name=name)).scalars().first():
                 continue
             session.add(
                 ModuleDefinition(
@@ -60,7 +61,7 @@ def seed_master_account(session=None):
     """Create the platform-owner master account (idempotent)."""
     session = session or db.session
     with tenant_bypass():
-        existing = User.query.filter_by(username=MASTER_USERNAME).first()
+        existing = db.session.execute(select(User).filter_by(username=MASTER_USERNAME)).scalars().first()
         if existing:
             # Reconcile to the canonical master spec (idempotent hardening).
             changed = False

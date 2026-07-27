@@ -55,7 +55,7 @@ def get_active_modules_for_current_tenant() -> set:
         if tenant_id:
             from app.core.module.validators import get_active_modules_for_tenant
             return get_active_modules_for_tenant(int(tenant_id))
-    except Exception:
+    except Exception as e:
         pass
     
     return set()

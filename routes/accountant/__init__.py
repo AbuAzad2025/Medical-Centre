@@ -214,7 +214,7 @@ def get_payment_optimization():
             ).filter(
                 Payment.tenant_id == current_user.tenant_id
             ).group_by(func.extract('hour', Payment.created_at))).scalars().all()
-        except Exception:
+        except Exception as e:
             payment_times = db.session.execute(select(
                 func.extract('hour', Payment.created_at).label('hour'),
                 func.count(Payment.id).label('count')
@@ -584,7 +584,7 @@ def get_revenue_cycle_metrics():
             'paid': int(paid or 0),
             'outstanding_amount': float(outstanding or 0)
         }
-    except Exception:
+    except Exception as e:
         return {}
 
 def get_erp_integration_status():
@@ -596,7 +596,7 @@ def get_erp_integration_status():
             'status': 'active' if last_sync else 'idle',
             'last_sync': last_sync.created_at.isoformat() if last_sync and last_sync.created_at else None
         }
-    except Exception:
+    except Exception as e:
         return {}
 
 def get_margin_analytics():
@@ -623,7 +623,7 @@ def get_margin_analytics():
             'gross_margin': round(gross_margin, 2),
             'issued_invoices': int(issued_invoices or 0)
         }
-    except Exception:
+    except Exception as e:
         return {}
 
 # ═══════════════════════════════════════

@@ -46,14 +46,14 @@ def for_each_tenant(app: Flask, job: Callable[[int], None]) -> None:
         try:
             active_tenants = db.session.execute(select(Tenant.id).filter(Tenant.status.in_(_operational_tenant_statuses()))
                 .order_by(Tenant.id)).scalars().all()
-        except Exception:
+        except Exception as e:
             logging.exception("Failed to load active tenants for background job")
             return
 
         for tenant_id in active_tenants:
             try:
                 with_tenant_context(app, tenant_id, lambda: job(tenant_id))
-            except Exception:
+            except Exception as e:
                 logging.exception(f"Background job failed for tenant {tenant_id}")
 
 
@@ -80,12 +80,12 @@ def with_tenant_context(app: Flask, tenant_id: int, job: Callable[[], T]) -> Opt
         finally:
             try:
                 _ext_db.session.info.pop('_tenant_id', None)
-            except Exception:
+            except Exception as e:
                 pass
             for key in ('tenant_id', 'current_tenant', 'tenant_slug', '_tenant_filter_bypass'):
                 try:
                     g.pop(key, None)
-                except Exception:
+                except Exception as e:
                     pass
 
     if has_app_context():

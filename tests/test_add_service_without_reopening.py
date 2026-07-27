@@ -10,6 +10,8 @@ from models.invoice import Invoice, InvoiceService
 from models.audit_trail import AuditTrail
 from app_factory import db as _db
 from app.shared.enums import PaymentStatus, VisitState
+from sqlalchemy import select
+from app.extensions import db
 
 
 class TestAddServiceWithoutReopening:
@@ -54,7 +56,7 @@ class TestAddServiceWithoutReopening:
         assert v_after.status == 'COMPLETED'  # clinical status unchanged
         assert v_after.total_amount == Decimal('150.00')  # total increased
         # InvoiceService line created
-        lines = InvoiceService.query.filter_by(visit_id=v.id, service_master_id=svc.id).all()
+        lines = db.session.execute(select(InvoiceService).filter_by(visit_id=v.id, service_master_id=svc.id)).scalars().all()
         assert len(lines) >= 1
 
     def test_add_service_rejected_after_archive(self, app, test_tenant, client, login_as):
@@ -96,7 +98,7 @@ class TestAddServiceWithoutReopening:
         assert resp.status_code == 302
 
         # No new invoice service line should be created
-        lines = InvoiceService.query.filter_by(visit_id=v.id, service_master_id=svc.id).all()
+        lines = db.session.execute(select(InvoiceService).filter_by(visit_id=v.id, service_master_id=svc.id)).scalars().all()
         assert len(lines) == 0
 
     def test_non_reception_cannot_add_service(self, app, test_tenant, client, login_as):
@@ -179,7 +181,7 @@ class TestAddServiceWithoutReopening:
             )
         assert resp.status_code == 302
 
-        lines = InvoiceService.query.filter_by(visit_id=v.id, service_master_id=svc.id).all()
+        lines = db.session.execute(select(InvoiceService).filter_by(visit_id=v.id, service_master_id=svc.id)).scalars().all()
         assert len(lines) == 0
 
 

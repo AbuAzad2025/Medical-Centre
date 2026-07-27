@@ -102,7 +102,7 @@ class WorkflowOrchestrator:
                 notes=note,
             )
             db.session.add(event)
-        except Exception:
+        except Exception as e:
             pass
 
 

@@ -62,7 +62,7 @@ def _collect_metrics() -> str:
     try:
         db.session.execute(sa_text("SELECT 1"))
         lines.append(f"medical_db_up 1 {int(now)}000")
-    except Exception:
+    except Exception as e:
         lines.append(f"medical_db_up 0 {int(now)}000")
         lines.append(f"medical_scrape_duration_seconds 0 {int(now)}000")
         return '\n'.join(lines) + '\n'

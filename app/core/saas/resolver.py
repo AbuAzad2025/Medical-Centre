@@ -268,7 +268,7 @@ class EntitlementResolver:
             )
             db.session.add(log)
             safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
 
 
@@ -276,5 +276,5 @@ def _has_request_context() -> bool:
     try:
         from flask import has_request_context
         return has_request_context()
-    except Exception:
+    except Exception as e:
         return False

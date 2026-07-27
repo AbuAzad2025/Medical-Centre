@@ -4,6 +4,7 @@ import uuid
 from unittest.mock import MagicMock
 
 import pytest
+from app.extensions import db
 
 
 def _unique_slug(prefix):
@@ -114,8 +115,8 @@ class TestNotificationQueueTenantIsolation:
             assert result['success'] is True
 
             # Only tenant 1 notification should be processed
-            assert NotificationQueue.query.get(n1.id).status == NotificationState.SENT
-            assert NotificationQueue.query.get(n2.id).status == NotificationState.PENDING
+            assert db.session.get(NotificationQueue, n1.id).status == NotificationState.SENT
+            assert db.session.get(NotificationQueue, n2.id).status == NotificationState.PENDING
 
 
 @pytest.mark.no_tenant_context

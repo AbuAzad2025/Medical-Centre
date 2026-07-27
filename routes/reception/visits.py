@@ -404,7 +404,7 @@ def create_visit():
             # إلزام اختيار طبيب للأقسام التخصصية (غير المختبر/الأشعة/الطوارئ)
             try:
                 dept_obj = db.session.get(Department, int(department_id))
-            except Exception:
+            except Exception as e:
                 dept_obj = None
             if not dept_obj:
                 flash('القسم غير موجود', 'error')

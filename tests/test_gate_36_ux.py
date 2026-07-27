@@ -7,6 +7,8 @@ from pathlib import Path
 import pytest
 
 from app.shared.user_messages import resolve_user_message, user_message
+from sqlalchemy import select
+from app.extensions import db
 
 REPO = Path(__file__).resolve().parents[1]
 DOCTOR_JS = REPO / 'static' / 'js' / 'pages' / 'doctor'
@@ -95,7 +97,7 @@ class TestDoctorPatientQueueEmptyState:
         from models.user import User
 
         _shared_store.clear()
-        u = User.query.filter_by(username='doctor_g36').first()
+        u = db.session.execute(select(User).filter_by(username='doctor_g36')).scalars().first()
         if not u:
             u = User(
                 username='doctor_g36',

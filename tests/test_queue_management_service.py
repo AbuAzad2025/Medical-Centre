@@ -15,6 +15,8 @@ from models.patient import Patient
 from models.department import Department
 from models.user import User
 from models.user_department_access import UserDepartmentAccess
+from sqlalchemy import select
+from app.extensions import db
 
 
 @pytest.fixture
@@ -211,7 +213,7 @@ class TestAddPatientToQueue:
         d = qfx.dept(name='Lab', name_ar='المختبر')
         p = qfx.patient()
         # QueueSettings with payment_required=False (legacy bypass)
-        qs = QueueSettings.query.filter_by(department_id=d.id).first()
+        qs = db.session.execute(select(QueueSettings).filter_by(department_id=d.id)).scalars().first()
         if not qs:
             qs = QueueSettings(department_id=d.id, payment_required=False, allow_debt=True)
             qfx.db.session.add(qs)

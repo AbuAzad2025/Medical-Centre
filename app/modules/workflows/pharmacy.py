@@ -57,7 +57,7 @@ class PharmacyStockService:
                            medication_name=med.trade_name or med.scientific_name,
                            current_stock=med.stock_quantity,
                            minimum_stock=med.minimum_stock)
-            except Exception:
+            except Exception as e:
                 pass
 
     @staticmethod

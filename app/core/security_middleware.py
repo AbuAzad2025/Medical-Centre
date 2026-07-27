@@ -50,6 +50,6 @@ class AuditLogMiddleware:
                         "AUDIT %s %s user=%s tenant=%s status=%s",
                         request.method, request.path, user_id, tenant_id, response.status_code
                     )
-                except Exception:
+                except Exception as e:
                     pass
             return response

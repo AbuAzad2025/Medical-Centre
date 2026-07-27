@@ -238,11 +238,11 @@ def service_pricing(service_id):
             discount_amount_raw = request.form.get('discount_amount')
             try:
                 discount_percentage = float(discount_percentage_raw) if discount_percentage_raw not in (None, '',) else 0.0
-            except Exception:
+            except Exception as e:
                 discount_percentage = 0.0
             try:
                 discount_amount = float(discount_amount_raw) if discount_amount_raw not in (None, '',) else 0.0
-            except Exception:
+            except Exception as e:
                 discount_amount = 0.0
 
             new_pricing = PricingManagement(

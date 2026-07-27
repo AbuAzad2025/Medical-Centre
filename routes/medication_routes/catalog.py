@@ -86,7 +86,7 @@ def add_medication():
             if expiry_date:
                 try:
                     exp_val = datetime.strptime(expiry_date, '%Y-%m-%d').date()
-                except Exception:
+                except Exception as e:
                     exp_val = None
             medication = Medication(
                 tenant_id=current_user.tenant_id,
@@ -141,7 +141,7 @@ def edit_medication(medication_id):
             if expiry_date:
                 try:
                     exp_val = datetime.strptime(expiry_date, '%Y-%m-%d').date()
-                except Exception:
+                except Exception as e:
                     exp_val = None
 
             medication.trade_name = (request.form.get('trade_name') or '').strip() or medication.trade_name

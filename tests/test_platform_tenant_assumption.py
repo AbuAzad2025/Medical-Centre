@@ -22,6 +22,7 @@ from app.core.tenant.assumption_service import (
     PlatformAssumptionService, PlatformAssumptionError,
 )
 from models.user import User
+from sqlalchemy import select
 
 
 # ─────────────────────────────────────────────
@@ -49,7 +50,7 @@ def _create_tenant(slug: str | None = None) -> Tenant:
         db.session.flush()
         # Ensure the reception module is enabled so guard_module doesn't 403
         from app.core.module.models import TenantModule
-        existing = TenantModule.query.filter_by(tenant_id=t.id, module_name="reception").first()
+        existing = db.session.execute(select(TenantModule).filter_by(tenant_id=t.id, module_name="reception")).scalars().first()
         if not existing:
             tm = TenantModule(tenant_id=t.id, module_name="reception", is_active=True)
             db.session.add(tm)

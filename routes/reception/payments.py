@@ -133,7 +133,7 @@ def print_receipt(visit_id):
         from models.queue_management import QueueManagement
         from models.patient_satisfaction import PatientSatisfactionSurvey
         queue_ticket = db.session.execute(select(QueueManagement).filter_by(visit_id=visit_id).order_by(QueueManagement.created_at.desc())).scalars().first()
-    except Exception:
+    except Exception as e:
         queue_ticket = None
     try:
         from decimal import Decimal, ROUND_HALF_UP
@@ -148,7 +148,7 @@ def print_receipt(visit_id):
                 DoctorPricing.department_id == visit.department_id,
                 DoctorPricing.is_active == True
             ).order_by(DoctorPricing.effective_from.desc())).scalars().first()
-        except Exception:
+        except Exception as e:
             pricing = None
         if pricing:
             if getattr(visit, 'visit_type', None) in ['FIRST', 'first', 'CONSULTATION', 'consultation']:
@@ -171,13 +171,13 @@ def print_receipt(visit_id):
         if getattr(visit, 'visit_type', None) in ['FOLLOW_UP', 'follow_up']:
             # خصم المتابعة إن كان النظام يعتمد خصماً موحداً
             follow_up_discount = (total * Decimal('0.30')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-    except Exception:
+    except Exception as e:
         doctor_fee = None
         service_cost = None
         follow_up_discount = None
     try:
         last_payment = db.session.execute(select(Payment).filter_by(visit_id=visit_id).order_by(Payment.created_at.desc())).scalars().first()
-    except Exception:
+    except Exception as e:
         last_payment = None
     survey_url = None
     try:
@@ -185,7 +185,7 @@ def print_receipt(visit_id):
         survey = db.session.execute(select(PatientSatisfactionSurvey).filter_by(visit_id=visit_id)).scalars().first()
         if survey:
             survey_url = url_for('reception.survey', token=survey.token, _external=True)
-    except Exception:
+    except Exception as e:
         survey_url = None
     qr_data_uri = generate_qr_data_uri(f"RCPT|{visit.id}|{visit.patient_id}|{visit.total_amount}")
     return render_template(

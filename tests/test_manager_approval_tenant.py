@@ -8,6 +8,8 @@ from models.queue_management import QueueManagement
 from models.user import User
 from app_factory import db as _db
 from app.shared.enums import PaymentStatus
+from sqlalchemy import select
+from app.extensions import db
 
 
 class TestManagerApprovalTenantSafety:
@@ -182,5 +184,5 @@ class TestManagerApprovalTenantSafety:
         assert resp.status_code == 302
 
         # Verify no queue ticket was created for this visit
-        qm = QueueManagement.query.filter_by(visit_id=v.id).first()
+        qm = db.session.execute(select(QueueManagement).filter_by(visit_id=v.id)).scalars().first()
         assert qm is None

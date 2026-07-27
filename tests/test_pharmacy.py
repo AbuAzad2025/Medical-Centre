@@ -3,6 +3,8 @@ Pharmacy POS, catalog, suppliers, and purchase tests.
 """
 import pytest
 from decimal import Decimal
+from sqlalchemy import select
+from app.extensions import db
 
 
 class TestMedicationCatalog:
@@ -28,7 +30,7 @@ class TestMedicationCatalog:
         })
         assert resp.status_code == 302
         from models.medication import Medication
-        m = Medication.query.filter_by(trade_name=unique_name).first()
+        m = db.session.execute(select(Medication).filter_by(trade_name=unique_name)).scalars().first()
         assert m is not None
         assert m.tenant_id == test_tenant.id
 
@@ -64,16 +66,16 @@ class TestPharmacyPOS:
         }, content_type='application/json')
 
         from models.medication import PharmacySale, Medication
-        sale = PharmacySale.query.filter_by(customer_name='عميل تجريبي').first()
+        sale = db.session.execute(select(PharmacySale).filter_by(customer_name='عميل تجريبي')).scalars().first()
         if sale is None and resp.status_code == 200:
             data = resp.get_json()
             assert data is not None
             assert data.get('success') or data.get('sale_id')
-            sale = PharmacySale.query.get(data.get('sale_id'))
+            sale = db.session.get(PharmacySale, data.get('sale_id'))
 
         assert sale is not None, "Sale was not created"
         assert float(sale.total_amount) > 0
-        med_updated = Medication.query.get(med.id)
+        med_updated = db.session.get(Medication, med.id)
         assert med_updated.stock_quantity == original_stock - 2
 
     def test_pos_sell_without_customer(self, auth_client, test_tenant, test_medications):
@@ -138,7 +140,7 @@ class TestSuppliers:
         })
         assert resp.status_code == 302
         from models.medication import Supplier
-        s = Supplier.query.filter_by(name='مورد تجريبي').first()
+        s = db.session.execute(select(Supplier).filter_by(name='مورد تجريبي')).scalars().first()
         assert s is not None
         assert s.tenant_id == test_tenant.id
 
@@ -154,7 +156,7 @@ class TestSuppliers:
             'phone': '0599111111',
         })
         assert resp.status_code == 302
-        updated = Supplier.query.get(s.id)
+        updated = db.session.get(Supplier, s.id)
         assert updated.name == 'مورد معدل'
 
     def test_delete_supplier_forbidden(self, auth_client, test_tenant):
@@ -166,7 +168,7 @@ class TestSuppliers:
         db.session.commit()
         resp = auth_client.post('/medication/suppliers/%d/delete' % s.id)
         assert resp.status_code == 403
-        deleted = Supplier.query.get(s.id)
+        deleted = db.session.get(Supplier, s.id)
         assert deleted is not None
 
 
@@ -196,11 +198,11 @@ class TestPurchases:
             'expiry_date': '2027-12-31',
         })
         assert resp.status_code == 302
-        purchase = MedicationPurchase.query.filter_by(batch_number=batch_number).first()
+        purchase = db.session.execute(select(MedicationPurchase).filter_by(batch_number=batch_number)).scalars().first()
         assert purchase is not None
         assert purchase.tenant_id == test_tenant.id
         assert float(purchase.purchase_price * purchase.quantity) == 1000.00
-        med_updated = Medication.query.get(med.id)
+        med_updated = db.session.get(Medication, med.id)
         assert med_updated.stock_quantity == original_stock + 100
 
 
@@ -212,7 +214,7 @@ class TestTenantIsolation:
         from flask import g
         g.tenant_id = test_tenant.id
         from models.medication import Medication
-        meds = Medication.query.all()
+        meds = db.session.execute(select(Medication)).scalars().all()
         for m in meds:
             assert m.tenant_id == test_tenant.id
         g.tenant_id = None
@@ -226,7 +228,7 @@ class TestTenantIsolation:
 
         g._tenant_filter_bypass = True
         try:
-            other = Tenant.query.filter_by(slug='other-test').first()
+            other = db.session.execute(select(Tenant).filter_by(slug='other-test')).scalars().first()
             if not other:
                 other = Tenant(slug='other-test', name='Other Test', status='active', contact_email='other@test.com')
                 db.session.add(other)

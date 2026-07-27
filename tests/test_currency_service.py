@@ -8,6 +8,7 @@ import pytest
 
 from services.currency_service import CurrencyConverter as CC
 from models.exchange_rate import ExchangeRate
+from app.extensions import db
 
 
 @pytest.fixture

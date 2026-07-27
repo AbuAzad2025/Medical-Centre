@@ -62,6 +62,6 @@ def tenant_bypass():
         db.session.info.pop('_tenant_id', None)
         try:
             db.session.execute(db.text("SET LOCAL app.tenant_id = ''"))
-        except Exception:
+        except Exception as e:
             # Non-PostgreSQL dialects or missing GUC — ignore gracefully.
             pass

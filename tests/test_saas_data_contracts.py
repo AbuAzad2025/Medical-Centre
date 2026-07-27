@@ -24,6 +24,7 @@ from app.core.saas.models import (
 from app.core.tenant.models import Tenant
 from models.user import User
 from tests.tenant_context import tenant_test_context
+from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -262,7 +263,7 @@ class TestTenantEntitlement:
         _db.session.add(te)
         _db.session.commit()
 
-        fetched = TenantEntitlement.query.get((saas_tenant.id, 'lab.order'))
+        fetched = db.session.get(TenantEntitlement, (saas_tenant.id, 'lab.order'))
         assert fetched is not None
         assert fetched.is_effective is True
 

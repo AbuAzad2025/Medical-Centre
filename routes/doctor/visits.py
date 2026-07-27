@@ -63,7 +63,7 @@ def start_treatment(visit_id):
                 else:
                     flash('لا يمكن بدء العلاج لأن القسم غير محدد', 'error')
                     return redirect(url_for('doctor.patient_queue'))
-            except Exception:
+            except Exception as e:
                 flash('خطأ في تحديد القسم للزيارة', 'error')
                 return redirect(url_for('doctor.patient_queue'))
         from models.queue_management import QueueManagement
@@ -124,25 +124,25 @@ def _get_patient_allergies(patient_id):
     try:
         from models.patient import PatientAllergy
         return db.session.execute(select(PatientAllergy).filter_by(patient_id=patient_id)).scalars().all()
-    except Exception:
+    except Exception as e:
         return []
 
 def _get_patient_medical_records(patient_id):
     try:
         return db.session.execute(select(MedicalRecord).filter(MedicalRecord.patient_id == patient_id).order_by(desc(MedicalRecord.created_at)).limit(10)).scalars().all()
-    except Exception:
+    except Exception as e:
         return []
 
 def _get_patient_prescriptions(patient_id):
     try:
         return db.session.execute(select(Prescription).filter(Prescription.patient_id == patient_id).order_by(desc(Prescription.created_at)).limit(5)).scalars().all()
-    except Exception:
+    except Exception as e:
         return []
 
 def _get_recent_other_visits(patient_id, exclude_id):
     try:
         return db.session.execute(select(Visit).filter(Visit.patient_id == patient_id, Visit.id != exclude_id).order_by(Visit.visit_date.desc(), Visit.created_at.desc()).limit(3)).scalars().all()
-    except Exception:
+    except Exception as e:
         return []
 
 def _parse_visit_vital_signs(visit):
@@ -187,7 +187,7 @@ def _get_visit_lab_data(visit_id):
         if req_ids:
             critical = db.session.execute(select(func.count()).select_from(LabResult).filter(LabResult.request_id.in_(req_ids), LabResult.is_critical == True, LabResult.status == LabResultStatus.VALIDATED)).scalar()
         return lab_requests, critical
-    except Exception:
+    except Exception as e:
         return [], 0
 
 def _get_visit_radiology_data(visit_id):
@@ -200,7 +200,7 @@ def _get_visit_radiology_data(visit_id):
             from models.radiology_result import RadiologyResult
             critical = db.session.execute(select(func.count()).select_from(RadiologyResult).filter(RadiologyResult.request_id.in_(req_ids), RadiologyResult.is_critical == True, RadiologyResult.status == LabResultStatus.VALIDATED)).scalar()
         return radiology_requests, critical
-    except Exception:
+    except Exception as e:
         return [], 0
 
 def _count_visit_notes(visit):
@@ -223,7 +223,7 @@ def _count_visit_notes(visit):
 def _get_current_prescriptions(visit_id):
     try:
         return db.session.execute(select(Prescription).filter(Prescription.visit_id == visit_id).order_by(desc(Prescription.created_at)).limit(5)).scalars().all()
-    except Exception:
+    except Exception as e:
         return []
 
 
@@ -253,7 +253,7 @@ def patient_details(visit_id):
             lab_requests = db.session.execute(select(LabRequest).filter(
                 LabRequest.visit_id == visit_id
             ).order_by(desc(LabRequest.created_at))).scalars().all()
-        except Exception:
+        except Exception as e:
             lab_requests = []
         critical_lab_results_count = 0
         try:
@@ -265,14 +265,14 @@ def patient_details(visit_id):
                     LabResult.is_critical == True,
                     LabResult.status == LabResultStatus.VALIDATED
                 )).scalar()
-        except Exception:
+        except Exception as e:
             critical_lab_results_count = 0
         try:
             from models.radiology_request import RadiologyRequest
             radiology_requests = db.session.execute(select(RadiologyRequest).filter(
                 RadiologyRequest.visit_id == visit_id
             ).order_by(desc(RadiologyRequest.created_at))).scalars().all()
-        except Exception:
+        except Exception as e:
             radiology_requests = []
         critical_radiology_results_count = 0
         try:
@@ -284,13 +284,13 @@ def patient_details(visit_id):
                     RadiologyResult.is_critical == True,
                     RadiologyResult.status == LabResultStatus.VALIDATED
                 )).scalar()
-        except Exception:
+        except Exception as e:
             critical_radiology_results_count = 0
         note_count = 0
         if visit.notes:
             try:
                 note_count = visit.notes.count('\n[') + 1
-            except Exception:
+            except Exception as e:
                 note_count = 1
         
         lab_requests_count = len(lab_requests or [])
@@ -311,7 +311,7 @@ def patient_details(visit_id):
             current_prescriptions = db.session.execute(select(Prescription).filter(
                 Prescription.visit_id == visit_id
             ).order_by(desc(Prescription.created_at)).limit(5)).scalars().all()
-        except Exception:
+        except Exception as e:
             current_prescriptions = []
 
         clinical_warnings = evaluate_clinical_rules(visit, current_prescriptions, structured_vital_signs)

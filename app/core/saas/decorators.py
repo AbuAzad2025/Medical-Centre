@@ -21,7 +21,7 @@ def _is_admin_user() -> bool:
     """True if the current user is a global super_admin bypassing tenant restrictions."""
     try:
         return current_user.is_authenticated and current_user.role == "super_admin"
-    except Exception:
+    except Exception as e:
         return False
 
 

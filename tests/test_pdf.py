@@ -4,6 +4,8 @@ Tests for PDF report generation (Phase 2)
 import pytest
 from unittest.mock import patch, MagicMock
 from io import BytesIO
+from sqlalchemy import select
+from app.extensions import db
 
 
 class TestPDFReportPrinter:
@@ -208,7 +210,7 @@ def test_radiology_result_empty(app, test_tenant, test_patient, test_radiology_r
 def lab_user(app, test_tenant):
     from models.user import User
     from app_factory import db
-    u = User.query.filter_by(username='lab_test_user').first()
+    u = db.session.execute(select(User).filter_by(username='lab_test_user')).scalars().first()
     if not u:
         u = User(
             username='lab_test_user',
@@ -240,7 +242,7 @@ def lab_auth_client(app, client, lab_user, test_tenant):
 def rad_user(app, test_tenant):
     from models.user import User
     from app_factory import db
-    u = User.query.filter_by(username='rad_test_user').first()
+    u = db.session.execute(select(User).filter_by(username='rad_test_user')).scalars().first()
     if not u:
         u = User(
             username='rad_test_user',

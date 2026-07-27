@@ -71,6 +71,6 @@ def _audit_owner_api_access() -> None:
         )
         db.session.add(log)
         safe_commit(db.session, error_message="database commit failed", reraise=True)
-    except Exception:
+    except Exception as e:
         from app.extensions import db
         safe_rollback(db.session, error_message="database rollback")

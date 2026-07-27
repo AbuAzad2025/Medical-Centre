@@ -71,7 +71,7 @@ class BrandingSettings(TenantMixin, db.Model):
         try:
             from flask import url_for
             return url_for('static', filename=path.lstrip('/'))
-        except Exception:
+        except Exception as e:
             return path
     
     def to_dict(self):
@@ -110,7 +110,7 @@ class BrandingSettings(TenantMixin, db.Model):
             tenant = getattr(g, 'current_tenant', None)
             if tenant and getattr(tenant, 'id', None):
                 return tenant.id
-        except Exception:
+        except Exception as e:
             pass
         return None
 
@@ -144,7 +144,7 @@ class BrandingSettings(TenantMixin, db.Model):
             db.session.add(default_branding)
             safe_commit(db.session, error_message="database commit failed", reraise=True)
             return default_branding
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             logging.error("BrandingSettings.create_default failed")
             raise
@@ -223,7 +223,7 @@ class SystemTheme(TenantMixin, db.Model):
                     db.session.add(theme)
             
             safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             logging.error("SystemTheme.create_default_themes failed")
             raise

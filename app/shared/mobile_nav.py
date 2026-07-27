@@ -55,6 +55,6 @@ def resolve_mobile_nav_items(user) -> List[dict]:
             if not active and request.endpoint:
                 active = request.endpoint.startswith(ep.split('.')[0] + '.') and ep.split('.')[-1] in (request.endpoint or '')
             items.append({'href': href, 'icon': icon, 'label': label, 'active': active, 'endpoint': ep})
-        except Exception:
+        except Exception as e:
             continue
     return items[:4]

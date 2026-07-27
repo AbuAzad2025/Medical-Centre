@@ -97,7 +97,7 @@ class PermissionService:
                         ok = db.session.execute(select(RolePermission).filter_by(role_id=role.id, permission_id=perm.id)).scalars().first()
                         if ok:
                             return True
-        except Exception:
+        except Exception as e:
             pass
 
         # 2. Fallback role map

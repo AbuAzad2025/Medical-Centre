@@ -46,7 +46,7 @@ def add_supplier():
             safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إضافة المورد بنجاح', 'success')
             return redirect(url_for('medication.suppliers'))
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             flash('حدث خطأ في إضافة المورد', 'error')
     return render_template('pharmacy/add_supplier.html')
@@ -76,7 +76,7 @@ def edit_supplier(supplier_id):
             safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث المورد بنجاح', 'success')
             return redirect(url_for('medication.suppliers'))
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             flash('حدث خطأ في تحديث المورد', 'error')
     return render_template('pharmacy/add_supplier.html', supplier=supplier)
@@ -98,7 +98,7 @@ def delete_supplier(supplier_id):
         safe_commit(db.session, error_message="database commit failed", reraise=True)
         flash('تم حذف المورد بنجاح', 'success')
         return redirect(url_for('medication.suppliers'))
-    except Exception:
+    except Exception as e:
         safe_rollback(db.session, error_message="database rollback")
         flash('حدث خطأ في حذف المورد', 'error')
         return redirect(url_for('medication.suppliers'))
@@ -184,7 +184,7 @@ def add_purchase():
             safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم إضافة المشتريات بنجاح', 'success')
             return redirect(url_for('medication.purchases'))
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             flash('حدث خطأ في إضافة المشتريات', 'error')
 

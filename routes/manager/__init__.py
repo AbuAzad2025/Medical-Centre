@@ -89,7 +89,7 @@ def get_smart_analytics():
                 Visit.tenant_id == current_user.tenant_id
             )).scalar()
             avg_visit_minutes = float(avg_seconds or 0) / 60.0
-        except Exception:
+        except Exception as e:
             try:
                 avg_days = db.session.execute(select(
                     func.avg(func.julianday(func.coalesce(Visit.archived_at, Visit.completed_at, Visit.updated_at)) - func.julianday(Visit.created_at))
@@ -99,7 +99,7 @@ def get_smart_analytics():
                     Visit.tenant_id == current_user.tenant_id
                 )).scalar()
                 avg_visit_minutes = float((avg_days or 0) * 1440)
-            except Exception:
+            except Exception as e:
                 avg_visit_minutes = 0.0
         
         return {
@@ -131,7 +131,7 @@ def get_business_insights():
                 func.extract('hour', Visit.visit_time).label('hour'),
                 func.count(Visit.id).label('count')
             ).filter(Visit.tenant_id == current_user.tenant_id).group_by(func.extract('hour', Visit.visit_time))).scalars().all()
-        except Exception:
+        except Exception as e:
             peak_hours = db.session.execute(select(
                 func.extract('hour', Visit.visit_time).label('hour'),
                 func.count(Visit.id).label('count')
@@ -202,7 +202,7 @@ def get_performance_metrics():
                 func.avg(func.extract('epoch', Visit.completed_at - Visit.created_at))
             ).filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id)).scalar()
             avg_wait_minutes = float(avg_seconds or 0) / 60.0
-        except Exception:
+        except Exception as e:
             avg_days = db.session.execute(select(
                 func.avg(func.julianday(Visit.completed_at) - func.julianday(Visit.created_at))
             ).filter(Visit.completed_at.isnot(None), Visit.tenant_id == current_user.tenant_id)).scalar()
@@ -291,7 +291,7 @@ def get_operational_efficiency():
                 type('Row', (), {'visits': d.visits, 'avg_duration': float(d.avg_seconds or 0), 'department_id': d.department_id})
                 for d in department_efficiency
             ]
-        except Exception:
+        except Exception as e:
             dept_eff = db.session.execute(select(
                 func.count(Visit.id).label('visits'),
                 func.avg(func.julianday(Visit.completed_at) - func.julianday(Visit.created_at)).label('avg_days'),
@@ -436,7 +436,7 @@ def get_resource_optimization():
                 func.extract('hour', Visit.visit_time).label('hour'),
                 func.count(Visit.id).label('count')
             ).filter(Visit.tenant_id == current_user.tenant_id).group_by(func.extract('hour', Visit.visit_time))).scalars().all()
-        except Exception:
+        except Exception as e:
             peak_hours = db.session.execute(select(
                 func.extract('hour', Visit.visit_time).label('hour'),
                 func.count(Visit.id).label('count')
@@ -517,7 +517,7 @@ def get_bi_insights():
             'no_show_rate': round(no_show_rate, 2),
             'cancel_rate': round(cancel_rate, 2)
         }
-    except Exception:
+    except Exception as e:
         return {}
 
 # ═══════════════════════════════════════

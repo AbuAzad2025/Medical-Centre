@@ -15,6 +15,8 @@ from services.notification_service import NotificationService as NF
 from models.notification import (Notification, NotificationTemplate,
                                  WhatsAppNotificationMessage, EmailMessage)
 from models.user import User
+from sqlalchemy import select
+from app.extensions import db
 
 
 @pytest.fixture
@@ -47,7 +49,7 @@ class TestSend:
                                    notification_type='info')
         assert res['success'] is True
         assert res['notification_id']
-        assert Notification.query.get(res['notification_id']).recipient_id == u.id
+        assert db.session.get(Notification, res['notification_id']).recipient_id == u.id
 
     def test_send_unknown_template(self, fx):
         res = NF.send_notification(recipient_id=None, template_name='no_such_tpl_xyz')
@@ -104,7 +106,7 @@ class TestQueryReadState:
         u = fx.user()
         n = fx.notif(u.id)
         assert NF.mark_as_read(n.id, u.id)['success'] is True
-        assert Notification.query.get(n.id).is_read is True
+        assert db.session.get(Notification, n.id).is_read is True
 
     def test_mark_as_read_not_found(self, fx):
         u = fx.user()
@@ -141,7 +143,7 @@ class TestTemplates:
         res = NF.create_default_templates()
         assert res['success'] is True
         for nm in ('new_visit', 'appointment_reminder', 'payment_required'):
-            assert NotificationTemplate.query.filter_by(name=nm).first() is not None
+            assert db.session.execute(select(NotificationTemplate).filter_by(name=nm)).scalars().first() is not None
 
 
 class TestCleanupAndChannels:
@@ -150,12 +152,12 @@ class TestCleanupAndChannels:
         n = fx.notif(u.id, expires_at=datetime.now(timezone.utc) - timedelta(days=2))
         res = NF.cleanup_expired_notifications()
         assert res['success'] is True
-        assert Notification.query.get(n.id) is None
+        assert db.session.get(Notification, n.id) is None
 
     def test_send_whatsapp(self, fx):
         res = NF.send_whatsapp_message('+970599000000', 'hello')
         assert res['success'] is True
-        assert WhatsAppNotificationMessage.query.get(res['message_id']) is not None
+        assert db.session.get(WhatsAppNotificationMessage, res['message_id']) is not None
 
     def test_send_email(self, fx):
         res = NF.send_email_message('a@b.com', 'subj', '<p>hi</p>')
@@ -221,7 +223,7 @@ class TestAggregatorsSmoke:
         assert result['success'] is True
 
         for qid in queue_ids:
-            item = NotificationQueue.query.get(qid)
+            item = db.session.get(NotificationQueue, qid)
             assert item is not None
             assert (item.status or '').lower() == 'sent'
 
@@ -295,7 +297,7 @@ class TestAggregatorsWithData:
         from models.online_booking import OnlineBooking
         from models.department import Department
         from app.shared.enums import BookingState
-        dept = Department.query.first()
+        dept = db.session.execute(select(Department)).scalars().first()
         if dept is None:
             dept = Department(name='General', name_ar='عيادة عامة')
             fx.db.session.add(dept)
@@ -343,7 +345,7 @@ class TestAggregatorsWithData:
 
         count = process_notification_queue(tenant_id=None)
         assert count >= 1
-        assert (NotificationQueue.query.get(item.id).status or '').lower() == 'sent'
+        assert (db.session.get(NotificationQueue, item.id).status or '').lower() == 'sent'
 
     def test_process_queue_sms_branch(self, fx, monkeypatch):
         from models.notification import NotificationQueue
@@ -366,7 +368,7 @@ class TestAggregatorsWithData:
         fx.db.session.commit()
         res = NF.process_notification_queue(tenant_id=None)
         assert res['success'] is True
-        assert (NotificationQueue.query.get(item.id).status or '').lower() == 'sent'
+        assert (db.session.get(NotificationQueue, item.id).status or '').lower() == 'sent'
 
     def test_debt_reminder_medium_urgency_tier(self, fx):
         from app.shared.enums import PaymentStatus
@@ -399,7 +401,7 @@ class TestAggregatorsWithData:
         fx.db.session.commit()
         res = NF.process_notification_queue(tenant_id=None)
         assert res['success'] is True
-        assert (NotificationQueue.query.get(item.id).status or '').lower() == 'failed'
+        assert (db.session.get(NotificationQueue, item.id).status or '').lower() == 'failed'
 
     def test_check_and_send_alerts_wrapper(self, fx):
         res = NF.check_and_send_alerts(tenant_id=None)

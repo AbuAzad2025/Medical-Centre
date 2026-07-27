@@ -8,11 +8,12 @@ from app.extensions import db
 from models.user import User
 from services.work_inbox_service import WorkInboxService
 from services.patient_timeline_service import PatientTimelineService
+from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
 def reception_inbox_user(app, test_tenant):
-    u = User.query.filter_by(username='batch3_inbox_user').first()
+    u = db.session.execute(select(User).filter_by(username='batch3_inbox_user')).scalars().first()
     if not u:
         u = User(
             username='batch3_inbox_user',
@@ -30,7 +31,7 @@ def reception_inbox_user(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def batch3_accountant(app, test_tenant):
-    u = User.query.filter_by(username='batch3_accountant').first()
+    u = db.session.execute(select(User).filter_by(username='batch3_accountant')).scalars().first()
     if not u:
         u = User(
             username='batch3_accountant',

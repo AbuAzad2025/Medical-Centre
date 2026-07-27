@@ -198,6 +198,6 @@ class StripeSubscriptionService:
                         error_message=str(exc)[:1000],
                     ))
                 safe_commit(db.session, error_message="فشل تسجيل فشل webhook")
-            except Exception:
+            except Exception as e:
                 pass
             raise

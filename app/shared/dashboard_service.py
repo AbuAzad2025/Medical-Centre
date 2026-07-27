@@ -124,7 +124,7 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             ls = lab_service.get_dashboard_stats()
             data['metrics']['pending_requests'] = ls.get('pending_requests', 0)
             data['metrics']['completed_today'] = ls.get('completed_today', 0)
-        except Exception:
+        except Exception as e:
             data['metrics']['pending_requests'] = db.session.execute(select(func.count()).select_from(LabRequest).filter(
                 LabRequest.status.in_([OrderState.REQUESTED, OrderState.IN_PROGRESS])
             )).scalar()
@@ -159,7 +159,7 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
                 EmergencyCase.severity.in_(['HIGH', 'CRITICAL', 'URGENT']),
                 EmergencyCase.status.notin_(['COMPLETED', 'CANCELLED']),
             ).order_by(EmergencyCase.created_at.asc()).limit(10)).scalars().all()
-        except Exception:
+        except Exception as e:
             data['metrics']['critical_count'] = 0
             data['metrics']['active_cases'] = 0
             data['lists']['emergency_cases'] = []
@@ -170,7 +170,7 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             from models.invoice import Invoice
             pending = db.session.execute(select(func.count()).select_from(Invoice).filter(Invoice.status.in_(['ISSUED', 'DRAFT']))).scalar()
             data['metrics']['pending_invoices'] = pending
-        except Exception:
+        except Exception as e:
             data['metrics']['pending_invoices'] = 0
 
     if role == 'nurse':
@@ -196,7 +196,7 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
             data['metrics']['today_sales'] = db.session.execute(select(
                 func.coalesce(func.sum(PharmacySale.total_amount), 0)
             ).filter(func.date(PharmacySale.created_at) == today)).scalar()
-        except Exception:
+        except Exception as e:
             data['lists']['low_stock'] = []
             data['lists']['pending_prescriptions'] = []
             data['lists']['recent_sales'] = []
@@ -244,7 +244,7 @@ def build_now_cards(widgets: List[WidgetMeta], data: dict) -> list[dict]:
         if w.action_url:
             try:
                 action_href = url_for(w.action_url)
-            except Exception:
+            except Exception as e:
                 action_href = None
         cards.append({
             'id': w.id,
@@ -280,7 +280,7 @@ def build_command_center_context(user, role: Optional[str] = None, **extra) -> d
     for ep, icon, label in quick:
         try:
             quick_actions.append({'href': url_for(ep), 'icon': icon, 'label': label})
-        except Exception:
+        except Exception as e:
             continue
     ctx = {
         'hero': build_hero_context(user),

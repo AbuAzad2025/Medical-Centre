@@ -13,6 +13,7 @@ import services.gatekeeper_service as gk_mod
 from models.visit import Visit
 from models.patient import Patient
 from models.user import User
+from app.extensions import db
 
 
 # ───────────────────────── pure validators ─────────────────────────

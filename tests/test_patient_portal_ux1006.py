@@ -8,6 +8,8 @@ from app_factory import db as _db
 from models.patient import Patient
 from models.patient_account import PatientAccount
 from models.user import User
+from sqlalchemy import select
+from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -112,7 +114,7 @@ class TestPatientPortalIdentity:
             'phone': portal_patient.phone,
         }, follow_redirects=True)
         assert resp.status_code == 200
-        link = PatientAccount.query.filter_by(user_id=unlinked_portal_user.id).first()
+        link = db.session.execute(select(PatientAccount).filter_by(user_id=unlinked_portal_user.id)).scalars().first()
         assert link is not None
         assert link.patient_id == portal_patient.id
 
@@ -134,7 +136,7 @@ class TestPatientPortalFeatures:
             'telemedicine_consent': '1',
         }, follow_redirects=True)
         assert resp.status_code == 200
-        link = PatientAccount.query.filter_by(user_id=portal_user.id).first()
+        link = db.session.execute(select(PatientAccount).filter_by(user_id=portal_user.id)).scalars().first()
         prefs = link.portal_preferences or {}
         assert prefs.get('telemedicine_consent') is True
         assert prefs.get('marketing_contact') is False

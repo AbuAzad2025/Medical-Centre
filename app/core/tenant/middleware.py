@@ -160,7 +160,7 @@ def _tenant_from_authenticated_user() -> Tenant | None:
                     tid = getattr(current_user, 'tenant_id', None)
                     if tid:
                         return db.session.get(Tenant, tid)
-            except Exception:
+            except Exception as e:
                 pass
         if not user_id:
             return None
@@ -177,7 +177,7 @@ def _tenant_from_authenticated_user() -> Tenant | None:
 
         if user and user.tenant_id:
             return db.session.get(Tenant, user.tenant_id)
-    except Exception:
+    except Exception as e:
         return None
     return None
 
@@ -214,7 +214,7 @@ def bind_g_tenant(tenant: Tenant | None) -> None:
         from sqlalchemy import text, select, func
         db.session.execute(text(f"SET LOCAL app.tenant_id = '{tenant.id}'"))
         db.session.info['_tenant_id'] = tenant.id
-    except Exception:
+    except Exception as e:
         pass
 
 
@@ -309,7 +309,7 @@ def set_tenant_context():
                     g.product_profile = None
                     g.feature_flags = {}
                     return
-            except Exception:
+            except Exception as e:
                 pass
             from flask import abort
             abort(403, description='No tenant could be resolved for this request.')
@@ -368,7 +368,7 @@ def set_tenant_context():
                                         if query:
                                             target += f'?{query}'
                                         return redirect(target)
-                                except Exception:
+                                except Exception as e:
                                     pass
                             else:
                                 from flask import redirect
@@ -377,7 +377,7 @@ def set_tenant_context():
                                 if query:
                                     target += f'?{query}'
                                 return redirect(target)
-            except Exception:
+            except Exception as e:
                 pass
     else:
         g.current_tenant = None
@@ -396,7 +396,7 @@ def set_tenant_context():
 
                 if current_user.is_authenticated:
                     actor = current_user
-            except Exception:
+            except Exception as e:
                 actor = None
         actor_role = getattr(actor, "role", None) if actor else None
         # Only the Ghost Mode master (platform_owner) is exempt from pre-enforcement;
@@ -424,7 +424,7 @@ def set_tenant_context():
         from app.core.module.validators import get_active_modules_for_tenant
 
         g.enabled_modules = get_active_modules_for_tenant(tenant.id)
-    except Exception:
+    except Exception as e:
         g.enabled_modules = set() if saas else g.enabled_modules
 
     g.product_profile = tenant.product_profile_code
@@ -436,5 +436,5 @@ def set_tenant_context():
             tenant_id=tenant.id, is_enabled=True
         )).scalars().all()
         g.feature_flags = {f.feature_key: True for f in flags}
-    except Exception:
+    except Exception as e:
         g.feature_flags = {}

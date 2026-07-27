@@ -94,5 +94,5 @@ class FileService:
                 os.remove(upload.file_path)
             db.session.delete(upload)
             return safe_commit(db.session, error_message="Failed to delete file record")
-        except Exception:
+        except Exception as e:
             return False

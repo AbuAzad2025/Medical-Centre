@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 try:
     from dotenv import load_dotenv
     load_dotenv()
-except Exception:
+except Exception as e:
     pass
 
 # Force testing config
@@ -32,6 +32,7 @@ from app_factory import create_app, db as _db
 from models.user import User
 from models.medication import Medication, PharmacySale, PharmacySaleItem, Supplier, MedicationPurchase
 from app.core.tenant.models import Tenant
+from sqlalchemy import select
 
 
 @pytest.fixture(scope='session')
@@ -77,7 +78,7 @@ def app():
                 "'APPROVE', 'REJECT', 'IMPERSONATE'))"
             ))
             _db.session.commit()
-        except Exception:
+        except Exception as e:
             _db.session.rollback()
         
         # Register test routes that need to be available before any requests
@@ -127,7 +128,7 @@ def app():
         _db.session.remove()
         try:
             _db.drop_all()
-        except Exception:
+        except Exception as e:
             pass  # Ignore teardown errors (e.g. unnamed FK constraints on departments)
 
 
@@ -172,11 +173,11 @@ def rollback_db(app):
         _FSASession.get_bind = _original_get_bind
         try:
             _db.session.remove()
-        except Exception:
+        except Exception as e:
             pass
         try:
             transaction.rollback()
-        except Exception:
+        except Exception as e:
             pass
         finally:
             connection.close()
@@ -191,9 +192,10 @@ def _clear_rate_limiter(app):
     from app.extensions import db
     try:
         from models.audit_trail import LoginAttempt
-        db.session.query(LoginAttempt).delete()
+        from sqlalchemy import delete
+        db.session.execute(delete(LoginAttempt))
         db.session.commit()
-    except Exception:
+    except Exception as e:
         db.session.rollback()
 
 
@@ -260,7 +262,7 @@ def _clear_flask_login_state():
     for _k in _TENANT_GHOST_KEYS:
         try:
             g.pop(_k, None)
-        except Exception:
+        except Exception as e:
             pass
     # ``bind_g_tenant`` also stashes the tenant on ``db.session.info['_tenant_id']``
     # (read first by ``tenant_filter._current_tenant_id``). This dict lives on the
@@ -270,19 +272,19 @@ def _clear_flask_login_state():
         from app.extensions import db
         db.session.info.pop('_tenant_id', None)
         db.session.execute(db.text("RESET app.tenant_id"))
-    except Exception:
+    except Exception as e:
         pass
     yield
     for _k in _TENANT_GHOST_KEYS:
         try:
             g.pop(_k, None)
-        except Exception:
+        except Exception as e:
             pass
     try:
         from app.extensions import db
         db.session.info.pop('_tenant_id', None)
         db.session.execute(db.text("RESET app.tenant_id"))
-    except Exception:
+    except Exception as e:
         pass
 
 
@@ -320,7 +322,7 @@ def test_tenant(app):
     from tests.tenant_context import ensure_default_test_tenant, DEFAULT_TEST_TENANT_SLUG
 
     ensure_default_test_tenant(app)
-    t = Tenant.query.filter_by(slug=DEFAULT_TEST_TENANT_SLUG).first()
+    t = _db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG)).scalars().first()
     if t.settings is None:
         t.settings = {}
     _db.session.commit()
@@ -334,7 +336,7 @@ def test_user(app, test_tenant):
     prev_bypass = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
-        u = User.query.filter_by(username='pharmacist_test').first()
+        u = _db.session.execute(select(User).filter_by(username='pharmacist_test')).scalars().first()
         if not u:
             u = User(
                 username='pharmacist_test',
@@ -402,7 +404,7 @@ def manager_user(app, test_tenant):
     prev_bypass = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
-        u = User.query.filter_by(username='manager_test').first()
+        u = _db.session.execute(select(User).filter_by(username='manager_test')).scalars().first()
         if not u:
             u = User(
                 username='manager_test',

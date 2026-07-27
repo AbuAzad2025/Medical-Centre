@@ -300,7 +300,7 @@ class User(TenantMixin, UserMixin, db.Model):
                 env = current_app.config.get('APP_ENV', 'testing')
                 if env != 'testing':
                     enforce = True
-            except Exception:
+            except Exception as e:
                 enforce = True
         if enforce and user_context is not None:
             try:
@@ -401,7 +401,7 @@ class User(TenantMixin, UserMixin, db.Model):
         try:
             from app.core.permission.service import PermissionService
             return PermissionService.has_permission(self, permission)
-        except Exception:
+        except Exception as e:
             return False
 
     @db.validates('email')

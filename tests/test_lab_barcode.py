@@ -6,6 +6,8 @@ import secrets
 from datetime import datetime, timezone
 
 import pytest
+from sqlalchemy import select
+from app.extensions import db
 
 
 class TestBarcodeService:
@@ -25,7 +27,7 @@ class TestBarcodeService:
         register_in_barcode_registry(barcode_val, lab_request_id=99,
                                      generated_by_id=None, tenant_id=test_tenant.id)
         db.session.commit()
-        reg = BarcodeRegistry.query.filter_by(barcode_value=barcode_val).first()
+        reg = db.session.execute(select(BarcodeRegistry).filter_by(barcode_value=barcode_val)).scalars().first()
         assert reg is not None
         assert reg.entity_type == 'SPECIMEN'
         assert reg.barcode_type == 'QR_CODE'
@@ -45,7 +47,7 @@ class TestBarcodeService:
         assert lr.barcode is not None
         assert lr.barcode.startswith(f"LAB-{lr.id}-{test_patient.id}-")
         assert lr.barcode_image is not None
-        reg = BarcodeRegistry.query.filter_by(entity_type='SPECIMEN', entity_id=lr.id).first()
+        reg = db.session.execute(select(BarcodeRegistry).filter_by(entity_type='SPECIMEN', entity_id=lr.id)).scalars().first()
         assert reg is not None
 
 
@@ -205,7 +207,7 @@ def lab_request_with_barcode(app, test_tenant, test_patient, test_visit):
 def lab_user(app, test_tenant):
     from models.user import User
     from app_factory import db
-    u = User.query.filter_by(username='lab_barcode_test').first()
+    u = db.session.execute(select(User).filter_by(username='lab_barcode_test')).scalars().first()
     if not u:
         u = User(
             username='lab_barcode_test',

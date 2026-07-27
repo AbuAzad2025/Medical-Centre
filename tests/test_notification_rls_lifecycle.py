@@ -13,7 +13,7 @@ import os
 
 import pytest
 from flask import g
-from sqlalchemy import text
+from sqlalchemy import text, select
 
 from app.extensions import db
 from app.shared.tenant_filter import TenantIsolationError
@@ -82,7 +82,7 @@ class TestNotificationWorkerLifecycle:
             db.session.commit()                     # clears SET LOCAL
 
             # Prove N1 persisted
-            assert Notification.query.filter_by(title='Lifecycle-1').first() is not None
+            assert db.session.execute(select(Notification).filter_by(title='Lifecycle-1')).scalars().first() is not None
 
             # Simulate a lazy-load of an expired column (the old
             # ObjectDeletedError path).
@@ -256,7 +256,7 @@ class TestCrossTenantIsolation:
             g.tenant_id = None
             g._tenant_filter_bypass = False
             with pytest.raises(TenantIsolationError):
-                Notification.query.all()
+                db.session.execute(select(Notification)).scalars().all()
 
         # -- 5. Tenant B job --
         b_query_result = []
@@ -270,7 +270,7 @@ class TestCrossTenantIsolation:
             db.session.commit()
             # Query while in Tenant B context
             b_query_result.append(
-                Notification.query.filter_by(title='Pooled-Reuse-A').first(),
+                db.session.execute(select(Notification).filter_by(title='Pooled-Reuse-A')).scalars().first(),
             )
 
         with_tenant_context(app, tid_b, job_b)
@@ -294,13 +294,13 @@ class TestMissingTenantContext:
     """Without tenant context: query returns 0 rows, writes are rejected."""
 
     def test_missing_context_rejects_query_saas(self, app):
-        """``Model.query.all()`` without ``g.tenant_id`` raises."""
+        """``db.session.execute(select(Model)).scalars().all()`` without ``g.tenant_id`` raises."""
         with app.test_request_context():
             app.config['ENABLE_SAAS_MODE'] = True
             g.tenant_id = None
             g._tenant_filter_bypass = False
             with pytest.raises(TenantIsolationError):
-                Notification.query.all()
+                db.session.execute(select(Notification)).scalars().all()
 
     def test_missing_context_rejects_writes_saas(self, app):
         """INSERT without ``g.tenant_id`` raises on commit."""
@@ -373,7 +373,7 @@ class TestFailClosedTenantBinding:
             app.config['ENABLE_SAAS_MODE'] = True
             bind_tenant_on_g(tenant, db_session=db.session)
             with pytest.raises(TenantIsolationError):
-                Notification.query.all()
+                db.session.execute(select(Notification)).scalars().all()
 
     def test_fail_closed_when_auto_assign_set_local_fails(self, app, monkeypatch):
         """When ``auto_assign_tenant`` (before_flush) cannot SET LOCAL,
@@ -434,7 +434,7 @@ class TestPostgresRLSEnforcement:
                 )
                 conn.commit()
                 pytest.fail('RLS should have blocked this INSERT')
-        except Exception:
+        except Exception as e:
             conn.rollback()
         finally:
             conn.close()
@@ -477,7 +477,7 @@ class TestPostgresRLSEnforcement:
                 )
                 conn.commit()
                 pytest.fail('RLS should have blocked INSERT with wrong tenant_id')
-        except Exception:
+        except Exception as e:
             conn.rollback()
         finally:
             conn.close()

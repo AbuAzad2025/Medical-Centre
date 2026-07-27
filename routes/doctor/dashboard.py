@@ -193,7 +193,7 @@ def dashboard_for_doctor(doctor_id):
             stats['doctor_earnings_today'] = float(earnings_today)
             stats['doctor_earnings_week'] = float(earnings_week)
             stats['doctor_earnings_month'] = float(earnings_month)
-        except Exception:
+        except Exception as e:
             stats['doctor_earnings_today'] = 0.0
             stats['doctor_earnings_week'] = 0.0
             stats['doctor_earnings_month'] = 0.0

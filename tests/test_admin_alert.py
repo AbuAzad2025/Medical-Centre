@@ -8,6 +8,8 @@ import pytest
 from unittest.mock import Mock
 
 from flask import Flask
+from sqlalchemy import select
+from app.extensions import db
 
 
 def _reset_sinks():
@@ -55,7 +57,7 @@ class TestAdminAlertHook:
             from app.extensions import db
             from app.core.tenant.models import Tenant
 
-            tenant = db.session.query(Tenant).first()
+            tenant = select(Tenant).first()
             if tenant:
                 bind_tenant_on_g(tenant, db_session=db.session)
 
@@ -112,7 +114,7 @@ class TestAdminAlertHook:
         mock_sink = Mock()
         register_alert_sink(mock_sink)
 
-        tenant = db.session.query(Tenant).first()
+        tenant = select(Tenant).first()
         if not tenant:
             pytest.skip("no tenant seeded")
 

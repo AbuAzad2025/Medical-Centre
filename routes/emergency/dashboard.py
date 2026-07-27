@@ -45,11 +45,11 @@ def reports():
 
         try:
             start_date = _dt.strptime(start_raw, '%Y-%m-%d').date() if start_raw else (date.today() - timedelta(days=30))
-        except Exception:
+        except Exception as e:
             start_date = date.today() - timedelta(days=30)
         try:
             end_date = _dt.strptime(end_raw, '%Y-%m-%d').date() if end_raw else date.today()
-        except Exception:
+        except Exception as e:
             end_date = date.today()
         if end_date < start_date:
             end_date = start_date
@@ -108,7 +108,7 @@ def reports():
                     stage_avg[k] = stage_avg.get(k, 0.0) + float(dur)
             for k in list(stage_avg.keys()):
                 stage_avg[k] = round(stage_avg[k] / float(stage_samples.get(k) or 1), 2)
-        except Exception:
+        except Exception as e:
             stage_avg = {}
             stage_samples = {}
 

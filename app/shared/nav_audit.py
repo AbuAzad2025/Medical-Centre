@@ -80,7 +80,7 @@ def audit_nav_link_endpoints(app: Flask) -> list[str]:
             for item in section.items:
                 try:
                     owner_nav_href(item)
-                except Exception:
+                except Exception as e:
                     broken.append(item.endpoint)
     return broken
 

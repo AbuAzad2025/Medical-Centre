@@ -33,7 +33,7 @@ class ReceptionService:
                 )).scalar(),
                 "waiting": db.session.execute(select(func.count()).select_from(Visit).filter(Visit.status.in_([VisitState.OPEN.value, VisitState.CHECKED_IN.value]))).scalar(),
             }
-        except Exception:
+        except Exception as e:
             return {"today_visits": 0, "today_appointments": 0, "checked_in": 0, "waiting": 0}
 
     @staticmethod
@@ -112,7 +112,7 @@ class ReceptionService:
                 return False
             apt.status = "CHECKED_IN"
             return safe_commit(db.session, error_message="Failed to check in appointment")
-        except Exception:
+        except Exception as e:
             return False
 
     @staticmethod

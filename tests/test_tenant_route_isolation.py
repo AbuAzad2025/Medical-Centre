@@ -16,6 +16,8 @@ from models.lab_test_catalog import LabTestCatalog, LabTestPanel
 from models.medication import Medication, PharmacySale, Supplier, MedicationPurchase
 from models.user import User
 from app.core.tenant.models import Tenant
+from sqlalchemy import select
+from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -24,7 +26,7 @@ def tenant_a(app):
     prev = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
-        t = Tenant.query.filter_by(slug='tenant-a').first()
+        t = db.session.execute(select(Tenant).filter_by(slug='tenant-a')).scalars().first()
         if not t:
             t = Tenant(
                 slug='tenant-a',
@@ -39,11 +41,11 @@ def tenant_a(app):
         from app.core.module.models import TenantModule
         for mn in ('pharmacy', 'medication', 'lab'):
             try:
-                existing = TenantModule.query.filter_by(tenant_id=t.id, module_name=mn).first()
+                existing = db.session.execute(select(TenantModule).filter_by(tenant_id=t.id, module_name=mn)).scalars().first()
                 if not existing:
                     _db.session.add(TenantModule(tenant_id=t.id, module_name=mn, is_active=True))
                     _db.session.flush()
-            except Exception:
+            except Exception as e:
                 _db.session.rollback()
         _db.session.commit()
     finally:
@@ -60,7 +62,7 @@ def tenant_b(app):
     prev = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
-        t = Tenant.query.filter_by(slug='tenant-b').first()
+        t = db.session.execute(select(Tenant).filter_by(slug='tenant-b')).scalars().first()
         if not t:
             t = Tenant(
                 slug='tenant-b',
@@ -74,11 +76,11 @@ def tenant_b(app):
         from app.core.module.models import TenantModule
         for mn in ('pharmacy', 'medication', 'lab'):
             try:
-                existing = TenantModule.query.filter_by(tenant_id=t.id, module_name=mn).first()
+                existing = db.session.execute(select(TenantModule).filter_by(tenant_id=t.id, module_name=mn)).scalars().first()
                 if not existing:
                     _db.session.add(TenantModule(tenant_id=t.id, module_name=mn, is_active=True))
                     _db.session.flush()
-            except Exception:
+            except Exception as e:
                 _db.session.rollback()
         _db.session.commit()
     finally:
@@ -99,7 +101,7 @@ def manager_a(app, tenant_a):
     prev = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
-        u = User.query.filter_by(username=username, tenant_id=tenant_a.id).first()
+        u = db.session.execute(select(User).filter_by(username=username, tenant_id=tenant_a.id)).scalars().first()
         if not u:
             u = User(
                 username=username,
@@ -271,7 +273,7 @@ class TestSupplierIsolation:
             follow_redirects=True,
         )
         assert resp.status_code == 200
-        assert Supplier.query.get(supplier_b.id) is not None
+        assert db.session.get(Supplier, supplier_b.id) is not None
 
     def test_purchase_list_excludes_other_tenant(self, client_a, purchase_b):
         resp = client_a.get('/medication/purchases')
@@ -336,7 +338,7 @@ class TestLabCatalogIsolation:
             follow_redirects=True,
         )
         assert resp.status_code == 200
-        assert LabTestCatalog.query.get(lab_test_b.id) is not None
+        assert db.session.get(LabTestCatalog, lab_test_b.id) is not None
 
     def test_lab_api_item_excludes_other_tenant(self, client_a, lab_test_b):
         resp = client_a.get(f'/lab/api/test-catalog/{lab_test_b.id}')
@@ -362,4 +364,4 @@ class TestLabCatalogIsolation:
             follow_redirects=True,
         )
         assert resp.status_code == 200
-        assert LabTestPanel.query.get(lab_panel_b.id) is not None
+        assert db.session.get(LabTestPanel, lab_panel_b.id) is not None

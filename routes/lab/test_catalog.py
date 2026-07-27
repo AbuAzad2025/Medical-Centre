@@ -7,6 +7,7 @@ from utils.decorators import role_required
 from models.lab_test_catalog import LabTestCatalog, LabTestPanel, LabTestPanelItem
 from app_factory import db
 from utils.db_safety import safe_commit, safe_rollback
+from sqlalchemy import select
 from datetime import datetime, timezone
 import logging
 
@@ -38,10 +39,10 @@ def _panel_tenant_filter():
 @role_required('lab', 'manager', 'admin')
 def test_catalog():
     category = request.args.get('category', '')
-    q = LabTestCatalog.query.filter(_tenant_filter())
+    stmt = select(LabTestCatalog).filter(_tenant_filter())
     if category:
-        q = q.filter(LabTestCatalog.category == category)
-    tests = q.order_by(LabTestCatalog.sort_order, LabTestCatalog.code).all()
+        stmt = stmt.filter(LabTestCatalog.category == category)
+    tests = db.session.execute(stmt.order_by(LabTestCatalog.sort_order, LabTestCatalog.code)).scalars().all()
     return render_template('lab/test_catalog.html', tests=tests, categories=CATEGORIES, selected_category=category)
 
 
@@ -79,7 +80,7 @@ def test_catalog_add():
 @login_required
 @role_required('lab', 'manager', 'admin')
 def test_catalog_edit(id):
-    test = LabTestCatalog.query.filter(_tenant_filter(), LabTestCatalog.id == id).first()
+    test = db.session.execute(select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.id == id)).scalars().first()
     if not test:
         flash('الفحص غير موجود', 'danger')
         return redirect(url_for('lab.test_catalog'))
@@ -110,7 +111,7 @@ def test_catalog_edit(id):
 @login_required
 @role_required('lab', 'manager', 'admin')
 def test_catalog_delete(id):
-    test = LabTestCatalog.query.filter(_tenant_filter(), LabTestCatalog.id == id).first()
+    test = db.session.execute(select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.id == id)).scalars().first()
     if not test:
         flash('الفحص غير موجود', 'danger')
         return redirect(url_for('lab.test_catalog'))
@@ -130,12 +131,12 @@ def test_catalog_delete(id):
 @login_required
 @role_required('lab', 'manager', 'admin')
 def test_panels():
-    panels = LabTestPanel.query.filter(
-        LabTestPanel.tenant_id == getattr(current_user, 'tenant_id', None)
-    ).order_by(LabTestPanel.name_ar).all()
-    tests = LabTestCatalog.query.filter(
-        _tenant_filter(), LabTestCatalog.is_active == True
-    ).order_by(LabTestCatalog.sort_order, LabTestCatalog.code).all()
+    panels = db.session.execute(
+        select(LabTestPanel).filter(LabTestPanel.tenant_id == getattr(current_user, 'tenant_id', None)).order_by(LabTestPanel.name_ar)
+    ).scalars().all()
+    tests = db.session.execute(
+        select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.is_active == True).order_by(LabTestCatalog.sort_order, LabTestCatalog.code)
+    ).scalars().all()
     return render_template('lab/test_panels.html', panels=panels, tests=tests)
 
 
@@ -156,10 +157,10 @@ def test_panels_add():
         for idx, tid in enumerate(test_ids):
             if tid and tid.strip().isdigit():
                 test_id = int(tid)
-                test = LabTestCatalog.query.filter(
+                test = db.session.execute(select(LabTestCatalog).filter(
                     LabTestCatalog.tenant_id == tenant_id,
                     LabTestCatalog.id == test_id
-                ).first()
+                )).scalars().first()
                 if test:
                     panel.items.append(LabTestPanelItem(
                         test_id=test_id,
@@ -179,7 +180,7 @@ def test_panels_add():
 @login_required
 @role_required('lab', 'manager', 'admin')
 def test_panels_edit(id):
-    panel = LabTestPanel.query.filter(_panel_tenant_filter(), LabTestPanel.id == id).first()
+    panel = db.session.execute(select(LabTestPanel).filter(_panel_tenant_filter(), LabTestPanel.id == id)).scalars().first()
     if not panel:
         flash('الباقة غير موجودة', 'danger')
         return redirect(url_for('lab.test_panels'))
@@ -197,10 +198,10 @@ def test_panels_edit(id):
         for idx, tid in enumerate(test_ids):
             if tid and tid.strip().isdigit():
                 test_id = int(tid)
-                test = LabTestCatalog.query.filter(
+                test = db.session.execute(select(LabTestCatalog).filter(
                     LabTestCatalog.tenant_id == tenant_id,
                     LabTestCatalog.id == test_id
-                ).first()
+                )).scalars().first()
                 if test:
                     panel.items.append(LabTestPanelItem(
                         test_id=test_id,
@@ -219,7 +220,7 @@ def test_panels_edit(id):
 @login_required
 @role_required('lab', 'manager', 'admin')
 def test_panels_delete(id):
-    panel = LabTestPanel.query.filter(_panel_tenant_filter(), LabTestPanel.id == id).first()
+    panel = db.session.execute(select(LabTestPanel).filter(_panel_tenant_filter(), LabTestPanel.id == id)).scalars().first()
     if not panel:
         flash('الباقة غير موجودة', 'danger')
         return redirect(url_for('lab.test_panels'))
@@ -238,9 +239,9 @@ def test_panels_delete(id):
 @lab_bp.route('/api/test-catalog')
 @login_required
 def api_test_catalog():
-    q = LabTestCatalog.query.filter(_tenant_filter(), LabTestCatalog.is_active == True)
-    q = q.order_by(LabTestCatalog.sort_order, LabTestCatalog.code)
-    tests = q.all()
+    stmt = select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.is_active == True)
+    stmt = stmt.order_by(LabTestCatalog.sort_order, LabTestCatalog.code)
+    tests = db.session.execute(stmt).scalars().all()
     return jsonify([{
         'id': t.id,
         'code': t.code,
@@ -257,7 +258,7 @@ def api_test_catalog():
 @lab_bp.route('/api/test-catalog/<int:id>')
 @login_required
 def api_test_catalog_item(id):
-    test = LabTestCatalog.query.filter(_tenant_filter(), LabTestCatalog.id == id).first()
+    test = db.session.execute(select(LabTestCatalog).filter(_tenant_filter(), LabTestCatalog.id == id)).scalars().first()
     if not test:
         return jsonify({'error': 'not found'}), 404
     return jsonify({

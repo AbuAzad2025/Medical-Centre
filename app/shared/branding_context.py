@@ -60,7 +60,7 @@ def get_branding_row():
             if row:
                 return row
         return BrandingSettings.get_active_settings()
-    except Exception:
+    except Exception as e:
         return None
 
 
@@ -146,7 +146,7 @@ def load_developer_defaults(db, engine) -> dict[str, Optional[str]]:
             dl = db.session.execute(select(SystemConfig).filter_by(config_key='developer_logo_url')).scalars().first()
             if dl:
                 dev_logo = dl.get_value()
-    except Exception:
+    except Exception as e:
         pass
     out['developer_logo_url'] = dev_logo
     return out

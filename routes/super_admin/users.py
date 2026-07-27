@@ -96,7 +96,7 @@ def create_user():
                 def _to_float(val):
                     try:
                         return float(val) if val not in (None, '',) else None
-                    except Exception:
+                    except Exception as e:
                         return None
                 consultation_price = _to_float(request.form.get('consultation_price'))
                 follow_up_price = _to_float(request.form.get('follow_up_price'))
@@ -188,7 +188,7 @@ def edit_user(user_id):
                 for dep_id in selected:
                     try:
                         did = int(dep_id)
-                    except Exception:
+                    except Exception as e:
                         continue
                     db.session.add(UserDepartmentAccess(user_id=user.id, department_id=did, can_access=True))
             except Exception as e:
@@ -210,7 +210,7 @@ def edit_user(user_id):
         try:
             from models.user_department_access import UserDepartmentAccess
             extra_department_ids = [r.department_id for r in db.session.execute(select(UserDepartmentAccess).filter_by(user_id=user.id, can_access=True)).scalars().all()]
-        except Exception:
+        except Exception as e:
             extra_department_ids = []
         roles = [
             ('super_admin', 'السوبر أدمن'),

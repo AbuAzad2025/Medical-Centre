@@ -4,11 +4,12 @@ import pytest
 
 from app.extensions import db
 from models.user import User
+from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
 def pharmacist_user(app, test_tenant):
-    u = User.query.filter_by(username='pharmacist_test').first()
+    u = db.session.execute(select(User).filter_by(username='pharmacist_test')).scalars().first()
     if not u:
         u = User(
             username='pharmacist_test',
@@ -24,14 +25,14 @@ def pharmacist_user(app, test_tenant):
     yield u
     try:
         from models.audit_trail import LoginAttempt
-        db.session.query(LoginAttempt).filter_by(user_id=u.id).delete()
-    except Exception:
+        select(LoginAttempt).filter_by(user_id=u.id).delete()
+    except Exception as e:
         db.session.rollback()
 
 
 @pytest.fixture(scope='function')
 def accountant_user(app, test_tenant):
-    u = User.query.filter_by(username='accountant_test_ux1').first()
+    u = db.session.execute(select(User).filter_by(username='accountant_test_ux1')).scalars().first()
     if not u:
         u = User(
             username='accountant_test_ux1',
@@ -47,8 +48,8 @@ def accountant_user(app, test_tenant):
     yield u
     try:
         from models.audit_trail import LoginAttempt
-        db.session.query(LoginAttempt).filter_by(user_id=u.id).delete()
-    except Exception:
+        select(LoginAttempt).filter_by(user_id=u.id).delete()
+    except Exception as e:
         db.session.rollback()
 
 

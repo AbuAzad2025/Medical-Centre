@@ -1,4 +1,7 @@
 """Platform bootstrap smoke tests."""
+from sqlalchemy import select
+
+from app.extensions import db
 from app.core.platform_bootstrap import (
     ensure_module_definitions,
     ensure_product_bundles,
@@ -65,7 +68,7 @@ def test_auto_assign_tenant_works_after_prior_commit(app, db, monkeypatch):
     )
 
     with app.app_context():
-        tenant = Tenant.query.first()
+        tenant = db.session.execute(select(Tenant)).scalars().first()
         assert tenant is not None, 'Need a tenant in the test database'
 
         g.tenant_id = tenant.id
@@ -93,8 +96,8 @@ def test_auto_assign_tenant_works_after_prior_commit(app, db, monkeypatch):
 
         # Re-assert SET LOCAL so the SELECT queries below are visible through RLS
         db.session.execute(text(f"SET LOCAL app.tenant_id = '{tenant.id}'"))
-        assert Notification.query.get(n1.id) is not None
-        assert Notification.query.get(n2.id) is not None
+        assert db.session.get(Notification, n1.id) is not None
+        assert db.session.get(Notification, n2.id) is not None
 
         g.pop('tenant_id', None)
 

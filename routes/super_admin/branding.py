@@ -70,7 +70,7 @@ def _save_logo_file(branding):
             if hasattr(tenant, 'settings') and isinstance(tenant.settings, dict):
                 tenant.settings = {**(tenant.settings or {}), 'logo_path': rel}
             db.session.add(tenant)
-        except Exception:
+        except Exception as e:
             pass
 
 
@@ -85,7 +85,7 @@ def _sync_tenant_colors(branding):
         if branding.organization_name:
             tenant.name = branding.organization_name
         db.session.add(tenant)
-    except Exception:
+    except Exception as e:
         pass
 
 

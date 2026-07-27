@@ -131,7 +131,7 @@ def run_pg_dump_sql_gz(output_path: str, database_url: Optional[str] = None) -> 
         try:
             if proc.poll() is None:
                 proc.kill()
-        except Exception:
+        except Exception as e:
             pass
 
     if proc.returncode != 0:

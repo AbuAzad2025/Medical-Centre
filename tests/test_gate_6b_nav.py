@@ -7,6 +7,9 @@ from flask import url_for
 from app.shared.manager_nav_registry import REQUIRED_MANAGER_ENDPOINTS, resolve_manager_nav_sections
 from app.shared.nav_audit import audit_manager_nav_coverage, audit_nav_link_endpoints, manager_nav_endpoints
 from app.shared.nav_resolver import resolve_nav_for_user
+from sqlalchemy import select
+
+from app.extensions import db
 
 
 class TestManagerNavRegistry:
@@ -47,7 +50,7 @@ class TestNavResolverManager:
         from models.user import User
         from app.core.rate_limiter import _shared_store
 
-        u = User.query.filter_by(username='sa_gate6b').first()
+        u = db.session.execute(select(User).filter_by(username='sa_gate6b')).scalars().first()
         if not u:
             u = User(
                 username='sa_gate6b',
@@ -58,7 +61,6 @@ class TestNavResolverManager:
                 tenant_id=test_tenant.id,
             )
             u.set_password('ValidPass123!')
-            from app.extensions import db
             db.session.add(u)
             db.session.commit()
         _shared_store.clear()

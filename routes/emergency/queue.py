@@ -126,7 +126,7 @@ def triage(emergency_id):
             if vital_signs_raw:
                 try:
                     vital_signs = json.loads(vital_signs_raw)
-                except Exception:
+                except Exception as e:
                     vital_signs = None
             if vital_signs is None:
                 vital_signs = {

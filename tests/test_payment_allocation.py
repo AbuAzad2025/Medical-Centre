@@ -10,6 +10,8 @@ from models.user import User
 from models.visit import Visit
 from services.billing_state_service import PaymentAllocationService
 from services.payment_service import PaymentService
+from sqlalchemy import select
+from app.extensions import db
 
 
 @pytest.fixture(scope='function')
@@ -27,7 +29,7 @@ def alloc_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def alloc_accountant(app, test_tenant):
-    u = User.query.filter_by(username='alloc_accountant').first()
+    u = db.session.execute(select(User).filter_by(username='alloc_accountant')).scalars().first()
     if not u:
         u = User(
             username='alloc_accountant',

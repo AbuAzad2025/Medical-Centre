@@ -120,11 +120,11 @@ def consumption_report():
     end_raw = (request.args.get('end_date') or '').strip()
     try:
         start_date = datetime.strptime(start_raw, '%Y-%m-%d').date() if start_raw else (date.today() - timedelta(days=30))
-    except Exception:
+    except Exception as e:
         start_date = date.today() - timedelta(days=30)
     try:
         end_date = datetime.strptime(end_raw, '%Y-%m-%d').date() if end_raw else date.today()
-    except Exception:
+    except Exception as e:
         end_date = date.today()
 
     start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)

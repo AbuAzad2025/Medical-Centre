@@ -12,7 +12,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_socketio import SocketIO
 import os, logging, click
 from logging.handlers import RotatingFileHandler
-from sqlalchemy import inspect as _sa_inspect
+from sqlalchemy import inspect as _sa_inspect, select, func
 from logging import StreamHandler
 from datetime import datetime
 from pathlib import Path
@@ -44,7 +44,7 @@ def _alert_admin(level, message, **ctx):
     for sink in _ALERT_SINKS:
         try:
             sink(level, {'message': message, **ctx})
-        except Exception:
+        except Exception as e:
             pass  # Never let alerting break the response
 
 # ============================================================
@@ -80,7 +80,7 @@ def create_app(config_name: str | None = None) -> Flask:
             warnings.filterwarnings("ignore", category=DeprecationWarning)
             if os.getenv('SUPPRESS_LOGGING') in {'1','true','yes','on'} or app.testing:
                 logging.disable(logging.CRITICAL)
-        except Exception:
+        except Exception as e:
             pass
 
     # تهيئة Logging مركزي مع PII Redaction + Trace ID
@@ -133,7 +133,7 @@ def create_app(config_name: str | None = None) -> Flask:
                     )
     except RuntimeError:
         raise
-    except Exception:
+    except Exception as e:
         pass  # Table may not exist yet (first migration); guard is best-effort.
 
     @app.before_request
@@ -155,13 +155,13 @@ def create_app(config_name: str | None = None) -> Flask:
             from models.system_config import SystemConfig
             df = None
             tf = None
-            dcfg = SystemConfig.query.filter_by(config_key="date_format").first()
+            dcfg = db.session.execute(select(SystemConfig).filter_by(config_key="date_format")).scalars().first()
             if dcfg:
                 df = str(dcfg.config_value).lower()
-            tcfg = SystemConfig.query.filter_by(config_key="time_format").first()
+            tcfg = db.session.execute(select(SystemConfig).filter_by(config_key="time_format")).scalars().first()
             if tcfg:
                 tf = str(tcfg.config_value).lower()
-        except Exception:
+        except Exception as e:
             df = None
             tf = None
         date_map = {
@@ -183,10 +183,10 @@ def create_app(config_name: str | None = None) -> Flask:
         dfmt, _, _ = _get_format_map()
         try:
             return (val if hasattr(val, 'strftime') else _dt.fromisoformat(str(val))).strftime(dfmt)
-        except Exception:
+        except Exception as e:
             try:
                 return _dt.utcfromtimestamp(float(val)).strftime(dfmt)
-            except Exception:
+            except Exception as e:
                 return str(val)
 
     def _fmt_time(val):
@@ -195,10 +195,10 @@ def create_app(config_name: str | None = None) -> Flask:
         _, tfmt, _ = _get_format_map()
         try:
             return (val if hasattr(val, 'strftime') else _dt.fromisoformat(str(val))).strftime(tfmt)
-        except Exception:
+        except Exception as e:
             try:
                 return _dt.utcfromtimestamp(float(val)).strftime(tfmt)
-            except Exception:
+            except Exception as e:
                 return str(val)
 
     def _fmt_datetime(val):
@@ -207,10 +207,10 @@ def create_app(config_name: str | None = None) -> Flask:
         _, _, dfull = _get_format_map()
         try:
             return (val if hasattr(val, 'strftime') else _dt.fromisoformat(str(val))).strftime(dfull)
-        except Exception:
+        except Exception as e:
             try:
                 return _dt.utcfromtimestamp(float(val)).strftime(dfull)
-            except Exception:
+            except Exception as e:
                 return str(val)
 
     app.jinja_env.filters['format_date'] = _fmt_date
@@ -223,7 +223,7 @@ def create_app(config_name: str | None = None) -> Flask:
             cur = currency or app.config.get('DEFAULT_CURRENCY', 'ILS')
             q = Decimal(str(amount)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             return f"{q:.2f} {cur}"
-        except Exception:
+        except Exception as e:
             return f"{amount} {currency or app.config.get('DEFAULT_CURRENCY', 'ILS')}"
     app.jinja_env.filters['format_money'] = _fmt_money
 
@@ -253,7 +253,7 @@ def create_app(config_name: str | None = None) -> Flask:
                     response.set_data(compressed)
                     response.headers['Content-Encoding'] = 'gzip'
                     response.headers['Vary'] = 'Accept-Encoding'
-        except Exception:
+        except Exception as e:
             pass
         return response
 
@@ -349,13 +349,13 @@ def create_app(config_name: str | None = None) -> Flask:
         parts = raw.split(':', 1)
         try:
             uid = int(parts[0])
-        except Exception:
+        except Exception as e:
             return None
         expected_version = 0
         if len(parts) == 2:
             try:
                 expected_version = int(parts[1])
-            except Exception:
+            except Exception as e:
                 expected_version = 0
         prev_bypass = g.get('_tenant_filter_bypass', False)
         # Always bypass tenant filter when loading a user — otherwise the
@@ -372,7 +372,7 @@ def create_app(config_name: str | None = None) -> Flask:
         if not user:
             return None
         if user.tenant_id and not g.get('tenant_id'):
-            tenant = Tenant.query.get(user.tenant_id)
+            tenant = db.session.get(Tenant, user.tenant_id)
             if tenant:
                 bind_g_tenant(tenant)
         actual_version = int(getattr(user, 'session_version', 0) or 0)
@@ -419,7 +419,7 @@ def create_app(config_name: str | None = None) -> Flask:
             return jsonify(success=False, error=str(e)), 403
         try:
             return render_template('errors/403.html', message=str(e)), 403
-        except Exception:
+        except Exception as e:
             return jsonify(error=str(e)), 403
 
     @app.errorhandler(PermissionError)
@@ -430,7 +430,7 @@ def create_app(config_name: str | None = None) -> Flask:
             return jsonify(success=False, error="Cross-tenant access denied"), 403
         try:
             return render_template('errors/403.html', message=str(e)), 403
-        except Exception:
+        except Exception as e:
             return jsonify(error="Cross-tenant access denied"), 403
 
     @app.errorhandler(IdempotencyError)
@@ -446,14 +446,14 @@ def create_app(config_name: str | None = None) -> Flask:
     def handle_403(error):
         try:
             return render_template('errors/403.html'), 403
-        except Exception:
+        except Exception as e:
             return jsonify(error="لا يمكن عرض الصفحة حالياً"), 403
 
     @app.errorhandler(404)
     def handle_404(error):
         try:
             return render_template('errors/404.html'), 404
-        except Exception:
+        except Exception as e:
             return jsonify(error="الصفحة غير متاحة حالياً"), 404
 
     # Wire critical error alerts (uses module-level _alert_admin)
@@ -462,7 +462,7 @@ def create_app(config_name: str | None = None) -> Flask:
         _alert_admin('CRITICAL', 'Internal server error', error=str(error))
         try:
             return render_template('errors/500.html'), 500
-        except Exception:
+        except Exception as e:
             return jsonify(error="تعذر تنفيذ الطلب حالياً"), 500
 
     # تهيئة بيانات افتراضية (محميّة ضد غياب الجداول أثناء أوامر Alembic)
@@ -471,7 +471,7 @@ def create_app(config_name: str | None = None) -> Flask:
             insp = _sa_inspect(db.engine)
             if insp.has_table("system_configs"):
                 from models.system_config import SystemConfig
-                cfg = SystemConfig.query.filter_by(config_key="log_level").first()
+                cfg = db.session.execute(select(SystemConfig).filter_by(config_key="log_level")).scalars().first()
                 if cfg and cfg.config_value:
                     lvl = getattr(logging, str(cfg.config_value).upper(), None)
                     if isinstance(lvl, int):
@@ -528,7 +528,7 @@ def create_app(config_name: str | None = None) -> Flask:
             data = dict(caches[cache_key]['data'])
             data['branding'] = get_branding_row()
             return data
-        except Exception:
+        except Exception as e:
             return {}
 
     @app.context_processor
@@ -538,7 +538,7 @@ def create_app(config_name: str | None = None) -> Flask:
                 'APP_ENV': (config_name or os.getenv('APP_ENV') or 'development'),
                 'FLASK_ENV': app.env,
             }
-        except Exception:
+        except Exception as e:
             return {
                 'APP_ENV': os.getenv('APP_ENV', 'development'),
                 'FLASK_ENV': 'production',
@@ -551,7 +551,7 @@ def create_app(config_name: str | None = None) -> Flask:
             from app.shared.user_preferences import get_user_preferences
             if current_user.is_authenticated:
                 return {'user_preferences': get_user_preferences(current_user)}
-        except Exception:
+        except Exception as e:
             pass
         return {'user_preferences': {'theme': 'light'}}
 
@@ -619,7 +619,7 @@ def create_app(config_name: str | None = None) -> Flask:
                 from flask_login import current_user
                 if current_user.is_authenticated and current_user.role == "super_admin":
                     return None
-            except Exception:
+            except Exception as e:
                 pass
             tenant = getattr(g, 'current_tenant', None)
             if not tenant:
@@ -817,7 +817,7 @@ def create_app(config_name: str | None = None) -> Flask:
             if app.config.get('ENABLE_SAAS_MODE', False):
                 from flask import abort
                 abort(403, description=str(exc))
-        except Exception:
+        except Exception as e:
             if app.config.get('ENABLE_SAAS_MODE', False) and not app.config.get('TESTING'):
                 app.logger.exception("Tenant resolution failed")
                 from flask import abort
@@ -868,13 +868,13 @@ def create_app(config_name: str | None = None) -> Flask:
             if tid is None:
                 return response
             from app.core.tenant.models import ResourceUsage
-            last = ResourceUsage.query.filter_by(tenant_id=tid)\
-                .order_by(ResourceUsage.recorded_at.desc()).first()
+            last = db.session.execute(select(ResourceUsage).filter_by(tenant_id=tid)\
+                .order_by(ResourceUsage.recorded_at.desc())).scalars().first()
             from datetime import datetime, timedelta, timezone
             if last and (datetime.now(timezone.utc) - last.recorded_at) < timedelta(hours=1):
                 return response
             ResourceUsage.record_snapshot(tid)
-        except Exception:
+        except Exception as e:
             pass
         return response
 
@@ -899,7 +899,7 @@ def create_app(config_name: str | None = None) -> Flask:
                 try:
                     from app.core.module.validators import get_active_modules_for_tenant
                     mods = get_active_modules_for_tenant(tenant.id)
-                except Exception:
+                except Exception as e:
                     mods = set()
             return {
                 'enabled_modules': mods,
@@ -1016,7 +1016,7 @@ def create_app(config_name: str | None = None) -> Flask:
                 'enum_values': get_enum_values,
                 'enums_json': app._enums_json_cache['data'],
             }
-        except Exception:
+        except Exception as e:
             return {}
 
     # Security & audit middleware
@@ -1059,7 +1059,7 @@ def create_app(config_name: str | None = None) -> Flask:
         try:
             db.session.remove()
             # Do NOT dispose engine here — it destroys the connection pool
-        except Exception:
+        except Exception as e:
             pass
 
     with app.app_context():
@@ -1072,14 +1072,14 @@ def create_app(config_name: str | None = None) -> Flask:
                 assign_super_admin_permissions()
 
                 def _assign(role_name: str, perm_names: list[str]):
-                    role_obj = Role.query.filter_by(name=role_name).first()
+                    role_obj = db.session.execute(select(Role).filter_by(name=role_name)).scalars().first()
                     if not role_obj:
                         return
                     for pname in perm_names:
-                        p = Permission.query.filter_by(name=pname).first()
+                        p = db.session.execute(select(Permission).filter_by(name=pname)).scalars().first()
                         if not p:
                             continue
-                        if not RolePermission.query.filter_by(role_id=role_obj.id, permission_id=p.id).first():
+                        if not db.session.execute(select(RolePermission).filter_by(role_id=role_obj.id, permission_id=p.id)).scalars().first():
                             db.session.add(RolePermission(role_id=role_obj.id, permission_id=p.id))
                     safe_commit(db.session, error_message="database commit failed", reraise=True)
                 _assign('admin', ['user_read','user_update','user_create','user_manage_roles','system_settings','system_logs','system_monitoring','reports_view','reports_create','reports_export','queue_settings_manage'])
@@ -1094,7 +1094,7 @@ def create_app(config_name: str | None = None) -> Flask:
                 _assign('pharmacist', ['medical_records_read','reports_view'])
 
             pass
-        except Exception:
+        except Exception as e:
             pass
 
     # CLI commands for module/tenant management
@@ -1109,22 +1109,22 @@ def create_app(config_name: str | None = None) -> Flask:
         from models.user import User
 
         added = ensure_module_definitions()
-        print(f"ModuleDefinition added: {added}; total: {ModuleDefinition.query.count()}")
+        print(f"ModuleDefinition added: {added}; total: {db.session.execute(select(func.count()).select_from(ModuleDefinition)).scalar()}")
 
         # Seed TenantModule for all tenants
-        admin = User.query.first()
+        admin = db.session.execute(select(User)).scalars().first()
         if not admin:
             print("No admin user found")
             return
-        for tenant in Tenant.query.all():
+        for tenant in db.session.execute(select(Tenant)).scalars().all():
             for name in MODULE_REGISTRY.keys():
-                tm = TenantModule.query.filter_by(tenant_id=tenant.id, module_name=name).first()
+                tm = db.session.execute(select(TenantModule).filter_by(tenant_id=tenant.id, module_name=name)).scalars().first()
                 if not tm:
                     tm = TenantModule(tenant_id=tenant.id, module_name=name, is_active=True,
                                       activated_at=db.func.now(), activated_by=admin.id)
                     db.session.add(tm)
         safe_commit(db.session, error_message="database commit failed", reraise=True)
-        print(f"TenantModule seeded for {Tenant.query.count()} tenants")
+        print(f"TenantModule seeded for {db.session.execute(select(func.count()).select_from(Tenant)).scalar()} tenants")
 
     @app.cli.command("tenant-create")
     @click.option("--slug", required=True)
@@ -1139,7 +1139,7 @@ def create_app(config_name: str | None = None) -> Flask:
         from app.extensions import db
         from models.user import User
         
-        if Tenant.query.filter_by(slug=slug).first():
+        if db.session.execute(select(Tenant).filter_by(slug=slug)).scalars().first():
             print(f"Tenant {slug} already exists")
             return
         
@@ -1159,7 +1159,7 @@ def create_app(config_name: str | None = None) -> Flask:
         db.session.add(tenant)
         db.session.flush()
         
-        admin = User.query.first()
+        admin = db.session.execute(select(User)).scalars().first()
         for m in modules:
             db.session.add(TenantModule(tenant_id=tenant.id, module_name=m, is_active=True,
                                         activated_at=db.func.now(), activated_by=admin.id))
@@ -1207,7 +1207,7 @@ def create_app(config_name: str | None = None) -> Flask:
                     total_updated += affected
                     print(f"  {tbl}: {affected} rows updated")
                 safe_commit(db.session, error_message="database commit failed", reraise=True)
-            except Exception:
+            except Exception as e:
                 safe_rollback(db.session, error_message="database rollback")
         print(f"\nBackfill complete: {total_updated} total rows updated")
 
@@ -1250,7 +1250,7 @@ def create_app(config_name: str | None = None) -> Flask:
                             NotificationService.send_appointment_reminders(tenant_id=tenant_id),
                         ),
                     )
-                except Exception:
+                except Exception as e:
                     pass
 
         thread = threading.Thread(target=_run_loop, daemon=True, name='notif-processor')

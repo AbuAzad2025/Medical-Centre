@@ -19,6 +19,7 @@ from models.visit import Visit
 from models.patient import Patient
 from models.payment import Payment
 from app.shared.enums import VisitState, VisitArchiveStatus
+from app.extensions import db
 
 
 @pytest.fixture

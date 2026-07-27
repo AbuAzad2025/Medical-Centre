@@ -53,7 +53,7 @@ def manager_settings():
         tenant.settings = settings
         try:
             safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             logging.error("Failed to save manager settings")
             return jsonify({'success': False, 'message': 'تعذر حفظ الإعدادات'}), 500

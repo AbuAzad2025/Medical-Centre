@@ -62,7 +62,7 @@ def get_lab_smart_analytics():
             avg_processing_seconds = db.session.execute(select(
                 db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
             ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None))).scalar()
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             avg_processing_seconds = None
         avg_processing_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
@@ -86,7 +86,7 @@ def get_lab_test_optimization():
             avg_processing_seconds = db.session.execute(select(
                 db.func.avg(db.func.extract('epoch', LabRequest.completed_at) - db.func.extract('epoch', LabRequest.created_at))
             ).filter(LabRequest.status == OrderState.DONE, LabRequest.completed_at.isnot(None))).scalar()
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
             avg_processing_seconds = None
         avg_processing_time = round((float(avg_processing_seconds or 0) / 3600.0), 2)
@@ -208,7 +208,7 @@ def get_lab_predictive_insights():
             'predicted_demand': predicted_demand,
             'growth_rate': round(growth_rate, 2)
         }
-    except Exception:
+    except Exception as e:
         return {}
 
 def calculate_lab_efficiency(completion_rate, pending_requests):

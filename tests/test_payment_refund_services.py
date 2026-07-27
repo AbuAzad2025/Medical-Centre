@@ -21,6 +21,7 @@ from models.invoice import Invoice
 from models.patient import Patient
 from models.visit import Visit
 from models.user import User
+from app.extensions import db
 
 
 @pytest.fixture
@@ -132,7 +133,7 @@ class TestCreatePayment:
                                     status='CONFIRMED')
         assert ok is True
         fx.db.session.flush()
-        assert Decimal(str(Invoice.query.get(inv.id).paid_amount or 0)) > 0
+        assert Decimal(str(db.session.get(Invoice, inv.id).paid_amount or 0)) > 0
 
 
 # ════════════════════════════ RefundService ════════════════════════════
@@ -242,6 +243,6 @@ class TestExecuteRefund:
         ok3, r = RS.execute_refund(req.id, executed_by=u.id)
         assert ok3 is True
         assert r.status == RefundStatus.EXECUTED
-        assert Payment.query.get(pay.id).status == PaymentStatus.REFUNDED
-        assert Decimal(str(Invoice.query.get(inv.id).paid_amount or 0)) == Decimal('0')
-        assert Receipt.query.get(rec.id).status == 'voided'
+        assert db.session.get(Payment, pay.id).status == PaymentStatus.REFUNDED
+        assert Decimal(str(db.session.get(Invoice, inv.id).paid_amount or 0)) == Decimal('0')
+        assert db.session.get(Receipt, rec.id).status == 'voided'

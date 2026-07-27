@@ -20,6 +20,8 @@ from models.payment import Payment
 from models.visit import Visit
 from models.patient import Patient
 from models.user import User
+from sqlalchemy import select
+from app.extensions import db
 
 
 @pytest.fixture
@@ -101,7 +103,7 @@ class TestCreateInvoice:
         ])
         assert inv is not None
         assert float(inv.total_amount) == 130.0
-        lines = InvoiceService.query.filter_by(invoice_id=inv.id).all()
+        lines = db.session.execute(select(InvoiceService).filter_by(invoice_id=inv.id)).scalars().all()
         assert len(lines) == 2
 
     def test_no_visit_still_creates(self, ffx):
@@ -135,7 +137,7 @@ class TestRecordPayment:
         inv = ffx.invoice(v.id, 100, paid=0, status='ISSUED')
         ok = FinancialService.record_payment(inv.id, 60, method='cash')
         assert ok is True
-        pays = Payment.query.filter_by(invoice_id=inv.id).all()
+        pays = db.session.execute(select(Payment).filter_by(invoice_id=inv.id)).scalars().all()
         assert len(pays) >= 1
         assert float(pays[-1].amount) == 60.0
 
@@ -277,7 +279,7 @@ class TestReceiptService:
         ReceiptService.mark_printed(rid)
         ReceiptService.void_receipt(rid, reason='test')
         from models.receipt import Receipt
-        rec = Receipt.query.get(rid)
+        rec = db.session.get(Receipt, rid)
         assert rec.status == 'voided' and rec.void_reason == 'test'
 
     def test_method_mapping_insurance(self, ffx):
@@ -289,7 +291,7 @@ class TestReceiptService:
         ffx.db.session.commit()
         res = ReceiptService.issue_receipt(v, pay)
         from models.receipt import Receipt
-        rec = Receipt.query.get(res['receipt_id'])
+        rec = db.session.get(Receipt, res['receipt_id'])
         assert rec.payment_method == 'debt'
 
 

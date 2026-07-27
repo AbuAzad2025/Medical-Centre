@@ -9,6 +9,7 @@ import pytest
 
 from app.shared.print_context import resolve_print_context
 from tests.tenant_context import bind_tenant_on_g, ensure_default_test_tenant
+from app.extensions import db
 
 
 class TestPrintContextPharmacySale:

@@ -14,6 +14,7 @@ import pytest
 from app.shared.enums import StockMovementType, InvoiceStatus
 from app.modules.workflows.pharmacy import PharmacyStockService
 from app.modules.workflows.billing import _BillingServiceDeprecated as BillingService
+from app.extensions import db
 
 
 def _med(stock=100, minimum=20, mid=1):

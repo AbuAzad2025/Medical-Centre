@@ -26,6 +26,7 @@ from models.radiology_request import RadiologyRequest
 from models.department import Department
 from models.user import User
 from app.shared.enums import BookingState, VisitState, AppointmentState, OrderState
+from app.extensions import db
 
 
 @pytest.fixture(autouse=True)
@@ -87,7 +88,7 @@ class TestConvertToVisit:
             g.tenant_id = fx.tenant.id
             res = OBCS.convert_to_visit(b)
         assert res['is_new_patient'] is True
-        v = Visit.query.get(res['visit_id'])
+        v = db.session.get(Visit, res['visit_id'])
         assert v.status == VisitState.OPEN.value
         assert b.status == BookingState.CONVERTED
 
@@ -109,7 +110,7 @@ class TestConvertToAppointment:
         with app.test_request_context():
             g.tenant_id = fx.tenant.id
             res = OBCS.convert_to_appointment(b)
-        ap = Appointment.query.get(res['appointment_id'])
+        ap = db.session.get(Appointment, res['appointment_id'])
         assert ap.starts_at is not None
         assert ap.status == AppointmentState.SCHEDULED
         assert b.status == BookingState.CONVERTED
@@ -139,7 +140,7 @@ class TestConvertBasedOnProfile:
         with app.test_request_context():
             g.tenant_id = fx.tenant.id
             res = OBCS.convert_based_on_profile(b, profile_code='standalone_lab')
-        lr = LabRequest.query.get(res['lab_request_id'])
+        lr = db.session.get(LabRequest, res['lab_request_id'])
         assert lr.visit_id is not None
         assert lr.patient_id == res['patient_id']
 
@@ -148,7 +149,7 @@ class TestConvertBasedOnProfile:
         with app.test_request_context():
             g.tenant_id = fx.tenant.id
             res = OBCS.convert_based_on_profile(b, profile_code='standalone_radiology')
-        rr = RadiologyRequest.query.get(res['radiology_request_id'])
+        rr = db.session.get(RadiologyRequest, res['radiology_request_id'])
         assert rr.visit_id is not None
 
 
@@ -169,7 +170,7 @@ class TestAppointmentCheckin:
             g.tenant_id = fx.tenant.id
             res = AppointmentCheckinService.checkin(ap)
         assert res['status'] == VisitState.CHECKED_IN
-        assert Visit.query.get(res['visit_id']).status == VisitState.CHECKED_IN.value
+        assert db.session.get(Visit, res['visit_id']).status == VisitState.CHECKED_IN.value
 
     def test_walkin(self, fx, app):
         p = Patient(tenant_id=fx.tenant.id, first_name='w', last_name='k', phone='+970599222000')

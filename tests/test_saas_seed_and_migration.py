@@ -16,24 +16,25 @@ from app.core.saas.models import (
 )
 from app.core.saas.resolver import EntitlementResolver
 from app.core.tenant.models import ProductBundle, Tenant, TenantStatus
+from sqlalchemy import select, func
 
 
 class TestSeedFromProductBundles:
     def test_seed_creates_packages_from_bundles(self, app):
         # Ensure bundles exist
-        if ProductBundle.query.count() == 0:
+        if db.session.execute(select(func.count()).select_from(ProductBundle)).scalar() == 0:
             from app.core.tenant.models import seed_default_bundles
             seed_default_bundles()
 
-        before = Package.query.count()
+        before = db.session.execute(select(func.count()).select_from(Package)).scalar()
         created = seed_packages_from_product_bundles()
         # If packages were already seeded in a previous run, assert existing catalog is populated.
         if not created:
             assert before > 0
-            package = Package.query.first()
+            package = db.session.execute(select(Package)).scalars().first()
         else:
             assert len(created) > 0
-            package = Package.query.get(created[0])
+            package = db.session.get(Package, created[0])
 
         assert package is not None
         assert package.versions
@@ -46,21 +47,21 @@ class TestSeedFromProductBundles:
                 .first()
             )
         else:
-            version = PackageVersion.query.filter_by(package_id=package.id).first()
+            version = db.session.execute(select(PackageVersion).filter_by(package_id=package.id)).scalars().first()
 
         assert version is not None
         assert version.pricing
-        assert PackageVersionEntitlement.query.filter_by(package_version_id=version.id).count() > 0
+        assert db.session.execute(select(func.count()).select_from(PackageVersionEntitlement).filter_by(package_version_id=version.id)).scalar() > 0
 
     def test_seed_is_idempotent(self, app):
-        if ProductBundle.query.count() == 0:
+        if db.session.execute(select(func.count()).select_from(ProductBundle)).scalar() == 0:
             from app.core.tenant.models import seed_default_bundles
             seed_default_bundles()
 
         first = seed_packages_from_product_bundles()
-        count_after_first = Package.query.count()
+        count_after_first = db.session.execute(select(func.count()).select_from(Package)).scalar()
         second = seed_packages_from_product_bundles()
-        count_after_second = Package.query.count()
+        count_after_second = db.session.execute(select(func.count()).select_from(Package)).scalar()
 
         assert count_after_first == count_after_second
         assert set(second).issubset(set(first))
@@ -68,15 +69,15 @@ class TestSeedFromProductBundles:
 
 class TestLegacyTenantMigration:
     def test_migrate_legacy_tenant_creates_line_and_entitlements(self, app):
-        if ProductBundle.query.count() == 0:
+        if db.session.execute(select(func.count()).select_from(ProductBundle)).scalar() == 0:
             from app.core.tenant.models import seed_default_bundles
             seed_default_bundles()
 
         created = seed_packages_from_product_bundles()
         if created:
-            version = Package.query.get(created[0]).versions[0]
+            version = db.session.get(Package, created[0]).versions[0]
         else:
-            version = PackageVersion.query.first()
+            version = db.session.execute(select(PackageVersion)).scalars().first()
 
         tenant = Tenant(
             slug=f"legacy-{uuid.uuid4().hex[:8]}",
@@ -96,22 +97,22 @@ class TestLegacyTenantMigration:
 
         assert line.tenant_id == tenant.id
         assert line.line_type == "base"
-        assert SubscriptionLine.query.filter_by(tenant_id=tenant.id).count() == 1
+        assert db.session.execute(select(func.count()).select_from(SubscriptionLine).filter_by(tenant_id=tenant.id)).scalar() == 1
 
         capabilities = {e.capability_key for e in version.entitlements}
         for cap in capabilities:
             assert EntitlementResolver.is_entitled(tenant.id, cap) is True
 
     def test_migrate_fails_if_active_lines_exist(self, app):
-        if ProductBundle.query.count() == 0:
+        if db.session.execute(select(func.count()).select_from(ProductBundle)).scalar() == 0:
             from app.core.tenant.models import seed_default_bundles
             seed_default_bundles()
 
         created = seed_packages_from_product_bundles()
         if created:
-            version = Package.query.get(created[0]).versions[0]
+            version = db.session.get(Package, created[0]).versions[0]
         else:
-            version = PackageVersion.query.first()
+            version = db.session.execute(select(PackageVersion)).scalars().first()
 
         tenant = Tenant(
             slug=f"legacy-dup-{uuid.uuid4().hex[:8]}",

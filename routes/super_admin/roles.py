@@ -307,7 +307,7 @@ def permissions_matrix():
                 for pid in selected:
                     try:
                         db.session.add(RolePermission(role_id=role.id, permission_id=int(pid), granted_by=current_user.id))
-                    except Exception:
+                    except Exception as e:
                         continue
             safe_commit(db.session, error_message="database commit failed", reraise=True)
             flash('تم تحديث مصفوفة الصلاحيات', 'success')

@@ -80,7 +80,7 @@ def diagnosis(visit_id):
             if follow_up_date_raw:
                 try:
                     visit.follow_up_date = datetime.strptime(follow_up_date_raw, '%Y-%m-%d').date()
-                except Exception:
+                except Exception as e:
                     visit.follow_up_date = None
             else:
                 visit.follow_up_date = None
@@ -134,7 +134,7 @@ def diagnosis(visit_id):
                 parsed = literal_eval(raw_vital_signs)
                 if isinstance(parsed, dict):
                     structured_vital_signs = parsed
-            except Exception:
+            except Exception as e:
                 structured_vital_signs = {}
         return render_template('doctor/diagnosis.html', visit=visit, structured_vital_signs=structured_vital_signs)
     except Exception as e:
@@ -263,7 +263,7 @@ def get_data_based_recommendations(diagnosis_text: str):
         for r in rows:
             out.append({'medication': r.trade_name, 'count': int(r.cnt)})
         return out
-    except Exception:
+    except Exception as e:
         return []
 
 def evaluate_clinical_rules(visit, prescriptions, structured_vital_signs=None):
@@ -272,7 +272,7 @@ def evaluate_clinical_rules(visit, prescriptions, structured_vital_signs=None):
         from models.patient import PatientAllergy
         allergies = db.session.execute(select(PatientAllergy).filter_by(patient_id=visit.patient_id)).scalars().all()
         allergens = [a.allergen.lower() for a in allergies if a.allergen]
-    except Exception:
+    except Exception as e:
         allergens = []
     med_names = []
     durations = []

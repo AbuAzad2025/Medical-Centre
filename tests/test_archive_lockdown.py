@@ -9,6 +9,8 @@ from models.invoice import Invoice
 from models.queue_management import QueueManagement
 from app_factory import db as _db
 from app.shared.enums import PaymentStatus, VisitState
+from sqlalchemy import select
+from app.extensions import db
 
 
 class TestArchiveGatekeeperLockdown:
@@ -242,7 +244,7 @@ class TestPaymentMutationBlockedAfterArchive:
         # Must redirect with error, not 200/302 success
         assert resp.status_code == 302
         # Verify no new invoice was created
-        invoices = Invoice.query.filter_by(visit_id=v.id).all()
+        invoices = db.session.execute(select(Invoice).filter_by(visit_id=v.id)).scalars().all()
         assert len(invoices) == 0
 
     def test_accountant_payment_blocked_after_archive(self, app, test_tenant, client, login_as):

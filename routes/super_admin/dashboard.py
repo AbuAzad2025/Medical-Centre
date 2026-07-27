@@ -61,7 +61,7 @@ def _get_super_admin_config_stats():
         tpl_cfg = db.session.execute(select(SystemConfig).filter_by(config_key='branch_templates')).scalars().first()
         tpl_val = tpl_cfg.get_value() if tpl_cfg else []
         return {'maintenance_automation': maint.get_value() if maint else {}, 'branch_templates_count': len(tpl_val) if isinstance(tpl_val, list) else 0}
-    except Exception:
+    except Exception as e:
         return {'maintenance_automation': {}, 'branch_templates_count': 0}
 
 
@@ -106,7 +106,7 @@ def dashboard():
             total_logs = db.session.execute(select(func.count()).select_from(SystemLog).filter(SystemLog.created_at >= thirty_days)).scalar()
             error_logs = db.session.execute(select(func.count()).select_from(SystemLog).filter(SystemLog.created_at >= thirty_days, SystemLog.log_level.in_(['ERROR', 'CRITICAL']))).scalar()
             uptime_pct = round((1 - (error_logs / max(total_logs, 1))) * 100, 1)
-        except Exception:
+        except Exception as e:
             uptime_pct = 99.9
         system_uptime_val = f"{uptime_pct}%"
 
@@ -122,7 +122,7 @@ def dashboard():
                 ai_insights_list.append({'type': 'security', 'title': 'انخفاض المستخدمين النشطين', 'description': 'أكثر من نصف المستخدمين غير نشطين', 'recommendation': 'مراجعة أسباب انخفاض النشاط'})
             if threats_count > 2:
                 ai_insights_list.append({'type': 'security', 'title': 'تهديدات أمنية', 'description': f'{threats_count} تهديد أمني مكتشف', 'recommendation': 'اتخاذ إجراءات تصحيحية فورية'})
-        except Exception:
+        except Exception as e:
             ai_insights_list.append({'type': 'optimization', 'title': 'النظام يعمل', 'description': 'لا توجد توصيات حالياً', 'recommendation': 'النظام يعمل بكفاءة'})
 
         stats = {

@@ -22,6 +22,8 @@ import pytest
 
 from tests.test_phase14_launch import TECHNICAL_LEAK_PATTERNS, _login_as
 from tests.test_e2e_frontend import _fill_path, e2e_seed  # noqa: F401 (fixture re-export)
+from sqlalchemy import select
+from app.extensions import db
 
 _MUTATING = {'POST', 'PUT', 'PATCH', 'DELETE'}
 
@@ -196,7 +198,7 @@ class TestApiContract:
         # row even for empty input; the session-scoped test DB would then leak that
         # junk into later tests (e.g. SaaS seed). Snapshot + remove anything created.
         from app.core.tenant.models import ProductBundle
-        pre_bundles = {b.id for b in ProductBundle.query.all()}
+        pre_bundles = {b.id for b in db.session.execute(select(ProductBundle)).scalars().all()}
         try:
             for role, items in by_role.items():
                 db.session.rollback()

@@ -80,7 +80,7 @@ def template_config(tpl: ReportTemplate) -> dict[str, Any]:
     try:
         if tpl.template_content and tpl.template_content.strip().startswith('{'):
             return json.loads(tpl.template_content)
-    except Exception:
+    except Exception as e:
         pass
     return tpl.get_template_variables_dict() or {}
 

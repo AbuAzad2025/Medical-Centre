@@ -19,6 +19,7 @@ from models.invoice import Invoice
 from models.department import Department
 from models.user import User
 from app.shared.enums import VisitState, AppointmentState
+from app.extensions import db
 
 
 @pytest.fixture

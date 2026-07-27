@@ -11,6 +11,8 @@ import pytest
 
 from services.notification_service import NotificationService, ROLE_TO_MODULE
 from models.notification import Notification
+from sqlalchemy import select, func
+from app.extensions import db
 
 
 @pytest.fixture
@@ -33,7 +35,7 @@ def saas(app, monkeypatch):
 
 
 def _count(role):
-    return Notification.query.filter_by(recipient_role=role).count()
+    return db.session.execute(select(func.count()).select_from(Notification).filter_by(recipient_role=role)).scalar()
 
 
 def test_disabled_module_notification_is_dropped(saas, rollback_db):

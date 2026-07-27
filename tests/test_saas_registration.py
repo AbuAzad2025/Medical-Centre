@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 from models.user import User
 from services.saas_registration_service import SaasRegistrationError, SaasRegistrationService
 from tests.tenant_context import tenant_test_context
+from sqlalchemy import select, func
 
 
 def _seed_package_version():
@@ -76,7 +77,7 @@ class TestSaasRegistrationService:
         assert admin.tenant_id == tenant.id
         assert admin.role == 'manager'
         with tenant_test_context(app, tenant):
-            assert User.query.filter_by(tenant_id=tenant.id).count() == 1
+            assert db.session.execute(select(func.count()).select_from(User).filter_by(tenant_id=tenant.id)).scalar() == 1
 
     def test_duplicate_slug_rejected(self, app):
         version = _seed_package_version()
@@ -119,7 +120,7 @@ class TestSaasRegistrationRoute:
         assert resp.status_code == 201
         body = resp.get_json()
         assert body['tenant']['slug'] == slug
-        tenant = Tenant.query.filter_by(slug=slug).first()
+        tenant = db.session.execute(select(Tenant).filter_by(slug=slug)).scalars().first()
         assert tenant is not None
         with tenant_test_context(app, tenant):
-            assert User.query.filter_by(tenant_id=tenant.id).count() == 1
+            assert db.session.execute(select(func.count()).select_from(User).filter_by(tenant_id=tenant.id)).scalar() == 1

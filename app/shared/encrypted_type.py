@@ -38,7 +38,7 @@ class EncryptedString(TypeDecorator):
         try:
             from services.field_encryption_service import FieldEncryptionService
             return FieldEncryptionService()
-        except Exception:
+        except Exception as e:
             return None
 
     def process_bind_param(self, value, dialect):

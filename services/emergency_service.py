@@ -213,7 +213,7 @@ class EmergencyService:
                     message=f"تم تغيير أولوية الحالة #{case.id} إلى {case.priority}",
                     notification_type="warning",
                 )
-        except Exception:
+        except Exception as e:
             pass
 
 

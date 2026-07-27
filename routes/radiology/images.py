@@ -50,7 +50,7 @@ def download_file(file_id):
         try:
             f.last_accessed = datetime.now(timezone.utc)
             safe_commit(db.session, error_message="database commit failed", reraise=True)
-        except Exception:
+        except Exception as e:
             safe_rollback(db.session, error_message="database rollback")
         return send_file(f.file_path, as_attachment=True, download_name=f.original_filename)
     except Exception as e:

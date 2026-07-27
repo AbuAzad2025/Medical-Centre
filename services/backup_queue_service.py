@@ -22,7 +22,7 @@ def queue_system_backup(backup_id: int) -> str:
         try:
             result = run_system_backup.apply(args=[backup_id])
             return result.id or f'eager-{backup_id}'
-        except Exception:
+        except Exception as e:
             return f'eager-{backup_id}'
 
     async_result = run_system_backup.delay(backup_id)

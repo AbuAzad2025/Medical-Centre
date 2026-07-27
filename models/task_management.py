@@ -239,7 +239,7 @@ class Project(TenantMixin, db.Model):
             
             completed_tasks = self.tasks.filter_by(status='completed').count()
             return (completed_tasks / total_tasks) * 100
-        except Exception:
+        except Exception as e:
             return 0
     
     def is_overdue(self):

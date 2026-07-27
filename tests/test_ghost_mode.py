@@ -18,6 +18,7 @@ from app.core.tenant.ghost_mode import (
 from seeds import production_baseline as pb
 from seeds import local_dev_story as dev
 from models.audit_trail import AuditTrail
+from app.extensions import db
 
 
 SECRET = "test-ghost-secret"
@@ -66,7 +67,7 @@ def master_and_target(app, rollback_db, ghost_env):
     try:
         from app.extensions import db
         db.session.info.pop("_tenant_id", None)
-    except Exception:
+    except Exception as e:
         pass
     return {"master": pb.seed_master_account(), "tenant": tenant, "target": target}
 

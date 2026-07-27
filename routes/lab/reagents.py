@@ -84,18 +84,18 @@ def add_reagent():
                 return redirect(url_for('lab.add_reagent'))
             try:
                 stock_quantity = int(stock_quantity) if stock_quantity is not None and str(stock_quantity).strip() != '' else 0
-            except Exception:
+            except Exception as e:
                 stock_quantity = 0
             try:
                 minimum_stock = int(minimum_stock) if minimum_stock is not None and str(minimum_stock).strip() != '' else 0
-            except Exception:
+            except Exception as e:
                 minimum_stock = 0
 
             expiry_date = None
             if expiry_raw:
                 try:
                     expiry_date = datetime.strptime(expiry_raw, '%Y-%m-%d').date()
-                except Exception:
+                except Exception as e:
                     expiry_date = None
 
             db.session.add(LabReagent(
@@ -145,18 +145,18 @@ def edit_reagent(reagent_id: int):
                 return redirect(url_for('lab.edit_reagent', reagent_id=reagent_id))
             try:
                 stock_quantity = int(stock_quantity) if stock_quantity is not None and str(stock_quantity).strip() != '' else 0
-            except Exception:
+            except Exception as e:
                 stock_quantity = 0
             try:
                 minimum_stock = int(minimum_stock) if minimum_stock is not None and str(minimum_stock).strip() != '' else 0
-            except Exception:
+            except Exception as e:
                 minimum_stock = 0
 
             expiry_date = None
             if expiry_raw:
                 try:
                     expiry_date = datetime.strptime(expiry_raw, '%Y-%m-%d').date()
-                except Exception:
+                except Exception as e:
                     expiry_date = None
 
             reagent.name = name

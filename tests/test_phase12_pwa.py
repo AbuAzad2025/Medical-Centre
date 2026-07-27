@@ -1,6 +1,8 @@
 """Tests for phase 12 — PWA, mobile, kiosk (§25, §28)."""
 
 from pathlib import Path
+from sqlalchemy import select
+from app.extensions import db
 
 
 class TestPWAAssets:
@@ -60,7 +62,7 @@ class TestStaffShellPWA:
     def test_mobile_bottom_nav_for_reception(self, app, client, test_tenant):
         from app.extensions import db
         from models.user import User
-        u = User.query.filter_by(username='reception_p12').first()
+        u = db.session.execute(select(User).filter_by(username='reception_p12')).scalars().first()
         if not u:
             u = User(
                 username='reception_p12',

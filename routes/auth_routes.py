@@ -37,7 +37,7 @@ def api_tenants_list():
         return jsonify({
             'tenants': [{'id': t.id, 'slug': t.slug, 'name': t.name_ar or t.name} for t in tenants]
         })
-    except Exception:
+    except Exception as e:
         return jsonify({'tenants': []})
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -70,7 +70,7 @@ def login() -> ResponseReturnValue:
                 token = (request.headers.get('X-CSRFToken') or request.headers.get('X-CSRF-Token') or data.get('csrf_token') or request.cookies.get('csrf_token'))
                 try:
                     validate_csrf(token)
-                except Exception:
+                except Exception as e:
                     msg = 'جلسة غير صالحة، يرجى تحديث الصفحة والمحاولة مرة أخرى'
                     if is_ajax:
                         return jsonify({'success': False, 'message': msg}), 400
@@ -117,7 +117,7 @@ def login() -> ResponseReturnValue:
                         return default
                     try:
                         return int(row.get_value())
-                    except Exception:
+                    except Exception as e:
                         return default
 
                 max_attempts = _get_int_setting('max_login_attempts', 5)
@@ -155,7 +155,7 @@ def login() -> ResponseReturnValue:
                                     notes=f'username={username}'
                                 ))
                                 safe_commit(db.session, error_message="database commit failed", reraise=True)
-                            except Exception:
+                            except Exception as e:
                                 safe_rollback(db.session, error_message="database rollback")
 
                             msg = 'تم تجميد تسجيل الدخول مؤقتاً بسبب محاولات فاشلة متكررة. حاول لاحقاً.'
@@ -202,7 +202,7 @@ def login() -> ResponseReturnValue:
                             description='تسجيل دخول'
                         ))
                         safe_commit(db.session, error_message="database commit failed", reraise=True)
-                    except Exception:
+                    except Exception as e:
                         try:
                             safe_rollback(db.session, error_message="database rollback")
                         except Exception as e:
@@ -233,7 +233,7 @@ def login() -> ResponseReturnValue:
                             t = db.session.get(Tenant, user.tenant_id)
                             if t:
                                 tenant_slug = t.slug
-                        except Exception:
+                        except Exception as e:
                             pass
                     # Do not prepend /t/{slug} for platform owners logging into owner mode
                     if tenant_slug and login_mode != 'owner':
@@ -290,7 +290,7 @@ def login() -> ResponseReturnValue:
                         notes=f'username={username}'
                     ))
                     safe_commit(db.session, error_message="database commit failed", reraise=True)
-                except Exception:
+                except Exception as e:
                     try:
                         safe_rollback(db.session, error_message="database rollback")
                     except Exception as e:
@@ -343,7 +343,7 @@ def logout():
                 description='تسجيل خروج'
             ))
             safe_commit(db.session, error_message="database commit failed", reraise=True)
-    except Exception:
+    except Exception as e:
         try:
             safe_rollback(db.session, error_message="database rollback")
         except Exception as e:

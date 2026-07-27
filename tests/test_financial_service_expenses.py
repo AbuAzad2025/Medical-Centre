@@ -8,6 +8,7 @@ import pytest
 
 from services.financial_service import FinancialService
 from models.user import User
+from app.extensions import db
 
 
 @pytest.fixture

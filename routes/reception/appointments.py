@@ -669,7 +669,7 @@ def edit_appointment(appointment_id):
     try:
         if appointment.starts_at and appointment.ends_at:
             duration_value = int(max(0, (appointment.ends_at - appointment.starts_at).total_seconds()) // 60)
-    except Exception:
+    except Exception as e:
         duration_value = 30
 
     return render_template(
@@ -708,7 +708,7 @@ def api_available_times():
     try:
         from datetime import datetime
         target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    except Exception:
+    except Exception as e:
         return jsonify({'success': False, 'message': 'تنسيق التاريخ غير صحيح'}), 400
 
     start_of_day = datetime.combine(target_date, datetime.min.time())

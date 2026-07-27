@@ -21,6 +21,7 @@ from app.core.saas.resolver import EntitlementResolver
 from app.core.tenant.models import ProductBundle, Tenant, TenantStatus
 from app.core.module.models import TenantModule
 from tests.tenant_context import tenant_test_context
+from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
@@ -42,7 +43,7 @@ def limit_tenant(app):
 
 class TestLegacyAdapter:
     def test_entitled_via_product_bundle_modules(self, limit_tenant):
-        bundle = ProductBundle.query.filter_by(profile_code='standalone_clinic').first()
+        bundle = db.session.execute(select(ProductBundle).filter_by(profile_code='standalone_clinic')).scalars().first()
         if bundle is None:
             pytest.skip('no standalone_clinic bundle seeded')
         mods = bundle.get_modules()
