@@ -240,14 +240,14 @@ def drill_down(report_type):
         q = select(Visit)
         if dept_id:
             q = q.filter_by(department_id=int(dept_id))
-        results = q.order_by(Visit.visit_date.desc()).limit(200).all()
+        results = db.session.execute(q.order_by(Visit.visit_date.desc()).limit(200)).scalars().all()
     elif report_type == 'revenue':
         if not billing_active:
             flash('تقارير الإيرادات غير متاحة في باقتك الحالية', 'error')
             return redirect(url_for('manager.dashboard'))
         title = 'تفاصيل الإيرادات'
         q = select(Payment)
-        results = q.order_by(Payment.payment_date.desc()).limit(200).all()
+        results = db.session.execute(q.order_by(Payment.payment_date.desc()).limit(200)).scalars().all()
     elif report_type == 'patients':
         title = 'المرضى الجدد'
         results = db.session.execute(select(Patient).filter(Patient.created_at >= start_dt, Patient.created_at <= end_dt, Patient.tenant_id == current_user.tenant_id).order_by(Patient.created_at.desc()).limit(200)).scalars().all()

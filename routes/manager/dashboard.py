@@ -2,7 +2,7 @@
 
 from routes.manager import manager_bp
 
-from flask import flash, redirect, url_for
+from flask import flash, redirect, render_template, url_for
 from flask.typing import ResponseReturnValue
 from flask_login import login_required, current_user
 from utils.decorators import role_required

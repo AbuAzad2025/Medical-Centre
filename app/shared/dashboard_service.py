@@ -182,7 +182,6 @@ def _load_role_data(role: str, user) -> dict[str, Any]:
     if role == 'pharmacist':
         try:
             from models.medication import Medication, Prescription, PharmacySale
-            from sqlalchemy import func, select
 
             data['lists']['low_stock'] = db.session.execute(select(Medication).filter(
                 Medication.stock_quantity <= Medication.minimum_stock
