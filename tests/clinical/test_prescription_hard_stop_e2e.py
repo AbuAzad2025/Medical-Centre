@@ -73,6 +73,7 @@ def rollback_db(app):
 @pytest.fixture(scope='function')
 def test_patient(app, rollback_db):
     g.tenant_id = 1
+    g._tenant_filter_bypass = True
     db.session.info['_tenant_id'] = 1
     p = Patient(
         first_name='Test', last_name='Patient',
@@ -87,9 +88,11 @@ def test_patient(app, rollback_db):
 @pytest.fixture(scope='function')
 def test_doctor(app, rollback_db):
     g.tenant_id = 1
+    g._tenant_filter_bypass = True
     db.session.info['_tenant_id'] = 1
     # Clean up any leftover doctor from a prior aborted fixture
-    User.query.filter_by(username='dr_test', tenant_id=1).delete()
+    from sqlalchemy import delete
+    db.session.execute(delete(User).filter_by(username='dr_test', tenant_id=1))
     db.session.commit()
     d = User(
         username='dr_test', email='dr@test.local',
@@ -105,6 +108,7 @@ def test_doctor(app, rollback_db):
 @pytest.fixture(scope='function')
 def test_medications(app, rollback_db):
     g.tenant_id = 1
+    g._tenant_filter_bypass = True
     db.session.info['_tenant_id'] = 1
     meds = {
         'amoxicillin': Medication(

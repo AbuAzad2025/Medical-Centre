@@ -37,9 +37,9 @@ def rad_doctor(app, test_tenant):
             is_active=True,
             tenant_id=test_tenant.id,
         )
-        u.set_password('test123')
         _db.session.add(u)
-        _db.session.commit()
+    u.set_password('ValidPass123!')
+    _db.session.commit()
     return u
 
 

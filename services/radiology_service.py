@@ -36,7 +36,8 @@ class RadiologyService:
         from models.radiology_request import RadiologyRequest
         from models.visit import Visit
 
-        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id)).scalars().first()
+        tid = tenant_id or getattr(g, 'tenant_id', None)
+        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == tid)).scalars().first()
         if not visit:
             return False, {"error": "Visit not found"}
 
