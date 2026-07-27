@@ -6,6 +6,7 @@ Tracks consent for treatment, data processing, telemedicine, research, and marke
 from datetime import datetime, timezone
 from app_factory import db
 from app.shared.mixins import TenantMixin
+from app.shared.encrypted_type import EncryptedString
 
 
 class PatientConsent(TenantMixin, db.Model):
@@ -43,9 +44,9 @@ class PatientConsent(TenantMixin, db.Model):
     # Grant context
     granted_by_patient = db.Column(db.Boolean, default=True, nullable=False)
     # False if granted by legal guardian / representative
-    guardian_name = db.Column(db.String(120), nullable=True)
+    guardian_name = db.Column(EncryptedString(120), nullable=True)
     guardian_relationship = db.Column(db.String(50), nullable=True)
-    guardian_id_number = db.Column(db.String(50), nullable=True)
+    guardian_id_number = db.Column(EncryptedString(50), nullable=True)
 
     # How consent was captured
     capture_method = db.Column(db.String(50), nullable=False, default='written')

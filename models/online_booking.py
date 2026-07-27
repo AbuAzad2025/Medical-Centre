@@ -7,6 +7,7 @@ from sqlalchemy import select
 from datetime import datetime, date, timedelta, timezone
 from app.extensions import db
 from app.shared.mixins import TenantMixin
+from app.shared.encrypted_type import EncryptedString
 import secrets
 import string
 
@@ -21,11 +22,11 @@ class OnlineBooking(TenantMixin, db.Model):
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # معلومات المريض (للحجوزات الجديدة)
-    first_name = db.Column(db.String(100), nullable=False)
-    last_name = db.Column(db.String(100), nullable=False)
-    national_id = db.Column(db.String(20), nullable=True)
-    phone = db.Column(db.String(20), nullable=False)
-    email = db.Column(db.String(120), nullable=True)
+    first_name = db.Column(EncryptedString(100), nullable=False)
+    last_name = db.Column(EncryptedString(100), nullable=False)
+    national_id = db.Column(EncryptedString(20), nullable=True)
+    phone = db.Column(EncryptedString(20), nullable=False)
+    email = db.Column(EncryptedString(120), nullable=True)
     date_of_birth = db.Column(db.Date, nullable=True)
     gender = db.Column(db.String(10), nullable=True)
     

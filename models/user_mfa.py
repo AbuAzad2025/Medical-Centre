@@ -4,6 +4,7 @@ Two-Factor Authentication (2FA) / TOTP for Users
 from datetime import datetime, timezone
 from app_factory import db
 from app.shared.mixins import TenantMixin
+from app.shared.encrypted_type import EncryptedString
 
 class UserMFASettings(TenantMixin, db.Model):
     __tablename__ = 'user_mfa_settings'
@@ -12,7 +13,7 @@ class UserMFASettings(TenantMixin, db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True, index=True)
 
     # TOTP configuration
-    totp_secret = db.Column(db.String(64), nullable=True)  # Encrypted base32 secret
+    totp_secret = db.Column(EncryptedString(64), nullable=True)  # Encrypted base32 secret
     totp_enabled = db.Column(db.Boolean, default=False, nullable=False, index=True)
     totp_verified = db.Column(db.Boolean, default=False, nullable=False)
     backup_codes = db.Column(db.Text, nullable=True)  # JSON array of hashed backup codes

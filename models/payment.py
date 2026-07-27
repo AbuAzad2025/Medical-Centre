@@ -11,6 +11,7 @@ from sqlalchemy import CheckConstraint, Index
 from app_factory import db
 from app.shared.mixins import TenantMixin
 from app.shared.enums import PaymentMethod, PaymentStatus
+from app.shared.encrypted_type import EncryptedString
 
 
 class PaymentCard(TenantMixin, db.Model):
@@ -21,8 +22,8 @@ class PaymentCard(TenantMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     
     # Ownership
-    owner_name = db.Column(db.String(100), nullable=False)
-    owner_email = db.Column(db.String(255), nullable=True)
+    owner_name = db.Column(EncryptedString(100), nullable=False)
+    owner_email = db.Column(EncryptedString(255), nullable=True)
     
     # Card details (masked for security)
     bank_name = db.Column(db.String(100), nullable=True)
@@ -30,7 +31,7 @@ class PaymentCard(TenantMixin, db.Model):
     last_four = db.Column(db.String(4), nullable=False)
     expiry_month = db.Column(db.Integer, nullable=False)
     expiry_year = db.Column(db.Integer, nullable=False)
-    cardholder_name = db.Column(db.String(100), nullable=True)
+    cardholder_name = db.Column(EncryptedString(100), nullable=True)
     
     # Status
     is_active = db.Column(db.Boolean, default=True, nullable=False)

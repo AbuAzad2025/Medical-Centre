@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import Index, CheckConstraint, event
 from app_factory import db
 from app.shared.mixins import TenantMixin
+from app.shared.encrypted_type import EncryptedString
 
 
 class User(TenantMixin, UserMixin, db.Model):
@@ -29,7 +30,7 @@ class User(TenantMixin, UserMixin, db.Model):
         Index('idx_user_department_active', 'department_id', 'is_active'),
     )
     password_hash = db.Column(db.String(255), nullable=False)
-    full_name = db.Column(db.String(120), nullable=False)
+    full_name = db.Column(EncryptedString(120), nullable=False)
     role = db.Column(db.String(50), nullable=False, default='user')
 
     department_id = db.Column(
@@ -39,7 +40,7 @@ class User(TenantMixin, UserMixin, db.Model):
         index=True
     )
 
-    phone = db.Column(db.String(20), nullable=True)
+    phone = db.Column(EncryptedString(20), nullable=True)
     doctor_room = db.Column(db.String(50), nullable=True)
     is_active = db.Column(db.Boolean, default=True, index=True)
     is_admin = db.Column(db.Boolean, default=False, index=True)

@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.mixins import TenantMixin
+from app.shared.encrypted_type import EncryptedString
 import secrets
 import string
 
@@ -24,7 +25,7 @@ class WhatsAppMessage(TenantMixin, db.Model):
     sent_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     
     # معلومات الرسالة
-    phone_number = db.Column(db.String(20), nullable=False)
+    phone_number = db.Column(EncryptedString(20), nullable=False)
     message_type = db.Column(db.String(50), nullable=False)  # report, appointment, reminder, etc.
     message_content = db.Column(db.Text, nullable=False)
     template_id = db.Column(db.String(100), nullable=True)

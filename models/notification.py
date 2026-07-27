@@ -8,6 +8,7 @@ from sqlalchemy import Index, CheckConstraint, func
 from app_factory import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.mixins import TenantMixin
+from app.shared.encrypted_type import EncryptedString
 import json
 
 # ===== النماذج الأساسية (موحدة) =====
@@ -174,7 +175,7 @@ class NotificationQueue(TenantMixin, db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
     template_id = db.Column(db.Integer, db.ForeignKey('notification_templates.id', ondelete='CASCADE'), nullable=True, index=True)
     notification_type = db.Column(db.String(50), nullable=False)  # whatsapp, email, sms, push
-    recipient = db.Column(db.String(200), nullable=False)  # phone, email, etc.
+    recipient = db.Column(EncryptedString(200), nullable=False)  # phone, email, etc.
     subject = db.Column(db.String(200), nullable=True)
     content = db.Column(db.Text, nullable=False)
     variables = db.Column(db.Text, nullable=True)  # JSON format
@@ -255,7 +256,7 @@ class WhatsAppNotificationMessage(TenantMixin, db.Model):
     __tablename__ = 'whatsapp_messages'
     
     id = db.Column(db.Integer, primary_key=True)
-    phone_number = db.Column(db.String(20), nullable=False)
+    phone_number = db.Column(EncryptedString(20), nullable=False)
     message_content = db.Column(db.Text, nullable=False)
     message_type = db.Column(db.String(50), default='text')  # text, template, media
     template_name = db.Column(db.String(100), nullable=True)
@@ -293,7 +294,7 @@ class EmailMessage(TenantMixin, db.Model):
     __tablename__ = 'email_messages'
     
     id = db.Column(db.Integer, primary_key=True)
-    recipient_email = db.Column(db.String(200), nullable=False)
+    recipient_email = db.Column(EncryptedString(200), nullable=False)
     subject = db.Column(db.String(300), nullable=False)
     content = db.Column(db.Text, nullable=False)
     content_type = db.Column(db.String(50), default='text/html')  # text/plain, text/html
