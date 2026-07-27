@@ -34,14 +34,14 @@ def vital_signs():
         visit_id = request.args.get('visit_id', type=int)
         patient_id = request.args.get('patient_id', type=int)
         if not patient_id and visit_id:
-            visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == current_user.tenant_id)
-            patient_id = visit.patient_id
+            visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == current_user.tenant_id)).scalars().first()
+            patient_id = visit.patient_id if visit else None
         vq = select(Visit)
         dept_ids = _accessible_department_ids()
         if dept_ids is not None and dept_ids:
             vq = vq.filter(Visit.department_id.in_(dept_ids))
             vq = vq.filter(Visit.department_id.in_(dept_ids))
-        active_patient_ids = [r.patient_id for r in vq.order_by(desc(Visit.created_at)).limit(50).all() if getattr(r, 'patient_id', None)]
+        active_patient_ids = [r.patient_id for r in db.session.execute(vq.order_by(desc(Visit.created_at)).limit(50)).scalars().all() if getattr(r, 'patient_id', None)]
         patients = []
         if active_patient_ids:
             patients = db.session.execute(select(Patient).filter(Patient.id.in_(active_patient_ids)).order_by(desc(Patient.created_at))).scalars().all()

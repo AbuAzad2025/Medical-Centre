@@ -44,7 +44,7 @@ def medication_administration():
         dept_ids = _accessible_department_ids()
         if dept_ids is not None and dept_ids:
             visits_q = visits_q.filter(Visit.department_id.in_(dept_ids))
-        visits = visits_q.order_by(desc(Visit.created_at)).limit(50).all()
+        visits = db.session.execute(visits_q.order_by(desc(Visit.created_at)).limit(50)).scalars().all()
         selected_visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == current_user.tenant_id)).scalars().first() if visit_id else None
 
         prescribed_items = []

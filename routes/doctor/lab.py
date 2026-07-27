@@ -39,7 +39,10 @@ def lab_request(visit_id):
         if 'lab' not in getattr(g, 'enabled_modules', set()):
             flash('وحدة المختبر غير مفعلة لهذه المنشأة', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
+        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)).scalars().first()
+        if not visit:
+            flash('الزيارة غير موجودة', 'error')
+            return redirect(url_for('doctor.patient_queue'))
         if visit.status != VisitState.IN_PROGRESS:
             flash('لا يمكن طلب تحاليل إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
@@ -108,7 +111,10 @@ def lab_request(visit_id):
 def lab_results(patient_id):
     """عرض نتائج المختبر للطبيب — للإطلاع فقط"""
     try:
-        patient = select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)
+        patient = db.session.execute(select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)).scalars().first()
+        if not patient:
+            flash('المريض غير موجود', 'error')
+            return redirect(url_for('doctor.patient_queue'))
 
         lab_requests = db.session.execute(select(LabRequest).filter(
             LabRequest.patient_id == patient_id

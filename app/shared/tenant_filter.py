@@ -396,6 +396,8 @@ def auto_assign_tenant(session, flush_context, instances):
 
 def _cross_tenant_check(session, is_delete=False):
     """Guard against cross-tenant UPDATE/DELETE on dirty/deleted objects."""
+    if _is_tenant_bypass():
+        return  # platform-level or background worker with explicit bypass
     tid = _current_tenant_id(session=session)
     if tid is None:
         return  # super-admin or single-tenant — skip

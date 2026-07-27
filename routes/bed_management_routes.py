@@ -84,7 +84,7 @@ def api_available_beds():
     query = select(Bed)
     if ward_id:
         query = query.join(Room).filter(Room.ward_id == ward_id)
-    beds = query.all()
+    beds = db.session.execute(query).scalars().all()
     return jsonify([{'id': b.id, 'bed_number': b.bed_number,
                      'room': b.room.name, 'ward': b.room.ward.name} for b in beds])
 

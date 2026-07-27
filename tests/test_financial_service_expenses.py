@@ -70,12 +70,11 @@ class TestExpenseCRUD:
         assert len(res['expenses']) == 2
 
     def test_get_expenses_handles_query_failure(self, exp_ctx, monkeypatch):
-        from unittest.mock import MagicMock
-        from models.expense import Expense
+        from app.extensions import db
 
-        broken = MagicMock()
-        broken.order_by.side_effect = RuntimeError('db down')
-        monkeypatch.setattr(Expense, 'query', broken, raising=False)
+        def _raise(*a, **k):
+            raise RuntimeError('db down')
+        monkeypatch.setattr(db.session, 'execute', _raise)
         res = FinancialService.get_expenses()
         assert res['success'] is False
         assert res['expenses'] == []

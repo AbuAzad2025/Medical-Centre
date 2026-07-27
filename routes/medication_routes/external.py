@@ -147,13 +147,13 @@ def consumption_report():
     rows = []
     if group == 'doctor':
         q2 = q.add_columns(User.id.label('key_id'), User.full_name.label('label')).join(User, User.id == Prescription.doctor_id).group_by(User.id, User.full_name).order_by(func.sum(PrescriptionItem.total_price).desc())
-        rows = [{'label': r.label, 'total_qty': int(r.total_qty or 0), 'total_value': float(r.total_value or 0), 'rx_count': int(r.rx_count or 0)} for r in q2.all()]
+        rows = [{'label': r.label, 'total_qty': int(r.total_qty or 0), 'total_value': float(r.total_value or 0), 'rx_count': int(r.rx_count or 0)} for r in db.session.execute(q2).all()]
     elif group == 'department':
         q2 = q.add_columns(Department.id.label('key_id'), Department.name_ar.label('label')).join(Visit, Visit.id == PrescriptionDispenseLog.visit_id).join(Department, Department.id == Visit.department_id).group_by(Department.id, Department.name_ar).order_by(func.sum(PrescriptionItem.total_price).desc())
-        rows = [{'label': (r.label or 'غير محدد'), 'total_qty': int(r.total_qty or 0), 'total_value': float(r.total_value or 0), 'rx_count': int(r.rx_count or 0)} for r in q2.all()]
+        rows = [{'label': (r.label or 'غير محدد'), 'total_qty': int(r.total_qty or 0), 'total_value': float(r.total_value or 0), 'rx_count': int(r.rx_count or 0)} for r in db.session.execute(q2).all()]
     else:
         q2 = q.add_columns(Medication.id.label('key_id'), Medication.trade_name.label('label')).join(Medication, Medication.id == PrescriptionItem.medication_id).group_by(Medication.id, Medication.trade_name).order_by(func.sum(PrescriptionItem.total_price).desc())
-        rows = [{'label': r.label, 'total_qty': int(r.total_qty or 0), 'total_value': float(r.total_value or 0), 'rx_count': int(r.rx_count or 0)} for r in q2.all()]
+        rows = [{'label': r.label, 'total_qty': int(r.total_qty or 0), 'total_value': float(r.total_value or 0), 'rx_count': int(r.rx_count or 0)} for r in db.session.execute(q2).all()]
 
     return render_template('medication/consumption_report.html', rows=rows, group=group, start_date=start_date, end_date=end_date)
 

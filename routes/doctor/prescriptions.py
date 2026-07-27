@@ -91,7 +91,10 @@ def prescription(visit_id):
     """كتابة الوصفة الطبية"""
     
     try:
-        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
+        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)).scalars().first()
+        if not visit:
+            flash('الزيارة غير موجودة', 'error')
+            return redirect(url_for('doctor.patient_queue'))
         if visit.status != VisitState.IN_PROGRESS:
             flash('لا يمكن كتابة وصفة إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
@@ -421,8 +424,8 @@ def prescriptions():
             Visit.doctor_id == current_user.id
         )
 
-        total = query.count()
-        prescriptions = query.offset((page - 1) * per_page).limit(per_page).all()
+        total = db.session.execute(select(func.count()).select_from(query.subquery())).scalar()
+        prescriptions = db.session.execute(query.offset((page - 1) * per_page).limit(per_page)).scalars().all()
         pages = (total + per_page - 1) // per_page if total > 0 else 1
 
         # Stats

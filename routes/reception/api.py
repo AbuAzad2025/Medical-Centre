@@ -53,7 +53,7 @@ def api_doctors():
     if department_id:
         query = query.filter_by(department_id=department_id)
     
-    doctors = query.all()
+    doctors = db.session.execute(query).scalars().all()
     
     return jsonify({
         'success': True,

@@ -47,10 +47,10 @@ def patient_queue():
             Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS])
         )
         
-        total = query.count()
+        total = db.session.execute(select(func.count()).select_from(query.subquery())).scalar() or 0
         pages = (total + per_page - 1) // per_page
         
-        patients = query.offset((page - 1) * per_page).limit(per_page).all()
+        patients = db.session.execute(query.offset((page - 1) * per_page).limit(per_page)).scalars().all()
         
         # إحصائيات الطابور
         queue_stats = {

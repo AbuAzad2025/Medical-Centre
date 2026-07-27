@@ -50,9 +50,9 @@ class ReportService:
             if department_id:
                 visits_query = visits_query.filter(Visit.department_id == department_id)
             
-            total_visits = visits_query.count()
-            completed_visits = visits_query.filter(Visit.status == VisitState.COMPLETED).count()
-            pending_visits = visits_query.filter(Visit.status == VisitState.OPEN).count()
+            total_visits = db.session.execute(select(func.count()).select_from(visits_query.subquery())).scalar() or 0
+            completed_visits = db.session.execute(select(func.count()).select_from(visits_query.filter(Visit.status == VisitState.COMPLETED).subquery())).scalar() or 0
+            pending_visits = db.session.execute(select(func.count()).select_from(visits_query.filter(Visit.status == VisitState.OPEN).subquery())).scalar() or 0
             
             # إحصائيات المواعيد
             appointments_query = select(Appointment)
@@ -60,9 +60,9 @@ class ReportService:
             if department_id:
                 appointments_query = appointments_query.filter(Appointment.department_id == department_id)
             
-            total_appointments = appointments_query.count()
-            completed_appointments = appointments_query.filter(Appointment.status == AppointmentState.DONE).count()
-            cancelled_appointments = appointments_query.filter(Appointment.status == AppointmentState.CANCELLED).count()
+            total_appointments = db.session.execute(select(func.count()).select_from(appointments_query.subquery())).scalar() or 0
+            completed_appointments = db.session.execute(select(func.count()).select_from(appointments_query.filter(Appointment.status == AppointmentState.DONE).subquery())).scalar() or 0
+            cancelled_appointments = db.session.execute(select(func.count()).select_from(appointments_query.filter(Appointment.status == AppointmentState.CANCELLED).subquery())).scalar() or 0
             
             # الإحصائيات المالية
             payments_query = select(Payment)
@@ -70,9 +70,9 @@ class ReportService:
             if department_id:
                 payments_query = payments_query.join(Visit).filter(Visit.department_id == department_id)
             
-            total_revenue = payments_query.with_entities(func.sum(Payment.amount)).scalar() or 0
-            cash_payments = payments_query.filter(Payment.method == 'CASH').with_entities(func.sum(Payment.amount)).scalar() or 0
-            insurance_payments = payments_query.filter(Payment.method == 'INSURANCE').with_entities(func.sum(Payment.amount)).scalar() or 0
+            total_revenue = db.session.execute(select(func.coalesce(func.sum(Payment.amount), 0)).select_from(payments_query.subquery())).scalar() or 0
+            cash_payments = db.session.execute(select(func.coalesce(func.sum(Payment.amount), 0)).select_from(payments_query.filter(Payment.method == 'CASH').subquery())).scalar() or 0
+            insurance_payments = db.session.execute(select(func.coalesce(func.sum(Payment.amount), 0)).select_from(payments_query.filter(Payment.method == 'INSURANCE').subquery())).scalar() or 0
             
             return {
                 'success': True,
@@ -264,7 +264,7 @@ class ReportService:
             if department_id:
                 payments_query = payments_query.join(Visit).filter(Visit.department_id == department_id)
             
-            payments = payments_query.all()
+            payments = db.session.execute(payments_query).scalars().all()
             
             # الفواتير
             invoices_query = select(Invoice)
@@ -272,7 +272,7 @@ class ReportService:
             if department_id:
                 invoices_query = invoices_query.join(InvoiceService).filter(InvoiceService.department_id == department_id)
             
-            invoices = invoices_query.all()
+            invoices = db.session.execute(invoices_query).scalars().all()
             
             # الإحصائيات المالية
             total_revenue = sum(payment.amount for payment in payments)

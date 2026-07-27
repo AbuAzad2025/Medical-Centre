@@ -246,11 +246,11 @@ class DataRetentionService:
         query = select(SessionLog)
 
         if dry_run:
-            records = query.limit(1000).all()
+            records = db.session.execute(query.limit(1000)).scalars().all()
             return len(records), [r.id for r in records]
 
         # Actual deletion
-        records = query.all()
+        records = db.session.execute(query).scalars().all()
         deleted_ids = [r.id for r in records]
         for r in records:
             db.session.delete(r)

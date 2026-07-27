@@ -35,15 +35,15 @@ def tasks():
         vq = select(Visit).filter(Visit.status.in_([VisitState.OPEN, VisitState.IN_PROGRESS]))
         if getattr(current_user, 'department_id', None):
             vq = vq.filter(Visit.department_id == current_user.department_id)
-        active_visits = vq.limit(50).all()
+        active_visits = db.session.execute(vq.limit(50)).scalars().all()
         
         # جلب مهام الممرضة مع pagination
         task_query = select(Task).filter_by(assigned_to=current_user.id)
         
-        total = task_query.count()
+        total = db.session.execute(select(func.count()).select_from(task_query.subquery())).scalar() or 0
         pages = (total + per_page - 1) // per_page
         
-        tasks = task_query.offset((page - 1) * per_page).limit(per_page).all()
+        tasks = db.session.execute(task_query.offset((page - 1) * per_page).limit(per_page)).scalars().all()
         
     except Exception as e:
         logging.error(f"Error loading nurse tasks: {str(e)}")

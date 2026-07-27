@@ -156,7 +156,7 @@ def dashboard():
         Visit.created_at.desc()
     ).limit(5)).scalars().all()
 
-    open_invoices = _patient_visible_invoice_query(patient).all()
+    open_invoices = db.session.execute(_patient_visible_invoice_query(patient)).scalars().all()
     total_due = sum(
         (float(getattr(inv, 'total_amount', 0) or 0) - float(getattr(inv, 'paid_amount', 0) or 0))
         for inv in open_invoices
@@ -262,9 +262,9 @@ def bills():
     patient = _get_patient_from_user()
     if not patient:
         return redirect(url_for('portal.link_account'))
-    invoices = _patient_visible_invoice_query(patient).order_by(
+    invoices = db.session.execute(_patient_visible_invoice_query(patient).order_by(
         Invoice.created_at.desc()
-    ).limit(50).all()
+    ).limit(50)).scalars().all()
     payments = db.session.execute(select(Payment).filter_by(patient_id=patient.id).order_by(
         Payment.payment_date.desc()
     ).limit(50)).scalars().all()

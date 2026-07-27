@@ -186,7 +186,13 @@ class NotificationService:
     def get_user_notifications(user_id, unread_only=False, urgent_only=False, limit=None):
         """الحصول على إشعارات المستخدم"""
         try:
-            query = select(Notification)
+            query = select(Notification).filter(
+                Notification.recipient_id == user_id,
+                or_(
+                    Notification.expires_at.is_(None),
+                    Notification.expires_at > datetime.now(timezone.utc)
+                )
+            )
             
             if unread_only:
                 query = query.filter(Notification.is_read == False)
@@ -199,7 +205,7 @@ class NotificationService:
             if limit:
                 query = query.limit(limit)
             
-            notifications = query.all()
+            notifications = db.session.execute(query).scalars().all()
             
             return {
                 'success': True,
@@ -510,67 +516,82 @@ class NotificationService:
                 Background workers must pass an explicit tenant id.
         """
         try:
-            # جلب الإشعارات المعلقة
-            query = select(NotificationQueue)
-            if tenant_id is not None:
-                query = query.filter_by(tenant_id=tenant_id)
-            pending_notifications = query.all()
-            
-            processed_count = 0
-            for notification in pending_notifications:
-                try:
-                    # معالجة الإشعار حسب النوع
-                    if notification.notification_type == 'sms':
-                        from services.sms_service import SMSService
-                        from app.core.tenant.models import Tenant
-                        _tenant = None
-                        if notification.tenant_id:
-                            _tenant = db.session.get(Tenant, notification.tenant_id)  # global reference table - no tenant scope
-                        result = SMSService.send_sms(
-                            phone=notification.recipient,
-                            message=notification.content,
-                            tenant=_tenant
-                        )
-                    elif notification.notification_type == 'email':
-                        result = NotificationService.send_email_message(
-                            recipient_email=notification.recipient,
-                            subject=notification.subject or 'إشعار من النظام',
-                            content=notification.content
-                        )
-                    elif notification.notification_type == 'whatsapp':
-                        result = NotificationService.send_whatsapp_message(
-                            phone_number=notification.recipient,
-                            message_content=notification.content,
-                            message_type='text'
-                        )
-                    else:
-                        # إشعار عادي
-                        result = NotificationService.send_notification(
-                            recipient_id=notification.user_id,
-                            title=notification.subject or 'إشعار',
-                            message=notification.content,
-                            notification_type='info'
-                        )
-                    
-                    if result['success']:
-                        notification.status = NotificationState.SENT
-                        notification.sent_at = datetime.now(timezone.utc)
-                        processed_count += 1
-                    else:
+            from flask import g
+            prev_bypass = getattr(g, '_tenant_filter_bypass', False)
+            if tenant_id is None:
+                g._tenant_filter_bypass = True
+
+            try:
+                # جلب الإشعارات المعلقة
+                query = select(NotificationQueue).filter(
+                    NotificationQueue.status == NotificationState.PENDING
+                )
+                if tenant_id is not None:
+                    query = query.filter_by(tenant_id=tenant_id)
+                pending_notifications = db.session.execute(query).scalars().all()
+
+                processed_count = 0
+                for notification in pending_notifications:
+                    try:
+                        # معالجة الإشعار حسب النوع
+                        if notification.notification_type == 'sms':
+                            from services.sms_service import SMSService
+                            from app.core.tenant.models import Tenant
+                            _tenant = None
+                            if notification.tenant_id:
+                                _tenant = db.session.get(Tenant, notification.tenant_id)
+                            result = SMSService.send_sms(
+                                phone=notification.recipient,
+                                message=notification.content,
+                                tenant=_tenant
+                            )
+                        elif notification.notification_type == 'email':
+                            result = NotificationService.send_email_message(
+                                recipient_email=notification.recipient,
+                                subject=notification.subject or 'إشعار من النظام',
+                                content=notification.content
+                            )
+                        elif notification.notification_type == 'whatsapp':
+                            result = NotificationService.send_whatsapp_message(
+                                phone_number=notification.recipient,
+                                message_content=notification.content,
+                                message_type='text'
+                            )
+                        else:
+                            # إشعار عادي
+                            result = NotificationService.send_notification(
+                                recipient_id=notification.user_id,
+                                title=notification.subject or 'إشعار',
+                                message=notification.content,
+                                notification_type='info'
+                            )
+                        
+                        if result['success']:
+                            notification.status = NotificationState.SENT
+                            notification.sent_at = datetime.now(timezone.utc)
+                            processed_count += 1
+                        else:
+                            notification.status = NotificationState.FAILED
+                            notification.failed_at = datetime.now(timezone.utc)
+                            notification.error_message = result['message']
+                            
+                    except Exception as e:
                         notification.status = NotificationState.FAILED
                         notification.failed_at = datetime.now(timezone.utc)
-                        notification.error_message = result['message']
-                        
-                except Exception as e:
-                    notification.status = NotificationState.FAILED
-                    notification.failed_at = datetime.now(timezone.utc)
-                    notification.error_message = str(e)
-                    logging.error(f"Error processing notification {notification.id}: {str(e)}")
-            
-            if not safe_commit(db.session, error_message="فشل معالجة طابور الإشعارات"):
-                return {'success': False, 'message': 'تعذر معالجة طابور الإشعارات حالياً', 'processed_count': 0}
+                        notification.error_message = str(e)
+                        logging.error(f"Error processing notification {notification.id}: {str(e)}")
+                
+                if not safe_commit(db.session, error_message="فشل معالجة طابور الإشعارات"):
+                    return {'success': False, 'message': 'تعذر معالجة طابور الإشعارات حالياً', 'processed_count': 0}
 
-            return {'success': True, 'message': f'تم معالجة {processed_count} إشعار', 'processed_count': processed_count}
+                return {'success': True, 'message': f'تم معالجة {processed_count} إشعار', 'processed_count': processed_count}
+
+            finally:
+                if tenant_id is None:
+                    if prev_bypass:
+                        g._tenant_filter_bypass = True
+                    else:
+                        g.pop('_tenant_filter_bypass', None)
 
         except Exception as e:
             logging.error(f"Error processing notification queue: {str(e)}")
@@ -610,11 +631,13 @@ class NotificationService:
             # الديون المتأخرة (> 7 أيام)
             seven_days_ago = datetime.now() - timedelta(days=7)
             
-            query = select(Visit)
+            query = select(Visit).filter(
+                (Visit.total_amount - Visit.paid_amount) > 0
+            )
             if tenant_id is not None:
                 query = query.filter_by(tenant_id=tenant_id)
 
-            overdue_debts = query.all()
+            overdue_debts = db.session.execute(query).scalars().all()
             
             sent_count = 0
             for debt in overdue_debts:
@@ -685,11 +708,14 @@ class NotificationService:
             # زيارات التأمين القديمة (> 14 يوم)
             fourteen_days_ago = datetime.now() - timedelta(days=14)
             
-            query = select(Visit)
+            query = select(Visit).filter(
+                Visit.payment_method == 'insurance',
+                Visit.insurance_amount > 0
+            )
             if tenant_id is not None:
                 query = query.filter_by(tenant_id=tenant_id)
 
-            pending_insurance = query.all()
+            pending_insurance = db.session.execute(query).scalars().all()
             
             sent_count = 0
             for visit in pending_insurance:
@@ -746,11 +772,14 @@ class NotificationService:
             from models.visit import Visit
             
             # دفعات قسرية بدون موافقة
-            query = select(Visit)
+            query = select(Visit).filter(
+                Visit.is_force_payment == True,
+                Visit.force_payment_approved_by.is_(None)
+            )
             if tenant_id is not None:
                 query = query.filter_by(tenant_id=tenant_id)
 
-            pending_force = query.all()
+            pending_force = db.session.execute(query).scalars().all()
             
             if not pending_force:
                 return {
@@ -906,7 +935,7 @@ class NotificationService:
             if tenant_id is not None:
                 query = query.filter_by(tenant_id=tenant_id)
 
-            appts = query.all()
+            appts = db.session.execute(query).scalars().all()
 
             sent = 0
             fallback_notified = 0
@@ -984,7 +1013,7 @@ class NotificationService:
             if tenant_id is not None:
                 query = query.filter_by(tenant_id=tenant_id)
 
-            q = query.all()
+            q = db.session.execute(query).scalars().all()
 
             sent = 0
             fallback_notified = 0

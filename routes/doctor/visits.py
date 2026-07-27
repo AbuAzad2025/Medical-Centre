@@ -41,7 +41,10 @@ def start_treatment(visit_id):
 
 
     try:
-        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
+        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)).scalars().first()
+        if not visit:
+            flash('الزيارة غير موجودة', 'error')
+            return redirect(url_for('doctor.patient_queue'))
         if visit.status != VisitState.OPEN:
             flash('لا يمكن بدء العلاج إلا إذا كانت الزيارة في حالة انتظار', 'warning')
             return redirect(url_for('doctor.patient_queue'))
@@ -233,7 +236,10 @@ def patient_details(visit_id):
     
     try:
         from ast import literal_eval
-        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
+        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)).scalars().first()
+        if not visit:
+            flash('الزيارة غير موجودة', 'error')
+            return redirect(url_for('doctor.patient_queue'))
         
         medical_records = _get_patient_medical_records(visit.patient_id)
         previous_prescriptions = _get_patient_prescriptions(visit.patient_id)
@@ -352,7 +358,10 @@ def visit_summary(visit_id):
     """ملخص الزيارة"""
     
     try:
-        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
+        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)).scalars().first()
+        if not visit:
+            flash('الزيارة غير موجودة', 'error')
+            return redirect(url_for('doctor.patient_queue'))
         
         return render_template('doctor/visit_summary.html', visit=visit)
     except Exception as e:
@@ -366,7 +375,9 @@ def visit_summary(visit_id):
 def save_visit_summary(visit_id):
     """حفظ ملخص الزيارة (تشخيص، خطة علاج، متابعة)"""
     try:
-        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
+        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)).scalars().first()
+        if not visit:
+            return jsonify({'success': False, 'message': 'الزيارة غير موجودة'}), 404
         if visit.status not in ['IN_PROGRESS', 'COMPLETED']:
             return jsonify({'success': False, 'message': 'الحالة الحالية لا تسمح بحفظ الملخص'}), 400
 
@@ -448,7 +459,10 @@ def end_treatment(visit_id):
     """إنهاء العلاج"""
     
     try:
-        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
+        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)).scalars().first()
+        if not visit:
+            flash('الزيارة غير موجودة', 'error')
+            return redirect(url_for('doctor.patient_queue'))
         if visit.status != VisitState.IN_PROGRESS:
             flash('لا يمكن إنهاء العلاج إلا أثناء سير العلاج', 'warning')
             return redirect(url_for('doctor.patient_queue'))

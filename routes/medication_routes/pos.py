@@ -172,11 +172,12 @@ def pos_sell():
 def sales_history():
     page = request.args.get('page', 1, type=int)
     per_page = 25
-    pagination = select(PharmacySale).filter(
+    stmt = select(PharmacySale).filter(
         PharmacySale.tenant_id == current_user.tenant_id
     ).order_by(
         PharmacySale.created_at.desc()
     )
+    pagination = db.paginate(stmt, page=page, per_page=per_page, error_out=False)
     return render_template('pharmacy/sales_history.html', pagination=pagination)
 
 

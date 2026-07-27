@@ -58,8 +58,8 @@ def list_medications():
         elif stock_status == 'normal':
             query = query.filter(Medication.stock_quantity > Medication.minimum_stock)
         
-        total = query.count()
-        medications = query.order_by(Medication.trade_name.asc()).limit(per_page).offset((page - 1) * per_page).all()
+        total = db.session.execute(select(func.count()).select_from(query.subquery())).scalar() or 0
+        medications = db.session.execute(query.order_by(Medication.trade_name.asc()).limit(per_page).offset((page - 1) * per_page)).scalars().all()
         
         return render_template('medication/list.html', 
                              medications=medications,

@@ -39,7 +39,10 @@ def medical_history(patient_id):
     """السجل الطبي للمريض"""
     
     try:
-        patient = select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)
+        patient = db.session.execute(select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)).scalars().first()
+        if not patient:
+            flash('المريض غير موجود', 'error')
+            return redirect(url_for('doctor.patients'))
         
         # جلب السجل الطبي الكامل
         medical_records = db.session.execute(select(MedicalRecord).filter(
@@ -68,7 +71,10 @@ def prescriptions_history(patient_id):
     """تاريخ الوصفات الطبية للمريض"""
     
     try:
-        patient = select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)
+        patient = db.session.execute(select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)).scalars().first()
+        if not patient:
+            flash('المريض غير موجود', 'error')
+            return redirect(url_for('doctor.patients'))
         
         # جلب الوصفات السابقة
         prescriptions = db.session.execute(select(Prescription).filter(
@@ -91,7 +97,10 @@ def print_medical_report(visit_id):
     """طباعة التقرير الطبي"""
     
     try:
-        visit = select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)
+        visit = db.session.execute(select(Visit).filter(Visit.id == visit_id, Visit.tenant_id == g.tenant_id, Visit.doctor_id == current_user.id)).scalars().first()
+        if not visit:
+            flash('الزيارة غير موجودة', 'error')
+            return redirect(url_for('doctor.patient_queue'))
         
         # Generate QR for verification
         from app.shared.print_context import generate_qr_data_uri
@@ -138,11 +147,11 @@ def patients():
             func.max(Visit.visit_date).label('last_visit')
         ).group_by(Visit.patient_id).subquery()
 
-        patients = base_query.outerjoin(
+        patients = db.session.execute(base_query.outerjoin(
             visits_count_sub, visits_count_sub.c.pid == Patient.id
         ).add_columns(
             visits_count_sub.c.visits_count, visits_count_sub.c.last_visit
-        ).order_by(Patient.id.desc()).limit(100).all()
+        ).order_by(Patient.id.desc()).limit(100)).all()
 
         # صياغة النتائج لواجهة العرض
         results = []
@@ -171,7 +180,10 @@ def patient_timeline(patient_id: int):
     try:
         from services.patient_timeline_service import PatientTimelineService
 
-        patient = select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)
+        patient = db.session.execute(select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)).scalars().first()
+        if not patient:
+            flash('المريض غير موجود', 'error')
+            return redirect(url_for('doctor.patients'))
 
         filter_type = (request.args.get('type') or '').strip().lower()
         events = PatientTimelineService.build_events(
@@ -215,7 +227,7 @@ def api_patient_search():
                 Patient.phone.ilike(f'%{q}%')
             )
         )
-    patients = query.order_by(Patient.created_at.desc()).limit(10).all()
+    patients = db.session.execute(query.order_by(Patient.created_at.desc()).limit(10)).scalars().all()
     results = []
     for p in patients:
         results.append({
@@ -236,7 +248,10 @@ def dental_chart(patient_id):
     from models.dental import DentalChart, DentalTooth, TOOTH_STATES
     import json
 
-    patient = select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)
+    patient = db.session.execute(select(Patient).filter(Patient.id == patient_id, Patient.tenant_id == g.tenant_id)).scalars().first()
+    if not patient:
+        flash('المريض غير موجود', 'error')
+        return redirect(url_for('doctor.patients'))
 
     upper_right = [{'fdi': f'1{i}', 'x': i*38, 'y': 0} for i in range(8, 0, -1)]
     upper_left = [{'fdi': f'2{i}', 'x': 160 + i*38, 'y': 0} for i in range(1, 9)]

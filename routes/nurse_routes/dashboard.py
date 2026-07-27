@@ -51,8 +51,8 @@ def dashboard():
         if dept_ids is not None and dept_ids:
             active_visits_query = active_visits_query.filter(Visit.department_id.in_(dept_ids))
 
-        active_visits = active_visits_query.count()
-        active_visits_list = active_visits_query.order_by(desc(Visit.created_at)).limit(20).all()
+        active_visits = db.session.execute(select(func.count()).select_from(active_visits_query.subquery())).scalar() or 0
+        active_visits_list = db.session.execute(active_visits_query.order_by(desc(Visit.created_at)).limit(20)).scalars().all()
 
         today_visits = db.session.execute(select(func.count()).select_from(Visit).filter(Visit.visit_date == today)).scalar()
         recent_visits = db.session.execute(select(Visit).order_by(desc(Visit.created_at)).limit(20)).scalars().all()
@@ -211,9 +211,9 @@ def dashboard():
                 })
 
         overdue_tasks_q = select(Task)
-        overdue_tasks_count = overdue_tasks_q.count()
-        overdue_important = overdue_tasks_q.filter(Task.priority.in_(['high', 'urgent'])).order_by(Task.due_date.asc()).limit(10).all()
-        overdue_any = overdue_tasks_q.order_by(Task.due_date.asc()).limit(10).all()
+        overdue_tasks_count = db.session.execute(select(func.count()).select_from(overdue_tasks_q.subquery())).scalar() or 0
+        overdue_important = db.session.execute(overdue_tasks_q.filter(Task.priority.in_(['high', 'urgent'])).order_by(Task.due_date.asc()).limit(10)).scalars().all()
+        overdue_any = db.session.execute(overdue_tasks_q.order_by(Task.due_date.asc()).limit(10)).scalars().all()
 
         safety_alerts = {
             'vitals_alerts': vitals_alerts[:10],

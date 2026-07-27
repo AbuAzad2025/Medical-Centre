@@ -39,7 +39,7 @@ class AdvancedReportService:
             if department_id:
                 patients_query = patients_query.join(Visit).filter(Visit.department_id == department_id)
             
-            patients = patients_query.all()
+            patients = db.session.execute(patients_query).scalars().all()
             total_patients = len(patients)
             new_patients = total_patients
             
@@ -116,21 +116,21 @@ class AdvancedReportService:
             if department_id:
                 visits_query = visits_query.filter(Visit.department_id == department_id)
             
-            total_visits = visits_query.count()
+            total_visits = db.session.execute(select(func.count()).select_from(visits_query.subquery())).scalar() or 0
             
             # حسب الحالة
             status_stats = {}
             for status in [VisitState.OPEN, VisitState.COMPLETED]:
-                count = visits_query.filter(Visit.status == status).count()
+                count = db.session.execute(select(func.count()).select_from(visits_query.filter(Visit.status == status).subquery())).scalar() or 0
                 status_stats[status] = count
-            status_stats[VisitArchiveStatus.ARCHIVED] = visits_query.filter(
+            status_stats[VisitArchiveStatus.ARCHIVED] = db.session.execute(select(func.count()).select_from(visits_query.filter(
                 Visit.archive_status == VisitArchiveStatus.ARCHIVED
-            ).count()
+            ).subquery())).scalar() or 0
             
             # حسب نوع الزيارة
             visit_type_stats = {}
             for visit_type in ['CONSULTATION', 'FOLLOW_UP', 'EMERGENCY', 'REGULAR']:
-                count = visits_query.filter(Visit.visit_type == visit_type).count()
+                count = db.session.execute(select(func.count()).select_from(visits_query.filter(Visit.visit_type == visit_type).subquery())).scalar() or 0
                 visit_type_stats[visit_type] = count
             
             # حسب الوجهة
@@ -141,7 +141,7 @@ class AdvancedReportService:
             daily_stats = {}
             for i in range((end_date - start_date).days + 1):
                 date = start_date + timedelta(days=i)
-                count = visits_query.filter(Visit.visit_date == date.date()).count()
+                count = db.session.execute(select(func.count()).select_from(visits_query.filter(Visit.visit_date == date.date()).subquery())).scalar() or 0
                 daily_stats[date.strftime('%Y-%m-%d')] = count
             
             return {
@@ -178,26 +178,26 @@ class AdvancedReportService:
             if department_id:
                 payments_query = payments_query.join(Visit).filter(Visit.department_id == department_id)
             
-            total_payments = payments_query.count()
-            total_revenue = payments_query.with_entities(func.sum(Payment.amount)).scalar() or 0
+            total_payments = db.session.execute(select(func.count()).select_from(payments_query.subquery())).scalar() or 0
+            total_revenue = db.session.execute(select(func.coalesce(func.sum(Payment.amount), 0)).select_from(payments_query.subquery())).scalar() or 0
             
             # حسب طريقة الدفع
             payment_method_stats = {}
             for method in ['CASH', 'CARD', 'INSURANCE', 'WIRE']:
-                count = payments_query.filter(Payment.method == method).count()
-                amount = payments_query.filter(Payment.method == method).with_entities(func.sum(Payment.amount)).scalar() or 0
+                count = db.session.execute(select(func.count()).select_from(payments_query.filter(Payment.method == method).subquery())).scalar() or 0
+                amount = db.session.execute(select(func.coalesce(func.sum(Payment.amount), 0)).select_from(payments_query.filter(Payment.method == method).subquery())).scalar() or 0
                 payment_method_stats[method] = {'count': count, 'amount': float(amount)}
             
             # حسب اليوم
             daily_revenue = {}
             for i in range((end_date - start_date).days + 1):
                 date = start_date + timedelta(days=i)
-                amount = payments_query.filter(
+                amount = db.session.execute(select(func.coalesce(func.sum(Payment.amount), 0)).filter(
                     and_(
                         Payment.payment_date >= date,
                         Payment.payment_date < date + timedelta(days=1)
                     )
-                ).with_entities(func.sum(Payment.amount)).scalar() or 0
+                )).scalar() or 0
                 daily_revenue[date.strftime('%Y-%m-%d')] = amount
             
             # إحصائيات الفواتير
@@ -206,10 +206,10 @@ class AdvancedReportService:
             if department_id:
                 invoices_query = invoices_query.join(InvoiceService).filter(InvoiceService.department_id == department_id)
             
-            total_invoices = invoices_query.count()
-            total_invoice_amount = invoices_query.with_entities(func.sum(Invoice.total_amount)).scalar() or 0
-            paid_invoices = invoices_query.filter(Invoice.status == InvoiceStatus.PAID).count()
-            pending_invoices = invoices_query.filter(Invoice.status.in_([InvoiceStatus.ISSUED,InvoiceStatus.DRAFT])).count()
+            total_invoices = db.session.execute(select(func.count()).select_from(invoices_query.subquery())).scalar() or 0
+            total_invoice_amount = db.session.execute(select(func.coalesce(func.sum(Invoice.total_amount), 0)).select_from(invoices_query.subquery())).scalar() or 0
+            paid_invoices = db.session.execute(select(func.count()).select_from(invoices_query.filter(Invoice.status == InvoiceStatus.PAID).subquery())).scalar() or 0
+            pending_invoices = db.session.execute(select(func.count()).select_from(invoices_query.filter(Invoice.status.in_([InvoiceStatus.ISSUED,InvoiceStatus.DRAFT])).subquery())).scalar() or 0
             
             return {
                 'success': True,
@@ -252,7 +252,7 @@ class AdvancedReportService:
             if doctor_id:
                 doctors_query = doctors_query.filter(User.id == doctor_id)
             
-            doctors = doctors_query.all()
+            doctors = db.session.execute(doctors_query).scalars().all()
             doctor_performance = []
             
             for doctor in doctors:
@@ -412,13 +412,13 @@ class AdvancedReportService:
             # إحصائيات المستخدمين
             users_query = select(User)
             
-            total_users = users_query.count()
-            active_users = users_query.filter(User.is_active == True).count()
+            total_users = db.session.execute(select(func.count()).select_from(users_query.subquery())).scalar() or 0
+            active_users = db.session.execute(select(func.count()).select_from(users_query.filter(User.is_active == True).subquery())).scalar() or 0
             
             # حسب الدور
             role_stats = {}
             for role in ['admin', 'manager', 'doctor', 'nurse', 'reception', 'accountant', 'lab', 'radiology', 'emergency']:
-                count = users_query.filter(User.role == role).count()
+                count = db.session.execute(select(func.count()).select_from(users_query.filter(User.role == role).subquery())).scalar() or 0
                 role_stats[role] = count
             
             # إحصائيات السجلات

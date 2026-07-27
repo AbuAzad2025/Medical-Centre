@@ -57,7 +57,7 @@ def supply_requests():
     q = select(MedicationSupplyRequest)
     if status:
         q = q.filter(MedicationSupplyRequest.status == status)
-    requests_list = q.order_by(MedicationSupplyRequest.created_at.desc()).limit(200).all()
+    requests_list = db.session.execute(q.order_by(MedicationSupplyRequest.created_at.desc()).limit(200)).scalars().all()
     return render_template('medication/supply_requests.html', requests=requests_list, selected_status=status)
 
 

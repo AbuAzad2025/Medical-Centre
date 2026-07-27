@@ -59,7 +59,7 @@ def api_prescriptions():
             q = q.filter(Prescription.patient_id == patient_id)
         if status:
             q = q.filter(Prescription.status == status)
-        items = q.order_by(Prescription.created_at.desc()).limit(50).all()
+        items = db.session.execute(q.order_by(Prescription.created_at.desc()).limit(50)).scalars().all()
         data = []
         for p in items:
             data.append({'id': p.id, 'visit_id': p.visit_id, 'patient_id': p.patient_id, 'status': p.status})

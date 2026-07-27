@@ -2603,7 +2603,7 @@ def owner_error_audit_logs():
     q = select(AuditTrail)
     if entity_type:
         q = q.filter_by(entity_type=entity_type)
-    logs = q.order_by(AuditTrail.created_at.desc()).limit(100).all()
+    logs = db.session.execute(q.order_by(AuditTrail.created_at.desc()).limit(100)).scalars().all()
     return render_template('owner/error_audit_logs.html', logs=logs, entity_type=entity_type)
 
 
@@ -2694,7 +2694,7 @@ def owner_reports():
     user_stats = {
         'total': db.session.execute(select(func.count()).select_from(User)).scalar(),
         'active': db.session.execute(select(func.count()).select_from(User).filter_by(is_active=True)).scalar(),
-        'by_role': dict(db.session.execute(select(User.role, func.count(User.id)).group_by(User.role)).scalars().all()),
+        'by_role': dict(db.session.execute(select(User.role, func.count(User.id)).group_by(User.role)).all()),
     }
     
     # Revenue (last 30 days)

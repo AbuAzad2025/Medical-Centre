@@ -35,7 +35,7 @@ class NursingService:
                         Patient.phone.ilike(f"%{search}%"),
                     )
                 )
-            return query.order_by(Visit.created_at.desc()).all()
+            return db.session.execute(query.order_by(Visit.created_at.desc())).scalars().all()
         except Exception:
             return []
 
@@ -210,10 +210,10 @@ class NursingService:
     def get_pending_tasks(nurse_id: int | None = None) -> list:
         try:
             from models.task_management import Task
-            query = select(Task)
+            query = select(Task).filter(Task.status.notin_(['completed', 'cancelled']))
             if nurse_id:
                 query = query.filter_by(assigned_to=nurse_id)
-            return query.order_by(Task.created_at.desc()).all()
+            return db.session.execute(query.order_by(Task.created_at.desc())).scalars().all()
         except Exception:
             return []
 

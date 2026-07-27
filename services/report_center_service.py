@@ -33,8 +33,8 @@ class ReportCenterService:
                     pq = pq.join(Visit, Visit.id == Payment.visit_id).filter(Visit.department_id == dep_id)
                 except Exception:
                     pass
-            visits = vq.count()
-            revenue = pq.with_entities(func.sum(Payment.amount)).scalar() or 0
+            visits = db.session.execute(select(func.count()).select_from(vq.subquery())).scalar() or 0
+            revenue = db.session.execute(select(func.coalesce(func.sum(Payment.amount), 0)).select_from(pq.subquery())).scalar() or 0
             return {'visits': int(visits), 'revenue': float(revenue)}
 
         a = _range_metrics(a_start, a_end)
@@ -91,10 +91,10 @@ class ReportCenterService:
         from models.online_booking import OnlineBooking
 
         q = select(OnlineBooking)
-        total = q.count()
+        total = db.session.execute(select(func.count()).select_from(q.subquery())).scalar() or 0
         by_status = {}
         for st in ['pending', 'confirmed', 'cancelled', 'completed', 'no_show']:
-            by_status[st] = q.filter(OnlineBooking.status == st).count()
+            by_status[st] = db.session.execute(select(func.count()).select_from(q.filter(OnlineBooking.status == st).subquery())).scalar() or 0
         attended = by_status.get('completed', 0)
         no_show = by_status.get('no_show', 0)
         booked = total - by_status.get('cancelled', 0)
@@ -164,8 +164,8 @@ class ReportCenterService:
         from models.radiology_result import RadiologyResult
 
         q = select(RadiologyResult)
-        reviewed = q.filter(RadiologyResult.reviewed_at.isnot(None)).count()
-        revised = q.filter(RadiologyResult.reviewed_at.isnot(None), RadiologyResult.revised_after_review == True).count()
+        reviewed = db.session.execute(select(func.count()).select_from(q.filter(RadiologyResult.reviewed_at.isnot(None)).subquery())).scalar() or 0
+        revised = db.session.execute(select(func.count()).select_from(q.filter(RadiologyResult.reviewed_at.isnot(None), RadiologyResult.revised_after_review == True).subquery())).scalar() or 0
         rate = round((revised / reviewed * 100), 2) if reviewed else 0
         return {'reviewed': int(reviewed), 'revised_after_review': int(revised), 'rate': rate}
 

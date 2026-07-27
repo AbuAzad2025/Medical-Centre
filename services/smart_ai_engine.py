@@ -349,9 +349,9 @@ class SmartAIEngine:
         inactive_users = total_users - active_users
         
         # توزيع الأدوار
-        roles_dist = db.session.execute(self.select(
+        roles_dist = db.session.execute(select(
             User.role, func.count(User.id)
-        ).group_by(User.role)).scalars().all()
+        ).group_by(User.role)).all()
         
         response = f"""
 👥 **معلومات المستخدمين:**
@@ -421,14 +421,14 @@ class SmartAIEngine:
         active_doctors = db.session.execute(select(func.count()).select_from(User).filter_by(role='doctor', is_active=True)).scalar()
         
         # أكثر الأطباء نشاطاً
-        top_doctors = db.session.execute(self.select(
+        top_doctors = db.session.execute(select(
             User.full_name,
             func.count(Visit.id).label('visit_count')
         ).join(Visit, Visit.doctor_id == User.id)\
          .filter(User.role == 'doctor')\
          .group_by(User.id, User.full_name)\
          .order_by(func.count(Visit.id).desc())\
-         .limit(5)).scalars().all()
+         .limit(5)).all()
         
         response = f"""
 👨‍⚕️ **معلومات الأطباء:**
@@ -541,13 +541,13 @@ class SmartAIEngine:
         active_departments = db.session.execute(select(func.count()).select_from(Department).filter_by(is_active=True)).scalar()
         
         # الأقسام مع عدد الموظفين
-        dept_stats = db.session.execute(self.select(
+        dept_stats = db.session.execute(select(
             Department.name,
             func.count(User.id).label('staff_count')
         ).outerjoin(User, User.department_id == Department.id)\
          .group_by(Department.id, Department.name)\
          .order_by(func.count(User.id).desc())\
-         .limit(5)).scalars().all()
+         .limit(5)).all()
         
         response = f"""
 🏢 **معلومات الأقسام:**
@@ -585,10 +585,10 @@ class SmartAIEngine:
         )).scalar()
         
         # حالات الزيارات
-        status_dist = db.session.execute(self.select(
+        status_dist = db.session.execute(select(
             Visit.status,
             func.count(Visit.id)
-        ).group_by(Visit.status)).scalars().all()
+        ).group_by(Visit.status)).all()
         
         response = f"""
 📋 **معلومات الزيارات:**

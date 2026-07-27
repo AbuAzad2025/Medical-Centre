@@ -291,7 +291,7 @@ def staff_capacity():
         doctors_q = select(User)
         if dept_ids:
             doctors_q = doctors_q.filter(User.department_id.in_(dept_ids))
-        doctors = doctors_q.all()
+        doctors = db.session.execute(doctors_q).scalars().all()
 
         schedules = db.session.execute(select(StaffWorkSchedule).filter(StaffWorkSchedule.user_id.in_([u.id for u in doctors]), StaffWorkSchedule.tenant_id == current_user.tenant_id)).scalars().all() if doctors else []
         sched_map = {}
@@ -299,7 +299,7 @@ def staff_capacity():
             sched_map.setdefault(s.user_id, {})[int(s.day_of_week)] = s
 
         abs_q = select(StaffAbsence)
-        absences = abs_q.all() if doctors else []
+        absences = db.session.execute(abs_q).scalars().all() if doctors else []
         abs_map = {}
         for a in absences:
             abs_map.setdefault(a.user_id, []).append(a)

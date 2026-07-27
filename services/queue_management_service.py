@@ -281,17 +281,17 @@ class QueueManagementService:
             kind_rank = self._visit_kind_rank_expr(QueueManagement, Visit)
             # Use explicit column criteria: after the outerjoin, filter_by() would
             # bind to the joined Visit entity instead of QueueManagement.
-            waiting_patients = query.filter(QueueManagement.status == QueueState.WAITING).order_by(
+            waiting_patients = db.session.execute(query.filter(QueueManagement.status == QueueState.WAITING).order_by(
                 kind_rank.asc(),
                 priority_rank.asc(),
                 QueueManagement.queued_at.asc()
-            ).all()
+            )).scalars().all()
             
             # جلب المريض الحالي
-            current_patient = query.filter(QueueManagement.status == QueueState.IN_PROGRESS).first()
+            current_patient = db.session.execute(query.filter(QueueManagement.status == QueueState.IN_PROGRESS)).scalars().first()
             
             # جلب المرضى المستدعين
-            called_patients = query.filter(QueueManagement.status == QueueState.CALLED).all()
+            called_patients = db.session.execute(query.filter(QueueManagement.status == QueueState.CALLED)).scalars().all()
 
             def enrich(ticket: QueueManagement):
                 d = ticket.to_dict()
@@ -371,7 +371,7 @@ class QueueManagementService:
             status_rank = self._status_rank_expr(QueueManagement)
             priority_rank = self._priority_rank_expr(QueueManagement)
             kind_rank = self._visit_kind_rank_expr(QueueManagement, Visit)
-            tickets = q.order_by(status_rank.asc(), kind_rank.asc(), priority_rank.asc(), QueueManagement.queued_at.asc()).all()
+            tickets = db.session.execute(q.order_by(status_rank.asc(), kind_rank.asc(), priority_rank.asc(), QueueManagement.queued_at.asc())).scalars().all()
 
             def enrich(ticket: QueueManagement):
                 d = ticket.to_dict()
@@ -430,11 +430,11 @@ class QueueManagementService:
             
             priority_rank = self._priority_rank_expr(QueueManagement)
             kind_rank = self._visit_kind_rank_expr(QueueManagement, Visit)
-            next_patient = query.order_by(
+            next_patient = db.session.execute(query.order_by(
                 kind_rank.asc(),
                 priority_rank.asc(),
                 QueueManagement.queued_at.asc()
-            ).first()
+            )).scalars().first()
             
             if not next_patient:
                 return False, "لا يوجد مرضى في الطابور"

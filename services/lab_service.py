@@ -359,7 +359,7 @@ class LabService:
         q = select(LabTestCatalog)
         if tenant_id:
             q = q.filter(LabTestCatalog.tenant_id == tenant_id)
-        return q.first()
+        return db.session.execute(q).scalars().first()
 
     @staticmethod
     @require_module('lab')
@@ -368,7 +368,7 @@ class LabService:
         q = select(LabTestCatalog)
         if tenant_id:
             q = q.filter(LabTestCatalog.tenant_id == tenant_id)
-        return q.order_by(LabTestCatalog.sort_order, LabTestCatalog.code).all()
+        return db.session.execute(q.order_by(LabTestCatalog.sort_order, LabTestCatalog.code)).scalars().all()
 
 
 # Singleton

@@ -440,10 +440,13 @@ def fetch_api_exchange_rates():
 def deactivate_exchange_rate(rate_id):
     """تعطيل سعر صرف"""
     from models.exchange_rate import ExchangeRate
-    rate = select(ExchangeRate).filter(
+    rate = db.session.execute(select(ExchangeRate).filter(
         ExchangeRate.tenant_id == current_user.tenant_id,
         ExchangeRate.id == rate_id
-    )
+    )).scalars().first()
+    if not rate:
+        flash('سعر الصرف غير موجود', 'error')
+        return redirect(url_for('manager.exchange_rates'))
     try:
         rate.is_active = False
         safe_commit(db.session, error_message="database commit failed", reraise=True)

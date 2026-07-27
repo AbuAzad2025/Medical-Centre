@@ -46,9 +46,9 @@ def quality():
     start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
     end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
 
-    done_requests_q = select(LabRequest)
-
-    total_done_requests = done_requests_q.count()
+    total_done_requests = db.session.scalar(
+        select(func.count()).select_from(LabRequest)
+    )
 
     try:
         avg_tat_seconds = db.session.execute(select(

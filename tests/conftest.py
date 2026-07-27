@@ -344,9 +344,13 @@ def test_user(app, test_tenant):
                 is_active=True,
                 tenant_id=test_tenant.id,
             )
-            u.set_password('ValidPass123!')
             _db.session.add(u)
-            _db.session.commit()
+        else:
+            u.is_active = True
+            u.role = 'pharmacist'
+            u.tenant_id = test_tenant.id
+        u.set_password('ValidPass123!')
+        _db.session.commit()
         return u
     finally:
         if prev_bypass:
@@ -408,9 +412,13 @@ def manager_user(app, test_tenant):
                 is_active=True,
                 tenant_id=test_tenant.id,
             )
-            u.set_password('ValidPass123!')
             _db.session.add(u)
-            _db.session.commit()
+        else:
+            u.is_active = True
+            u.role = 'manager'
+            u.tenant_id = test_tenant.id
+        u.set_password('ValidPass123!')
+        _db.session.commit()
         return u
     finally:
         if prev_bypass:

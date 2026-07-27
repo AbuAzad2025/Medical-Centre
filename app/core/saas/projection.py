@@ -5,7 +5,7 @@ Materializes the effective tenant capability set from all active entitlement
 sources (subscription lines, enterprise contracts, tenant overrides, feature flags)
 into the read-only `tenant_entitlements` projection table.
 """
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -47,8 +47,8 @@ class EntitlementProjectionService:
         cls._apply_feature_flag_grants(tenant_id, as_of_naive, capabilities, sources)
 
         # Materialize projection
-        select(TenantEntitlement).delete(
-            synchronize_session=False
+        db.session.execute(
+            delete(TenantEntitlement)
         )
 
         for capability_key, (effective_from, effective_to) in capabilities.items():

@@ -44,14 +44,13 @@ def for_each_tenant(app: Flask, job: Callable[[int], None]) -> None:
         from app.core.tenant.models import Tenant
 
         try:
-            active_tenants = db.session.execute(select(Tenant).filter(Tenant.status.in_(_operational_tenant_statuses()))
-                .order_by(Tenant.id)
-                .with_entities(Tenant.id)).scalars().all()
+            active_tenants = db.session.execute(select(Tenant.id).filter(Tenant.status.in_(_operational_tenant_statuses()))
+                .order_by(Tenant.id)).scalars().all()
         except Exception:
             logging.exception("Failed to load active tenants for background job")
             return
 
-        for (tenant_id,) in active_tenants:
+        for tenant_id in active_tenants:
             try:
                 with_tenant_context(app, tenant_id, lambda: job(tenant_id))
             except Exception:

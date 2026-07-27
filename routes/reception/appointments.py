@@ -399,7 +399,7 @@ def follow_ups():
         except Exception as e:
 
             logging.warning(f"Error in {__name__}: {e}")
-    followups = query.order_by(FollowUpRequest.suggested_date.asc(), FollowUpRequest.created_at.desc()).limit(500).all()
+    followups = db.session.execute(query.order_by(FollowUpRequest.suggested_date.asc(), FollowUpRequest.created_at.desc()).limit(500)).scalars().all()
 
     return render_template('reception/follow_ups.html', followups=followups, search=search, selected_status=status, selected_date=date_str)
 

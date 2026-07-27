@@ -19,7 +19,7 @@ from models.medical_record import MedicalRecord
 from services.emergency_service import emergency_service
 from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
-from sqlalchemy import and_, or_, desc, case, select
+from sqlalchemy import and_, or_, desc, case, select, func
 import logging, json
 from datetime import datetime, date, timedelta, timezone
 
@@ -50,10 +50,10 @@ def patient_queue():
             EmergencyCase.status.in_([EmergencyStatus.WAITING, EmergencyStatus.TRIAGE, EmergencyStatus.RESUSCITATION, EmergencyStatus.TREATMENT, EmergencyStatus.OBSERVATION])
         )
         
-        total = query.count()
+        total = db.session.execute(select(func.count()).select_from(query.subquery())).scalar() or 0
         pages = (total + per_page - 1) // per_page
         
-        emergencies = query.offset((page - 1) * per_page).limit(per_page).all()
+        emergencies = db.session.execute(query.offset((page - 1) * per_page).limit(per_page)).scalars().all()
         
         # إحصائيات الطابور
         queue_stats = {

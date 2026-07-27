@@ -39,10 +39,10 @@ def invoices():
             Visit.payment_status.in_(['PENDING', 'PARTIAL', 'DEBT'])
         )
         
-        total = query.count()
+        total = db.session.execute(select(func.count()).select_from(query.subquery())).scalar() or 0
         pages = (total + per_page - 1) // per_page
         
-        visits = query.offset((page - 1) * per_page).limit(per_page).all()
+        visits = db.session.execute(query.offset((page - 1) * per_page).limit(per_page)).scalars().all()
     except Exception as e:
         logging.error(f"Error loading pending visits: {str(e)}")
         visits = []

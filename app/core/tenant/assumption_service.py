@@ -66,18 +66,17 @@ class PlatformAssumptionService:
     @staticmethod
     def has_valid_assumption(user_id: int, tenant_id: int) -> bool:
         now = datetime.now(timezone.utc)
-        return db.session.execute(select(
-            select(PlatformTenantAssumption).filter(
-                PlatformTenantAssumption.user_id == user_id,
-                PlatformTenantAssumption.assumed_tenant_id == tenant_id,
-                PlatformTenantAssumption.is_active == True,
-            ).filter(
-                db.or_(
-                    PlatformTenantAssumption.expires_at.is_(None),
-                    PlatformTenantAssumption.expires_at > now,
-                )
+        q = select(PlatformTenantAssumption.id).filter(
+            PlatformTenantAssumption.user_id == user_id,
+            PlatformTenantAssumption.assumed_tenant_id == tenant_id,
+            PlatformTenantAssumption.is_active == True,
+        ).filter(
+            db.or_(
+                PlatformTenantAssumption.expires_at.is_(None),
+                PlatformTenantAssumption.expires_at > now,
             )
-        )).scalar()
+        ).limit(1)
+        return db.session.execute(q).scalar() is not None
 
     @staticmethod
     def get_active_assumptions(user_id: int | None = None) -> list[PlatformTenantAssumption]:
@@ -91,7 +90,7 @@ class PlatformAssumptionService:
                 PlatformTenantAssumption.expires_at > now,
             )
         )
-        return q.order_by(PlatformTenantAssumption.created_at.desc()).all()
+        return db.session.execute(q.order_by(PlatformTenantAssumption.created_at.desc())).scalars().all()
 
     @staticmethod
     def is_platform_user() -> bool:

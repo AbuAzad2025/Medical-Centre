@@ -42,7 +42,7 @@ class ReportScopeService:
         if 'date_to' in filters:
             q = q.filter(Visit.created_at <= filters['date_to'])
         total = q.count()
-        by_status = db.session.execute(select(Visit.status, db.func.count()).group_by(Visit.status)).scalars().all()
+        by_status = db.session.execute(select(Visit.status, db.func.count()).group_by(Visit.status)).all()
         return {'total_visits': total, 'by_status': dict(by_status)}
 
     @staticmethod
@@ -54,7 +54,7 @@ class ReportScopeService:
         if tenant_id:
             q = q.filter_by(tenant_id=tenant_id)
         total = q.count()
-        by_status = db.session.execute(select(LabRequest.status, db.func.count()).group_by(LabRequest.status)).scalars().all()
+        by_status = db.session.execute(select(LabRequest.status, db.func.count()).group_by(LabRequest.status)).all()
         return {'total_lab_requests': total, 'by_status': dict(by_status)}
 
     @staticmethod

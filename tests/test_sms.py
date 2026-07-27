@@ -63,7 +63,7 @@ class TestSMSService:
 
 class TestNotificationQueueSMS:
     def test_sms_notification_processed(self, app):
-        from unittest.mock import MagicMock
+        from unittest.mock import MagicMock, patch
 
         mock_nq = MagicMock()
         mock_nq.notification_type = 'sms'
@@ -75,15 +75,14 @@ class TestNotificationQueueSMS:
         mock_nq.id = 1
         mock_nq.tenant_id = None
 
-        with patch('services.notification_service.NotificationQueue') as MockNQ:
-            query_mock = MagicMock()
-            query_mock.filter_by.return_value.all.return_value = [mock_nq]
-            MockNQ.query = query_mock
+        mock_execute_result = MagicMock()
+        mock_execute_result.scalars.return_value.all.return_value = [mock_nq]
+
+        with patch('services.notification_service.db') as mock_db:
+            mock_db.session.execute.return_value = mock_execute_result
             with patch('services.sms_service.SMSService.send_sms') as mock_send:
                 mock_send.return_value = {'success': True, 'message': 'OK'}
-                with patch('services.notification_service.db') as mock_db:
-                    mock_db.session.commit.return_value = None
-                    from services.notification_service import NotificationService
-                    result = NotificationService.process_notification_queue()
-                    assert result.get('success') is True
-                    mock_send.assert_called_once_with(phone='+970599123456', message='Test SMS from queue', tenant=None)
+                from services.notification_service import NotificationService
+                result = NotificationService.process_notification_queue()
+                assert result.get('success') is True
+                mock_send.assert_called_once_with(phone='+970599123456', message='Test SMS from queue', tenant=None)
