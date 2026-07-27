@@ -124,7 +124,7 @@ class TestReceptionQueuePagesHttp:
             {
                 'u': 'reception_bs4',
                 'e': 'reception_bs4@test.local',
-                'p': generate_password_hash('test123'),
+                'p': generate_password_hash('ValidPass123!'),
                 'fn': 'استقبال BS4',
                 'r': 'reception',
                 't': tenant_id,

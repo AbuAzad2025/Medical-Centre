@@ -86,7 +86,7 @@ def settlements():
             dep = db.session.get(Department, department_id)
             target_name = dep.name_ar or dep.name if dep else None
 
-        visits = q.order_by(Visit.visit_date.asc()).all()
+        visits = db.session.execute(q.order_by(Visit.visit_date.asc())).scalars().all()
 
         # حساب التسوية
         def compute_doctor_fee(v: Visit) -> Decimal:
@@ -201,7 +201,7 @@ def settlements_export():
             q = q.filter(Visit.doctor_id == doctor_id)
         elif mode == 'department' and department_id:
             q = q.filter(Visit.department_id == department_id)
-        visits = q.order_by(Visit.visit_date.asc()).all()
+        visits = db.session.execute(q.order_by(Visit.visit_date.asc())).scalars().all()
 
         def compute_doctor_fee(v: Visit) -> Decimal:
             total = Decimal(str(v.total_amount or 0))

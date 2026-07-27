@@ -27,7 +27,7 @@ def lab_patient(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def lab_doctor(app, test_tenant):
-    u = User.query.filter_by(username='lab_doctor').first()
+    u = User.query.filter_by(username='lab_doctor', tenant_id=test_tenant.id).first()
     if not u:
         u = User(
             username='lab_doctor',
@@ -37,9 +37,9 @@ def lab_doctor(app, test_tenant):
             is_active=True,
             tenant_id=test_tenant.id,
         )
-        u.set_password('test123')
         _db.session.add(u)
-        _db.session.commit()
+    u.set_password('ValidPass123!')
+    _db.session.commit()
     return u
 
 

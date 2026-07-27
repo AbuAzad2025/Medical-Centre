@@ -356,7 +356,7 @@ class LabService:
     @require_module('lab')
     def lookup_catalog_by_code(code: str, tenant_id: int | None = None) -> Any | None:
         from models.lab_test_catalog import LabTestCatalog
-        q = select(LabTestCatalog)
+        q = select(LabTestCatalog).filter(LabTestCatalog.code == code)
         if tenant_id:
             q = q.filter(LabTestCatalog.tenant_id == tenant_id)
         return db.session.execute(q).scalars().first()
@@ -365,7 +365,7 @@ class LabService:
     @require_module('lab')
     def get_active_catalog(tenant_id: int | None = None) -> list:
         from models.lab_test_catalog import LabTestCatalog
-        q = select(LabTestCatalog)
+        q = select(LabTestCatalog).filter(LabTestCatalog.is_active == True)
         if tenant_id:
             q = q.filter(LabTestCatalog.tenant_id == tenant_id)
         return db.session.execute(q.order_by(LabTestCatalog.sort_order, LabTestCatalog.code)).scalars().all()

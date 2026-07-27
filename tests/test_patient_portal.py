@@ -41,7 +41,7 @@ def portal_visit(app, test_tenant, portal_patient):
 
 @pytest.fixture(scope='function')
 def portal_user(app, test_tenant):
-    u = User.query.filter_by(username='portal_user').first()
+    u = User.query.filter_by(username='portal_user', tenant_id=test_tenant.id).first()
     if not u:
         u = User(
             username='portal_user',
@@ -51,9 +51,9 @@ def portal_user(app, test_tenant):
             is_active=True,
             tenant_id=test_tenant.id,
         )
-        u.set_password('test123')
         _db.session.add(u)
-        _db.session.commit()
+    u.set_password('ValidPass123!')
+    _db.session.commit()
     return u
 
 
@@ -63,7 +63,7 @@ def portal_auth_client(app, client, portal_user, test_tenant, monkeypatch):
     _shared_store.clear()
     client.post('/auth/login', data={
         'username': 'portal_user',
-        'password': 'test123',
+        'password': 'ValidPass123!',
         'tenant_slug': test_tenant.slug,
     })
     return client

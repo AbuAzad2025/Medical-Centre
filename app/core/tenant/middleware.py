@@ -320,6 +320,7 @@ def set_tenant_context():
 
     if tenant:
         bind_g_tenant(tenant)
+        request.environ['tenant.slug'] = tenant.slug
 
         # R4: Redirect bare tenant-scoped requests to /t/<slug>/ prefix
         # If the user has tenant context but accessed the resource without
@@ -386,10 +387,6 @@ def set_tenant_context():
     if not tenant:
         return
 
-    # DEBUG
-    import logging
-    logging.getLogger(__name__).info(f"set_tenant_context: path={request.path}, is_exempt={is_exempt}, tenant_id={getattr(tenant, 'id', None)}, enabled_modules={getattr(g, 'enabled_modules', None)}")
-
     # MC-005: enforce tenant-access for authenticated users
     if not is_exempt:
         actor = getattr(g, "current_user", None)
@@ -411,7 +408,7 @@ def set_tenant_context():
                 from app.core.tenant.assumption_service import PlatformAssumptionService
 
                 PlatformAssumptionService.enforce_tenant_access()
-            except Exception:
+            except Exception as exc:
                 from flask import abort
 
                 abort(403, description="Cross-tenant access denied")

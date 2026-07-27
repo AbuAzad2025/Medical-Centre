@@ -31,7 +31,7 @@ def reception_user(app, test_tenant):
     from models.user import User
     from app_factory import db as _db
 
-    u = User.query.filter_by(username='reception_pos_test').first()
+    u = User.query.filter_by(username='reception_pos_test', tenant_id=test_tenant.id).first()
     if not u:
         u = User(
             username='reception_pos_test',
@@ -41,9 +41,9 @@ def reception_user(app, test_tenant):
             is_active=True,
             tenant_id=test_tenant.id,
         )
-        u.set_password('test123')
         _db.session.add(u)
-        _db.session.commit()
+    u.set_password('ValidPass123!')
+    _db.session.commit()
     return u
 
 

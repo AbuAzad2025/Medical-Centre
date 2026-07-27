@@ -48,7 +48,14 @@ def _get_patient_from_user():
 
 def _patient_visible_invoice_query(patient):
     """P0B-001B: Patient-visible invoices are DRAFT, ISSUED, or POSTED."""
-    return select(Invoice).join(Visit)
+    return select(Invoice).join(Visit).filter(
+        Visit.patient_id == patient.id,
+        Invoice.status.in_([
+            InvoiceStatus.DRAFT.value,
+            InvoiceStatus.ISSUED.value,
+            InvoiceStatus.POSTED.value,
+        ]),
+    )
 
 
 def _patient_visible_lab_requests(patient):

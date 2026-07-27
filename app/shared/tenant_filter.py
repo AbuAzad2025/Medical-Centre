@@ -282,6 +282,70 @@ def tenant_filter_query(query):
 # ---------------------------------------------------------------------------
 
 @event.listens_for(OrmSession, 'do_orm_execute')
+def tenant_filter_select(orm_execute_state):
+    """Tenant filter for ``session.execute(select(...))`` style queries.
+
+    In SQLAlchemy 2.0 the legacy ``Query.before_compile`` event only fires for
+    ``session.query(...)`` calls.  New-style ``session.execute(select(...))``
+    bypasses it entirely, so tenant isolation is not enforced for those queries.
+    This handler replicates the same filtering for ORM SELECT statements
+    executed via the 2.0-style ``select()`` API.
+
+    For old-style ``session.query(...)`` calls the ``before_compile`` handler
+    already applied the filter; we skip those to avoid double-filtering.
+    """
+    if not orm_execute_state.is_select:
+        return
+
+    statement = orm_execute_state.statement
+
+    # Only intercept new-style Select objects; old-style Query objects are
+    # already handled by the before_compile listener above.
+    from sqlalchemy import Select as _SASelect
+    if not isinstance(statement, _SASelect):
+        return
+
+    session = orm_execute_state.session
+    tid = _current_tenant_id(session=session)
+    if tid is None or _is_tenant_bypass():
+        return
+
+    # Skip internal SA ORM operations (identity-key reloads after commit,
+    # lazy-loads, eager-loads).  These carry ``_sa_orm_load_options`` in
+    # execution options and are triggered transparently when accessing
+    # expired attributes on already-loaded objects.  Filtering them would
+    # break users with NULL tenant_id (platform/owner) whose identity
+    # reload query returns no rows, causing ObjectDeletedError.
+    if "_sa_orm_load_options" in orm_execute_state.execution_options:
+        return
+
+    modified = False
+    for desc in getattr(statement, 'column_descriptions', []):
+        entity = desc.get('entity')
+        if entity is None or not isinstance(entity, type):
+            continue
+        if _skip_table(entity):
+            continue
+        if _model_has_tenant_column(entity):
+            statement = statement.filter(entity.tenant_id == tid)
+            modified = True
+        if _model_has_soft_delete(entity):
+            soft_col = _get_soft_delete_column(entity)
+            if soft_col is not None:
+                col_type = str(soft_col.type).lower()
+                if 'datetime' in col_type or 'timestamp' in col_type or 'date' in col_type:
+                    statement = statement.filter(soft_col.is_(None))
+                elif 'boolean' in col_type or 'bool' in col_type:
+                    statement = statement.filter(soft_col == False)
+                else:
+                    statement = statement.filter(soft_col.is_(None))
+                modified = True
+
+    if modified:
+        orm_execute_state.statement = statement
+
+
+@event.listens_for(OrmSession, 'do_orm_execute')
 def reassert_set_local(orm_execute_state):
     """Re-assert SET LOCAL app.tenant_id before every ORM statement.
 

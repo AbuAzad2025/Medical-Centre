@@ -57,14 +57,14 @@ class TestNavResolverManager:
                 is_active=True,
                 tenant_id=test_tenant.id,
             )
-            u.set_password('test123')
+            u.set_password('ValidPass123!')
             from app.extensions import db
             db.session.add(u)
             db.session.commit()
         _shared_store.clear()
         client.post('/auth/login', data={
             'username': 'sa_gate6b',
-            'password': 'test123',
+            'password': 'ValidPass123!',
             'tenant_slug': test_tenant.slug,
         })
         with app.app_context():
