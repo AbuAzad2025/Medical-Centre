@@ -9,9 +9,11 @@ function submitScan() {
   }).then(r => r.json()).then(data => {
     const el = document.getElementById('scanResult');
     if (data.success) {
-      el.innerHTML = '<div class="alert alert-success">'+data.entity_type+' #'+data.entity_id+'</div>';
+      el.innerHTML = '<div class="alert alert-success"></div>';
+      el.firstElementChild.textContent = data.entity_type+' #'+data.entity_id;
     } else {
-      el.innerHTML = '<div class="alert alert-danger">'+data.message+'</div>';
+      el.innerHTML = '<div class="alert alert-danger"></div>';
+      el.firstElementChild.textContent = data.message;
     }
   }).catch(err => console.error('فشل مسح الباركود:', err));
 }

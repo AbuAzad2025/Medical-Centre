@@ -35,7 +35,8 @@
     const selectPatient = (patient) => {
       if (hiddenId) hiddenId.value = patient.id;
       if (infoEl) {
-        infoEl.innerHTML = `<strong>المريض المحدد:</strong> ${patient.full_name} | الهوية: ${patient.national_id || '-'} | الهاتف: ${patient.phone || '-'}`;
+        infoEl.innerHTML = '<strong>المريض المحدد:</strong> ';
+        infoEl.appendChild(document.createTextNode(`${patient.full_name} | الهوية: ${patient.national_id || '-'} | الهاتف: ${patient.phone || '-'}`));
         infoEl.classList.remove('d-none');
         infoEl.style.display = 'block';
       }
@@ -70,7 +71,19 @@
             const item = document.createElement('button');
             item.type = 'button';
             item.className = 'list-group-item list-group-item-action text-start';
-            item.innerHTML = `<div class="d-flex justify-content-between"><strong>${patient.full_name}</strong><small>${patient.national_id || ''}</small></div><small class="text-muted">${patient.phone || ''}</small>`;
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'd-flex justify-content-between';
+            const nameStrong = document.createElement('strong');
+            nameStrong.textContent = patient.full_name;
+            const idSmall = document.createElement('small');
+            idSmall.textContent = patient.national_id || '';
+            nameDiv.appendChild(nameStrong);
+            nameDiv.appendChild(idSmall);
+            const phoneSmall = document.createElement('small');
+            phoneSmall.className = 'text-muted';
+            phoneSmall.textContent = patient.phone || '';
+            item.appendChild(nameDiv);
+            item.appendChild(phoneSmall);
             item.addEventListener('click', () => selectPatient(patient));
             results.appendChild(item);
           });

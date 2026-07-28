@@ -538,7 +538,7 @@ img {
 .position-relative { position: relative; }
 .position-absolute { position: absolute; }
 .position-fixed { position: fixed; }
-.position-sticky { position: sticky; }
+.position-sticky { position: -webkit-sticky; position: sticky; }
 
 /* Cursor */
 .cursor-pointer { cursor: pointer; }

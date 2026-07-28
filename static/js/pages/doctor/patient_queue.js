@@ -20,13 +20,21 @@ document.addEventListener('DOMContentLoaded', function() {
               const item = document.createElement('a');
               item.href = (typeof __M1__ !== 'undefined' ? __M1__.replace('0', p.id) : '#');
               item.className = 'list-group-item list-group-item-action';
-              item.innerHTML = `
-                <div class="d-flex w-100 justify-content-between">
-                  <h6 class="mb-1">${p.full_name}</h6>
-                  <small class="text-muted">الزيارات: ${p.visit_count || 0}</small>
-                </div>
-                <small class="text-muted">${p.national_id || ''} ${p.phone ? ' | ' + p.phone : ''}</small>
-              `;
+              const headerDiv = document.createElement('div');
+              headerDiv.className = 'd-flex w-100 justify-content-between';
+              const nameH6 = document.createElement('h6');
+              nameH6.className = 'mb-1';
+              nameH6.textContent = p.full_name;
+              headerDiv.appendChild(nameH6);
+              const visitSmall = document.createElement('small');
+              visitSmall.className = 'text-muted';
+              visitSmall.textContent = 'الزيارات: ' + (p.visit_count || 0);
+              headerDiv.appendChild(visitSmall);
+              item.appendChild(headerDiv);
+              const infoSmall = document.createElement('small');
+              infoSmall.className = 'text-muted';
+              infoSmall.textContent = (p.national_id || '') + (p.phone ? ' | ' + p.phone : '');
+              item.appendChild(infoSmall);
               list.appendChild(item);
             });
             list.style.display = 'block';

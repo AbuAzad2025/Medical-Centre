@@ -88,9 +88,11 @@
   align-items: center;
   gap: 0.75rem;
   border-bottom: 1px solid var(--owner-border);
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
   background: var(--owner-glass-bg);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   z-index: 10;
 }
@@ -179,9 +181,11 @@
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--owner-border);
   margin-top: auto;
+  position: -webkit-sticky;
   position: sticky;
   bottom: 0;
   background: var(--owner-glass-bg);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
 }
 
@@ -202,6 +206,7 @@
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid var(--owner-glass-border);
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
   z-index: 1030;
@@ -649,6 +654,7 @@
   border-radius: var(--owner-radius-sm);
   border: 1px solid var(--owner-glass-border);
   background: var(--owner-glass-bg);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   box-shadow: var(--owner-shadow-lg);
   padding: 1rem 1.25rem;
@@ -713,6 +719,7 @@
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.4);
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     z-index: 1035;
     opacity: 0;
@@ -869,6 +876,7 @@
 /* ─── Card Variants ─── */
 .owner-card.owner-card-glass {
   background: var(--owner-glass-bg);
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   border: 1px solid var(--owner-glass-border);
 }

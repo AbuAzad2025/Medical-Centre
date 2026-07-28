@@ -49,21 +49,30 @@
             checkoutBtn.disabled = true;
             return;
         }
-        let html = '<table class="table table-sm mb-0"><thead><tr><th>الاسم</th><th>السعر</th><th>الكمية</th><th>المجموع</th><th></th></tr></thead><tbody>';
+        container.innerHTML = '<table class="table table-sm mb-0"><thead><tr><th>الاسم</th><th>السعر</th><th>الكمية</th><th>المجموع</th><th></th></tr></thead><tbody></tbody></table>';
+        const tbody = container.querySelector('tbody');
         let total = 0;
         cart.forEach(function (item, idx) {
             const subtotal = item.price * item.qty;
             total += subtotal;
-            html += '<tr>' +
-                '<td>' + item.name + '</td>' +
-                '<td>' + item.price.toFixed(2) + '</td>' +
-                '<td><input type="number" class="form-control form-control-sm qty-input" style="width:70px" value="' + item.qty + '" min="1" max="' + item.stock + '" data-index="' + idx + '"></td>' +
-                '<td>' + subtotal.toFixed(2) + '</td>' +
-                '<td><button class="btn btn-sm btn-outline-danger remove-item" data-index="' + idx + '"><i class="fas fa-times"></i></button></td>' +
-                '</tr>';
+            const tr = document.createElement('tr');
+            const nameTd = document.createElement('td');
+            nameTd.textContent = item.name;
+            tr.appendChild(nameTd);
+            const priceTd = document.createElement('td');
+            priceTd.textContent = item.price.toFixed(2);
+            tr.appendChild(priceTd);
+            const qtyTd = document.createElement('td');
+            qtyTd.innerHTML = '<input type="number" class="form-control form-control-sm qty-input" style="width:70px" value="' + item.qty + '" min="1" max="' + item.stock + '" data-index="' + idx + '">';
+            tr.appendChild(qtyTd);
+            const subtotalTd = document.createElement('td');
+            subtotalTd.textContent = subtotal.toFixed(2);
+            tr.appendChild(subtotalTd);
+            const actionTd = document.createElement('td');
+            actionTd.innerHTML = '<button class="btn btn-sm btn-outline-danger remove-item" data-index="' + idx + '"><i class="fas fa-times"></i></button>';
+            tr.appendChild(actionTd);
+            tbody.appendChild(tr);
         });
-        html += '</tbody></table>';
-        container.innerHTML = html;
         totalEl.textContent = total.toFixed(2) + ' ₪';
         checkoutBtn.disabled = false;
     }
@@ -193,12 +202,27 @@
                     }
                     noRes.classList.add('d-none');
                     data.forEach(function (m) {
-                        tbody.innerHTML += '<tr>' +
-                            '<td>' + m.trade_name + '</td>' +
-                            '<td>' + (m.price || 0).toFixed(2) + ' ₪</td>' +
-                            '<td>' + (m.stock || 0) + '</td>' +
-                            '<td><button class="btn btn-sm btn-success quick-add" data-id="' + m.id + '" data-name="' + m.trade_name + '" data-price="' + (m.price || 0) + '" data-stock="' + (m.stock || 0) + '"><i class="fas fa-plus"></i></button></td>' +
-                            '</tr>';
+                        const tr = document.createElement('tr');
+                        const nameTd = document.createElement('td');
+                        nameTd.textContent = m.trade_name;
+                        tr.appendChild(nameTd);
+                        const priceTd = document.createElement('td');
+                        priceTd.textContent = (m.price || 0).toFixed(2) + ' ₪';
+                        tr.appendChild(priceTd);
+                        const stockTd = document.createElement('td');
+                        stockTd.textContent = String(m.stock || 0);
+                        tr.appendChild(stockTd);
+                        const actionTd = document.createElement('td');
+                        const addBtn = document.createElement('button');
+                        addBtn.className = 'btn btn-sm btn-success quick-add';
+                        addBtn.setAttribute('data-id', m.id);
+                        addBtn.setAttribute('data-name', m.trade_name);
+                        addBtn.setAttribute('data-price', m.price || 0);
+                        addBtn.setAttribute('data-stock', m.stock || 0);
+                        addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+                        actionTd.appendChild(addBtn);
+                        tr.appendChild(actionTd);
+                        tbody.appendChild(tr);
                     });
                 });
         }, 300);

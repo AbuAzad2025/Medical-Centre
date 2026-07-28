@@ -34,29 +34,32 @@ let smartSearchTimer = null;
 
     const renderResults = (patients) => {
         if (!patients || !patients.length) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">لا توجد نتائج</td></tr>`;
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">لا توجد نتائج</td></tr>';
             return;
         }
-        const rows = patients.map(p => {
-            const id = p.id ?? '-';
-            const name = p.full_name ?? '-';
-            const phone = p.phone ?? '-';
-            const nid = p.national_id ?? '-';
-            const gender = genderLabel(p.gender);
-            return `
-                <tr>
-                    <td>${id}</td>
-                    <td>${name}</td>
-                    <td>${phone}</td>
-                    <td>${nid}</td>
-                    <td>${gender}</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>${id !== '-' ? buildActionsHtml(id) : ''}</td>
-                </tr>
-            `;
+        tbody.innerHTML = '';
+        patients.forEach(p => {
+            const tr = document.createElement('tr');
+            const cells = [
+                String(p.id ?? '-'),
+                p.full_name ?? '-',
+                p.phone ?? '-',
+                p.national_id ?? '-',
+                genderLabel(p.gender),
+                '-', '-',
+            ];
+            cells.forEach(val => {
+                const td = document.createElement('td');
+                td.textContent = val;
+                tr.appendChild(td);
+            });
+            const actionsTd = document.createElement('td');
+            if (p.id != null) {
+                actionsTd.innerHTML = buildActionsHtml(p.id);
+            }
+            tr.appendChild(actionsTd);
+            tbody.appendChild(tr);
         });
-        tbody.innerHTML = rows.join('');
     };
 
     input.addEventListener('input', function() {

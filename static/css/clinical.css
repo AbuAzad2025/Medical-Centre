@@ -37,6 +37,7 @@ body.clinical-theme {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
   z-index: 1030;
@@ -385,6 +386,7 @@ body.clinical-theme {
   align-items: center;
   gap: 1rem;
   box-shadow: var(--clinical-shadow);
+  position: -webkit-sticky;
   position: sticky;
   top: calc(var(--clinical-header-height) + 8px);
   z-index: 100;

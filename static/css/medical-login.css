@@ -108,6 +108,7 @@ html, body {
   color: #fff;
   font-weight: 800;
   font-size: 1.1rem;
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
 }
 
