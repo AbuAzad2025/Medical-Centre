@@ -1,6 +1,68 @@
 var __M = window.__M || [];
 const RX_TEMPLATES = __M0__;
 
+function showSafetyModal(alerts, onOverride) {
+  const existing = document.getElementById('safetyOverrideModal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'safetyOverrideModal';
+  modal.className = 'modal fade show';
+  modal.style.display = 'block';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  const header = document.createElement('div');
+  header.className = 'modal-header bg-danger text-white';
+  header.innerHTML = '<h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>تنبيه أمان سريري</h5>';
+  modal.appendChild(header);
+  const body = document.createElement('div');
+  body.className = 'modal-body';
+  body.innerHTML = '<p class="fw-bold">تم اكتشاف تحذيرات أمان حرجة قبل إنشاء الوصفة:</p>';
+  const list = document.createElement('ul');
+  list.className = 'list-group mb-3';
+  alerts.forEach(function (a) {
+    const li = document.createElement('li');
+    li.className = 'list-group-item list-group-item-' + (a.severity === 'hard_stop' ? 'danger' : 'warning');
+    li.textContent = a.message;
+    list.appendChild(li);
+  });
+  body.appendChild(list);
+  const formGroup = document.createElement('div');
+  formGroup.className = 'mb-3';
+  formGroup.innerHTML = '<label class="form-label">سبب التجاوز (إجباري):</label>' +
+    '<textarea class="form-control" id="overrideNote" rows="3" required placeholder="أدخل سبب تجاوز تحذير الأمان هذا..."></textarea>';
+  body.appendChild(formGroup);
+  modal.appendChild(body);
+  const footer = document.createElement('div');
+  footer.className = 'modal-footer';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.className = 'btn btn-secondary';
+  cancelBtn.textContent = 'إلغاء';
+  cancelBtn.addEventListener('click', function () { modal.remove(); });
+  footer.appendChild(cancelBtn);
+  const confirmBtn = document.createElement('button');
+  confirmBtn.type = 'button';
+  confirmBtn.className = 'btn btn-danger';
+  confirmBtn.textContent = 'تأكيد التجاوز';
+  confirmBtn.disabled = true;
+  confirmBtn.addEventListener('click', function () {
+    const note = document.getElementById('overrideNote').value.trim();
+    if (!note) return;
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'جاري المعالجة...';
+    onOverride(note);
+  });
+  footer.appendChild(confirmBtn);
+  modal.appendChild(footer);
+  document.body.appendChild(modal);
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop fade show';
+  document.body.appendChild(backdrop);
+  document.addEventListener('keydown', function escHandler(e) {
+    if (e.key === 'Escape') { modal.remove(); backdrop.remove(); document.removeEventListener('keydown', escHandler); }
+  });
+}
+
 function parseMedicationRef(value) {
   const v = (value || '').trim();
   if (!v) return { id: '', label: '' };
@@ -85,4 +147,34 @@ document.getElementById('applyTemplateBtn').addEventListener('click', function()
 
 document.addEventListener('DOMContentLoaded', function() {
   ensureAtLeastOneRow();
+  const form = document.getElementById('prescriptionForm');
+  if (!form) return;
+  form.addEventListener('submit', function(e) {
+    const items = form.querySelectorAll('.medication-id');
+    let hasItems = false;
+    items.forEach(function(inp) { if (inp.value.trim()) hasItems = true; });
+    if (!hasItems) return;
+    e.preventDefault();
+    const fd = new FormData(form);
+    fetch(form.action, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) { window.location.href = form.getAttribute('data-success-url') || window.location.href; }
+        else if (data.hard_stops && data.hard_stops.length) {
+          showSafetyModal(data.hard_stops, function(note) {
+            fd.append('overridden', '1');
+            fd.append('override_note', note);
+            fetch(form.action, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+              .then(function(r2) { return r2.json(); })
+              .then(function(d2) {
+                if (d2.success) { window.location.href = form.getAttribute('data-success-url') || window.location.href; }
+                else { showSafetyModal([d2.message || 'خطأ غير معروف'], function(){}); }
+              });
+          });
+        } else {
+          var errEl = document.getElementById('prescriptionError');
+          if (errEl) { errEl.textContent = data.message || 'حدث خطأ غير متوقع'; errEl.classList.remove('d-none'); }
+        }
+      });
+  });
 });

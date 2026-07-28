@@ -36,7 +36,10 @@
       if (hiddenId) hiddenId.value = patient.id;
       if (infoEl) {
         infoEl.innerHTML = '<strong>المريض المحدد:</strong> ';
-        infoEl.appendChild(document.createTextNode(`${patient.full_name} | الهوية: ${patient.national_id || '-'} | الهاتف: ${patient.phone || '-'}`));
+        const details = document.createTextNode(
+          `${patient.full_name} | الهوية: ${window.PiiMask ? window.PiiMask.nationalId(patient.national_id || '-') : (patient.national_id || '-')} | الهاتف: ${window.PiiMask ? window.PiiMask.phone(patient.phone || '-') : (patient.phone || '-')}`
+        );
+        infoEl.appendChild(details);
         infoEl.classList.remove('d-none');
         infoEl.style.display = 'block';
       }

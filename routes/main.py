@@ -75,24 +75,37 @@ def settings():
 @main_bp.route('/health')
 def health():
     """نقطة فحص الصحة"""
-    from sqlalchemy import text as sa_text, select
+    from sqlalchemy import text as sa_text
     from datetime import datetime, timezone
-    
+
+    db_status = "connected"
     try:
-        # اختبار قاعدة البيانات
         db.session.execute(sa_text("SELECT 1"))
-        db_status = "connected"
-    except Exception as e:
+    except Exception:
         db_status = "error"
-    
+
+    redis_status = "connected"
+    try:
+        from app.core.rate_limiter import _get_redis
+        _redis = _get_redis()
+        if _redis:
+            _redis.ping()
+        else:
+            redis_status = "unavailable"
+    except Exception:
+        redis_status = "error"
+
+    overall = "healthy" if db_status == "connected" and redis_status in ("connected", "unavailable") else "degraded"
+
     payload = {
-        "status": "healthy" if db_status == "connected" else "degraded",
+        "status": overall,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "database": db_status,
-        "version": "1.0.0"
+        "redis": redis_status,
+        "version": "1.0.0",
     }
-    
-    status_code = 200 if db_status == "connected" else 503
+
+    status_code = 200 if overall == "healthy" else 503
     return jsonify(payload), status_code
 
 # تم نقل /change-password إلى auth_routes.py

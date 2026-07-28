@@ -152,7 +152,16 @@ class StripeSubscriptionService:
 
     @classmethod
     def _check_idempotency(cls, event_id: str) -> Optional[StripeWebhookEvent]:
-        return db.session.get(StripeWebhookEvent, event_id)  # global reference table - no tenant scope
+        try:
+            from app.core.rate_limiter import _get_redis
+            _redis = _get_redis()
+            if _redis:
+                cached = _redis.get(f'wh_idemp:{event_id}')
+                if cached:
+                    return None
+        except Exception:
+            pass
+        return db.session.get(StripeWebhookEvent, event_id)
 
     @classmethod
     def ingest_webhook(cls, payload: bytes, signature_header: str) -> dict[str, Any]:
@@ -183,6 +192,13 @@ class StripeSubscriptionService:
             record.status = StripeWebhookEventStatus.PROCESSED
             record.processed_at = datetime.now(timezone.utc)
             safe_commit(db.session, error_message="فشل تسجيل معالجة webhook", reraise=True)
+            try:
+                from app.core.rate_limiter import _get_redis
+                _redis = _get_redis()
+                if _redis:
+                    _redis.setex(f'wh_idemp:{event_id}', 86400, '1')
+            except Exception:
+                pass
             return result
         except Exception as exc:
             try:

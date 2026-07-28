@@ -8,7 +8,7 @@ import sys
 from migrations.migration_utils import column_exists, fk_exists, index_exists, table_exists
 
 # Keep in sync with the latest Alembic revision in migrations/versions/.
-ALEMBIC_HEAD_REVISION = 's2_003_phi_audit_log'
+ALEMBIC_HEAD_REVISION = 's2_005_session_fingerprint'
 
 
 def test_migration_utils_callable():

@@ -208,6 +208,38 @@ def login() -> ResponseReturnValue:
                         except Exception as e:
 
                             logging.warning(f"Error in {__name__}: {e}")
+                    # Session logging + concurrent session limit
+                    try:
+                        from models.digital_signature import SessionLog
+                        import hashlib
+                        fingerprint = hashlib.sha256(
+                            (request.headers.get('User-Agent', '') + request.remote_addr).encode()
+                        ).hexdigest()[:16]
+                        max_sessions = 3
+                        active = db.session.execute(
+                            select(SessionLog).filter_by(
+                                user_id=user.id, is_active=True, tenant_id=user.tenant_id
+                            )
+                        ).scalars().all()
+                        if len(active) >= max_sessions:
+                            oldest = sorted(active, key=lambda s: s.login_at or '')[0]
+                            oldest.is_active = False
+                            oldest.terminated_by = 'SYSTEM_LIMIT'
+                        new_session = SessionLog(
+                            user_id=user.id,
+                            session_id=session.sid if hasattr(session, 'sid') else '__main__',
+                            ip_address=request.remote_addr,
+                            user_agent=request.headers.get('User-Agent'),
+                            device_type='DESKTOP',
+                            browser='Unknown',
+                            os='Unknown',
+                            fingerprint=fingerprint,
+                            is_active=True,
+                            login_at=datetime.now(timezone.utc),
+                        )
+                        db.session.add(new_session)
+                    except Exception as e:
+                        logging.warning(f"Session log error: {e}")
                     remember_flag = str((data.get('remember') or '')).lower() in {'1', 'true', 'on', 'yes'}
                     login_user(user, remember=remember_flag)
 

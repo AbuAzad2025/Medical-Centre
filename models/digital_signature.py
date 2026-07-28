@@ -69,6 +69,7 @@ class SessionLog(TenantMixin, db.Model):
     browser = db.Column(db.String(100), nullable=True)
     os = db.Column(db.String(100), nullable=True)
     location = db.Column(db.String(200), nullable=True)
+    fingerprint = db.Column(db.String(64), nullable=True, index=True)
     is_active = db.Column(db.Boolean, default=True)
     terminated_by = db.Column(db.String(50), nullable=True)  # USER, ADMIN, TIMEOUT, SECURITY
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

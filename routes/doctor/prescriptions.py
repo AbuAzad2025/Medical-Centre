@@ -285,6 +285,19 @@ def prescription(visit_id):
                 prescription_number=prescription_number,
             )
             if not ok:
+                from services.clinical_safety_service import SafetyCheckSeverity
+                hard_stops = []
+                if isinstance(result, str):
+                    msg = result
+                    if 'HARD STOP' in msg:
+                        hard_stops.append(msg)
+                from flask import request as _req
+                if _req.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({
+                        'success': False,
+                        'hard_stops': hard_stops,
+                        'message': f'تعذر حفظ الوصفة: {result}',
+                    }), 422
                 flash(f"تعذر حفظ الوصفة: {result}", 'error')
                 return redirect(url_for('doctor.patient_details', visit_id=visit_id))
             prescription = result

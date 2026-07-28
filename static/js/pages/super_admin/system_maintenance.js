@@ -47,7 +47,27 @@ function clearLogs() {
     });
 }
 
+function loadSystemStatus() {
+    fetch('/health', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.json())
+        .then(data => {
+            const el = document.getElementById('systemStatusIndicator');
+            if (!el) return;
+            const dbOk = data.database === 'connected';
+            const redisOk = data.redis === 'connected' || data.redis === 'unavailable';
+            const overallOk = data.status === 'healthy';
+            el.className = 'badge ' + (overallOk ? 'bg-success' : 'bg-danger');
+            el.textContent = overallOk ? '● النظام سليم' : '● النظام يعاني من مشاكل';
+            el.title = `DB: ${data.database} | Redis: ${data.redis} | v${data.version || '?'}`;
+        })
+        .catch(() => {});
+}
+
 // تحديث الإحصائيات كل 30 ثانية
 setInterval(function() {
-    // هنا يمكن إضافة AJAX لتحديث الإحصائيات
+    loadSystemStatus();
 }, 30000);
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadSystemStatus();
+});
