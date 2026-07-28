@@ -15,10 +15,10 @@ class Patient(TenantMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     national_id = db.Column(EncryptedString(32), unique=True, nullable=True, index=True)
-    first_name = db.Column(EncryptedString(80), nullable=False, index=True)
-    last_name = db.Column(EncryptedString(80), nullable=False, index=True)
-    first_name_ar = db.Column(EncryptedString(80), nullable=True)
-    last_name_ar = db.Column(EncryptedString(80), nullable=True)
+    first_name = db.Column(EncryptedString(200), nullable=False, index=True)
+    last_name = db.Column(EncryptedString(200), nullable=False, index=True)
+    first_name_ar = db.Column(EncryptedString(200), nullable=True)
+    last_name_ar = db.Column(EncryptedString(200), nullable=True)
     
     @property
     def full_name(self):
