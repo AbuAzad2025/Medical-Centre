@@ -8,6 +8,7 @@ import uuid
 
 import pytest
 
+from sqlalchemy import select
 from app.extensions import db
 from app.core.saas.resolver import EntitlementResolver
 from app.core.saas.lifecycle import TenantProvisioningService
@@ -257,11 +258,11 @@ class TestStripeWebhookIngestIdempotency:
     def test_invoice_paid_renew_base_line(self, app, billed_tenant, monkeypatch):
         TenantProvisioningService.suspend_tenant(billed_tenant.id, 'test')
         from app.core.saas.models import SubscriptionLine, SubscriptionLineStatus, SubscriptionLineType
-        line = SubscriptionLine.query.filter_by(
+        line = db.session.execute(select(SubscriptionLine).filter_by(
             tenant_id=billed_tenant.id,
             line_type=SubscriptionLineType.BASE,
             status=SubscriptionLineStatus.ACTIVE,
-        ).first()
+        )).scalar()
         billed_tenant.settings = {**(billed_tenant.settings or {}), 'stripe_base_line_id': str(line.id)}
         db.session.commit()
 

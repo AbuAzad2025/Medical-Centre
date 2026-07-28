@@ -4,7 +4,7 @@ import pytest
 
 from app.extensions import db
 from models.user import User
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 
 @pytest.fixture(scope='function')
@@ -25,7 +25,7 @@ def emergency_user(app, test_tenant):
     yield u
     try:
         from models.audit_trail import LoginAttempt
-        select(LoginAttempt).filter_by(user_id=u.id).delete()
+        db.session.execute(delete(LoginAttempt).filter_by(user_id=u.id))
     except Exception as e:
         db.session.rollback()
 

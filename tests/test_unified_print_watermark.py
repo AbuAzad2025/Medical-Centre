@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import pytest
 
 from app.shared.print_context import generate_barcode_code128, generate_qr_data_uri, resolve_print_context
-from sqlalchemy import select
+from sqlalchemy import select, update
 from app.extensions import db
 
 
@@ -69,7 +69,7 @@ class TestPrintTemplateWatermark:
         from flask import g
         
         with tenant_bypass():
-            TenantModule.query.filter_by(tenant_id=test_tenant.id).update({'is_active': False})
+            db.session.execute(update(TenantModule).filter_by(tenant_id=test_tenant.id).values(is_active=False))
             for m in module_names:
                 row = db.session.execute(select(TenantModule).filter_by(tenant_id=test_tenant.id, module_name=m)).scalars().first()
                 if row:
@@ -251,7 +251,7 @@ class TestPrintQRBarcodeComponents:
         from flask import g
         
         with tenant_bypass():
-            TenantModule.query.filter_by(tenant_id=test_tenant.id).update({'is_active': True})
+            db.session.execute(update(TenantModule).filter_by(tenant_id=test_tenant.id).values(is_active=True))
             db.session.commit()
         
         g.enabled_modules = {
@@ -329,7 +329,7 @@ class TestModuleScoping:
         from flask import g
         
         with tenant_bypass():
-            TenantModule.query.filter_by(tenant_id=test_tenant.id).update({'is_active': False})
+            db.session.execute(update(TenantModule).filter_by(tenant_id=test_tenant.id).values(is_active=False))
             for m in module_names:
                 row = db.session.execute(select(TenantModule).filter_by(tenant_id=test_tenant.id, module_name=m)).scalars().first()
                 if row:

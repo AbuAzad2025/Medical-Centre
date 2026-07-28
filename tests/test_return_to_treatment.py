@@ -14,6 +14,7 @@ from models.patient import Patient
 from models.user import User
 from models.department import Department
 from services.visit_state_machine_service import VisitStateMachineService
+from sqlalchemy import select
 from app_factory import db as _db
 from app.shared.enums import TenantStatus
 from app.core.tenant.models import Tenant
@@ -194,9 +195,9 @@ class TestReturnToTreatment:
         with app.test_request_context():
             from flask import g
             g.tenant_id = tenant_id
-            audit = AuditTrail.query.filter_by(
+            audit = _db.session.execute(select(AuditTrail).filter_by(
                 entity_type='visit', entity_id=v.id
-            ).order_by(AuditTrail.id.desc()).first()
+            ).order_by(AuditTrail.id.desc())).scalar()
         assert audit is not None
         assert 'إعادة فتح' in (audit.description or '')
 

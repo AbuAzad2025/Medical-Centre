@@ -136,6 +136,23 @@ def create_app(config_name: str | None = None) -> Flask:
     except Exception as e:
         pass  # Table may not exist yet (first migration); guard is best-effort.
 
+    # Startup guard: FIELD_ENCRYPTION_KEY is required in production.
+    # Without it, EncryptedString columns silently degrade to plaintext.
+    app_env = app.config.get('APP_ENV', 'development')
+    if app_env in ('production', 'staging'):
+        enc_key = os.environ.get('FIELD_ENCRYPTION_KEY', '')
+        if not enc_key or len(enc_key) < 16:
+            import sys as _sys
+            _sys.stderr.write(
+                "\n!!! FATAL: FIELD_ENCRYPTION_KEY is not set (len=%d). "
+                "PHI fields would be stored as plaintext.\n"
+                "!!! Set FIELD_ENCRYPTION_KEY in environment.\n" % len(enc_key)
+            )
+            raise RuntimeError(
+                "FIELD_ENCRYPTION_KEY not set in production/staging environment. "
+                "EncryptedString columns would degrade to plaintext."
+            )
+
     @app.before_request
     def _bind_tenant_from_session_early():
         try:
@@ -327,8 +344,26 @@ def create_app(config_name: str | None = None) -> Flask:
             import models.biometric_auth
             import models.barcode_tracking
             import models.bed_management
+            import models.phi_audit_log
         except Exception as e:
             app.logger.warning(f"Model import registration skipped: {e}")
+
+        # Register tracked models + event listeners for PHI audit logging
+        try:
+            from models.phi_audit_log import TRACKED_MODELS, PHIAuditLog, _phi_audit_before_flush, _phi_audit_after_flush, _raise_on_modify
+            from models.patient import Patient
+            from models.online_booking import OnlineBooking
+            from models.consent_management import PatientConsent
+            from sqlalchemy import event
+            TRACKED_MODELS.update({Patient, OnlineBooking, PatientConsent})
+            # Session-level listeners: PHI audit logging (two-phase for autoincrement PK resolution)
+            event.listen(db.session, "before_flush", _phi_audit_before_flush)
+            event.listen(db.session, "after_flush", _phi_audit_after_flush)
+            # Mapper-level listeners: make PHIAuditLog records immutable at the ORM layer
+            event.listen(PHIAuditLog, "before_update", _raise_on_modify)
+            event.listen(PHIAuditLog, "before_delete", _raise_on_modify)
+        except Exception as e:
+            app.logger.warning(f"PHI audit model registration skipped: {e}")
 
         # Note: Tests call db.create_all() in their setUp, so we don't call it here
 
@@ -1023,6 +1058,10 @@ def create_app(config_name: str | None = None) -> Flask:
     from app.core.security_middleware import SecurityHeadersMiddleware, AuditLogMiddleware
     SecurityHeadersMiddleware().init_app(app)
     AuditLogMiddleware().init_app(app)
+
+    # PHI audit context middleware (populates contextvars for before_flush listener)
+    from app.core.audit.audit_context import AuditContextMiddleware
+    AuditContextMiddleware().init_app(app)
 
     # Register signal subscribers (audit, notifications)
     try:

@@ -181,9 +181,9 @@ class TestUpgradeAndAddons:
             billing_type="monthly",
         )
 
-        active_lines = SubscriptionLine.query.filter_by(
+        active_lines = db.session.execute(select(SubscriptionLine).filter_by(
             tenant_id=tenant.id, status=SubscriptionLineStatus.ACTIVE
-        ).all()
+        )).scalars().all()
         assert len(active_lines) == 2
 
         projection = db.session.execute(select(TenantEntitlement).filter_by(tenant_id=tenant.id)).scalars().all()

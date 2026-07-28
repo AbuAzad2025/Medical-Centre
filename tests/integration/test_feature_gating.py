@@ -9,6 +9,7 @@ import pytest
 
 from app.core.module.models import TenantModule
 from app.extensions import db
+from sqlalchemy import select
 
 
 # (module_name_in_TenantModule, route_prefix)
@@ -41,9 +42,11 @@ class TestBlueprintModuleGuards:
         app.config["ENABLE_SAAS_MODE"] = True
         login_as(client, f"{module_name}_403_user", LOGIN_ROLE[module_name])
 
-        tm = TenantModule.query.filter_by(
-            tenant_id=test_tenant.id, module_name=module_name
-        ).first()
+        tm = db.session.execute(
+            select(TenantModule).filter_by(
+                tenant_id=test_tenant.id, module_name=module_name
+            )
+        ).scalar()
         assert tm is not None, f"No TenantModule row for '{module_name}'"
         tm.is_active = False
         db.session.commit()
@@ -58,9 +61,11 @@ class TestBlueprintModuleGuards:
         app.config["ENABLE_SAAS_MODE"] = True
         login_as(client, f"{module_name}_ok_user", LOGIN_ROLE[module_name])
 
-        tm = TenantModule.query.filter_by(
-            tenant_id=test_tenant.id, module_name=module_name
-        ).first()
+        tm = db.session.execute(
+            select(TenantModule).filter_by(
+                tenant_id=test_tenant.id, module_name=module_name
+            )
+        ).scalar()
         assert tm is not None, f"No TenantModule row for '{module_name}'"
         tm.is_active = True
         db.session.commit()
@@ -74,9 +79,11 @@ class TestBlueprintModuleGuards:
         app.config["ENABLE_SAAS_MODE"] = True
         login_as(client, "lab_subroute_user", "lab")
 
-        tm = TenantModule.query.filter_by(
-            tenant_id=test_tenant.id, module_name="lab"
-        ).first()
+        tm = db.session.execute(
+            select(TenantModule).filter_by(
+                tenant_id=test_tenant.id, module_name="lab"
+            )
+        ).scalar()
         tm.is_active = False
         db.session.commit()
 
@@ -87,9 +94,11 @@ class TestBlueprintModuleGuards:
         app.config["ENABLE_SAAS_MODE"] = True
         login_as(client, "pharm_subroute_user", "pharmacist")
 
-        tm = TenantModule.query.filter_by(
-            tenant_id=test_tenant.id, module_name="pharmacy"
-        ).first()
+        tm = db.session.execute(
+            select(TenantModule).filter_by(
+                tenant_id=test_tenant.id, module_name="pharmacy"
+            )
+        ).scalar()
         tm.is_active = False
         db.session.commit()
 
@@ -100,9 +109,11 @@ class TestBlueprintModuleGuards:
         app.config["ENABLE_SAAS_MODE"] = True
         login_as(client, "recep_subroute_user", "reception")
 
-        tm = TenantModule.query.filter_by(
-            tenant_id=test_tenant.id, module_name="reception"
-        ).first()
+        tm = db.session.execute(
+            select(TenantModule).filter_by(
+                tenant_id=test_tenant.id, module_name="reception"
+            )
+        ).scalar()
         tm.is_active = False
         db.session.commit()
 
@@ -113,9 +124,11 @@ class TestBlueprintModuleGuards:
         app.config["ENABLE_SAAS_MODE"] = True
         login_as(client, "doc_subroute_user", "doctor")
 
-        tm = TenantModule.query.filter_by(
-            tenant_id=test_tenant.id, module_name="doctor"
-        ).first()
+        tm = db.session.execute(
+            select(TenantModule).filter_by(
+                tenant_id=test_tenant.id, module_name="doctor"
+            )
+        ).scalar()
         tm.is_active = False
         db.session.commit()
 

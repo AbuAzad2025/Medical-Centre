@@ -57,7 +57,7 @@ class TestAdminAlertHook:
             from app.extensions import db
             from app.core.tenant.models import Tenant
 
-            tenant = select(Tenant).first()
+            tenant = db.session.execute(select(Tenant)).scalar()
             if tenant:
                 bind_tenant_on_g(tenant, db_session=db.session)
 
@@ -114,7 +114,7 @@ class TestAdminAlertHook:
         mock_sink = Mock()
         register_alert_sink(mock_sink)
 
-        tenant = select(Tenant).first()
+        tenant = db.session.execute(select(Tenant)).scalar()
         if not tenant:
             pytest.skip("no tenant seeded")
 

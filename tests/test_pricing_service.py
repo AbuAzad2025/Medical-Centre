@@ -16,7 +16,7 @@ from models.visit import Visit
 from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 from app.extensions import db
 
 
@@ -103,7 +103,7 @@ class TestGetServicePrice:
 
     def test_alias_branch_resolves_to_canonical(self, rollback_db):
         # Remove pre-existing CBC rows in-transaction so the alias resolves to ours.
-        ServicePrice.query.filter_by(service_name='CBC', service_type='lab_test').delete()
+        db.session.execute(delete(ServicePrice).filter_by(service_name='CBC', service_type='lab_test'))
         rollback_db.session.commit()
         self._mk(rollback_db, service_name='CBC', cash_price=99)
         got = PricingService.get_service_price('complete blood count', 'lab_test', 'cash')
@@ -351,8 +351,8 @@ class TestSeeders:
 
     def test_seed_pricing_catalog(self, rollback_db):
         # needs an admin/manager user present
-        if not User.query.filter(User.role.in_(['admin', 'manager', 'super_admin']),
-                                 User.is_active == True).first():
+        if not db.session.execute(select(User).filter(User.role.in_(['admin', 'manager', 'super_admin']),
+                                 User.is_active == True)).scalar():
             u = User(username='zz_admin_seed', email='zz_admin_seed@x.com', full_name='م',
                      role='manager', is_active=True)
             u.set_password('p')
@@ -363,8 +363,8 @@ class TestSeeders:
 
     def test_seed_all(self, rollback_db):
         # ensure an admin exists so catalog seeding succeeds
-        if not User.query.filter(User.role.in_(['admin', 'manager', 'super_admin']),
-                                 User.is_active == True).first():
+        if not db.session.execute(select(User).filter(User.role.in_(['admin', 'manager', 'super_admin']),
+                                 User.is_active == True)).scalar():
             u = User(username='zz_admin_all', email='zz_admin_all@x.com', full_name='م',
                      role='manager', is_active=True)
             u.set_password('p')
@@ -392,7 +392,7 @@ class TestCleanup:
         assert db.session.execute(select(func.count()).select_from(ServicePrice).filter_by(service_name='ZZ_DUP', service_type='lab_test')).scalar() == 1
 
     def test_cleanup_pricing_catalog_removes_duplicates(self, rollback_db):
-        u = User.query.filter(User.role.in_(['admin', 'manager', 'super_admin'])).first()
+        u = db.session.execute(select(User).filter(User.role.in_(['admin', 'manager', 'super_admin']))).scalar()
         if not u:
             u = User(username='zz_admin_cat', email='zz_admin_cat@x.com', full_name='م',
                      role='manager', is_active=True)

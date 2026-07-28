@@ -29,7 +29,7 @@ def tenant_b(app):
     prev = g.get('_tenant_filter_bypass', False)
     g._tenant_filter_bypass = True
     try:
-        t = Tenant.query.filter(Tenant.slug != DEFAULT_TEST_TENANT_SLUG).first()
+        t = db.session.execute(select(Tenant).filter(Tenant.slug != DEFAULT_TEST_TENANT_SLUG)).scalar()
         if t is None:
             t = Tenant(
                 slug=f'tenant-b-{uuid.uuid4().hex[:8]}',

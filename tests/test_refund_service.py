@@ -201,5 +201,5 @@ class TestRefundService:
         assert float(refund_invoice.paid_amount) == 70
         assert refund_invoice.status == 'PARTIAL'
 
-        receipt = _select(Receipt).filter_by(payment_id=refund_payment.id).first()
+        receipt = db.session.execute(select(Receipt).filter_by(payment_id=refund_payment.id)).scalar()
         assert receipt.status == 'voided'

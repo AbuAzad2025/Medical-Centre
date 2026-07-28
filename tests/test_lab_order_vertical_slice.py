@@ -62,9 +62,9 @@ def lab_visit(app, test_tenant, lab_patient, lab_doctor):
 def lab_catalog(app, test_tenant):
     items = []
     for code, name in [('CBC', 'CBC'), ('GLU', 'Glucose')]:
-        c = LabTestCatalog.query.filter_by(
+        c = db.session.execute(select(LabTestCatalog).filter_by(
             tenant_id=test_tenant.id, code=code
-        ).first()
+        )).scalar()
         if not c:
             c = LabTestCatalog(
                 tenant_id=test_tenant.id,

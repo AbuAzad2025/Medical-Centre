@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from app.core.tenant.models import Tenant, PlatformAuditLog
 from app.shared.enums import TenantStatus
 from services.saas_registration_service import SaasRegistrationService, SaasRegistrationError
+from sqlalchemy import select
 from app_factory import db as _db
 
 
@@ -28,11 +29,11 @@ class TestPlatformTenantAudit:
             assert result.admin is not None
 
             # Verify platform audit log was created for SaaS signup
-            log = PlatformAuditLog.query.filter_by(
+            log = _db.session.execute(select(PlatformAuditLog).filter_by(
                 action='SAAS_SIGNUP',
                 entity_type='tenant',
                 entity_id=result.tenant.id,
-            ).first()
+            )).scalar()
             assert log is not None
             assert log.details is not None
             assert slug in log.details
@@ -51,9 +52,9 @@ class TestPlatformTenantAudit:
                 admin_full_name='IP Admin',
                 client_ip='192.168.1.100',
             )
-            log = PlatformAuditLog.query.filter_by(
+            log = _db.session.execute(select(PlatformAuditLog).filter_by(
                 action='SAAS_SIGNUP',
                 entity_id=result.tenant.id,
-            ).first()
+            )).scalar()
             assert log is not None
             assert log.ip_address == '192.168.1.100'

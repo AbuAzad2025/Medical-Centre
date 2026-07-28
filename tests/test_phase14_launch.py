@@ -154,9 +154,9 @@ class TestG134ScreenAudit:
         from datetime import datetime, timezone
         from app.core.saas.models import TenantEntitlement
         for _cap in ('lab_order', 'radiology_order'):
-            if not TenantEntitlement.query.filter_by(
+            if not db.session.execute(select(TenantEntitlement).filter_by(
                 tenant_id=test_tenant.id, capability_key=_cap
-            ).first():
+            )).scalar():
                 db.session.add(TenantEntitlement(
                     tenant_id=test_tenant.id,
                     capability_key=_cap,

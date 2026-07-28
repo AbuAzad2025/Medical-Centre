@@ -1,5 +1,5 @@
 """Platform bootstrap smoke tests."""
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.extensions import db
 from app.core.platform_bootstrap import (
@@ -36,11 +36,10 @@ def test_create_app_does_not_seed_developer_configs(app):
         'developer_company', 'developer_name', 'developer_logo_url',
         'developer_mobile', 'developer_location',
     ]
-    found = (
-        SystemConfig.query
+    found = db.session.execute(
+        select(func.count()).select_from(SystemConfig)
         .filter(SystemConfig.config_key.in_(keys))
-        .count()
-    )
+    ).scalar()
     assert found == 0, (
         f'Found {found} developer_* rows in system_configs — '
         'startup should be read-only.'

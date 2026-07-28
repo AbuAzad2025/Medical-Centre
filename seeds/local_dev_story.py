@@ -81,9 +81,9 @@ def activate_modules(tenant, session=None):
         for name in MODULE_REGISTRY:
             if name == "owner":
                 continue
-            row = TenantModule.query.filter_by(
+            row = db.session.execute(select(TenantModule).filter_by(
                 tenant_id=tenant.id, module_name=name
-            ).first()
+            )).scalar()
             if row is None:
                 row = TenantModule(tenant_id=tenant.id, module_name=name)
                 session.add(row)
@@ -99,9 +99,9 @@ def seed_staff(tenant, session=None):
     with tenant_bypass():
         created = {}
         for _key, username, full_name, role in STAFF:
-            user = User.query.filter_by(
+            user = db.session.execute(select(User).filter_by(
                 username=username, tenant_id=tenant.id
-            ).first()
+            )).scalar()
             if user is None:
                 user = User(
                     username=username,
@@ -123,9 +123,9 @@ def seed_clinical_flow(tenant, staff, session=None):
     session = session or db.session
     with tenant_bypass():
         # Idempotent: reuse existing patient/visit if present
-        patient = Patient.query.filter_by(
+        patient = db.session.execute(select(Patient).filter_by(
             tenant_id=tenant.id, phone="0500000001"
-        ).first()
+        )).scalar()
         if patient is None:
             patient = Patient(
                 tenant_id=tenant.id,
@@ -137,9 +137,9 @@ def seed_clinical_flow(tenant, staff, session=None):
             session.flush()
 
         doctor = staff["doctor"]
-        visit = Visit.query.filter_by(
+        visit = db.session.execute(select(Visit).filter_by(
             tenant_id=tenant.id, patient_id=patient.id, status="IN_PROGRESS"
-        ).first()
+        )).scalar()
         if visit is None:
             visit = Visit(
                 tenant_id=tenant.id,
@@ -150,9 +150,9 @@ def seed_clinical_flow(tenant, staff, session=None):
             session.add(visit)
             session.flush()
 
-        lab_request = LabRequest.query.filter_by(
+        lab_request = db.session.execute(select(LabRequest).filter_by(
             tenant_id=tenant.id, visit_id=visit.id, status="REQUESTED"
-        ).first()
+        )).scalar()
         if lab_request is None:
             lab_request = LabRequest(
                 tenant_id=tenant.id,
@@ -164,9 +164,9 @@ def seed_clinical_flow(tenant, staff, session=None):
             session.add(lab_request)
             session.flush()
 
-        prescription = Prescription.query.filter_by(
+        prescription = db.session.execute(select(Prescription).filter_by(
             tenant_id=tenant.id, visit_id=visit.id, status="active"
-        ).first()
+        )).scalar()
         if prescription is None:
             prescription = Prescription(
                 tenant_id=tenant.id,
@@ -179,9 +179,9 @@ def seed_clinical_flow(tenant, staff, session=None):
             session.add(prescription)
             session.flush()
 
-        invoice = Invoice.query.filter_by(
+        invoice = db.session.execute(select(Invoice).filter_by(
             tenant_id=tenant.id, visit_id=visit.id, status="ISSUED"
-        ).first()
+        )).scalar()
         if invoice is None:
             invoice = Invoice(
                 tenant_id=tenant.id,

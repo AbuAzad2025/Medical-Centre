@@ -89,7 +89,7 @@ class TestPharmacyPOS:
         }, content_type='application/json')
         assert resp.status_code in (200, 302)
         from models.medication import PharmacySale
-        sale = PharmacySale.query.order_by(PharmacySale.id.desc()).first()
+        sale = db.session.execute(select(PharmacySale).order_by(PharmacySale.id.desc())).scalar()
         assert sale is not None
         assert sale.customer_name is None or sale.customer_name == ''
 
@@ -235,9 +235,9 @@ class TestTenantIsolation:
                 db.session.commit()
             other_tenant_id = other.id
 
-            m = Medication.query.filter_by(
+            m = db.session.execute(select(Medication).filter_by(
                 tenant_id=other_tenant_id, trade_name='دواء منشأة أخرى'
-            ).first()
+            )).scalar()
             if not m:
                 m = Medication(
                     tenant_id=other_tenant_id,
@@ -255,6 +255,6 @@ class TestTenantIsolation:
             g.pop('_tenant_filter_bypass', None)
 
         g.tenant_id = test_tenant.id
-        meds = Medication.query.filter(Medication.trade_name == 'دواء منشأة أخرى').all()
+        meds = db.session.execute(select(Medication).filter(Medication.trade_name == 'دواء منشأة أخرى')).scalars().all()
         assert len(meds) == 0
         g.tenant_id = None

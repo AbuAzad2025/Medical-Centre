@@ -40,12 +40,11 @@ class TestSeedFromProductBundles:
         assert package.versions
 
         if not created:
-            version = (
-                PackageVersion.query.join(PackageVersionPricing)
+            version = db.session.execute(
+                select(PackageVersion).join(PackageVersionPricing)
                 .join(PackageVersionEntitlement)
                 .order_by(PackageVersion.id)
-                .first()
-            )
+            ).scalar()
         else:
             version = db.session.execute(select(PackageVersion).filter_by(package_id=package.id)).scalars().first()
 

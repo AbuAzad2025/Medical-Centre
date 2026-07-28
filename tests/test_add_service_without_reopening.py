@@ -273,9 +273,9 @@ class TestTicket4CorrectiveAddServiceAuthority:
         with app.test_request_context():
             from flask import g
             g.tenant_id = tenant_id
-            audit = AuditTrail.query.filter_by(
+            audit = db.session.execute(select(AuditTrail).filter_by(
                 entity_type='visit', entity_id=v.id
-            ).order_by(AuditTrail.id.desc()).first()
+            ).order_by(AuditTrail.id.desc())).scalar()
         assert audit is not None
         assert 'إضافة خدمة' in (audit.description or '')
 
@@ -319,9 +319,9 @@ class TestTicket4CorrectiveAddServiceAuthority:
         v_after = _db.session.get(Visit, v.id)
         assert v_after.total_amount == Decimal('220.00')
 
-        line = InvoiceService.query.filter_by(
+        line = db.session.execute(select(InvoiceService).filter_by(
             visit_id=v.id, service_master_id=svc.id
-        ).first()
+        )).scalar()
         assert line is not None
         assert line.unit_price == Decimal('120.00')
         assert line.total_price == Decimal('120.00')

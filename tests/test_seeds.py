@@ -15,7 +15,7 @@ from models.medication import Prescription
 from models.invoice import Invoice
 from seeds import production_baseline as pb
 from seeds import local_dev_story as dev
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete, func
 
 
 def _compute_expected_master_password() -> str:
@@ -47,16 +47,16 @@ def _rls_bypass():
 
 def _clean_seed_data():
     """Remove any seed-polluted rows so each test is deterministic."""
-    User.query.filter_by(username="azad").delete(synchronize_session=False)
+    db.session.execute(delete(User).filter_by(username="azad"))
     for t in db.session.execute(select(Tenant).filter_by(slug=dev.DEV_TENANT_SLUG)).scalars().all():
-        TenantModule.query.filter_by(tenant_id=t.id).delete(synchronize_session=False)
-        Invoice.query.filter_by(tenant_id=t.id).delete(synchronize_session=False)
-        LabRequest.query.filter_by(tenant_id=t.id).delete(synchronize_session=False)
-        Prescription.query.filter_by(tenant_id=t.id).delete(synchronize_session=False)
-        Visit.query.filter_by(tenant_id=t.id).delete(synchronize_session=False)
-        Patient.query.filter_by(tenant_id=t.id).delete(synchronize_session=False)
-        User.query.filter_by(tenant_id=t.id).delete(synchronize_session=False)
-        Tenant.query.filter_by(id=t.id).delete(synchronize_session=False)
+        db.session.execute(delete(TenantModule).filter_by(tenant_id=t.id))
+        db.session.execute(delete(Invoice).filter_by(tenant_id=t.id))
+        db.session.execute(delete(LabRequest).filter_by(tenant_id=t.id))
+        db.session.execute(delete(Prescription).filter_by(tenant_id=t.id))
+        db.session.execute(delete(Visit).filter_by(tenant_id=t.id))
+        db.session.execute(delete(Patient).filter_by(tenant_id=t.id))
+        db.session.execute(delete(User).filter_by(tenant_id=t.id))
+        db.session.execute(delete(Tenant).filter_by(id=t.id))
     db.session.commit()
 
 
@@ -109,12 +109,12 @@ def test_local_dev_story_seeds_tenant_and_staff(app, rollback_db):
     assert tenant.slug == dev.DEV_TENANT_SLUG
     assert tenant.name == dev.DEV_TENANT_NAME
 
-    active = TenantModule.query.filter_by(
+    active = db.session.execute(select(func.count()).select_from(TenantModule).filter_by(
         tenant_id=tenant.id, is_active=True
-    ).count()
+    )).scalar()
     assert active == APPLICATION_MODULE_COUNT
 
-    roles = {u.role for u in User.query.filter_by(tenant_id=tenant.id)}
+    roles = {u.role for u in db.session.execute(select(User).filter_by(tenant_id=tenant.id)).scalars()}
     assert {"reception", "doctor", "lab", "pharmacist"}.issubset(roles)
 
 

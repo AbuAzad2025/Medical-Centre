@@ -55,4 +55,5 @@ class EncryptedString(TypeDecorator):
         svc = self._get_service()
         if svc is None:
             return value
+        logger.debug("PHI field decrypted (column length=%s)", self.length)
         return svc.decrypt(value)

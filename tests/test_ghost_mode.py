@@ -17,6 +17,7 @@ from app.core.tenant.ghost_mode import (
 )
 from seeds import production_baseline as pb
 from seeds import local_dev_story as dev
+from sqlalchemy import select
 from models.audit_trail import AuditTrail
 from app.extensions import db
 
@@ -134,9 +135,9 @@ def test_ghost_impersonation_rebinds_context(app, rollback_db, client, master_an
     assert data["username"] == target.username
 
     # Audit trail recorded for the impersonated request.
-    audit = AuditTrail.query.filter_by(
+    audit = db.session.execute(select(AuditTrail).filter_by(
         action="IMPERSONATE", entity_id=target.id
-    ).first()
+    )).scalar()
     assert audit is not None
     assert audit.tenant_id == tenant.id
     details = json.loads(audit.new_values)

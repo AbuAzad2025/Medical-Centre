@@ -230,7 +230,7 @@ class TestApiContract:
                         db.session.rollback()
         finally:
             db.session.rollback()
-            junk = ProductBundle.query.filter(ProductBundle.id.notin_(pre_bundles or {-1})).all()
+            junk = db.session.execute(select(ProductBundle).filter(ProductBundle.id.notin_(pre_bundles or {-1}))).scalars().all()
             for b in junk:
                 db.session.delete(b)
             db.session.commit()

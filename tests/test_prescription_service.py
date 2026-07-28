@@ -224,8 +224,8 @@ class TestMiscAndAudit:
         doc = rxfx.doctor()
         RX.log_action('prescription_created', 'some details', user_id=doc.id)
         from models.audit_trail import AuditTrail
-        row = (AuditTrail.query.filter_by(user_id=doc.id)
-               .order_by(AuditTrail.id.desc()).first())
+        row = (db.session.execute(select(AuditTrail).filter_by(user_id=doc.id)
+               .order_by(AuditTrail.id.desc())).scalar())
         assert row is not None
         assert 'prescription_created' in row.description
         assert 'some details' in row.description

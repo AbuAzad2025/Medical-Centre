@@ -99,9 +99,9 @@ class TestNotificationWorkerLifecycle:
             # Both visible
             titles = {
                 r.title for r in
-                Notification.query.filter(
+                db.session.execute(select(Notification).filter(
                     Notification.title.in_(['Lifecycle-1', 'Lifecycle-2'])
-                ).all()
+                )).scalars().all()
             }
             assert titles == {'Lifecycle-1', 'Lifecycle-2'}
 
@@ -155,7 +155,7 @@ class TestCrossTenantIsolation:
         """Fetch two existing tenant IDs from the DB."""
         from app.core.tenant.models import Tenant
         g._tenant_filter_bypass = True
-        rows = Tenant.query.with_entities(Tenant.id).order_by(Tenant.id).limit(2).all()
+        rows = db.session.execute(select(Tenant.id).order_by(Tenant.id).limit(2)).scalars().all()
         g._tenant_filter_bypass = False
         assert len(rows) >= 2, 'Need at least 2 tenants in the database'
         return rows[0][0], rows[1][0]
@@ -175,17 +175,17 @@ class TestCrossTenantIsolation:
             db.session.commit()
 
             # A sees it
-            assert Notification.query.filter_by(
+            assert db.session.execute(select(Notification).filter_by(
                 title='CrossTenant-Secret-A',
-            ).first() is not None
+            )).scalar() is not None
 
         with app.test_request_context():
             bind_tenant_on_g(tid_b, db_session=db.session)
 
             # B must NOT see A's notification
-            assert Notification.query.filter_by(
+            assert db.session.execute(select(Notification).filter_by(
                 title='CrossTenant-Secret-A',
-            ).first() is None
+            )).scalar() is None
 
     def test_tenant_b_cannot_see_after_expire_all(self, app, tenant_ids):
         """Same as above but with ``expire_all()`` to simulate fresh session."""
@@ -206,9 +206,9 @@ class TestCrossTenantIsolation:
         with app.test_request_context():
             bind_tenant_on_g(tid_b, db_session=db.session)
 
-            assert Notification.query.filter_by(
+            assert db.session.execute(select(Notification).filter_by(
                 title='CrossTenant-Secret-A2',
-            ).first() is None
+            )).scalar() is None
 
     def test_pooled_session_tenant_id_cleared_on_context_exit(self, app, tenant_ids):
         """``session.info['_tenant_id']`` is cleared when
@@ -401,7 +401,7 @@ class TestFailClosedTenantBinding:
             g.tenant_id = None
             g._tenant_filter_bypass = True
             from app.core.tenant.models import Tenant
-            rows = Tenant.query.limit(1).all()
+            rows = db.session.execute(select(Tenant).limit(1)).scalars().all()
             assert isinstance(rows, list)
 
 

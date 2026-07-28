@@ -214,8 +214,8 @@ class TestLabMisc:
     def test_log_action_persists(self, fx):
         p = fx.patient()
         LAB.log_action('result_finalized', 'details here', user_id=None)
-        row = AuditTrail.query.filter_by(entity_type='lab_test').order_by(
-            AuditTrail.id.desc()).first()
+        row = db.session.execute(select(AuditTrail).filter_by(entity_type='lab_test').order_by(
+            AuditTrail.id.desc())).scalar()
         assert row is not None
         assert 'result_finalized' in row.description
 
@@ -340,8 +340,8 @@ class TestRadResults:
 class TestRadMisc:
     def test_log_action_persists(self, fx):
         RAD.log_action('report_approved', 'critical', user_id=None)
-        row = AuditTrail.query.filter_by(entity_type='radiology_test').order_by(
-            AuditTrail.id.desc()).first()
+        row = db.session.execute(select(AuditTrail).filter_by(entity_type='radiology_test').order_by(
+            AuditTrail.id.desc())).scalar()
         assert row is not None and 'report_approved' in row.description
 
     def test_notify_complete_no_raise(self, fx):

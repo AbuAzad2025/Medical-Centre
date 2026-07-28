@@ -4,6 +4,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
+from sqlalchemy import select
 from app.extensions import db
 from app.core.saas.exceptions import EntitlementDeniedError
 from app.core.saas.resolver import EntitlementResolver
@@ -112,9 +113,9 @@ class TestEntitlementResolver:
         EntitlementResolver.is_entitled(access_tenant.id, "lab.order")
         EntitlementResolver.is_entitled(access_tenant.id, "lab.order")
 
-        logs = PlatformAuditLog.query.filter_by(
+        logs = db.session.execute(select(PlatformAuditLog).filter_by(
             tenant_id=access_tenant.id, action="ENTITLEMENT_DENIED"
-        ).all()
+        )).scalars().all()
         assert len(logs) == 1
         assert "lab.order" in (logs[0].details or "")
 

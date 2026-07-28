@@ -17,6 +17,7 @@ import json
 import secrets
 import hashlib
 from datetime import datetime, timezone, timedelta
+from app.core.rate_limiter import rate_limit
 
 mfa_bp = Blueprint('mfa', __name__)
 
@@ -77,6 +78,7 @@ def setup():
 
 
 @mfa_bp.route('/verify', methods=['GET', 'POST'])
+@rate_limit(max_requests=5, window_seconds=60, namespace='mfa_verify')
 @handle_route_errors
 def verify():
     user_id = session.get('mfa_pending_user_id')
@@ -161,6 +163,7 @@ def disable():
 
 
 @mfa_bp.route('/api/check', methods=['POST'])
+@rate_limit(max_requests=10, window_seconds=60, namespace='mfa_api_check')
 @handle_route_errors
 def api_check():
     """API endpoint for 2FA verification during login flow"""
