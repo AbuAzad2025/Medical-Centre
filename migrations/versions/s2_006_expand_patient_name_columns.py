@@ -1,4 +1,4 @@
-"""Expand patient name columns to accommodate encrypted values
+"""Expand PII/PHI encrypted columns to accommodate ciphertext values
 
 Revision ID: s2_006_expand_patient_name_columns
 Revises: s2_005_session_fingerprint
@@ -19,38 +19,23 @@ depends_on = None
 
 
 def upgrade():
-    op.alter_column('patients', 'first_name',
-                    type_=sa.String(length=280),
-                    existing_type=sa.String(length=160),
-                    nullable=False)
-    op.alter_column('patients', 'last_name',
-                    type_=sa.String(length=280),
-                    existing_type=sa.String(length=160),
-                    nullable=False)
-    op.alter_column('patients', 'first_name_ar',
-                    type_=sa.String(length=280),
-                    existing_type=sa.String(length=160),
-                    nullable=True)
-    op.alter_column('patients', 'last_name_ar',
-                    type_=sa.String(length=280),
-                    existing_type=sa.String(length=160),
-                    nullable=True)
+    # Patient columns: expand all encrypted PII columns to TEXT
+    for col in ['first_name', 'last_name', 'first_name_ar', 'last_name_ar',
+                'phone', 'national_id', 'insurance_member_number', 'address']:
+        if column_exists('patients', col):
+            op.alter_column('patients', col, type_=sa.Text(), nullable=True if col not in ('first_name', 'last_name') else False)
+
+    # User columns: expand all encrypted PII columns to TEXT
+    for col in ['full_name', 'phone']:
+        if column_exists('users', col):
+            op.alter_column('users', col, type_=sa.Text(), nullable=True if col == 'phone' else False)
 
 
 def downgrade():
-    op.alter_column('patients', 'last_name_ar',
-                    type_=sa.String(length=160),
-                    existing_type=sa.String(length=280),
-                    nullable=True)
-    op.alter_column('patients', 'first_name_ar',
-                    type_=sa.String(length=160),
-                    existing_type=sa.String(length=280),
-                    nullable=True)
-    op.alter_column('patients', 'last_name',
-                    type_=sa.String(length=160),
-                    existing_type=sa.String(length=280),
-                    nullable=False)
-    op.alter_column('patients', 'first_name',
-                    type_=sa.String(length=160),
-                    existing_type=sa.String(length=280),
-                    nullable=False)
+    for col in ['address', 'insurance_member_number', 'national_id', 'phone',
+                'last_name_ar', 'first_name_ar', 'last_name', 'first_name']:
+        if column_exists('patients', col):
+            op.alter_column('patients', col, type_=sa.String(length=80 if col in ('first_name', 'last_name') else 20))
+    for col in ['phone', 'full_name']:
+        if column_exists('users', col):
+            op.alter_column('users', col, type_=sa.String(length=20 if col == 'phone' else 120))
