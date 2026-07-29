@@ -30,7 +30,7 @@ from models.medication import Medication, Prescription, PrescriptionItem
 from models.drug_interaction import DrugInteraction
 from models.problem_list import PatientProblem
 from models.user import User
-from models.tenant import Tenant
+from app.core.tenant.models import Tenant
 from services.prescription_service import PrescriptionService
 from services.clinical_safety_service import ClinicalSafetyService, SafetyCheckSeverity
 from app.extensions import db
@@ -44,7 +44,7 @@ def app():
     with app.app_context():
         db.create_all()
         # Create default tenant with id=1
-        from models.tenant import Tenant
+        from app.core.tenant.models import Tenant
         tenant = db.session.execute(select(Tenant).filter_by(id=1)).scalars().first()
         if not tenant:
             tenant = Tenant(
