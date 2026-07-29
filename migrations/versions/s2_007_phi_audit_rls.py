@@ -23,8 +23,9 @@ def upgrade():
     if not table_exists('phi_audit_logs'):
         return
 
-    # Enable RLS on phi_audit_logs
+    # Enable RLS on phi_audit_logs (FORCE to make it mandatory)
     op.execute('ALTER TABLE phi_audit_logs ENABLE ROW LEVEL SECURITY')
+    op.execute('ALTER TABLE phi_audit_logs FORCE ROW LEVEL SECURITY')
 
     # Policy: tenants can only see their own audit logs (SELECT)
     op.execute('''
