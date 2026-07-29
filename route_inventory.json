@@ -4991,6 +4991,14 @@
       "classification": "internal"
     },
     {
+      "endpoint": "security.terminate_other_sessions",
+      "path": "/security/sessions/terminate-others",
+      "methods": [
+        "POST"
+      ],
+      "classification": "internal"
+    },
+    {
       "endpoint": "security.password_policy",
       "path": "/security/password-policy",
       "methods": [

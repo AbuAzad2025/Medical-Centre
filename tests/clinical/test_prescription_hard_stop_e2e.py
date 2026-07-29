@@ -30,9 +30,12 @@ from models.medication import Medication, Prescription, PrescriptionItem
 from models.drug_interaction import DrugInteraction
 from models.problem_list import PatientProblem
 from models.user import User
+from models.tenant import Tenant
 from services.prescription_service import PrescriptionService
 from services.clinical_safety_service import ClinicalSafetyService, SafetyCheckSeverity
 from app.extensions import db
+from sqlalchemy import select
+from sqlalchemy import select
 
 
 @pytest.fixture(scope='module')
@@ -40,6 +43,20 @@ def app():
     app = create_app('testing')
     with app.app_context():
         db.create_all()
+        # Create default tenant with id=1
+        from models.tenant import Tenant
+        tenant = db.session.execute(select(Tenant).filter_by(id=1)).scalars().first()
+        if not tenant:
+            tenant = Tenant(
+                id=1,
+                slug='test-tenant',
+                name='Test Tenant',
+                contact_email='test@test.local',
+                status='active',
+                product_profile_code='multi_department_center',
+            )
+            db.session.add(tenant)
+            db.session.commit()
         yield app
         db.session.remove()
         try:
