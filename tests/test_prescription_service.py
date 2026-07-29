@@ -18,21 +18,37 @@ from models.patient import Patient, PatientAllergy
 from models.user import User
 from sqlalchemy import select
 from app.extensions import db
+from flask import g
+from tests.tenant_context import clear_tenant_g
 
 
 @pytest.fixture
-def rxfx(rollback_db):
+def rxfx(rollback_db, monkeypatch):
     db = rollback_db
 
+    # Disable bundle limit checks for tests
+    monkeypatch.setattr(
+        'app.shared.tenant_filter._check_bundle_limits_on_create',
+        lambda *a, **k: None,
+    )
+    monkeypatch.setattr(
+        'app.shared.tenant_filter._check_bundle_limits_on_update',
+        lambda *a, **k: None,
+    )
+
+    # Set tenant context for the test
+    g.tenant_id = 1
+    db.session.info['_tenant_id'] = 1
+
     def patient():
-        p = Patient(first_name='ز', last_name='ت')
+        p = Patient(first_name='ز', last_name='ت', tenant_id=1)
         db.session.add(p)
         db.session.commit()
         return p
 
     def doctor():
         un = 'zz_rx_' + uuid.uuid4().hex[:8]
-        u = User(username=un, email=un + '@x.com', full_name='د', role='doctor', is_active=True)
+        u = User(username=un, email=un + '@x.com', full_name='د', role='doctor', is_active=True, tenant_id=1)
         u.set_password('p')
         db.session.add(u)
         db.session.commit()
@@ -41,13 +57,13 @@ def rxfx(rollback_db):
     def med(trade='ZZTrade', sci='ZZSci', price=10, stock=100, min_stock=10):
         m = Medication(trade_name=trade + uuid.uuid4().hex[:4], scientific_name=sci,
                        dosage_form='tablet', strength='500mg', price=price,
-                       stock_quantity=stock, minimum_stock=min_stock, category='general')
+                       stock_quantity=stock, minimum_stock=min_stock, category='general', tenant_id=1)
         db.session.add(m)
         db.session.commit()
         return m
 
     def allergy(patient_id, allergen):
-        a = PatientAllergy(patient_id=patient_id, allergen=allergen, severity='high')
+        a = PatientAllergy(patient_id=patient_id, allergen=allergen, severity='high', tenant_id=1)
         db.session.add(a)
         db.session.commit()
         return a

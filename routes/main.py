@@ -77,12 +77,17 @@ def health():
     """نقطة فحص الصحة"""
     from sqlalchemy import text as sa_text
     from datetime import datetime, timezone
+    import os
+    import logging
+
+    logger = logging.getLogger(__name__)
 
     db_status = "connected"
     try:
         db.session.execute(sa_text("SELECT 1"))
-    except Exception:
+    except Exception as e:
         db_status = "error"
+        logger.warning(f"Health check DB error: {e}")
 
     redis_status = "connected"
     try:
@@ -92,16 +97,73 @@ def health():
             _redis.ping()
         else:
             redis_status = "unavailable"
-    except Exception:
+    except Exception as e:
         redis_status = "error"
+        logger.warning(f"Health check Redis error: {e}")
 
-    overall = "healthy" if db_status == "connected" and redis_status in ("connected", "unavailable") else "degraded"
+    # Stripe connectivity check
+    stripe_status = "unconfigured"
+    try:
+        import stripe
+        stripe_key = os.environ.get('STRIPE_SECRET_KEY') or current_app.config.get('STRIPE_SECRET_KEY')
+        if stripe_key:
+            stripe.api_key = stripe_key
+            stripe.Account.retrieve()
+            stripe_status = "connected"
+        else:
+            stripe_status = "unconfigured"
+    except Exception as e:
+        stripe_status = "error"
+        logger.warning(f"Health check Stripe error: {e}")
+
+    # Twilio/SMS connectivity check
+    twilio_status = "unconfigured"
+    try:
+        from app.integrations.sms.provider import get_sms_provider
+        provider = get_sms_provider()
+        if provider and hasattr(provider, 'check_connection'):
+            twilio_status = "connected" if provider.check_connection() else "error"
+        elif provider:
+            twilio_status = "connected"
+        else:
+            twilio_status = "unconfigured"
+    except Exception as e:
+        twilio_status = "error"
+        logger.warning(f"Health check Twilio error: {e}")
+
+    # SMTP connectivity check
+    smtp_status = "unconfigured"
+    try:
+        from flask import current_app
+        mail_server = current_app.config.get('MAIL_SERVER')
+        mail_port = current_app.config.get('MAIL_PORT')
+        mail_username = current_app.config.get('MAIL_USERNAME')
+        mail_password = current_app.config.get('MAIL_PASSWORD')
+        if mail_server and mail_port and mail_username and mail_password:
+            import smtplib
+            with smtplib.SMTP(mail_server, mail_port, timeout=5) as server:
+                if current_app.config.get('MAIL_USE_TLS'):
+                    server.starttls()
+                server.login(mail_username, mail_password)
+            smtp_status = "connected"
+        else:
+            smtp_status = "unconfigured"
+    except Exception as e:
+        smtp_status = "error"
+        logger.warning(f"Health check SMTP error: {e}")
+
+    overall = "healthy" if all(s in ("connected", "unconfigured", "unavailable") for s in [
+        db_status, redis_status, stripe_status, twilio_status, smtp_status
+    ]) and db_status == "connected" else "degraded"
 
     payload = {
         "status": overall,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "database": db_status,
         "redis": redis_status,
+        "stripe": stripe_status,
+        "twilio": twilio_status,
+        "smtp": smtp_status,
         "version": "1.0.0",
     }
 

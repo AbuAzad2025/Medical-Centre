@@ -4,7 +4,7 @@ Wraps FieldEncryptionService so that reads decrypt and writes encrypt automatica
 """
 import os
 import logging
-from sqlalchemy import String, TypeDecorator
+from sqlalchemy import String, TypeDecorator, Text
 
 logger = logging.getLogger(__name__)
 
@@ -22,15 +22,16 @@ class EncryptedString(TypeDecorator):
     When FIELD_ENCRYPTION_KEY is not set, the column behaves as plain text
     (graceful degradation for development and testing).
     """
-    impl = String
+    impl = Text
     cache_ok = True
 
     def __init__(self, max_length=None, *args, **kwargs):
-        effective = (max_length or 255) + 80
-        super().__init__(length=effective, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def load_dialect_impl(self, dialect):
-        return dialect.type_descriptor(String(length=self.length))
+        # Use TEXT type for PostgreSQL to handle arbitrary length ciphertext
+        # For other dialects, fall back to TEXT which is universally supported
+        return dialect.type_descriptor(Text())
 
     def _get_service(self):
         if not os.environ.get('FIELD_ENCRYPTION_KEY'):
@@ -55,5 +56,5 @@ class EncryptedString(TypeDecorator):
         svc = self._get_service()
         if svc is None:
             return value
-        logger.debug("PHI field decrypted (column length=%s)", self.length)
+        logger.debug("PHI field decrypted")
         return svc.decrypt(value)
