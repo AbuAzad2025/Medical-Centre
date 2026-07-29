@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 ADMIN_URL = os.environ['MIGRATE_ADMIN_URL']
 TARGET_URL = os.environ['MIGRATE_DATABASE_URL']
-ALEMBIC_HEAD = 's2_006_expand_patient_name_columns'
+ALEMBIC_HEAD = 's2_007_phi_audit_rls'
 
 
 def _run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
