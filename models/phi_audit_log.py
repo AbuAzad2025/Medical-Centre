@@ -142,6 +142,8 @@ def _phi_audit_after_flush(session, flush_context):
         return
     del session._phi_audit_pendings
 
+    from app.shared.tenant_filter import _current_tenant_id
+
     for item in pendings:
         obj = item["obj"]
         ctx = item["ctx"]
@@ -151,13 +153,25 @@ def _phi_audit_after_flush(session, flush_context):
         if target_id is None:
             continue
 
+        # Resolve tenant from audit context, falling back to the active
+        # tenant filter context (g.tenant_id / session.info). If no tenant
+        # context exists at all, skip writing the record — the row would be
+        # rejected by RLS (NULL tenant_id) and fail-closed auto-assign would
+        # raise on it. Nothing tenant-scoped is legitimately auditable in a
+        # no-tenant context.
+        tenant_id = ctx["tenant_id"]
+        if tenant_id is None:
+            tenant_id = _current_tenant_id(session=session)
+        if tenant_id is None:
+            continue
+
         changes = item.get("changes") or item["changes_fn"](obj)
 
         audit = PHIAuditLog(
             actor_id=ctx["actor_id"],
             ip_address=ctx["ip_address"],
             request_id=ctx["request_id"],
-            tenant_id=ctx["tenant_id"],
+            tenant_id=tenant_id,
             target_model=type(obj).__name__,
             target_id=target_id,
             action=action,

@@ -9,11 +9,11 @@ from sqlalchemy import select, delete
 
 @pytest.fixture(scope='function')
 def pharmacist_user(app, test_tenant):
-    u = db.session.execute(select(User).filter_by(username='pharmacist_test')).scalars().first()
+    u = db.session.execute(select(User).filter_by(username='pharmacist_ux1')).scalars().first()
     if not u:
         u = User(
-            username='pharmacist_test',
-            email='pharmacist@test.local',
+            username='pharmacist_ux1',
+            email='pharmacist_ux1@test.local',
             full_name='صيدلي اختبار',
             role='pharmacist',
             is_active=True,
