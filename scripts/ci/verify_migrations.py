@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 ADMIN_URL = os.environ['MIGRATE_ADMIN_URL']
 TARGET_URL = os.environ['MIGRATE_DATABASE_URL']
-ALEMBIC_HEAD = 's2_008_comprehensive_rls_force'
+ALEMBIC_HEAD = 's2_009_schema_drift_sync'
 
 
 def _run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:

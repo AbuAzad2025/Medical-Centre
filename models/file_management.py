@@ -68,7 +68,7 @@ class FileUpload(TenantMixin, db.Model):
         """الحصول على hash الملف"""
         try:
             with open(self.file_path, 'rb') as f:
-                return hashlib.md5(f.read()).hexdigest()
+                return hashlib.md5(f.read(), usedforsecurity=False).hexdigest()
         except Exception as e:
             return None
     

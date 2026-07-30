@@ -115,7 +115,9 @@ class PasswordPolicyService:
         Returns the breach count (0 if not found or API unavailable).
         """
         try:
-            sha1 = hashlib.sha1(password.encode('utf-8')).hexdigest().upper()
+            # SHA1 is required by the HIBP k-anonymity API (lookup key, not
+            # a security control) — only the first 5 chars leave the process.
+            sha1 = hashlib.sha1(password.encode('utf-8'), usedforsecurity=False).hexdigest().upper()
             prefix = sha1[:5]
             suffix = sha1[5:]
             resp = requests.get(
