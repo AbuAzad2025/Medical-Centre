@@ -4,6 +4,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 
 if TYPE_CHECKING:
@@ -21,6 +22,20 @@ _TENANT_G_KEYS = (
 )
 
 DEFAULT_TEST_TENANT_SLUG = 'pharmacy-shifa'
+
+
+def _sync_tenant_sequence() -> None:
+    """Keep ``tenants.id`` sequence ahead of seeded rows in PostgreSQL tests."""
+    try:
+        db.session.execute(
+            db.text(
+                "SELECT setval(pg_get_serial_sequence('tenants','id'), "
+                "COALESCE((SELECT MAX(id) FROM tenants), 1), true)"
+            )
+        )
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
 
 
 def clear_tenant_g() -> None:
@@ -44,43 +59,68 @@ def ensure_default_test_tenant(app: Flask):
     from app.extensions import db
 
     with app.app_context(), app.test_request_context():
-        tenant = db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG)).scalars().first()
-        if not tenant:
-            tenant = Tenant(
-                slug=DEFAULT_TEST_TENANT_SLUG,
-                name='صيدلية الشفاء',
-                contact_email='pharmacy@test.local',
-                status='active',
-                product_profile_code='multi_department_center',
-            )
-            db.session.add(tenant)
-            db.session.commit()
+        from flask import g
 
-        bind_tenant_on_g(tenant, db_session=db.session)
+        prev_bypass = g.get('_tenant_filter_bypass', False)
+        g._tenant_filter_bypass = True
+        try:
+            tenant = db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG)).scalars().first()
+            if not tenant:
+                tenant = Tenant(
+                    slug=DEFAULT_TEST_TENANT_SLUG,
+                    name='صيدلية الشفاء',
+                    contact_email='pharmacy@test.local',
+                    status='active',
+                    product_profile_code='multi_department_center',
+                )
+                db.session.add(tenant)
+                try:
+                    db.session.commit()
+                except IntegrityError:
+                    db.session.rollback()
+                    _sync_tenant_sequence()
+                    tenant = db.session.execute(select(Tenant).filter_by(slug=DEFAULT_TEST_TENANT_SLUG)).scalars().first()
+                    if not tenant:
+                        tenant = Tenant(
+                            slug=DEFAULT_TEST_TENANT_SLUG,
+                            name='صيدلية الشفاء',
+                            contact_email='pharmacy@test.local',
+                            status='active',
+                            product_profile_code='multi_department_center',
+                        )
+                        db.session.add(tenant)
+                        db.session.commit()
 
-        now = datetime.now(timezone.utc)
-        changed = False
-        for module_name in get_all_module_names():
-            row = db.session.execute(select(TenantModule).filter_by(
-                tenant_id=tenant.id, module_name=module_name
-            )).scalars().first()
-            if row:
-                if not row.is_active:
-                    row.is_active = True
-                    row.activated_at = now
-                    row.deactivated_at = None
+            bind_tenant_on_g(tenant, db_session=db.session)
+
+            now = datetime.now(timezone.utc)
+            changed = False
+            for module_name in get_all_module_names():
+                row = db.session.execute(select(TenantModule).filter_by(
+                    tenant_id=tenant.id, module_name=module_name
+                )).scalars().first()
+                if row:
+                    if not row.is_active:
+                        row.is_active = True
+                        row.activated_at = now
+                        row.deactivated_at = None
+                        changed = True
+                else:
+                    db.session.add(TenantModule(
+                        tenant_id=tenant.id,
+                        module_name=module_name,
+                        is_active=True,
+                        activated_at=now,
+                    ))
                     changed = True
+            if changed:
+                db.session.commit()
+            return tenant
+        finally:
+            if prev_bypass:
+                g._tenant_filter_bypass = True
             else:
-                db.session.add(TenantModule(
-                    tenant_id=tenant.id,
-                    module_name=module_name,
-                    is_active=True,
-                    activated_at=now,
-                ))
-                changed = True
-        if changed:
-            db.session.commit()
-        return tenant
+                g.pop('_tenant_filter_bypass', None)
 
 
 def bind_tenant_on_g(tenant, *, db_session=None) -> None:

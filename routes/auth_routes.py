@@ -227,6 +227,7 @@ def login() -> ResponseReturnValue:
                             oldest.terminated_by = 'SYSTEM_LIMIT'
                         new_session = SessionLog(
                             user_id=user.id,
+                            tenant_id=user.tenant_id,
                             session_id=session.sid if hasattr(session, 'sid') else '__main__',
                             ip_address=request.remote_addr,
                             user_agent=request.headers.get('User-Agent'),
@@ -238,7 +239,12 @@ def login() -> ResponseReturnValue:
                             login_at=datetime.now(timezone.utc),
                         )
                         db.session.add(new_session)
+                        safe_commit(db.session, error_message="database commit failed", reraise=True)
                     except Exception as e:
+                        try:
+                            safe_rollback(db.session, error_message="database rollback")
+                        except Exception:
+                            pass
                         logging.warning(f"Session log error: {e}")
                     remember_flag = str((data.get('remember') or '')).lower() in {'1', 'true', 'on', 'yes'}
                     login_user(user, remember=remember_flag)

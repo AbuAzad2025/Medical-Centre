@@ -8,14 +8,10 @@ audit_tenant_id: contextvars.ContextVar[Optional[int]] = contextvars.ContextVar(
 
 
 def set_audit_context(actor_id=None, ip_address=None, request_id=None, tenant_id=None):
-    if actor_id is not None:
-        audit_actor_id.set(actor_id)
-    if ip_address is not None:
-        audit_ip_address.set(ip_address)
-    if request_id is not None:
-        audit_request_id.set(request_id)
-    if tenant_id is not None:
-        audit_tenant_id.set(tenant_id)
+    audit_actor_id.set(actor_id)
+    audit_ip_address.set(ip_address)
+    audit_request_id.set(request_id)
+    audit_tenant_id.set(tenant_id)
 
 
 def get_audit_context():

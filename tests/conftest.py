@@ -204,6 +204,15 @@ def _clear_rate_limiter(app):
 
 
 @pytest.fixture(scope='function', autouse=True)
+def _clear_audit_context():
+    from app.core.audit.audit_context import set_audit_context
+
+    set_audit_context(actor_id=None, ip_address=None, request_id=None, tenant_id=None)
+    yield
+    set_audit_context(actor_id=None, ip_address=None, request_id=None, tenant_id=None)
+
+
+@pytest.fixture(scope='function', autouse=True)
 def _saas_default_tenant_context(app, request, monkeypatch):
     """In SaaS mode, bind the default test tenant to ``g`` for service-layer tests.
 

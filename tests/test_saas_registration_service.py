@@ -250,12 +250,9 @@ class TestResolveDefaultPackage:
 
     def test_no_available_package_raises(self, app, monkeypatch):
         monkeypatch.delenv('SAAS_DEFAULT_PACKAGE_VERSION_ID', raising=False)
-        with patch.object(
-            PackageVersion,
-            'query',
-            new_callable=MagicMock,
-        ) as mock_query:
-            mock_query.join.return_value.filter.return_value.order_by.return_value.first.return_value = None
+        fake_result = MagicMock()
+        fake_result.scalars.return_value.first.return_value = None
+        with patch('services.saas_registration_service.db.session.execute', return_value=fake_result):
             with pytest.raises(SaasRegistrationError, match='no_default_package'):
                 SaasRegistrationService.resolve_default_package_version_id()
 

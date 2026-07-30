@@ -34,13 +34,10 @@ def superadmin_user(app, test_tenant):
 
 
 @pytest.fixture(scope='function')
-def logged_in_super_client(client, superadmin_user):
-    resp = client.post(
-        '/auth/login',
-        data={'username': superadmin_user.username, 'password': 'sa123456'},
-        follow_redirects=True,
-    )
-    assert resp.status_code == 200
+def logged_in_super_client(client, superadmin_user, test_tenant):
+    from tests.tenant_context import login_test_client
+
+    login_test_client(client, superadmin_user, test_tenant, 'sa123456')
     yield client
     client.get('/auth/logout')
 

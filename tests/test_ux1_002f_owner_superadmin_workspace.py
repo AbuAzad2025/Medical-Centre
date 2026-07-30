@@ -55,27 +55,17 @@ def superadmin_user(app, test_tenant):
 
 @pytest.fixture(scope='function')
 def owner_auth_client(app, client, owner_user, test_tenant):
-    from app.core.rate_limiter import _shared_store
-    _shared_store.clear()
-    resp = client.post('/auth/login', data={
-        'username': 'owner_test_ux1',
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    }, follow_redirects=True)
-    assert resp.status_code == 200
+    from tests.tenant_context import login_test_client
+
+    login_test_client(client, owner_user, test_tenant, 'test123')
     return client
 
 
 @pytest.fixture(scope='function')
 def superadmin_auth_client(app, client, superadmin_user, test_tenant):
-    from app.core.rate_limiter import _shared_store
-    _shared_store.clear()
-    resp = client.post('/auth/login', data={
-        'username': 'superadmin_test_ux1',
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    }, follow_redirects=True)
-    assert resp.status_code == 200
+    from tests.tenant_context import login_test_client
+
+    login_test_client(client, superadmin_user, test_tenant, 'test123')
     return client
 
 

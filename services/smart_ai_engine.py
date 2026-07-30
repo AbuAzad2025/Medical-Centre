@@ -380,6 +380,7 @@ class SmartAIEngine:
     
     def _handle_doctor_query(self, message):
         """معالجة أسئلة عن الأطباء"""
+        from models.department import Department
         from models.user import User
         from models.visit import Visit
         
@@ -387,10 +388,16 @@ class SmartAIEngine:
         name_match = re.search(r'(طبيب|دكتور|doctor)\s+(\w+)', message, re.IGNORECASE)
         if name_match:
             name = name_match.group(2)
-            doctors = db.session.execute(select(User).filter(
-                User.role == 'doctor',
-                User.full_name.ilike(f'%{name}%')
-            )).scalars().all()
+            doctors = [
+                doctor for doctor in
+                db.session.execute(select(
+                    User.id,
+                    User.full_name,
+                    User.is_active,
+                    User.department_id,
+                ).filter(User.role == 'doctor')).all()
+                if name.lower() in str(doctor.full_name or '').lower()
+            ]
             
             if doctors:
                 response = f"👨‍⚕️ **معلومات عن الدكتور '{name}':**\n\n"
@@ -401,10 +408,15 @@ class SmartAIEngine:
                         Visit.doctor_id == doctor.id,
                         func.date(Visit.created_at) == date.today()
                     )).scalar()
+                    dept_name = 'غير محدد'
+                    if doctor.department_id:
+                        dept = db.session.get(Department, doctor.department_id)
+                        if dept is not None:
+                            dept_name = dept.name
                     
                     response += f"**د. {doctor.full_name}**\n"
-                    response += f"├─ التخصص: {doctor.specialization or 'غير محدد'}\n"
-                    response += f"├─ القسم: {doctor.department.name if doctor.department else 'غير محدد'}\n"
+                    response += f"├─ التخصص: {'غير محدد'}\n"
+                    response += f"├─ القسم: {dept_name}\n"
                     response += f"├─ الحالة: {'نشط' if doctor.is_active else 'غير نشط'}\n"
                     response += f"├─ إجمالي الزيارات: {total_visits}\n"
                     response += f"└─ زيارات اليوم: {today_visits}\n\n"

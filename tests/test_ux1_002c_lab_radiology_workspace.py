@@ -54,28 +54,20 @@ def radiology_user(app, test_tenant):
 
 
 @pytest.fixture(scope='function')
-def lab_auth_client(app, client, lab_user, test_tenant):
-    from app.core.rate_limiter import _shared_store
-    _shared_store.clear()
-    resp = client.post('/auth/login', data={
-        'username': 'lab_test_ux1',
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    }, follow_redirects=True)
-    assert resp.status_code == 200
+def lab_auth_client(app, client, lab_user, test_tenant, monkeypatch):
+    from tests.tenant_context import login_test_client
+
+    monkeypatch.setattr('app.core.saas.resolver.EntitlementResolver.is_entitled', lambda *a, **k: True)
+
+    login_test_client(client, lab_user, test_tenant, 'test123')
     return client
 
 
 @pytest.fixture(scope='function')
 def radiology_auth_client(app, client, radiology_user, test_tenant):
-    from app.core.rate_limiter import _shared_store
-    _shared_store.clear()
-    resp = client.post('/auth/login', data={
-        'username': 'radiology_test_ux1',
-        'password': 'test123',
-        'tenant_slug': test_tenant.slug,
-    }, follow_redirects=True)
-    assert resp.status_code == 200
+    from tests.tenant_context import login_test_client
+
+    login_test_client(client, radiology_user, test_tenant, 'test123')
     return client
 
 

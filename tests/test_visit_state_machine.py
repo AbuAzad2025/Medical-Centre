@@ -137,13 +137,9 @@ class TestVisitStateMachineService:
 
 class TestDoctorEndTreatmentRoute:
     def test_end_treatment_uses_state_machine(self, app, client, sm_visit, sm_doctor, test_tenant):
-        from app.core.rate_limiter import _shared_store
-        _shared_store.clear()
-        client.post('/auth/login', data={
-            'username': 'sm_doctor',
-            'password': 'test123',
-            'tenant_slug': test_tenant.slug,
-        })
+        from tests.tenant_context import login_test_client
+
+        login_test_client(client, sm_doctor, test_tenant, 'test123')
         resp = client.post(f'/doctor/end-treatment/{sm_visit.id}')
         assert resp.status_code in (200, 302)
         _db.session.refresh(sm_visit)

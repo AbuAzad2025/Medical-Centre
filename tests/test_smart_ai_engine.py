@@ -307,21 +307,21 @@ class TestAnalyzeWithFixtureData:
         assert 'users' in res['response']
         assert '2 عمود' in res['response']
 
-    def test_handle_doctor_query_by_name(self, engine):
+    def test_handle_doctor_query_by_name(self, engine, rollback_db, test_tenant):
         from models.user import User
-        from models.visit import Visit
-        mock_doctor = MagicMock()
-        mock_doctor.full_name = 'Named Doctor'
-        mock_doctor.specialization = 'General'
-        mock_doctor.department = None
-        mock_doctor.is_active = True
-        mock_doctor.id = 999
-        with patch.object(User, 'query') as uq:
-            uq.filter.return_value.all.return_value = [mock_doctor]
-            with patch.object(Visit, 'query') as vq:
-                vq.filter_by.return_value.count.return_value = 0
-                vq.filter.return_value.count.return_value = 0
-                res = engine._handle_doctor_query('doctor Named')
+
+        doctor = User(
+            username='ai_doc_named_' + str(id(engine)),
+            email='named.doctor@test.local',
+            full_name='Named Doctor',
+            role='doctor',
+            is_active=True,
+            tenant_id=test_tenant.id,
+        )
+        doctor.set_password('x')
+        rollback_db.session.add(doctor)
+        rollback_db.session.commit()
+        res = engine._handle_doctor_query('doctor Named')
         assert 'Named Doctor' in res['response']
 
     def test_handle_department_query_by_name(self, engine, rollback_db, test_tenant):

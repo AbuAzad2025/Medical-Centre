@@ -158,7 +158,7 @@ class TestCrossTenantIsolation:
         rows = db.session.execute(select(Tenant.id).order_by(Tenant.id).limit(2)).scalars().all()
         g._tenant_filter_bypass = False
         assert len(rows) >= 2, 'Need at least 2 tenants in the database'
-        return rows[0][0], rows[1][0]
+        return rows[0], rows[1]
 
     def test_tenant_b_cannot_see_tenant_a_notification(self, app, tenant_ids):
         """Same session, two tenants.  B must not see A's data."""
