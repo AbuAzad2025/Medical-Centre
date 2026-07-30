@@ -62,15 +62,14 @@ class ReceptionService:
     @staticmethod
     def search_patients(query: str) -> list:
         from models.patient import Patient
-        stmt = select(Patient).filter(
+        return db.session.execute(select(Patient).filter(
             or_(
                 Patient.first_name.ilike(f"%{query}%"),
                 Patient.last_name.ilike(f"%{query}%"),
                 Patient.phone.ilike(f"%{query}%"),
                 Patient.national_id.ilike(f"%{query}%"),
             )
-        ).order_by(Patient.first_name).limit(20)
-        return db.session.execute(stmt).scalars().all()
+        ).order_by(Patient.first_name).limit(20)).scalars().all()
 
     @staticmethod
     def create_visit(patient_id: int, department_id: int, doctor_id: int | None = None, visit_type: str = "OUTPATIENT") -> Any | None:

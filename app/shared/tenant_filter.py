@@ -303,7 +303,7 @@ def tenant_filter_select(orm_execute_state):
 
     session = orm_execute_state.session
     tid = _current_tenant_id(session=session)
-    if tid is None or _is_tenant_bypass():
+    if _is_tenant_bypass():
         return
 
     # Skip internal SA ORM operations (identity-key reloads after commit,
@@ -313,6 +313,21 @@ def tenant_filter_select(orm_execute_state):
     # break users with NULL tenant_id (platform/owner) whose identity
     # reload query returns no rows, causing ObjectDeletedError.
     if "_sa_orm_load_options" in orm_execute_state.execution_options:
+        return
+
+    if tid is None:
+        if _is_saas_mode():
+            for desc in getattr(statement, 'column_descriptions', []):
+                entity = desc.get('entity')
+                if entity is None or not isinstance(entity, type):
+                    continue
+                if _skip_table(entity):
+                    continue
+                if _model_has_tenant_column(entity):
+                    raise TenantIsolationError(
+                        f"Fail-closed: query on tenant-scoped model "
+                        f"{entity.__name__} without tenant context in SaaS mode"
+                    )
         return
 
     modified = False
@@ -361,11 +376,16 @@ def reassert_set_local(orm_execute_state):
     if dialect is None or dialect.name != 'postgresql':
         return
     if tid is None:
-        # No tenant context available in Python layer, but a prior SET LOCAL
-        # may still be active within the same transaction.  Don't clear it
-        # here — that would break legitimate queries when event handlers
-        # can't access Flask g (common in test fixtures).  RLS policies
-        # will fail-closed if the GUC is truly absent.
+        # No tenant context — explicitly clear any stale GUC so that
+        # RLS policies see a clean state (empty string means "no tenant"
+        # and will not match any tenant_id since they're positive ints).
+        try:
+            orm_execute_state.session.execute(db.text("SET LOCAL app.tenant_id = ''"))
+        except Exception as e:
+            logger.exception('RESET app.tenant_id failed in reassert_set_local')
+            raise TenantIsolationError(
+                'RESET app.tenant_id failed: tenant context cannot be cleared'
+            )
         return
     try:
         orm_execute_state.session.execute(
