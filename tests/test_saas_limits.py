@@ -18,7 +18,7 @@ from app.core.saas.models import (
     TenantEntitlement,
 )
 from app.core.saas.resolver import EntitlementResolver
-from app.core.tenant.models import ProductBundle, Tenant, TenantStatus
+from app.core.tenant.models import ProductBundle, Tenant, TenantStatus, get_bundle_for_profile
 from app.core.module.models import TenantModule
 from tests.tenant_context import tenant_test_context
 from sqlalchemy import select
@@ -43,12 +43,33 @@ def limit_tenant(app):
 
 class TestLegacyAdapter:
     def test_entitled_via_product_bundle_modules(self, limit_tenant):
+        # Self-seed the bundles this test depends on instead of skipping when
+        # CI does not seed ProductBundles. 'doctor_clinic_full' is the profile
+        # of the limit_tenant fixture; the legacy adapter resolves the
+        # tenant's own bundle through get_bundle_for_profile().
         bundle = db.session.execute(select(ProductBundle).filter_by(profile_code='standalone_clinic')).scalars().first()
         if bundle is None:
-            pytest.skip('no standalone_clinic bundle seeded')
+            bundle = ProductBundle(
+                name='Standalone Clinic',
+                name_ar='عيادة مستقلة',
+                slug='standalone-clinic-test',
+                description_ar='Test-seeded bundle',
+            )
+            bundle.set_modules(['doctor'])
+            db.session.add(bundle)
+        tenant_bundle = get_bundle_for_profile('doctor_clinic_full')
+        if tenant_bundle is None:
+            tenant_bundle = ProductBundle(
+                name='Doctor Clinic Full',
+                name_ar='عيادة طبيب كاملة',
+                slug='doctor-clinic-full-test',
+                description_ar='Test-seeded bundle',
+            )
+            tenant_bundle.set_modules(['doctor'])
+            db.session.add(tenant_bundle)
+        db.session.commit()
         mods = bundle.get_modules()
-        if not mods:
-            pytest.skip('bundle has no modules')
+        assert mods, 'bundle must expose at least one module'
         from app.core.module.registry import MODULE_REGISTRY
         cap = MODULE_REGISTRY[mods[0]].capabilities[0]
         assert LegacyEntitlementAdapter.is_entitled(limit_tenant, cap) is True

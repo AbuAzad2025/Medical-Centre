@@ -204,6 +204,7 @@ jobs:
       SUPPRESS_LOGGING: "1"
       TEST_DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_test
       DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_test
+      RLS_TEST_DATABASE_URL: postgresql://med_app_runtime:rlstest@localhost:5432/medical_test
       REDIS_URL: redis://localhost:6379/0
       CELERY_BROKER_URL: redis://localhost:6379/0
       CELERY_ENABLED: "true"
@@ -234,6 +235,30 @@ jobs:
       - name: Syntax lint (flake8 E9/F63/F7/F82)
         run: |
           python -m flake8 app routes services models utils tests scripts --count --select=E9,F63,F7,F82 --statistics
+
+      # Apply migrations so RLS policies exist for the SQL-level enforcement
+      # tests (the suite itself uses db.create_all and is unaffected — it
+      # connects as the postgres superuser, which always bypasses RLS).
+      - name: Run database migrations (RLS policies)
+        run: python -m flask db upgrade
+
+      # Restricted role for SQL-level RLS tests only (NOBYPASSRLS). The test
+      # file connects via RLS_TEST_DATABASE_URL; everything else keeps using
+      # the superuser connection.
+      - name: Create restricted runtime role for RLS tests
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          DROP ROLE IF EXISTS med_app_runtime;
+          CREATE ROLE med_app_runtime WITH LOGIN PASSWORD 'rlstest'
+            NOSUPERUSER NOINHERIT NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+          GRANT USAGE ON SCHEMA public TO med_app_runtime;
+          GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO med_app_runtime;
+          GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO med_app_runtime;
+          ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+            GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO med_app_runtime;
+          ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+            GRANT USAGE ON SEQUENCES TO med_app_runtime;
+          SQL
 
       - name: Run tests with coverage
         run: |

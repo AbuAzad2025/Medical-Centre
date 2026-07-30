@@ -36,7 +36,8 @@ def _rls_connection():
     Skips if the current database user is a superuser — PostgreSQL RLS
     does not apply to superusers or BYPASSRLS roles.
     """
-    url = (os.environ.get('TEST_DATABASE_URL')
+    url = (os.environ.get('RLS_TEST_DATABASE_URL')
+           or os.environ.get('TEST_DATABASE_URL')
            or os.environ.get('DATABASE_URL'))
     if not url or not url.startswith('postgresql'):
         pytest.skip('PostgreSQL required for RLS enforcement tests')
