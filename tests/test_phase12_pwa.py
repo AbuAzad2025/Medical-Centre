@@ -77,7 +77,7 @@ class TestStaffShellPWA:
             db.session.commit()
         from tests.tenant_context import login_test_client
 
-        login_test_client(client, u, test_tenant)
+        login_test_client(client, u, test_tenant, 'test123')
         resp = client.get('/reception/dashboard')
         text = resp.get_data(as_text=True)
         assert resp.status_code == 200
