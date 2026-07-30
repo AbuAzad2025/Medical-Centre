@@ -62,14 +62,15 @@ class ReceptionService:
     @staticmethod
     def search_patients(query: str) -> list:
         from models.patient import Patient
-        return db.session.execute(select(Patient).filter(
+        stmt = select(Patient).filter(
             or_(
                 Patient.first_name.ilike(f"%{query}%"),
                 Patient.last_name.ilike(f"%{query}%"),
                 Patient.phone.ilike(f"%{query}%"),
                 Patient.national_id.ilike(f"%{query}%"),
             )
-        ).order_by(Patient.first_name).limit(20)).scalars().all()
+        ).order_by(Patient.first_name).limit(20)
+        return db.session.execute(stmt).scalars().all()
 
     @staticmethod
     def create_visit(patient_id: int, department_id: int, doctor_id: int | None = None, visit_type: str = "OUTPATIENT") -> Any | None:
@@ -100,7 +101,7 @@ class ReceptionService:
         query = select(Visit)
         if department_id:
             query = query.filter_by(department_id=department_id)
-        return query.order_by(Visit.created_at.asc()).all()
+        return db.session.execute(query.order_by(Visit.created_at.asc())).scalars().all()
 
     @staticmethod
     def check_in_appointment(appointment_id: int) -> bool:
@@ -128,10 +129,12 @@ class ReceptionService:
     @staticmethod
     def get_upcoming_appointments(department_id: int | None = None, limit: int = 20) -> list:
         from models.appointment import Appointment
-        query = select(Appointment)
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        query = select(Appointment).filter(Appointment.starts_at >= now)
         if department_id:
             query = query.filter_by(department_id=department_id)
-        return query.order_by(Appointment.starts_at.asc()).limit(limit).all()
+        return db.session.execute(query.order_by(Appointment.starts_at.asc()).limit(limit)).scalars().all()
 
 
 # Singleton

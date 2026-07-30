@@ -271,7 +271,7 @@ class QueueManagementService:
             from models.user import User
             from models.department import Department
             
-            query = select(QueueManagement).filter_by(department_id=department_id)
+            query = select(QueueManagement).outerjoin(Visit, QueueManagement.visit_id == Visit.id).filter(QueueManagement.department_id == department_id)
             if doctor_id:
                 # فلترة حسب الطبيب عبر الربط على الزيارة
                 query = query.filter(Visit.doctor_id == doctor_id)
@@ -349,7 +349,7 @@ class QueueManagementService:
             from models.department import Department
             from models.patient import Patient
 
-            q = select(QueueManagement).filter(QueueManagement.department_id.in_(department_ids))
+            q = select(QueueManagement).outerjoin(Visit, QueueManagement.visit_id == Visit.id).filter(QueueManagement.department_id.in_(department_ids))
             if doctor_id:
                 q = q.filter(Visit.doctor_id == doctor_id)
 

@@ -36,6 +36,16 @@ def rxfx(rollback_db, monkeypatch):
         lambda *a, **k: None,
     )
 
+    # Bypass pharmacy module gating in test fixtures
+    monkeypatch.setattr(
+        'services.feature_gate_service.FeatureGateService.module_enabled',
+        lambda *a, **k: True,
+    )
+    monkeypatch.setattr(
+        'services.feature_gate_service.FeatureGateService.tenant_has_valid_payment',
+        lambda *a, **k: True,
+    )
+
     # Set tenant context for the test
     g.tenant_id = 1
     db.session.info['_tenant_id'] = 1

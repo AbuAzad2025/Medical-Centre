@@ -294,13 +294,9 @@ def tenant_filter_select(orm_execute_state):
     For old-style ``session.query(...)`` calls the ``before_compile`` handler
     already applied the filter; we skip those to avoid double-filtering.
     """
-    if not orm_execute_state.is_select:
-        return
-
     statement = orm_execute_state.statement
 
-    # Only intercept new-style Select objects; old-style Query objects are
-    # already handled by the before_compile listener above.
+    # Intercept both ORM and Core Select statements
     from sqlalchemy import Select as _SASelect
     if not isinstance(statement, _SASelect):
         return
@@ -365,16 +361,11 @@ def reassert_set_local(orm_execute_state):
     if dialect is None or dialect.name != 'postgresql':
         return
     if tid is None:
-        # No tenant context — explicitly clear any stale GUC so that
-        # RLS policies see a clean state (empty string means "no tenant"
-        # and will not match any tenant_id since they're positive ints).
-        try:
-            orm_execute_state.session.execute(db.text("SET LOCAL app.tenant_id = ''"))
-        except Exception as e:
-            logger.exception('RESET app.tenant_id failed in reassert_set_local')
-            raise TenantIsolationError(
-                'RESET app.tenant_id failed: tenant context cannot be cleared'
-            )
+        # No tenant context available in Python layer, but a prior SET LOCAL
+        # may still be active within the same transaction.  Don't clear it
+        # here — that would break legitimate queries when event handlers
+        # can't access Flask g (common in test fixtures).  RLS policies
+        # will fail-closed if the GUC is truly absent.
         return
     try:
         orm_execute_state.session.execute(

@@ -167,6 +167,10 @@ def rollback_db(app):
 
         tenant = ensure_default_test_tenant(app)
         bind_tenant_on_g(tenant, db_session=_db.session)
+        try:
+            _db.session.info['_tenant_id'] = tenant.id
+        except Exception:
+            pass
     try:
         yield _db
     finally:

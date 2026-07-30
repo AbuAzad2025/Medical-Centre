@@ -158,7 +158,10 @@ class StripeSubscriptionService:
             if _redis:
                 cached = _redis.get(f'wh_idemp:{event_id}')
                 if cached:
-                    return None
+                    # Already in cache → definitely processed; fetch from DB for status
+                    record = db.session.get(StripeWebhookEvent, event_id)
+                    if record:
+                        return record
         except Exception:
             pass
         return db.session.get(StripeWebhookEvent, event_id)
