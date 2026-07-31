@@ -1,4 +1,5 @@
 import logging
+import os
 import random
 import string
 import threading
@@ -60,11 +61,13 @@ class SMSService:
             return {'success': False, 'message': 'رقم الهاتف فارغ', 'rate_limited': False}
 
         # 1. Sliding-window request cap
+        # In testing, force in-memory to avoid cross-test Redis contamination.
+        _testing = os.getenv('APP_ENV') == 'testing'
         request_limiter = RateLimiter(
             max_requests=3,
             window_seconds=300,
             namespace='otp_request',
-            use_redis=True,
+            use_redis=not _testing,
         )
         if not request_limiter.is_allowed(phone):
             return {
@@ -203,7 +206,6 @@ class SMSService:
     @staticmethod
     def clear_all_otp_state() -> None:
         """Clear all OTP in-memory state (test helper)."""
-        global _otp_codes, _otp_failure_counts
         with _otp_lock:
             _otp_codes.clear()
             _otp_failure_counts.clear()
