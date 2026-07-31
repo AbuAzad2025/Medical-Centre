@@ -130,13 +130,13 @@ class RateLimiter:
         # In-memory fallback (thread-safe)
         with _store_lock:
             _cleanup_expired(self.window)
-            timestamps = _shared_store.get(key, [])
+            timestamps = _shared_store.get(full_key, [])
             timestamps = [t for t in timestamps if t > window_start]
             if len(timestamps) >= self.max_requests:
-                _shared_store[key] = timestamps
+                _shared_store[full_key] = timestamps
                 return False
             timestamps.append(now)
-            _shared_store[key] = timestamps
+            _shared_store[full_key] = timestamps
             return True
 
     def clear(self):
@@ -149,7 +149,7 @@ class RateLimiter:
             except Exception as e:
                 pass
         with _store_lock:
-            keys_to_delete = [k for k in _shared_store if k.startswith(self.namespace)]
+            keys_to_delete = [k for k in _shared_store if k.startswith(f"{self.namespace}:")]
             for k in keys_to_delete:
                 del _shared_store[k]
 
@@ -183,3 +183,76 @@ def check_rate_limit(key: str, max_requests: int = 100, window_seconds: int = 60
     """Check rate limit programmatically without decorator."""
     limiter = RateLimiter(max_requests=max_requests, window_seconds=window_seconds, namespace=namespace)
     return limiter.is_allowed(key)
+
+
+# ═══════════════════════════════════════════════════════════════
+# IdempotencyLock – distributed lock for payment/webhook races
+# ═══════════════════════════════════════════════════════════════
+_idempotency_locks: dict = {}
+_idempotency_lock_lock = threading.RLock()
+
+
+def _cleanup_idempotency_locks(timeout_seconds: int = 60):
+    now = time.time()
+    expired = [k for k, v in _idempotency_locks.items() if now - v > timeout_seconds]
+    for k in expired:
+        del _idempotency_locks[k]
+
+
+class IdempotencyLock:
+    """Distributed idempotency lock using Redis SET NX or in-memory fallback.
+
+    Ensures only one concurrent request can process a given idempotency key
+    at a time, preventing phantom-insert races.
+    """
+
+    def __init__(self, namespace: str = "idemp", timeout_seconds: int = 30):
+        self.namespace = namespace
+        self.timeout = timeout_seconds
+        self._redis = _get_redis()
+
+    def acquire(self, key: str) -> bool:
+        full_key = f"{self.namespace}:{key}"
+        now = time.time()
+
+        if self._redis:
+            try:
+                acquired = self._redis.set(full_key, str(now), nx=True, ex=self.timeout)
+                return bool(acquired)
+            except Exception as e:
+                logger.warning(f"Idempotency lock Redis error, falling back to memory: {e}")
+                self._redis = None
+
+        with _idempotency_lock_lock:
+            _cleanup_idempotency_locks(self.timeout)
+            if full_key in _idempotency_locks:
+                lock_time = _idempotency_locks[full_key]
+                if now - lock_time < self.timeout:
+                    return False
+            _idempotency_locks[full_key] = now
+            return True
+
+    def release(self, key: str) -> None:
+        full_key = f"{self.namespace}:{key}"
+        if self._redis:
+            try:
+                self._redis.delete(full_key)
+                return
+            except Exception:
+                pass
+        with _idempotency_lock_lock:
+            _idempotency_locks.pop(full_key, None)
+
+    def clear_all(self) -> None:
+        """Clear every in-memory lock for this namespace (test helper)."""
+        prefix = f"{self.namespace}:"
+        with _idempotency_lock_lock:
+            for k in list(_idempotency_locks.keys()):
+                if k.startswith(prefix):
+                    del _idempotency_locks[k]
+        if self._redis:
+            try:
+                for k in self._redis.scan_iter(match=f"{prefix}*"):
+                    self._redis.delete(k)
+            except Exception:
+                pass

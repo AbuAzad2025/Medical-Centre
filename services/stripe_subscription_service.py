@@ -5,6 +5,7 @@ import hashlib
 import json
 import logging
 import os
+import time as _time
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -12,6 +13,7 @@ import stripe
 from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
+from app.core.rate_limiter import IdempotencyLock
 from utils.db_safety import safe_commit
 from app.core.saas.lifecycle import TenantProvisioningService
 from app.core.saas.models import StripeWebhookEvent, StripeWebhookEventStatus
@@ -178,54 +180,72 @@ class StripeSubscriptionService:
         if not event_id:
             raise StripeWebhookError('missing_event_id')
 
+        # Fast-path cache check
         existing = cls._check_idempotency(event_id)
         if existing:
             return {'already_processed': True, 'event_id': event_id, 'status': existing.status}
 
-        payload_hash = hashlib.sha256(payload).hexdigest()
-        record = StripeWebhookEvent(
-            event_id=event_id,
-            status=StripeWebhookEventStatus.PROCESSING,
-            payload_hash=payload_hash,
-        )
-        db.session.add(record)
-        try:
-            db.session.flush()
-        except IntegrityError:
-            # Another worker won the race for this event_id.
-            db.session.rollback()
+        # Atomic lock prevents concurrent workers from processing the same event
+        lock = IdempotencyLock(namespace='stripe_webhook', timeout_seconds=60)
+        if not lock.acquire(event_id):
+            _time.sleep(0.15)
             existing = cls._check_idempotency(event_id)
             if existing:
                 return {'already_processed': True, 'event_id': event_id, 'status': existing.status}
-            raise StripeWebhookError('duplicate_event_id')
+            raise StripeWebhookError('concurrent_event_processing')
 
         try:
-            result = cls.handle_event(event)
-            record.status = StripeWebhookEventStatus.PROCESSED
-            record.processed_at = datetime.now(timezone.utc)
-            safe_commit(db.session, error_message="فشل تسجيل معالجة webhook", reraise=True)
+            # Double-check DB under lock
+            record = db.session.get(StripeWebhookEvent, event_id)
+            if record:
+                return {'already_processed': True, 'event_id': event_id, 'status': record.status}
+
+            payload_hash = hashlib.sha256(payload).hexdigest()
+            record = StripeWebhookEvent(
+                event_id=event_id,
+                status=StripeWebhookEventStatus.PROCESSING,
+                payload_hash=payload_hash,
+            )
+            db.session.add(record)
             try:
-                from app.core.rate_limiter import _get_redis
-                _redis = _get_redis()
-                if _redis:
-                    _redis.setex(f'wh_idemp:{event_id}', 86400, '1')
-            except Exception:
-                pass
-            return result
-        except Exception as exc:
+                db.session.flush()
+            except IntegrityError:
+                # Another worker won the race for this event_id.
+                db.session.rollback()
+                existing = cls._check_idempotency(event_id)
+                if existing:
+                    return {'already_processed': True, 'event_id': event_id, 'status': existing.status}
+                raise StripeWebhookError('duplicate_event_id')
+
             try:
-                failed_record = db.session.get(StripeWebhookEvent, event_id)  # global reference table - no tenant scope
-                if failed_record:
-                    failed_record.status = StripeWebhookEventStatus.FAILED
-                    failed_record.error_message = str(exc)[:1000]
-                else:
-                    db.session.add(StripeWebhookEvent(
-                        event_id=event_id,
-                        status=StripeWebhookEventStatus.FAILED,
-                        payload_hash=payload_hash,
-                        error_message=str(exc)[:1000],
-                    ))
-                safe_commit(db.session, error_message="فشل تسجيل فشل webhook")
-            except Exception as e:
-                pass
-            raise
+                result = cls.handle_event(event)
+                record.status = StripeWebhookEventStatus.PROCESSED
+                record.processed_at = datetime.now(timezone.utc)
+                safe_commit(db.session, error_message="فشل تسجيل معالجة webhook", reraise=True)
+                try:
+                    from app.core.rate_limiter import _get_redis
+                    _redis = _get_redis()
+                    if _redis:
+                        _redis.setex(f'wh_idemp:{event_id}', 86400, '1')
+                except Exception:
+                    pass
+                return result
+            except Exception as exc:
+                try:
+                    failed_record = db.session.get(StripeWebhookEvent, event_id)  # global reference table - no tenant scope
+                    if failed_record:
+                        failed_record.status = StripeWebhookEventStatus.FAILED
+                        failed_record.error_message = str(exc)[:1000]
+                    else:
+                        db.session.add(StripeWebhookEvent(
+                            event_id=event_id,
+                            status=StripeWebhookEventStatus.FAILED,
+                            payload_hash=payload_hash,
+                            error_message=str(exc)[:1000],
+                        ))
+                    safe_commit(db.session, error_message="فشل تسجيل فشل webhook")
+                except Exception as e:
+                    pass
+                raise
+        finally:
+            lock.release(event_id)

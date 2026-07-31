@@ -191,8 +191,11 @@ def rollback_db(app):
 @pytest.fixture(scope='function', autouse=True)
 def _clear_rate_limiter(app):
     """Clear rate limiter state before each test to avoid cross-test contamination."""
-    from app.core.rate_limiter import _shared_store
+    from app.core.rate_limiter import _shared_store, _idempotency_locks
     _shared_store.clear()
+    _idempotency_locks.clear()
+    from services.sms_service import SMSService
+    SMSService.clear_all_otp_state()
     from app.extensions import db
     try:
         from models.audit_trail import LoginAttempt

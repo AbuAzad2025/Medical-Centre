@@ -159,3 +159,75 @@ class TestPaymentRouteIdempotency:
         payments = db.session.execute(select(Payment).filter_by(visit_id=pay_visit.id)).scalars().all()
         assert len(payments) == 1
         assert float(payments[0].amount) == 50
+
+
+class TestPaymentConcurrentIdempotency:
+    """Simulate concurrent payment creation with identical idempotency keys."""
+
+    def test_concurrent_idempotency_returns_single_payment_mocked(self, app):
+        """When lock is held, service fetches the existing payment without creating a duplicate."""
+        from app.core.rate_limiter import IdempotencyLock
+        from unittest.mock import MagicMock, patch
+        from decimal import Decimal
+
+        lock = IdempotencyLock(timeout_seconds=5)
+        lock_key = "1:payment:concurrent-idem-key-001"
+
+        # Pre-acquire the lock to simulate another thread holding it
+        assert lock.acquire(lock_key) is True
+
+        try:
+            # Mock an existing payment that the blocked thread should find
+            mock_payment = MagicMock()
+            mock_payment.id = 999
+            mock_payment.amount = Decimal('50')
+            mock_payment.idempotency_key = 'concurrent-idem-key-001'
+
+            mock_execute_result = MagicMock()
+            mock_execute_result.scalars.return_value.first.return_value = mock_payment
+
+            with patch('services.payment_service.db.session.execute', return_value=mock_execute_result):
+                with patch('services.payment_service.db.session.flush'):
+                    ok, result = PaymentService.create_payment(
+                        tenant_id=1,
+                        operation_type='payment',
+                        idempotency_key='concurrent-idem-key-001',
+                        amount=50,
+                    )
+                    assert ok is True
+                    assert result.id == 999  # returned existing, did not create new
+        finally:
+            lock.release(lock_key)
+
+    def test_distinct_idempotency_keys_create_multiple_payments(self, app, pay_visit, pay_accountant, test_tenant):
+        """Distinct idempotency keys should each create a separate payment."""
+        payment_ids = set()
+        for i in range(5):
+            ok, result = PaymentService.create_payment(
+                tenant_id=test_tenant.id,
+                operation_type='payment',
+                idempotency_key=f'distinct-key-{i}',
+                patient_id=pay_visit.patient_id,
+                visit_id=pay_visit.id,
+                amount=10,
+                method='CASH',
+                received_by=pay_accountant.id,
+            )
+            assert ok is True
+            payment_ids.add(result.id)
+            db.session.flush()
+
+        assert len(payment_ids) == 5
+
+    def test_idempotency_lock_prevents_race_condition(self, app, pay_visit, pay_accountant, test_tenant):
+        """Directly test that the IdempotencyLock serializes access."""
+        from app.core.rate_limiter import IdempotencyLock
+
+        lock = IdempotencyLock(timeout_seconds=5)
+        key = 'test-lock-key-001'
+
+        assert lock.acquire(key) is True
+        assert lock.acquire(key) is False  # already held
+        lock.release(key)
+        assert lock.acquire(key) is True  # released, can re-acquire
+        lock.release(key)
