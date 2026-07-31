@@ -35,26 +35,8 @@
   --owner-gradient-4:      linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
 }
 
-[data-theme="dark"] .owner-page {
-  --owner-bg:              #0f172a;
-  --owner-surface:         #1e293b;
-  --owner-card:            #1e293b;
-  --owner-text:            #f8fafc;
-  --owner-text-muted:      #94a3b8;
-  --owner-border:          #334155;
-  --owner-shadow:          0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.2);
-  --owner-shadow-lg:       0 20px 25px -5px rgba(0,0,0,0.4), 0 8px 10px -6px rgba(0,0,0,0.3);
-  --owner-glass-bg:        rgba(30,41,59,0.72);
-  --owner-glass-border:    rgba(255,255,255,0.08);
-}
 
-/* ─── Base ─── */
-.owner-page {
-  background: var(--owner-bg);
-  color: var(--owner-text);
-  font-family: 'Cairo', sans-serif;
-  min-height: 100vh;
-}
+
 
 /* ─── Owner Shell ─── */
 .owner-shell {
@@ -517,52 +499,8 @@
 }
 .owner-input::placeholder { color: var(--owner-text-muted); opacity: 0.6; }
 
-/* ─── Switch Toggle ─── */
-.owner-switch {
-  position: relative;
-  display: inline-block;
-  width: 52px;
-  height: 28px;
-}
-.owner-switch input { opacity: 0; width: 0; height: 0; }
-.owner-switch-slider {
-  position: absolute;
-  cursor: pointer;
-  inset: 0;
-  background: var(--owner-border);
-  border-radius: 28px;
-  transition: all var(--owner-transition);
-}
-.owner-switch-slider::before {
-  content: '';
-  position: absolute;
-  height: 22px; width: 22px;
-  right: 3px; bottom: 3px;
-  background: #fff;
-  border-radius: 50%;
-  transition: all var(--owner-transition);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-.owner-switch input:checked + .owner-switch-slider { background: var(--owner-gradient-1); }
-.owner-switch input:checked + .owner-switch-slider::before { transform: translateX(-24px); }
-.owner-switch input:focus + .owner-switch-slider { box-shadow: 0 0 0 3px rgba(37,99,235,0.2); }
 
-/* ─── Progress Bars ─── */
-.owner-progress { height: 8px; background: var(--owner-border); border-radius: 4px; overflow: hidden; }
-.owner-progress-bar {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-  background: var(--owner-gradient-1);
-  position: relative;
-}
-.owner-progress-bar::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  animation: shimmer 2s infinite;
-}
+
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
@@ -595,11 +533,7 @@
 }
 
 .animate-fadeInUp { animation: fadeInUp 0.5s ease-out forwards; }
-.animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
-.animate-scaleIn { animation: scaleIn 0.3s ease-out forwards; }
-.animate-slideInRight { animation: slideInRight 0.4s ease-out forwards; }
 .animate-pulse { animation: pulse 2s ease-in-out infinite; }
-.animate-float { animation: float 3s ease-in-out infinite; }
 
 .delay-1 { animation-delay: 0.1s; }
 .delay-2 { animation-delay: 0.2s; }
@@ -607,31 +541,9 @@
 .delay-4 { animation-delay: 0.4s; }
 .delay-5 { animation-delay: 0.5s; }
 
-/* ─── Glass Card Variants ─── */
-.owner-glass {
-  background: var(--owner-glass-bg);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid var(--owner-glass-border);
-}
 
-/* ─── Chart Container ─── */
-.owner-chart-container {
-  background: var(--owner-card);
-  border: 1px solid var(--owner-border);
-  border-radius: var(--owner-radius);
-  padding: 1.5rem;
-  box-shadow: var(--owner-shadow);
-  position: relative;
-  overflow: hidden;
-}
-.owner-chart-container::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 3px;
-  background: var(--owner-gradient-1);
-  opacity: 0.6;
-}
+
+
 
 /* ─── Modal ─── */
 .owner-modal .modal-content {
@@ -677,35 +589,7 @@
   opacity: 0.6;
 }
 
-/* ─── Timeline ─── */
-.owner-timeline {
-  position: relative;
-  padding-right: 2rem;
-}
-.owner-timeline::before {
-  content: '';
-  position: absolute;
-  right: 0.5rem;
-  top: 0; bottom: 0;
-  width: 2px;
-  background: var(--owner-border);
-  border-radius: 1px;
-}
-.owner-timeline-item {
-  position: relative;
-  padding-bottom: 1.5rem;
-}
-.owner-timeline-item::before {
-  content: '';
-  position: absolute;
-  right: -1.875rem;
-  top: 0.25rem;
-  width: 12px; height: 12px;
-  border-radius: 50%;
-  background: var(--owner-primary);
-  border: 3px solid var(--owner-card);
-  box-shadow: 0 0 0 3px var(--owner-primary-light);
-}
+
 
 /* ─── Responsive ─── */
 @media (max-width: 1199px) {
@@ -748,13 +632,7 @@
   color: var(--owner-primary-dark);
 }
 
-/* ─── Data Tables (Enhanced) ─── */
-.owner-table-container {
-  border-radius: var(--owner-radius);
-  overflow: hidden;
-  border: 1px solid var(--owner-border);
-  background: var(--owner-card);
-}
+
 
 .owner-table {
   width: 100%;
@@ -804,17 +682,7 @@
   margin-bottom: 0.5rem;
 }
 
-.owner-input, .owner-select, .owner-textarea {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid var(--owner-border);
-  border-radius: var(--owner-radius-sm);
-  background: var(--owner-surface);
-  color: var(--owner-text);
-  font-size: 0.95rem;
-  font-family: inherit;
-  transition: all var(--owner-transition);
-}
+.owner-input, .owner-select, 
 
 .owner-select {
   appearance: none;
@@ -825,16 +693,13 @@
   padding-left: 2.5rem;
 }
 
-.owner-input:focus, .owner-select:focus, .owner-textarea:focus {
+.owner-input:focus, .owner-select:focus {
   outline: none;
   border-color: var(--owner-primary);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
-.owner-textarea {
-  min-height: 120px;
-  resize: vertical;
-}
+
 
 /* ─── Modals (Enhanced) ─── */
 .owner-modal .modal-content {
@@ -881,15 +746,7 @@
   border: 1px solid var(--owner-glass-border);
 }
 
-.owner-card.owner-card-gradient-primary {
-  background: var(--owner-gradient-1);
-  color: #fff;
-}
-.owner-card.owner-card-gradient-primary .owner-card-title,
-.owner-card.owner-card-gradient-primary .owner-card-label,
-.owner-card.owner-card-gradient-primary .owner-card-value {
-  color: #fff;
-}
+
 
 /* ─── Utility Classes ─── */
 .text-primary { color: var(--owner-primary) !important; }

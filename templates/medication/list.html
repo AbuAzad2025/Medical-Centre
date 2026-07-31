@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container-fluid">
     {% set med_list_actions = [] %}
-    {% if current_user.role in ['pharmacist','admin','manager'] %}
+    {% if has_permission('pharmacy.manage') %}
     {% set med_list_actions = [
         {'url': url_for('medication.add_medication'), 'label': 'إضافة دواء جديد', 'icon': 'fas fa-plus', 'style': 'primary'},
         {'url': url_for('medication.create_supply_request'), 'label': 'طلب توريد', 'icon': 'fas fa-truck-loading', 'style': 'outline-primary'}
@@ -200,7 +200,7 @@
                               <h5 class="text-muted">لا توجد أدوية</h5>
                               <p class="text-muted">ابدأ بإضافة دواء جديد</p>
                             {% endif %}
-                            {% if current_user.role in ['pharmacist','admin','manager'] %}
+                            {% if has_permission('pharmacy.manage') %}
                             <a href="{{ url_for('medication.add_medication') }}" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i>
                                 إضافة دواء جديد

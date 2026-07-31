@@ -277,7 +277,7 @@ document.getElementById('createBundleForm')?.addEventListener('submit', async fu
     e.preventDefault();
     const data = gatherBundleData(this);
     try {
-        const r = await fetch('/owner/api/bundles', {
+        const r = await fetch((window.API_ROUTES && window.API_ROUTES.owner_api_create_bundle) || '/owner/api/bundles', {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content},
             body: JSON.stringify(data),
@@ -298,7 +298,8 @@ document.querySelectorAll('.edit-bundle-btn').forEach(btn => {
     btn.addEventListener('click', async function() {
         const id = this.dataset.id;
         try {
-            const r = await fetch('/owner/api/bundles/' + id);
+            const bundleUrl = (((window.API_ROUTES && window.API_ROUTES.owner_api_bundle) || '/owner/api/bundles/0').replace('/0', '/' + id));
+            const r = await fetch(bundleUrl);
             if (!r.ok) {
                 Swal.fire({ title: 'خطأ', text: 'فشل تحميل الباقة', icon: 'error' });
                 return;
@@ -334,7 +335,8 @@ document.getElementById('editBundleForm')?.addEventListener('submit', async func
     const data = gatherBundleData(this);
     const id = document.getElementById('editBundleId').value;
     try {
-        const r = await fetch('/owner/api/bundles/' + id, {
+        const bundleUrl = (((window.API_ROUTES && window.API_ROUTES.owner_api_bundle) || '/owner/api/bundles/0').replace('/0', '/' + id));
+        const r = await fetch(bundleUrl, {
             method: 'PUT',
             headers: {'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content},
             body: JSON.stringify(data),
@@ -356,7 +358,8 @@ document.querySelectorAll('.delete-bundle-btn').forEach(btn => {
         const name = this.dataset.name;
         const runDelete = async () => {
             try {
-                const r = await fetch('/owner/api/bundles/' + id, {
+                const bundleUrl = (((window.API_ROUTES && window.API_ROUTES.owner_api_bundle) || '/owner/api/bundles/0').replace('/0', '/' + id));
+                const r = await fetch(bundleUrl, {
                     method: 'DELETE',
                     headers: {'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content},
                 });

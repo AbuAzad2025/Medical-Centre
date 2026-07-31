@@ -109,7 +109,7 @@
                             </select>
                         </div>
                     </div>
-                    <div id="twilioSettings" style="{{ 'display:block;' if settings.get('sms', {}).get('provider') == 'twilio' else 'display:none;' }}">
+                    <div id="twilioSettings" class="{{ 'd-block' if settings.get('sms', {}).get('provider') == 'twilio' else 'd-none' }}">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="twilio_account_sid" class="form-label">Twilio Account SID</label>
@@ -220,7 +220,7 @@
                             </div>
                         </div>
                     </div>
-                    <div id="pacsSettings" style="{{ 'display:block;' if settings.get('radiology', {}).get('pacs_enabled', False) else 'display:none;' }}">
+                    <div id="pacsSettings" class="{{ 'd-block' if settings.get('radiology', {}).get('pacs_enabled', False) else 'd-none' }}">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="rad_pacs_url" class="form-label">رابط خادم PACS</label>
@@ -327,7 +327,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (provider) {
         provider.addEventListener('change', function() {
             const twilioSettings = document.getElementById('twilioSettings');
-            twilioSettings.style.display = this.value === 'twilio' ? 'block' : 'none';
+            if (this.value === 'twilio') {
+                twilioSettings.classList.remove('d-none');
+                twilioSettings.classList.add('d-block');
+            } else {
+                twilioSettings.classList.remove('d-block');
+                twilioSettings.classList.add('d-none');
+            }
         });
     }
 
@@ -336,7 +342,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (pacsToggle) {
         pacsToggle.addEventListener('change', function() {
             const pacsSettings = document.getElementById('pacsSettings');
-            pacsSettings.style.display = this.checked ? 'block' : 'none';
+            if (this.checked) {
+                pacsSettings.classList.remove('d-none');
+                pacsSettings.classList.add('d-block');
+            } else {
+                pacsSettings.classList.remove('d-block');
+                pacsSettings.classList.add('d-none');
+            }
         });
     }
 });

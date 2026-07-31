@@ -96,7 +96,7 @@
                         </div>{# end step 0 #}
 
                         <div class="form-step-panel d-none" data-step="1" hidden>
-                        {% if current_user.is_authenticated and current_user.role in ['reception','manager'] %}
+                        {% if current_user.is_authenticated and has_permission('reception.manage') %}
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <div class="mb-3">

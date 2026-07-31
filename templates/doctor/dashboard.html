@@ -52,7 +52,7 @@
                 <i class="fas fa-chart-pie me-2"></i> الإحصائيات
             </button>
         </li>
-        {% if current_user.role in ['manager','super_admin','accountant'] %}
+        {% if has_permission('finance.view') %}
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold" id="finance-tab" data-bs-toggle="tab" data-bs-target="#finance" type="button" role="tab" aria-controls="finance" aria-selected="false">
                 <i class="fas fa-coins me-2"></i> المالية
@@ -332,7 +332,7 @@
         </div>
 
         <!-- Finance Tab -->
-        {% if current_user.role in ['manager','super_admin','accountant'] %}
+        {% if has_permission('finance.view') %}
         <div class="tab-pane fade" id="finance" role="tabpanel" aria-labelledby="finance-tab">
             <div class="row mb-4">
                 <div class="col-xl-4 col-md-6 mb-4">

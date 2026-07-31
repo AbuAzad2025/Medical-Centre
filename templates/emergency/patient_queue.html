@@ -290,7 +290,7 @@
                             <div class="btn-group">
                                 <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
                                    href="{{ url_for('emergency.patient_queue', page=page-1) }}">السابق</a>
-                                <span class="btn btn-outline-secondary">Page {{ page }} of {{ pages if pages > 0 else 1 }}</span>
+                                <span class="btn btn-outline-secondary">صفحة {{ page }} من {{ pages if pages > 0 else 1 }}</span>
                                 <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
                                    href="{{ url_for('emergency.patient_queue', page=page+1) }}">التالي</a>
                             </div>

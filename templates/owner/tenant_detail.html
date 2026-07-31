@@ -429,7 +429,8 @@
 document.querySelectorAll('.edit-tenant-user-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
         const id = this.dataset.id;
-        document.getElementById('editTenantUserForm').action = '/owner/users/' + id + '/edit';
+        const editUrl = ('{{ url_for("owner.owner_edit_user", user_id=0) }}').replace('/0', '/' + id);
+        document.getElementById('editTenantUserForm').action = editUrl;
         document.getElementById('teuUsername').value = this.dataset.username;
         document.getElementById('teuFullName').value = this.dataset.fullName;
         document.getElementById('teuEmail').value = this.dataset.email;
@@ -441,7 +442,8 @@ document.querySelectorAll('.edit-tenant-user-btn').forEach(function(btn) {
 document.querySelectorAll('.reset-tenant-user-pwd-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
         const id = this.dataset.id;
-        document.getElementById('resetTenantUserPwdForm').action = '/owner/users/' + id + '/reset-password';
+        const resetUrl = ('{{ url_for("owner.owner_reset_user_password", user_id=0) }}').replace('/0', '/' + id);
+        document.getElementById('resetTenantUserPwdForm').action = resetUrl;
         document.getElementById('rtuUserId').value = id;
         document.getElementById('rtuUserLabel').textContent = 'إعادة تعيين كلمة المرور لـ: ' + this.dataset.username;
         document.getElementById('rtuPassword').value = '';
@@ -454,7 +456,11 @@ document.querySelectorAll('.toggle-module-btn').forEach(function(btn) {
         var isActive = this.dataset.active === 'true';
         var action = isActive ? 'deactivate' : 'activate';
         var btnEl = this;
-        fetch('/owner/api/tenants/' + tenantId + '/modules/' + moduleName + '/' + action, {
+        var routeKey = isActive ? 'owner_api_deactivate_module' : 'owner_api_activate_module';
+        var fallback = '/owner/api/tenants/' + tenantId + '/modules/' + moduleName + '/' + action;
+        var url = (window.API_ROUTES && window.API_ROUTES[routeKey]) || fallback;
+        url = url.replace('__MODULE__', moduleName).replace('/0/', '/' + tenantId + '/');
+        fetch(url, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content,

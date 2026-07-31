@@ -106,7 +106,7 @@
                                                 <option value="urgent">عاجلة</option>
                                             </select>
                                         </div>
-                                        {% if current_user.role in ['reception','super_admin','manager'] %}
+                                        {% if has_permission('reception.manage') %}
                                         <div class="col-md-3">
                                             <label class="small">الطبيب</label>
                                             <select id="filterDoctor" class="form-control">
@@ -347,7 +347,7 @@
 {% block extra_js %}
 <script>
         window.__M = window.__M || [];
-        __M0__='{{ current_user.role }}'; __M1__={{ 'null' if current_user.role != 'doctor' else current_user.id }}; __M2__={{ 'true' if billing_active else 'false' }};
+        __M0__='{{ current_user.role }}'; __M1__={{ 'null' if not has_permission('doctor.access') else current_user.id }}; __M2__={{ 'true' if billing_active else 'false' }};
         </script>
 <script src="{{ url_for('static', filename='js/pages/reception/queue_management.js') }}"></script>
 {% endblock %}

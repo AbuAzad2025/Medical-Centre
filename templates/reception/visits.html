@@ -12,7 +12,7 @@
     {% set visit_header_actions = [
         {'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-download', 'style': 'success', 'data_action': 'export-visits'}
     ] %}
-    {% if current_user.role == 'reception' %}
+    {% if has_permission('reception.manage') %}
     {% set visit_header_actions = [
         {'url': url_for('reception.create_visit'), 'label': 'زيارة جديدة', 'icon': 'fas fa-plus', 'style': 'primary'},
         {'type': 'button', 'label': 'تصدير', 'icon': 'fas fa-download', 'style': 'success', 'data_action': 'export-visits'}
@@ -293,7 +293,7 @@
                                                 <i class="fas fa-print"></i> <span class="btn-label">طباعة</span>
                                             </button>
                                             {% endif %}
-                                            {% if current_user.role in ['reception','manager','super_admin'] %}
+                                            {% if has_permission('reception.manage') %}
                                             <button type="button" class="btn btn-sm btn-outline-dark" 
                                                     data-action="openTransfer" data-visit-id="visit.id" title="تحويل">
                                                 <i class="fas fa-random"></i> <span class="btn-label">عشوائي</span>
@@ -344,7 +344,7 @@
                         {% else %}
                             <h5 class="text-muted">لا توجد زيارات</h5>
                             <p class="text-muted">ابدأ بإنشاء زيارة جديدة</p>
-                            {% if current_user.role == 'reception' %}
+                            {% if has_permission('reception.manage') %}
                             <a href="{{ url_for('reception.create_visit') }}" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i>
                                 إنشاء زيارة جديدة
@@ -359,7 +359,7 @@
     </div>
 </div>
 
-{% if current_user.role in ['reception','manager'] %}
+{% if has_permission('reception.manage') %}
 <div class="modal fade" id="transferVisitModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">

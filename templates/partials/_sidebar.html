@@ -30,7 +30,7 @@
                 {% endif %}
             {% endfor %}
 
-            {% if current_user.is_authenticated and current_user.role in ('super_admin', 'admin', 'owner') %}
+            {% if current_user.is_authenticated and has_permission('admin.access') %}
             <li class="nav-item mt-2">
                 <span class="nav-section-title">الإدارة</span>
             </li>
@@ -42,7 +42,7 @@
             </li>
             {% endif %}
 
-            {% if current_user.is_authenticated and current_user.role in ('owner',) %}
+            {% if current_user.is_authenticated and has_permission('admin.access') %}
             <li class="nav-item">
                 <a class="nav-link {{ 'active' if request.path.startswith('/owner') }}" href="{{ url_for('owner.owner_dashboard') }}">
                     <i class="fas fa-crown nav-icon"></i>
