@@ -438,8 +438,11 @@ def tenant_filter_select(orm_execute_state):
         if _skip_table(entity):
             continue
         if _model_has_tenant_column(entity):
-            statement = statement.filter(entity.tenant_id == tid)
-            modified = True
+            # Skip double-filtering when the caller already scoped tenant_id
+            # (e.g. dashboard queries that filter by an explicit tenant param).
+            if not _statement_explicitly_scopes_tenant(statement, entity):
+                statement = statement.filter(entity.tenant_id == tid)
+                modified = True
         if _model_has_soft_delete(entity):
             soft_col = _get_soft_delete_column(entity)
             if soft_col is not None:
