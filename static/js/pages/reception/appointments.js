@@ -1,11 +1,11 @@
 var __M = window.__M || [];
 
 function createNewAppointment() {
-    location.href = '/reception/create_appointment';
+    location.href = (window.API_ROUTES && window.API_ROUTES.reception_create_appointment) || '/reception/create_appointment';
 }
 
 function createNewVisit() {
-    location.href = '/reception/create_visit';
+    location.href = (window.API_ROUTES && window.API_ROUTES.reception_create_visit) || '/reception/visits/create';
 }
 
 function exportAppointments() {
@@ -44,7 +44,7 @@ function applyFilters() {
     if (perPage) params.set('per_page', perPage);
     params.set('page', '1');
 
-    const baseUrl = '/reception/appointments';
+    const baseUrl = (window.API_ROUTES && window.API_ROUTES.reception_appointments) || '/reception/appointments';
     location.href = baseUrl + '?' + params.toString();
 }
 
@@ -55,7 +55,7 @@ function clearFilters() {
     document.getElementById('doctorFilter').value = '';
     document.getElementById('dateFilter').value = '';
     const perPage = document.getElementById('perPageFilter').value || __M1__;
-    const baseUrl = '/reception/appointments';
+    const baseUrl = (window.API_ROUTES && window.API_ROUTES.reception_appointments) || '/reception/appointments';
     location.href = baseUrl + '?per_page=' + encodeURIComponent(perPage);
 }
 
@@ -83,8 +83,8 @@ function filterAppointments(filter, btnEl) {
 }
 
 function viewAppointment(appointmentId) {
-    var baseUrl = '/reception/appointments/0/view';
-    location.href = baseUrl.replace(/0$/, appointmentId);
+    var baseUrl = ((window.API_ROUTES && window.API_ROUTES.reception_view_appointment) || '/reception/view_appointment/0').replace('/0', '/' + appointmentId);
+    location.href = baseUrl;
 }
 
 function confirmAppointment(appointmentId) {
@@ -97,7 +97,7 @@ function confirmAppointment(appointmentId) {
         cancelButtonText: 'إلغاء'
     }).then((res) => {
         if (res.isConfirmed) {
-            fetch(`/reception/appointments/${appointmentId}/confirm`, { method: 'POST', headers: { 'Accept': 'application/json' } })
+            fetch(((window.API_ROUTES && window.API_ROUTES.reception_confirm_appointment) || '/reception/appointments/0/confirm').replace('/0', '/' + appointmentId), { method: 'POST', headers: { 'Accept': 'application/json' } })
                 .then(r => r.json().then(j => ({ ok: r.ok, j })))
                 .then(({ ok, j }) => {
                     if (!ok || !j.success) throw new Error(j.message || 'حدث خطأ');
@@ -109,8 +109,8 @@ function confirmAppointment(appointmentId) {
 }
 
 function editAppointment(appointmentId) {
-    var baseUrl = '/reception/appointments/0/edit';
-    location.href = baseUrl.replace(/0$/, appointmentId);
+    var baseUrl = ((window.API_ROUTES && window.API_ROUTES.reception_edit_appointment) || '/reception/edit_appointment/0').replace('/0', '/' + appointmentId);
+    location.href = baseUrl;
 }
 
 function cancelAppointment(appointmentId) {
@@ -123,7 +123,7 @@ function cancelAppointment(appointmentId) {
         cancelButtonText: 'تراجع'
     }).then((res) => {
         if (res.isConfirmed) {
-            fetch(`/reception/appointments/${appointmentId}/cancel`, { method: 'POST', headers: { 'Accept': 'application/json' } })
+            fetch(((window.API_ROUTES && window.API_ROUTES.reception_cancel_appointment) || '/reception/appointments/0/cancel').replace('/0', '/' + appointmentId), { method: 'POST', headers: { 'Accept': 'application/json' } })
                 .then(r => r.json().then(j => ({ ok: r.ok, j })))
                 .then(({ ok, j }) => {
                     if (!ok || !j.success) throw new Error(j.message || 'حدث خطأ');
@@ -144,7 +144,7 @@ function noShowAppointment(appointmentId) {
         cancelButtonText: 'إلغاء'
     }).then((res) => {
         if (!res.isConfirmed) return;
-        fetch(`/reception/appointments/${appointmentId}/no-show`, { method: 'POST', headers: { 'Accept': 'application/json' } })
+        fetch(((window.API_ROUTES && window.API_ROUTES.reception_no_show_appointment) || '/reception/appointments/0/no-show').replace('/0', '/' + appointmentId), { method: 'POST', headers: { 'Accept': 'application/json' } })
             .then(r => r.json().then(j => ({ ok: r.ok, j })))
             .then(({ ok, j }) => {
                 if (!ok || !j.success) throw new Error(j.message || 'حدث خطأ');

@@ -8,7 +8,7 @@ function activateService(serviceId) {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/super-admin/activate-service/${serviceId}`, {
+            fetch(((window.API_ROUTES && window.API_ROUTES.activate_service) || '/super-admin/activate-service/0').replace('/0', '/' + serviceId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -37,7 +37,7 @@ function deactivateService(serviceId) {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/super-admin/deactivate-service/${serviceId}`, {
+            fetch(((window.API_ROUTES && window.API_ROUTES.deactivate_service) || '/super-admin/deactivate-service/0').replace('/0', '/' + serviceId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

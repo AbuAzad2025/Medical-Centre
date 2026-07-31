@@ -85,7 +85,8 @@ async function saveService() {
         return;
     }
     
-    const url = isEdit ? `/manager/api/pricing/services/${id}` : '/manager/api/pricing/services';
+    const baseUrl = (window.API_ROUTES && window.API_ROUTES.manager_pricing_services) || '/manager/api/pricing/services';
+    const url = isEdit ? baseUrl + '/' + id : baseUrl;
     const method = isEdit ? 'PUT' : 'POST';
     
     try {
@@ -128,7 +129,8 @@ async function deleteService(id) {
     
     if (result.isConfirmed) {
         try {
-            const response = await fetch(`/manager/api/pricing/services/${id}`, {
+            const baseUrl = (window.API_ROUTES && window.API_ROUTES.manager_pricing_services) || '/manager/api/pricing/services';
+            const response = await fetch(baseUrl + '/' + id, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRFToken': __M1__

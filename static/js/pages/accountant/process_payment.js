@@ -13,7 +13,7 @@ const baseCurrency = __M0__;
       return;
     }
     try {
-      const r = await fetch(`/reception/api/check-rate?from=${from}&to=${baseCurrency}`);
+      const r = await fetch(((window.API_ROUTES && window.API_ROUTES.check_rate) || '/reception/api/check-rate') + `?from=${from}&to=${baseCurrency}`);
       const d = await r.json();
       if (d.available) {
         rateInfo.classList.remove('d-none');

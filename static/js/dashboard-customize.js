@@ -4,6 +4,8 @@
 (function () {
   'use strict';
 
+  const ENDPOINT = (window.API_ROUTES && window.API_ROUTES.user_preferences) || '/api/user/preferences';
+
   function csrf() {
     var m = document.querySelector('meta[name="csrf-token"]');
     return m ? m.content : '';
@@ -21,7 +23,7 @@
   if (window.UIPreferences && window.UIPreferences.persist) {
       return window.UIPreferences.persist({ dashboard: { hidden_widgets: hidden } });
     }
-    return fetch('/api/user/preferences', {
+    return fetch(ENDPOINT, {
       method: 'POST',
       credentials: 'same-origin',
       headers: {

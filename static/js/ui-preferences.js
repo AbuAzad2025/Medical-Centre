@@ -9,8 +9,10 @@
     return m ? m.content : '';
   }
 
+  const ENDPOINT = (window.API_ROUTES && window.API_ROUTES.user_preferences) || '/api/user/preferences';
+
   function persist(updates) {
-    return fetch('/api/user/preferences', {
+    return fetch(ENDPOINT, {
       method: 'POST',
       credentials: 'same-origin',
       headers: {

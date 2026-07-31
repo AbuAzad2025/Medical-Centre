@@ -1,4 +1,5 @@
 function createBackup() {
+    var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إنشاء نسخة احتياطية للنظام؟',
@@ -10,7 +11,7 @@ function createBackup() {
         if (result.isConfirmed) {
             const btn = event && event.target ? event.target.closest('button') : null;
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...'; }
-            fetch('/super-admin/backup/create', {
+            fetch(createUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -34,8 +35,9 @@ function createBackup() {
 }
 
 function scheduleBackup() {
+    var scheduleUrl = (window.API_ROUTES && window.API_ROUTES.backup_schedule) || '/super-admin/backup/schedule';
     Swal.showLoading();
-    fetch('/super-admin/backup/schedule')
+    fetch(scheduleUrl)
         .then(r => r.json())
         .then(data => {
             if (!data.success) throw new Error(data.message);
@@ -78,7 +80,7 @@ function scheduleBackup() {
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.showLoading();
-                    fetch('/super-admin/backup/schedule', {
+                    fetch(scheduleUrl, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(result.value)
@@ -101,6 +103,7 @@ function scheduleBackup() {
 }
 
 function createFullBackup() {
+    var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إنشاء نسخة احتياطية كاملة؟ قد يستغرق هذا بعض الوقت.',
@@ -112,7 +115,7 @@ function createFullBackup() {
         if (result.isConfirmed) {
             const btn = event && event.target ? event.target.closest('button') : null;
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
-            fetch('/super-admin/backup/create', {
+            fetch(createUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -137,6 +140,7 @@ function createFullBackup() {
 }
 
 function createIncrementalBackup() {
+    var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إنشاء نسخة احتياطية تدريجية (قاعدة البيانات فقط)؟',
@@ -148,7 +152,7 @@ function createIncrementalBackup() {
         if (result.isConfirmed) {
             const btn = event && event.target ? event.target.closest('button') : null;
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
-            fetch('/super-admin/backup/create', {
+            fetch(createUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -173,6 +177,7 @@ function createIncrementalBackup() {
 }
 
 function createDatabaseBackup() {
+    var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إنشاء نسخة احتياطية لقاعدة البيانات فقط؟',
@@ -184,7 +189,7 @@ function createDatabaseBackup() {
         if (result.isConfirmed) {
             const btn = event && event.target ? event.target.closest('button') : null;
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
-            fetch('/super-admin/backup/create', {
+            fetch(createUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -209,6 +214,7 @@ function createDatabaseBackup() {
 }
 
 function createFilesBackup() {
+    var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إنشاء نسخة احتياطية للملفات فقط؟',
@@ -220,7 +226,7 @@ function createFilesBackup() {
         if (result.isConfirmed) {
             const btn = event && event.target ? event.target.closest('button') : null;
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النسخ...'; }
-            fetch('/super-admin/backup/create', {
+            fetch(createUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -264,6 +270,7 @@ function filterBackups(status) {
 }
 
 function restoreBackup(backupId) {
+    var restoreUrl = ((window.API_ROUTES && window.API_ROUTES.restore_backup) || '/super-admin/backup/restore/0').replace('/0', '/' + backupId);
     Swal.fire({
         title: 'تأكيد الاستعادة',
         text: 'سيتم استبدال البيانات الحالية. هل تريد المتابعة؟',
@@ -274,7 +281,7 @@ function restoreBackup(backupId) {
     }).then((result) => {
         if (result.isConfirmed) {
             Swal.showLoading();
-            fetch('/super-admin/backup/restore/' + backupId, {
+            fetch(restoreUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -296,6 +303,7 @@ function restoreBackup(backupId) {
 }
 
 function deleteBackup(backupId) {
+    var deleteUrl = ((window.API_ROUTES && window.API_ROUTES.delete_backup) || '/super-admin/backup/delete/0').replace('/0', '/' + backupId);
     Swal.fire({
         title: 'حذف النسخة',
         text: 'هل تريد حذف هذه النسخة نهائياً؟',
@@ -306,7 +314,7 @@ function deleteBackup(backupId) {
     }).then((result) => {
         if (result.isConfirmed) {
             Swal.showLoading();
-            fetch('/super-admin/backup/delete/' + backupId, {
+            fetch(deleteUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -328,6 +336,7 @@ function deleteBackup(backupId) {
 }
 
 function cancelBackup(backupId) {
+    var cancelUrl = ((window.API_ROUTES && window.API_ROUTES.cancel_backup) || '/super-admin/backup/cancel/0').replace('/0', '/' + backupId);
     Swal.fire({
         title: 'إلغاء النسخ',
         text: 'هل تريد إلغاء عملية النسخ الاحتياطي؟ (سيتم وضع علامة "ملغى")',
@@ -338,7 +347,7 @@ function cancelBackup(backupId) {
     }).then((result) => {
         if (result.isConfirmed) {
             Swal.showLoading();
-            fetch('/super-admin/backup/cancel/' + backupId, {
+            fetch(cancelUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -363,6 +372,7 @@ function retryBackup(type) {
     let reqType = 'full';
     if (type === 'incremental' || type === 'INCREMENTAL') reqType = 'incremental';
     else if (type === 'differential' || type === 'DIFFERENTIAL') reqType = 'database'; // Defaulting to database
+    var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
 
     Swal.fire({
         title: 'تأكيد إعادة المحاولة',
@@ -382,7 +392,7 @@ function retryBackup(type) {
                 }
             });
             
-            fetch('/super-admin/backup/create', {
+            fetch(createUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ type: reqType })
@@ -401,6 +411,7 @@ function retryBackup(type) {
 }
 
 function saveBackupSettings() {
+    var settingsUrl = (window.API_ROUTES && window.API_ROUTES.save_backup_settings) || '/super-admin/backup/settings';
     Swal.fire({
         title: 'حفظ الإعدادات',
         text: 'هل تريد حفظ إعدادات النسخ الاحتياطي؟',
@@ -418,7 +429,7 @@ function saveBackupSettings() {
             data['auto_backup'] = document.getElementById('auto_backup').checked;
 
             Swal.showLoading();
-            fetch('/super-admin/backup/settings', {
+            fetch(settingsUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -441,16 +452,17 @@ function saveBackupSettings() {
 }
 
 function generateBackupReport() {
-    window.location.href = '/super-admin/backup/report';
+    window.location.href = (window.API_ROUTES && window.API_ROUTES.backup_report) || '/super-admin/backup/report';
 }
 
 function exportBackupLogs() {
-    window.location.href = '/super-admin/backup/export-logs';
+    window.location.href = (window.API_ROUTES && window.API_ROUTES.export_backup_logs) || '/super-admin/backup/export-logs';
 }
 
 function viewBackupHistory() {
+    var historyUrl = (window.API_ROUTES && window.API_ROUTES.backup_history) || '/super-admin/backup/history';
     Swal.showLoading();
-    fetch('/super-admin/backup/history')
+    fetch(historyUrl)
     .then(r => r.json())
     .then(data => {
         if (data.success) {

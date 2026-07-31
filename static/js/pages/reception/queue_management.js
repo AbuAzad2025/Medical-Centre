@@ -49,7 +49,7 @@ function updateQueueStatus() {
 function updateWaitMetrics(departmentId) {
     const params = new URLSearchParams();
     if (departmentId) params.set('department_id', departmentId);
-    fetch(`/reception/api/queue-wait-metrics?${params.toString()}`)
+    fetch(((window.API_ROUTES && window.API_ROUTES.api_queue_wait_metrics) || '/reception/api/queue-wait-metrics') + `?${params.toString()}`)
         .then(r => r.json())
         .then(data => {
             const overallEl = document.getElementById('avg-wait-today');
@@ -164,7 +164,7 @@ function callPatient(ticketId) {
 
 // بدء العلاج
 function startTreatment(ticketId) {
-    fetch(`/reception/queue/start-treatment/${ticketId}`)
+    fetch(((window.API_ROUTES && window.API_ROUTES.start_treatment) || '/reception/queue/start-treatment/0').replace('/0', '/' + ticketId))
         .then(response => response.text())
         .then(() => {
             updateQueueStatus();
@@ -179,7 +179,7 @@ function startTreatment(ticketId) {
 
 // إكمال العلاج
 function completeTreatment(ticketId) {
-    fetch(`/reception/queue/complete-treatment/${ticketId}`)
+    fetch(((window.API_ROUTES && window.API_ROUTES.complete_treatment) || '/reception/queue/complete-treatment/0').replace('/0', '/' + ticketId))
         .then(response => response.text())
         .then(() => {
             updateQueueStatus();
@@ -211,7 +211,7 @@ function transferVisit(visitId) {
     deptSelect.addEventListener('change', function() {
         const deptId = this.value;
         if (!deptId) { docSelect.innerHTML = '<option value="">اختر بعد القسم...</option>'; return; }
-        fetch(`/reception/api/department-staff?department_id=${deptId}`)
+        fetch(((window.API_ROUTES && window.API_ROUTES.api_department_staff) || '/reception/api/department-staff') + `?department_id=${deptId}`)
             .then(r => r.json())
             .then(data => {
                 docSelect.innerHTML = '<option value="">بدون تحديد موظف</option>';
@@ -236,7 +236,7 @@ document.getElementById('transferVisitForm') && document.getElementById('transfe
     fd.append('csrf_token', getCsrfToken());
     fd.append('department_id', deptId);
     if (docId) fd.append('doctor_id', docId);
-    fetch(`/reception/visits/${visitId}/transfer`, {method:'POST', body:fd})
+    fetch(((window.API_ROUTES && window.API_ROUTES.transfer_visit) || '/reception/visits/0/transfer').replace('/0', '/' + visitId), {method:'POST', body:fd})
         .then(r => r.json())
         .then(data => {
             const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('transferVisitModal'));
@@ -265,7 +265,7 @@ function returnToQueue(ticketId) {
         fd.append('reason', res.value || '');
         const csrf = getCsrfToken();
         if (csrf) fd.append('csrf_token', csrf);
-        fetch(`/reception/queue/return-to-queue/${ticketId}`, { method: 'POST', body: fd })
+        fetch(((window.API_ROUTES && window.API_ROUTES.return_to_queue) || '/reception/queue/return-to-queue/0').replace('/0', '/' + ticketId), { method: 'POST', body: fd })
             .then(() => updateQueueStatus())
             .catch(() => Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إرجاع المريض للطابور', icon: 'error' }));
     });
@@ -292,7 +292,7 @@ document.getElementById('skipPatientForm').addEventListener('submit', function(e
     const csrf = getCsrfToken();
     if (csrf && !formData.get('csrf_token')) formData.append('csrf_token', csrf);
     
-    fetch(`/reception/queue/skip-patient/${currentTicketId}`, {
+    fetch(((window.API_ROUTES && window.API_ROUTES.skip_patient) || '/reception/queue/skip-patient/0').replace('/0', '/' + currentTicketId), {
         method: 'POST',
         body: formData
     })
@@ -315,7 +315,7 @@ document.getElementById('cancelTicketForm').addEventListener('submit', function(
     const csrf = getCsrfToken();
     if (csrf && !formData.get('csrf_token')) formData.append('csrf_token', csrf);
     
-    fetch(`/reception/queue/cancel-ticket/${currentTicketId}`, {
+    fetch(((window.API_ROUTES && window.API_ROUTES.cancel_ticket) || '/reception/queue/cancel-ticket/0').replace('/0', '/' + currentTicketId), {
         method: 'POST',
         body: formData
     })
@@ -338,7 +338,7 @@ document.getElementById('approveEmergencyDebtForm').addEventListener('submit', f
     const csrf = getCsrfToken();
     if (csrf && !formData.get('csrf_token')) formData.append('csrf_token', csrf);
     
-    fetch(`/reception/queue/approve-emergency-debt/${currentTicketId}`, {
+    fetch(((window.API_ROUTES && window.API_ROUTES.approve_emergency_debt) || '/reception/queue/approve-emergency-debt/0').replace('/0', '/' + currentTicketId), {
         method: 'POST',
         body: formData
     })
@@ -361,7 +361,7 @@ document.getElementById('approveForceEntryForm').addEventListener('submit', func
     const csrf = getCsrfToken();
     if (csrf && !formData.get('csrf_token')) formData.append('csrf_token', csrf);
     
-    fetch(`/reception/queue/approve-force-entry/${currentTicketId}`, {
+    fetch(((window.API_ROUTES && window.API_ROUTES.approve_force_entry) || '/reception/queue/approve-force-entry/0').replace('/0', '/' + currentTicketId), {
         method: 'POST',
         body: formData
     })

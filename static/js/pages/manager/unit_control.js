@@ -25,6 +25,7 @@ function exportUnitsReport() {
 }
 
 function toggleUnit(moduleName, btn) {
+    var toggleUrl = (window.API_ROUTES && window.API_ROUTES.unit_toggle) || '/manager/api/units/toggle';
     var arName = btn ? btn.getAttribute('data-name-ar') || moduleName : moduleName;
     Swal.fire({
         title: '\u062a\u0623\u0643\u064a\u062f',
@@ -37,7 +38,7 @@ function toggleUnit(moduleName, btn) {
         if (!r.isConfirmed) return;
         var formData = new FormData();
         formData.append('module_name', moduleName);
-        fetch('/manager/api/units/toggle', {
+        fetch(toggleUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
             body: JSON.stringify({ module_name: moduleName })
@@ -58,6 +59,7 @@ function toggleUnit(moduleName, btn) {
 }
 
 function bulkActivate() {
+    var toggleUrl = (window.API_ROUTES && window.API_ROUTES.unit_toggle) || '/manager/api/units/toggle';
     Swal.fire({
         title: '\u062a\u0623\u0643\u064a\u062f',
         text: '\u0647\u0644 \u062a\u0631\u064a\u062f \u062a\u0641\u0639\u064a\u0644 \u062c\u0645\u064a\u0639 \u0627\u0644\u0648\u062d\u062f\u0627\u062a\u061f',
@@ -77,7 +79,7 @@ function bulkActivate() {
             var statusCell = row.querySelector('td:nth-child(4) .badge');
             if (statusCell && statusCell.textContent.trim() === '\u0646\u0634\u0637') return;
             promises.push(
-                fetch('/manager/api/units/toggle', {
+                fetch(toggleUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify({ module_name: mod })
@@ -94,6 +96,7 @@ function bulkActivate() {
 }
 
 function bulkDeactivate() {
+    var toggleUrl = (window.API_ROUTES && window.API_ROUTES.unit_toggle) || '/manager/api/units/toggle';
     Swal.fire({
         title: '\u062a\u0623\u0643\u064a\u062f',
         text: '\u0647\u0644 \u062a\u0631\u064a\u062f \u062a\u0639\u0637\u064a\u0644 \u062c\u0645\u064a\u0639 \u0627\u0644\u0648\u062d\u062f\u0627\u062a\u061f',
@@ -113,7 +116,7 @@ function bulkDeactivate() {
             var statusCell = row.querySelector('td:nth-child(4) .badge');
             if (statusCell && statusCell.textContent.trim() === '\u0645\u0639\u0637\u0644') return;
             promises.push(
-                fetch('/manager/api/units/toggle', {
+                fetch(toggleUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify({ module_name: mod })

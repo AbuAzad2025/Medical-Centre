@@ -30,7 +30,7 @@ function deleteUser(userId) {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/super-admin/users/${userId}/delete`, {
+            fetch(((window.API_ROUTES && window.API_ROUTES.super_admin_delete_user) || '/super-admin/users/0/delete').replace('/0', '/' + userId), {
                 method: 'POST'
             }).then((resp) => {
                 if (resp.ok) {
@@ -55,7 +55,7 @@ function resetPassword(userId) {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/super-admin/users/${userId}/reset-password`, {
+            fetch(((window.API_ROUTES && window.API_ROUTES.super_admin_reset_password) || '/super-admin/users/0/reset-password').replace('/0', '/' + userId), {
                 method: 'POST'
             }).then(r => r.json()).then(data => {
                 if (data.success) {

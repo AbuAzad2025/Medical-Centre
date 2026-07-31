@@ -48,7 +48,7 @@ function clearLogs() {
 }
 
 function loadSystemStatus() {
-    fetch('/health', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    fetch((window.API_ROUTES && window.API_ROUTES.health) || '/health', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(r => r.json())
         .then(data => {
             const el = document.getElementById('systemStatusIndicator');

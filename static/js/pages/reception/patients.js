@@ -72,7 +72,7 @@ let smartSearchTimer = null;
         }
 
         smartSearchTimer = window.setTimeout(() => {
-            fetch(`/reception/api/smart-patient-search?q=${encodeURIComponent(q)}`, {
+            fetch(((window.API_ROUTES && window.API_ROUTES.smart_patient_search) || '/reception/api/smart-patient-search') + `?q=${encodeURIComponent(q)}`, {
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
             })
                 .then(r => r.ok ? r.json() : Promise.reject(r))

@@ -8,7 +8,7 @@ function activateDepartment(deptId) {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/super-admin/activate-department/${deptId}`, {
+            fetch(((window.API_ROUTES && window.API_ROUTES.activate_department) || '/super-admin/activate-department/0').replace('/0', '/' + deptId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -35,7 +35,7 @@ function deactivateDepartment(deptId) {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/super-admin/deactivate-department/${deptId}`, {
+            fetch(((window.API_ROUTES && window.API_ROUTES.deactivate_department) || '/super-admin/deactivate-department/0').replace('/0', '/' + deptId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

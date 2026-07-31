@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // إضافة مريض جديد
     addNewPatientBtn.addEventListener('click', function() {
-        window.open('/reception/patients?show_add=1', '_blank');
+        window.open(((window.API_ROUTES && window.API_ROUTES.reception_patients) || '/reception/patients') + '?show_add=1', '_blank');
     });
 
     // تحديث الموظفين عند تغيير القسم
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
         staffSelect.innerHTML = '<option value="">جاري التحميل...</option>';
 
         if (departmentId) {
-            fetch(`/reception/api/department-services?department_id=${departmentId}`)
+            fetch(((window.API_ROUTES && window.API_ROUTES.api_department_services) || '/reception/api/department-services') + `?department_id=${departmentId}`)
                 .then(r => r.json())
                 .then(svc => {
                         const isLabOrRad = svc.category === 'lab' || svc.category === 'radiology';
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         // جلب الموظفين لهذا القسم (سواء كان عيادة أو مختبر أو أشعة)
                         staffSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-                        fetch(`/reception/api/department-staff?department_id=${departmentId}`)
+                        fetch(((window.API_ROUTES && window.API_ROUTES.api_department_staff) || '/reception/api/department-staff') + `?department_id=${departmentId}`)
                             .then(response => response.json())
                             .then(data => {
                                 staffSelect.innerHTML = '<option value="">اختر الطبيب/الموظف...</option>';
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 params.append('custom_service_name', n);
                 params.append('custom_service_price', customPrices[i] || '0');
             });
-            fetch(`/reception/api/visit-pricing?${params.toString()}`)
+            fetch(((window.API_ROUTES && window.API_ROUTES.api_visit_pricing) || '/reception/api/visit-pricing') + `?${params.toString()}`)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('visitCost').value = data.cost || '0.00';
@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
         amountInput: 'amount_paid',
         amountFallback: 'visitCost',
         statusElement: 'posStatus',
-        chargeUrl: document.getElementById('posChargeBtn')?.dataset.chargeUrl || '/reception/pos/charge',
+        chargeUrl: document.getElementById('posChargeBtn')?.dataset.chargeUrl || ((window.API_ROUTES && window.API_ROUTES.reception_pos_charge) || '/reception/pos/charge'),
         cardLastDigitsId: 'card_last_digits',
         cardHolderId: 'card_holder_name',
     });

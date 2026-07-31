@@ -6,29 +6,29 @@ var billingActive = __M1__;
     if (!["reception", "manager"].includes(ROLE)) return;
 function viewVisit(visitId) {
     // عرض تفاصيل الزيارة
-    window.location.href = `/reception/view_visit/${visitId}`;
+    window.location.href = (window.API_ROUTES && window.API_ROUTES.view_visit) ? window.API_ROUTES.view_visit.replace('/0', '/' + visitId) : `/reception/view_visit/${visitId}`;
 }
 
 function processPayment(visitId) {
     // معالجة الدفع
-    window.location.href = `/payment/process/${visitId}`;
+    window.location.href = (window.API_ROUTES && window.API_ROUTES.payment_process) ? window.API_ROUTES.payment_process.replace('/0', '/' + visitId) : `/payment/process/${visitId}`;
 }
 
 function printReceipt(visitId) {
     // طباعة الوصل
     if (typeof billingActive !== 'undefined' && !billingActive) return;
-    window.open(`/reception/print_receipt/${visitId}`, '_blank');
+    window.open((window.API_ROUTES && window.API_ROUTES.print_receipt) ? window.API_ROUTES.print_receipt.replace('/0', '/' + visitId) : `/reception/print_receipt/${visitId}`, '_blank');
 }
 
 function editVisit(visitId) {
     // تعديل الزيارة
-    window.location.href = `/reception/edit_visit/${visitId}`;
+    window.location.href = (window.API_ROUTES && window.API_ROUTES.edit_visit) ? window.API_ROUTES.edit_visit.replace('/0', '/' + visitId) : `/reception/edit_visit/${visitId}`;
 }
 
 function exportVisits() {
     // تصدير الزيارات
     const params = new URLSearchParams(window.location.search);
-    window.open(`/reception/export/visits?${params.toString()}`, '_blank');
+    window.open(((window.API_ROUTES && window.API_ROUTES.export_visits) || '/reception/export/visits') + `?${params.toString()}`, '_blank');
 }
 
 // Auto-refresh every 30 seconds
@@ -50,7 +50,7 @@ document.getElementById('transferDepartment')?.addEventListener('change', functi
     const doctorSelect = document.getElementById('transferDoctor');
     doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
     if (!deptId) return;
-    fetch(`/reception/api/department-staff?department_id=${deptId}`)
+    fetch(((window.API_ROUTES && window.API_ROUTES.api_department_staff) || '/reception/api/department-staff') + `?department_id=${deptId}`)
         .then(r => r.json())
         .then(d => {
             const staff = d.staff || [];
@@ -69,7 +69,7 @@ document.getElementById('confirmTransferBtn')?.addEventListener('click', functio
     const doctorId = document.getElementById('transferDoctor').value;
     const statusEl = document.getElementById('transferStatus');
     if (!deptId) { Swal.fire({ title: 'حقول مطلوبة', text: 'يرجى اختيار القسم', icon: 'warning' }); return; }
-    fetch(`/reception/visits/${visitId}/transfer`, {
+    fetch(((window.API_ROUTES && window.API_ROUTES.transfer_visit) || '/reception/visits/0/transfer').replace('/0', '/' + visitId), {
         method: 'POST',
         headers: { 'Accept': 'application/json' },
         body: new URLSearchParams({ department_id: deptId, doctor_id: doctorId })

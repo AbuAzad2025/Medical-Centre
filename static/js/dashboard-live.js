@@ -1,8 +1,10 @@
 /**
- * Command Center live metrics — poll /api/dashboard/snapshot (§29.5)
+ * Command Center live metrics — polls the dashboard snapshot endpoint (§29.5)
  */
 (function () {
   'use strict';
+
+  const ENDPOINT = (window.API_ROUTES && window.API_ROUTES.dashboard_snapshot) || '/api/dashboard/snapshot';
 
   const METRIC_MAP = {
     queue_live: 'queue_count',
@@ -30,7 +32,7 @@
   }
 
   function poll() {
-    fetch('/api/dashboard/snapshot', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+    fetch(ENDPOINT, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => { if (data && data.metrics) applyMetrics(data.metrics); })
       .catch(() => {});

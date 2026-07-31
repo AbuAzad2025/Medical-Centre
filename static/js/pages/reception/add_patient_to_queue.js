@@ -31,7 +31,7 @@ document.getElementById('department_id').addEventListener('change', function() {
     
     if (departmentId) {
         // جلب الأطباء للقسم المحدد
-        fetch(`/reception/api/doctors?department_id=${departmentId}`)
+        fetch(((window.API_ROUTES && window.API_ROUTES.api_doctors) || '/reception/api/doctors') + `?department_id=${departmentId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -141,7 +141,7 @@ function submitForm() {
     })
     .then(response => {
         if (response.ok) {
-            window.location.href = '/reception/queue';
+            window.location.href = (window.API_ROUTES && window.API_ROUTES.reception_queue) || '/reception/queue';
         } else {
             throw new Error('Network response was not ok');
         }

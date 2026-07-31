@@ -94,7 +94,7 @@ const STATS_POLL_INTERVAL_MS = 30000; // 30 seconds
 
 async function refreshDashboardStats() {
     try {
-        const r = await fetch('/doctor/api/dashboard-stats');
+        const r = await fetch((window.API_ROUTES && window.API_ROUTES.doctor_dashboard_stats) || '/doctor/api/dashboard-stats');
         const data = await r.json().catch(() => ({}));
         if (!data || !data.success || !data.stats) return;
 

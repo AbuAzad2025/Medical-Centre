@@ -38,7 +38,8 @@
       return;
     }
     submit.disabled = true;
-    fetch('/kiosk/api/check-in', {
+    var endpoint = submit.dataset.apiUrl || '/kiosk/api/check-in';
+    fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ national_id: nid }),

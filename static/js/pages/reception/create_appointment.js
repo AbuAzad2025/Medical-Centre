@@ -107,7 +107,7 @@ function loadDoctors() {
     const params = new URLSearchParams();
     if (appointmentType) params.append('appointment_type', appointmentType);
     if (departmentId) params.append('department_id', departmentId);
-    fetch(`/booking/api/available-doctors?${params.toString()}`)
+    fetch(((window.API_ROUTES && window.API_ROUTES.booking_available_doctors) || '/booking/api/available-doctors') + `?${params.toString()}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -135,7 +135,7 @@ document.getElementById('doctor_id').addEventListener('change', function() {
     
     if (doctorId && appointmentDate) {
         // جلب الأوقات المتاحة للطبيب في التاريخ المحدد
-        fetch(`/booking/api/available-times?doctor_id=${doctorId}&date=${appointmentDate}`)
+        fetch(((window.API_ROUTES && window.API_ROUTES.booking_available_times) || '/booking/api/available-times') + `?doctor_id=${doctorId}&date=${appointmentDate}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -163,7 +163,7 @@ document.getElementById('appointment_date').addEventListener('change', function(
     
     if (doctorId && appointmentDate) {
         // جلب الأوقات المتاحة للطبيب في التاريخ المحدد
-        fetch(`/booking/api/available-times?doctor_id=${doctorId}&date=${appointmentDate}`)
+        fetch(((window.API_ROUTES && window.API_ROUTES.booking_available_times) || '/booking/api/available-times') + `?doctor_id=${doctorId}&date=${appointmentDate}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {

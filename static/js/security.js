@@ -51,7 +51,7 @@ class SecurityManager {
         }
         
         setTimeout(() => {
-            window.location.href = '/auth/login';
+            window.location.href = (window.API_ROUTES && window.API_ROUTES.auth_login) || '/auth/login';
         }, 3000);
     }
 
@@ -447,7 +447,8 @@ class AuditLogger {
         if (this.csrfToken) {
             headers['X-CSRFToken'] = this.csrfToken;
         }
-        fetch('/super-admin/api/audit-log', {
+        const auditLogUrl = (window.API_ROUTES && window.API_ROUTES.audit_log) || '/super-admin/api/audit-log';
+        fetch(auditLogUrl, {
             method: 'POST',
             headers,
             body: JSON.stringify(logEntry)

@@ -25,6 +25,7 @@
   <main class="kiosk-main">
     {% block content %}{% endblock %}
   </main>
+  <script src="{{ url_for('static', filename='js/base.js') }}"></script>
   <script src="{{ url_for('static', filename='js/touch-mode.js') }}"></script>
   {% block extra_js %}{% endblock %}
 </body>

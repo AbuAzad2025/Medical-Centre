@@ -27,7 +27,8 @@
 
   function persist(theme) {
     var token = document.querySelector('meta[name="csrf-token"]');
-    fetch('/api/user/preferences', {
+    var endpoint = (window.API_ROUTES && window.API_ROUTES.user_preferences) || '/api/user/preferences';
+    fetch(endpoint, {
       method: 'POST',
       credentials: 'same-origin',
       headers: {

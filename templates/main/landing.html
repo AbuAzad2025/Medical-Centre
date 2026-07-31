@@ -1076,7 +1076,7 @@
             }
             
             try {
-                const response = await fetch(`/api/tenants/search?q=${encodeURIComponent(query)}`);
+                const response = await fetch(`{{ url_for('main.api_search_tenants') }}?q=${encodeURIComponent(query)}`);
                 if (!response.ok) throw new Error('Search failed');
                 const data = await response.json();
                 displayResults(data.tenants || []);

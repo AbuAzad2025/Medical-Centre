@@ -18,17 +18,17 @@ document.getElementById('searchInput').addEventListener('input', function() {
 // Department management functions
 function viewDepartment(departmentId) {
     // عرض تفاصيل القسم
-    window.open(`/super-admin/department/${departmentId}`, '_blank');
+    window.open((window.API_ROUTES && window.API_ROUTES.view_department) ? window.API_ROUTES.view_department.replace('/0', '/' + departmentId) : `/super-admin/department/${departmentId}`, '_blank');
 }
 
 function editDepartment(departmentId) {
     // تعديل القسم
-    window.location.href = `/super-admin/edit-department/${departmentId}`;
+    window.location.href = (window.API_ROUTES && window.API_ROUTES.edit_department) ? window.API_ROUTES.edit_department.replace('/0', '/' + departmentId) : `/super-admin/edit-department/${departmentId}`;
 }
 
 function manageStaff(departmentId) {
     // إدارة موظفي القسم
-    window.location.href = `/super-admin/department-staff/${departmentId}`;
+    window.location.href = (window.API_ROUTES && window.API_ROUTES.department_staff) ? window.API_ROUTES.department_staff.replace('/0', '/' + departmentId) : `/super-admin/department-staff/${departmentId}`;
 }
 
 function activateDepartment(departmentId) {
@@ -41,7 +41,7 @@ function activateDepartment(departmentId) {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/super-admin/activate-department/${departmentId}`, {
+            fetch(((window.API_ROUTES && window.API_ROUTES.activate_department) || '/super-admin/activate-department/0').replace('/0', '/' + departmentId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -70,7 +70,7 @@ function deactivateDepartment(departmentId) {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/super-admin/deactivate-department/${departmentId}`, {
+            fetch(((window.API_ROUTES && window.API_ROUTES.deactivate_department) || '/super-admin/deactivate-department/0').replace('/0', '/' + departmentId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -91,7 +91,7 @@ function deactivateDepartment(departmentId) {
 
 function exportDepartments() {
     // تصدير الأقسام
-    window.open('/super-admin/export-departments', '_blank');
+    window.open((window.API_ROUTES && window.API_ROUTES.export_departments) || '/super-admin/export-departments', '_blank');
 }
 
 // Add department form
@@ -100,7 +100,8 @@ document.getElementById('addDepartmentForm').addEventListener('submit', function
     
     const formData = new FormData(this);
     
-    fetch('/super-admin/departments/create', {
+    const createUrl = (window.API_ROUTES && window.API_ROUTES.create_department) || '/super-admin/departments/create';
+    fetch(createUrl, {
         method: 'POST',
         body: formData
     })

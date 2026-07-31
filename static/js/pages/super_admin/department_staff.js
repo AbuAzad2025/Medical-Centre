@@ -3,7 +3,7 @@ document.getElementById('addStaffForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const userId = document.getElementById('user_id').value;
     
-    fetch(`/super-admin/department-staff/__M0__/add`, {
+    fetch((window.API_ROUTES && window.API_ROUTES.add_department_staff) ? window.API_ROUTES.add_department_staff.replace('/0', '/' + __M0__) : `/super-admin/department-staff/${__M0__}/add`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -31,7 +31,7 @@ function removeFromDepartment(userId) {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/super-admin/department-staff/__M1__/remove`, {
+            fetch((window.API_ROUTES && window.API_ROUTES.remove_department_staff) ? window.API_ROUTES.remove_department_staff.replace('/0', '/' + __M1__) : `/super-admin/department-staff/${__M1__}/remove`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

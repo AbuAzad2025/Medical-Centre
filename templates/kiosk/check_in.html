@@ -14,7 +14,8 @@
 
     <div class="kiosk-keypad mb-3" id="kioskKeypad" aria-label="لوحة أرقام"></div>
 
-    <button type="button" class="btn btn-primary btn-lg w-100 kiosk-key" id="kioskSubmit">
+    <button type="button" class="btn btn-primary btn-lg w-100 kiosk-key" id="kioskSubmit"
+            data-api-url="{{ url_for('kiosk.api_check_in') }}">
       <i class="fas fa-check me-2"></i>تسجيل الوصول
     </button>
 

@@ -49,7 +49,8 @@ function refreshQueue() {
     const container = document.querySelector('.container-fluid');
     const dept = parseInt((container && container.getAttribute('data-dept')) || '0');
     if (!dept) return;
-    fetch('/reception/api/queue-status/' + dept + '?doctor_id=' + __M2__)
+    const queueStatusUrl = (window.API_ROUTES && window.API_ROUTES.queue_status) || '/reception/api/queue-status/0';
+    fetch(queueStatusUrl.replace('/0', '/' + dept) + '?doctor_id=' + __M2__)
         .then(r => r.json())
         .then(d => {
             const s = d && d.data ? d.data : {};

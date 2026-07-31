@@ -18,17 +18,17 @@ document.getElementById('searchInput').addEventListener('input', function() {
 // Service management functions
 function viewService(serviceId) {
     // عرض تفاصيل الخدمة
-    window.location.href = `/super-admin/service/${serviceId}`;
+    window.location.href = (window.API_ROUTES && window.API_ROUTES.view_service) ? window.API_ROUTES.view_service.replace('/0', '/' + serviceId) : `/super-admin/service/${serviceId}`;
 }
 
 function editService(serviceId) {
     // تعديل الخدمة
-    window.location.href = `/super-admin/edit-service/${serviceId}`;
+    window.location.href = (window.API_ROUTES && window.API_ROUTES.edit_service) ? window.API_ROUTES.edit_service.replace('/0', '/' + serviceId) : `/super-admin/edit-service/${serviceId}`;
 }
 
 function managePricing(serviceId) {
     // إدارة تسعير الخدمة
-    window.location.href = `/super-admin/service-pricing/${serviceId}`;
+    window.location.href = (window.API_ROUTES && window.API_ROUTES.service_pricing) ? window.API_ROUTES.service_pricing.replace('/0', '/' + serviceId) : `/super-admin/service-pricing/${serviceId}`;
 }
 
 function activateService(serviceId) {
@@ -41,7 +41,7 @@ function activateService(serviceId) {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/super-admin/activate-service/${serviceId}`, {
+            fetch(((window.API_ROUTES && window.API_ROUTES.activate_service) || '/super-admin/activate-service/0').replace('/0', '/' + serviceId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -70,7 +70,7 @@ function deactivateService(serviceId) {
         cancelButtonText: 'إلغاء'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/super-admin/deactivate-service/${serviceId}`, {
+            fetch(((window.API_ROUTES && window.API_ROUTES.deactivate_service) || '/super-admin/deactivate-service/0').replace('/0', '/' + serviceId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -91,7 +91,7 @@ function deactivateService(serviceId) {
 
 function exportServices() {
     // تصدير الخدمات
-    window.open('/super-admin/export-services', '_blank');
+    window.open((window.API_ROUTES && window.API_ROUTES.export_services) || '/super-admin/export-services', '_blank');
 }
 
 // Add service form
@@ -100,7 +100,8 @@ document.getElementById('addServiceForm').addEventListener('submit', function(e)
     
     const formData = new FormData(this);
     
-    fetch('/super-admin/services/create', {
+    const createUrl = (window.API_ROUTES && window.API_ROUTES.create_service) || '/super-admin/services/create';
+    fetch(createUrl, {
         method: 'POST',
         body: formData
     })
