@@ -259,15 +259,17 @@ class TestSMSServiceOTP:
         results = []
 
         def request_otp():
-            with patch.object(SMSService, 'send_sms') as mock_send:
-                mock_send.return_value = {'success': True, 'message': 'Sent'}
-                results.append(SMSService.send_otp(phone=phone))
+            results.append(SMSService.send_otp(phone=phone))
 
-        threads = [threading.Thread(target=request_otp) for _ in range(5)]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        # Patch once outside threads; unittest.mock.patch is NOT thread-safe
+        # when multiple threads patch the same class attribute simultaneously.
+        with patch.object(SMSService, 'send_sms') as mock_send:
+            mock_send.return_value = {'success': True, 'message': 'Sent'}
+            threads = [threading.Thread(target=request_otp) for _ in range(5)]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()
 
         success_count = sum(1 for r in results if r['success'])
         rate_limited_count = sum(1 for r in results if r.get('rate_limited'))
