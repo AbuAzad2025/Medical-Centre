@@ -1262,6 +1262,39 @@ def create_app(config_name: str | None = None) -> Flask:
         from app.core.platform_bootstrap import run_platform_bootstrap
         run_platform_bootstrap(quiet=False)
 
+    @app.cli.command("audit-cleanup")
+    def audit_cleanup_cmd():
+        """Prune old audit / log records according to retention policy.
+
+        Configurable via env vars (defaults in parentheses):
+          PHI_AUDIT_RETENTION_DAYS        (90)
+          PLATFORM_AUDIT_RETENTION_DAYS   (180)
+          AUDIT_TRAIL_RETENTION_DAYS      (180)
+          SYSTEM_LOG_RETENTION_DAYS       (90)
+          SECURITY_EVENT_RETENTION_DAYS   (365)
+          LOGIN_ATTEMPT_RETENTION_DAYS    (30)
+          SLOW_QUERY_RETENTION_DAYS       (90)
+          AUDIT_CLEANUP_BATCH_SIZE        (5000)
+          AUDIT_CLEANUP_SLEEP_MS          (100)
+        """
+        from services.audit_cleanup_service import AuditCleanupService
+        import os
+        dry_run = os.getenv("AUDIT_CLEANUP_DRY_RUN", "").strip().lower() in ("1", "true", "yes", "on")
+        if dry_run:
+            click.echo("[DRY-RUN] No rows will be deleted.\n")
+        results = AuditCleanupService.run_all(dry_run=dry_run)
+        click.echo("\n" + "=" * 60)
+        click.echo(f"{'Table':<30} {'Deleted':>10} {'Eligible':>10} {'Status':>8}")
+        click.echo("-" * 60)
+        for r in results:
+            status = "OK" if not r.get("error") else "FAIL"
+            click.echo(
+                f"{r['table']:<30} {r.get('deleted', 0):>10} {r.get('eligible', 0):>10} {status:>8}"
+            )
+            if r.get("error"):
+                click.echo(f"  ⚠ {r['error']}")
+        click.echo("=" * 60)
+
     # Background notification queue processor
     def _start_notification_processor(app_ctx):
         import threading
