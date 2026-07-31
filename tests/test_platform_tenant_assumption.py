@@ -81,7 +81,10 @@ def _create_user(username: str, role: str, tenant_id: int | None = None) -> User
         db.session.commit()
         return u
 
-    # Platform user (tenant_id=None) — create with dummy tenant then nullify
+    # Platform user (tenant_id=None) — PostgreSQL enforces NOT NULL on
+    # users.tenant_id, so we keep a persistent dummy tenant instead of
+    # nullifying.  The assumption middleware checks role + assumption
+    # record, not the raw tenant_id value, so a dummy tenant works fine.
     dummy = Tenant(
         slug=_unique_slug("dummy"),
         name="Dummy",
@@ -102,16 +105,7 @@ def _create_user(username: str, role: str, tenant_id: int | None = None) -> User
     u.set_password("test123")
     db.session.add(u)
     db.session.commit()
-    # Nullify tenant_id via raw SQL to bypass auto_assign_tenant
-    db.session.execute(
-        db.text("UPDATE users SET tenant_id = NULL WHERE id = :uid"),
-        {"uid": u.id},
-    )
-    db.session.commit()
     db.session.refresh(u)
-    # Clean up dummy tenant
-    db.session.delete(dummy)
-    db.session.commit()
     return u
 
 
