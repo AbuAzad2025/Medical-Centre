@@ -186,6 +186,43 @@ def _model_has_tenant_column(model_class) -> bool:
     return mapper is not None and 'tenant_id' in mapper.columns
 
 
+def _statement_explicitly_scopes_tenant(statement, entity) -> bool:
+    """Return True if the statement's WHERE already constrains entity.tenant_id.
+
+    Callers that explicitly pass ``tenant_id`` in the query are already
+    scoped to one tenant, so the fail-closed guard (no tenant context) must
+    not reject them.  Works for both ``Select`` statements and legacy
+    ``Query`` objects.
+    """
+    mapper = getattr(entity, '__mapper__', None)
+    if mapper is None:
+        return False
+    if 'tenant_id' not in mapper.columns:
+        return True
+    table_name = getattr(getattr(mapper, 'local_table', None), 'name', None)
+    where = getattr(statement, 'whereclause', None)
+    if where is None:
+        criteria = getattr(statement, '_where_criteria', None)
+        if criteria:
+            from sqlalchemy import and_
+            where = and_(*criteria)
+    if where is None:
+        return False
+
+    from sqlalchemy.sql import visitors
+
+    for node in visitors.iterate(where):
+        if getattr(node, 'name', None) != 'tenant_id':
+            continue
+        node_table = getattr(node, 'table', None)
+        if node_table is not None:
+            if getattr(node_table, 'name', None) == table_name:
+                return True
+        else:
+            return True
+    return False
+
+
 def _check_bundle_limits_on_create(instance, tenant_id):
     """Enforce package max_users / max_patients via EntitlementResolver."""
     from app.core.saas.resolver import EntitlementResolver
@@ -229,6 +266,10 @@ def tenant_filter_query(query):
                 if _skip_table(entity):
                     continue
                 if _model_has_tenant_column(entity):
+                    # Explicit tenant_id predicates (e.g. filter_by(tenant_id=5))
+                    # are already scoped — allow them without a request context.
+                    if _statement_explicitly_scopes_tenant(query, entity):
+                        continue
                     raise TenantIsolationError(
                         f"Fail-closed: query on tenant-scoped model "
                         f"{entity.__name__} without tenant context in SaaS mode"
@@ -324,6 +365,10 @@ def tenant_filter_select(orm_execute_state):
                 if _skip_table(entity):
                     continue
                 if _model_has_tenant_column(entity):
+                    # Explicit tenant_id predicates (e.g. filter_by(tenant_id=5))
+                    # are already scoped — allow them without a request context.
+                    if _statement_explicitly_scopes_tenant(statement, entity):
+                        continue
                     raise TenantIsolationError(
                         f"Fail-closed: query on tenant-scoped model "
                         f"{entity.__name__} without tenant context in SaaS mode"
