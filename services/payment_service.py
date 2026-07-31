@@ -12,6 +12,7 @@ from typing import Any
 from app.extensions import db
 from utils.db_safety import safe_rollback
 from sqlalchemy import and_, select
+from sqlalchemy.exc import IntegrityError
 from utils.tenant_query import get_tenant_record, TenantContextError
 
 
@@ -94,6 +95,21 @@ class PaymentService:
                     PaymentAllocationService.allocate(payment, visit)
 
             return True, payment
+        except IntegrityError as e:
+            safe_rollback(db.session, error_message="Payment idempotency conflict")
+            # Concurrent duplicate idempotency key: the other request won the race.
+            # Fetch and return the existing payment instead of a 500.
+            existing = db.session.execute(select(Payment).filter(
+                and_(
+                    Payment.tenant_id == tenant_id,
+                    Payment.operation_type == operation_type,
+                    Payment.idempotency_key == idempotency_key,
+                )
+            )).scalars().first()
+            if existing:
+                return True, existing
+            logging.error(f"Payment IntegrityError (non-idempotency): {str(e)}")
+            return False, str(e)
         except Exception as e:
             safe_rollback(db.session, error_message="فشل إنشاء الدفعة")
             logging.error(f"Error creating payment: {str(e)}")

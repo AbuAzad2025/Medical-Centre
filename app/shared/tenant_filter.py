@@ -186,6 +186,66 @@ def _model_has_tenant_column(model_class) -> bool:
     return mapper is not None and 'tenant_id' in mapper.columns
 
 
+# Cache: table name -> mapped class (or sentinel ``...`` for not-found).
+_TABLE_NAME_TO_CLASS_CACHE: dict[str, Any] = {}
+
+
+def _get_mapped_class_for_table(table) -> type | None:
+    """Resolve a Table / AnnotatedTable to its mapped ORM class."""
+    table_name = getattr(table, 'name', None)
+    if not table_name:
+        return None
+    cached = _TABLE_NAME_TO_CLASS_CACHE.get(table_name)
+    if cached is not None:
+        return cached if cached is not ... else None
+    # Lazy population – by query time all models have been imported.
+    for mapper in db.Model.registry.mappers:
+        lt = getattr(mapper, 'local_table', None)
+        if lt is not None and lt.name == table_name:
+            cls = mapper.class_
+            _TABLE_NAME_TO_CLASS_CACHE[table_name] = cls
+            return cls
+    _TABLE_NAME_TO_CLASS_CACHE[table_name] = ...
+    return None
+
+
+def _entities_from_statement(statement) -> list[type]:
+    """Return deduplicated mapped entity classes referenced by a SELECT.
+
+    Sources:
+      1. ``column_descriptions`` – ORM entity projections.
+      2. ``_from_obj`` – FROM clauses (scalar counts, subquery targets, etc.).
+    """
+    entities: list[type] = []
+    seen: set[type] = set()
+
+    for desc in getattr(statement, 'column_descriptions', []):
+        entity = desc.get('entity')
+        if entity is not None and isinstance(entity, type):
+            if entity not in seen:
+                seen.add(entity)
+                entities.append(entity)
+
+    for clause in getattr(statement, '_from_obj', ()):
+        # AliasedClass or mapped class passed directly
+        mapper = getattr(clause, 'mapper', None)
+        if mapper is not None:
+            entity = mapper.class_
+            if entity not in seen:
+                seen.add(entity)
+                entities.append(entity)
+            continue
+        # Plain Table / AnnotatedTable
+        table_name = getattr(clause, 'name', None)
+        if table_name:
+            entity = _get_mapped_class_for_table(clause)
+            if entity is not None and entity not in seen:
+                seen.add(entity)
+                entities.append(entity)
+
+    return entities
+
+
 def _statement_explicitly_scopes_tenant(statement, entity) -> bool:
     """Return True if the statement's WHERE already constrains entity.tenant_id.
 
@@ -358,10 +418,7 @@ def tenant_filter_select(orm_execute_state):
 
     if tid is None:
         if _is_saas_mode():
-            for desc in getattr(statement, 'column_descriptions', []):
-                entity = desc.get('entity')
-                if entity is None or not isinstance(entity, type):
-                    continue
+            for entity in _entities_from_statement(statement):
                 if _skip_table(entity):
                     continue
                 if _model_has_tenant_column(entity):
@@ -376,10 +433,7 @@ def tenant_filter_select(orm_execute_state):
         return
 
     modified = False
-    for desc in getattr(statement, 'column_descriptions', []):
-        entity = desc.get('entity')
-        if entity is None or not isinstance(entity, type):
-            continue
+    for entity in _entities_from_statement(statement):
         if _skip_table(entity):
             continue
         if _model_has_tenant_column(entity):

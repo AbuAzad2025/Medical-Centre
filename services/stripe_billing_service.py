@@ -238,6 +238,9 @@ class StripeBillingService:
         )).scalars().first()
         current_price = 0.0
         if current_line:
+            current_version = current_line.package_version
+            if new_version.package_id != current_version.package_id:
+                raise StripeBillingError('package_mismatch')
             current_pricing = cls._pricing_for(current_line.package_version_id, current_line.billing_type)
             current_price = float(current_pricing.price)
 

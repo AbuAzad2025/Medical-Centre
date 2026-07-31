@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 
 import stripe
+from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from utils.db_safety import safe_commit
@@ -188,7 +189,15 @@ class StripeSubscriptionService:
             payload_hash=payload_hash,
         )
         db.session.add(record)
-        db.session.flush()
+        try:
+            db.session.flush()
+        except IntegrityError:
+            # Another worker won the race for this event_id.
+            db.session.rollback()
+            existing = cls._check_idempotency(event_id)
+            if existing:
+                return {'already_processed': True, 'event_id': event_id, 'status': existing.status}
+            raise StripeWebhookError('duplicate_event_id')
 
         try:
             result = cls.handle_event(event)

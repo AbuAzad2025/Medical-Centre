@@ -3,7 +3,7 @@ Refund Service - P3-006
 Request → Approval → Execution workflow for payment refunds.
 """
 from __future__ import annotations
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 import logging
 from datetime import datetime, timezone
@@ -44,6 +44,16 @@ class RefundService:
             return False, "Refund amount must be positive"
         if refund_amount > Decimal(str(payment.amount or 0)):
             return False, "Refund amount exceeds payment amount"
+
+        # Prevent over-refunding: sum all non-rejected requests for this payment.
+        total_existing = db.session.execute(
+            select(func.coalesce(func.sum(RefundRequest.amount), 0)).filter(
+                RefundRequest.payment_id == payment.id,
+                RefundRequest.status != RefundStatus.REJECTED,
+            )
+        ).scalar()
+        if Decimal(str(total_existing or 0)) + refund_amount > Decimal(str(payment.amount or 0)):
+            return False, "Cumulative refund amount would exceed payment amount"
 
         # Prevent duplicate pending requests for the same payment.
         existing = db.session.execute(select(RefundRequest).filter_by(
@@ -135,12 +145,26 @@ class RefundService:
             return False, "Refund request is not approved"
 
         try:
-            payment = get_tenant_record(Payment, request.payment_id)
+            payment = db.session.execute(
+                select(Payment).filter_by(id=request.payment_id).with_for_update()
+            ).scalars().first()
         except TenantContextError:
+            return False, "Original payment not found"
+        if not payment:
             return False, "Original payment not found"
 
         try:
             refund_amount = Decimal(str(request.amount))
+            # Re-check cumulative limit under row lock.
+            total_executed = db.session.execute(
+                select(func.coalesce(func.sum(RefundRequest.amount), 0)).filter(
+                    RefundRequest.payment_id == payment.id,
+                    RefundRequest.status == RefundStatus.EXECUTED,
+                )
+            ).scalar()
+            if Decimal(str(total_executed or 0)) + refund_amount > Decimal(str(payment.amount or 0)):
+                return False, "Cumulative refund amount would exceed payment amount"
+
             if payment.visit_id:
                 invoices = db.session.execute(select(Invoice).filter_by(visit_id=payment.visit_id).order_by(
                     Invoice.created_at.desc()
