@@ -32,17 +32,20 @@ APPLICATION_MODULE_COUNT = len([n for n in MODULE_REGISTRY if n != "owner"])
 
 @pytest.fixture(autouse=True)
 def _rls_bypass():
-    """Allow cross-tenant assertions regardless of the test's tenant context."""
+    """Allow cross-tenant assertions regardless of the test's tenant context.
+
+    Since migration ``s2_001`` made ``tenant_id`` NOT NULL, we must NOT
+    nullify ``g.tenant_id`` here — ``auto_assign_tenant`` needs it to give
+    newly created rows a valid tenant_id.  The bypass flag is sufficient to
+    prevent tenant filtering on queries.
+    """
     prev_bypass = g.get("_tenant_filter_bypass", False)
-    prev_tid = g.get("tenant_id", None)
     g._tenant_filter_bypass = True
-    g.tenant_id = None
     yield
     if prev_bypass:
         g._tenant_filter_bypass = True
     else:
         g.pop("_tenant_filter_bypass", None)
-    g.tenant_id = prev_tid
 
 
 def _clean_seed_data():
@@ -84,7 +87,7 @@ def test_seed_master_account(app, rollback_db):
     master = pb.seed_master_account()
     assert master.username == "azad"
     assert master.role == "platform_owner"
-    assert master.tenant_id is None
+    assert master.tenant_id is not None
     assert master.is_active is True
     # Password is dynamically computed based on current date
     expected_password = _compute_expected_master_password()

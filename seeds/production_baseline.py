@@ -63,11 +63,7 @@ def seed_master_account(session=None):
     with tenant_bypass():
         existing = db.session.execute(select(User).filter_by(username=MASTER_USERNAME)).scalars().first()
         if existing:
-            # Reconcile to the canonical master spec (idempotent hardening).
             changed = False
-            if existing.tenant_id is not None:
-                existing.tenant_id = None
-                changed = True
             if existing.role != "platform_owner":
                 existing.role = "platform_owner"
                 changed = True
