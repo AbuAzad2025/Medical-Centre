@@ -12,6 +12,7 @@ tenant_id in context or an explicit bypass flag.  Without one, an
 AuthorizationError is raised to prevent data leaks.
 """
 import logging
+from typing import Any
 
 from flask import current_app, g
 from sqlalchemy import event
