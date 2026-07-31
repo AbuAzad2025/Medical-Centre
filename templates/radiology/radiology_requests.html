@@ -88,7 +88,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover" id="radiologyRequestsTable">
                     <thead class="table-dark">
                         <tr>
                             <th>رقم الطلب</th>
@@ -103,7 +103,7 @@
                     </thead>
                     <tbody>
                         {% for request in requests %}
-                        <tr>
+                        <tr data-request-id="{{ request.id }}" data-view-url="{{ url_for('radiology.worklist_request', request_id=request.id) }}">
                             <td>
                                 <span class="badge bg-primary">{{ request.request_number }}</span>
                             </td>
@@ -135,32 +135,32 @@
                             <td>
                                 {% set st = (request.status or '')|upper %}
                                 {% if st == 'REQUESTED' %}
-                                    <span class="badge bg-warning">معلق</span>
+                                    <span class="badge bg-warning status-badge">معلق</span>
                                 {% elif st == 'IN_PROGRESS' %}
-                                    <span class="badge bg-info">قيد التنفيذ</span>
+                                    <span class="badge bg-info status-badge">قيد التنفيذ</span>
                                 {% elif st in ['COMPLETED','DONE'] %}
-                                    <span class="badge bg-success">مكتمل</span>
+                                    <span class="badge bg-success status-badge">مكتمل</span>
                                 {% else %}
-                                    <span class="badge bg-secondary">{{ st }}</span>
+                                    <span class="badge bg-secondary status-badge">{{ st }}</span>
                                 {% endif %}
                             </td>
                             <td>{{ request.created_at.strftime('%Y-%m-%d %H:%M') if request.created_at else '—' }}</td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <a href="{{ url_for('radiology.worklist') }}" 
+                                    <a href="{{ url_for('radiology.worklist_request', request_id=request.id) }}" 
                                        class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
                                     </a>
                                     {% if request.status|upper in ['REQUESTED', 'PENDING'] %}
-                                        <a href="{{ url_for('radiology.worklist') }}" 
-                                           class="btn btn-sm btn-outline-success">
-                                            <i class="fas fa-play"></i> <span class="btn-label">تشغيل</span>
-                                        </a>
+                                    <button type="button" class="btn btn-sm btn-outline-success btn-action-claim" 
+                                            data-request-id="{{ request.id }}" title="استلام وبدء العمل">
+                                        <i class="fas fa-play"></i> <span class="btn-label">استلام</span>
+                                    </button>
                                     {% elif request.status|upper == 'IN_PROGRESS' %}
-                                        <a href="{{ url_for('radiology.worklist') }}" 
-                                           class="btn btn-sm btn-outline-warning">
-                                            <i class="fas fa-plus"></i> <span class="btn-label">إضافة</span>
-                                        </a>
+                                    <button type="button" class="btn btn-sm btn-outline-warning btn-action-complete" 
+                                            data-request-id="{{ request.id }}" title="إكمال وإنهاء">
+                                        <i class="fas fa-check"></i> <span class="btn-label">إكمال</span>
+                                    </button>
                                     {% endif %}
                                 </div>
                             </td>
@@ -199,5 +199,133 @@
     background-color: #f8f9fa;
     border-bottom: 1px solid #dee2e6;
 }
+.status-badge {
+    font-size: 0.8rem;
+    padding: 0.4em 0.6em;
+}
+.btn-action-claim:disabled,
+.btn-action-complete:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Claim (start) a radiology request
+async function claimRequest(requestId) {
+    const btn = document.querySelector('.btn-action-claim[data-request-id="' + requestId + '"]');
+    if (btn) btn.disabled = true;
+    
+    try {
+        const url = (window.API_ROUTES && window.API_ROUTES.radiology_worklist_claim) 
+            ? window.API_ROUTES.radiology_worklist_claim.replace('/0', '/' + requestId)
+            : '/radiology/worklist/claim/' + requestId;
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            }
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            Swal.fire({ title: 'تم', text: data.message || 'تم استلام الطلب', icon: 'success', timer: 1500, showConfirmButton: false });
+            // Update row UI
+            updateRowStatus(requestId, 'IN_PROGRESS');
+        } else {
+            Swal.fire({ title: 'خطأ', text: data.message || 'فشل استلام الطلب', icon: 'error' });
+            if (btn) btn.disabled = false;
+        }
+    } catch (err) {
+        console.error('Claim error:', err);
+        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الاتصال', icon: 'error' });
+        if (btn) btn.disabled = false;
+    }
+}
+
+// Complete a radiology request
+async function completeRequest(requestId) {
+    const btn = document.querySelector('.btn-action-complete[data-request-id="' + requestId + '"]');
+    if (btn) btn.disabled = true;
+    
+    try {
+        const url = (window.API_ROUTES && window.API_ROUTES.radiology_worklist_complete) 
+            ? window.API_ROUTES.radiology_worklist_complete.replace('/0', '/' + requestId)
+            : '/radiology/worklist/complete/' + requestId;
+        
+        // We need to send minimal payload to finalize
+        const formData = new FormData();
+        formData.append('csrf_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
+        formData.append('action', 'finalize'); // Finalize the request
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            Swal.fire({ title: 'تم', text: data.message || 'تم إكمال الطلب', icon: 'success', timer: 1500, showConfirmButton: false });
+            updateRowStatus(requestId, 'DONE');
+        } else {
+            Swal.fire({ title: 'خطأ', text: data.message || 'فشل إكمال الطلب', icon: 'error' });
+            if (btn) btn.disabled = false;
+        }
+    } catch (err) {
+        console.error('Complete error:', err);
+        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الاتصال', icon: 'error' });
+        if (btn) btn.disabled = false;
+    }
+}
+
+function updateRowStatus(requestId, newStatus) {
+    const row = document.querySelector('#radiologyRequestsTable tr[data-request-id="' + requestId + '"]');
+    if (!row) return;
+    
+    const statusCell = row.querySelector('.status-badge');
+    const actionsCell = row.querySelector('.btn-group');
+    
+    // Update status badge
+    if (statusCell) {
+        statusCell.className = 'badge status-badge';
+        if (newStatus === 'IN_PROGRESS') {
+            statusCell.classList.add('bg-info');
+            statusCell.textContent = 'قيد التنفيذ';
+        } else if (newStatus === 'DONE' || newStatus === 'COMPLETED') {
+            statusCell.classList.add('bg-success');
+            statusCell.textContent = 'مكتمل';
+        }
+    }
+    
+    // Update action buttons - use data-view-url from row
+    if (actionsCell) {
+        const viewUrl = row.dataset.viewUrl;
+        if (newStatus === 'IN_PROGRESS') {
+            actionsCell.innerHTML = '\n                <a href="' + viewUrl + '" class="btn btn-sm btn-outline-primary">\n                    <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>\n                </a>\n                <button type="button" class="btn btn-sm btn-outline-warning btn-action-complete" \n                        data-request-id="' + requestId + '" title="إكمال وإنهاء">\n                    <i class="fas fa-check"></i> <span class="btn-label">إكمال</span>\n                </button>';
+        } else if (newStatus === 'DONE') {
+            actionsCell.innerHTML = '\n                <a href="' + viewUrl + '" class="btn btn-sm btn-outline-primary">\n                    <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>\n                </a>';
+        }
+        // Re-bind event listeners for new buttons
+        bindActionButtons();
+    }
+}
+
+function bindActionButtons() {
+    document.querySelectorAll('.btn-action-claim').forEach(btn => {
+        btn.onclick = () => claimRequest(btn.dataset.requestId);
+    });
+    document.querySelectorAll('.btn-action-complete').forEach(btn => {
+        btn.onclick = () => completeRequest(btn.dataset.requestId);
+    });
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    bindActionButtons();
+});
+</script>
 {% endblock %}

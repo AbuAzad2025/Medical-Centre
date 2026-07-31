@@ -162,6 +162,8 @@
         booking_available_times: {{ url_for('booking.api_available_times')|tojson }},
         api_tenants_search: {{ url_for('main.api_search_tenants')|tojson }},
         health: {{ url_for('main.health')|tojson }},
+        radiology_worklist_claim: {{ url_for('radiology.worklist_claim', request_id=0)|tojson }},
+        radiology_worklist_complete: {{ url_for('radiology.worklist_complete', request_id=0)|tojson }},
         smart_patient_search: {{ url_for('reception.api_smart_patient_search')|tojson }},
         reception_available_times: {{ url_for('reception.api_available_times')|tojson }},
         api_doctors: {{ url_for('reception.api_doctors')|tojson }},

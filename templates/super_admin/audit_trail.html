@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}سجل التدقيق - السوبر أدمن{% endblock %}
+{% block title %}سجل التدقيق PHI - السوبر أدمن{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('سجل التدقيق', subtitle='مراقبة شاملة لجميع أنشطة النظام', icon='fas fa-clipboard-list', actions=[
+    {{ page_header('سجل تدقيق PHI', subtitle='مراقبة شاملة لجميع الوصول للبيانات الصحية المحمية', icon='fas fa-clipboard-list', actions=[
         {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-audit-logs', 'style': 'primary'},
         {'type': 'button', 'label': 'تصدير السجلات', 'icon': 'fas fa-download', 'data_action': 'export-audit-logs', 'style': 'success'}
     ]) }}
 
-    <!-- Audit Overview -->
+    <!-- Audit Overview Stats -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
@@ -20,7 +20,7 @@
                             <div class="text-xs fw-bold text-primary text-uppercase mb-1">
                                 إجمالي السجلات
                             </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">{{ audit_logs|length }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ total }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-list fa-2x text-gray-300"></i>
@@ -38,7 +38,7 @@
                             <div class="text-xs fw-bold text-success text-uppercase mb-1">
                                 السجلات اليوم
                             </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">156</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="today-count">جاري التحميل...</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
@@ -54,9 +54,9 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-info text-uppercase mb-1">
-                                المستخدمين النشطين
+                                المستخدمين الفريدين
                             </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">23</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="unique-users-count">جاري التحميل...</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-users fa-2x text-gray-300"></i>
@@ -72,9 +72,9 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-warning text-uppercase mb-1">
-                                الأحداث الحرجة
+                                الأحداث الحرجة (DELETE/UPDATE)
                             </div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">12</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800" id="critical-count">جاري التحميل...</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
@@ -93,18 +93,27 @@
                     <h6 class="m-0 fw-bold text-primary">تصفية السجلات</h6>
                 </div>
                 <div class="card-body">
-                    <form id="auditFiltersForm">
+                    <form id="auditFiltersForm" method="GET">
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label for="action_filter" class="form-label">نوع العمل</label>
                                     <select class="form-control" id="action_filter" name="action_filter">
                                         <option value="">جميع الأعمال</option>
-                                        <option value="create">إنشاء</option>
-                                        <option value="update">تحديث</option>
-                                        <option value="delete">حذف</option>
-                                        <option value="login">تسجيل دخول</option>
-                                        <option value="logout">تسجيل خروج</option>
+                                        {% for act in actions %}
+                                        <option value="{{ act }}" {% if filters.action_filter == act %}selected{% endif %}>{{ act }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="model_filter" class="form-label">النموذج المستهدف</label>
+                                    <select class="form-control" id="model_filter" name="model_filter">
+                                        <option value="">جميع النماذج</option>
+                                        {% for mdl in models %}
+                                        <option value="{{ mdl }}" {% if filters.model_filter == mdl %}selected{% endif %}>{{ mdl }}</option>
+                                        {% endfor %}
                                     </select>
                                 </div>
                             </div>
@@ -113,35 +122,53 @@
                                     <label for="user_filter" class="form-label">المستخدم</label>
                                     <select class="form-control" id="user_filter" name="user_filter">
                                         <option value="">جميع المستخدمين</option>
-                                        <option value="admin">مدير</option>
-                                        <option value="doctor">طبيب</option>
-                                        <option value="reception">استقبال</option>
+                                        {% for u in users %}
+                                        <option value="{{ u.id }}" {% if filters.user_filter == u.id|string %}selected{% endif %}>{{ u.full_name }} ({{ u.username }})</option>
+                                        {% endfor %}
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
+                                    <label for="patient_id_filter" class="form-label">معرف المريض</label>
+                                    <input type="number" class="form-control" id="patient_id_filter" name="patient_id_filter" value="{{ filters.patient_id_filter or '' }}" placeholder="مثال: 123">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
                                     <label for="date_from" class="form-label">من تاريخ</label>
-                                    <input type="date" class="form-control" id="date_from" name="date_from">
+                                    <input type="date" class="form-control" id="date_from" name="date_from" value="{{ filters.date_from or '' }}">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label for="date_to" class="form-label">إلى تاريخ</label>
-                                    <input type="date" class="form-control" id="date_to" name="date_to">
+                                    <input type="date" class="form-control" id="date_to" name="date_to" value="{{ filters.date_to or '' }}">
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <button type="button" class="btn btn-primary" data-action="apply-filters">
-                                    <i class="fas fa-filter me-2"></i>
-                                    تطبيق التصفية
-                                </button>
-                                <button type="button" class="btn btn-secondary" data-action="clear-filters">
-                                    <i class="fas fa-times me-2"></i>
-                                    مسح التصفية
-                                </button>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="date_to" class="form-label">&nbsp;</label>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-filter me-2"></i>
+                                            تطبيق التصفية
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="date_to" class="form-label">&nbsp;</label>
+                                    <div class="d-grid">
+                                        <a href="{{ url_for('super_admin.audit_trail') }}" class="btn btn-secondary">
+                                            <i class="fas fa-times me-2"></i>
+                                            مسح التصفية
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -150,85 +177,84 @@
         </div>
     </div>
 
-    <!-- Audit Logs -->
+    <!-- Audit Logs Table -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">سجلات التدقيق</h6>
+                    <h6 class="m-0 fw-bold text-primary">سجلات تدقيق PHI</h6>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" data-action="filter-logs" data-value="all">الكل</button>
-                        <button class="btn btn-sm btn-outline-success" data-action="filter-logs" data-value="success">نجح</button>
-                        <button class="btn btn-sm btn-outline-warning" data-action="filter-logs" data-value="warning">تحذير</button>
-                        <button class="btn btn-sm btn-outline-danger" data-action="filter-logs" data-value="error">خطأ</button>
+                        <span class="badge bg-primary" id="showing-count">عرض {{ audit_logs|length }} من {{ total }}</span>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered" id="auditLogsTable">
-                            <thead>
+                        <table class="table table-bordered table-hover" id="auditLogsTable">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>الوقت</th>
                                     <th>المستخدم</th>
                                     <th>العمل</th>
-                                    <th>الكيان</th>
-                                    <th>التفاصيل</th>
-                                    <th>الحالة</th>
+                                    <th>المورد المستهدف</th>
+                                    <th>معرف المورد</th>
+                                    <th>عنوان IP</th>
+                                    <th>التغييرات</th>
                                     <th>الإجراءات</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for log in audit_logs %}
-                                <tr data-status="{{ 'success' if log.status == 'SUCCESS' else 'error' if log.status == 'ERROR' else 'warning' }}">
-                                    <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else 'غير محدد' }}</td>
+                                <tr>
+                                    <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else 'غير محدد' }}</td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
-                                                {{ log.user.username[0] if log.user and log.user.username else 'U' }}
+                                                {{ log.actor.full_name[0] if log.actor and log.actor.full_name else 'U' }}
                                             </div>
                                             <div>
-                                                <div class="fw-bold">{{ log.user.full_name if log.user else 'غير محدد' }}</div>
-                                                <small class="text-muted">{{ log.user.username if log.user else 'غير محدد' }}</small>
+                                                <div class="fw-bold">{{ log.actor.full_name if log.actor else 'نظام' }}</div>
+                                                <small class="text-muted">{{ log.actor.username if log.actor else 'system' }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        {% if log.action == 'create' %}
+                                        {% if log.action == 'CREATE' %}
                                             <span class="badge bg-success">إنشاء</span>
-                                        {% elif log.action == 'update' %}
-                                            <span class="badge bg-info">تحديث</span>
-                                        {% elif log.action == 'delete' %}
+                                        {% elif log.action == 'UPDATE' %}
+                                            <span class="badge bg-warning text-dark">تحديث</span>
+                                        {% elif log.action == 'DELETE' %}
                                             <span class="badge bg-danger">حذف</span>
-                                        {% elif log.action == 'login' %}
-                                            <span class="badge bg-primary">تسجيل دخول</span>
-                                        {% elif log.action == 'logout' %}
-                                            <span class="badge bg-secondary">تسجيل خروج</span>
+                                        {% elif log.action == 'VIEW' %}
+                                            <span class="badge bg-info">عرض</span>
                                         {% else %}
                                             <span class="badge bg-light text-dark">{{ log.action }}</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ log.entity_type or 'غير محدد' }}</td>
-                                    <td>{{ log.description or 'لا يوجد تفاصيل' }}</td>
+                                    <td>{{ log.target_model or 'غير محدد' }}</td>
+                                    <td>{{ log.target_id or '—' }}</td>
+                                    <td>{{ log.ip_address or '—' }}</td>
                                     <td>
-                                        {% if log.status == 'SUCCESS' %}
-                                            <span class="badge bg-success">نجح</span>
-                                        {% elif log.status == 'ERROR' %}
-                                            <span class="badge bg-danger">خطأ</span>
-                                        {% elif log.status == 'WARNING' %}
-                                            <span class="badge bg-warning">تحذير</span>
+                                        {% if log.changes %}
+                                            <button class="btn btn-sm btn-outline-primary" onclick="showChangesModal({{ log.changes|tojson }})" title="عرض التغييرات">
+                                                <i class="fas fa-eye"></i> عرض
+                                            </button>
                                         {% else %}
-                                            <span class="badge bg-light text-dark">{{ log.status | enum_label }}</span>
+                                            <span class="text-muted">—</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" data-action="viewLogDetails" data-value="{{ log.id }}" title="عرض التفاصيل">
-                                                <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-info" data-action="exportLog" data-value="{{ log.id }}" title="تصدير">
-                                                <i class="fas fa-download"></i> <span class="btn-label">تصدير</span>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="showLogDetails({{ log|tojson }})" title="عرض التفاصيل الكاملة">
+                                                <i class="fas fa-eye"></i> <span class="btn-label">تفاصيل</span>
                                             </button>
                                         </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                                        <p class="mb-0">لا توجد سجلات مطابقة للتصفية الحالية</p>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -238,13 +264,13 @@
                     
                     <!-- Pagination -->
                     <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="text-muted small">عرض {{ total }} سجل</div>
+                        <div class="text-muted small">إجمالي {{ total }} سجل</div>
                         <div class="btn-group">
                             <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
-                               href="{{ url_for('super_admin.audit_trail', page=page-1) }}">السابق</a>
-                            <span class="btn btn-outline-secondary">Page {{ page }} of {{ pages if pages > 0 else 1 }}</span>
+                               href="{{ url_for('super_admin.audit_trail', page=page-1, **request.args) }}">السابق</a>
+                            <span class="btn btn-outline-secondary">صفحة {{ page }} من {{ pages if pages > 0 else 1 }}</span>
                             <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
-                               href="{{ url_for('super_admin.audit_trail', page=page+1) }}">التالي</a>
+                               href="{{ url_for('super_admin.audit_trail', page=page+1, **request.args) }}">التالي</a>
                         </div>
                     </div>
                 </div>
@@ -252,107 +278,37 @@
         </div>
     </div>
 
-    <!-- Audit Statistics -->
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">إحصائيات التدقيق</h6>
+    <!-- Changes Modal -->
+    <div class="modal fade" id="changesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">تفاصيل التغييرات</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="stat-item">
-                                <div class="stat-icon bg-primary">
-                                    <i class="fas fa-chart-bar"></i>
-                                </div>
-                                <div class="stat-info">
-                                    <h6>الأعمال الأكثر شيوعاً</h6>
-                                    <div class="stat-chart">
-                                        <div class="chart-item">
-                                            <span class="chart-label">تسجيل دخول</span>
-                                            <div class="chart-bar">
-                                                <div class="chart-fill" style="width: 85%"></div>
-                                            </div>
-                                            <span class="chart-value">85%</span>
-                                        </div>
-                                        <div class="chart-item">
-                                            <span class="chart-label">تحديث</span>
-                                            <div class="chart-bar">
-                                                <div class="chart-fill" style="width: 70%"></div>
-                                            </div>
-                                            <span class="chart-value">70%</span>
-                                        </div>
-                                        <div class="chart-item">
-                                            <span class="chart-label">إنشاء</span>
-                                            <div class="chart-bar">
-                                                <div class="chart-fill" style="width: 60%"></div>
-                                            </div>
-                                            <span class="chart-value">60%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="stat-item">
-                                <div class="stat-icon bg-success">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                                <div class="stat-info">
-                                    <h6>المستخدمين الأكثر نشاطاً</h6>
-                                    <div class="user-stats">
-                                        <div class="user-stat-item">
-                                            <span class="user-name">أحمد محمد</span>
-                                            <span class="user-count">156</span>
-                                        </div>
-                                        <div class="user-stat-item">
-                                            <span class="user-name">د. سارة أحمد</span>
-                                            <span class="user-count">134</span>
-                                        </div>
-                                        <div class="user-stat-item">
-                                            <span class="user-name">ريم علي</span>
-                                            <span class="user-count">98</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="modal-body">
+                    <pre id="changes-content" class="bg-light p-3 rounded" style="max-height: 400px; overflow: auto;"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-lg-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">ملخص سريع</h6>
+    <!-- Log Details Modal -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">تفاصيل السجل الكامل</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>السجلات اليوم</span>
-                            <span class="fw-bold text-primary">156</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>السجلات هذا الأسبوع</span>
-                            <span class="fw-bold text-info">1,234</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>السجلات هذا الشهر</span>
-                            <span class="fw-bold text-success">5,678</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>معدل النجاح</span>
-                            <span class="fw-bold text-success">98.5%</span>
-                        </div>
-                    </div>
+                <div class="modal-body">
+                    <pre id="details-content" class="bg-light p-3 rounded" style="max-height: 400px; overflow: auto;"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
                 </div>
             </div>
         </div>
@@ -368,27 +324,27 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-primary w-100" data-action="generate-audit-report">
-                                <i class="fas fa-file-alt me-2"></i>
-                                إنشاء تقرير التدقيق
+                            <button class="btn btn-primary w-100" onclick="exportAuditLogs('csv')">
+                                <i class="fas fa-file-csv me-2"></i>
+                                تصدير CSV
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-success w-100" data-action="export-all-logs">
-                                <i class="fas fa-download me-2"></i>
-                                تصدير جميع السجلات
+                            <button class="btn btn-success w-100" onclick="exportAuditLogs('json')">
+                                <i class="fas fa-file-code me-2"></i>
+                                تصدير JSON
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-warning w-100" data-action="clean-old-logs">
-                                <i class="fas fa-trash me-2"></i>
-                                تنظيف السجلات القديمة
+                            <button class="btn btn-warning w-100" onclick="exportAuditLogs('excel')">
+                                <i class="fas fa-file-excel me-2"></i>
+                                تصدير Excel
                             </button>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <button class="btn btn-info w-100" data-action="view-audit-settings">
-                                <i class="fas fa-cog me-2"></i>
-                                إعدادات التدقيق
+                            <button class="btn btn-info w-100" onclick="refreshAuditLogs()">
+                                <i class="fas fa-sync-alt me-2"></i>
+                                تحديث الآن
                             </button>
                         </div>
                     </div>
@@ -476,20 +432,21 @@
     font-weight: bold;
     color: #5a5c69;
 }
-.btn-block:hover {
-    text-decoration: none;
-    transform: translateY(-2px);
-    transition: all 0.3s ease;
-}
 #auditLogsTable {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+}
+#auditLogsTable th {
+    white-space: nowrap;
 }
 .btn-group .btn {
     margin: 0 1px;
 }
 </style>
 
-<script>window.__M=window.__M||[];__M0__={{ audit_logs_json|tojson }};</script>
+<script>
+window.__M = window.__M || [];
+__M0__ = {{ audit_logs_json|tojson }};
+</script>
 <script src="{{ url_for('static', filename='js/pages/super_admin/audit_trail.js') }}"></script>
 
 {% endblock %}
