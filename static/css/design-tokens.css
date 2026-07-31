@@ -1,8 +1,7 @@
 /*
- * Design Tokens — UX1-001 Clinical Clean
+ * الرموز التصميمية — UX1-001 التصميم السريري النظيف
  *
- * Single source of truth for colors, spacing, typography, and shadows.
- * Existing CSS files can migrate to these variables gradually.
+ * المصدر الوحيد للحقيقة للألوان والمسافات والطباعة والظلال.
  */
 
 :root {

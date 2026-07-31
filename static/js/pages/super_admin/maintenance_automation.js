@@ -22,7 +22,7 @@ if (saveBtn) {
         alert('تعذر الحفظ');
       }
     } catch (err) {
-      console.error('خطأ في الاتصال:', err);
+      /* خطأ في الاتصال: */
     }
   });
 }

@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0f4c81">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="AZAD Medical">
+    <meta name="apple-mobile-web-app-title" content="{{ ui.organization_name if ui else 'المركز الصحي المتخصص' }}">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="{{ url_for('pwa.manifest') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icon-192x192.png') }}">
@@ -46,7 +46,7 @@
       --color-primary: {{ ui.primary_color if ui else '#0f4c81' }};
       --color-secondary: {{ ui.secondary_color if ui else '#10b981' }};
       --color-accent: {{ ui.accent_color if ui else '#00a6a6' }};
-      --brand-logo-url: url('{{ ui.logo_url if ui else url_for('static', filename='img/azad_logo.png') }}');
+      --brand-logo-url: url('{{ ui.logo_url if ui else url_for('static', filename='img/default_logo.png') }}');
     }
     </style>
 
@@ -67,7 +67,7 @@
       if (r && r !== 'md') document.documentElement.setAttribute('data-radius', r);
     })();
     </script>
-    <link rel="icon" href="{{ url_for('static', filename='img/azad_logo.png') }}" type="image/png">
+    <link rel="icon" href="{{ ui.favicon_url if ui else url_for('static', filename='favicon/favicon.ico') }}" type="image/png">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -78,9 +78,9 @@
     {% include 'partials/_flash.html' %}
     {% include 'partials/_entitlement_banner.html' %}
     {% if session.get('impersonator_id') %}
-    <div class="alert alert-warning text-center mb-0 rounded-0 py-2" style="font-size:0.9rem">
+    <div class="alert alert-warning text-center mb-0 rounded-0 py-2 impersonation-alert">
         <i class="fas fa-mask me-1"></i>
-        وضع انتحال الشخصية — أنت تتصفح كـ <strong>{{ current_user.full_name }}</strong> ({{ current_user.role }})
+        وضع انتحال الشخصية — أنت تتصفح كـ <strong>{{ current_user.full_name }}</strong>
         <button class="btn btn-sm btn-outline-dark me-2" onclick="exitImpersonation()">
             <i class="fas fa-undo me-1"></i>العودة لحساب المالك
         </button>
@@ -127,11 +127,14 @@
     window.__VALIDATION_RULES__ = {{ validation_rules|default({})|tojson }};
     function exitImpersonation() {
         var token = document.querySelector('meta[name="csrf-token"]');
-        fetch('/auth/impersonate/exit', {
+        fetch('{{ url_for('auth.exit_impersonation') }}', {
             method: 'POST',
             headers: {'X-CSRFToken': token ? token.content : '', 'Content-Type': 'application/json'}
         }).then(function(r){ return r.json(); }).then(function(d){
             if(d.redirect_url) window.location.href = d.redirect_url;
+        }).catch(function(e){
+            console.error('فشل إنهاء وضع الانتحال:', e);
+            alert('حدث خطأ أثناء العودة للحساب الأصلي');
         });
     }
     </script>

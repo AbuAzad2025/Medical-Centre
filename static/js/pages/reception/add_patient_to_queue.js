@@ -45,7 +45,7 @@ document.getElementById('department_id').addEventListener('change', function() {
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                /* خطأ: */
             });
     } else {
         doctorSelect.innerHTML = '<option value="">اختر الطبيب</option>';
@@ -147,7 +147,7 @@ function submitForm() {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        /* خطأ: */
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إضافة المريض للطابور', icon: 'error' });
     });
 }

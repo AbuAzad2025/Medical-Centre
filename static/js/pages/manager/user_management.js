@@ -5,18 +5,22 @@ function addNewUser() {
 }
 
 function exportUsers() {
-    var csvContent = "data:text/csv;charset=utf-8," 
-        + "\u0627\u0644\u0627\u0633\u0645,\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645,\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a,\u0627\u0644\u062f\u0648\u0631,\u0627\u0644\u0642\u0633\u0645,\u0627\u0644\u062d\u0627\u0644\u0629,\u0622\u062e\u0631 \u062f\u062e\u0648\u0644\n"
-        + __M0__.map(function(u) {
-            var dept = u.department ? u.department.name : "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f";
-            var lastLogin = u.last_login ? u.last_login : "\u0644\u0645 \u064a\u0633\u062c\u0644 \u062f\u062e\u0648\u0644";
-            return (u.full_name || "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f") + "," + u.username + "," + (u.email || "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f") + "," + u.role + "," + dept + "," + (u.is_active ? "\u0646\u0634\u0637" : "\u0645\u0639\u0637\u0644") + "," + lastLogin + "\n";
-        }).join("");
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "users_" + new Date().toISOString().split('T')[0] + ".csv");
+    var rows = document.querySelectorAll('#usersTable tbody tr');
+    var csv = "data:text/csv;charset=utf-8,"
+        + "\u0627\u0644\u0627\u0633\u0645,\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645,\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a,\u0627\u0644\u062f\u0648\u0631,\u0627\u0644\u0642\u0633\u0645,\u0627\u0644\u062d\u0627\u0644\u0629,\u0622\u062e\u0631 \u062f\u062e\u0648\u0644\n";
+    rows.forEach(function(row) {
+        var cells = row.querySelectorAll('td');
+        if (cells.length < 7) return;
+        var vals = [];
+        for (var i = 0; i < 7; i++) {
+            vals.push((cells[i].textContent || '').trim().replace(/,/g, ' '));
+        }
+        csv += vals.join(',') + '\n';
+    });
+    var encoded = encodeURI(csv);
+    var link = document.createElement('a');
+    link.setAttribute('href', encoded);
+    link.setAttribute('download', 'users_' + new Date().toISOString().split('T')[0] + '.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

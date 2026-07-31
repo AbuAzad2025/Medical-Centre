@@ -51,11 +51,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 try { localStorage.setItem('sidebarCollapsed', isCollapsed ? '1' : '0'); } catch (e) {}
             });
         } catch (e) {
-            console.warn('Sidebar toggle init failed:', e);
+            /* فشل تهيئة تبديل الشريط الجانبي */
         }
     }
 
-    // Mobile sidebar overlay toggle (Clinical Clean shell)
+    /* تبديل overlay الشريط الجانبي للجوال */
     const mobileToggle = document.getElementById('mobileSidebarToggle');
     const closeSidebarBtn = document.getElementById('closeSidebarBtn');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
     if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
 
-    // Form submit: disable button + show loading
+    /* تعطيل زر الإرسال أثناء تحميل النموذج */
     document.querySelectorAll('form').forEach(function(form) {
         var handled = form.hasAttribute('data-submit-handled');
         if (handled) return;
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Auto-focus first visible input in modals
+    /* التركيز التلقائي على أول حقل في النوافذ المنبثقة */
     document.querySelectorAll('.modal').forEach(function(modal) {
         modal.addEventListener('shown.bs.modal', function() {
             var input = this.querySelector('input:not([type="hidden"]):not([type="search"]), textarea, select');
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Auto-attach confirmation to [data-confirm] buttons/links
+    /* تأكيد تلقائي للأزرار والروابط [data-confirm] */
     document.querySelectorAll('[data-confirm]').forEach(function(el) {
         var msg = el.getAttribute('data-confirm');
         if (!msg) return;
@@ -139,7 +139,7 @@ if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     try {
         gsap.registerPlugin(ScrollTrigger);
     } catch (e) {
-        console.warn('GSAP initialization failed:', e);
+        /* فشل تهيئة GSAP */
     }
 }
 
@@ -166,7 +166,7 @@ try {
     if (radius) document.documentElement.setAttribute('data-radius', radius);
 } catch (e) {}
 
-// GSAP entrance animations moved to static/js/motion.js (§22)
+/* حركات دخول GSAP انتقلت إلى motion.js */
 
 function debounce(func, wait) {
     let timeout;
@@ -303,7 +303,7 @@ function initAutoSave(formId, interval = 30000) {
     });
     setInterval(() => {
         if (hasChanges) {
-            console.log('Auto-saving form...');
+            /* الحفظ التلقائي للنموذج */
             hasChanges = false;
         }
     }, interval);
@@ -312,7 +312,7 @@ function initAutoSave(formId, interval = 30000) {
 function initPerformanceMonitoring() {
     window.addEventListener('load', () => {
         const loadTime = performance.now();
-        console.log(`Page loaded in ${loadTime.toFixed(2)}ms`);
+        /* تم تحميل الصفحة */
     });
 }
 
@@ -351,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (window.__ENV !== 'production' && isPlaceholder && !isToggle && !a.getAttribute('onclick')){
                 try {
                     var label = (a.textContent || a.getAttribute('aria-label') || '').trim();
-                    if (label) console.warn('Placeholder link detected:', label);
+                    if (label) {/* رابط placeholder تم اكتشافه */}
                 } catch (e) {}
             }
         });
@@ -383,21 +383,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Global JS errors handled by static/js/global-errors.js (loaded before base.js)
+/* أخطاء JS العالمية تُعالج بواسطة global-errors.js */
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
         navigator.serviceWorker.register('/static/pwa/sw.js', { scope: '/' })
             .then(function(registration) {
-                console.log('ServiceWorker registration successful');
+                /* تم تسجيل ServiceWorker بنجاح */
             })
             .catch(function(err) {
-                console.log('ServiceWorker registration failed:', err);
+                /* فشل تسجيل ServiceWorker */
             });
     });
 }
 
-// Top loading bar for page navigation
+/* شريط التحميل العلوي للتنقل بين الصفحات */
 (function() {
   var bar = document.createElement('div');
   bar.className = 'top-loading-bar';
@@ -435,7 +435,7 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() { completeBar(); });
 })();
 
-// Clickable table rows
+/* صفوف الجدول القابلة للنقر */
 document.addEventListener('click', function(e) {
   var tr = e.target.closest('tr[data-href]');
   if (tr) {
@@ -446,7 +446,7 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// Keyboard shortcuts
+/* اختصارات لوحة المفاتيح */
 document.addEventListener('keydown', function(e) {
     // Escape: close all toasts + modals
     if (e.key === 'Escape' && !e.target.closest('.tox')) {
@@ -471,7 +471,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Extra safety: prevent double-submit via capture phase
+/* منع الإرسال المزدوج عبر مرحلة الالتقاط */
 document.addEventListener('submit', function(e) {
     if (e.defaultPrevented) return;
     var btn = e.target.querySelector('button[type="submit"]');

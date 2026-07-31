@@ -19,7 +19,7 @@ document.getElementById('emergencyTreatmentForm').addEventListener('submit', fun
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        /* خطأ: */
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ العلاج الإسعافي', icon: 'error' });
     });
 });

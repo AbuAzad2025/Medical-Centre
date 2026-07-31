@@ -68,7 +68,7 @@ setInterval(function() {
             }
         })
         .catch(error => {
-            console.error('Error updating monitoring data:', error);
+            /* Error updating monitoring data: */
         });
 }, 60000); // دقيقة واحدة
 

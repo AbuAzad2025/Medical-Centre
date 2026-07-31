@@ -32,7 +32,7 @@ document.getElementById('triageForm').addEventListener('submit', function(e) {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        /* خطأ: */
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ بيانات الفرز', icon: 'error' });
     });
 });

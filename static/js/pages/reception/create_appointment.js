@@ -120,7 +120,7 @@ function loadDoctors() {
             }
         })
         .catch(error => {
-            console.error('Error loading doctors:', error);
+            /* Error تحميل doctors: */
         });
 }
 
@@ -151,7 +151,7 @@ document.getElementById('doctor_id').addEventListener('change', function() {
             }
         })
         .catch(error => {
-            console.error('Error loading available times:', error);
+            /* Error تحميل available times: */
         });
     }
 });
@@ -179,7 +179,7 @@ document.getElementById('appointment_date').addEventListener('change', function(
             }
         })
         .catch(error => {
-            console.error('Error loading available times:', error);
+            /* Error تحميل available times: */
         });
     }
 });

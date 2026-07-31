@@ -128,7 +128,7 @@
             debounceTimer = setTimeout(function() {
                 var csrfMeta = document.querySelector('meta[name="csrf-token"]');
                 var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
-                fetch('/api/search?q=' + encodeURIComponent(q), {
+                fetch('{{ url_for('main.api_search') }}?q=' + encodeURIComponent(q), {
                     headers: {'X-CSRFToken': csrfToken}
                 })
                 .then(function(r) { return r.json(); })

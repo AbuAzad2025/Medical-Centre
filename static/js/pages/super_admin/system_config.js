@@ -33,7 +33,7 @@ function saveSettings() {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        /* خطأ: */
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ الإعدادات', icon: 'error' });
     });
 }
@@ -64,7 +64,7 @@ function testSmsConnection() {
     })
     .catch(err => {
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إرسال الرسالة', icon: 'error' });
-        console.error(err);
+        /* تم التقاط خطأ */
     });
 }
 
@@ -76,7 +76,7 @@ function processNotificationQueue() {
     })
     .catch(err => {
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في معالجة الطابور', icon: 'error' });
-        console.error(err);
+        /* تم التقاط خطأ */
     });
 }
 
@@ -125,7 +125,7 @@ function testConnection() {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        /* خطأ: */
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في اختبار الاتصال', icon: 'error' });
     });
 }
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
-            console.error('Error loading settings:', error);
+            /* Error تحميل settings: */
         });
 
     fetch(__M3__ + '?action=load')
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         })
-        .catch(function(err) { console.error('خطأ:', err); });
+        .catch(function(err) { /* خطأ: */ });
 
     document.getElementById('saveDeptQueueSettings').addEventListener('click', function() {
         const rows = document.querySelectorAll('#deptQueueTable tbody tr');
@@ -203,6 +203,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(r => r.json())
         .then(d => { if (d.success) { Swal.fire({ title: 'تم', text: 'تم حفظ إعدادات الأقسام بنجاح', icon: 'success' }); } else { Swal.fire({ title: 'خطأ', text: 'فشل حفظ إعدادات الأقسام', icon: 'error' }); } })
-        .catch(function(err) { console.error('خطأ:', err); });
+        .catch(function(err) { /* خطأ: */ });
     });
 });

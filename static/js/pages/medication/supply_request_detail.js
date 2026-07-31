@@ -5,6 +5,6 @@ document.getElementById('approveBtn')?.addEventListener('click', async () => {
     const res = await fetch(__M1__, { method: 'POST', headers: { 'X-CSRFToken': csrfToken } });
     if (res.ok) location.reload();
   } catch (err) {
-    console.error('فشل الموافقة على طلب التوريد:', err);
+    /* فشل الموافقة على طلب التوريد: */
   }
 });

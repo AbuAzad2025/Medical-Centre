@@ -7,13 +7,13 @@ var __M = window.__M || [];
     // تصدير بيانات الحالة
     function exportEmergency() {
         // يمكن إضافة وظيفة التصدير هنا
-        console.log('تصدير بيانات حالة الطوارئ');
+        /* تصدير بيانات حالة الطوارئ */
     }
     
     // مشاركة بيانات الحالة
     function shareEmergency() {
         // يمكن إضافة وظيفة المشاركة هنا
-        console.log('مشاركة بيانات حالة الطوارئ');
+        /* مشاركة بيانات حالة الطوارئ */
     }
 
     document.addEventListener('DOMContentLoaded', function() {

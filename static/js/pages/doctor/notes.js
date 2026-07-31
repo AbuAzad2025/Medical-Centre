@@ -28,7 +28,7 @@ async function fetchTemplates() {
         templatesCache = Array.isArray(arr) ? arr : [];
         return templatesCache;
     } catch (err) {
-        console.error('خطأ في الاتصال:', err);
+        /* خطأ في الاتصال: */
     }
 }
 

@@ -40,7 +40,7 @@ function updateQueueStatus() {
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            /* خطأ: */
             const tbody = document.querySelector('#queue-status-all tbody');
             tbody.innerHTML = '<tr><td colspan="10" class="text-center text-danger">خطأ في الاتصال</td></tr>';
         });
@@ -141,7 +141,7 @@ function callNextPatient(departmentId) {
             updateQueueStatus();
         })
         .catch(error => {
-            console.error('Error:', error);
+            /* خطأ: */
             Swal.fire({ title: 'خطأ', text: 'حدث خطأ في استدعاء المريض', icon: 'error' });
         });
 }
@@ -172,7 +172,7 @@ function startTreatment(ticketId) {
             modal.hide();
         })
         .catch(error => {
-            console.error('Error:', error);
+            /* خطأ: */
             Swal.fire({ title: 'خطأ', text: 'حدث خطأ في بدء العلاج', icon: 'error' });
         });
 }
@@ -185,7 +185,7 @@ function completeTreatment(ticketId) {
             updateQueueStatus();
         })
         .catch(error => {
-            console.error('Error:', error);
+            /* خطأ: */
             Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إكمال العلاج', icon: 'error' });
         });
 }
@@ -220,7 +220,7 @@ function transferVisit(visitId) {
                     docSelect.innerHTML += `<option value="${s.id}">${s.full_name} - ${roleAr}</option>`;
                 });
             })
-            .catch(function(err) { console.error('خطأ:', err); });
+            .catch(function(err) { /* خطأ: */ });
     }, {once: false});
     const modal = new bootstrap.Modal(document.getElementById('transferVisitModal'));
     modal.show();
@@ -304,7 +304,7 @@ document.getElementById('skipPatientForm').addEventListener('submit', function(e
         this.reset();
     })
     .catch(error => {
-        console.error('Error:', error);
+        /* خطأ: */
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في تخطي المريض', icon: 'error' });
     });
 });
@@ -327,7 +327,7 @@ document.getElementById('cancelTicketForm').addEventListener('submit', function(
         this.reset();
     })
     .catch(error => {
-        console.error('Error:', error);
+        /* خطأ: */
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إلغاء التذكرة', icon: 'error' });
     });
 });
@@ -350,7 +350,7 @@ document.getElementById('approveEmergencyDebtForm').addEventListener('submit', f
         this.reset();
     })
     .catch(error => {
-        console.error('Error:', error);
+        /* خطأ: */
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الموافقة على دين الطوارئ', icon: 'error' });
     });
 });
@@ -373,7 +373,7 @@ document.getElementById('approveForceEntryForm').addEventListener('submit', func
         this.reset();
     })
     .catch(error => {
-        console.error('Error:', error);
+        /* خطأ: */
         Swal.fire({ title: 'خطأ', text: 'حدث خطأ في الموافقة على الدخول القوي', icon: 'error' });
     });
 });

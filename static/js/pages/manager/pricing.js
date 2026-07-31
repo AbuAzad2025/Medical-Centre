@@ -109,7 +109,7 @@ async function saveService() {
             Swal.fire('خطأ', result.message, 'error');
         }
     } catch (error) {
-        console.error('Error:', error);
+        /* خطأ: */
         Swal.fire('خطأ', 'حدث خطأ أثناء حفظ البيانات', 'error');
     }
 }
@@ -145,7 +145,7 @@ async function deleteService(id) {
                 Swal.fire('خطأ', result.message, 'error');
             }
         } catch (error) {
-            console.error('Error:', error);
+            /* خطأ: */
             Swal.fire('خطأ', 'حدث خطأ أثناء الحذف', 'error');
         }
     }

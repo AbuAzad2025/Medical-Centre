@@ -42,7 +42,7 @@
           resultArea.textContent = text;
           if (progressArea) progressArea.textContent = 'اكتمل!';
         } catch (err) {
-          console.error('OCR error', err);
+          /* OCR خطأ */
           if (progressArea) progressArea.textContent = 'خطأ: ' + err.message;
         }
       });

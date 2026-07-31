@@ -14,10 +14,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }).then(response => {
             if (response.ok) {
-                console.log('Auto-saved successfully');
+                /* Auto-saved successfully */
             }
         }).catch(error => {
-            console.error('Auto-save failed:', error);
+            /* Auto-save failed: */
         });
     }, 30000);
     

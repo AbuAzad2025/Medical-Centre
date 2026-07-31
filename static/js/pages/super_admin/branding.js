@@ -62,7 +62,7 @@ function selectTheme(themeId) {
         Swal.fire({ title: 'تم', text: 'تم تطبيق ألوان الثيم — احفظ لإبقاء التغييرات', icon: 'success' });
     })
     .catch(err => {
-        console.error(err);
+        /* تم التقاط خطأ */
         Swal.fire({ title: 'خطأ', text: 'تعذر تطبيق الثيم', icon: 'error' });
     });
 }

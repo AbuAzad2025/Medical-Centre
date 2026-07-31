@@ -117,7 +117,7 @@
                         <i class="fas fa-sign-in-alt btn-icon"></i>
                     </button>
 
-                    <a href="https://wa.me/972562150193" target="_blank" rel="noopener" class="login-secondary-btn">
+                    <a href="{{ url_for('main.technical_support') }}" class="login-secondary-btn">
                         <i class="fas fa-headset"></i>
                         الدعم الفني والمساعدة
                     </a>
@@ -143,7 +143,7 @@
         var tenantField = document.getElementById('tenantField');
         var tenantSelect = document.getElementById('tenant_slug');
         if (tenantField && tenantSelect) {
-            fetch('/auth/api/tenants-list')
+            fetch('{{ url_for('auth.api_tenants_list') }}')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data.tenants && data.tenants.length > 0) {

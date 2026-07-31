@@ -49,7 +49,7 @@ async function loadSettings() {
       tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">لا بيانات</td></tr>';
     }
   } catch (err) {
-    console.error('خطأ في الاتصال:', err);
+    /* خطأ في الاتصال: */
   }
 }
 
@@ -100,7 +100,7 @@ if (saveBtn) {
       }
       if (window.notify) window.notify.error('تعذّر حفظ الإعدادات. حاول مرة أخرى.');
     } catch (err) {
-      console.error('خطأ في الاتصال:', err);
+      /* خطأ في الاتصال: */
     }
   });
 }

@@ -9,8 +9,8 @@
     var msg = message || 'حدث خطأ غير متوقع';
     if (global.notify && typeof global.notify.error === 'function') {
       global.notify.error(msg);
-    } else {
-      console.error('[global-errors]', source || 'error', msg);
+    } else if (window.__ENV !== 'production') {
+      /* [global-خطأs] */
     }
   }
 

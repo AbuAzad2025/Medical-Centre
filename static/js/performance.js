@@ -22,7 +22,7 @@ class PerformanceMonitor {
         window.addEventListener('load', () => {
             const loadTime = performance.now() - this.startTime;
             this.metrics.pageLoad = loadTime;
-            console.log(`Page loaded in ${loadTime.toFixed(2)}ms`);
+            /* تم تحميل الصفحة في ${loadTime.toFixed(2)}ms */
         });
     }
 
@@ -186,7 +186,7 @@ class OptimizedSearch {
             this.cache.set(query, results);
             this.displayResults(results);
         } catch (error) {
-            console.error('Search error:', error);
+            /* Search خطأ: */
         }
     }
 

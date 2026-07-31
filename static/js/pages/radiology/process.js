@@ -100,7 +100,7 @@ var __M = window.__M || [];
                     }
                     aiAssistOutput.textContent = lines.join('\n');
                 } catch (err) {
-                    console.error('خطأ في الاتصال:', err);
+                    /* خطأ في الاتصال: */
                 }
             }
 
@@ -112,7 +112,7 @@ var __M = window.__M || [];
                     templatesCache = Array.isArray(arr) ? arr : [];
                     return templatesCache;
                 } catch (err) {
-                    console.error('خطأ في الاتصال:', err);
+                    /* خطأ في الاتصال: */
                 }
             }
 
@@ -124,7 +124,7 @@ var __M = window.__M || [];
                     macrosCache = Array.isArray(arr) ? arr : [];
                     return macrosCache;
                 } catch (err) {
-                    console.error('خطأ في الاتصال:', err);
+                    /* خطأ في الاتصال: */
                 }
             }
 
@@ -341,7 +341,7 @@ var __M = window.__M || [];
                         resetMacroForm();
                         await refreshMacrosUI();
                     } catch (err) {
-                        console.error('خطأ في الاتصال:', err);
+                        /* خطأ في الاتصال: */
                     }
                 });
             }
@@ -372,7 +372,7 @@ var __M = window.__M || [];
                             }
                             await refreshMacrosUI();
                         } catch (err) {
-                            console.error('خطأ في الاتصال:', err);
+                            /* خطأ في الاتصال: */
                         }
                     }
                 });
@@ -417,7 +417,7 @@ var __M = window.__M || [];
                             }
                             await refreshTemplatesUI();
                         } catch (err) {
-                            console.error('خطأ في الاتصال:', err);
+                            /* خطأ في الاتصال: */
                         }
                     }
                 });
@@ -447,7 +447,7 @@ var __M = window.__M || [];
                         resetTemplateForm();
                         await refreshTemplatesUI();
                     } catch (err) {
-                        console.error('خطأ في الاتصال:', err);
+                        /* خطأ في الاتصال: */
                     }
                 });
             }

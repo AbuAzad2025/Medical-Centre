@@ -366,7 +366,7 @@ class SessionManager {
                 this.sessionData = new Map(JSON.parse(data));
             }
         } catch (error) {
-            console.error('Error loading session data:', error);
+            /* فشل تحميل بيانات الجلسة */
         }
     }
 
@@ -375,7 +375,7 @@ class SessionManager {
             const data = JSON.stringify(Array.from(this.sessionData.entries()));
             sessionStorage.setItem('medical_session', data);
         } catch (error) {
-            console.error('Error saving session data:', error);
+            /* فشل حفظ بيانات الجلسة */
         }
     }
 
@@ -452,7 +452,7 @@ class AuditLogger {
             headers,
             body: JSON.stringify(logEntry)
         }).catch(error => {
-            console.error('Failed to send audit log:', error);
+            /* فشل إرسال سجل التدقيق */
         });
     }
 }

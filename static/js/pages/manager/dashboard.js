@@ -15,7 +15,7 @@ if (runBtn) {
             document.getElementById('whatIfWait').textContent = (data.predicted_wait_minutes ?? '-') + ' دقيقة';
             document.getElementById('whatIfRevenue').textContent = data.predicted_revenue ?? '-';
         } catch (err) {
-            console.error('خطأ في الاتصال:', err);
+            /* خطأ في الاتصال: */
         }
     });
 }
