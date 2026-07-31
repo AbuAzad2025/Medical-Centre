@@ -2,15 +2,16 @@
 InventoryLedgerService — mandatory stock ledger for every movement
 """
 from sqlalchemy import select
-from datetime import datetime, timezone
 from flask import g
 from app.extensions import db
-from utils.db_safety import safe_commit
 from services.feature_gate_service import require_module
 
 
 class InventoryLedgerService:
     MOVEMENT_TYPES = ('purchase', 'dispense', 'sale', 'return', 'adjustment', 'transfer', 'waste')
+
+    # Movement types that increase stock (all others decrease it)
+    INBOUND_TYPES = ('purchase', 'return', 'adjustment')
 
     @staticmethod
     @require_module('inventory')
@@ -21,27 +22,32 @@ class InventoryLedgerService:
         reference_type: str = "",
         reference_id: int | None = None,
         notes: str = "",
-        unit_cost: float | None = None,
         tenant_id: int | None = None,
     ) -> dict:
         if movement_type not in InventoryLedgerService.MOVEMENT_TYPES:
             raise ValueError(f"Invalid movement type: {movement_type}")
-        tid = tenant_id or getattr(g, 'tenant_id', None)
-        from app.modules.workflows.stock_models import StockMovement
-        movement = StockMovement(
-            tenant_id=tid,
+        if quantity < 0:
+            raise ValueError("quantity must be a positive integer; direction is derived from movement_type")
+        # Delegates to PharmacyStockService, the canonical writer that keeps
+        # Medication.stock_quantity and the stock_movements ledger consistent.
+        from app.modules.workflows.pharmacy import PharmacyStockService
+
+        sign = 1 if movement_type in InventoryLedgerService.INBOUND_TYPES else -1
+        performed_by = None
+        user = getattr(g, 'current_user', None)
+        if user is not None and getattr(user, 'id', None):
+            performed_by = user.id
+
+        PharmacyStockService.adjust_stock(
             medication_id=medication_id,
+            quantity_change=sign * quantity,
             movement_type=movement_type,
-            quantity=quantity,
-            reference_type=reference_type,
+            reference_type=reference_type or None,
             reference_id=reference_id,
-            unit_cost=unit_cost,
-            notes=notes,
-            created_by=getattr(g, 'current_user', None) and g.current_user.id or None,
+            performed_by=performed_by,
+            notes=notes or None,
         )
-        db.session.add(movement)
-        safe_commit(db.session, error_message="Failed to record stock movement", reraise=True)
-        return {"id": movement.id, "type": movement_type, "quantity": quantity}
+        return {"type": movement_type, "quantity": sign * quantity}
 
     @staticmethod
     @require_module('inventory')
@@ -51,13 +57,9 @@ class InventoryLedgerService:
         movements = db.session.execute(select(StockMovement).filter_by(
             medication_id=medication_id, tenant_id=tid
         )).scalars().all()
-        stock = 0
-        for m in movements:
-            if m.movement_type in ('purchase', 'return', 'adjustment'):
-                stock += m.quantity
-            else:
-                stock -= m.quantity
-        return max(0, stock)
+        # StockMovement.quantity is signed (negative for outflow), so the
+        # running balance is the plain sum of all recorded movements.
+        return max(0, sum(m.quantity for m in movements))
 
     @staticmethod
     @require_module('inventory')

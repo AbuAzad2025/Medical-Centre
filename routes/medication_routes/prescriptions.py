@@ -15,6 +15,7 @@ from services.prescription_service import prescription_service
 from app.extensions import db
 from utils.db_safety import safe_commit, safe_rollback
 from app.shared.enums import PaymentStatus, PrescriptionState
+from app.modules.workflows.pharmacy import PharmacyStockService
 import logging, json
 from datetime import datetime, timezone, timedelta, date
 from sqlalchemy import func, select
@@ -133,10 +134,19 @@ def dispense_prescription(prescription_id):
         if conflicts:
             return jsonify({'success': False, 'message': 'تفاعلات دوائية محتملة: ' + ', '.join(sorted(set(conflicts)))}), 400
         for it in items:
-            med = db.session.execute(select(Medication).filter(Medication.id == it.medication_id, Medication.tenant_id == current_user.tenant_id)).scalars().first()
-            med.stock_quantity = int(med.stock_quantity or 0) - int(it.quantity or 0)
-            med.updated_at = datetime.now(timezone.utc)
-            db.session.add(med)
+            med = db.session.execute(select(Medication).filter(Medication.id == it.medication_id, Medication.tenant_id == current_user.tenant_id).with_for_update()).scalars().first()
+            try:
+                PharmacyStockService.adjust_stock(
+                    medication_id=med.id,
+                    quantity_change=-int(it.quantity or 0),
+                    movement_type='sale',
+                    reference_type='PrescriptionItem',
+                    reference_id=it.id,
+                    performed_by=current_user.id,
+                    notes=f"Dispensed for prescription {prescription.id}",
+                )
+            except ValueError:
+                return jsonify({'success': False, 'message': f'المخزون غير كافٍ للدواء {med.trade_name}'}), 400
         prescription.status = PrescriptionState.DISPENSED
         prescription.updated_at = datetime.now(timezone.utc)
         log_row = PrescriptionDispenseLog(

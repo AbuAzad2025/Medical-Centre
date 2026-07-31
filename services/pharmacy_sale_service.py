@@ -38,13 +38,26 @@ class PharmacySaleService:
             med = db.session.execute(select(Medication).filter(
                 Medication.id == med_id,
                 Medication.tenant_id == tenant_id,
-            )).scalars().first()
+            ).with_for_update()).scalars().first()
             if not med:
                 safe_commit(db.session, error_message=f"Medication {med_id} not found")
                 return {"error": f"Medication {med_id} not found"}
-            qty = item.get('quantity', 1)
+            qty = int(item.get('quantity', 1))
             unit_price = item.get('unit_price', 0)
             line_total = qty * unit_price
+            from app.modules.workflows.pharmacy import PharmacyStockService
+            try:
+                PharmacyStockService.adjust_stock(
+                    medication_id=med_id,
+                    quantity_change=-qty,
+                    movement_type='sale',
+                    reference_type='PharmacySale',
+                    reference_id=sale.id,
+                    performed_by=dispensed_by,
+                )
+            except ValueError:
+                safe_commit(db.session, error_message=f"Insufficient stock for medication {med_id}")
+                return {"error": f"Insufficient stock for medication {med_id}"}
             sale_item = PharmacySaleItem(
                 tenant_id=tenant_id,
                 sale_id=sale.id,

@@ -4,6 +4,7 @@ Chunk 3: commission/options, final-commit failure, and basic CRUD paths.
 """
 import pytest
 from unittest.mock import patch
+from sqlalchemy import select
 
 from services.pharmacy_sale_service import PharmacySaleService
 from app.shared.enums import PrescriptionState
@@ -47,6 +48,29 @@ def _make_patient(app, test_tenant):
     return p.id
 
 
+def _make_user(app, test_tenant, username='dispenser_test'):
+    """Insert a minimal User row and return it."""
+    from models.user import User
+    from app.extensions import db
+
+    u = db.session.execute(
+        select(User).filter_by(username=username, tenant_id=test_tenant.id)
+    ).scalars().first()
+    if not u:
+        u = User(
+            tenant_id=test_tenant.id,
+            username=username,
+            email=f'{username}@test.local',
+            full_name='Dispenser Test',
+            role='pharmacist',
+            is_active=True,
+        )
+        u.set_password('ValidPass123!')
+        db.session.add(u)
+        db.session.commit()
+    return u
+
+
 def _tenant_ctx(app, test_tenant):
     """Push a request context with tenant bound on g."""
     from app.extensions import db
@@ -75,7 +99,7 @@ class TestCreateSaleCommissionAndOptions:
         items = [{'medication_id': med.id, 'quantity': 2, 'unit_price': 10.0}]
         result = PharmacySaleService.create_sale(
             prescription_id=rx_id,
-            dispensed_by=1,
+            dispensed_by=_make_user(app, test_tenant).id,
             items=items,
             tenant_id=test_tenant.id,
         )
@@ -95,7 +119,7 @@ class TestCreateSaleCommissionAndOptions:
         ]
         result = PharmacySaleService.create_sale(
             prescription_id=rx_id,
-            dispensed_by=1,
+            dispensed_by=_make_user(app, test_tenant).id,
             items=items,
             tenant_id=test_tenant.id,
         )
@@ -113,7 +137,7 @@ class TestCreateSaleCommissionAndOptions:
 
         PharmacySaleService.create_sale(
             prescription_id=rx_id,
-            dispensed_by=1,
+            dispensed_by=_make_user(app, test_tenant).id,
             items=items,
             tenant_id=test_tenant.id,
         )
@@ -132,7 +156,7 @@ class TestCreateSaleCommissionAndOptions:
 
         result = PharmacySaleService.create_sale(
             prescription_id=rx_id,
-            dispensed_by=1,
+            dispensed_by=_make_user(app, test_tenant).id,
             items=items,
             tenant_id=test_tenant.id,
         )
@@ -147,7 +171,7 @@ class TestCreateSaleCommissionAndOptions:
         """When prescription_id doesn't exist, return an error dict."""
         result = PharmacySaleService.create_sale(
             prescription_id=999_999,
-            dispensed_by=1,
+            dispensed_by=_make_user(app, test_tenant).id,
             items=[],
             tenant_id=test_tenant.id,
         )
@@ -166,7 +190,7 @@ class TestCreateSaleCommissionAndOptions:
             with pytest.raises(Exception):
                 PharmacySaleService.create_sale(
                     prescription_id=rx_id,
-                    dispensed_by=1,
+                    dispensed_by=_make_user(app, test_tenant).id,
                     items=items,
                     tenant_id=test_tenant.id,
                 )
@@ -180,7 +204,7 @@ class TestCreateSaleCommissionAndOptions:
 
         result = PharmacySaleService.create_sale(
             prescription_id=rx_id,
-            dispensed_by=1,
+            dispensed_by=_make_user(app, test_tenant).id,
             items=[],
             tenant_id=test_tenant.id,
         )
@@ -198,7 +222,7 @@ class TestCreateSaleCommissionAndOptions:
         try:
             result = PharmacySaleService.create_sale(
                 prescription_id=rx_id,
-                dispensed_by=1,
+                dispensed_by=_make_user(app, test_tenant).id,
                 items=items,
             )
         finally:

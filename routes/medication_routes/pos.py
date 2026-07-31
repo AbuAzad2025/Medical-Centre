@@ -15,6 +15,7 @@ from utils.db_safety import safe_commit, safe_rollback
 from app.shared.pos_charge import execute_pos_charge
 from app.shared.user_messages import user_message
 from services.pos_terminal_service import PosTerminalService
+from app.modules.workflows.pharmacy import PharmacyStockService
 
 
 @medication_bp.route('/pos')
@@ -124,11 +125,9 @@ def pos_sell():
             med = db.session.execute(select(Medication).filter(
                 Medication.tenant_id == current_user.tenant_id,
                 Medication.id == med_id
-            )).scalars().first()
+            ).with_for_update()).scalars().first()
             if not med:
                 return jsonify({'success': False, 'message': f'الدواء غير موجود (الرقم {med_id})'}), 400
-            if med.stock_quantity < qty:
-                return jsonify({'success': False, 'message': f'المخزون غير كافٍ لـ {med.trade_name} (المتوفر: {med.stock_quantity})'}), 400
 
             unit_price = Decimal(str(med.price or 0))
             total_price = unit_price * qty
@@ -145,8 +144,18 @@ def pos_sell():
             db.session.add(sale_item)
             sale_items.append(sale_item)
 
-            med.stock_quantity -= qty
-            med.updated_at = datetime.now(timezone.utc)
+            try:
+                PharmacyStockService.adjust_stock(
+                    medication_id=med.id,
+                    quantity_change=-qty,
+                    movement_type='sale',
+                    reference_type='PharmacySale',
+                    reference_id=sale.id,
+                    performed_by=current_user.id,
+                    notes=f"POS sale {sale.id}",
+                )
+            except ValueError:
+                return jsonify({'success': False, 'message': f'المخزون غير كافٍ لـ {med.trade_name} (المتوفر: {med.stock_quantity})'}), 400
 
             total += total_price
 
@@ -232,7 +241,9 @@ def api_sales_list():
     per_page = request.args.get('per_page', 50, type=int)
     date_from = request.args.get('date_from', '')
     date_to = request.args.get('date_to', '')
-    q = select(PharmacySale)
+    q = select(PharmacySale).filter(
+        PharmacySale.tenant_id == current_user.tenant_id,
+    )
     if date_from:
         try:
             q = q.filter(PharmacySale.created_at >= datetime.strptime(date_from, '%Y-%m-%d'))
@@ -248,7 +259,7 @@ def api_sales_list():
     data = [{
         'id': s.id,
         'sale_number': s.sale_number or f'#{s.id:06d}',
-        'customer_name': s.notes or '-',
+        'customer_name': s.customer_name or '-',
         'total': float(s.total_amount or 0),
         'items_count': len(s.items),
         'created_at': s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else '',
