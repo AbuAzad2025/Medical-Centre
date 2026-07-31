@@ -8,7 +8,7 @@ import sys
 from migrations.migration_utils import column_exists, fk_exists, index_exists, table_exists
 
 # Keep in sync with the latest Alembic revision in migrations/versions/.
-ALEMBIC_HEAD_REVISION = 's2_008_comprehensive_rls_force'
+ALEMBIC_HEAD_REVISION = 's2_009_schema_drift_sync'
 
 
 def test_migration_utils_callable():
