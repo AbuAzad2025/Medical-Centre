@@ -95,7 +95,7 @@ class TestNotificationQueueTenantIsolation:
             db.session.add_all([t1, t2])
             db.session.commit()
 
-            user = User(username='notif-dummy', email='notif@example.com', role='admin', password_hash='fakehash', full_name='Notif Dummy')
+            user = User(username='notif-dummy', email='notif@example.com', role='admin', password_hash='fakehash', full_name='Notif Dummy', tenant_id=t1.id)
             db.session.add(user)
             db.session.commit()
 
