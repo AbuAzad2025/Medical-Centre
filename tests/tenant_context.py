@@ -93,6 +93,12 @@ def ensure_default_test_tenant(app: Flask):
 
             bind_tenant_on_g(tenant, db_session=db.session)
 
+            # Ensure tenant has active payment status for module access
+            from app.shared.enums import TenantStatus
+            if tenant.status != TenantStatus.ACTIVE:
+                tenant.status = TenantStatus.ACTIVE
+                db.session.commit()
+
             now = datetime.now(timezone.utc)
             changed = False
             for module_name in get_all_module_names():

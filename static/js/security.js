@@ -55,6 +55,15 @@ class SecurityManager {
         }, 3000);
     }
 
+    handleImpersonationExitError() {
+        if (window.notifications) {
+            window.notifications.show('حدث خطأ أثناء العودة للحساب الأصلي', 'error');
+        } else {
+            // Fallback if notifications not available
+            console.error('فشل إنهاء وضع الانتحال');
+        }
+    }
+
     setupInputSanitization() {
         // Sanitize all text inputs
         document.addEventListener('input', (e) => {
