@@ -15,7 +15,7 @@ function submitScan() {
       el.innerHTML = '<div class="alert alert-danger"></div>';
       el.firstElementChild.textContent = data.message;
     }
-  }).catch(err => /* فشل مسح الباركود: */
+  }).catch(err => { /* فشل مسح الباركود: */ });
 }
 document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
   if (e.key === 'Enter') submitScan();
