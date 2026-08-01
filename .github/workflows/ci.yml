@@ -14,6 +14,161 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ── Python Static Analysis & Security Gate ────────────────────────────────
+  # Ruff (lint/format), Mypy (types), pip-audit (CVEs), bandit (SAST).
+  # NOTE: Ruff + Mypy run as *progressive* gates (continue-on-error) on this
+  # legacy codebase; they report stats every run and can be flipped to strict
+  # (remove continue-on-error) once the baseline reaches 0. Bandit, pip-audit
+  # and the template/syntax gates are strict from day one.
+  static-analysis-python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install analysis tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff mypy pip-audit bandit types-requests
+
+      - name: Ruff lint (progressive — see job header)
+        continue-on-error: true
+        run: ruff check . --statistics
+
+      - name: Ruff format check (progressive — see job header)
+        continue-on-error: true
+        run: ruff format --check .
+
+      - name: Mypy type checking (progressive — see job header)
+        continue-on-error: true
+        run: mypy app/ services/ routes/ --explicit-package-bases
+
+      - name: Pip-audit (CVE dependency scan — strict)
+        run: pip-audit -r requirements.txt
+
+      - name: Bandit SAST — high severity only (strict)
+        run: bandit -r app/ services/ routes/ -lll -iii
+
+  # ── Templates & i18n Validation Gate ───────────────────────────────────────
+  templates-i18n:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Jinja2
+        run: |
+          python -m pip install --upgrade pip
+          pip install jinja2
+
+      - name: Jinja2 syntax parse gate (all templates)
+        run: |
+          python - <<'PY'
+          import glob, sys
+          from jinja2 import Environment, TemplateSyntaxError
+
+          env = Environment()
+          files = sorted(glob.glob('templates/**/*.html', recursive=True))
+          errs = 0
+          for path in files:
+              # parse() validates SYNTAX only (unclosed blocks / bad tags).
+              # It does NOT resolve custom app filters (e.g. 'enum_label',
+              # 'format_datetime'), so those templates still parse cleanly.
+              try:
+                  with open(path, encoding='utf-8') as fh:
+                      env.parse(fh.read())
+              except TemplateSyntaxError as e:
+                  print(f'JINJA SYNTAX ERROR in {path}: {e}')
+                  errs += 1
+              except Exception as e:
+                  print(f'ERROR reading {path}: {e}')
+                  errs += 1
+          if errs:
+              print(f'FAILED: {errs} template syntax errors')
+              sys.exit(1)
+          print(f'OK: {len(files)} templates parsed cleanly')
+          PY
+
+      - name: i18n hardcoded-string lint
+        run: |
+          python - <<'PY'
+          import glob, re, sys
+
+          # Flag plain user-facing text (>= 3 words) inside HTML that is not
+          # already wrapped in {{ _('...') }} / {% trans %}.
+          HARD = re.compile(r'[A-Za-z]{3,}\s+[A-Za-z]{3,}(\s+[A-Za-z]+){1,}')
+          SKIPS = ('aria-', 'http', 'data-', 'colspan', 'rowspan', '<', '&',
+                   'xmlns', 'charset', 'viewport', 'content=', 'name=', 'property=')
+          issues = 0
+          for path in sorted(glob.glob('templates/**/*.html', recursive=True)):
+              src = open(path, encoding='utf-8').read()
+              cleaned = re.sub(r'{{.*?}}', ' ', src, flags=re.S)
+              cleaned = re.sub(r'{%.*?%}', ' ', cleaned, flags=re.S)
+              for m in re.finditer(r'>([^<]+)<', cleaned):
+                  text = m.group(1).strip()
+                  if not text:
+                      continue
+                  if text.startswith('_('):
+                      continue
+                  if HARD.search(text) and not any(text.lower().startswith(s) for s in SKIPS):
+                      print(f"I18N WARN {path}: possible hardcoded string -> {text[:70]!r}")
+                      issues += 1
+          if issues:
+              print(f"\nFAILED: {issues} potential unlocalised strings found")
+              sys.exit(1)
+          print("OK: no obvious unlocalised user-facing strings in templates")
+          PY
+
+  # ── Frontend CSS & Codebase Hygiene Gate ───────────────────────────────────
+  # stylelint + cspell are progressive gates on the legacy CSS/translation
+  # base; they report and can be hardened to strict later.
+  frontend-spelling-css:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install frontend tooling
+        run: npm ci
+
+      - name: Stylelint (CSS audit — progressive)
+        continue-on-error: true
+        run: npx stylelint "static/css/**/*.css"
+
+      - name: CSpell (project-wide spellcheck — progressive)
+        continue-on-error: true
+        run: npx cspell "**/*.{py,html,js,css,md,json,toml,yaml,yml,sql,ini,cfg,sh,bat,ps1}" --no-progress
+
+  # ── CI Workflow Integrity Gate ───────────────────────────────────────────────
+  workflow-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: ActionLint (CI YAML validation)
+        uses: rhysd/actionlint-action@v1.7.10
+        with:
+          version: 1.7.2
+
   migrate:
     runs-on: ubuntu-latest
     timeout-minutes: 25

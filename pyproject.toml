@@ -1,0 +1,142 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "medical-system"
+version = "0.1.0"
+description = "Medical Centre Management System"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.5.0",
+    "mypy>=1.10.0",
+    "bandit>=1.7.0",
+    "pip-audit>=2.6.0",
+    "types-requests>=2.31.0",
+    "types-urllib3>=1.26.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "T20", # flake8-print
+    "SIM", # flake8-simplify
+    "ARG", # flake8-unused-arguments
+    "PTH", # flake8-use-pathlib
+    "ERA", # eradicate
+    "PL",  # pylint
+    "TRY", # tryceratops
+    "RET", # flake8-return
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E501",    # line too long (handled by formatter)
+    "SIM102",  # nested if blocks
+    "SIM103",  # return if else
+    "ARG001",  # unused argument
+    "ARG002",  # unused argument in method
+    "B008",    # function call in default argument
+    "TRY003",  # specifying long messages
+    "TRY004",  # bare except
+    "PTH118",  # os.path.join
+    "PTH120",  # os.path functions
+    "PLW2901", # loop variable overwrites
+    "ERA001",  # commented out code
+    "RUF013",  # implicit Optional
+    "RUF015",  # unnecessary iterable allocation
+    "RUF100",  # unused noqa comment
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "S101",   # assert
+    "S106",   # hardcoded password
+    "PT006",  # pytest fixture param style
+    "PLR0913", # too many args
+    "PLR0912", # too many branches
+    "PLR0915", # too many statements
+    "B017",   # pytest.raises(Exception) - common in tests
+    "ANN001", # type annotations optional in tests (if ANN enabled)
+]
+"scripts/*" = [
+    "T201",   # print
+    "S101",   # assert
+    "S603",   # subprocess call
+    "S607",   # partial path
+    "E402",   # module import not at top
+]
+"tests/conftest.py" = [
+    "T201",
+]
+"tests/test_*.py" = [
+    "T201",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "models", "services", "utils", "routes"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+docstring-code-format = false
+line-ending = "lf"
+exclude = ["static/css", "static/js/vendor"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+strict_optional = true
+show_error_codes = true
+pretty = true
+namespace_packages = true
+explicit_package_bases = true
+plugins = []
+
+[[tool.mypy.overrides]]
+module = [
+    "app.*",
+    "routes.*",
+    "services.*",
+    "models.*",
+    "utils.*",
+]
+strict = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+strict = false
+ignore_errors = true
+
+[tool.bandit]
+targets = ["app/", "services/", "routes/", "models/", "utils/"]
+exclude_dirs = ["tests/", "migrations/", "__pycache__/", ".venv/", "venv/"]
+skips = ["B101", "B601"]
+confidence = "medium"
+severity = "medium"
+
+[tool.pip-audit]
+requirements = "requirements.txt"
+format = "columns"
+desc = "on"
+fix = false

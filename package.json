@@ -1,0 +1,21 @@
+{
+  "name": "medical-system-frontend",
+  "version": "1.0.0",
+  "description": "Frontend tooling for Medical Centre Management System",
+  "private": true,
+  "scripts": {
+    "lint:css": "stylelint \"static/css/**/*.css\"",
+    "lint:css:fix": "stylelint \"static/css/**/*.css\" --fix",
+    "spellcheck": "cspell \"**/*.{py,html,js,css,md,json,toml,yaml,yml,sql,ini,cfg,conf,sh,bat,ps1}\"",
+    "spellcheck:fix": "cspell \"**/*.{py,html,js,css,md,json,toml,yaml,yml,sql,ini,cfg,conf,sh,bat,ps1}\" --fix"
+  },
+  "devDependencies": {
+    "stylelint": "^16.9.0",
+    "stylelint-config-standard": "^36.0.0",
+    "stylelint-config-recess-order": "^5.0.0",
+    "cspell": "^8.14.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
