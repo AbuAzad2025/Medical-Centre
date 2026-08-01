@@ -95,6 +95,7 @@ class TestStripeWebhookIdempotency:
     def test_concurrent_distinct_events_create_multiple_records(self, app, test_tenant):
         import threading
         import json
+        from unittest.mock import patch
 
         # Make tenant suspended so invoice.paid can reactivate without error
         tenant_id = test_tenant.id
@@ -103,9 +104,18 @@ class TestStripeWebhookIdempotency:
 
         results = []
 
-        def ingest(event_id):
-            event = {
-                'id': event_id,
+        def ingest(payload):
+            try:
+                with app.app_context():
+                    result = StripeSubscriptionService.ingest_webhook(payload, 'sig_header')
+                    results.append(result)
+            except Exception as e:
+                results.append({'error': str(e)})
+
+        event_ids = [f'evt_distinct_{uuid.uuid4().hex[:8]}' for _ in range(3)]
+        payloads = [
+            json.dumps({
+                'id': eid,
                 'type': 'invoice.paid',
                 'data': {
                     'object': {
@@ -113,23 +123,20 @@ class TestStripeWebhookIdempotency:
                         'metadata': {'tenant_id': str(tenant_id)},
                     }
                 }
-            }
-            payload = json.dumps(event).encode()
-            with app.app_context():
-                with patch.object(StripeSubscriptionService, 'verify_signature', return_value=event):
-                    with patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None):
-                        try:
-                            result = StripeSubscriptionService.ingest_webhook(payload, 'sig_header')
-                            results.append(result)
-                        except Exception as e:
-                            results.append({'error': str(e)})
+            }).encode()
+            for eid in event_ids
+        ]
 
-        event_ids = [f'evt_distinct_{uuid.uuid4().hex[:8]}' for _ in range(3)]
-        threads = [threading.Thread(target=ingest, args=(eid,)) for eid in event_ids]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        # Apply patches OUTSIDE the threads: patching inside each thread races
+        # on the class attribute and can leave MagicMock leftovers in place,
+        # poisoning every subsequent test in the process.
+        with patch.object(StripeSubscriptionService, 'verify_signature', side_effect=lambda p, s: json.loads(p)):
+            with patch.object(StripeSubscriptionService, '_tenant_from_event', return_value=None):
+                threads = [threading.Thread(target=ingest, args=(p,)) for p in payloads]
+                for t in threads:
+                    t.start()
+                for t in threads:
+                    t.join()
 
         errors = [r for r in results if r.get('error')]
         assert len(errors) == 0, f"Unexpected errors: {errors}"
