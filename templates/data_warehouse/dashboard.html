@@ -5,8 +5,9 @@
   <div class="card shadow-sm mb-4">
     <div class="card-header bg-primary text-white">مزامنة يدوية</div>
     <div class="card-body">
-      <form method="post" action="{{ url_for('data_warehouse.sync') }}">
-        <div class="row g-3 align-items-end">
+<form method="post" action="{{ url_for('data_warehouse.sync') }}">
+            {{ forms.csrf() }}
+            <div class="row g-3 align-items-end">
           <div class="col-md-6">
             <label for="sync_name" class="form-label">نوع المزامنة</label>
             <select class="form-select" id="sync_name" name="sync_name">

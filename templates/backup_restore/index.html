@@ -8,6 +8,7 @@
         <div class="card-header bg-primary text-white">النسخ المتاحة</div>
         <div class="card-body">
           <form method="post">
+            {{ forms.csrf() }}
             <div class="mb-3">
               <label for="backup_id" class="form-label">اختر نسخة</label>
               <select class="form-select" id="backup_id" name="backup_id" required>

@@ -28,11 +28,12 @@
           <td>{{ c.device_name }}</td>
           <td>{{ c.device_type }}</td>
           <td>{{ c.last_used_at.strftime('%Y-%m-%d %H:%M') if c.last_used_at else '—' }}</td>
-          <td>
-            <form method="post" action="{{ url_for('biometric.remove_credential', cred_id=c.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد؟');">
-              <button type="submit" class="btn btn-sm btn-danger">حذف</button>
-            </form>
-          </td>
+<td>
+             <form method="post" action="{{ url_for('biometric.remove_credential', cred_id=c.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد؟');">
+               {{ forms.csrf() }}
+               <button type="submit" class="btn btn-sm btn-danger">حذف</button>
+             </form>
+           </td>
         </tr>
         {% else %}
         <tr><td colspan="4" class="text-center text-muted">لا توجد أجهزة مُسجلة</td></tr>
