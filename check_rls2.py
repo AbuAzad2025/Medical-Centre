@@ -5,7 +5,7 @@ cur = conn.cursor()
 
 # Check alembic_version table
 try:
-    cur.execute("SELECT version_num FROM alembic_version")
+    cur.execute('SELECT version_num FROM alembic_version')
     print('Alembic version:', cur.fetchone())
 except Exception as e:
     print('alembic_version error:', e)

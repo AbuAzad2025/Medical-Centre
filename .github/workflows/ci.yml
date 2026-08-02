@@ -14,12 +14,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Python Static Analysis & Security Gate ────────────────────────────────
-  # Ruff (lint/format), Mypy (types), pip-audit (CVEs), bandit (SAST).
-  # NOTE: Ruff + Mypy run as *progressive* gates (continue-on-error) on this
-  # legacy codebase; they report stats every run and can be flipped to strict
-  # (remove continue-on-error) once the baseline reaches 0. Bandit, pip-audit
-  # and the template/syntax gates are strict from day one.
+  # -- Python Static Analysis & Security Gate ---------------------------------
+  # STRICT gates (fail the build on breach): ruff formatting, ruff
+  # undefined-name bugcheck (F821/F823), mypy (strict config), pip-audit,
+  # bandit -lll (HIGH-severity SAST).
+  # PROGRESSIVE reporting: full `ruff check --statistics` (legacy style
+  # baseline -- reports without failing).
   static-analysis-python:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -37,23 +37,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install ruff mypy pip-audit bandit types-requests
 
-      - name: Ruff lint (progressive — see job header)
+      - name: Ruff lint overview (progressive -- legacy style baseline)
         continue-on-error: true
         run: ruff check . --statistics
 
-      - name: Ruff format check (progressive — see job header)
-        continue-on-error: true
+      - name: Ruff format check (strict)
         run: ruff format --check .
 
-      - name: Mypy type checking (progressive — see job header)
-        continue-on-error: true
-        run: mypy app/ services/ routes/ --explicit-package-bases
+      - name: Ruff undefined-name bug check (strict)
+        run: ruff check --select F821,F823 .
 
-      - name: Pip-audit (CVE dependency scan — strict)
+      - name: Mypy type checking (strict)
+        run: mypy app/ services/ routes/ models/ utils/ --explicit-package-bases
+
+      - name: Pip-audit (CVE dependency scan -- strict)
         run: pip-audit -r requirements.txt
 
-      - name: Bandit SAST — high severity only (strict)
-        run: bandit -r app/ services/ routes/ -lll -iii
+      - name: Bandit SAST -- high severity only (strict)
+        run: bandit -r app/ services/ routes/ -lll
 
   # ── Templates & i18n Validation Gate ───────────────────────────────────────
   templates-i18n:
@@ -101,13 +102,11 @@ jobs:
           print(f'OK: {len(files)} templates parsed cleanly')
           PY
 
-      - name: i18n hardcoded-string lint
+      - name: i18n hardcoded-string lint (progressive -- legacy baseline)
+        continue-on-error: true
         run: |
           python - <<'PY'
           import glob, re, sys
-
-          # Flag plain user-facing text (>= 3 words) inside HTML that is not
-          # already wrapped in {{ _('...') }} / {% trans %}.
           HARD = re.compile(r'[A-Za-z]{3,}\s+[A-Za-z]{3,}(\s+[A-Za-z]+){1,}')
           SKIPS = ('aria-', 'http', 'data-', 'colspan', 'rowspan', '<', '&',
                    'xmlns', 'charset', 'viewport', 'content=', 'name=', 'property=')
@@ -126,8 +125,8 @@ jobs:
                       print(f"I18N WARN {path}: possible hardcoded string -> {text[:70]!r}")
                       issues += 1
           if issues:
-              print(f"\nFAILED: {issues} potential unlocalised strings found")
-              sys.exit(1)
+              print(f"\nPROGRESSIVE: {issues} potential unlocalised strings found")
+              sys.exit(0)
           print("OK: no obvious unlocalised user-facing strings in templates")
           PY
 

@@ -77,7 +77,7 @@
     "alpha-value-notation": "number",
     "hue-degree-notation": "angle",
     "percentage-notation": "number",
-    "number-no-trailing-zer": true,
+    "number-no-trailing-zero": true,
     "length-zero-no-unit": true,
     "number-leading-zero": "always",
     "unit-case": "lower",

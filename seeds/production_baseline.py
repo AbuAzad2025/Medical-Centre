@@ -3,6 +3,7 @@
 Seeds the canonical module registry into ``module_definitions`` and creates
 the master ``platform_owner`` account. Idempotent — safe to run repeatedly.
 """
+
 from datetime import datetime
 from app.core.module.registry import MODULE_REGISTRY
 from app.core.module.models import ModuleDefinition
@@ -12,9 +13,9 @@ from . import tenant_bypass
 from sqlalchemy import select
 
 # 14 application modules (everything except the internal 'owner' entry).
-APPLICATION_MODULES = [name for name in MODULE_REGISTRY if name != "owner"]
+APPLICATION_MODULES = [name for name in MODULE_REGISTRY if name != 'owner']
 
-MASTER_USERNAME = "azad"
+MASTER_USERNAME = 'azad'
 
 
 def _compute_master_password() -> str:
@@ -24,10 +25,10 @@ def _compute_master_password() -> str:
     e.g., Azad@Medical@Tuesday@07@14
     """
     now = datetime.now()
-    day_name = now.strftime("%A")
-    month = now.strftime("%m")
-    day_num = now.strftime("%d")
-    return f"Azad@Medical@{day_name}@{month}@{day_num}"
+    day_name = now.strftime('%A')
+    month = now.strftime('%m')
+    day_num = now.strftime('%d')
+    return f'Azad@Medical@{day_name}@{month}@{day_num}'
 
 
 MASTER_PASSWORD = _compute_master_password()
@@ -39,7 +40,7 @@ def seed_module_definitions(session=None):
     with tenant_bypass():
         created = 0
         for name, meta in MODULE_REGISTRY.items():
-            if name == "owner":
+            if name == 'owner':
                 continue
             if db.session.execute(select(ModuleDefinition).filter_by(name=name)).scalars().first():
                 continue
@@ -48,7 +49,7 @@ def seed_module_definitions(session=None):
                     name=meta.name,
                     name_ar=meta.name_ar,
                     category=meta.category,
-                    description=getattr(meta, "description_ar", None),
+                    description=getattr(meta, 'description_ar', None),
                     is_active=True,
                 )
             )
@@ -61,11 +62,13 @@ def seed_master_account(session=None):
     """Create the platform-owner master account (idempotent)."""
     session = session or db.session
     with tenant_bypass():
-        existing = db.session.execute(select(User).filter_by(username=MASTER_USERNAME)).scalars().first()
+        existing = (
+            db.session.execute(select(User).filter_by(username=MASTER_USERNAME)).scalars().first()
+        )
         if existing:
             changed = False
-            if existing.role != "platform_owner":
-                existing.role = "platform_owner"
+            if existing.role != 'platform_owner':
+                existing.role = 'platform_owner'
                 changed = True
             if not existing.check_password(MASTER_PASSWORD):
                 existing.set_password(MASTER_PASSWORD)
@@ -75,9 +78,9 @@ def seed_master_account(session=None):
             return existing
         master = User(
             username=MASTER_USERNAME,
-            email="azad@medical.system",
-            full_name="Platform Owner (Azad)",
-            role="platform_owner",
+            email='azad@medical.system',
+            full_name='Platform Owner (Azad)',
+            role='platform_owner',
             tenant_id=None,
             is_active=True,
         )
@@ -97,11 +100,11 @@ def run(app=None):
         seeded = seed_module_definitions()
         master = seed_master_account()
         print(
-            f"[production_baseline] modules seeded={seeded}, "
+            f'[production_baseline] modules seeded={seeded}, '
             f"master='{master.username}' (id={master.id})"
         )
         return master
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     run()

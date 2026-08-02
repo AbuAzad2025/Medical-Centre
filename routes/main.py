@@ -164,8 +164,6 @@ def health():
     # SMTP connectivity check
     smtp_status = 'unconfigured'
     try:
-        from flask import current_app
-
         mail_server = current_app.config.get('MAIL_SERVER')
         mail_port = current_app.config.get('MAIL_PORT')
         mail_username = current_app.config.get('MAIL_USERNAME')

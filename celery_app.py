@@ -1,4 +1,5 @@
 """Celery application factory for background infrastructure tasks."""
+
 from __future__ import annotations
 
 import os

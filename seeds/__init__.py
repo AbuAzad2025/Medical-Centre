@@ -15,6 +15,7 @@ level, every seeder runs inside ``tenant_bypass()`` so global/platform rows
 (the master account with ``tenant_id=NULL``, cross-tenant lookups) are not
 wrongly scoped or rejected by the fail-closed auto-assign guard.
 """
+
 from contextlib import contextmanager
 from flask import g
 

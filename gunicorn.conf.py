@@ -1,6 +1,7 @@
 """
 Gunicorn Configuration for Medical System Production Deployment
 """
+
 import os
 import multiprocessing
 
@@ -9,7 +10,12 @@ bind = os.environ.get('GUNICORN_BIND', '0.0.0.0:8000')
 backlog = int(os.environ.get('GUNICORN_BACKLOG', '2048'))
 
 # Worker processes
-workers = int(os.environ.get('WEB_CONCURRENCY', os.environ.get('GUNICORN_WORKERS', str(multiprocessing.cpu_count() * 2 + 1))))
+workers = int(
+    os.environ.get(
+        'WEB_CONCURRENCY',
+        os.environ.get('GUNICORN_WORKERS', str(multiprocessing.cpu_count() * 2 + 1)),
+    )
+)
 worker_class = os.environ.get('GUNICORN_WORKER_CLASS', 'gthread')
 worker_connections = int(os.environ.get('GUNICORN_WORKER_CONNECTIONS', '1000'))
 max_requests = int(os.environ.get('GUNICORN_MAX_REQUESTS', '1000'))
@@ -44,14 +50,18 @@ limit_request_line = int(os.environ.get('GUNICORN_LIMIT_REQUEST_LINE', '4094'))
 # Graceful shutdown
 worker_tmp_dir = os.environ.get('GUNICORN_WORKER_TMP_DIR', '/dev/shm')
 
+
 def when_ready(server):
-    server.log.info("Medical System ready to accept connections")
+    server.log.info('Medical System ready to accept connections')
+
 
 def worker_int(worker):
-    worker.log.info("Worker %d interrupted", worker.pid)
+    worker.log.info('Worker %d interrupted', worker.pid)
+
 
 def pre_fork(server, worker):
-    server.log.info("Spawning worker %d", worker.pid)
+    server.log.info('Spawning worker %d', worker.pid)
+
 
 def post_fork(server, worker):
-    server.log.info("Worker %d spawned", worker.pid)
+    server.log.info('Worker %d spawned', worker.pid)

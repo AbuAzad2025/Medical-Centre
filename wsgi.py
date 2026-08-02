@@ -4,6 +4,7 @@ Usage:
     gunicorn -w 4 -b 0.0.0.0:8000 wsgi:app
     uvicorn wsgi:app --host 0.0.0.0 --port 8000 --workers 4
 """
+
 import os
 import sys
 
@@ -13,6 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Load .env before any config imports
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass

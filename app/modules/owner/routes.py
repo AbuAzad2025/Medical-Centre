@@ -1519,7 +1519,6 @@ def owner_webhooks():
                     .scalars()
                     .first()
                 )
-                import json
 
                 if cfg:
                     cfg.config_value = json.dumps(webhooks)

@@ -151,9 +151,6 @@ def add_patient_to_queue():
             return redirect(url_for('reception.queue_management'))
 
     # جلب البيانات المطلوبة للنموذج
-    from models.department import Department
-    from models.visit import Visit
-
     patients = db.session.execute(select(Patient)).scalars().all()
     departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
     doctors = (
