@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
+{% from "macros/forms.html" import csrf %}
 {% block title %}كتالوج الفحوصات المخبرية{% endblock %}
 {% block content %}
 <div class="container-fluid">
@@ -52,7 +53,7 @@
               <td class="text-end">
                 <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ t.id }}"><i class="fas fa-edit"></i></button>
                 <form method="post" action="{{ url_for('lab.test_catalog_delete', id=t.id) }}" class="d-inline" onsubmit="return confirm('حذف الفحص؟')">
-                  {{ forms.csrf() }}
+                  {{ csrf() }}
                   <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
                 </form>
               </td>
@@ -61,7 +62,7 @@
             <div class="modal fade" id="editModal{{ t.id }}" tabindex="-1">
               <div class="modal-dialog modal-lg">
                 <form method="post" action="{{ url_for('lab.test_catalog_edit', id=t.id) }}">
-                  {{ forms.csrf() }}
+                  {{ csrf() }}
                   <div class="modal-content">
                     <div class="modal-header"><h5>تعديل الفحص: {{ t.name_ar }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                     <div class="modal-body">
@@ -88,7 +89,7 @@
 <div class="modal fade" id="addModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <form method="post" action="{{ url_for('lab.test_catalog_add') }}">
-      {{ forms.csrf() }}
+      {{ csrf() }}
       <div class="modal-content">
         <div class="modal-header"><h5>إضافة فحص جديد</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
